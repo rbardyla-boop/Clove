@@ -1,0 +1,13 @@
+node_modules/
+dist/
+app/*.html
+app/*.js
+app/*.json
+app/*.xml
+app/*.txt
+app/*.png
+app/*.jpg
+app/*.ico
+!package.json
+.DS_Store
+Thumbs.db

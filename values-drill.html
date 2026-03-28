@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="VALUES DRILL • OPERATOR'S DECK">
+<meta property="og:description" content="ACT values clarification. Know what matters. See where you're off course. Commit to one action.">
+<link rel="canonical" href="https://clovelearn.io/values-drill.html">
+<title>VALUES DRILL • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--pur:#9333ea}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--pur);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--pur);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+.progress-bar{height:3px;background:var(--dim3);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pur),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2)}
+.step-counter span{color:var(--pur)}
+
+.disc-strip{background:#0f0318;border-bottom:1px solid rgba(147,51,234,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--pur);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#6a3a8a;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#9060b0}
+
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--pur);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+
+/* VALUE CARDS */
+.val-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.val-card{background:var(--bg3);border:1.5px solid var(--dim3);border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .15s;text-align:center}
+.val-card.sel{border-color:var(--pur);background:rgba(147,51,234,.08)}
+.val-card:active{transform:scale(.96)}
+.val-icon{font-size:20px;margin-bottom:4px}
+.val-name{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:.5px;color:#bbb}
+.val-card.sel .val-name{color:#fff}
+.val-check{font-size:10px;color:var(--pur);opacity:0;margin-top:4px}
+.val-card.sel .val-check{opacity:1}
+
+/* IMPORTANCE SLIDER */
+.imp-item{background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--dim3)}
+.imp-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.imp-icon{font-size:16px}
+.imp-name{font-size:10px;font-weight:800;font-family:monospace;letter-spacing:.5px;flex:1}
+.imp-score{font-size:14px;font-weight:900;font-family:monospace;color:var(--pur)}
+input[type=range]{width:100%;height:8px;-webkit-appearance:none;background:linear-gradient(90deg,var(--dim3),var(--pur));border-radius:4px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--pur);cursor:pointer;border:2px solid #000;box-shadow:0 0 0 3px rgba(147,51,234,.2)}
+.imp-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:6px;font-family:monospace;color:var(--dim2);letter-spacing:.5px}
+
+/* GAP ANALYSIS */
+.gap-item{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid var(--dim3)}
+.gap-item.aligned{border-color:var(--grn)}
+.gap-item.gapped{border-color:var(--gld)}
+.gap-item.misaligned{border-color:var(--red)}
+.gap-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.gap-icon{font-size:16px}
+.gap-name{font-size:10px;font-weight:800;font-family:monospace;letter-spacing:.5px;flex:1}
+.gap-badge{font-size:7px;font-family:monospace;letter-spacing:1px;padding:3px 8px;border-radius:4px}
+.gap-badge.aligned{background:rgba(39,174,96,.15);color:var(--grn)}
+.gap-badge.gapped{background:rgba(212,168,67,.15);color:var(--gld)}
+.gap-badge.misaligned{background:rgba(192,57,43,.15);color:var(--red)}
+.gap-bars{display:flex;gap:6px;align-items:center}
+.gap-bar-label{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px;width:56px}
+.gap-bar{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.gap-bar-fill{height:100%;border-radius:3px}
+
+textarea{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s;min-height:90px}
+textarea:focus{border-color:rgba(147,51,234,.4)}
+textarea::placeholder{color:#2a2a2a;font-style:italic}
+
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.btn-primary{background:linear-gradient(135deg,var(--pur),#5b21b6);color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:monospace;letter-spacing:2px;box-shadow:0 4px 16px rgba(147,51,234,.2);transition:all .2s}
+.btn-secondary{background:var(--bg2);color:#aaa;border:1px solid #222;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-primary:active,.btn-secondary:active{transform:scale(.96)}
+
+/* SUMMARY */
+.sum-card{background:var(--bg2);border-radius:14px;border:1px solid rgba(147,51,234,.15);padding:18px;margin-bottom:12px}
+.sum-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--pur);margin-bottom:6px}
+.sum-text{font-size:11px;font-family:Georgia,serif;color:#bbb;line-height:1.7;white-space:pre-wrap;word-wrap:break-word}
+
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(192,57,43,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--pur)}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Values Drill navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">ACCEPTANCE &amp; COMMITMENT THERAPY</div>
+    <div class="nav-name">VALUES CLARIFICATION</div>
+  </div>
+</nav>
+
+<div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+<div class="step-counter" id="stepCount">STEP <span>1</span> OF 5</div>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>Clinical context:</strong> Values clarification is a core ACT process (Hayes, Strosahl & Wilson, 2012).
+    Values are directions, not destinations — you never "arrive." This drill helps you find yours
+    and see where your actions don't match. Not therapy — a compass check.
+  </div>
+</div>
+
+<!-- STEP 1: SELECT DOMAINS -->
+<div class="step active" id="step1">
+  <div class="step-label">STEP 01 — LIFE DOMAINS</div>
+  <div class="step-title">What Matters to You?</div>
+  <div class="step-desc">
+    Select the life domains that matter most to you right now.
+    Not what should matter. Not what used to matter. What actually pulls
+    at you when you're honest with yourself. Pick 3–6.
+  </div>
+  <div class="val-grid" id="domainGrid"></div>
+  <div style="text-align:center;font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-bottom:10px" id="domCount">0 SELECTED (PICK 3–6)</div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="goStep(2)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 2: IMPORTANCE RATING -->
+<div class="step" id="step2">
+  <div class="step-label">STEP 02 — IMPORTANCE</div>
+  <div class="step-title">How Much Does Each One Matter?</div>
+  <div class="step-desc">
+    Rate how important each domain is to you on a scale of 1–10.
+    Not how well you're doing — how much it matters. There's a difference.
+  </div>
+  <div id="impList"></div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(1)">◂ BACK</button>
+    <button class="btn-primary" onclick="goStep(3)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 3: ACTION RATING -->
+<div class="step" id="step3">
+  <div class="step-label">STEP 03 — CURRENT ACTION</div>
+  <div class="step-title">How Well Are You Living It?</div>
+  <div class="step-desc">
+    Now rate how consistently your actual behavior aligns with each value
+    over the past month. 1 = completely neglected. 10 = living it daily.
+    The gap between importance and action is where the work is.
+  </div>
+  <div id="actList"></div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(2)">◂ BACK</button>
+    <button class="btn-primary" onclick="goStep(4)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 4: GAP ANALYSIS -->
+<div class="step" id="step4">
+  <div class="step-label">STEP 04 — GAP ANALYSIS</div>
+  <div class="step-title">Where Are You Off Course?</div>
+  <div class="step-desc">
+    The bigger the gap between importance and action, the more that
+    domain is costing you. Green = aligned. Yellow = drifting. Red = misaligned.
+  </div>
+  <div id="gapList"></div>
+  <div style="margin-top:14px">
+    <div class="step-label">COMMITTED ACTION</div>
+    <div style="font-size:10px;font-family:Georgia,serif;color:var(--dim2);font-style:italic;line-height:1.7;margin-bottom:10px">
+      Pick the domain with the biggest gap. Write one specific, small,
+      doable action you can take in the next 24 hours to move toward that value.
+      Not a goal — a behavior.
+    </div>
+    <textarea id="in_action" placeholder="One specific action. Small enough to actually do. (e.g., 'Text my brother and ask how he's doing.')" maxlength="1000" aria-label="Committed action"></textarea>
+  </div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(3)">◂ BACK</button>
+    <button class="btn-primary" onclick="saveDrill()" style="background:linear-gradient(135deg,var(--grn),#1a6b3a);box-shadow:0 4px 16px rgba(39,174,96,.25)">LOG VALUES CHECK ✓</button>
+  </div>
+</div>
+
+<!-- STEP 5: SUMMARY -->
+<div class="step" id="step5">
+  <div class="step-label">VALUES CHECK COMPLETE</div>
+  <div class="step-title">Your Values Compass</div>
+  <div id="summary"></div>
+  <div class="btn-row" style="margin-top:20px">
+    <button class="btn-primary" onclick="resetDrill()">NEW CHECK</button>
+    <button class="btn-secondary" onclick="showHistory()">VIEW HISTORY</button>
+  </div>
+</div>
+
+<!-- STEP 6: HISTORY -->
+<div class="step" id="step6">
+  <div class="step-label">VALUES LOG</div>
+  <div class="step-title">Your History</div>
+  <div id="histList"></div>
+  <div class="btn-row" style="margin-top:16px">
+    <button class="btn-primary" onclick="resetDrill()">NEW CHECK</button>
+    <button class="btn-secondary" onclick="exportHist()">EXPORT .TXT</button>
+  </div>
+</div>
+
+<!-- DECK LINK -->
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <div class="dl-text">Values work pairs directly with the ACT Drill's committed action steps.
+  Your values compass tells you where to point — the ACT drill tells you how to move.</div>
+  <a href="act-drill.html" rel="noopener">OPEN ACT DRILL →</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related drills">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="act-drill.html">◈ ACT DRILL — Values + defusion + committed action</a>
+  <a class="next-link" href="cbt-drill.html">◈ CBT DRILL — Challenge the thoughts blocking your values</a>
+  <a class="next-link" href="opposite-action-drill.html">◈ OPPOSITE ACTION — Override avoidance of valued behavior</a>
+  <a class="next-link" href="mindfulness-drill-full.html">◈ MINDFULNESS — Present-moment awareness for values contact</a>
+  <a class="next-link" href="toolshed.html">◈ TOOL SHED — All recovery tools</a>
+</nav>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var KEY='od_values_records';
+var currentStep=1;
+var selectedDomains=[];
+var importance={};
+var action={};
+
+var DOMAINS=[
+  {id:'family',icon:'\uD83C\uDFE0',name:'FAMILY'},
+  {id:'partner',icon:'\u2764\uFE0F',name:'INTIMATE RELATIONSHIP'},
+  {id:'parenting',icon:'\uD83D\uDC76',name:'PARENTING'},
+  {id:'friendship',icon:'\uD83E\uDD1D',name:'FRIENDSHIP'},
+  {id:'career',icon:'\uD83D\uDCBC',name:'WORK / CAREER'},
+  {id:'education',icon:'\uD83D\uDCDA',name:'EDUCATION / GROWTH'},
+  {id:'health',icon:'\uD83D\uDCAA',name:'PHYSICAL HEALTH'},
+  {id:'mental',icon:'\uD83E\uDDE0',name:'MENTAL HEALTH'},
+  {id:'spiritual',icon:'\u2728',name:'SPIRITUALITY / MEANING'},
+  {id:'community',icon:'\uD83C\uDF0D',name:'COMMUNITY / SERVICE'},
+  {id:'creative',icon:'\uD83C\uDFA8',name:'CREATIVITY / EXPRESSION'},
+  {id:'adventure',icon:'\u26F0\uFE0F',name:'ADVENTURE / PLAY'},
+  {id:'financial',icon:'\uD83D\uDCB0',name:'FINANCIAL STABILITY'},
+  {id:'nature',icon:'\uD83C\uDF3F',name:'NATURE / ENVIRONMENT'}
+];
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+function goStep(n){
+  if(n===2&&selectedDomains.length<3){showToast('SELECT AT LEAST 3 DOMAINS');return}
+  currentStep=n;
+  for(var i=1;i<=6;i++){
+    var el=document.getElementById('step'+i);
+    if(el)el.classList.toggle('active',i===n);
+  }
+  var pct=n<=4?Math.round(((n-1)/4)*100):100;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('stepCount').innerHTML=n<=4?'STEP <span>'+n+'</span> OF 5':n===5?'COMPLETE':'HISTORY';
+  window.scrollTo(0,0);
+  if(n===2)renderImportance();
+  if(n===3)renderAction();
+  if(n===4)renderGaps();
+}
+
+function renderDomains(){
+  var h='';
+  DOMAINS.forEach(function(d){
+    var sel=selectedDomains.indexOf(d.id)>-1;
+    h+='<div class="val-card'+(sel?' sel':'')+'" onclick="toggleDom(\''+d.id+'\')">';
+    h+='<div class="val-icon" aria-hidden="true">'+d.icon+'</div>';
+    h+='<div class="val-name">'+d.name+'</div>';
+    h+='<div class="val-check">'+(sel?'&#10003;':'')+'</div>';
+    h+='</div>';
+  });
+  document.getElementById('domainGrid').innerHTML=h;
+  document.getElementById('domCount').textContent=selectedDomains.length+' SELECTED (PICK 3\u20136)';
+}
+
+function toggleDom(id){
+  var idx=selectedDomains.indexOf(id);
+  if(idx>-1){selectedDomains.splice(idx,1)}
+  else{if(selectedDomains.length>=6){showToast('MAX 6 DOMAINS');return}selectedDomains.push(id)}
+  renderDomains();
+}
+
+function renderImportance(){
+  var h='';
+  selectedDomains.forEach(function(id){
+    var d=DOMAINS.find(function(x){return x.id===id});
+    if(!d)return;
+    var v=importance[id]||5;
+    h+='<div class="imp-item">';
+    h+='<div class="imp-header"><span class="imp-icon">'+d.icon+'</span><span class="imp-name">'+d.name+'</span><span class="imp-score" id="impScore_'+id+'">'+v+'</span></div>';
+    h+='<input type="range" min="1" max="10" value="'+v+'" step="1" oninput="setImp(\''+id+'\',this.value)" aria-label="'+d.name+' importance">';
+    h+='<div class="imp-labels"><span>NOT IMPORTANT</span><span>EXTREMELY IMPORTANT</span></div>';
+    h+='</div>';
+  });
+  document.getElementById('impList').innerHTML=h;
+}
+
+function setImp(id,v){importance[id]=parseInt(v);var el=document.getElementById('impScore_'+id);if(el)el.textContent=v}
+
+function renderAction(){
+  var h='';
+  selectedDomains.forEach(function(id){
+    var d=DOMAINS.find(function(x){return x.id===id});
+    if(!d)return;
+    var v=action[id]||3;
+    h+='<div class="imp-item">';
+    h+='<div class="imp-header"><span class="imp-icon">'+d.icon+'</span><span class="imp-name">'+d.name+'</span><span class="imp-score" id="actScore_'+id+'" style="color:var(--gld)">'+v+'</span></div>';
+    h+='<input type="range" min="1" max="10" value="'+v+'" step="1" oninput="setAct(\''+id+'\',this.value)" aria-label="'+d.name+' action consistency">';
+    h+='<div class="imp-labels"><span>COMPLETELY NEGLECTED</span><span>LIVING IT DAILY</span></div>';
+    h+='</div>';
+  });
+  document.getElementById('actList').innerHTML=h;
+}
+
+function setAct(id,v){action[id]=parseInt(v);var el=document.getElementById('actScore_'+id);if(el)el.textContent=v}
+
+function renderGaps(){
+  var items=[];
+  selectedDomains.forEach(function(id){
+    var d=DOMAINS.find(function(x){return x.id===id});
+    if(!d)return;
+    var imp=importance[id]||5;
+    var act=action[id]||3;
+    var gap=imp-act;
+    items.push({id:id,icon:d.icon,name:d.name,imp:imp,act:act,gap:gap});
+  });
+  items.sort(function(a,b){return b.gap-a.gap});
+
+  var h='';
+  items.forEach(function(item){
+    var cls=item.gap<=1?'aligned':item.gap<=3?'gapped':'misaligned';
+    var label=item.gap<=1?'ALIGNED':item.gap<=3?'DRIFTING':'MISALIGNED';
+    h+='<div class="gap-item '+cls+'">';
+    h+='<div class="gap-header"><span class="gap-icon">'+item.icon+'</span><span class="gap-name">'+item.name+'</span><span class="gap-badge '+cls+'">'+label+'</span></div>';
+    h+='<div class="gap-bars">';
+    h+='<span class="gap-bar-label">MATTERS</span><div class="gap-bar"><div class="gap-bar-fill" style="width:'+item.imp*10+'%;background:var(--pur)"></div></div>';
+    h+='</div>';
+    h+='<div class="gap-bars" style="margin-top:4px">';
+    h+='<span class="gap-bar-label">LIVING IT</span><div class="gap-bar"><div class="gap-bar-fill" style="width:'+item.act*10+'%;background:var(--gld)"></div></div>';
+    h+='</div>';
+    if(item.gap>1)h+='<div style="font-size:8px;font-family:monospace;color:var(--dim2);margin-top:6px;letter-spacing:1px">GAP: '+item.gap+' POINTS</div>';
+    h+='</div>';
+  });
+  document.getElementById('gapList').innerHTML=h;
+}
+
+function saveDrill(){
+  var items=[];
+  selectedDomains.forEach(function(id){
+    var d=DOMAINS.find(function(x){return x.id===id});
+    items.push({id:id,name:d?d.name:'',imp:importance[id]||5,act:action[id]||3,gap:(importance[id]||5)-(action[id]||3)});
+  });
+  items.sort(function(a,b){return b.gap-a.gap});
+
+  var record={
+    domains:items,
+    action:document.getElementById('in_action').value.trim(),
+    date:new Date().toLocaleDateString(),
+    ts:Date.now()
+  };
+
+  var records=loadRecords();
+  records.push(record);
+  if(records.length>100)records.splice(0,records.length-100);
+  try{localStorage.setItem(KEY,JSON.stringify(records))}catch(e){}
+
+  // Render summary
+  var h='';
+  var biggest=items[0];
+  if(biggest&&biggest.gap>1){
+    h+='<div class="sum-card"><div class="sum-label">BIGGEST GAP</div><div style="font-size:14px;font-weight:900;color:var(--red);margin-bottom:4px">'+esc(biggest.name)+'</div><div class="sum-text">Importance: '+biggest.imp+'/10 — Action: '+biggest.act+'/10 — Gap: '+biggest.gap+'</div></div>';
+  }
+  h+='<div class="sum-card"><div class="sum-label">ALL DOMAINS</div>';
+  items.forEach(function(item){
+    var c=item.gap<=1?'var(--grn)':item.gap<=3?'var(--gld)':'var(--red)';
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)"><span style="font-size:10px;font-family:monospace;flex:1;color:#ccc">'+esc(item.name)+'</span><span style="font-size:9px;font-family:monospace;color:'+c+'">'+item.imp+' → '+item.act+' ('+item.gap+')</span></div>';
+  });
+  h+='</div>';
+  if(record.action)h+='<div class="sum-card"><div class="sum-label">COMMITTED ACTION (24 HOURS)</div><div class="sum-text">'+esc(record.action)+'</div></div>';
+
+  var totalGap=items.reduce(function(a,b){return a+Math.max(0,b.gap)},0);
+  var avgGap=items.length?Math.round(totalGap/items.length*10)/10:0;
+  h+='<div class="sum-card" style="text-align:center"><div class="sum-label">VALUES ALIGNMENT SCORE</div><div style="font-size:32px;font-weight:900;font-family:monospace;color:'+(avgGap<=1?'var(--grn)':avgGap<=3?'var(--gld)':'var(--red)')+'">'+avgGap+'</div><div style="font-size:9px;color:var(--dim2);font-family:Georgia,serif;font-style:italic;margin-top:4px">Average gap across all domains. Lower is better. 0 = fully aligned.</div></div>';
+
+  document.getElementById('summary').innerHTML=h;
+  showToast('VALUES CHECK LOGGED');
+  goStep(5);
+}
+
+function loadRecords(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+
+function resetDrill(){
+  selectedDomains=[];importance={};action={};
+  var ta=document.getElementById('in_action');if(ta)ta.value='';
+  renderDomains();
+  goStep(1);
+}
+
+function showHistory(){
+  var records=loadRecords();
+  if(!records.length){
+    document.getElementById('histList').innerHTML='<div style="text-align:center;color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;padding:20px">No values checks yet.</div>';
+    goStep(6);return;
+  }
+  var h='<div style="text-align:center;font-size:8px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-bottom:12px">'+records.length+' CHECK'+(records.length!==1?'S':'')+'</div>';
+  records.slice().reverse().slice(0,20).forEach(function(r){
+    var totalGap=r.domains.reduce(function(a,b){return a+Math.max(0,b.gap)},0);
+    var avgGap=r.domains.length?Math.round(totalGap/r.domains.length*10)/10:0;
+    h+='<div style="background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:6px;border-left:3px solid var(--pur)">';
+    h+='<div style="font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-bottom:4px">'+esc(r.date)+' — AVG GAP: '+avgGap+'</div>';
+    r.domains.forEach(function(d){
+      var c=d.gap<=1?'var(--grn)':d.gap<=3?'var(--gld)':'var(--red)';
+      h+='<div style="font-size:9px;font-family:monospace;color:'+c+'">'+esc(d.name)+': '+d.imp+'→'+d.act+' ('+d.gap+')</div>';
+    });
+    if(r.action)h+='<div style="font-size:9px;font-family:Georgia,serif;color:#888;font-style:italic;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.03)">Action: '+esc(r.action)+'</div>';
+    h+='</div>';
+  });
+  document.getElementById('histList').innerHTML=h;
+  goStep(6);
+}
+
+function exportHist(){
+  var records=loadRecords();
+  if(!records.length){showToast('NO RECORDS');return}
+  var txt='VALUES CLARIFICATION LOG — OPERATOR\'S DECK\nExported: '+new Date().toLocaleString()+'\n'+('═').repeat(50)+'\n\n';
+  records.forEach(function(r,i){
+    txt+='CHECK #'+(i+1)+' — '+r.date+'\n';
+    r.domains.forEach(function(d){txt+='  '+d.name+': Importance '+d.imp+'/10, Action '+d.act+'/10, Gap '+d.gap+'\n'});
+    if(r.action)txt+='  Committed action: '+r.action+'\n';
+    txt+=('-').repeat(40)+'\n\n';
+  });
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='values-log-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  showToast('EXPORTED');
+}
+
+renderDomains();
+</script>
+</body>
+</html>

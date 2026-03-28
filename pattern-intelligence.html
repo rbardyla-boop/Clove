@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="PATTERN INTELLIGENCE • OPERATOR'S DECK">
+<meta property="og:description" content="Warroom debrief. All data local. Protocol logs, delay analytics, correction history, adaptive bias profile.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/pattern-intelligence.html">
+<title>PATTERN INTELLIGENCE • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--acc:#e67e22;--pur:#7b52ab;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:'Courier New',monospace;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+.app{max-width:520px;margin:0 auto}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--gld);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--gld);font-size:6.5px;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.nav-live{color:var(--grn);font-size:7px;letter-spacing:2px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* STATS GRID */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.stat-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px}
+.sc-label{font-size:7px;letter-spacing:2px;color:var(--dim);margin-bottom:4px}
+.sc-val{font-size:26px;font-weight:900;letter-spacing:1px;line-height:1.1}
+.sc-sub{font-size:7px;color:var(--dim);margin-top:4px;letter-spacing:.5px}
+.stat-wide{grid-column:1/-1}
+
+/* SECTIONS */
+.section{padding:0 16px 16px}
+.section-title{font-size:8px;letter-spacing:3px;color:var(--gld);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--dim3)}
+
+/* HEATMAP */
+.heatmap-wrap{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px}
+.hm-grid{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-bottom:6px}
+.hm-cell{aspect-ratio:1;border-radius:3px;background:var(--bg3);position:relative;transition:background .3s}
+.hm-cell:hover::after{content:attr(data-tip);position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#000;color:#ddd;padding:3px 8px;border-radius:4px;font-size:7px;white-space:nowrap;z-index:5;border:1px solid var(--dim3)}
+.hm-labels{display:grid;grid-template-columns:repeat(24,1fr);gap:2px}
+.hm-labels span{font-size:6px;text-align:center;color:var(--dim2)}
+.hm-legend{display:flex;align-items:center;gap:6px;margin-top:8px;justify-content:center}
+.hm-legend span{font-size:6px;color:var(--dim);letter-spacing:1px}
+.hm-legend-bar{display:flex;gap:2px}
+.hm-legend-bar div{width:12px;height:8px;border-radius:2px}
+
+/* TABLES */
+.tbl-wrap{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;overflow:hidden;margin-bottom:12px}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);color:var(--dim);font-size:7px;letter-spacing:1.5px;padding:8px 10px;text-align:left;border-bottom:1px solid var(--dim3)}
+td{padding:8px 10px;font-size:9px;border-bottom:1px solid var(--dim3);color:#999}
+tr:last-child td{border-bottom:none}
+.state-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+/* BIAS PROFILE */
+.bias-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.bias-card{background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;padding:8px;text-align:center}
+.bc-icon{font-size:16px;margin-bottom:2px}
+.bc-val{font-size:11px;font-weight:700;letter-spacing:.5px}
+.bc-name{font-size:6px;letter-spacing:1px;color:var(--dim);margin-top:2px}
+.bc-bar{height:3px;background:var(--dim3);border-radius:2px;margin-top:4px;overflow:hidden}
+.bc-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+
+/* MODALITY CHART */
+.mod-bars{display:flex;flex-direction:column;gap:6px}
+.mb-row{display:flex;align-items:center;gap:8px}
+.mb-label{width:30px;font-size:8px;color:var(--dim);letter-spacing:1px;text-align:right;flex-shrink:0}
+.mb-track{flex:1;height:14px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}
+.mb-fill{height:100%;border-radius:4px;transition:width .5s}
+.mb-count{position:absolute;right:6px;top:0;height:100%;display:flex;align-items:center;font-size:7px;color:#fff;font-weight:700;letter-spacing:.5px}
+
+/* BUTTONS */
+.actions{display:flex;gap:8px;padding:16px;flex-wrap:wrap}
+.act-btn{flex:1;min-width:140px;background:var(--bg2);border:1px solid var(--dim3);color:var(--dim);border-radius:10px;padding:12px;font-size:8px;letter-spacing:1.5px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s}
+.act-btn:active{transform:scale(.97);border-color:#444}
+.act-btn.danger{border-color:rgba(192,57,43,.3);color:var(--red)}
+.act-btn.danger:active{background:rgba(192,57,43,.1)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px 20px;color:var(--dim)}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.5}
+.empty-text{font-size:10px;line-height:1.6}
+.empty-link{display:inline-block;margin-top:12px;color:var(--gld);font-size:9px;letter-spacing:1px;text-decoration:none;border-bottom:1px dashed var(--gld);padding-bottom:2px}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 22px;border-radius:20px;font-size:9px;letter-spacing:1.5px;font-weight:700;z-index:99;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+@media(max-width:380px){.stats{grid-template-columns:1fr}.bias-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAV -->
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'">◄ DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">CLOVELEARN WARROOM</div>
+    <div class="nav-name">PATTERN INTELLIGENCE</div>
+  </div>
+  <div class="nav-live">● LIVE</div>
+</div>
+
+<!-- STATS CARDS -->
+<div class="stats" id="statsGrid"></div>
+
+<!-- HEATMAP -->
+<div class="section">
+  <div class="section-title">24-HOUR ACTIVITY HEATMAP</div>
+  <div class="heatmap-wrap">
+    <div class="hm-grid" id="hmGrid"></div>
+    <div class="hm-labels" id="hmLabels"></div>
+    <div class="hm-legend">
+      <span>QUIET</span>
+      <div class="hm-legend-bar">
+        <div style="background:var(--bg3)"></div>
+        <div style="background:#2a1a00"></div>
+        <div style="background:#5a3000"></div>
+        <div style="background:#8a4a00"></div>
+        <div style="background:var(--acc)"></div>
+        <div style="background:var(--red)"></div>
+      </div>
+      <span>INTENSE</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODALITY DISTRIBUTION -->
+<div class="section">
+  <div class="section-title">MODALITY DISTRIBUTION</div>
+  <div class="mod-bars" id="modBars"></div>
+</div>
+
+<!-- DISTORTION FREQUENCY -->
+<div class="section">
+  <div class="section-title">COGNITIVE DISTORTION FREQUENCY — OPERATIONAL LEAKS</div>
+  <div id="distortionBars"></div>
+</div>
+
+<!-- STATE FREQUENCY -->
+<div class="section">
+  <div class="section-title">TOP DETECTED STATES</div>
+  <div class="tbl-wrap"><table><thead><tr><th>STATE</th><th>COUNT</th><th>AVG CONFIDENCE</th><th>AVG INTENSITY</th></tr></thead><tbody id="stateRows"></tbody></table></div>
+</div>
+
+<!-- TOP TRIGGERS -->
+<div class="section">
+  <div class="section-title">TOP TRIGGERS (PHRASE ANALYSIS)</div>
+  <div class="tbl-wrap"><table><thead><tr><th>PHRASE</th><th>COUNT</th><th>STATE</th></tr></thead><tbody id="triggerRows"></tbody></table></div>
+</div>
+
+<!-- RECENT CORRECTIONS -->
+<div class="section">
+  <div class="section-title">RECENT CORRECTIONS (LEARNING HISTORY)</div>
+  <div class="tbl-wrap"><table><thead><tr><th>DATE</th><th>INPUT</th><th>SYSTEM → USER</th></tr></thead><tbody id="corrRows"></tbody></table></div>
+</div>
+
+<!-- BIAS PROFILE -->
+<div class="section">
+  <div class="section-title">ADAPTIVE BIAS PROFILE</div>
+  <div class="bias-grid" id="biasGrid"></div>
+</div>
+
+<!-- DELAY ANALYTICS -->
+<div class="section">
+  <div class="section-title">IMPULSE LOCK ANALYTICS</div>
+  <div class="tbl-wrap"><table><thead><tr><th>DATE</th><th>REASON</th><th>OVERRIDDEN</th></tr></thead><tbody id="delayRows"></tbody></table></div>
+</div>
+
+<!-- ACTIONS -->
+<div class="actions">
+  <button class="act-btn" onclick="exportData()">📥 EXPORT FULL INTELLIGENCE (JSON)</button>
+  <button class="act-btn" onclick="window.location.href='whats-going-on.html'">🧠 WHAT'S GOING ON</button>
+  <button class="act-btn danger" onclick="resetAll()">🗑️ RESET ALL CLOVELEARN LOGS</button>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// PATTERN INTELLIGENCE — WARROOM DEBRIEF
+// Reads all CloveLearn localStorage. Zero cloud. Zero libraries.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── STATE COLORS (match whats-going-on.html exactly)
+const STATE_META = {
+  panic:        {icon:'🔴', color:'#e74c3c', label:'PANIC'},
+  rsd:          {icon:'🛡️', color:'#d35400', label:'RSD'},
+  rumination:   {icon:'🔄', color:'#8e44ad', label:'RUMINATION'},
+  shame:        {icon:'🪞', color:'#c0392b', label:'SHAME'},
+  impulse:      {icon:'⚡', color:'#e67e22', label:'IMPULSE'},
+  anger:        {icon:'🔥', color:'#e74c3c', label:'ANGER'},
+  sadness:      {icon:'🌧️', color:'#3498db', label:'SADNESS'},
+  anxiety:      {icon:'⚙️', color:'#f39c12', label:'ANXIETY'},
+  guilt:        {icon:'⚖️', color:'#2980b9', label:'GUILT'},
+  hopelessness: {icon:'🕳️', color:'#7f8c8d', label:'HOPELESS'}
+};
+
+// ── SAFE LOAD ────────────────────────────────────────────────────────────────
+function safeLoad(key) { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; } }
+function safeObj(key) { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) { return {}; } }
+function esc(s) { if (typeof s !== 'string') return ''; const d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+function showToast(msg) { const e = document.querySelector('.toast'); if (e) e.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
+
+// ── LOAD ALL DATA ────────────────────────────────────────────────────────────
+const protocolLogs = safeLoad('od_protocol_logs');
+const delayLogs    = safeLoad('od_delay_logs');
+const corrections  = safeLoad('od_wgo_corrections');
+const wgoLogs      = safeLoad('od_wgo_logs');
+const userBias     = safeObj('od_wgo_bias');
+
+// ── COMPUTED METRICS ─────────────────────────────────────────────────────────
+const totalProtocols = protocolLogs.length;
+const totalDelays    = delayLogs.length;
+const totalOverrides = delayLogs.filter(l => l.overridden).length;
+const overrideRate   = totalDelays > 0 ? Math.round((totalOverrides / totalDelays) * 100) : 0;
+const totalCorr      = corrections.length;
+
+// Most common state
+const stateCount = {};
+const stateConfSum = {};
+const stateIntSum = {};
+protocolLogs.forEach(l => {
+  const s = l.state;
+  if (!s) return;
+  stateCount[s]   = (stateCount[s] || 0) + 1;
+  stateConfSum[s]  = (stateConfSum[s] || 0) + (l.confidence || 0);
+  stateIntSum[s]   = (stateIntSum[s] || 0) + (l.intensity || 0);
+});
+const sortedStates = Object.entries(stateCount).sort((a, b) => b[1] - a[1]);
+const dominantState = sortedStates.length ? sortedStates[0][0] : null;
+
+// Modality distribution
+const modCount = {};
+protocolLogs.forEach(l => { if (l.modality) modCount[l.modality] = (modCount[l.modality] || 0) + 1; });
+const sortedMods = Object.entries(modCount).sort((a, b) => b[1] - a[1]);
+
+// Accuracy
+const uncorrected = Math.max(0, totalProtocols - totalCorr);
+const accuracy = totalProtocols > 0 ? Math.round((uncorrected / totalProtocols) * 100) : 0;
+
+// DBT override count
+const dbtOverrides = protocolLogs.filter(l => l.overrideReason).length;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function render() {
+  // ── EMPTY STATE
+  if (totalProtocols === 0 && totalDelays === 0 && totalCorr === 0) {
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-wide" style="grid-column:1/-1">
+        <div class="empty">
+          <div class="empty-icon">📡</div>
+          <div class="empty-text">No intelligence yet.<br>Use <strong>What's Going On</strong> to generate your first protocol log.<br>The system learns from every use.</div>
+          <a class="empty-link" href="whats-going-on.html">🧠 OPEN WHAT'S GOING ON →</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── STATS CARDS
+  const dm = dominantState ? STATE_META[dominantState] : null;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="sc-label">PROTOCOLS EXECUTED</div>
+      <div class="sc-val" style="color:var(--gld)">${totalProtocols}</div>
+      <div class="sc-sub">${dbtOverrides > 0 ? dbtOverrides + ' DBT overrides' : 'across all modalities'}</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-label">IMPULSE LOCKS</div>
+      <div class="sc-val" style="color:var(--acc)">${totalDelays}</div>
+      <div class="sc-sub">${totalOverrides} override${totalOverrides !== 1 ? 's' : ''} (${overrideRate}%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-label">DETECTION ACCURACY</div>
+      <div class="sc-val" style="color:${accuracy >= 80 ? 'var(--grn)' : accuracy >= 50 ? 'var(--acc)' : 'var(--red)'}">${accuracy}%</div>
+      <div class="sc-sub">${totalCorr} correction${totalCorr !== 1 ? 's' : ''} filed</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-label">DOMINANT STATE</div>
+      <div class="sc-val" style="color:${dm ? dm.color : 'var(--dim)'}">${dm ? dm.icon : '—'}</div>
+      <div class="sc-sub">${dm ? dm.label + ' (' + stateCount[dominantState] + '×)' : 'no data yet'}</div>
+    </div>
+  `;
+
+  // ── HEATMAP (24-hour)
+  const hourCounts = new Array(24).fill(0);
+  const hourIntensity = new Array(24).fill(0);
+  [...protocolLogs, ...delayLogs].forEach(l => {
+    const ts = l.timestamp || l.ts;
+    if (!ts) return;
+    const h = new Date(ts).getHours();
+    hourCounts[h]++;
+    hourIntensity[h] += (l.intensity || 3);
+  });
+  const maxHour = Math.max(...hourCounts, 1);
+
+  const hmGrid = document.getElementById('hmGrid');
+  const hmLabels = document.getElementById('hmLabels');
+  hmGrid.innerHTML = '';
+  hmLabels.innerHTML = '';
+
+  for (let i = 0; i < 24; i++) {
+    const pct = hourCounts[i] / maxHour;
+    const avgInt = hourCounts[i] > 0 ? Math.round(hourIntensity[i] / hourCounts[i]) : 0;
+    const cell = document.createElement('div');
+    cell.className = 'hm-cell';
+    cell.setAttribute('data-tip', `${String(i).padStart(2, '0')}:00 — ${hourCounts[i]} event${hourCounts[i] !== 1 ? 's' : ''}, avg intensity ${avgInt}`);
+
+    // Color gradient: bg3 → orange → red based on activity
+    if (pct > 0) {
+      const r = Math.round(30 + pct * 162);
+      const g = Math.round(20 + (1 - pct) * 60);
+      cell.style.background = `rgb(${r},${g},0)`;
+      cell.style.opacity = 0.4 + pct * 0.6;
+    }
+
+    hmGrid.appendChild(cell);
+
+    const lbl = document.createElement('span');
+    lbl.textContent = i % 3 === 0 ? String(i).padStart(2, '0') : '';
+    hmLabels.appendChild(lbl);
+  }
+
+  // ── MODALITY BARS
+  const modEl = document.getElementById('modBars');
+  const maxMod = sortedMods.length ? sortedMods[0][1] : 1;
+  const modColors = { DBT: '#e74c3c', CBT: '#3498db', ACT: '#8e44ad', IFS: '#c0392b' };
+  modEl.innerHTML = sortedMods.map(([m, c]) => {
+    const pct = Math.round((c / maxMod) * 100);
+    const col = modColors[m] || 'var(--dim)';
+    return `<div class="mb-row">
+      <div class="mb-label">${m}</div>
+      <div class="mb-track"><div class="mb-fill" style="width:${pct}%;background:${col}"></div><div class="mb-count">${c}</div></div>
+    </div>`;
+  }).join('') || '<div style="color:var(--dim);font-size:9px;padding:10px">No protocol data yet</div>';
+
+  // ── DISTORTION FREQUENCY BARS
+  const distMap = {};
+  protocolLogs.forEach(l => {
+    (l.distortions || []).forEach(name => {
+      if (!name) return;
+      distMap[name] = (distMap[name] || 0) + 1;
+    });
+  });
+  const sortedDist = Object.entries(distMap).sort((a, b) => b[1] - a[1]);
+  const distEl = document.getElementById('distortionBars');
+  const maxDist = sortedDist.length ? sortedDist[0][1] : 1;
+  distEl.innerHTML = sortedDist.map(([name, count]) => {
+    const pct = Math.round((count / maxDist) * 100);
+    return `<div class="mb-row">
+      <div class="mb-label" style="width:140px;text-align:left">${name}</div>
+      <div class="mb-track"><div class="mb-fill" style="width:${pct}%;background:var(--gld)"></div><div class="mb-count">${count}</div></div>
+    </div>`;
+  }).join('') || '<div style="color:var(--dim);font-size:9px;padding:10px">No distortion data yet</div>';
+
+  // ── STATE FREQUENCY TABLE
+  const stateEl = document.getElementById('stateRows');
+  stateEl.innerHTML = sortedStates.slice(0, 8).map(([s, count]) => {
+    const meta = STATE_META[s] || { icon: '?', color: '#666', label: s };
+    const avgConf = Math.round((stateConfSum[s] || 0) / count);
+    const avgInt = ((stateIntSum[s] || 0) / count).toFixed(1);
+    return `<tr>
+      <td><span class="state-dot" style="background:${meta.color}"></span>${meta.icon} ${meta.label}</td>
+      <td>${count}</td>
+      <td>${avgConf}%</td>
+      <td>${avgInt}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" style="color:var(--dim)">No state data</td></tr>';
+
+  // ── TOP TRIGGERS
+  const trigMap = {};
+  protocolLogs.forEach(l => {
+    if (!l.input) return;
+    const key = l.input.substring(0, 40).replace(/[^a-zA-Z ]/g, '').trim();
+    if (!key) return;
+    if (!trigMap[key]) trigMap[key] = { count: 0, state: l.state };
+    trigMap[key].count++;
+  });
+  const sortedTrigs = Object.entries(trigMap).sort((a, b) => b[1].count - a[1].count).slice(0, 8);
+  const trigEl = document.getElementById('triggerRows');
+  trigEl.innerHTML = sortedTrigs.map(([phrase, data]) => {
+    const meta = STATE_META[data.state] || { icon: '', color: '#666', label: data.state };
+    return `<tr>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(phrase)}…</td>
+      <td>${data.count}</td>
+      <td><span style="color:${meta.color}">${meta.icon} ${meta.label}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" style="color:var(--dim)">No trigger data</td></tr>';
+
+  // ── RECENT CORRECTIONS
+  const corrEl = document.getElementById('corrRows');
+  const recentCorr = corrections.slice().reverse().slice(0, 10);
+  corrEl.innerHTML = recentCorr.map(c => {
+    const predMeta = STATE_META[c.predicted] || { icon: '?', label: c.predicted, color: '#666' };
+    const actMeta = STATE_META[c.actual] || { icon: '?', label: c.actual, color: '#666' };
+    const date = c.date ? new Date(c.date).toLocaleDateString() : '—';
+    return `<tr>
+      <td style="white-space:nowrap">${date}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((c.input || '').substring(0, 60))}</td>
+      <td style="white-space:nowrap"><span style="color:${predMeta.color}">${predMeta.icon} ${predMeta.label}</span> → <span style="color:${actMeta.color}">${actMeta.icon} ${actMeta.label}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" style="color:var(--dim)">No corrections filed — system has not been corrected yet</td></tr>';
+
+  // ── BIAS PROFILE
+  const biasEl = document.getElementById('biasGrid');
+  const allStates = Object.keys(STATE_META);
+  biasEl.innerHTML = allStates.map(s => {
+    const meta = STATE_META[s];
+    const val = userBias[s] || 1.0;
+    const delta = val - 1.0;
+    const col = delta > 0.05 ? 'var(--grn)' : delta < -0.05 ? 'var(--red)' : 'var(--dim)';
+    const arrow = delta > 0.05 ? '↑' : delta < -0.05 ? '↓' : '·';
+    const barPct = Math.round(((val - 0.7) / (2.0 - 0.7)) * 100);
+    return `<div class="bias-card">
+      <div class="bc-icon">${meta.icon}</div>
+      <div class="bc-val" style="color:${col}">${val.toFixed(2)} ${arrow}</div>
+      <div class="bc-name">${meta.label}</div>
+      <div class="bc-bar"><div class="bc-bar-fill" style="width:${barPct}%;background:${col === 'var(--dim)' ? 'var(--dim2)' : col}"></div></div>
+    </div>`;
+  }).join('');
+
+  // ── DELAY ANALYTICS
+  const delayEl = document.getElementById('delayRows');
+  const recentDelays = delayLogs.slice().reverse().slice(0, 10);
+  delayEl.innerHTML = recentDelays.map(l => {
+    const date = l.date || (l.timestamp ? new Date(l.timestamp).toLocaleDateString() : '—');
+    const reason = esc((l.reason || 'UNKNOWN').substring(0, 50));
+    const overridden = l.overridden;
+    return `<tr>
+      <td style="white-space:nowrap">${date}</td>
+      <td>${reason}</td>
+      <td style="color:${overridden ? 'var(--red)' : 'var(--grn)'};font-weight:700">${overridden ? 'YES' : 'NO'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" style="color:var(--dim)">No impulse locks triggered</td></tr>';
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportData() {
+  const payload = {
+    exportDate: new Date().toISOString(),
+    version: 'CloveLearn-v3.0',
+    protocolLogs,
+    delayLogs,
+    corrections,
+    wgoLogs,
+    userBias,
+    computed: {
+      totalProtocols, totalDelays, totalOverrides, overrideRate,
+      accuracy, dominantState, stateCount, modCount
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `clovelearn-intelligence-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('INTELLIGENCE EXPORTED');
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
+function resetAll() {
+  if (!confirm('WIPE ALL CLOVELEARN INTELLIGENCE DATA?\n\nThis deletes:\n• Protocol logs\n• Delay logs\n• Correction history\n• Adaptive bias\n• WGO session logs\n\nThis cannot be undone.')) return;
+  if (!confirm('FINAL CONFIRMATION — Are you absolutely sure? All learning will be lost.')) return;
+
+  ['od_protocol_logs', 'od_delay_logs', 'od_wgo_corrections', 'od_wgo_bias', 'od_wgo_logs', 'od_wgo_delay_end', 'od_wgo_delay_reason'].forEach(k => {
+    try { localStorage.removeItem(k); } catch(e) {}
+  });
+
+  showToast('ALL CLOVELEARN DATA WIPED');
+  setTimeout(() => location.reload(), 1000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Intelligence gathered — now act on it</span></a></div>
+<div style="text-align:center;color:#333;font-size:7px;letter-spacing:1px;padding:20px 16px 40px;max-width:520px;margin:0 auto;line-height:1.8">
+PATTERN INTELLIGENCE v3.0 • All data 100% local (localStorage) • No cloud, no tracking • CloveLearn Detection Engine<br>
+Adapted from CBT (Beck), DBT (Linehan), ACT (Hayes), IFS (Schwartz) clinical frameworks. Not a diagnostic tool.
+</div>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+  <title>WAR ROOM • OPERATOR'S DECK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --bg2: #0a0a0a;
+      --bg3: #111111;
+      --red: #c0392b;
+      --grn: #27ae60;
+      --gold: #d4a843;
+      --text: #e0e0e0;
+      --dim: #666666;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* NAV BAR */
+    .nav-bar {
+      background: #000;
+      border-bottom: 2px solid var(--red);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .nav-back {
+      background: none;
+      border: 1px solid #333;
+      color: #666;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 9px;
+      font-family: monospace;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .nav-back:active { color: #fff; border-color: #555; }
+    .nav-info { flex: 1; }
+    .nav-tag { color: var(--red); font-size: 6.5px; font-family: monospace; letter-spacing: 3px; }
+    .nav-name { font-size: 13px; font-weight: 900; letter-spacing: .5px; }
+
+    /* CRISIS BUTTON */
+    .crisis-strip {
+      background: linear-gradient(135deg, #3a0000, #1a0000);
+      border-bottom: 3px solid var(--red);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .crisis-strip:active { background: #4a0000; }
+    .crisis-label {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: #ff6b6b;
+      margin-bottom: 4px;
+    }
+    .crisis-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: #fff;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .crisis-arrow {
+      font-size: 32px;
+      color: var(--red);
+    }
+
+    header {
+      background: linear-gradient(to bottom, #1a0000, #000000);
+      padding: 40px 20px 40px;
+      text-align: center;
+      border-bottom: 6px solid var(--red);
+      position: relative;
+    }
+    header::after {
+      content: 'COMMAND CENTER — FEB 2026';
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      letter-spacing: 8px;
+      color: #444;
+    }
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 92px;
+      letter-spacing: 6px;
+      color: var(--red);
+      line-height: 0.85;
+      margin-bottom: 12px;
+      text-shadow: 0 0 40px rgba(192,57,43,0.8);
+    }
+    .subtitle {
+      font-size: 17px;
+      color: #777;
+      letter-spacing: 4px;
+      margin-bottom: 40px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 30px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .stat-card {
+      background: rgba(192,57,43,0.06);
+      border: 2px solid var(--red);
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 62px;
+      font-weight: 900;
+      color: var(--grn);
+      line-height: 1;
+      margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
+    }
+    .stat-value.gold { color: var(--gold); font-size: 32px; }
+    .stat-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #888;
+      text-transform: uppercase;
+    }
+
+    /* STREAK CARD */
+    .streak-badge {
+      display: inline-block;
+      background: var(--gold);
+      color: black;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-top: 8px;
+    }
+    .rescue-badge {
+      display: inline-block;
+      background: var(--red);
+      color: white;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-top: 8px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; }
+      50% { opacity:.5; }
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 42px;
+      color: var(--red);
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: 2px;
+      padding: 0 20px;
+    }
+
+    .activity-feed {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .feed-item {
+      background: #0a0a0a;
+      border-left: 6px solid var(--red);
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      border-radius: 0 8px 8px 0;
+      color: #bbb;
+    }
+    .feed-item strong { color: var(--text); }
+    .feed-tool {
+      display: inline-block;
+      background: rgba(192,57,43,0.15);
+      color: var(--red);
+      font-size: 10px;
+      letter-spacing: 2px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .quick-launch {
+      padding: 20px 20px 40px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+    }
+    .launch-btn {
+      background: #111;
+      border: 2px solid #222;
+      color: white;
+      padding: 20px 12px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+    }
+    .launch-btn:hover { background: var(--red); border-color: var(--red); transform: translateY(-3px); }
+    .launch-btn .btn-count {
+      display: block;
+      font-size: 10px;
+      color: #555;
+      letter-spacing: 1px;
+      margin-top: 6px;
+      font-weight: 400;
+    }
+
+    footer {
+      text-align: center;
+      padding: 60px 20px 120px;
+      color: #444;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      border-top: 1px solid #111;
+    }
+    *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}
+  </style>
+</head>
+<body>
+
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">OPERATOR'S DECK</div>
+    <div class="nav-name">WAR ROOM</div>
+  </div>
+</div>
+
+<!-- CRISIS ENTRY POINT -->
+<div class="crisis-strip" onclick="window.location.href='tipp-drill-full.html'">
+  <div>
+    <div class="crisis-label">⚠ CRISIS PROTOCOL</div>
+    <div class="crisis-text">IN THE RED? TAP HERE NOW</div>
+    <div style="font-size:11px;color:#777;margin-top:4px;">TIPP → IMPROVE → MINDFULNESS — FULL SEQUENCE</div>
+  </div>
+  <div class="crisis-arrow">▶</div>
+</div>
+
+<header>
+  <div class="subtitle">WAR ROOM — ALL DRILLS • ALL REPS • ALL PROGRESS</div>
+  <h1>WAR ROOM</h1>
+</header>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value" id="totalReps">—</div>
+    <div class="stat-label">TOTAL REPS LOGGED</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="totalDrills">—</div>
+    <div class="stat-label">DRILLS IN ARSENAL</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="streakDays">—</div>
+    <div class="stat-label">ACTIVE DAYS</div>
+    <div id="streakBadge"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value gold" id="opRank">—</div>
+    <div class="stat-label">OPERATOR RANK</div>
+  </div>
+</div>
+
+<div class="activity-feed">
+  <div class="section-title">RECENT ACTIVITY</div>
+  <div id="feed"></div>
+</div>
+
+<div class="quick-launch">
+  <div class="section-title">QUICK LAUNCH</div>
+  <div class="quick-grid" id="launchGrid"></div>
+</div>
+
+<footer>
+  100% local • Zero cloud • Your data. Your fight. Your rebuild.<br>
+  Operator's Deck — War Room • February 2026
+</footer>
+
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+// ── VERIFIED localStorage KEYS ──────────────────────────────────────────────
+const DRILLS = [
+  { key: 'od_candlebox_full',    label: 'CANDLEBOX',    file: 'candlebox-rebuild-full.html', icon: '🎸' },
+  { key: 'od_like_a_stone_full', label: 'LIKE A STONE', file: 'like-a-stone-full.html',       icon: '🪨' },
+  { key: 'od_be_yourself_full',  label: 'BE YOURSELF',  file: 'be-yourself-full.html',        icon: '🔥' },
+  { key: 'od_tipp_full',         label: 'TIPP CRISIS',  file: 'tipp-drill-full.html',         icon: '🧊' },
+  { key: 'od_improve_full',      label: 'IMPROVE',      file: 'improve-drill-full.html',      icon: '📈' },
+  { key: 'od_mindfulness_full',  label: 'MINDFULNESS',  file: 'mindfulness-drill-full.html',  icon: '🧘' },
+  { key: 'od_act_v1',            label: 'ACT DRILL',    file: 'act-drill.html',               icon: '🎯' },
+  { key: 'od_dm_v1',             label: 'DEAR MAN',     file: 'dear-man-drill.html',          icon: '🗣️' },
+  { key: 'od3sp',                label: 'STUCK POINTS', file: 'stuck-points-drill.html',      icon: '🔍' },
+  { key: 'od_chain_analysis',   label: 'CHAIN ANALYSIS',  file: 'chain-analysis-drill.html',   icon: '🔗' },
+  { key: 'od_opposite_action',  label: 'OPP. ACTION',     file: 'opposite-action-drill.html',  icon: '⚡' },
+  { key: 'od_intercepts',       label: 'THOUGHT INTRCPT', file: 'thought-interceptor.html',    icon: '🎯' },
+];
+
+function getLogs(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+
+function getDeck() {
+  try {
+    const od3 = JSON.parse(localStorage.getItem('od3')) || {};
+    return { total: od3.t || 0, log: od3.l || [] };
+  } catch(e) { return { total: 0, log: [] }; }
+}
+
+// ── RANKS ────────────────────────────────────────────────────────────────────
+function getRank(total) {
+  if (total >= 500) return 'COMMANDER';
+  if (total >= 250) return 'OPERATOR';
+  if (total >= 100) return 'SERGEANT';
+  if (total >= 50)  return 'CORPORAL';
+  if (total >= 20)  return 'PRIVATE';
+  if (total >= 5)   return 'RECRUIT';
+  return 'CIVILIAN';
+}
+
+// ── STREAK / ACTIVE DAYS ─────────────────────────────────────────────────────
+function calcActiveDays() {
+  const days = new Set();
+  DRILLS.forEach(d => {
+    getLogs(d.key).forEach(log => {
+      if (log.date) days.add(log.date);
+    });
+  });
+  getDeck().log.forEach(e => { if (e && e.dt) days.add(e.dt); });
+  return days.size;
+}
+
+function calcStreak() {
+  // collect all unique dates across all drills + main deck
+  const daySet = new Set();
+  DRILLS.forEach(d => {
+    getLogs(d.key).forEach(log => {
+      if (log.date) daySet.add(log.date);
+    });
+  });
+  getDeck().log.forEach(e => { if (e && e.dt) daySet.add(e.dt); });
+  const days = Array.from(daySet).sort().reverse();
+  if (days.length === 0) return { streak: 0, rescue: false };
+
+  const today = new Date().toLocaleDateString();
+  const yesterday = new Date(Date.now() - 864e5).toLocaleDateString();
+
+  let streak = 0;
+  let rescue = false;
+
+  if (days[0] === today || days[0] === yesterday) {
+    // count consecutive days backwards from most recent
+    let current = new Date(days[0]);
+    for (let i = 0; i < days.length; i++) {
+      const d = new Date(days[i]);
+      const diff = Math.round((current - d) / 864e5);
+      if (diff <= 1) { streak++; current = d; }
+      else break;
+    }
+  } else {
+    // missed more than 1 day — check rescue window (48h)
+    const lastMs = new Date(days[0]).getTime();
+    if (Date.now() - lastMs < 172800000) rescue = true;
+  }
+
+  return { streak, rescue };
+}
+
+// ── MAIN RENDER ───────────────────────────────────────────────────────────────
+let totalReps = 0;
+let recentActivity = [];
+const drillCounts = {};
+
+DRILLS.forEach(d => {
+  const logs = getLogs(d.key);
+  drillCounts[d.key] = logs.length;
+  totalReps += logs.length;
+
+  logs.slice(0, 4).forEach(log => {
+    recentActivity.push({
+      ts: log.ts || 0,
+      date: log.date || '—',
+      time: log.time || '—',
+      label: d.label,
+      icon: d.icon,
+    });
+  });
+});
+
+// Main deck data (od3 bundle) — most user activity lives here
+const deck = getDeck();
+totalReps += deck.total;
+deck.log.slice(0, 5).forEach(entry => {
+  if (!entry || !entry.dt) return;
+  const d = new Date(entry.dt);
+  recentActivity.push({
+    ts: isNaN(d.getTime()) ? 0 : d.getTime(),
+    date: entry.dt,
+    time: entry.t || (entry.ok === false ? 'skipped' : 'drawn'),
+    label: 'MAIN DECK',
+    icon: '🃏',
+  });
+});
+
+// Sort newest first
+recentActivity.sort((a,b) => b.ts - a.ts);
+
+// Stats
+document.getElementById('totalReps').textContent = totalReps.toString().padStart(3, '0');
+document.getElementById('totalDrills').textContent = DRILLS.length.toString().padStart(2, '0');
+document.getElementById('opRank').textContent = getRank(totalReps);
+
+const activeDays = calcActiveDays();
+const { streak, rescue } = calcStreak();
+document.getElementById('streakDays').textContent = activeDays.toString().padStart(2, '0');
+
+const badgeEl = document.getElementById('streakBadge');
+if (streak >= 2) {
+  badgeEl.innerHTML = `<span class="streak-badge">🔥 ${streak}-DAY STREAK</span>`;
+} else if (rescue) {
+  badgeEl.innerHTML = `<span class="rescue-badge">⚡ RESCUE MISSION AVAILABLE</span>`;
+}
+
+// Feed
+const feedEl = document.getElementById('feed');
+if (recentActivity.length === 0) {
+  feedEl.innerHTML = '<div style="text-align:center;color:#555;padding:40px;font-size:14px">No activity yet.<br>First rep changes everything.</div>';
+} else {
+  feedEl.innerHTML = recentActivity.slice(0, 10).map(item => `
+    <div class="feed-item">
+      <strong>${esc(item.date)}</strong> ${esc(item.time)}
+      <span class="feed-tool">${item.icon} ${item.label}</span>
+    </div>
+  `).join('');
+}
+
+// Quick Launch grid
+const grid = document.getElementById('launchGrid');
+grid.innerHTML = DRILLS.map(d => {
+  const count = drillCounts[d.key] || 0;
+  return `
+    <button class="launch-btn" onclick="window.location.href='${d.file}'">
+      <span>${d.icon}</span><br>${d.label}
+      <span class="btn-count">${count > 0 ? count + ' reps' : 'NOT YET'}</span>
+    </button>
+  `;
+}).join('');
+
+// Main deck tile
+const deckBtn = document.createElement('button');
+deckBtn.className = 'launch-btn';
+deckBtn.innerHTML = `<span>🃏</span><br>MAIN DECK<span class="btn-count">${deck.total > 0 ? deck.total + ' draws' : 'START HERE'}</span>`;
+deckBtn.onclick = () => window.location.href = './';
+grid.appendChild(deckBtn);
+</script>
+</body>
+</html>

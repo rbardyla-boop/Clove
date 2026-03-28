@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="GROVE OPS • OPERATOR'S DECK">
+<meta property="og:description" content="Gamified Pomodoro timer. Grow trees with focus blocks.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/grove-ops.html">
+<title>GROVE OPS • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#27ae60;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.tabs{display:flex;border-bottom:1px solid var(--dim3);position:sticky;top:53px;z-index:18;background:var(--bg)}
+.tab{flex:1;padding:12px 0;text-align:center;font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+.panel{display:none;padding:16px}
+.panel.active{display:block}
+.section-title{font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim);margin-bottom:12px;text-align:center}
+/* PLANT SCREEN */
+.plant-zone{text-align:center;padding:20px 0}
+.seed-grid{display:flex;justify-content:center;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.seed{font-size:36px;cursor:pointer;padding:6px;border-radius:10px;border:2px solid transparent;transition:all .15s}
+.seed.sel{border-color:var(--acc);background:rgba(39,174,96,.1)}
+.seed:active{transform:scale(.9)}
+.time-row{display:flex;justify-content:center;gap:8px;margin-bottom:24px}
+.time-btn{background:none;border:1px solid var(--dim3);color:var(--dim);border-radius:8px;padding:10px 16px;font-size:10px;font-family:monospace;cursor:pointer;letter-spacing:1px}
+.time-btn.sel{border-color:var(--acc);color:var(--acc);background:rgba(39,174,96,.08)}
+.time-btn:active{transform:scale(.95)}
+.btn{width:100%;padding:16px;border:none;border-radius:12px;font-size:11px;font-family:monospace;letter-spacing:2px;font-weight:900;cursor:pointer;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-green{background:var(--acc);color:#000}
+.btn-outline{background:none;border:1px solid var(--dim3);color:var(--dim)}
+/* LIVE SESSION */
+.live-zone{text-align:center;padding:30px 0}
+.growing-tree{font-size:100px;transition:transform 0.5s;animation:grow-anim linear forwards}
+@keyframes grow-anim{0%{transform:scale(.3) rotate(-8deg);opacity:.5}50%{transform:scale(.7) rotate(2deg);opacity:.8}100%{transform:scale(1) rotate(0);opacity:1}}
+.live-timer{font-size:72px;font-weight:900;font-family:monospace;color:var(--acc);margin:20px 0;line-height:1;letter-spacing:4px}
+.live-label{font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim);margin-bottom:20px}
+/* GROVE */
+.grove-stats{background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px}
+.grove-stats .gs-num{font-size:48px;font-weight:900;color:var(--acc);line-height:1}
+.grove-stats .gs-label{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-top:4px}
+.grove-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tree-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px 6px;text-align:center}
+.tree-card .tc-tree{font-size:32px;margin-bottom:4px}
+.tree-card .tc-date{font-size:7px;font-family:monospace;color:var(--dim)}
+.tree-card .tc-dur{font-size:7px;font-family:monospace;color:var(--acc)}
+/* LOG */
+.log-entry{background:var(--bg2);border:1px solid var(--dim3);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;font-size:10px}
+.log-entry.success{border-left:3px solid var(--grn)}
+.log-entry.aborted{border-left:3px solid var(--red)}
+.log-entry .le-date{font-size:8px;font-family:monospace;color:var(--dim)}
+.log-entry .le-result{font-size:9px;font-family:monospace;font-weight:900}
+.log-entry.success .le-result{color:var(--grn)}
+.log-entry.aborted .le-result{color:var(--red)}
+/* BRIEF */
+.brief h2{font-size:16px;font-weight:900;margin-bottom:12px}
+.brief p{color:var(--dim);font-size:11px;line-height:1.8;margin-bottom:14px;font-family:Georgia,serif}
+.brief .quote{background:var(--bg3);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:12px 14px;margin:16px 0;font-style:italic;font-size:10px;color:#999;font-family:Georgia,serif;line-height:1.7}
+.empty-grove{text-align:center;padding:40px 0;color:var(--dim3);font-size:10px}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK</div>
+      <div class="nav-name">GROVE OPS</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="go(0)">PLANT</div>
+    <div class="tab" onclick="go(1)">MY GROVE</div>
+    <div class="tab" onclick="go(2)">LOG</div>
+    <div class="tab" onclick="go(3)">BRIEF</div>
+  </div>
+
+  <!-- PLANT -->
+  <div class="panel active" id="p0">
+    <div class="plant-zone" id="plantSetup">
+      <div class="section-title">CHOOSE YOUR SEED</div>
+      <div class="seed-grid" id="seedGrid"></div>
+      <div class="section-title">MISSION DURATION</div>
+      <div class="time-row" id="timeRow"></div>
+      <button class="btn btn-green" onclick="startPlant()">🌱 PLANT &amp; ENGAGE</button>
+    </div>
+    <div class="live-zone" id="liveZone" style="display:none">
+      <div class="live-label">GROWING...</div>
+      <div class="growing-tree" id="growTree">🌱</div>
+      <div class="live-timer" id="liveTimer">25:00</div>
+      <button class="btn btn-outline" onclick="abort()" style="margin-top:16px">ABORT MISSION</button>
+    </div>
+  </div>
+
+  <!-- GROVE -->
+  <div class="panel" id="p1">
+    <div class="grove-stats">
+      <div class="gs-num" id="treeCount">0</div>
+      <div class="gs-label">TREES PLANTED</div>
+    </div>
+    <div class="grove-grid" id="groveGrid"></div>
+  </div>
+
+  <!-- LOG -->
+  <div class="panel" id="p2">
+    <div class="section-title" style="text-align:left">SESSION LOG</div>
+    <div id="logList"></div>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel" id="p3">
+    <div class="brief">
+      <h2>GROVE OPS — FIELD MANUAL</h2>
+      <p>Visual tree growth is proven to keep ADHD brains focused longer than any timer alone. Pick a seed, set your duration, and watch it grow. Abort and the tree dies.</p>
+      <div class="quote">
+        "I went from 12-minute sessions to 47-minute streaks because I couldn't let my little tree die. This is the cheat code."
+      </div>
+      <p>Every completed session adds a tree to your grove. Over time you build a visual record of every focused session — a forest of proof that you showed up.</p>
+      <p style="font-size:8px;color:var(--dim3);font-family:monospace;margin-top:24px">All trees saved in localStorage. No cloud. No tracking. Your grove.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+const SEEDS=['🌱','🪴','🌿','🌳','🌲','🌴','🎋','🎄'];
+const TIMES=[15,25,50,90];
+let selSeed='🌱',selTime=25;
+// ── KEY MIGRATION (one-time) ──
+(function(){try{['grove-trees','grove-log'].forEach(function(k){var v=localStorage.getItem(k);if(v!==null){localStorage.setItem('od_'+k.replace('-','_'),v);localStorage.removeItem(k);}});}catch(e){}})();
+let grove=[];try{grove=JSON.parse(localStorage.getItem('od_grove_trees')||'[]');}catch(e){}
+let log=[];try{log=JSON.parse(localStorage.getItem('od_grove_log')||'[]');}catch(e){}
+let timer=null,timeLeft=0;
+
+function save(){localStorage.setItem('od_grove_trees',JSON.stringify(grove));localStorage.setItem('od_grove_log',JSON.stringify(log));}
+
+function go(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  if(n===1)renderGrove();if(n===2)renderLog();
+}
+
+function renderSeeds(){
+  const g=document.getElementById('seedGrid');g.innerHTML='';
+  SEEDS.forEach(s=>{const d=document.createElement('span');d.className='seed'+(s===selSeed?' sel':'');d.textContent=s;d.onclick=()=>{selSeed=s;renderSeeds();};g.appendChild(d);});
+}
+function renderTimes(){
+  const r=document.getElementById('timeRow');r.innerHTML='';
+  TIMES.forEach(t=>{const b=document.createElement('button');b.className='time-btn'+(t===selTime?' sel':'');b.textContent=t+' MIN';b.onclick=()=>{selTime=t;renderTimes();};r.appendChild(b);});
+}
+
+function startPlant(){
+  document.getElementById('plantSetup').style.display='none';
+  document.getElementById('liveZone').style.display='';
+  const tree=document.getElementById('growTree');
+  tree.textContent=selSeed;
+  tree.style.animationDuration=selTime+'s';
+  timeLeft=selTime*60;
+  updateTimer();
+  timer=setInterval(()=>{
+    timeLeft--;updateTimer();
+    if(timeLeft<=0)complete();
+  },1000);
+}
+
+function updateTimer(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  document.getElementById('liveTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function complete(){
+  clearInterval(timer);timer=null;
+  const tree=document.getElementById('growTree');
+  tree.style.transform='scale(1.3)';
+  grove.unshift({date:new Date().toISOString(),seed:selSeed,duration:selTime});
+  log.unshift({date:new Date().toISOString(),duration:selTime,result:'SUCCESS'});
+  save();
+  setTimeout(()=>{alert('🌲 TREE PLANTED — '+selTime+' MIN FOCUS LOCKED');resetPlant();},600);
+}
+
+function abort(){
+  if(!confirm('ABORT MISSION? Tree will wither.'))return;
+  clearInterval(timer);timer=null;
+  log.unshift({date:new Date().toISOString(),duration:selTime,result:'ABORTED'});
+  save();resetPlant();
+}
+
+function resetPlant(){
+  document.getElementById('liveZone').style.display='none';
+  document.getElementById('plantSetup').style.display='';
+  const tree=document.getElementById('growTree');
+  tree.style.transform='';tree.style.animationDuration='';
+}
+
+function renderGrove(){
+  document.getElementById('treeCount').textContent=grove.length;
+  const g=document.getElementById('groveGrid');g.innerHTML='';
+  if(grove.length===0){g.innerHTML='<div class="empty-grove" style="grid-column:1/-1">No trees yet — plant your first one.</div>';return;}
+  grove.forEach(t=>{
+    const d=new Date(t.date);
+    const div=document.createElement('div');div.className='tree-card';
+    div.innerHTML=`<div class="tc-tree">${t.seed}</div><div class="tc-date">${d.toLocaleDateString('en-CA')}</div><div class="tc-dur">${t.duration}m</div>`;
+    g.appendChild(div);
+  });
+}
+
+function renderLog(){
+  const c=document.getElementById('logList');c.innerHTML='';
+  log.slice(0,25).forEach(e=>{
+    const d=new Date(e.date);
+    const div=document.createElement('div');
+    div.className='log-entry '+(e.result==='SUCCESS'?'success':'aborted');
+    div.innerHTML=`<div><span class="le-date">${d.toLocaleDateString('en-CA')} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="le-result">${e.duration} MIN — ${e.result}</div>`;
+    c.appendChild(div);
+  });
+  if(log.length===0)c.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--dim3);font-size:10px">No sessions yet.</div>';
+}
+
+renderSeeds();renderTimes();go(0);
+</script>
+
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="dopamine-depot.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d97706;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DOPAMINE DEPOT →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Session done — pick a healthy reward to anchor the win</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Growth logged — back to the field</span></a></div>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Focus block completed? That counts as a mission. Open the Deck and log it as evidence.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>

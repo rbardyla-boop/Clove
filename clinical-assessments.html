@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="CLINICAL ASSESSMENTS • OPERATOR'S DECK">
+<meta property="og:description" content="PHQ-9, GAD-7, PCL-5. Gold-standard clinical screening. Scored locally. Track over time. Export for your therapist.">
+<link rel="canonical" href="https://clovelearn.io/clinical-assessments.html">
+<title>CLINICAL ASSESSMENTS • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--med:#6366f1}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--med);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--med);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.disc-strip{background:#080318;border-bottom:1px solid rgba(99,102,241,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--med);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#5a5a8a;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#8080ba}
+.sec{padding:16px}
+.sec-label{color:var(--med);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+/* ASSESSMENT SELECTOR */
+.assess-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.assess-btn{background:var(--bg2);border:1.5px solid var(--dim3);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .15s}
+.assess-btn.on{border-color:var(--med);background:rgba(99,102,241,.08)}
+.assess-btn:active{transform:scale(.96)}
+.assess-btn .ab-name{font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1px;margin-bottom:2px}
+.assess-btn.on .ab-name{color:#fff}
+.assess-btn .ab-desc{font-size:7px;color:var(--dim2);font-family:monospace}
+/* QUESTIONS */
+.q-card{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:8px;border:1px solid var(--dim3)}
+.q-num{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:2px;margin-bottom:6px}
+.q-text{font-size:11px;font-family:Georgia,serif;color:#ccc;line-height:1.6;margin-bottom:10px}
+.q-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.q-opt{border:1px solid var(--dim3);border-radius:6px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;font-size:7px;font-family:monospace;letter-spacing:.5px;color:var(--dim2)}
+.q-opt.sel{border-color:var(--med);background:rgba(99,102,241,.12);color:#fff}
+.q-opt:active{transform:scale(.95)}
+/* PCL-5 has 5 options */
+.q-opts.five{grid-template-columns:repeat(5,1fr)}
+/* RESULTS */
+.result-card{background:var(--bg2);border-radius:14px;border:1px solid rgba(99,102,241,.2);padding:20px;text-align:center;margin-bottom:16px}
+.result-score{font-size:48px;font-weight:900;font-family:'Courier New',monospace}
+.result-max{font-size:14px;color:var(--dim2);font-family:monospace}
+.result-sev{font-size:12px;font-family:monospace;letter-spacing:2px;margin-top:8px;padding:6px 16px;border-radius:6px;display:inline-block}
+.result-desc{font-size:10px;font-family:Georgia,serif;color:var(--dim);line-height:1.7;margin-top:12px;font-style:italic}
+.chart-wrap{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid var(--dim3)}
+.chart-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:8px}
+.chart-container{position:relative;width:100%;height:200px}
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.btn-primary{background:linear-gradient(135deg,var(--med),#4338ca);color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-secondary{background:var(--bg2);color:#aaa;border:1px solid #222;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-primary:active,.btn-secondary:active{transform:scale(.96)}
+.export-btn{background:var(--bg2);color:var(--med);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:12px 20px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.export-btn:active{transform:scale(.96)}
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(192,57,43,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--med)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+@media print{
+  .nav-bar,.btn-row,.deck-link,.next-block,.toast,.assess-grid,.disc-strip{display:none!important}
+  body{background:#fff!important;color:#111!important;padding:0}
+  .app{max-width:100%}
+  .chart-wrap{border:1px solid #ccc!important;background:#fff!important;break-inside:avoid}
+  .chart-label{color:#333!important}
+  .result-card{border:1px solid #ccc!important;background:#fff!important;break-inside:avoid}
+  .result-score{color:#111!important}
+  .result-sev,.result-desc{color:#333!important}
+  .sec-label,.sec-title{color:#111!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="nav-bar" role="navigation" aria-label="Clinical Assessments navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">VALIDATED SCREENING</div>
+    <div class="nav-name">CLINICAL ASSESSMENTS</div>
+  </div>
+</nav>
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>These are screening tools, not diagnoses.</strong> PHQ-9, GAD-7, and PCL-5 are validated,
+    public-domain clinical instruments used worldwide. They give you baseline data to track over time
+    and share with your clinician. All scoring happens on your device. Nothing is transmitted.
+  </div>
+</div>
+<div id="content"></div>
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <div class="dl-text">Clinical scores pair with your Mood Trends and Field Protocol data. Together they give your therapist a complete picture — built from your device, not a server.</div>
+  <a href="mood-trends.html" rel="noopener">OPEN MOOD TRENDS →</a>
+</div>
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="mood-trends.html">◈ MOOD TRENDS — Visual timeline of check-ins</a>
+  <a class="next-link" href="cbt-drill.html">◈ CBT DRILL — Challenge the thoughts behind the score</a>
+  <a class="next-link" href="safety-plan-drill.html">◈ SAFETY PLAN — If scores are high, build one now</a>
+  <a class="next-link" href="toolshed.html">◈ TOOL SHED — All recovery tools</a>
+</nav>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+var KEY='od_clinical_scores';
+var activeTest=null;
+var answers={};
+var view='menu'; // menu, test, result, history
+
+// ── INSTRUMENT DATA ──
+var PHQ9={
+  id:'phq9',name:'PHQ-9',full:'Patient Health Questionnaire-9',target:'DEPRESSION',max:27,
+  desc:'Over the last 2 weeks, how often have you been bothered by:',
+  opts:['Not at all','Several days','More than half','Nearly every day'],
+  items:[
+    'Little interest or pleasure in doing things',
+    'Feeling down, depressed, or hopeless',
+    'Trouble falling or staying asleep, or sleeping too much',
+    'Feeling tired or having little energy',
+    'Poor appetite or overeating',
+    'Feeling bad about yourself — or that you are a failure or have let yourself or your family down',
+    'Trouble concentrating on things, such as reading or watching TV',
+    'Moving or speaking so slowly that others noticed — or the opposite, being fidgety or restless',
+    'Thoughts that you would be better off dead, or of hurting yourself'
+  ],
+  severity:function(s){
+    if(s<=4)return{level:'MINIMAL',color:'var(--grn)',desc:'Symptoms in the minimal range. Monitor and maintain.'};
+    if(s<=9)return{level:'MILD',color:'var(--gld)',desc:'Mild depression. Consider watchful waiting and repeat in 2-4 weeks.'};
+    if(s<=14)return{level:'MODERATE',color:'#e67e22',desc:'Moderate depression. Clinical attention warranted. Consider treatment plan with a provider.'};
+    if(s<=19)return{level:'MODERATELY SEVERE',color:'var(--red)',desc:'Moderately severe depression. Active treatment recommended — therapy, medication, or both.'};
+    return{level:'SEVERE',color:'#ff0000',desc:'Severe depression. Immediate clinical attention recommended. If you have thoughts of self-harm, use Safety Plan or Red Protocol now.'};
+  },
+  source:'Kroenke, Spitzer & Williams (2001). J Gen Intern Med.'
+};
+var GAD7={
+  id:'gad7',name:'GAD-7',full:'Generalized Anxiety Disorder-7',target:'ANXIETY',max:21,
+  desc:'Over the last 2 weeks, how often have you been bothered by:',
+  opts:['Not at all','Several days','More than half','Nearly every day'],
+  items:[
+    'Feeling nervous, anxious, or on edge',
+    'Not being able to stop or control worrying',
+    'Worrying too much about different things',
+    'Trouble relaxing',
+    'Being so restless that it is hard to sit still',
+    'Becoming easily annoyed or irritable',
+    'Feeling afraid, as if something awful might happen'
+  ],
+  severity:function(s){
+    if(s<=4)return{level:'MINIMAL',color:'var(--grn)',desc:'Anxiety in the minimal range. No clinical intervention needed.'};
+    if(s<=9)return{level:'MILD',color:'var(--gld)',desc:'Mild anxiety. Monitor symptoms. Consider lifestyle interventions.'};
+    if(s<=14)return{level:'MODERATE',color:'#e67e22',desc:'Moderate anxiety. Consider clinical evaluation and treatment.'};
+    return{level:'SEVERE',color:'var(--red)',desc:'Severe anxiety. Active treatment strongly recommended.'};
+  },
+  source:'Spitzer, Kroenke, Williams & Löwe (2006). Arch Intern Med.'
+};
+var PCL5={
+  id:'pcl5',name:'PCL-5',full:'PTSD Checklist for DSM-5',target:'PTSD',max:80,
+  desc:'In the past month, how much were you bothered by:',
+  opts:['Not at all','A little bit','Moderately','Quite a bit','Extremely'],
+  items:[
+    'Repeated, disturbing, and unwanted memories of the stressful experience',
+    'Repeated, disturbing dreams of the stressful experience',
+    'Suddenly feeling or acting as if the stressful experience were actually happening again',
+    'Feeling very upset when something reminded you of the stressful experience',
+    'Having strong physical reactions when reminded (e.g., heart pounding, trouble breathing)',
+    'Avoiding memories, thoughts, or feelings related to the experience',
+    'Avoiding external reminders (e.g., people, places, activities)',
+    'Trouble remembering important parts of the stressful experience',
+    'Having strong negative beliefs about yourself, others, or the world',
+    'Blaming yourself or someone else for the stressful experience or what happened after',
+    'Having strong negative feelings such as fear, horror, anger, guilt, or shame',
+    'Loss of interest in activities that you used to enjoy',
+    'Feeling distant or cut off from other people',
+    'Trouble experiencing positive feelings',
+    'Irritable behavior, angry outbursts, or acting aggressively',
+    'Taking too many risks or doing things that could cause you harm',
+    'Being "superalert" or watchful or on guard',
+    'Feeling jumpy or easily startled',
+    'Having difficulty concentrating',
+    'Trouble falling or staying asleep'
+  ],
+  severity:function(s){
+    if(s<=10)return{level:'MINIMAL',color:'var(--grn)',desc:'Below clinical threshold. Symptoms in the minimal range.'};
+    if(s<=20)return{level:'LOW',color:'var(--gld)',desc:'Some PTSD symptoms present. Below provisional diagnostic cutoff.'};
+    if(s<=32)return{level:'MODERATE',color:'#e67e22',desc:'Approaching clinical threshold (33). Consider professional evaluation.'};
+    if(s<=50)return{level:'PROVISIONAL PTSD',color:'var(--red)',desc:'Score meets provisional PTSD cutoff (33+). Clinical evaluation strongly recommended.'};
+    return{level:'SEVERE',color:'#ff0000',desc:'Severe PTSD symptoms. Professional treatment is strongly recommended. Use Safety Plan if needed.'};
+  },
+  source:'Weathers et al. (2013). National Center for PTSD.'
+};
+var TESTS={phq9:PHQ9,gad7:GAD7,pcl5:PCL5};
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function loadScores(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+
+function render(){
+  if(view==='test')return renderTest();
+  if(view==='result')return renderResult();
+  if(view==='history')return renderHistory();
+  renderMenu();
+}
+
+function renderMenu(){
+  var scores=loadScores();
+  var h='<div class="sec"><div class="sec-label">SELECT ASSESSMENT</div><div class="sec-title">Choose Your Screening</div>';
+  h+='<div class="sec-desc">Each assessment takes 2-5 minutes. Recommended frequency: every 2-4 weeks. Track changes over time.</div>';
+  h+='<div class="assess-grid">';
+  ['phq9','gad7','pcl5'].forEach(function(id){
+    var t=TESTS[id];
+    var lastScore=null;
+    for(var i=scores.length-1;i>=0;i--){if(scores[i].test===id){lastScore=scores[i];break}}
+    h+='<div class="assess-btn" onclick="startTest(\''+id+'\')">';
+    h+='<div class="ab-name">'+t.name+'</div>';
+    h+='<div class="ab-desc">'+t.target+'</div>';
+    if(lastScore){
+      var sev=t.severity(lastScore.score);
+      h+='<div style="font-size:16px;font-weight:900;font-family:monospace;color:'+sev.color+';margin-top:6px">'+lastScore.score+'</div>';
+      h+='<div style="font-size:6px;font-family:monospace;color:var(--dim2);letter-spacing:1px">'+lastScore.date+'</div>';
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // Trend chart if we have data
+  var phqScores=scores.filter(function(s){return s.test==='phq9'});
+  var gadScores=scores.filter(function(s){return s.test==='gad7'});
+  var pclScores=scores.filter(function(s){return s.test==='pcl5'});
+  if(phqScores.length>1){h+='<div class="chart-wrap"><div class="chart-label">PHQ-9 — DEPRESSION TREND</div><div class="chart-container"><canvas id="phqChart"></canvas></div></div>';}
+  if(gadScores.length>1){h+='<div class="chart-wrap"><div class="chart-label">GAD-7 — ANXIETY TREND</div><div class="chart-container"><canvas id="gadChart"></canvas></div></div>';}
+  if(pclScores.length>1){h+='<div class="chart-wrap"><div class="chart-label">PCL-5 — PTSD TREND</div><div class="chart-container"><canvas id="pclChart"></canvas></div></div>';}
+
+  h+='<div class="btn-row"><button class="btn-secondary" onclick="view=\'history\';render()">VIEW ALL RESULTS</button>';
+  h+='<button class="export-btn" onclick="exportReport()">EXPORT REPORT</button></div>';
+  h+='</div>';
+  document.getElementById('content').innerHTML=h;
+
+  // Render per-test charts with severity bands
+  function mkChart(canvasId,testScores,color,bands){
+    if(!document.getElementById(canvasId))return;
+    var dates=testScores.map(function(s){return s.date});
+    dates.sort(function(a,b){return new Date(a)-new Date(b)});
+    var labels=dates.map(function(d){var p=d.split('/');return p.length>=2?p[0]+'/'+p[1]:d});
+    var scoreData=dates.map(function(d){var m=testScores.find(function(s){return s.date===d});return m?m.score:null});
+    var ds=[{label:'Score',data:scoreData,borderColor:color,pointBackgroundColor:color,borderWidth:2,tension:.3,spanGaps:true,pointRadius:4,fill:false}];
+    bands.forEach(function(b){
+      ds.push({label:b.label,data:dates.map(function(){return b.val}),borderColor:b.color,borderWidth:1,borderDash:[4,4],pointRadius:0,spanGaps:true,fill:false});
+    });
+    var maxScore=Math.max.apply(null,testScores.map(function(s){return s.score}));
+    var maxY=Math.max(maxScore,bands.length?bands[bands.length-1].val:10)+6;
+    new Chart(document.getElementById(canvasId),{
+      type:'line',
+      data:{labels:labels,datasets:ds},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          y:{min:0,max:maxY,ticks:{color:'#555',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'},border:{color:'transparent'}},
+          x:{ticks:{color:'#444',font:{size:7},maxRotation:45},grid:{display:false},border:{color:'transparent'}}
+        }
+      }
+    });
+  }
+  var PHQ9B=[{val:5,label:'MILD',color:'rgba(212,168,67,.5)'},{val:10,label:'MODERATE',color:'rgba(230,126,34,.5)'},{val:15,label:'MOD SEVERE',color:'rgba(192,57,43,.5)'},{val:20,label:'SEVERE',color:'rgba(255,0,0,.5)'}];
+  var GAD7B=[{val:5,label:'MILD',color:'rgba(212,168,67,.5)'},{val:10,label:'MODERATE',color:'rgba(230,126,34,.5)'},{val:15,label:'SEVERE',color:'rgba(192,57,43,.5)'}];
+  var PCL5B=[{val:11,label:'LOW',color:'rgba(212,168,67,.5)'},{val:21,label:'MODERATE',color:'rgba(230,126,34,.5)'},{val:33,label:'PROVISIONAL',color:'rgba(192,57,43,.5)'},{val:51,label:'SEVERE',color:'rgba(255,0,0,.5)'}];
+  if(phqScores.length>1)mkChart('phqChart',phqScores,'#6366f1',PHQ9B);
+  if(gadScores.length>1)mkChart('gadChart',gadScores,'#22d3ee',GAD7B);
+  if(pclScores.length>1)mkChart('pclChart',pclScores,'#f43f5e',PCL5B);
+}
+
+function startTest(id){
+  activeTest=TESTS[id];answers={};view='test';render();
+}
+
+function renderTest(){
+  var t=activeTest;
+  var isPCL=t.id==='pcl5';
+  var h='<div class="sec"><div class="sec-label">'+esc(t.name)+' — '+esc(t.full)+'</div>';
+  h+='<div class="sec-title">'+esc(t.target)+' Screening</div>';
+  h+='<div class="sec-desc">'+esc(t.desc)+'</div>';
+  // Item 9 safety warning for PHQ-9
+  t.items.forEach(function(q,i){
+    var isSafe=t.id==='phq9'&&i===8;
+    h+='<div class="q-card"'+(isSafe?' style="border-color:rgba(192,57,43,.3)"':'')+'>'; 
+    h+='<div class="q-num">'+(isSafe?'⚠ ':'')+'QUESTION '+(i+1)+' OF '+t.items.length+'</div>';
+    h+='<div class="q-text">'+esc(q)+'</div>';
+    h+='<div class="q-opts'+(isPCL?' five':'')+'">';
+    t.opts.forEach(function(opt,oi){
+      var sel=answers[i]===oi;
+      h+='<div class="q-opt'+(sel?' sel':'')+'" onclick="setAnswer('+i+','+oi+')">'+esc(opt)+'</div>';
+    });
+    h+='</div></div>';
+  });
+  var allAnswered=Object.keys(answers).length===t.items.length;
+  h+='<div class="btn-row"><button class="btn-secondary" onclick="view=\'menu\';render()">◂ CANCEL</button>';
+  h+='<button class="btn-primary" onclick="scoreTest()"'+(allAnswered?'':' style="opacity:.4;pointer-events:none"')+'>SCORE →</button></div>';
+  h+='<div style="text-align:center;font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-top:8px">'+Object.keys(answers).length+' / '+t.items.length+' ANSWERED</div>';
+  h+='</div>';
+  document.getElementById('content').innerHTML=h;
+}
+
+function setAnswer(qi,val){answers[qi]=val;render();window.scrollTo(0,document.querySelector('.q-card:nth-child('+(qi+4)+')').offsetTop-60)}
+
+function scoreTest(){
+  var t=activeTest;
+  if(Object.keys(answers).length!==t.items.length){showToast('ANSWER ALL QUESTIONS');return}
+  var total=0;
+  for(var i=0;i<t.items.length;i++)total+=answers[i]||0;
+  var record={test:t.id,score:total,answers:Object.assign({},answers),date:new Date().toLocaleDateString(),ts:Date.now()};
+  var scores=loadScores();
+  scores.push(record);
+  if(scores.length>500)scores.splice(0,scores.length-500);
+  try{localStorage.setItem(KEY,JSON.stringify(scores))}catch(e){}
+  view='result';render();
+}
+
+function renderResult(){
+  var scores=loadScores();
+  var last=scores[scores.length-1];
+  if(!last){view='menu';render();return}
+  var t=TESTS[last.test];
+  var sev=t.severity(last.score);
+  var h='<div class="sec">';
+  h+='<div class="result-card">';
+  h+='<div style="font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim2);margin-bottom:8px">'+esc(t.name)+' — '+esc(t.full)+'</div>';
+  h+='<div class="result-score" style="color:'+sev.color+'">'+last.score+'</div>';
+  h+='<div class="result-max">/ '+t.max+'</div>';
+  h+='<div class="result-sev" style="background:rgba(99,102,241,.1);color:'+sev.color+'">'+sev.level+'</div>';
+  h+='<div class="result-desc">'+esc(sev.desc)+'</div>';
+  h+='<div style="font-size:7px;font-family:monospace;color:var(--dim3);margin-top:12px;letter-spacing:1px">'+esc(last.date)+' — '+esc(t.source)+'</div>';
+  h+='</div>';
+  // Safety check for PHQ-9 item 9
+  if(last.test==='phq9'&&last.answers&&last.answers[8]>0){
+    h+='<div style="background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.3);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center">';
+    h+='<div style="font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px;color:var(--red);margin-bottom:8px">ITEM 9 FLAGGED</div>';
+    h+='<div style="font-size:10px;font-family:Georgia,serif;color:#bbb;line-height:1.7">You indicated thoughts of self-harm. Please take this seriously.</div>';
+    h+='<div style="margin-top:10px"><a href="safety-plan-drill.html" style="color:var(--red);font-size:10px;font-family:monospace;text-decoration:none;border:1px solid rgba(192,57,43,.3);border-radius:6px;padding:8px 16px;display:inline-block">SAFETY PLAN →</a> <a href="red-protocol.html" style="color:var(--red);font-size:10px;font-family:monospace;text-decoration:none;border:1px solid rgba(192,57,43,.3);border-radius:6px;padding:8px 16px;display:inline-block;margin-left:6px">RED PROTOCOL →</a></div>';
+    h+='</div>';
+  }
+  h+='<div class="btn-row"><button class="btn-primary" onclick="view=\'menu\';render()">DONE</button>';
+  h+='<button class="btn-secondary" onclick="view=\'history\';render()">VIEW HISTORY</button></div>';
+  h+='</div>';
+  document.getElementById('content').innerHTML=h;
+  showToast(t.name+' SCORE: '+last.score+'/'+t.max);
+}
+
+function renderHistory(){
+  var scores=loadScores();
+  var h='<div class="sec"><div class="sec-label">ASSESSMENT HISTORY</div><div class="sec-title">All Results</div>';
+  if(!scores.length){h+='<div style="text-align:center;color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;padding:20px">No assessments taken yet.</div>'}
+  else{
+    h+='<div style="text-align:center;font-size:8px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-bottom:12px">'+scores.length+' TOTAL ASSESSMENTS</div>';
+    scores.slice().reverse().slice(0,30).forEach(function(s){
+      var t=TESTS[s.test];if(!t)return;
+      var sev=t.severity(s.score);
+      h+='<div style="background:var(--bg2);border-radius:12px;padding:12px 14px;margin-bottom:6px;border-left:3px solid '+sev.color+';display:flex;align-items:center;gap:12px">';
+      h+='<div style="font-size:20px;font-weight:900;font-family:monospace;color:'+sev.color+';min-width:36px;text-align:center">'+s.score+'</div>';
+      h+='<div style="flex:1"><div style="font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1px">'+t.name+'</div>';
+      h+='<div style="font-size:8px;font-family:monospace;color:'+sev.color+';margin-top:2px">'+sev.level+'</div></div>';
+      h+='<div style="font-size:7px;font-family:monospace;color:var(--dim2)">'+esc(s.date)+'</div>';
+      h+='</div>';
+    });
+  }
+  h+='<div class="btn-row"><button class="btn-primary" onclick="view=\'menu\';render()">◂ BACK</button>';
+  h+='<button class="export-btn" onclick="exportReport()">EXPORT REPORT</button></div></div>';
+  document.getElementById('content').innerHTML=h;
+}
+
+function exportReport(){
+  var scores=loadScores();
+  if(!scores.length){showToast('NO ASSESSMENTS YET');return}
+  var txt='CLINICAL ASSESSMENT REPORT \u2014 OPERATOR\'S DECK\n';
+  txt+='Generated: '+new Date().toLocaleString()+'\n';
+  txt+='Source: clovelearn.io (all data stored locally)\n';
+  txt+=('\u2550').repeat(50)+'\n\n';
+  txt+='SUMMARY\n';
+  ['phq9','gad7','pcl5'].forEach(function(id){
+    var t=TESTS[id];
+    var matching=scores.filter(function(s){return s.test===id});
+    if(!matching.length)return;
+    var last=matching[matching.length-1];
+    var sev=t.severity(last.score);
+    txt+=t.name+' ('+t.full+') \u2014 Most Recent: '+last.score+'/'+t.max+' ['+sev.level+'] ('+last.date+')\n';
+    if(matching.length>1){
+      var first=matching[0];
+      txt+='  First score: '+first.score+'/'+t.max+' ('+first.date+') \u2014 Change: '+(last.score-first.score)+'\n';
+    }
+    txt+='  Total assessments: '+matching.length+'\n\n';
+  });
+  txt+='FULL LOG\n'+('-').repeat(40)+'\n';
+  scores.forEach(function(s){
+    var t=TESTS[s.test];if(!t)return;
+    var sev=t.severity(s.score);
+    txt+=s.date+' \u2014 '+t.name+': '+s.score+'/'+t.max+' ['+sev.level+']\n';
+  });
+  txt+='\n'+('\u2550').repeat(50)+'\n';
+  txt+='Instruments: PHQ-9 (Kroenke 2001), GAD-7 (Spitzer 2006), PCL-5 (Weathers 2013)\n';
+  txt+='Generated by Operator\'s Deck (clovelearn.io) \u2014 Zero cloud. Zero tracking.\n';
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='clinical-assessment-report-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  showToast('REPORT EXPORTED');
+}
+
+render();
+</script>
+</body>
+</html>

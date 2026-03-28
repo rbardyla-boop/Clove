@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloveLearn.io — Competitive Positioning</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{height:100%}
+body{background:#08080f;color:#e8e8e8;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100%}
+:root{--bg:#08080f;--bg2:#0d0d14;--bg3:#111120;--bg4:#16162a;--red:#c0392b;--red2:#e74c3c;--grn:#27ae60;--gld:#d4a843;--blu:#5a84be;--dim:#8a8a8a;--dim2:#666;--dim3:#1a1a22;--accent-glow:rgba(192,57,43,0.15)}
+
+.page{max-width:900px;margin:0 auto;padding:40px 32px 80px}
+
+/* ── HEADER ── */
+.masthead{text-align:center;padding:48px 0 40px;position:relative}
+.masthead::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.brand-tag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:6px;color:var(--red);text-transform:uppercase;margin-bottom:8px;font-weight:500}
+.brand-url{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:3px;color:#fff;line-height:1;margin-bottom:4px}
+.brand-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:2px;margin-bottom:20px}
+.brand-line{font-size:15px;color:#ccc;line-height:1.7;max-width:640px;margin:0 auto;font-weight:400}
+.brand-line strong{color:#fff;font-weight:700}
+
+/* ── SECTION LABELS ── */
+.sec-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:5px;color:var(--red);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-weight:500}
+.sec-label::before{content:'';width:20px;height:1px;background:var(--red)}
+
+/* ── THE CLAIM ── */
+.claim-block{margin:48px 0 40px;padding:32px;background:var(--bg2);border:1px solid rgba(192,57,43,0.2);border-radius:12px;position:relative;overflow:hidden}
+.claim-block::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--red)}
+.claim-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:12px}
+.claim-body{font-size:14px;color:#bbb;line-height:1.8}
+.claim-body em{color:var(--red2);font-style:normal;font-weight:700}
+
+/* ── PILLAR GRID ── */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0 48px}
+.pillar{background:var(--bg2);border-radius:12px;padding:24px 20px;text-align:center;border:1px solid var(--dim3);position:relative;overflow:hidden}
+.pillar::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:40px;height:2px;border-radius:1px}
+.pillar.p1::after{background:var(--red)}
+.pillar.p2::after{background:var(--grn)}
+.pillar.p3::after{background:var(--gld)}
+.pillar .p-num{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;margin-bottom:4px}
+.pillar.p1 .p-num{color:var(--red)}
+.pillar.p2 .p-num{color:var(--grn)}
+.pillar.p3 .p-num{color:var(--gld)}
+.pillar .p-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+.pillar .p-desc{font-size:12px;color:#999;line-height:1.6}
+
+/* ── VERSUS TABLE ── */
+.vs-wrap{margin:24px 0 48px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.vs-table{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
+.vs-table th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;padding:10px 12px;text-align:center;border-bottom:1px solid var(--dim3);font-weight:500}
+.vs-table th:first-child{text-align:left;color:var(--dim2)}
+.vs-table th.od{color:var(--red);font-size:10px;letter-spacing:3px}
+.vs-table td{padding:10px 12px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.03);color:#999}
+.vs-table td:first-child{text-align:left;font-weight:500;color:#ccc;font-size:12px}
+.vs-table td.od-cell{background:rgba(192,57,43,0.04);font-weight:700;color:#eee}
+.vs-table .check{color:var(--grn);font-weight:700;font-size:14px}
+.vs-table .cross{color:#555;font-size:14px}
+.vs-table .partial{color:var(--gld);font-size:11px;font-weight:500}
+
+/* ── FEATURE BLOCKS ── */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0 48px}
+.feat-card{background:var(--bg2);border-radius:10px;padding:16px 18px;border:1px solid var(--dim3)}
+.feat-card .fc-count{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--red);line-height:1}
+.feat-card .fc-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin:4px 0 8px}
+.feat-card .fc-list{font-size:11px;color:#999;line-height:1.7}
+
+/* ── AUDIENCE ── */
+.audience-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0 48px}
+.aud-card{background:var(--bg2);border-radius:10px;padding:18px;border-left:3px solid var(--red)}
+.aud-card .ac-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:#fff;font-weight:500;margin-bottom:6px}
+.aud-card .ac-desc{font-size:11px;color:#888;line-height:1.6}
+
+/* ── BOTTOM LINE ── */
+.bottom-line{text-align:center;padding:40px 20px;margin-top:24px;border-top:1px solid var(--dim3)}
+.bl-quote{font-size:18px;color:#ccc;line-height:1.7;max-width:560px;margin:0 auto 16px;font-weight:400}
+.bl-quote strong{color:#fff;font-weight:700}
+.bl-attr{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--dim);text-transform:uppercase}
+.bl-url{font-family:'DM Mono',monospace;font-size:12px;color:var(--red);letter-spacing:1px;margin-top:20px;display:inline-block;padding:8px 20px;border:1px solid rgba(192,57,43,0.4);border-radius:6px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:680px){
+  .page{padding:24px 16px 60px}
+  .brand-url{font-size:36px}
+  .pillars{grid-template-columns:1fr}
+  .feat-grid{grid-template-columns:1fr}
+  .audience-grid{grid-template-columns:1fr}
+  .vs-table{font-size:11px}
+}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;color:#111}
+  .page{max-width:100%;padding:20px}
+  .brand-url{color:#111}
+  .claim-block{border:1px solid #ccc;background:#f9f9f9}
+  .claim-block::before{background:var(--red)}
+  .pillar,.feat-card,.aud-card{background:#f5f5f5;border-color:#ddd}
+  .vs-table td,.vs-table th{border-color:#ddd}
+  .vs-table td.od-cell{background:rgba(192,57,43,0.06)}
+  .sec-label{color:var(--red)}
+  .pillar .p-num,.feat-card .fc-count{color:var(--red)}
+  .claim-body em{color:var(--red)}
+  td,th,.fc-list,.ac-desc,.claim-body,.brand-line,.p-desc{color:#333!important}
+  .aud-card .ac-title,.feat-card .fc-label,.sec-label,.brand-sub,.bl-attr,.brand-tag{color:#666!important}
+  .vs-table .cross{color:#bbb!important}
+  .bottom-line{border-color:#ddd}
+  .bl-quote{color:#222}
+  .bl-quote strong{color:#000}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div class="brand-tag">Competitive Positioning</div>
+    <div class="brand-url">CLOVELEARN.IO</div>
+    <div class="brand-sub">Operator's Deck — Self-Help That Doesn't Flinch</div>
+    <p class="brand-line">
+      The only clinical self-help tool that combines <strong>14 evidence-based therapeutic protocols</strong>,
+      <strong>10 ADHD productivity tools</strong>, and a <strong>108-card gamified engagement system</strong> —
+      with absolute zero data collection, zero subscriptions, and 100% offline operation.
+    </p>
+  </div>
+
+  <!-- THE CLAIM -->
+  <div class="claim-block">
+    <div class="claim-title">THE POSITIONING CLAIM</div>
+    <div class="claim-body">
+      Every mental health app makes you choose: clinical depth <em>or</em> engagement.
+      Privacy <em>or</em> features. Free <em>or</em> good.<br><br>
+      Operator's Deck is the first tool that refuses all three tradeoffs.
+      It ships more clinical protocols than Wysa, more productivity tools than any ADHD app,
+      a gamification layer deeper than Finch — and charges nothing, collects nothing,
+      and works without internet. Built by a 13-year Canadian Armed Forces Communications Specialist
+      who needed it to exist.
+    </div>
+  </div>
+
+  <!-- THREE PILLARS -->
+  <div class="sec-label">Three pillars no competitor matches simultaneously</div>
+  <div class="pillars">
+    <div class="pillar p1">
+      <div class="p-num">14+</div>
+      <div class="p-label">Clinical Protocols</div>
+      <div class="p-desc">DBT, CPT, ACT, IFS, Safety Planning, Chain Analysis, RSD Shield, TIPP, IMPROVE, Mindfulness, Opposite Action, DEAR MAN, Cognitive Restructuring, Candlebox Rebuild</div>
+    </div>
+    <div class="pillar p2">
+      <div class="p-num">0</div>
+      <div class="p-label">Data Collected</div>
+      <div class="p-desc">No accounts. No servers. No analytics. No telemetry. Every byte stays in your browser's localStorage. Nothing leaves the device — ever.</div>
+    </div>
+    <div class="pillar p3">
+      <div class="p-num">$0</div>
+      <div class="p-label">Forever</div>
+      <div class="p-desc">No subscription. No premium tier. No ads. No in-app purchases. No paywall. Free isn't the trial — it's the product.</div>
+    </div>
+  </div>
+
+  <!-- VERSUS TABLE -->
+  <div class="sec-label">Head-to-head comparison</div>
+  <div class="vs-wrap">
+    <table class="vs-table">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th class="od">Operator's Deck</th>
+          <th>Calm<br><span style="font-size:7px;color:#555">$70/yr</span></th>
+          <th>Wysa<br><span style="font-size:7px;color:#555">$100/yr</span></th>
+          <th>Bearable<br><span style="font-size:7px;color:#555">$35/yr</span></th>
+          <th>Finch<br><span style="font-size:7px;color:#555">Free+IAP</span></th>
+          <th>Woebot<br><span style="font-size:7px;color:#555">Enterprise</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Clinical drill protocols</td>
+          <td class="od-cell">14+</td>
+          <td class="cross">—</td>
+          <td>5</td>
+          <td class="cross">—</td>
+          <td class="cross">—</td>
+          <td>CBT only</td>
+        </tr>
+        <tr>
+          <td>DBT skills (TIPP, DEAR MAN, etc.)</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="partial">partial</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>CPT / cognitive processing</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>ACT (values + defusion)</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="partial">partial</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>Safety planning (Stanley-Brown)</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>ADHD productivity tools</td>
+          <td class="od-cell">10</td>
+          <td class="cross">—</td>
+          <td class="cross">—</td>
+          <td class="cross">—</td>
+          <td>3</td>
+          <td class="cross">—</td>
+        </tr>
+        <tr>
+          <td>Gamification / progression</td>
+          <td class="od-cell">10 ranks + XP</td>
+          <td class="cross">—</td>
+          <td>badges</td>
+          <td class="cross">—</td>
+          <td>pet system</td>
+          <td class="cross">—</td>
+        </tr>
+        <tr>
+          <td>Mood / state check-in</td>
+          <td class="od-cell">6-domain</td>
+          <td>1-scale</td>
+          <td>1-scale</td>
+          <td>multi-scale</td>
+          <td>1-scale</td>
+          <td>1-scale</td>
+        </tr>
+        <tr>
+          <td>Binaural beat generator</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>Offline voice input</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>Works without internet</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="partial">partial</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>Zero data collection</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="partial">local opt.</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>Completely free</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="partial">freemium</td>
+          <td class="partial">freemium</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+        <tr>
+          <td>Open / static architecture</td>
+          <td class="od-cell check">&#10003;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+          <td class="cross">&#10005;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FEATURE BLOCKS -->
+  <div class="sec-label">What ships in the box</div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="fc-count">14+</div>
+      <div class="fc-label">Clinical Drills</div>
+      <div class="fc-list">
+        ACT · DEAR MAN · Stuck Points (CPT) · Chain Analysis · Opposite Action · RSD Shield · Thought Interceptor · TIPP · IMPROVE · Mindfulness · Safety Plan · Meditation Ops · Candlebox Rebuild · Like A Stone · Be Yourself
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="fc-count">10</div>
+      <div class="fc-label">ADHD Ops Tools</div>
+      <div class="fc-list">
+        Dopamine Depot · Weekly Ops · Grove Ops (Pomodoro) · Quest Forge (RPG tasks) · Kanban Ops · Prompt Depot · Micro Ops · Grind Ops (XP system) · Body Double · Visual Planner
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="fc-count">108</div>
+      <div class="fc-label">Card Deck System</div>
+      <div class="fc-list">
+        4 suits · Daily missions · Soundtrack matching (4 genres) · Rank progression (10 tiers) · Evidence logging · Streak tracking · Dark card unlocks · 6-domain Field Protocol
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="fc-count">5</div>
+      <div class="fc-label">Intelligence Layer</div>
+      <div class="fc-list">
+        Pattern Recon · Pattern Intelligence · War Room · Mission Brief (therapist match) · What's Going On (triage router) · Field Manual (32 micro-lessons)
+      </div>
+    </div>
+  </div>
+
+  <!-- TARGET AUDIENCE -->
+  <div class="sec-label">Who this is built for</div>
+  <div class="audience-grid">
+    <div class="aud-card">
+      <div class="ac-title">VETERANS &amp; FIRST RESPONDERS</div>
+      <div class="ac-desc">People who won't use a pastel meditation app. Need clinical tools, not affirmations. Trust the tool because it doesn't phone home.</div>
+    </div>
+    <div class="aud-card">
+      <div class="ac-title">ADHD ADULTS</div>
+      <div class="ac-desc">Executive function support that doesn't require another subscription to forget about. Gamified enough to keep engagement, structured enough to work.</div>
+    </div>
+    <div class="aud-card">
+      <div class="ac-title">THERAPY CLIENTS</div>
+      <div class="ac-desc">Between-session homework tool. Actual CBT/DBT/CPT drills — not a chatbot guessing at your diagnosis. Clinicians can recommend it without liability concerns.</div>
+    </div>
+    <div class="aud-card">
+      <div class="ac-title">PRIVACY-FIRST USERS</div>
+      <div class="ac-desc">Anyone who refuses to upload their mental health data to a server. Zero accounts, zero tracking, zero data leaves the device. No exceptions.</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM LINE -->
+  <div class="bottom-line">
+    <p class="bl-quote">
+      The tool <strong>your therapist wishes existed</strong>.<br>
+      Clinical depth. Absolute privacy. Zero cost.<br>
+      No compromises.
+    </p>
+    <div class="bl-attr">Built by a veteran · For anyone fighting the real war</div>
+    <div><a class="bl-url" href="https://clovelearn.io" target="_blank" rel="noopener">clovelearn.io</a></div>
+  </div>
+
+</div>
+</body>
+</html>

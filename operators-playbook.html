@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="OPERATOR'S PLAYBOOK • STATE LOCK">
+<meta property="og:description" content="Zero-friction emotional intervention. Pause. Read. Act. Don't spiral.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/operators-playbook.html">
+<title>OPERATOR'S PLAYBOOK • STATE LOCK • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080f;--bg2:#0e0e18;--bg3:#151520;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a80c4;--pur:#9d5ff0;--dim:#5a5a7a;--dim2:#777;--text:#e0e0ec}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden}
+.app{max-width:480px;margin:0 auto;padding-bottom:80px}
+
+/* NAV */
+.nav-bar{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a1a22;position:sticky;top:0;background:rgba(8,8,15,.95);backdrop-filter:blur(8px);z-index:100}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{margin-left:12px}
+.nav-tag{font-size:6px;letter-spacing:3px;color:var(--dim);text-transform:uppercase}
+.nav-name{font-size:11px;font-weight:700;letter-spacing:1px;margin-top:1px}
+
+/* HEADER */
+header{text-align:center;padding:30px 20px 20px;border-bottom:1px solid rgba(192,57,43,.15)}
+header h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:var(--red);text-shadow:0 0 20px rgba(192,57,43,.4)}
+.hdr-sub{font-size:8px;letter-spacing:3px;color:var(--dim);margin-top:6px}
+.hdr-state{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;font-size:7px;letter-spacing:2px;font-weight:700}
+.hdr-state.green{background:rgba(39,174,96,.12);color:var(--grn);border:1px solid rgba(39,174,96,.25)}
+.hdr-state.red{background:rgba(192,57,43,.12);color:var(--red);border:1px solid rgba(192,57,43,.25)}
+.hdr-state.gold{background:rgba(212,168,67,.12);color:var(--gld);border:1px solid rgba(212,168,67,.25)}
+
+/* DISCLAIMER */
+.disc{background:linear-gradient(90deg,#1a0505,#0a0208);border:1px solid rgba(192,57,43,.2);border-radius:10px;margin:12px 16px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start}
+.disc-icon{color:var(--red);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-text{color:rgba(192,57,43,.5);font-size:7px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-text strong{color:rgba(192,57,43,.7)}
+
+/* CARD GRID */
+.section-hdr{font-size:7px;letter-spacing:3px;color:var(--dim);padding:16px 16px 8px;text-transform:uppercase}
+.card-grid{padding:0 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{background:var(--bg2);border:1px solid #1a1a22;border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.card:active{transform:scale(.97);border-color:var(--red)}
+.card-tag{font-size:6px;letter-spacing:2px;color:var(--dim);margin-bottom:6px;text-transform:uppercase}
+.card-title{font-size:10px;font-weight:700;letter-spacing:.5px;line-height:1.5;margin-bottom:6px}
+.card-one{font-size:8px;color:#9898b8;font-family:Georgia,serif;line-height:1.6;font-style:italic}
+.card-esc{position:absolute;top:8px;right:8px;font-size:6px;letter-spacing:1px;padding:2px 6px;border-radius:4px;color:var(--red);background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.15)}
+.card.dbt{border-left:3px solid var(--grn)}
+.card.cbt{border-left:3px solid var(--blu)}
+.card.act{border-left:3px solid var(--pur)}
+.card.rsd{border-left:3px solid var(--gld)}
+.card.crisis{border-left:3px solid var(--red)}
+
+/* STATE LOCK OVERLAY */
+.lock-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;display:none;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.lock-backdrop.show{display:flex}
+.lock-panel{background:var(--bg);border:2px solid var(--red);border-radius:16px;width:92%;max-width:420px;max-height:90vh;overflow-y:auto;padding:0;position:relative}
+.lock-hdr{background:linear-gradient(135deg,#1a0505,#08080f);padding:20px;text-align:center;border-bottom:1px solid rgba(192,57,43,.2);border-radius:14px 14px 0 0}
+.lock-tag{font-size:6px;letter-spacing:3px;color:var(--red);margin-bottom:4px}
+.lock-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--red)}
+.lock-timer{font-size:48px;font-weight:900;color:var(--grn);text-align:center;padding:20px;font-family:'DM Mono',monospace;letter-spacing:4px}
+.lock-timer.warn{color:var(--gld)}
+.lock-timer.done{color:var(--red);font-size:24px;letter-spacing:2px}
+.lock-body{padding:20px}
+.lock-level{margin-bottom:16px}
+.lock-level-tag{font-size:6px;letter-spacing:2px;color:var(--dim);margin-bottom:6px;text-transform:uppercase}
+.lock-level-text{font-size:11px;line-height:1.8;font-family:Georgia,serif;color:#d4d4ec}
+.lock-memory{background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.15);border-radius:8px;padding:12px;margin-top:12px}
+.lock-memory-tag{font-size:6px;letter-spacing:2px;color:var(--gld);margin-bottom:4px}
+.lock-memory-text{font-size:9px;color:var(--gld);font-style:italic;font-family:Georgia,serif;line-height:1.7}
+.lock-esc{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.2);border-radius:8px;padding:12px;margin-top:12px}
+.lock-esc-tag{font-size:6px;letter-spacing:2px;color:var(--red);margin-bottom:4px}
+.lock-esc-text{font-size:9px;color:#c87878;font-family:Georgia,serif;line-height:1.7}
+.lock-actions{padding:16px 20px 20px;display:flex;flex-direction:column;gap:8px}
+.lock-btn{width:100%;padding:14px;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px;border:none;border-radius:10px;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.lock-btn:active{transform:scale(.97)}
+.lock-btn-go{background:var(--grn);color:#000}
+.lock-btn-more{background:var(--bg3);color:var(--text);border:1px solid #252530}
+.lock-btn-esc{background:rgba(192,57,43,.15);color:var(--red);border:1px solid rgba(192,57,43,.3)}
+.lock-btn-close{background:none;color:var(--dim);border:1px solid var(--dim2);font-size:8px}
+.lock-feedback{text-align:center;padding:8px;font-size:8px;letter-spacing:1px;color:var(--grn);min-height:20px}
+
+/* LOG */
+.log-section{padding:0 16px;margin-top:24px}
+.log-hdr{font-size:7px;letter-spacing:3px;color:var(--dim);margin-bottom:8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.log-clear{font-size:7px;color:var(--dim2);cursor:pointer;letter-spacing:1px}
+.log-clear:active{color:var(--red)}
+.log-entry{background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:3px solid var(--dim2);display:flex;justify-content:space-between;align-items:center}
+.log-entry.success{border-left-color:var(--grn)}
+.log-entry.escalated{border-left-color:var(--red)}
+.log-card{font-size:9px;font-weight:700;letter-spacing:.5px}
+.log-meta{font-size:7px;color:var(--dim);text-align:right}
+.log-empty{text-align:center;padding:24px;color:var(--dim);font-size:8px;font-family:Georgia,serif;font-style:italic}
+
+/* FOOTER */
+footer{text-align:center;padding:32px 16px;font-size:7px;color:#222;letter-spacing:2px;line-height:2.2}
+
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">OPERATOR'S DECK</div>
+    <div class="nav-name">OPERATOR'S PLAYBOOK</div>
+  </div>
+</div>
+
+<header>
+  <h1>STATE LOCK</h1>
+  <div class="hdr-sub">PAUSE BEFORE YOU REACT — READ BEFORE YOU SPIRAL</div>
+  <div class="hdr-state green" id="stateTag">STABLE</div>
+</header>
+
+<div class="disc">
+  <div class="disc-icon">⚠</div>
+  <div class="disc-text"><strong>THIS IS A SELF-HELP TOOL — NOT THERAPY.</strong> Techniques drawn from DBT, CBT, and ACT frameworks. This does not replace professional treatment. If you're in crisis, call or text 988.</div>
+</div>
+
+<div class="section-hdr">TAP A CARD — STATE LOCK ACTIVATES</div>
+<div class="card-grid" id="cardGrid"></div>
+
+<div class="log-section" id="logSection">
+  <div class="log-hdr"><span>RECENT ACTIVATIONS</span><span class="log-clear" onclick="clearLog()">CLEAR</span></div>
+  <div id="logList"></div>
+</div>
+
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Intervention used. That's a rep. Log it in the Deck.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+
+<div style="text-align:center;margin:10px auto;max-width:480px;padding:10px;font-size:8px;color:var(--dim);font-family:Georgia,serif;line-height:1.8">
+<strong style="color:#9898b8">NEXT STEP?</strong><br>
+<a href="tipp-drill-full.html" style="color:var(--red);text-decoration:none">TIPP Protocol →</a> &nbsp;|&nbsp;
+<a href="thought-interceptor.html" style="color:var(--pur);text-decoration:none">Interceptor →</a> &nbsp;|&nbsp;
+<a href="red-protocol.html" style="color:var(--red);text-decoration:none">Red Protocol →</a>
+</div>
+
+<footer>
+THIS IS A SELF-HELP TOOL — NOT CLINICAL DBT, CBT, OR ACT.<br>
+Techniques informed by Linehan (DBT), Beck (CBT), Hayes (ACT).<br>
+If you're in crisis, call or text 988.<br><br>
+100% LOCAL • ZERO CLOUD • YOUR DATA STAYS YOURS<br>
+OPERATOR'S DECK — 2026
+</footer>
+</div>
+
+<!-- STATE LOCK OVERLAY -->
+<div class="lock-backdrop" id="lockBackdrop">
+  <div class="lock-panel" id="lockPanel"></div>
+</div>
+
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+
+// ─── KNOWLEDGE BASE (20 ENTRIES) ────────────────────────────────────────────
+
+var knowledgeBase=[
+{id:1,title:'COLD WATER RESET',tag:'DBT • TIPP',cls:'dbt',
+oneLine:'Ice on your face. Dive reflex. Nervous system override.',
+tenSec:'Fill a bowl with ice water. Submerge your face for 30 seconds. The mammalian dive reflex forces your heart rate down. This is not metaphorical — it is a physiological brake.',
+full:'Hold ice or a frozen pack against your cheeks and forehead. Lean forward. Breathe out slowly. The vagus nerve fires. Your heart rate drops 10-25%. The adrenaline wave breaks. You are buying time — not solving the problem. You are stopping the cascade so you CAN solve the problem.',
+escalation:'If this isn't enough: run cold water over your wrists for 60 seconds, then go to TIPP Protocol for the full sequence.',
+runAction:'Hold ice to your face for 30 seconds. Breathe out slow. Count each exhale.',
+lastMemory:'Last time this stopped you from sending that 2AM message.'},
+
+{id:2,title:'5-4-3-2-1 GROUNDING',tag:'DBT • DISTRESS',cls:'dbt',
+oneLine:'Five senses. Right now. Get out of your head.',
+tenSec:'Name 5 things you see. 4 you can touch. 3 you hear. 2 you smell. 1 you taste. This pulls your prefrontal cortex back online. Panic lives in the future — your senses live in now.',
+full:'Go slow. Actually look at the 5 things. Touch the 4 surfaces — feel the temperature, the texture. The goal is not to list them fast. The goal is to arrive here. Dissociation cannot survive sustained sensory contact with the present.',
+escalation:'If grounding isn't landing: stand up, press your feet into the floor hard, and name the pressure. Then restart the count.',
+runAction:'5 things you see. Say them out loud. Now 4 you can touch. Go.',
+lastMemory:'You used this in the parking lot before the meeting. It worked.'},
+
+{id:3,title:'OPPOSITE ACTION',tag:'DBT • EMOTION REG',cls:'dbt',
+oneLine:'The emotion says run. Do the opposite.',
+tenSec:'Fear says avoid — approach instead. Anger says attack — step back gently. Shame says hide — show up anyway. The action changes the emotion because the body leads the brain.',
+full:'Identify the urge: what does this emotion want you to DO? Now do the exact opposite, all the way. Not halfway. If shame says cancel plans, go to the plans. If anger says text back hard, put the phone in another room. Opposite Action only works when you commit fully.',
+escalation:'If you can't do the opposite: do ONE small thing in the opposite direction. Open the door. Don't walk through — just open it.',
+runAction:'Name the urge. Now name the opposite. Do the opposite for 5 minutes.',
+lastMemory:'Last time you wanted to cancel, you showed up instead and it broke the loop.'},
+
+{id:4,title:'NAME THE DISTORTION',tag:'CBT • REFRAME',cls:'cbt',
+oneLine:'Your brain is lying. Identify which lie.',
+tenSec:'Catastrophizing. Mind-reading. All-or-nothing. Personalization. Labeling. Fortune-telling. These are not thoughts — they are distortion patterns. Naming them takes their power.',
+full:'Write the thought. Then ask: Is this catastrophizing (worst case as certain)? Mind-reading (assuming what others think)? All-or-nothing (no middle ground)? Just naming the pattern creates distance. You are not the thought. You are the one observing the pattern.',
+escalation:'If you can\'t identify the distortion: write the thought and add "...and I notice my brain is doing something with this." That alone breaks the fusion.',
+runAction:'Write the thought. Circle the distortion type. Rewrite one version without it.',
+lastMemory:'You caught the mind-reading last Thursday. The meeting went fine.'},
+
+{id:5,title:'DEFUSION — LEAVES ON A STREAM',tag:'ACT • DEFUSION',cls:'act',
+oneLine:'Thoughts are not facts. Watch them pass.',
+tenSec:'Imagine a stream. Each thought goes on a leaf and floats away. You are not the thought. You are the riverbank. The point is not to stop thinking — it is to stop gripping.',
+full:'Close your eyes. Picture the stream. When a thought appears — any thought — place it on a leaf. Watch it drift. When you get hooked and follow a thought downstream, notice that too. Place "I got hooked" on the next leaf. There is no failing. There is only noticing.',
+escalation:'If visualization isn't working: say the thought out loud in a cartoon voice. It sounds absurd — that is the point. Defusion breaks the thought's authority.',
+runAction:'Close your eyes. 2 minutes. Every thought goes on a leaf. Start now.',
+lastMemory:'You did this for 3 minutes before the phone call. Voice was steady.'},
+
+{id:6,title:'RSD INTERCEPT',tag:'RSD • SHIELD',cls:'rsd',
+oneLine:'That rejection feeling is a neurological event, not a fact.',
+tenSec:'Rejection Sensitivity Dysphoria is ADHD wiring — not weakness. The pain is real but the story is not. They didn't reject you. Your nervous system fired a threat signal. Separate the signal from the story.',
+full:'The spike hits. The stomach drops. The narrative starts: they hate me, I'm out, I messed up. STOP. That narrative is post-hoc — your brain is explaining a feeling that arrived BEFORE the thought. The feeling is neurological. The story is fabricated. You do not need to believe the story.',
+escalation:'If the RSD spike is severe: use Cold Water Reset first to break the physiological wave, then come back to reframe.',
+runAction:'Say: "This is an RSD spike. The pain is real. The story is not." Repeat 3 times.',
+lastMemory:'The spike after that email was RSD. The reply the next day was fine.'},
+
+{id:7,title:'PACED BREATHING',tag:'DBT • TIPP',cls:'dbt',
+oneLine:'Exhale longer than you inhale. That is the entire trick.',
+tenSec:'Breathe in for 4 counts. Out for 7. The extended exhale activates your parasympathetic nervous system. This is not meditation. This is a physiological override. It works whether you believe in it or not.',
+full:'Sit or stand. In through the nose, 4 counts. Hold for 1 beat. Out through pursed lips, 7 counts. Repeat 6 times. Your heart rate variability will shift by the third cycle. The amygdala cannot sustain a panic response when the vagus nerve is being stimulated by slow exhalation.',
+escalation:'If you can't slow your breathing: breathe into cupped hands. The slight CO2 rebreathing naturally slows the cycle.',
+runAction:'In 4. Hold 1. Out 7. Do it 6 times right now. Count out loud if you need to.',
+lastMemory:'You did this in the bathroom at work. Nobody noticed. You came back steady.'},
+
+{id:8,title:'URGE SURFING',tag:'ACT • ACCEPTANCE',cls:'act',
+oneLine:'The urge peaks at 20 minutes. Ride it.',
+tenSec:'Every urge has a wave shape — it rises, peaks, and falls. You do not need to act on it or fight it. Just notice it. Where is it in your body? Is it getting stronger or weaker? Track it like weather.',
+full:'Set a timer for 20 minutes. Describe the urge like a scientist: "There is a tightness in my chest. It is about a 7 out of 10. It is moving to my throat." Keep reporting. The urge will peak and decline. You survived it by observing it, not by white-knuckling.',
+escalation:'If the urge is overwhelming: combine with Paced Breathing. Surf and breathe at the same time.',
+runAction:'Rate the urge 1-10. Set a timer for 20 min. Rate it again at 5, 10, 15, 20.',
+lastMemory:'The craving at 11pm was an 8. By 11:20 it was a 3. You watched it break.'},
+
+{id:9,title:'RADICAL ACCEPTANCE',tag:'DBT • DISTRESS',cls:'dbt',
+oneLine:'It happened. Fighting reality adds suffering to pain.',
+tenSec:'Pain is inevitable. Suffering is pain plus non-acceptance. Radical acceptance does not mean approval. It means: this is what IS. Releasing the "it shouldn't be this way" lets you start dealing with what actually is.',
+full:'Say it: "This happened. I cannot change that it happened. I can only choose what I do next." Radical acceptance is not giving up. It is putting down the argument with reality so your hands are free to build something. Repeat as many times as needed. It is a practice, not a switch.',
+escalation:'If acceptance feels impossible: accept that you can't accept it yet. That counts. Start there.',
+runAction:'Say out loud: "This is what happened. I am turning toward it." Repeat 5 times.',
+lastMemory:'You stopped arguing with the situation on Tuesday. That is when you started solving it.'},
+
+{id:10,title:'THOUGHT RECORD',tag:'CBT • CORE',cls:'cbt',
+oneLine:'Write the thought. Challenge it. Replace it.',
+tenSec:'Situation → Automatic thought → Emotion → Evidence for → Evidence against → Balanced thought. This is the most validated CBT technique in existence. Writing makes thoughts concrete and challengeable.',
+full:'Take 3 minutes. Write: What happened? What did my brain say? What did I feel (and how intense, 0-100)? What evidence supports this thought? What evidence contradicts it? What would I tell a friend who thought this? Now write a balanced replacement thought. Rate the emotion again.',
+escalation:'If writing feels impossible: voice-record yourself answering the questions. The format matters less than the externalization.',
+runAction:'Grab paper. Write the thought. Write one piece of evidence against it. That is enough.',
+lastMemory:'The thought record you did after the argument — you found 4 counter-evidence points.'},
+
+{id:11,title:'SHAME EXPOSURE',tag:'DBT • EMOTION REG',cls:'dbt',
+oneLine:'Shame dies in daylight. Say the thing.',
+tenSec:'Shame requires secrecy and silence. The fastest intervention is to tell one safe person. Not for advice. Not for fixing. Just to hear yourself say it out loud. The power drops the moment it exits your mouth.',
+full:'Identify the shame thought: "I am ___." Now identify one person who has earned your trust. Tell them. You do not need to explain or justify. Just say: "I feel shame about this and I need to say it out loud." Shame is the only emotion that gets stronger in isolation and weaker in connection.',
+escalation:'If there is no safe person available: write it. Write the shame sentence. Then write: "This is a feeling, not a fact." That is partial exposure.',
+runAction:'Write the shame sentence. One sentence. Look at it. It is smaller on paper than in your head.',
+lastMemory:'You told someone and they said "me too." That is what usually happens.'},
+
+{id:12,title:'BEHAVIORAL ACTIVATION',tag:'CBT • DEPRESSION',cls:'cbt',
+oneLine:'Don't wait to feel like it. Move first.',
+tenSec:'Depression says: wait until you have energy. That energy never comes because inaction feeds depression. The loop breaks when you act WITHOUT motivation. Action creates the feeling — not the other way around.',
+full:'Pick the smallest action. Not "clean the house." Try "put one dish in the sink." Not "go to the gym." Try "put shoes on." The activation threshold is absurdly low on purpose. You are not trying to accomplish something. You are trying to break the inertia feedback loop.',
+escalation:'If even the smallest action feels impossible: change your body position. Sit up. Stand up. That is an action. The bar is that low.',
+runAction:'Stand up right now. Walk to another room. Touch the wall. Walk back. Done. That is activation.',
+lastMemory:'You put shoes on and ended up walking 2 miles. It started with shoes.'},
+
+{id:13,title:'ANGER DELAY PROTOCOL',tag:'DBT • DISTRESS',cls:'crisis',
+oneLine:'90 seconds. That is how long the chemical lasts.',
+tenSec:'A neurological anger response lasts 90 seconds. Every second of anger after that is you re-triggering it with thoughts. If you can delay your response for 90 seconds, you respond from choice — not chemistry.',
+full:'The moment anger spikes: do NOT respond. Not in text. Not in person. Not in email. Set a physical timer for 90 seconds. During those 90 seconds, do paced breathing (in 4, out 7). When the timer ends, the chemical anger has passed. What remains is your actual position — which you can now express clearly.',
+escalation:'If 90 seconds is not enough: extend to 20 minutes. The longer delay is for when the re-triggering thoughts are strong. Walk away if you have to.',
+runAction:'Set a timer. 90 seconds. Breathe. Do NOT pick up the phone.',
+lastMemory:'The reply you almost sent vs. the one you sent after 90 seconds — completely different.'},
+
+{id:14,title:'VALUES COMPASS',tag:'ACT • VALUES',cls:'act',
+oneLine:'Not what feels good. What matters.',
+tenSec:'When emotions run hot, your compass spins. Values are magnetic north. Ask: what kind of person do I want to be right now? Not what do I want to DO — who do I want to BE? The answer usually makes the action obvious.',
+full:'Name the situation. Name the emotion. Now name the value at stake: loyalty, integrity, courage, kindness, honesty, self-respect. Ask: "If I act from this value right now, what does that look like?" The action that aligns with your value will often feel harder than the reactive option. That is how you know it is right.',
+escalation:'If you can't identify the value: ask "What would I regret more — doing this, or not doing this? In a year, which version of me do I want to have been?"',
+runAction:'Name one value. One. Ask: what does that value require of me right now?',
+lastMemory:'You chose honesty over comfort last week. It cost you in the moment. It paid off by Friday.'},
+
+{id:15,title:'PANIC PROTOCOL',tag:'CBT • PANIC',cls:'crisis',
+oneLine:'You are not dying. This is adrenaline. It will pass.',
+tenSec:'Heart racing. Chest tight. Vision narrowing. This is your sympathetic nervous system dumping adrenaline. It is not a heart attack. It is not permanent. Peak panic lasts 10 minutes maximum. You have survived every one before this.',
+full:'Sit down. Plant feet flat. Breathe in 4, out 7. Say out loud: "This is adrenaline. It will peak and pass. I have survived this before." Do NOT fight the sensations — that feeds the panic cycle. Let the wave move through you. Observe it like weather. Name what you feel: "My hands are tingling. My chest is tight." Narrating the symptoms engages your prefrontal cortex and dials down the amygdala.',
+escalation:'If symptoms persist beyond 15 minutes or feel different than usual: this is still probably panic, but contact someone you trust. You do not have to be alone for this.',
+runAction:'Feet flat. In 4, out 7. Say: "Adrenaline. It peaks. It passes." Out loud.',
+lastMemory:'The one at 3AM lasted 8 minutes. You counted. It ended.'},
+
+{id:16,title:'HALF-SMILE TECHNIQUE',tag:'DBT • EMOTION REG',cls:'dbt',
+oneLine:'Relax your face. Slightly lift the corners. Watch what happens.',
+tenSec:'Facial feedback is real neuroscience. A slight — not forced — upward turn of the lips sends a signal to the brain that reduces emotional intensity. Pair it with relaxed hands, palms up. This is not "fake it till you make it." This is a neural feedback loop.',
+full:'Drop your shoulders. Unclench your jaw. Now barely — just barely — lift the corners of your mouth. Not a smile. A softening. Turn your palms upward on your knees. Breathe normally. Hold for 60 seconds. The facial musculature signals safety to the limbic system. Marsha Linehan put this in DBT because it works.',
+escalation:'If this feels fake or triggering: skip the smile. Just unclench the jaw and drop the shoulders. The muscle relaxation alone has an effect.',
+runAction:'Right now: jaw loose. Shoulders down. Mouth corners up 2mm. Palms up. Hold 60 seconds.',
+lastMemory:'You did this on the subway. Nobody noticed. Your heart rate dropped.'},
+
+{id:17,title:'COGNITIVE DEFUSION — "I NOTICE"',tag:'ACT • DEFUSION',cls:'act',
+oneLine:'Add three words: "I notice that I am having the thought that..."',
+tenSec:'Instead of "I am worthless" → "I notice I am having the thought that I am worthless." The content is identical. The relationship to the content is transformed. You are no longer inside the thought. You are observing it.',
+full:'Take the most painful thought in your head right now. Say it. Now add the prefix: "I notice that I am having the thought that ___." Say it again. Notice the space that opens up. That space is where choice lives. The thought is still there. But you are no longer fused with it. You can carry it without obeying it.',
+escalation:'If "I notice" doesn't create distance: try "My mind is telling me the story about ___." Making it a "story" further externalizes it.',
+runAction:'Think the thought. Say it with "I notice I\'m having the thought that..." Notice the shift.',
+lastMemory:'You defused from "I always mess up" and realized you were at 3 out of 40 actual mistakes.'},
+
+{id:18,title:'RSD — CHECK THE EVIDENCE',tag:'RSD • CBT HYBRID',cls:'rsd',
+oneLine:'The spike says rejected. What does the evidence say?',
+tenSec:'RSD generates instant conviction: they are pulling away, I am being excluded, they meant that as an insult. Before you act on that conviction, force one question: What is the ACTUAL evidence? Not the feeling-evidence. The observable-fact evidence.',
+full:'Write two columns. Left: "What my RSD says happened." Right: "What actually, observably happened." Example: Left — "She hates me, she was cold in the meeting." Right — "She said fewer words than usual. She also had a 7AM flight and looked tired." The gap between the two columns is the RSD distortion. You do not have to believe the right column. Just see it.',
+escalation:'If the evidence check doesn't reduce the spike: use Cold Water Reset first, then re-read the right column after the physiological wave passes.',
+runAction:'Two columns. Left: the RSD story. Right: what actually happened. Write both.',
+lastMemory:'You checked the evidence on the "cold" text. They replied with hearts 20 minutes later.'},
+
+{id:19,title:'PROGRESSIVE MUSCLE RELAXATION',tag:'DBT • TIPP',cls:'dbt',
+oneLine:'Tense everything. Then release. Your body cannot stay locked.',
+tenSec:'Squeeze your fists as hard as you can for 5 seconds. Release. Feel the contrast. Now do feet. Now shoulders. Now face. Anxiety lives in muscle tension. You cannot think your way out of a locked body. You have to unlock it physically.',
+full:'Start from the bottom. Curl your toes hard — 5 seconds — release. Calves — 5 seconds — release. Thighs. Stomach. Fists. Shoulders to your ears. Scrunch your face. Each release floods the muscle with blood and drops tension. Full body takes 3 minutes. After the last release, sit still for 30 seconds and notice the difference.',
+escalation:'If you can\'t do the full sequence: just do hands. Clench fists for 10 seconds, release. Repeat 3 times. That alone shifts the nervous system.',
+runAction:'Fists. Squeeze 5 seconds. Release. Feel the warmth flood in. Do it 3 times.',
+lastMemory:'You did this under the desk during the meeting. Nobody knew. Shoulders dropped 2 inches.'},
+
+{id:20,title:'SAFE PLACE VISUALIZATION',tag:'CBT • GROUNDING',cls:'cbt',
+oneLine:'Build one room in your head where nothing can reach you.',
+tenSec:'Close your eyes. Picture a place — real or invented — where you feel safe. Build it in detail: temperature, sounds, light, textures. This is not escapism. This is a rehearsed neural pathway you can access in 10 seconds during a crisis because you have practiced it.',
+full:'Pick the place. A cabin. A beach at 5AM. A childhood room. Now build it: What is the temperature? What sounds are there? What do you see when you look left? Right? Down? What surface are you touching? What time of day is it? Rehearse this visualization 3 times sober and calm. Then it is loaded and accessible when you need it fast.',
+escalation:'If visualization is hard for you (common with ADHD): use a real photo on your phone instead. Stare at it for 30 seconds and describe what you see out loud.',
+runAction:'Close your eyes. 30 seconds. Go to your place. What do you hear there?',
+lastMemory:'You went to the cabin in your head while waiting for results. Your breathing slowed.'}
+];
+
+// ─── STATE + LOGGING ────────────────────────────────────────────────────────
+
+var lockActive=false;
+var lockTimerId=null;
+var currentCard=null;
+var currentLevel=0; // 0=oneLine, 1=tenSec, 2=full
+
+function getLog(){try{return JSON.parse(localStorage.getItem('od_playbook_log')||'[]');}catch(e){return[]}}
+function saveLog(arr){try{localStorage.setItem('od_playbook_log',JSON.stringify(arr.slice(0,100)));}catch(e){}}
+
+function logUse(card,outcome){
+  var entry={id:card.id,title:card.title,outcome:outcome,ts:Date.now(),date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})};
+  var log=getLog();log.unshift(entry);saveLog(log);
+  try{localStorage.setItem('od_playbook_last',JSON.stringify({id:card.id,outcome:outcome,ts:Date.now()}));}catch(e){}
+  renderLog();
+}
+
+function getDynamicMemory(card){
+  try{
+    var last=JSON.parse(localStorage.getItem('od_playbook_last')||'null');
+    if(last&&last.id===card.id){
+      var ago=Date.now()-last.ts;
+      if(ago<86400000)return'You used this earlier today'+(last.outcome==='success'?' and it worked.':'. Try it again — deeper this time.');
+      if(ago<604800000)return'You used this '+(Math.floor(ago/86400000))+' days ago'+(last.outcome==='success'?' and it landed.':'. The rep matters even when it\'s hard.');
+    }
+  }catch(e){}
+  return card.lastMemory;
+}
+
+// ─── RENDER CARDS ───────────────────────────────────────────────────────────
+
+function renderCards(){
+  var g=document.getElementById('cardGrid');g.innerHTML='';
+  knowledgeBase.forEach(function(c){
+    var hasEsc=c.escalation?'<div class="card-esc">ESC</div>':'';
+    g.innerHTML+='<div class="card '+esc(c.cls)+'" onclick="go('+c.id+')">'+hasEsc+'<div class="card-tag">'+esc(c.tag)+'</div><div class="card-title">'+esc(c.title)+'</div><div class="card-one">'+esc(c.oneLine)+'</div></div>';
+  });
+}
+
+// ─── STATE LOCK ─────────────────────────────────────────────────────────────
+
+function go(id){
+  if(lockActive)return;
+  var card=knowledgeBase.find(function(c){return c.id===id});
+  if(!card)return;
+  currentCard=card;
+  currentLevel=0;
+  lockActive=true;
+  showStateLock(card);
+}
+window.go=go;
+
+function showStateLock(card){
+  var bd=document.getElementById('lockBackdrop');
+  var panel=document.getElementById('lockPanel');
+  var mem=getDynamicMemory(card);
+
+  panel.innerHTML='<div class="lock-hdr"><div class="lock-tag">◈ STATE LOCK ACTIVE</div><div class="lock-title">'+esc(card.title)+'</div></div><div class="lock-timer" id="lockTimer">05</div><div class="lock-body" id="lockBody"><div class="lock-level"><div class="lock-level-tag">READ THIS FIRST</div><div class="lock-level-text" id="lockText">'+esc(card.oneLine)+'</div></div><div class="lock-memory"><div class="lock-memory-tag">LAST TIME</div><div class="lock-memory-text">'+esc(mem)+'</div></div></div><div class="lock-feedback" id="lockFeedback"></div><div class="lock-actions" id="lockActions"></div>';
+
+  bd.classList.add('show');
+  updateStateTag('red','STATE LOCKED');
+  startDelay(5);
+}
+
+function startDelay(seconds){
+  if(lockTimerId)clearInterval(lockTimerId);
+  var remaining=seconds;
+  var el=document.getElementById('lockTimer');
+  el.className='lock-timer';
+  el.textContent=String(remaining).padStart(2,'0');
+
+  lockTimerId=setInterval(function(){
+    remaining--;
+    if(remaining<=0){
+      clearInterval(lockTimerId);lockTimerId=null;
+      el.className='lock-timer done';
+      el.textContent='UNLOCKED';
+      renderActions();
+    }else if(remaining<=2){
+      el.className='lock-timer warn';
+      el.textContent=String(remaining).padStart(2,'0');
+    }else{
+      el.textContent=String(remaining).padStart(2,'0');
+    }
+  },1000);
+}
+
+function renderActions(){
+  var a=document.getElementById('lockActions');
+  var html='';
+  if(currentLevel===0){
+    html+='<button class="lock-btn lock-btn-go" onclick="runLevel()">'+esc(currentCard.runAction?'⚡ DO THE ACTION':'✓ GOT IT')+'</button>';
+    html+='<button class="lock-btn lock-btn-more" onclick="goDeeper()">TELL ME MORE (10 SEC READ)</button>';
+    if(currentCard.escalation)html+='<button class="lock-btn lock-btn-esc" onclick="showEscalation()">⬆ ESCALATE</button>';
+    html+='<button class="lock-btn lock-btn-close" onclick="finishLock(\'dismissed\')">CLOSE</button>';
+  }else if(currentLevel===1){
+    html+='<button class="lock-btn lock-btn-go" onclick="runLevel()">⚡ DO THE ACTION</button>';
+    html+='<button class="lock-btn lock-btn-more" onclick="goDeeper()">FULL BREAKDOWN</button>';
+    if(currentCard.escalation)html+='<button class="lock-btn lock-btn-esc" onclick="showEscalation()">⬆ ESCALATE</button>';
+    html+='<button class="lock-btn lock-btn-close" onclick="finishLock(\'used\')">CLOSE — I\'VE GOT THIS</button>';
+  }else{
+    html+='<button class="lock-btn lock-btn-go" onclick="runLevel()">⚡ DO THE ACTION</button>';
+    if(currentCard.escalation)html+='<button class="lock-btn lock-btn-esc" onclick="showEscalation()">⬆ ESCALATE</button>';
+    html+='<button class="lock-btn lock-btn-close" onclick="finishLock(\'success\')">✓ DONE — LOG IT</button>';
+  }
+  a.innerHTML=html;
+}
+
+function goDeeper(){
+  currentLevel++;
+  var el=document.getElementById('lockText');
+  var tag=document.getElementById('lockBody').querySelector('.lock-level-tag');
+  if(currentLevel===1){
+    tag.textContent='10-SECOND READ';
+    el.textContent=currentCard.tenSec;
+    startDelay(3);
+  }else if(currentLevel>=2){
+    currentLevel=2;
+    tag.textContent='FULL BREAKDOWN';
+    el.textContent=currentCard.full;
+    startDelay(3);
+  }
+  document.getElementById('lockActions').innerHTML='';
+  document.getElementById('lockFeedback').textContent='';
+}
+
+function runLevel(){
+  var fb=document.getElementById('lockFeedback');
+  fb.textContent='ACTION: '+currentCard.runAction;
+  fb.style.color='var(--grn)';
+  logUse(currentCard,'success');
+  setTimeout(function(){
+    var a=document.getElementById('lockActions');
+    a.innerHTML='<button class="lock-btn lock-btn-go" onclick="finishLock(\'success\')">✓ DONE — LOCK COMPLETE</button>';
+  },500);
+}
+
+function showEscalation(){
+  var body=document.getElementById('lockBody');
+  var existing=body.querySelector('.lock-esc');
+  if(existing)return; // prevent stacking
+  var div=document.createElement('div');
+  div.className='lock-esc';
+  div.innerHTML='<div class="lock-esc-tag">⬆ ESCALATION</div><div class="lock-esc-text">'+esc(currentCard.escalation)+'</div>';
+  body.appendChild(div);
+  logUse(currentCard,'escalated');
+  var fb=document.getElementById('lockFeedback');
+  fb.textContent='ESCALATION PATH SHOWN';
+  fb.style.color='var(--red)';
+}
+
+function finishLock(outcome){
+  if(lockTimerId){clearInterval(lockTimerId);lockTimerId=null;}
+  lockActive=false;
+  document.getElementById('lockBackdrop').classList.remove('show');
+  if(outcome==='success'||outcome==='used')updateStateTag('green','INTERVENTION USED');
+  else updateStateTag('gold','DISMISSED');
+  if(outcome!=='dismissed'&&outcome!=='success'&&outcome!=='escalated')logUse(currentCard,outcome);
+  setTimeout(function(){updateStateTag('green','STABLE')},4000);
+}
+
+function updateStateTag(cls,text){
+  var el=document.getElementById('stateTag');
+  el.className='hdr-state '+cls;
+  el.textContent=text;
+}
+
+// ─── LOG RENDER ─────────────────────────────────────────────────────────────
+
+function renderLog(){
+  var log=getLog();
+  var el=document.getElementById('logList');
+  if(!log.length){el.innerHTML='<div class="log-empty">No activations yet. First one changes everything.</div>';return;}
+  el.innerHTML=log.slice(0,15).map(function(e){
+    return'<div class="log-entry '+(e.outcome==='escalated'?'escalated':'success')+'"><div class="log-card">'+esc(e.title)+'</div><div class="log-meta">'+esc(e.date)+' '+esc(e.time)+'<br>'+esc(e.outcome)+'</div></div>';
+  }).join('');
+}
+
+function clearLog(){
+  if(!confirm('Clear playbook log?'))return;
+  localStorage.removeItem('od_playbook_log');
+  localStorage.removeItem('od_playbook_last');
+  renderLog();
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+renderCards();
+renderLog();
+</script>
+</body>
+</html>

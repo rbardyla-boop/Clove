@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="OPPOSITE ACTION • OPERATOR'S DECK">
+<meta property="og:description" content="DBT emotion regulation. When the urge makes things worse, act in the exact opposite direction.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/opposite-action-drill.html">
+  <title>OPPOSITE ACTION • OPERATOR'S DECK</title>
+  <style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --acc:#7c3aed;--acc2:#9d5ff0;--red:#c0392b;--gld:#d4a843;
+  --grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333
+}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc2);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim2);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim)}
+.step-counter span{color:var(--acc2)}
+
+/* HOW-TO */
+.how-strip{background:#0c0a14;border-bottom:1px solid rgba(124,58,237,.2);padding:12px 16px;display:flex;gap:8px;align-items:flex-start}
+.how-strip .hs-icon{color:var(--acc2);font-size:11px;flex-shrink:0;margin-top:1px}
+.how-strip .hs-text{color:#6a5f88;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.how-strip .hs-text strong{color:#9070bb}
+
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--acc2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim2);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:#666;font-style:normal}
+
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(124,58,237,.4)}
+textarea::placeholder,input::placeholder{color:#222;font-style:italic}
+textarea{min-height:90px}
+
+/* EMOTION GRID */
+.emo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.emo-card{background:var(--bg3);border:1.5px solid var(--dim2);border-radius:12px;padding:12px 8px;cursor:pointer;transition:all .15s;text-align:center}
+.emo-card:active{transform:scale(.95)}
+.emo-card.sel{border-color:var(--acc);background:rgba(124,58,237,.12)}
+.emo-icon{font-size:22px;margin-bottom:5px}
+.emo-name{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px;margin-bottom:2px}
+.emo-word{color:#555;font-size:7.5px;font-family:Georgia,serif}
+.emo-card.sel .emo-name{color:var(--acc2)}
+.emo-card.sel .emo-word{color:rgba(157,95,240,.6)}
+
+/* INTENSITY SLIDER */
+.intensity-row{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px}
+.intensity-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.int-title{font-size:9px;font-family:monospace;letter-spacing:2px;color:var(--dim)}
+.int-value{font-size:20px;font-weight:900;font-family:'Courier New',monospace;color:var(--acc2)}
+.int-desc{font-size:8px;font-family:Georgia,serif;font-style:italic;color:var(--dim);margin-top:2px;text-align:right}
+input[type=range]{width:100%;height:4px;-webkit-appearance:none;background:linear-gradient(90deg,var(--acc) var(--pct,0%),var(--dim2) var(--pct,0%));border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--acc2);cursor:pointer;border:2px solid var(--bg)}
+.intensity-scale{display:flex;justify-content:space-between;margin-top:4px}
+.intensity-scale span{font-size:6.5px;font-family:monospace;color:var(--dim2)}
+
+/* URGE CHIPS */
+.urge-section{margin-bottom:14px}
+.urge-label{color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px}
+.urge-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.urge-chip{background:var(--bg3);border:1px solid var(--dim2);color:#888;border-radius:8px;padding:7px 12px;font-size:9px;font-family:monospace;letter-spacing:.5px;cursor:pointer;transition:all .15s}
+.urge-chip.sel{border-color:var(--red);color:var(--red);background:rgba(192,57,43,.08)}
+.urge-chip:active{transform:scale(.95)}
+.urge-custom-label{color:var(--dim2);font-size:7.5px;font-family:monospace;letter-spacing:1px;margin-bottom:5px}
+
+/* FACT CHECK */
+.fact-row{display:flex;gap:10px;margin-bottom:14px}
+.fact-btn{flex:1;background:var(--bg3);border:1.5px solid var(--dim2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.fact-btn:active{transform:scale(.97)}
+.fact-btn.sel-yes{border-color:var(--grn);background:rgba(39,174,96,.1)}
+.fact-btn.sel-no{border-color:var(--red);background:rgba(192,57,43,.1)}
+.fb-icon{font-size:24px;margin-bottom:4px}
+.fb-label{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px}
+.fb-desc{color:#555;font-size:8px;font-family:Georgia,serif;margin-top:3px;line-height:1.4}
+.fact-btn.sel-yes .fb-label{color:var(--grn)}
+.fact-btn.sel-no .fb-label{color:var(--red)}
+
+/* OUTCOME QUESTION */
+.outcome-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.outcome-btn{background:var(--bg3);border:1.5px solid var(--dim2);border-radius:10px;padding:12px;cursor:pointer;text-align:center;transition:all .2s}
+.outcome-btn:active{transform:scale(.96)}
+.outcome-btn.sel-worse{border-color:var(--red);background:rgba(192,57,43,.1)}
+.outcome-btn.sel-better{border-color:var(--grn);background:rgba(39,174,96,.1)}
+.ob-label{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px}
+.ob-desc{color:#555;font-size:8px;font-family:Georgia,serif;margin-top:4px;line-height:1.4}
+.outcome-btn.sel-worse .ob-label{color:var(--red)}
+.outcome-btn.sel-better .ob-label{color:var(--grn)}
+
+/* OPP ACTION CARDS */
+.opp-action-card{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(124,58,237,.05));border:1.5px solid rgba(124,58,237,.35);border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.opp-action-card.sel{border-color:var(--acc2);background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(124,58,237,.1));box-shadow:0 0 20px rgba(124,58,237,.15)}
+.opp-action-card:active{transform:scale(.98)}
+.oac-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.oac-check{width:18px;height:18px;border:1.5px solid rgba(124,58,237,.4);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;flex-shrink:0}
+.opp-action-card.sel .oac-check{background:var(--acc);border-color:var(--acc);color:#fff}
+.oac-name{font-size:11px;font-weight:900;font-family:monospace;letter-spacing:1px}
+.opp-action-card.sel .oac-name{color:var(--acc2)}
+.oac-desc{color:#666;font-size:10px;font-family:Georgia,serif;line-height:1.6;margin-bottom:6px}
+.oac-how{background:rgba(0,0,0,.3);border-radius:7px;padding:8px 10px;font-size:8.5px;font-family:monospace;letter-spacing:.5px;color:rgba(157,95,240,.7);line-height:1.6}
+.oac-how strong{color:var(--acc2)}
+.custom-action-section{margin-bottom:14px}
+.ca-label{color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+
+/* COMMITMENT */
+.commit-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.cb-label{color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:8px}
+.duration-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.dur-chip{background:var(--bg2);border:1px solid var(--dim2);color:#888;border-radius:7px;padding:7px 12px;font-size:8.5px;font-family:monospace;letter-spacing:.5px;cursor:pointer;transition:all .15s}
+.dur-chip.sel{border-color:var(--acc2);color:var(--acc2);background:rgba(124,58,237,.1)}
+.dur-chip:active{transform:scale(.95)}
+.commit-oath{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(0,0,0,.3));border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:14px;margin-top:14px;text-align:center}
+.co-tag{color:rgba(157,95,240,.6);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:8px}
+.co-text{color:#ccc;font-size:11px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:10px}
+.co-text strong{color:var(--acc2);font-style:normal}
+.co-sig{display:flex;align-items:center;justify-content:center;gap:10px}
+.co-line{flex:1;height:1px;background:rgba(124,58,237,.2)}
+.co-name-input{background:none;border:none;border-bottom:1px solid rgba(124,58,237,.3);color:#ccc;font-size:11px;font-family:Georgia,serif;text-align:center;outline:none;padding:4px 8px;width:180px;transition:border-color .2s}
+.co-name-input:focus{border-color:var(--acc2)}
+.co-name-input::placeholder{color:#333;font-style:italic}
+
+/* BUTTONS */
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:linear-gradient(135deg,var(--acc),#4a1a8a);color:#fff;border:none;border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-next:active{transform:scale(.96)}
+.btn-next:disabled{opacity:.3;cursor:default;transform:none}
+.btn-back-step{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:10px;padding:15px 18px;font-size:9px;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0}
+.btn-back-step:active{color:#888;border-color:#555}
+.btn-save{background:linear-gradient(135deg,var(--grn),#1a7a3c) !important}
+.btn-print{width:100%;background:var(--bg3);color:var(--acc2);border:1px solid rgba(124,58,237,.25);border-radius:10px;padding:13px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;margin-top:10px;transition:all .2s}
+.btn-print:active{transform:scale(.96)}
+
+/* SUMMARY */
+.summary-header{text-align:center;margin-bottom:20px}
+.summary-header .sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:6px}
+.sb-content{color:#ccc;font-size:11px;font-family:Georgia,serif;line-height:1.65}
+.commit-banner{background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(124,58,237,.05));border:2px solid rgba(124,58,237,.4);border-radius:14px;padding:20px;margin-bottom:10px;text-align:center}
+.cb-tag{color:rgba(157,95,240,.7);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.cb-action{color:#fff;font-size:14px;font-weight:900;font-family:monospace;letter-spacing:.5px;margin-bottom:6px}
+.cb-duration{color:var(--acc2);font-size:10px;font-family:monospace;margin-bottom:8px}
+.cb-signer{color:rgba(157,95,240,.6);font-size:8px;font-family:Georgia,serif;font-style:italic}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:10px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+
+/* PAST */
+.past-section{margin:0 16px 60px}
+.past-divider{border:none;border-top:1px solid var(--dim2);margin:24px 0 16px}
+.past-title{color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.past-entry{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid rgba(124,58,237,.35)}
+.pe-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.pe-date{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:1px}
+.pe-delete{background:none;border:none;color:var(--dim2);font-size:10px;cursor:pointer;padding:0 4px;transition:color .2s}
+.pe-delete:active{color:var(--red)}
+.pe-emo{font-size:13px;margin-bottom:4px}
+.pe-action{font-size:10px;font-weight:700;font-family:monospace;color:#bbb;margin-bottom:4px}
+.pe-commit{color:rgba(157,95,240,.6);font-size:8px;font-family:Georgia,serif;font-style:italic}
+.no-past{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;text-align:center;padding:20px 0}
+
+/* DECISION OVERLAY */
+.decision-box{background:var(--bg3);border:1.5px solid rgba(192,57,43,.2);border-radius:12px;padding:16px;margin-bottom:14px}
+.db-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.db-title{font-size:12px;font-weight:900;font-family:monospace;letter-spacing:.5px;margin-bottom:8px}
+.db-text{color:#777;font-size:10px;font-family:Georgia,serif;line-height:1.65}
+
+@media print{
+  .nav-bar,.progress-bar,.step-counter,.how-strip,.step-acts,.btn-print,.past-section{display:none!important}
+  body{color:#000;background:#fff}
+  .summary-block,.commit-banner{border:1px solid #ddd;break-inside:avoid}
+  .sb-content{color:#333}
+}
+  *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+  <!-- NAV -->
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK • DBT TOOL</div>
+      <div class="nav-name">OPPOSITE ACTION</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div 
+<div style="background:#0a0218;border-bottom:1px solid rgba(124,58,237,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start"><div style="color:#9d5ff0;font-size:11px;flex-shrink:0;margin-top:1px">⚠</div><div style="color:#9d5ff088;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7"><strong style="color:#9d5ff0cc">THIS IS A SELF-HELP TOOL — NOT CLINICAL DBT.</strong> Opposite Action is adapted from Dialectical Behavior Therapy emotion regulation skills. This tool does not replace professional treatment with a licensed therapist. If you're in crisis, call or text 988.</div></div>
+class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+  <div class="step-counter" id="stepCounter">STEP <span id="stepNum">1</span> OF 4</div>
+
+  <!-- HOW-TO -->
+  <div class="how-strip">
+    <div class="hs-icon">◈</div>
+    <div class="hs-text"><strong>THE PRINCIPLE:</strong> When your emotion is pushing you to act in a way that will make things worse — you act in the exact opposite direction. All the way. Not halfway. The emotion loses power when you stop feeding it its preferred behavior.</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 1: NAME THE EMOTION + INTENSITY
+  ═══════════════════════════════════════════════ -->
+  <div class="step active" id="step1">
+    <div class="step-label">STEP 1 OF 4 • IDENTIFY</div>
+    <div class="step-title">NAME THE EMOTION</div>
+    <div class="step-desc">What are you feeling right now — or what were you feeling when you made the decision you're analyzing? Pick the primary emotion. Then rate how strong it is.</div>
+    <div class="emo-grid">
+      <div class="emo-card" id="e_anger" onclick="selectEmo('anger')">
+        <div class="emo-icon">🔥</div>
+        <div class="emo-name">ANGER</div>
+        <div class="emo-word">rage · irritation · fury</div>
+      </div>
+      <div class="emo-card" id="e_fear" onclick="selectEmo('fear')">
+        <div class="emo-icon">⚡</div>
+        <div class="emo-name">FEAR</div>
+        <div class="emo-word">anxiety · dread · panic</div>
+      </div>
+      <div class="emo-card" id="e_shame" onclick="selectEmo('shame')">
+        <div class="emo-icon">🔇</div>
+        <div class="emo-name">SHAME</div>
+        <div class="emo-word">humiliation · worthless</div>
+      </div>
+      <div class="emo-card" id="e_guilt" onclick="selectEmo('guilt')">
+        <div class="emo-icon">⚖</div>
+        <div class="emo-name">GUILT</div>
+        <div class="emo-word">regret · I did something wrong</div>
+      </div>
+      <div class="emo-card" id="e_sadness" onclick="selectEmo('sadness')">
+        <div class="emo-icon">🌧</div>
+        <div class="emo-name">SADNESS</div>
+        <div class="emo-word">grief · loss · emptiness</div>
+      </div>
+      <div class="emo-card" id="e_disgust" onclick="selectEmo('disgust')">
+        <div class="emo-icon">🛑</div>
+        <div class="emo-name">DISGUST</div>
+        <div class="emo-word">contempt · revulsion</div>
+      </div>
+      <div class="emo-card" id="e_envy" onclick="selectEmo('envy')">
+        <div class="emo-icon">👁</div>
+        <div class="emo-name">ENVY</div>
+        <div class="emo-word">jealousy · resentment</div>
+      </div>
+      <div class="emo-card" id="e_love" onclick="selectEmo('love')">
+        <div class="emo-icon">🧲</div>
+        <div class="emo-name">LOVE</div>
+        <div class="emo-word">longing · attachment · wanting</div>
+      </div>
+      <div class="emo-card" id="e_other" onclick="selectEmo('other')">
+        <div class="emo-icon">◎</div>
+        <div class="emo-name">OTHER</div>
+        <div class="emo-word">mixed · hard to name</div>
+      </div>
+    </div>
+    <div id="otherEmoRow" style="display:none;margin-bottom:14px">
+      <input type="text" id="otherEmoText" placeholder="Name it yourself…" style="min-height:0">
+    </div>
+    <div class="intensity-row">
+      <div class="intensity-label">
+        <span class="int-title">INTENSITY</span>
+        <div style="text-align:right">
+          <div class="int-value" id="intVal">5</div>
+          <div class="int-desc" id="intDesc">Moderate</div>
+        </div>
+      </div>
+      <input type="range" id="intSlider" min="0" max="10" value="5" oninput="updateIntensity(this.value)" style="--pct:50%">
+      <div class="intensity-scale"><span>0 — NONE</span><span>5 — MODERATE</span><span>10 — MAX</span></div>
+    </div>
+    <div class="step-acts">
+      <button class="btn-next" id="nextBtn1" onclick="goStep(2)" disabled>NEXT — ACTION URGE →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 2: ACTION URGE
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step2">
+    <div class="step-label">STEP 2 OF 4 • THE PULL</div>
+    <div class="step-title">THE ACTION URGE</div>
+    <div class="step-desc">What is this emotion pushing you to do? Every emotion has a built-in action urge — a behavior it wants. Name it specifically. Select from the common urges below or write your own.</div>
+    <div class="urge-section">
+      <div class="urge-label">COMMON URGES — SELECT ALL THAT APPLY</div>
+      <div class="urge-chips" id="urgeChips"></div>
+    </div>
+    <div class="urge-section">
+      <div class="urge-custom-label">CUSTOM URGE (your specific version)</div>
+      <textarea id="customUrge" rows="2" placeholder="What exactly is your version of this urge? Be specific…" style="min-height:60px"></textarea>
+    </div>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+      <button class="btn-next" id="nextBtn2" onclick="goStep(3)" disabled>NEXT — CHECK THE FACTS →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 3: CHECK THE FACTS
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step3">
+    <div class="step-label">STEP 3 OF 4 • THE AUDIT</div>
+    <div class="step-title">CHECK THE FACTS</div>
+    <div class="step-desc">Before you act — or before you analyze why you acted — check the facts. Two questions. Answer honestly. This determines whether you need Opposite Action or just to validate your emotion.</div>
+    <div style="margin-bottom:14px">
+      <div class="step-desc" style="color:#bbb;font-style:normal;font-size:11px;margin-bottom:10px">Is your emotion justified by the actual facts?</div>
+      <div class="step-example"><strong>Justified</strong> means: something actually happened that warrants this emotion. <strong>Not justified</strong> means: your interpretation added a story that isn't supported by facts.</div>
+      <div class="fact-row">
+        <div class="fact-btn" id="factYes" onclick="selectFact('yes')">
+          <div class="fb-icon">✓</div>
+          <div class="fb-label">JUSTIFIED</div>
+          <div class="fb-desc">The facts support this emotion. Something real happened.</div>
+        </div>
+        <div class="fact-btn" id="factNo" onclick="selectFact('no')">
+          <div class="fb-icon">◌</div>
+          <div class="fb-label">NOT JUSTIFIED</div>
+          <div class="fb-desc">My brain added a story. The facts don't fully support this.</div>
+        </div>
+      </div>
+    </div>
+    <div id="justifiedNote" style="display:none;margin-bottom:14px">
+      <div class="decision-box">
+        <div class="db-tag">NOTE — JUSTIFIED EMOTION</div>
+        <div class="db-title">You can still use Opposite Action.</div>
+        <div class="db-text">Even when an emotion is justified, the action urge may still cause harm. Anger at betrayal is justified. Burning down the relationship is not. Opposite Action is about consequences, not whether the emotion is "right."</div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="step-desc" style="color:#bbb;font-style:normal;font-size:11px;margin-bottom:10px">If you follow the urge — will it make things better or worse <em>long-term?</em></div>
+      <div class="outcome-btns">
+        <div class="outcome-btn" id="outWorse" onclick="selectOutcome('worse')">
+          <div class="ob-label">MAKES IT WORSE</div>
+          <div class="ob-desc">Following the urge damages me, my relationships, or my goals</div>
+        </div>
+        <div class="outcome-btn" id="outBetter" onclick="selectOutcome('better')">
+          <div class="ob-label">MAKES IT BETTER</div>
+          <div class="ob-desc">Following the urge is actually appropriate and effective here</div>
+        </div>
+      </div>
+    </div>
+    <div id="step3Note" style="display:none;background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:14px;color:#666;font-size:9.5px;font-family:Georgia,serif;line-height:1.65"></div>
+    <div style="margin-bottom:14px">
+      <div style="color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:6px">WHAT ARE THE ACTUAL FACTS? (no interpretation)</div>
+      <textarea id="actualFacts" rows="2" placeholder="Just the observable facts. Not the story. Not what it means. What literally happened…" style="min-height:60px"></textarea>
+    </div>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+      <button class="btn-next" id="nextBtn3" onclick="goStep(4)" disabled>NEXT — OPPOSITE ACTION →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 4: OPPOSITE ACTION + COMMIT
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step4">
+    <div class="step-label">STEP 4 OF 4 • THE REVERSAL</div>
+    <div class="step-title">OPPOSITE ACTION</div>
+    <div class="step-desc">These are the DBT-prescribed opposite actions for your emotion. Do it ALL THE WAY — not halfhearted. A halfhearted opposite action doesn't work. Commit to a specific duration.</div>
+    <div id="oppActionCards"></div>
+    <div class="custom-action-section">
+      <div class="ca-label">YOUR SPECIFIC VERSION</div>
+      <textarea id="customAction" rows="2" placeholder="Exactly what will you do? Where? When? How long?…" style="min-height:60px"></textarea>
+    </div>
+    <div class="commit-block">
+      <div class="cb-label">DURATION — HOW LONG WILL YOU DO THIS?</div>
+      <div class="duration-chips">
+        <div class="dur-chip" onclick="selectDur(this,'15 minutes')">15 MIN</div>
+        <div class="dur-chip" onclick="selectDur(this,'30 minutes')">30 MIN</div>
+        <div class="dur-chip" onclick="selectDur(this,'1 hour')">1 HOUR</div>
+        <div class="dur-chip" onclick="selectDur(this,'2 hours')">2 HOURS</div>
+        <div class="dur-chip" onclick="selectDur(this,'the rest of today')">TODAY</div>
+        <div class="dur-chip" onclick="selectDur(this,'until the urge drops below 3/10')">UNTIL URGE &lt; 3</div>
+      </div>
+    </div>
+    <div class="commit-oath">
+      <div class="co-tag">OPERATOR COMMITMENT</div>
+      <div class="co-text" id="oathText">I will <strong id="oathAction">[ select an action ]</strong> for <strong id="oathDuration">[ select duration ]</strong>. Even if I don't feel like it. All the way.</div>
+      <div class="co-sig">
+        <div class="co-line"></div>
+        <input class="co-name-input" id="signerName" placeholder="your callsign" type="text">
+        <div class="co-line"></div>
+      </div>
+    </div>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+      <button class="btn-next btn-save" onclick="saveEntry()">LOG COMMITMENT</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SUMMARY
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="stepSummary">
+    <div class="summary-header">
+      <div class="sh-icon">⚡</div>
+      <h2>COMMITTED</h2>
+      <p>The urge doesn't decide anymore.<br>You do.</p>
+    </div>
+    <div id="summaryContent"></div>
+    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+      <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+      <a href="mindfulness-drill-full.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">MINDFULNESS \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Ground yourself before the next move</span></a><a href="tipp-drill-full.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">TIPP DRILL \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">If the activation is still high, reset your body first</span></a>
+    </div>
+
+    <button class="btn-print" onclick="window.print()">⊞ PRINT / SAVE AS PDF</button>
+    <div class="step-acts" style="margin-top:14px">
+      <button class="btn-next" style="background:linear-gradient(135deg,var(--acc),#4a1a8a)" onclick="startFresh()">NEW OPPOSITE ACTION</button>
+    </div>
+  </div>
+
+  <!-- PAST ENTRIES -->
+  <div class="past-section" id="pastSection" style="display:none">
+    <hr class="past-divider">
+    <div class="past-title">PAST OPPOSITE ACTIONS</div>
+    <div id="pastList"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+const STORE = 'od_opposite_action';
+let currentStep = 1;
+const TOTAL_STEPS = 4;
+let selectedEmo = null;
+let intensity = 5;
+let selectedUrges = new Set();
+let selectedFact = null;
+let selectedOutcome = null;
+let selectedOppActions = new Set();
+let selectedDur = null;
+
+// Emotion data: urges + opposite actions
+const EMO_DATA = {
+  anger: {
+    urges: ['Attack / lash out','Say something cruel','Destroy something','Punish them','Cut off contact','Post about it online','Go silent'],
+    opp: [
+      {name:'GENTLE APPROACH', desc:'Approach the situation or person with a soft, open posture. No clenched jaw. No sharp tone.', how:'Lower your voice. Slow your breathing. Ask a question instead of making an accusation. <strong>Hold your hands open, not in fists.</strong>'},
+      {name:'DO SOMETHING KIND', desc:'Do something considerate for the person you\'re angry at — not to suppress the anger, but to break the loop.', how:'One genuine, non-sarcastic act of consideration. Could be as simple as <strong>getting them a glass of water.</strong>'},
+      {name:'STEP AWAY — TEMPORARILY', desc:'Leave the situation with a specific return time. Not punishment — a circuit breaker.', how:'Say "I need 20 minutes" and actually return. <strong>Walking away permanently is the urge. Walking away temporarily is opposite action.</strong>'},
+    ]
+  },
+  fear: {
+    urges: ['Avoid it entirely','Run away','Freeze / not decide','Seek endless reassurance','Cancel / back out','Drink / numb out','Hide at home'],
+    opp: [
+      {name:'APPROACH', desc:'Move toward the feared thing — not recklessly, but deliberately. Small steps count.', how:'<strong>Identify the smallest possible approach step</strong> and do that today. The goal is contact with what you fear.'},
+      {name:'DO WHAT YOU PLANNED', desc:'If fear made you want to cancel or avoid — do the thing anyway. Follow through.', how:'Don\'t modify the plan based on fear. <strong>Show up exactly as originally intended.</strong> The feeling doesn\'t have veto power.'},
+      {name:'CONTROL YOUR BODY FIRST', desc:'Use TIPP or paced breathing to lower arousal — then approach.', how:'5 minutes of paced breathing (5 count in, 7 count out). Then <strong>approach while the window is open.</strong>'},
+    ]
+  },
+  shame: {
+    urges: ['Hide / disappear','Go silent on everyone','Isolate','Refuse to speak about it','Punish yourself','Confirm you\'re worthless','Withdraw from activities you love'],
+    opp: [
+      {name:'SHARE WITH A SAFE PERSON', desc:'Tell one person you trust what you\'re ashamed about. Shame cannot survive exposure to non-judgment.', how:'Not to perform vulnerability — to genuinely <strong>let one person see it and stay.</strong> Pick the person carefully.'},
+      {name:'HOLD YOUR HEAD UP', desc:'Shame collapses the body. Physically do the opposite: stand tall, make eye contact.', how:'Shoulders back. Head level. Steady eye contact. <strong>Your body tells your brain how to feel.</strong> Change the body.'},
+      {name:'DO SOMETHING THAT REFLECTS YOUR VALUES', desc:'Shame says you\'re worthless. Counter with an action that proves it wrong.', how:'Pick one thing that aligns with who you want to be and <strong>do it today.</strong> Shame collapses against evidence.'},
+    ]
+  },
+  guilt: {
+    urges: ['Ruminate endlessly','Over-apologize / grovel','Punish yourself','Confess to everyone','Make yourself miserable','Avoid the person you hurt'],
+    opp: [
+      {name:'REPAIR THE HARM', desc:'If you actually did something wrong — fix it. One concrete repair action, not endless guilt performance.', how:'<strong>Apologize once, sincerely, without defensiveness.</strong> Then do the repair. Then stop punishing yourself — you\'ve addressed it.'},
+      {name:'MOVE ON WITH INTENTION', desc:'If the guilt is disproportionate or the harm can\'t be repaired — commit to doing differently next time.', how:'State clearly what you will do differently. <strong>Write it down.</strong> Then refuse the rumination loop when it restarts.'},
+    ]
+  },
+  sadness: {
+    urges: ['Withdraw from everything','Cancel all plans','Stay in bed','Stop doing things you love','Isolate completely','Give up on goals'],
+    opp: [
+      {name:'GET ACTIVE', desc:'Sadness wants you still. Move. Any movement. The body leading the mind.', how:'<strong>Schedule one specific physical activity and do it.</strong> Walk, lift, swim. The activity doesn\'t need to feel good first — it needs to happen first.'},
+      {name:'ENGAGE — DON\'T ISOLATE', desc:'Reach out to or spend time with people even when you don\'t want to. Not to perform happiness — just contact.', how:'Text one person. Accept one invitation you\'d normally decline. <strong>Physical presence with others, even without talking much.</strong>'},
+      {name:'DO ONE THING YOU\'D NORMALLY ENJOY', desc:'Even if it doesn\'t feel enjoyable right now — do it anyway. You\'re building the on-ramp back.', how:'<strong>Commit to 20 minutes</strong> of the activity before evaluating how you feel. The feeling follows the action.'},
+    ]
+  },
+  disgust: {
+    urges: ['Avoid the person/thing','Publicly condemn','Ostracize','Make them feel bad','Remove them from your life immediately'],
+    opp: [
+      {name:'APPROACH MINDFULLY', desc:'Move closer to what disgusts you with curiosity instead of condemnation — if it\'s safe to do so.', how:'Observe without judgment. <strong>Describe what you see without evaluation labels.</strong> See if disgust shifts when you look directly.'},
+      {name:'FIND ONE HUMANIZING DETAIL', desc:'Disgust dehumanizes. Counter it with one real, human thing about what you\'re disgusted by.', how:'<strong>Find one thing to respect, acknowledge, or understand</strong> — even if you still disagree strongly.'},
+    ]
+  },
+  envy: {
+    urges: ['Sabotage them','Undermine them publicly','Dismiss their success','Gossip about them','Give up on your own goals','Refuse to be happy for them'],
+    opp: [
+      {name:'CELEBRATE THEIR SUCCESS', desc:'Say something genuine and positive about what they have or achieved.', how:'One real, specific acknowledgment. Not forced — <strong>find one true thing you admire about it.</strong>'},
+      {name:'CHANNEL INTO YOUR OWN GOAL', desc:'Use the envy as information about what you want — then act toward getting it.', how:'<strong>Write down what you want</strong> that they have. Make one concrete move toward it today.'},
+    ]
+  },
+  love: {
+    urges: ['Contact someone who\'s harmful to you','Return to a relationship you left for good reason','Ignore red flags','Sacrifice your needs','Smother / over-contact'],
+    opp: [
+      {name:'AVOID CONTACT', desc:'When love/longing is pulling you toward something harmful — do not reach out or engage.', how:'<strong>Delete the draft message.</strong> Block if needed. Put the phone in another room. Wait 24 hours.'},
+      {name:'BUILD SELF-RESPECT INSTEAD', desc:'Love becomes problematic when it erodes your own dignity. Do something that rebuilds your self-worth.', how:'One action that reinforces <strong>your own value independent of them.</strong> A goal, a call to a friend, a workout.'},
+    ]
+  },
+  other: {
+    urges: ['Avoid','Withdraw','Lash out','Numb out','Give up','Isolate'],
+    opp: [
+      {name:'DO THE OPPOSITE OF YOUR URGE', desc:'Whatever the emotion is telling you to do — do the direct opposite.', how:'<strong>Name the urge precisely.</strong> Then name its exact opposite. Do that. All the way.'},
+      {name:'APPROACH INSTEAD OF AVOID', desc:'Most emotional action urges are avoidance in disguise. Move toward instead of away.', how:'Identify what you\'re moving away from. <strong>Take one step toward it.</strong>'},
+    ]
+  }
+};
+
+const INTENSITY_DESCS = ['None','Barely there','Slight','Noticeable','Moderate-low','Moderate','Strong','Very strong','Intense','Overwhelming','Maximum'];
+
+// ── UTILS ────────────────────────────────────────────────────────────
+function load() { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch(e) { return []; } }
+function saveAll(entries) { try { localStorage.setItem(STORE, JSON.stringify(entries.slice(0, 100))); } catch(e) {} }
+function $(id) { return document.getElementById(id); }
+function val(id) { return ($( id) || {}).value || ''; }
+
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const target = n > TOTAL_STEPS ? 'stepSummary' : 'step' + n;
+  const el = $(target);
+  if (el) el.classList.add('active');
+  currentStep = n;
+  const pct = Math.min(n / TOTAL_STEPS * 100, 100);
+  $('progFill').style.width = pct + '%';
+  $('stepNum').textContent = Math.min(n, TOTAL_STEPS);
+  $('stepCounter').style.display = n > TOTAL_STEPS ? 'none' : 'block';
+  if (n === 2) renderUrges();
+  if (n === 4) renderOppActions();
+  if (n > TOTAL_STEPS) buildSummary();
+  window.scrollTo(0, 0);
+}
+
+// ── STEP 1 ────────────────────────────────────────────────────────────
+function selectEmo(emo) {
+  document.querySelectorAll('.emo-card').forEach(c => c.classList.remove('sel'));
+  const card = $('e_' + emo);
+  if (card) card.classList.add('sel');
+  selectedEmo = emo;
+  $('otherEmoRow').style.display = emo === 'other' ? 'block' : 'none';
+  $('nextBtn1').disabled = false;
+}
+
+function updateIntensity(v) {
+  intensity = parseInt(v);
+  $('intVal').textContent = v;
+  $('intDesc').textContent = INTENSITY_DESCS[v];
+  const pct = (v / 10 * 100) + '%';
+  $('intSlider').style.setProperty('--pct', pct);
+}
+updateIntensity(5);
+
+// ── STEP 2 ────────────────────────────────────────────────────────────
+function renderUrges() {
+  if (!selectedEmo) return;
+  const data = EMO_DATA[selectedEmo];
+  const container = $('urgeChips');
+  container.innerHTML = '';
+  selectedUrges.clear();
+  data.urges.forEach(urge => {
+    const chip = document.createElement('div');
+    chip.className = 'urge-chip';
+    chip.textContent = urge;
+    chip.onclick = () => {
+      if (selectedUrges.has(urge)) {
+        selectedUrges.delete(urge);
+        chip.classList.remove('sel');
+      } else {
+        selectedUrges.add(urge);
+        chip.classList.add('sel');
+      }
+      checkStep2();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function checkStep2() {
+  const btn = $('nextBtn2');
+  if (btn) btn.disabled = selectedUrges.size === 0 && val('customUrge').trim().length < 3;
+}
+$('customUrge').addEventListener('input', checkStep2);
+
+// ── STEP 3 ────────────────────────────────────────────────────────────
+function selectFact(choice) {
+  selectedFact = choice;
+  $('factYes').className = 'fact-btn' + (choice === 'yes' ? ' sel-yes' : '');
+  $('factNo').className = 'fact-btn' + (choice === 'no' ? ' sel-no' : '');
+  $('justifiedNote').style.display = choice === 'yes' ? 'block' : 'none';
+  checkStep3();
+}
+
+function selectOutcome(choice) {
+  selectedOutcome = choice;
+  $('outWorse').className = 'outcome-btn' + (choice === 'worse' ? ' sel-worse' : '');
+  $('outBetter').className = 'outcome-btn' + (choice === 'better' ? ' sel-better' : '');
+  const note = $('step3Note');
+  if (choice === 'worse') {
+    note.style.display = 'block';
+    note.textContent = 'Following the urge makes things worse long-term → Opposite Action is indicated. Continue.';
+    note.style.color = 'rgba(39,174,96,.7)';
+    note.style.borderLeft = '3px solid rgba(39,174,96,.3)';
+  } else {
+    note.style.display = 'block';
+    note.textContent = 'If following the urge actually helps long-term — it may be appropriate action, not a problem behavior. But continue anyway to document your thinking.';
+    note.style.color = 'rgba(212,168,67,.7)';
+    note.style.borderLeft = '3px solid rgba(212,168,67,.3)';
+  }
+  checkStep3();
+}
+
+function checkStep3() {
+  const btn = $('nextBtn3');
+  if (btn) btn.disabled = !selectedFact || !selectedOutcome;
+}
+
+// ── STEP 4 ────────────────────────────────────────────────────────────
+function renderOppActions() {
+  if (!selectedEmo) return;
+  const data = EMO_DATA[selectedEmo];
+  const container = $('oppActionCards');
+  container.innerHTML = '';
+  selectedOppActions.clear();
+  updateOath();
+  data.opp.forEach(opp => {
+    const card = document.createElement('div');
+    card.className = 'opp-action-card';
+    card.innerHTML = `
+      <div class="oac-header">
+        <div class="oac-check"></div>
+        <div class="oac-name">${opp.name}</div>
+      </div>
+      <div class="oac-desc">${opp.desc}</div>
+      <div class="oac-how">${opp.how}</div>
+    `;
+    card.onclick = () => {
+      if (selectedOppActions.has(opp.name)) {
+        selectedOppActions.delete(opp.name);
+        card.classList.remove('sel');
+        card.querySelector('.oac-check').textContent = '';
+      } else {
+        selectedOppActions.add(opp.name);
+        card.classList.add('sel');
+        card.querySelector('.oac-check').textContent = '✓';
+      }
+      updateOath();
+    };
+    container.appendChild(card);
+  });
+}
+
+function selectDur(el, dur) {
+  document.querySelectorAll('.dur-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedDur = dur;
+  updateOath();
+}
+
+function updateOath() {
+  const actionEl = $('oathAction');
+  const durEl = $('oathDuration');
+  if (actionEl) actionEl.textContent = selectedOppActions.size ? [...selectedOppActions].join(' + ') : '[ select an action ]';
+  if (durEl) durEl.textContent = selectedDur || '[ select duration ]';
+}
+
+$('customAction').addEventListener('input', updateOath);
+
+// ── SAVE ─────────────────────────────────────────────────────────────
+function saveEntry() {
+  const entries = load();
+  const entry = {
+    ts: Date.now(),
+    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    emotion: selectedEmo,
+    emotionLabel: selectedEmo === 'other' ? (val('otherEmoText') || 'Other') : (selectedEmo.charAt(0).toUpperCase() + selectedEmo.slice(1)),
+    intensity,
+    urges: [...selectedUrges],
+    customUrge: val('customUrge'),
+    factJustified: selectedFact,
+    outcome: selectedOutcome,
+    actualFacts: val('actualFacts'),
+    oppActions: [...selectedOppActions],
+    customAction: val('customAction'),
+    duration: selectedDur,
+    signer: val('signerName')
+  };
+  entries.unshift(entry);
+  saveAll(entries);
+  showToast('COMMITMENT LOGGED');
+  goStep(5);
+  renderPast();
+}
+
+function showToast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────
+function buildSummary() {
+  const content = $('summaryContent');
+  if (!content) return;
+  const emoLabel = selectedEmo === 'other' ? (val('otherEmoText') || 'Other') : (selectedEmo.charAt(0).toUpperCase() + selectedEmo.slice(1));
+  const urgeList = [...selectedUrges, val('customUrge')].filter(Boolean);
+  const actionList = [...selectedOppActions, val('customAction')].filter(Boolean);
+
+  content.innerHTML = `
+    <div class="commit-banner">
+      <div class="cb-tag">OPERATOR COMMITMENT</div>
+      <div class="cb-action">${actionList.length ? actionList.join(' + ') : 'Opposite Action Committed'}</div>
+      <div class="cb-duration">${selectedDur || 'Duration unspecified'}</div>
+      ${val('signerName') ? `<div class="cb-signer">— ${val('signerName')}</div>` : ''}
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">EMOTION</div>
+      <div class="sb-content">${emoLabel} — <strong style="font-family:monospace">${intensity}/10</strong> intensity</div>
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">ACTION URGE</div>
+      <div class="sb-content">${urgeList.join(', ') || '—'}</div>
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">FACTS CHECK</div>
+      <div class="sb-content">
+        Emotion justified: <strong style="color:${selectedFact==='yes'?'var(--grn)':'var(--red)'}">${selectedFact === 'yes' ? 'YES' : 'NO'}</strong> &nbsp;·&nbsp;
+        Following urge: <strong style="color:${selectedOutcome==='worse'?'var(--red)':'var(--gld)'}">${selectedOutcome === 'worse' ? 'MAKES IT WORSE' : 'MIGHT HELP'}</strong>
+        ${val('actualFacts') ? `<br><span style="color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;display:block;margin-top:6px">${val('actualFacts')}</span>` : ''}
+      </div>
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">OPPOSITE ACTION — ALL THE WAY</div>
+      <div class="sb-content">${actionList.length ? actionList.join('<br>') : '—'}</div>
+    </div>
+  `;
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────
+function startFresh() {
+  selectedEmo = null;
+  intensity = 5;
+  selectedUrges.clear();
+  selectedFact = null;
+  selectedOutcome = null;
+  selectedOppActions.clear();
+  selectedDur = null;
+  document.querySelectorAll('.emo-card').forEach(c => c.classList.remove('sel'));
+  $('otherEmoRow').style.display = 'none';
+  $('otherEmoText').value = '';
+  $('customUrge').value = '';
+  $('actualFacts').value = '';
+  $('customAction').value = '';
+  $('signerName').value = '';
+  $('justifiedNote').style.display = 'none';
+  $('step3Note').style.display = 'none';
+  $('intSlider').value = 5;
+  updateIntensity(5);
+  $('nextBtn1').disabled = true;
+  $('nextBtn2').disabled = true;
+  $('nextBtn3').disabled = true;
+  goStep(1);
+}
+
+// ── PAST ENTRIES ──────────────────────────────────────────────────────
+function renderPast() {
+  const entries = load();
+  const section = $('pastSection');
+  const list = $('pastList');
+  if (!section || !list) return;
+  if (!entries.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  const emoIcons = { anger:'🔥', fear:'⚡', shame:'🔇', guilt:'⚖', sadness:'🌧', disgust:'🛑', envy:'👁', love:'🧲', other:'◎' };
+  list.innerHTML = entries.map((e, i) => `
+    <div class="past-entry">
+      <div class="pe-header">
+        <div class="pe-date">${e.date}</div>
+        <button class="pe-delete" onclick="deleteEntry(${i})">✕</button>
+      </div>
+      <div class="pe-emo">${emoIcons[e.emotion] || '◎'} ${e.emotionLabel} — ${e.intensity}/10</div>
+      <div class="pe-action">${(e.oppActions || []).join(' · ') || e.customAction || '—'}</div>
+      ${e.duration ? `<div class="pe-commit">${e.duration}${e.signer ? ' · ' + e.signer : ''}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function deleteEntry(i) {
+  if (!confirm('Delete this entry?')) return;
+  const entries = load();
+  entries.splice(i, 1);
+  saveAll(entries);
+  renderPast();
+}
+
+renderPast();
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from DBT Emotion Regulation — Linehan, M.M. (2015). DBT Skills Training Manual.</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

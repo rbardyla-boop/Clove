@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'">
+<meta property="og:title" content="FEEDBACK • OPERATOR'S DECK">
+<meta property="og:description" content="Report a bug. Request a feature. Tell us what's broken. Direct line — no middleman.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/feedback.html">
+<meta name="description" content="Send feedback, report bugs, or request features for The Operator's Deck. Direct line to the builder.">
+<meta name="referrer" content="no-referrer">
+<title>FEEDBACK • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--red-bright:#e74c3c;--grn:#27ae60;--gld:#d4a843;--dim:#8a8a8a;--dim2:#777;--dim3:#1a1a22}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+html{height:100%}
+body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:hidden;min-height:100%;min-height:100dvh;-webkit-font-smoothing:antialiased;line-height:1.6}
+.app{max-width:480px;margin:0 auto;position:relative;min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+
+/* NAV */
+.top-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:2px solid var(--red);display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.back-btn{background:none;border:1px solid var(--bg4);color:#aaa;font-size:9px;font-family:'Courier New',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s;text-decoration:none}
+.back-btn:active{color:#fff;border-color:#444}
+.top-title{color:var(--dim2);font-size:7px;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase}
+
+/* HERO */
+.hero{padding:40px 20px 28px;text-align:center;border-bottom:1px solid rgba(192,57,43,.1)}
+.hero-tag{font-size:8px;letter-spacing:5px;color:var(--red);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px}
+.hero-tag::before,.hero-tag::after{content:'';width:20px;height:1px;background:var(--red)}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;line-height:1;margin-bottom:14px}
+.hero-sub{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.8;max-width:340px;margin:0 auto}
+
+/* SECTIONS */
+.sec{padding:20px 16px}
+.sec-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'';width:14px;height:1px;background:var(--red)}
+
+/* CATEGORY CARDS */
+.cat-card{background:var(--bg2);border-radius:12px;padding:18px 16px;margin-bottom:10px;cursor:pointer;border-left:3px solid var(--bg4);transition:all .2s;user-select:none;-webkit-user-select:none}
+.cat-card:active{transform:scale(.98)}
+.cat-card.selected{border-left-color:var(--red);background:#14101a}
+.cat-hdr{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.cat-icon{font-size:14px;flex-shrink:0;width:24px;text-align:center}
+.cat-name{font-size:11px;font-weight:700;letter-spacing:1px}
+.cat-desc{color:var(--dim);font-size:9px;font-family:Georgia,serif;line-height:1.6;padding-left:34px}
+
+/* TEXTAREA */
+.msg-area{width:100%;min-height:140px;background:var(--bg3);color:#ccc;border:1px solid var(--bg4);border-radius:10px;padding:14px 16px;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.5px;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s}
+.msg-area:focus{border-color:rgba(192,57,43,.4)}
+.msg-area::placeholder{color:var(--dim2);font-style:italic}
+.msg-hint{font-size:7px;color:var(--dim2);letter-spacing:1px;margin-top:6px;text-align:right}
+
+/* SEND BUTTON */
+.send-btn{display:block;width:100%;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;border:none;border-radius:10px;padding:16px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase;transition:all .2s;margin-top:16px}
+.send-btn:active{transform:scale(.96)}
+.send-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+/* INFO BLOCKS */
+.info-block{background:var(--bg3);border:1px solid rgba(192,57,43,.08);border-radius:10px;padding:14px 16px;margin-top:14px}
+.info-block .ib-title{font-size:8px;letter-spacing:3px;color:var(--red);margin-bottom:8px}
+.info-block .ib-body{color:var(--dim);font-size:9px;font-family:Georgia,serif;line-height:1.7}
+.info-block .ib-body strong{color:#aaa}
+
+/* PRIVACY NOTE */
+.priv-note{background:var(--bg3);border:1px solid rgba(39,174,96,.12);border-radius:10px;padding:14px 16px;margin-top:14px;text-align:center}
+.priv-note .pn-icon{color:var(--grn);font-size:7px;letter-spacing:3px;font-family:monospace;margin-bottom:6px}
+.priv-note .pn-body{color:var(--dim);font-size:8px;font-family:Georgia,serif;line-height:1.7}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);color:#fff;border:1px solid var(--red);border-radius:10px;padding:12px 24px;font-size:9px;font-family:monospace;letter-spacing:2px;z-index:100;opacity:0;transition:all .3s;pointer-events:none;text-align:center;max-width:360px}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* FOOTER */
+.footer{text-align:center;padding:28px 16px;margin-top:10px;border-top:1px solid rgba(192,57,43,.06)}
+.f-ver{font-size:7px;letter-spacing:3px;color:var(--dim2);margin-bottom:6px}
+.f-copy{font-size:7px;color:var(--dim3);letter-spacing:1px;line-height:2}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<!-- NAV -->
+<div class="top-bar">
+  <a href="./?tab=more" class="back-btn">← DECK</a>
+  <div class="top-title">FEEDBACK</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">DIRECT LINE</div>
+  <h1>FEEDBACK</h1>
+  <div class="hero-sub">Report a bug. Request a tool. Tell me what's broken.<br>This goes straight to the builder. No middleman.</div>
+</div>
+
+<!-- CATEGORY SELECT -->
+<div class="sec">
+  <div class="sec-label">What kind of message?</div>
+
+  <div class="cat-card" id="cat-bug" onclick="selectCat('bug')">
+    <div class="cat-hdr">
+      <div class="cat-icon">⚠</div>
+      <div class="cat-name">BUG REPORT</div>
+    </div>
+    <div class="cat-desc">Something's broken, crashing, or not working right. Tell me what happened and what device/browser you're on.</div>
+  </div>
+
+  <div class="cat-card" id="cat-feature" onclick="selectCat('feature')">
+    <div class="cat-hdr">
+      <div class="cat-icon">⚡</div>
+      <div class="cat-name">FEATURE REQUEST</div>
+    </div>
+    <div class="cat-desc">A tool you want, a card idea, a drill that's missing, an improvement to something that exists.</div>
+  </div>
+
+  <div class="cat-card" id="cat-general" onclick="selectCat('general')">
+    <div class="cat-hdr">
+      <div class="cat-icon">✉</div>
+      <div class="cat-name">GENERAL FEEDBACK</div>
+    </div>
+    <div class="cat-desc">Anything else. Something that landed, something that didn't, or just a heads up.</div>
+  </div>
+</div>
+
+<!-- MESSAGE -->
+<div class="sec" style="padding-top:0">
+  <div class="sec-label">Your message</div>
+  <textarea class="msg-area" id="msgBody" placeholder="What's on your mind? Be specific — device, browser, what you tapped, what happened. The more detail, the faster the fix." oninput="checkReady()"></textarea>
+  <div class="msg-hint">NO PERSONAL DATA IS COLLECTED FROM THIS PAGE</div>
+
+  <button class="send-btn" id="sendBtn" disabled onclick="sendFeedback()">SELECT A CATEGORY FIRST</button>
+
+  <div class="info-block">
+    <div class="ib-title">HOW THIS WORKS</div>
+    <div class="ib-body">
+      Clicking send opens your device's email app with a pre-filled message. <strong>Nothing is transmitted from this page.</strong> Your email client handles the send. If you don't have an email app configured, copy the address shown and paste it into whatever you use.
+    </div>
+  </div>
+
+  <div class="priv-note">
+    <div class="pn-icon">🔒 PRIVACY</div>
+    <div class="pn-body">This page collects nothing. No analytics, no tracking, no form submission server. The email address is assembled in code at click-time — it doesn't exist in the page source. Bot scrapers can't harvest it.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="f-ver">THE OPERATOR'S DECK · EARLY ACCESS · 2026</div>
+  <div class="f-copy">Created by Ryan Bardyla<br>No affiliation with any clinical program</div>
+</div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+var selectedCat = null;
+
+// ── Email obfuscation — never in HTML source ──
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function gm(){var p=['ryan','bardyla'];var d=['gmail','com'];return p.join('')+'@'+d.join('.');}
+
+function selectCat(cat){
+  selectedCat = cat;
+  document.querySelectorAll('.cat-card').forEach(function(c){c.classList.remove('selected');});
+  document.getElementById('cat-'+cat).classList.add('selected');
+  checkReady();
+}
+
+function checkReady(){
+  var btn = document.getElementById('sendBtn');
+  var body = document.getElementById('msgBody').value.trim();
+  if(selectedCat && body.length > 5){
+    btn.disabled = false;
+    btn.textContent = 'OPEN EMAIL → SEND FEEDBACK';
+  } else if(selectedCat && body.length <= 5){
+    btn.disabled = true;
+    btn.textContent = 'TYPE YOUR MESSAGE';
+  } else {
+    btn.disabled = true;
+    btn.textContent = 'SELECT A CATEGORY FIRST';
+  }
+}
+
+function sendFeedback(){
+  if(!selectedCat) return;
+  var body = document.getElementById('msgBody').value.trim();
+  if(body.length < 6) return;
+
+  var tags = {bug:'BUG',feature:'FEATURE',general:'GENERAL'};
+  var subj = '[CLOVELEARN-' + tags[selectedCat] + '] ';
+
+  // Add device info automatically
+  var device = navigator.userAgent || 'Unknown';
+  var screen = window.screen ? window.screen.width+'x'+window.screen.height : 'Unknown';
+
+  var fullBody = body + '\n\n---\nDevice: ' + device + '\nScreen: ' + screen + '\nPage: feedback.html';
+
+  var mailto = 'ma' + 'il' + 'to:' + gm()
+    + '?subject=' + encodeURIComponent(subj)
+    + '&body=' + encodeURIComponent(fullBody);
+
+  window.location.href = mailto;
+
+  showToast('EMAIL CLIENT OPENED — HIT SEND');
+}
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');}, 3000);
+}
+</script>
+</body>
+</html>

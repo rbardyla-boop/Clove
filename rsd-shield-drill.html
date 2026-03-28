@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="RSD SHIELD DRILL • OPERATOR'S DECK">
+<meta property="og:description" content="Rejection Sensitive Dysphoria intervention. Catch the spike, separate fact from feeling, find the calibrated read.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/rsd-shield-drill.html">
+    <title>RSD SHIELD DRILL • OPERATOR'S DECK</title>
+    <style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#d35400;--acc2:#e67e22;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+.app{max-width:480px;margin:0 auto}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim2);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim)}
+.step-counter span{color:var(--acc)}
+/* DISCLAIMER */
+.disc-strip{background:#1a0c00;border-bottom:1px solid rgba(211,84,0,.25);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--acc);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#886644;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#cc7744}
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim2);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:#555;font-style:normal}
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(211,84,0,.4)}
+textarea::placeholder,input::placeholder{color:#222;font-style:italic}
+textarea{min-height:90px}
+.char-hint{color:var(--dim2);font-size:7px;font-family:monospace;text-align:right;margin-top:4px;letter-spacing:.5px}
+/* EMOTIONS */
+.emotions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.emo-item{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s}
+.emo-item.sel{border-color:var(--acc);background:rgba(211,84,0,.1)}
+.emo-item:active{transform:scale(.96)}
+.emo-name{font-size:10px;font-weight:700;font-family:monospace;letter-spacing:1px;margin-bottom:8px}
+.emo-slider{width:100%;height:4px;-webkit-appearance:none;background:var(--dim2);border-radius:2px;outline:none}
+.emo-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--acc);cursor:pointer}
+.emo-val{color:var(--acc);font-size:9px;font-family:monospace;text-align:right;margin-top:4px}
+.add-emo{width:100%;background:none;border:1px dashed var(--dim2);color:var(--dim);border-radius:10px;padding:10px;font-size:8px;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-top:4px;transition:all .2s}
+.add-emo:active{color:#888}
+/* EVIDENCE */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.col-head{font-size:7.5px;font-family:monospace;letter-spacing:2px;padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid}
+.col-fact .col-head{color:var(--grn);border-color:rgba(39,174,96,.2)}
+.col-feel .col-head{color:var(--acc);border-color:rgba(211,84,0,.2)}
+.col-fact textarea,.col-feel textarea{min-height:150px;font-size:10.5px}
+/* PATTERNS */
+.patterns-list{display:flex;flex-direction:column;gap:8px}
+.pat-item{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;gap:10px;align-items:flex-start}
+.pat-item.sel{border-color:rgba(211,84,0,.4);background:rgba(211,84,0,.05)}
+.pat-item:active{transform:scale(.98)}
+.pi-check{width:16px;height:16px;border:1.5px solid var(--dim2);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .2s}
+.pat-item.sel .pi-check{border-color:var(--acc);background:rgba(211,84,0,.2);color:var(--acc)}
+.pi-name{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px;margin-bottom:3px}
+.pi-desc{color:#555;font-size:9px;font-family:Georgia,serif;line-height:1.55}
+/* RERATE */
+.rerate-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.rerate-item{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:12px}
+.rerate-name{font-size:9px;font-weight:700;font-family:monospace;letter-spacing:1px;margin-bottom:6px}
+.rerate-row{font-size:10px;font-family:monospace;color:var(--dim);margin-bottom:8px}
+.rerate-old{color:#666}.rerate-arrow{color:var(--dim2)}.rerate-new{color:var(--acc)}
+.rerate-slider{width:100%;height:4px;-webkit-appearance:none;background:var(--dim2);border-radius:2px;outline:none}
+.rerate-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--acc);cursor:pointer}
+/* BUTTONS */
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:14px;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .15s}
+.btn-next:disabled{background:var(--dim2);color:var(--dim);cursor:not-allowed}
+.btn-next:not(:disabled):active{transform:scale(.97)}
+.btn-back-step{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:10px;padding:14px 18px;font-size:9px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.btn-back-step:active{color:#888;border-color:#444}
+.btn-save{background:var(--grn)}
+.btn-print{width:100%;background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:10px;padding:14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;margin-top:12px;transition:all .2s}
+.btn-print:active{color:#888}
+/* SUMMARY */
+.summary-header{text-align:center;padding:20px 0}
+.sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-size:14px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+.sb-content{font-size:11px;line-height:1.65;font-family:Georgia,serif}
+.sb-theme{font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1px}
+.shift-row{display:flex;flex-wrap:wrap;gap:8px}
+.shift-item{background:var(--bg3);border-radius:8px;padding:8px 12px;flex:1;min-width:100px}
+.si-label{font-size:8px;font-family:monospace;letter-spacing:1px;color:var(--dim);margin-bottom:4px}
+.si-val{font-size:12px;font-family:monospace;font-weight:700}
+.patterns-tags{display:flex;flex-wrap:wrap;gap:6px}
+.pat-tag{background:rgba(211,84,0,.1);border:1px solid rgba(211,84,0,.25);color:var(--acc2);border-radius:6px;padding:4px 10px;font-size:8px;font-family:monospace;letter-spacing:.5px;font-weight:700}
+/* PAST */
+.past-section{padding:0 16px}
+.past-title{color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:2px;margin:30px 0 12px;border-top:1px solid var(--dim3);padding-top:16px}
+.past-entry{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px;margin-bottom:10px}
+.pe-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pe-date{color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:1px}
+.pe-tag{color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:1.5px;font-weight:700}
+.pe-trigger{color:#888;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.5;margin-bottom:4px}
+.pe-thought{color:#5a8a5a;font-size:10px;font-family:Georgia,serif;line-height:1.5}
+.pe-expand{display:block;width:100%;background:none;border:1px dashed var(--dim3);color:var(--dim);border-radius:6px;padding:8px;font-size:7px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;margin-top:8px;transition:all .2s}
+.pe-expand:active{color:#888}
+.pe-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--dim3)}
+.pe-detail.open{display:block}
+.pd-label{color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:1.5px;margin-bottom:4px;margin-top:10px}
+.pd-label:first-child{margin-top:0}
+.pd-text{color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--acc);color:#fff;padding:10px 22px;border-radius:20px;font-size:9px;font-family:monospace;letter-spacing:1.5px;font-weight:700;z-index:99;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(max-width:400px){.two-col{grid-template-columns:1fr}.emotions-grid{grid-template-columns:1fr}.rerate-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<!-- NAV -->
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="goBack()">← DECK</button>
+    <div class="nav-info">
+        <div class="nav-tag">ADHD + EMOTIONAL REGULATION</div>
+        <div class="nav-name">RSD SHIELD DRILL</div>
+    </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<!-- DISCLAIMER -->
+<div class="disc-strip">
+    <div class="ds-icon">⚠</div>
+    <div class="ds-text"><strong>SELF-HELP TOOL — NOT CLINICAL TREATMENT.</strong> Rejection Sensitive Dysphoria (RSD) is a concept from ADHD clinical practice, not a DSM diagnosis. This drill is for self-awareness, not treatment. Bring your worksheets to a licensed therapist. In crisis: <strong>988</strong> (US/Canada) or text <strong>HOME</strong> to <strong>686868</strong>.</div>
+</div>
+
+<!-- STEP 1: THE TRIGGER -->
+<div class="step active" id="step1">
+    <div class="step-counter">STEP <span>1</span> OF 6</div>
+    <div class="step-label">THE TRIGGER</div>
+    <div class="step-title">What just happened?</div>
+    <div class="step-desc">Describe the specific moment that set it off. Not the story your brain built around it — the actual event. A text that wasn't returned. A tone of voice. A look. A meeting where you were passed over. Be precise. The more specific you are, the easier it is to separate fact from feeling in the next steps.</div>
+    <div class="step-example"><strong>Examples:</strong> "My boss gave feedback on my report in front of the team." / "A friend cancelled plans last minute." / "I saw a group chat I wasn't included in." / "My partner sighed when I started talking."</div>
+    <textarea id="f_trigger" maxlength="1000" placeholder="What specifically happened? Be precise..." oninput="charUpdate(this,'ch1');btn('btn1',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch1">0 / 1000</div>
+    <div class="step-acts">
+        <button class="btn-next" id="btn1" onclick="goStep(2)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 2: THE STORY -->
+<div class="step" id="step2">
+    <div class="step-counter">STEP <span>2</span> OF 6</div>
+    <div class="step-label">THE STORY</div>
+    <div class="step-title">What did your brain tell you it meant?</div>
+    <div class="step-desc">RSD doesn't just register rejection — it writes a screenplay. Within seconds your brain produced a full narrative about what that event means about you, about them, about everything. Write it down. The ugliest version. The one you'd never say out loud. That's the one running the show right now.</div>
+    <div class="step-example"><strong>Examples:</strong> "They all think I'm incompetent." / "She doesn't actually want to be my friend." / "I'm the one everyone tolerates but nobody wants." / "I'll never be enough." / "They're going to leave."</div>
+    <textarea id="f_story" maxlength="1000" placeholder="What did your brain tell you it meant? The full ugly narrative..." oninput="charUpdate(this,'ch2');btn('btn2',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch2">0 / 1000</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+        <button class="btn-next" id="btn2" onclick="goStep(3)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 3: INTENSITY -->
+<div class="step" id="step3">
+    <div class="step-counter">STEP <span>3</span> OF 6</div>
+    <div class="step-label">INTENSITY CHECK</div>
+    <div class="step-title">How hard did it hit?</div>
+    <div class="step-desc">RSD hits fast and intense — 0 to 100 in seconds. Select the emotions you're feeling right now and rate their intensity. This isn't about judging the emotions. It's about measuring the blast radius so you can see the shift after the drill.</div>
+    <div class="emotions-grid" id="emotionsGrid"></div>
+    <button class="add-emo" onclick="addCustomEmo()">+ ADD CUSTOM EMOTION</button>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+        <button class="btn-next" id="btn3" onclick="goStep(4)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 4: FACT vs FEELING -->
+<div class="step" id="step4">
+    <div class="step-counter">STEP <span>4</span> OF 6</div>
+    <div class="step-label">FACT vs FEELING</div>
+    <div class="step-title">What's real? What's the RSD talking?</div>
+    <div class="step-desc">Your nervous system produced a conviction. Now put it on trial. On the left: actual verifiable facts about what happened. On the right: the feelings and interpretations your brain added. One side is evidence. The other is the story. Fill at least one side.</div>
+    <div class="two-col">
+        <div class="col-fact">
+            <div class="col-head">HARD FACTS ONLY</div>
+            <textarea id="f_facts" maxlength="1000" placeholder="What actually, verifiably happened? Only what a camera would record..." oninput="charUpdate(this,'ch4a');checkEvidence()"></textarea>
+            <div class="char-hint" id="ch4a">0 / 1000</div>
+        </div>
+        <div class="col-feel">
+            <div class="col-head">FEELINGS + INTERPRETATIONS</div>
+            <textarea id="f_feelings" maxlength="1000" placeholder="What did your brain add? Assumptions, mind-reading, worst-case scripts..." oninput="charUpdate(this,'ch4b');checkEvidence()"></textarea>
+            <div class="char-hint" id="ch4b">0 / 1000</div>
+        </div>
+    </div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+        <button class="btn-next" id="btn4" onclick="goStep(5)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 5: THE RSD SIGNATURE -->
+<div class="step" id="step5">
+    <div class="step-counter">STEP <span>5</span> OF 6</div>
+    <div class="step-label">THE RSD SIGNATURE</div>
+    <div class="step-title">Which patterns are running?</div>
+    <div class="step-desc">RSD has a fingerprint. It uses the same moves every time. Recognizing the pattern doesn't make the pain fake — it makes it identifiable. And identifiable means interruptible. Select all that showed up this time.</div>
+    <div class="patterns-list" id="patternsList"></div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(4)">← BACK</button>
+        <button class="btn-next" onclick="goStep(6)">NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 6: THE CALIBRATED READ -->
+<div class="step" id="step6">
+    <div class="step-counter">STEP <span>6</span> OF 6</div>
+    <div class="step-label">THE CALIBRATED READ</div>
+    <div class="step-title">What's the balanced version?</div>
+    <div class="step-desc">Not "everything is fine." Not "I'm overreacting." A version that accounts for the facts, acknowledges the pain, and doesn't let the RSD write the conclusion. What would you tell someone you respect if they described this exact situation to you?</div>
+    <div class="step-example"><strong>Not this:</strong> "I'm sure they love me and everything's great."<br><strong>This:</strong> "My boss gave direct feedback. That felt like an attack because of how my brain is wired. The feedback itself was about the report, not about me."<br><strong>Or:</strong> "She cancelled. That hurt. It doesn't mean she doesn't care — it means plans changed."<br><strong>Or:</strong> "I wasn't in the group chat. That stings. But I have evidence these people care about me from [specific example]."</div>
+    <textarea id="f_reframe" maxlength="500" placeholder="Write the calibrated alternative — honest, not dismissive..." oninput="charUpdate(this,'ch6');btn('btn6',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch6">0 / 500</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(5)">← BACK</button>
+        <button class="btn-next btn-save" id="btn6" onclick="saveEntry()" disabled>SAVE WORKSHEET ✓</button>
+    </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="step" id="stepSummary">
+    <div class="step-counter" style="color:var(--grn)">WORKSHEET COMPLETE</div>
+    <div class="summary-header">
+        <div class="sh-icon">🛡️</div>
+        <h2>RSD SHIELD LOGGED</h2>
+        <p>The more you run this, the faster you catch it. Print it. Bring it to your therapist. Show them the pattern.</p>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">THE TRIGGER</div>
+        <div class="sb-content" id="sum_trigger" style="color:#999;font-style:italic"></div>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">THE RSD STORY</div>
+        <div class="sb-content" id="sum_story" style="color:#884444;font-style:italic"></div>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">EMOTION SHIFT (BEFORE → AFTER)</div>
+        <div class="shift-row" id="sum_shift"></div>
+    </div>
+    <div class="summary-block" id="sum_patterns_block" style="display:none">
+        <div class="sb-label">RSD PATTERNS IDENTIFIED</div>
+        <div class="patterns-tags" id="sum_patterns"></div>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">CALIBRATED READ</div>
+        <div class="sb-content" id="sum_reframe" style="color:#5a8a5a"></div>
+    </div>
+    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+      <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+      <a href="opposite-action-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">OPPOSITE ACTION →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">When the urge is to withdraw — act the opposite direction</span></a>
+      <a href="thought-interceptor.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">THOUGHT INTERCEPTOR →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Run the SOMA reframe on the story your brain wrote</span></a>
+      <a href="./?tab=more" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">← BACK TO DECK</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Return to the full tool shed</span></a>
+    </div>
+
+    <button class="btn-print" onclick="printSheet()">🖨️ PRINT CLEAN VERSION FOR THERAPY</button>
+    <div class="step-acts" style="margin-top:10px">
+        <button class="btn-next" onclick="startNew()">START NEW WORKSHEET</button>
+    </div>
+</div>
+
+<!-- PAST ENTRIES -->
+<div class="past-section" id="pastSection"></div>
+
+</div>
+
+<script>
+const EMOTIONS=['Rejection','Shame','Worthlessness','Anger','Withdrawal','Anxiety','Humiliation','Panic','Sadness','Rage'];
+const PATTERNS=[
+  {k:'instant',name:'INSTANT CERTAINTY',desc:'Within seconds you were 100% sure of what it meant. No gap between event and conclusion. The interpretation arrived fully formed, like a fact.'},
+  {k:'mindread',name:'MIND-READING',desc:'You knew exactly what they were thinking. You could feel their judgment, disappointment, or contempt — without them saying a word.'},
+  {k:'global',name:'GLOBAL VERDICT',desc:'One event became a verdict on your entire worth. Not "this went badly" but "I am bad." The rejection expanded to define everything.'},
+  {k:'history',name:'HISTORY FLOOD',desc:'Every past rejection showed up at once. This wasn\'t just about today — your brain pulled the entire archive and stacked it on top of this moment.'},
+  {k:'withdraw',name:'WITHDRAWAL URGE',desc:'Your first instinct was to disappear. Stop responding. Cancel everything. Pull back from the person or the situation entirely. Go dark.'},
+  {k:'rage',name:'FLASH RAGE',desc:'The pain converted to anger in milliseconds. Not cold strategic anger — hot, defensive, "how dare they" anger that wanted to strike back immediately.'},
+  {k:'people',name:'PEOPLE-PLEASING SPIKE',desc:'Your brain immediately started calculating how to fix it. What to say, how to perform, what version of yourself to present to undo the perceived rejection.'},
+  {k:'physical',name:'PHYSICAL RESPONSE',desc:'You felt it in your body before your thoughts caught up. Chest tight, stomach dropped, face flushed, hands shaking, throat closed. The body knew first.'},
+  {k:'spiral',name:'DOOM SPIRAL',desc:'One rejection triggered a cascade. If this, then that, then everything falls apart. The worst-case scenario felt not just possible but inevitable.'},
+  {k:'masking',name:'MASK UP',desc:'You smiled. Said it was fine. Performed calm while internally you were in a five-alarm fire. Nobody saw it because you\'ve gotten very good at this.'},
+];
+
+let emoData={},patternData=new Set(),rerateData={};
+
+// UTILS
+function esc(s){if(typeof s!=='string')return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function san(s){return typeof s==='string'?s.substring(0,5000).replace(/<[^>]*>/g,''):''}
+function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+function hap(arr){if(navigator.vibrate)navigator.vibrate(arr)}
+function charUpdate(el,id){const d=document.getElementById(id);if(d)d.textContent=el.value.length+' / '+el.maxLength}
+function btn(id,enabled){const b=document.getElementById(id);if(b)b.disabled=!enabled}
+function loadEntries(){try{return JSON.parse(localStorage.getItem('od_rsd'))||[]}catch(e){return[]}}
+function saveEntries(arr){try{localStorage.setItem('od_rsd',JSON.stringify(arr.slice(0,200)))}catch(e){}}
+
+// NAV
+function goBack(){window.location.href='./?tab=more'}
+
+// PROGRESS
+function setProgress(n){document.getElementById('progressFill').style.width=Math.min((n-1)/6*100,100)+'%'}
+
+// STEP NAV
+function goStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  const id=n===7?'stepSummary':'step'+n;
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+  setProgress(n);
+}
+
+// STEP 3: EMOTIONS
+function buildEmotions(){
+  const g=document.getElementById('emotionsGrid');g.innerHTML='';
+  EMOTIONS.forEach(name=>{
+    const d=document.createElement('div');d.className='emo-item';
+    d.innerHTML=`<div class="emo-name">${name}</div><input type="range" class="emo-slider" min="0" max="100" value="50"><div class="emo-val" id="ev_${name}">50</div>`;
+    const slider=d.querySelector('.emo-slider');
+    slider.addEventListener('input',e=>{e.stopPropagation();document.getElementById('ev_'+name).textContent=slider.value;if(emoData[name]!==undefined)emoData[name]=+slider.value});
+    slider.addEventListener('click',e=>e.stopPropagation());
+    d.addEventListener('click',e=>{if(e.target.type==='range')return;d.classList.toggle('sel');if(d.classList.contains('sel')){emoData[name]=+slider.value}else{delete emoData[name]}btn('btn3',Object.keys(emoData).length>0)});
+    g.appendChild(d);
+  });
+}
+function addCustomEmo(){
+  const name=prompt('Enter emotion name:');if(!name||!name.trim())return;
+  const n=name.trim().toUpperCase().substring(0,20);
+  const g=document.getElementById('emotionsGrid');
+  const d=document.createElement('div');d.className='emo-item sel';
+  d.innerHTML=`<div class="emo-name">${n}</div><input type="range" class="emo-slider" min="0" max="100" value="50"><div class="emo-val" id="ev_${n}">50</div>`;
+  const slider=d.querySelector('.emo-slider');
+  slider.addEventListener('input',e=>{e.stopPropagation();document.getElementById('ev_'+n).textContent=slider.value;emoData[n]=+slider.value});
+  slider.addEventListener('click',e=>e.stopPropagation());
+  d.addEventListener('click',e=>{if(e.target.type==='range')return;d.classList.toggle('sel');if(d.classList.contains('sel')){emoData[n]=+slider.value}else{delete emoData[n]}btn('btn3',Object.keys(emoData).length>0)});
+  g.appendChild(d);emoData[n]=50;btn('btn3',true);
+}
+
+// STEP 4: EVIDENCE
+function checkEvidence(){btn('btn4',!!(document.getElementById('f_facts').value.trim()||document.getElementById('f_feelings').value.trim()))}
+
+// STEP 5: PATTERNS
+function buildPatterns(){
+  const l=document.getElementById('patternsList');l.innerHTML='';
+  PATTERNS.forEach(p=>{
+    const d=document.createElement('div');d.className='pat-item';
+    d.innerHTML=`<div class="pi-check">✓</div><div><div class="pi-name">${p.name}</div><div class="pi-desc">${p.desc}</div></div>`;
+    d.onclick=()=>{d.classList.toggle('sel');if(d.classList.contains('sel'))patternData.add(p.k);else patternData.delete(p.k)};
+    l.appendChild(d);
+  });
+}
+
+// SAVE
+function saveEntry(){
+  const trigger=san(document.getElementById('f_trigger').value);
+  if(!trigger.trim()){showToast('GO BACK AND ADD THE TRIGGER');return}
+  const entry={
+    trigger:trigger,
+    story:san(document.getElementById('f_story').value),
+    facts:san(document.getElementById('f_facts').value),
+    feelings:san(document.getElementById('f_feelings').value),
+    reframe:san(document.getElementById('f_reframe').value),
+    emotions:{...emoData},
+    patterns:PATTERNS.filter(p=>patternData.has(p.k)).map(p=>p.name),
+    date:new Date().toLocaleDateString(),ts:Date.now()
+  };
+
+  // Build rerate from current emotion values (re-ask inline)
+  // For RSD we save emotions as-is; the rerate happens on review
+  const arr=loadEntries();arr.push(entry);saveEntries(arr);
+  hap([15,30,15]);showToast('RSD SHIELD LOGGED');
+
+  document.getElementById('sum_trigger').textContent=entry.trigger;
+  document.getElementById('sum_story').textContent=entry.story||'(not filled)';
+  document.getElementById('sum_reframe').textContent=entry.reframe||'(not filled)';
+
+  const sr=document.getElementById('sum_shift');sr.innerHTML='';
+  Object.keys(entry.emotions).slice(0,6).forEach(e=>{
+    const val=entry.emotions[e];
+    sr.innerHTML+=`<div class="shift-item"><div class="si-label">${e}</div><div class="si-val" style="color:var(--acc)">${val}</div></div>`;
+  });
+
+  if(entry.patterns&&entry.patterns.length){
+    document.getElementById('sum_patterns_block').style.display='';
+    document.getElementById('sum_patterns').innerHTML=entry.patterns.map(p=>`<div class="pat-tag">${esc(p)}</div>`).join('');
+  }else{document.getElementById('sum_patterns_block').style.display='none'}
+
+  goStep(7);renderPast();
+}
+
+// NEW
+function startNew(){
+  emoData={};patternData=new Set();
+  ['f_trigger','f_story','f_facts','f_feelings','f_reframe'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  buildEmotions();buildPatterns();
+  ['btn1','btn2','btn3','btn4','btn6'].forEach(id=>btn(id,false));
+  goStep(1);
+}
+
+// PRINT
+function printSheet(){
+  const arr=loadEntries();const last=arr[arr.length-1];
+  if(!last){showToast('SAVE FIRST');return}
+  const eRows=Object.keys(last.emotions||{}).map(e=>{
+    const val=last.emotions[e];
+    return`<tr><td>${esc(e)}</td><td>${val}</td></tr>`;
+  }).join('');
+  const pw=window.open('','_blank');
+  pw.document.write(`<!DOCTYPE html><html><head><title>RSD Shield Worksheet — ${last.date}</title>
+  <style>*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;padding:36px;max-width:720px;margin:0 auto;color:#111;line-height:1.65;font-size:12px}
+  h1{font-size:20px;font-weight:900;letter-spacing:1px;margin-bottom:2px}.sub{color:#666;font-size:11px}.meta{color:#999;font-size:10px;margin-bottom:20px}
+  .disc{background:#fff8f0;border:1px solid #ffcc99;border-radius:6px;padding:10px 14px;font-size:10px;color:#995500;margin-bottom:20px;line-height:1.6}
+  .disc strong{font-size:11px;display:block;margin-bottom:3px}
+  .section{margin-bottom:20px}.lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:5px;border-bottom:1px solid #eee;padding-bottom:4px}
+  .box{border:1px solid #ddd;border-radius:5px;padding:12px;min-height:60px;white-space:pre-wrap;font-size:11px;line-height:1.65;color:#222}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .fact-box{border-color:#bfe8ca;background:#f5fff8}.feel-box{border-color:#ffd4a8;background:#fff8f0}
+  table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ddd;padding:7px 10px}th{background:#f5f5f5;font-size:9px;text-transform:uppercase;letter-spacing:1px}
+  .badge{display:inline-block;background:#fff3e0;border:1px solid #ffe0b2;border-radius:4px;padding:4px 10px;font-size:10px;font-weight:700;color:#e65100;margin:3px 3px 3px 0}
+  .bal-box{border-color:#4a8a5a;background:#f5fff8;color:#2a5a3a}
+  .footer{margin-top:36px;padding-top:12px;border-top:1px solid #eee;font-size:9px;color:#aaa;text-align:center}
+  @media print{.disc{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
+  <h1>RSD SHIELD WORKSHEET</h1>
+  <div class="sub">Operator's Deck — Rejection Sensitivity Intervention</div>
+  <div class="meta">Date: ${last.date}</div>
+  <div class="disc"><strong>⚠ SELF-HELP TOOL ONLY — NOT CLINICAL TREATMENT</strong>Generated by a self-help app, not a licensed clinician. RSD is a concept from ADHD clinical practice, not a DSM diagnosis. Bring this sheet to your therapist. In crisis: 988 (US/Canada) or text HOME to 686868.</div>
+  <div class="section"><div class="lbl">1 — The Trigger</div><div class="box">${esc((last.trigger||'').replace(/\n/g,'<br>'))}</div></div>
+  <div class="section"><div class="lbl">2 — The RSD Story</div><div class="box" style="border-color:#f5cccc;background:#fffafa">${esc((last.story||'').replace(/\n/g,'<br>'))}</div></div>
+  ${eRows?`<div class="section"><div class="lbl">3 — Emotional Intensity</div><table><tr><th>Emotion</th><th>Intensity (0-100)</th></tr>${eRows}</table></div>`:''}
+  <div class="section"><div class="lbl">4 — Fact vs Feeling</div><div class="two">
+    <div><p style="font-size:9px;font-weight:700;color:#27ae60;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Hard Facts</p><div class="box fact-box">${esc((last.facts||'(none listed)').replace(/\n/g,'<br>'))}</div></div>
+    <div><p style="font-size:9px;font-weight:700;color:#d35400;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Feelings + Interpretations</p><div class="box feel-box">${esc((last.feelings||'(none listed)').replace(/\n/g,'<br>'))}</div></div>
+  </div></div>
+  ${last.patterns&&last.patterns.length?`<div class="section"><div class="lbl">5 — RSD Patterns Identified</div><div>${last.patterns.map(p=>`<span class="badge">${esc(p)}</span>`).join('')}</div></div>`:''}
+  <div class="section"><div class="lbl">6 — Calibrated Read</div><div class="box bal-box">${esc((last.reframe||'(not filled)').replace(/\n/g,'<br>'))}</div></div>
+  <div class="footer">Operator's Deck — clovelearn.io &nbsp;|&nbsp; Built by a communications specialist, not a clinician &nbsp;|&nbsp; Bring this to your therapist</div>
+  </body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
+}
+
+// PAST ENTRIES
+function renderPast(){
+  const arr=loadEntries().slice().reverse();
+  const el=document.getElementById('pastSection');
+  if(!arr.length){el.innerHTML='';return}
+  let h=`<div class="past-title">PREVIOUS RSD SHIELDS (${arr.length})</div>`;
+  arr.forEach((e,i)=>{
+    const hasDetail=e.facts||e.feelings||e.patterns?.length;
+    h+=`<div class="past-entry">
+      <div class="pe-header"><div class="pe-date">${esc(e.date||'')}</div><div class="pe-tag">RSD SHIELD</div></div>
+      <div class="pe-trigger">"${esc((e.trigger||'').substring(0,120))}${e.trigger?.length>120?'…':''}"</div>
+      ${e.reframe?`<div class="pe-thought">→ ${esc((e.reframe).substring(0,120))}${e.reframe.length>120?'…':''}</div>`:''}
+      ${hasDetail?`<button class="pe-expand" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'HIDE ↑':'SHOW FULL RECORD ↓'">SHOW FULL RECORD ↓</button>
+      <div class="pe-detail">
+        ${e.story?`<div class="pd-label">THE RSD STORY</div><div class="pd-text">${esc((e.story).substring(0,400))}</div>`:''}
+        ${e.facts?`<div class="pd-label">HARD FACTS</div><div class="pd-text">${esc((e.facts).substring(0,400))}</div>`:''}
+        ${e.feelings?`<div class="pd-label">FEELINGS + INTERPRETATIONS</div><div class="pd-text">${esc((e.feelings).substring(0,400))}</div>`:''}
+        ${e.patterns?.length?`<div class="pd-label">RSD PATTERNS</div><div class="patterns-tags">${e.patterns.map(p=>`<div class="pat-tag">${esc(p)}</div>`).join('')}</div>`:''}
+      </div>`:``}
+    </div>`;
+  });
+  el.innerHTML=h;
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{buildEmotions();buildPatterns();renderPast()});
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">RSD concept primarily attributed to Dr. William Dodson (ADHD clinical practice). Not a DSM-5 diagnosis. Not a substitute for professional assessment or treatment.</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="CHAIN ANALYSIS • OPERATOR'S DECK">
+<meta property="og:description" content="DBT forensic tool. Map exactly what went wrong: vulnerability to trigger to links to behavior.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/chain-analysis-drill.html">
+  <title>CHAIN ANALYSIS • OPERATOR'S DECK</title>
+  <style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --acc:#d4621a;--acc2:#f07030;--red:#c0392b;--gld:#d4a843;
+  --grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333
+}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim2);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim)}
+.step-counter span{color:var(--acc)}
+
+/* DISCLAIMER */
+.disc-strip{background:#160a03;border-bottom:1px solid rgba(212,98,26,.25);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--acc);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#885544;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#cc7744}
+
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim2);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:#666;font-style:normal}
+
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(212,98,26,.4)}
+textarea::placeholder,input::placeholder{color:#222;font-style:italic}
+textarea{min-height:90px}
+.char-hint{color:var(--dim2);font-size:7px;font-family:monospace;text-align:right;margin-top:4px;letter-spacing:.5px}
+
+/* VULNERABILITY GRID */
+.vuln-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.vuln-card{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s}
+.vuln-card.sel{border-color:var(--acc);background:rgba(212,98,26,.1)}
+.vuln-card:active{transform:scale(.97)}
+.vc-icon{font-size:16px;margin-bottom:5px}
+.vc-name{font-size:9px;font-weight:700;font-family:monospace;letter-spacing:1px;margin-bottom:4px}
+.vc-desc{color:#555;font-size:8px;font-family:Georgia,serif;line-height:1.4}
+.vc-check{width:14px;height:14px;border:1.5px solid var(--dim2);border-radius:3px;float:right;margin-top:-2px;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s}
+.vuln-card.sel .vc-check{border-color:var(--acc);background:rgba(212,98,26,.2);color:var(--acc)}
+.vuln-extra{margin-bottom:14px}
+.vuln-label{color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+
+/* CHAIN LINKS */
+.chain-links{display:flex;flex-direction:column;gap:0;margin-bottom:10px;position:relative}
+.chain-links::before{content:'';position:absolute;left:19px;top:28px;bottom:28px;width:2px;background:linear-gradient(to bottom,var(--acc),rgba(212,98,26,.1));z-index:0}
+.chain-link{display:flex;gap:12px;align-items:flex-start;position:relative;z-index:1;margin-bottom:8px}
+.link-node{width:38px;height:38px;border-radius:50%;border:2px solid var(--acc);background:var(--bg);color:var(--acc);font-size:10px;font-family:monospace;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px}
+.link-body{flex:1}
+.link-type-row{display:flex;gap:4px;margin-bottom:5px;flex-wrap:wrap}
+.link-type-btn{background:var(--bg3);border:1px solid var(--dim2);color:var(--dim);border-radius:5px;padding:4px 8px;font-size:7px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .15s}
+.link-type-btn.on{border-color:var(--acc);color:var(--acc);background:rgba(212,98,26,.08)}
+.link-type-btn:active{transform:scale(.95)}
+.link-input{min-height:56px;font-size:10.5px}
+.link-remove{background:none;border:none;color:var(--dim2);font-size:12px;cursor:pointer;padding:4px;margin-top:8px;font-family:monospace;transition:color .2s}
+.link-remove:active{color:var(--red)}
+.add-link-btn{width:100%;background:none;border:1px dashed rgba(212,98,26,.25);color:rgba(212,98,26,.5);border-radius:10px;padding:12px;font-size:8px;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-bottom:14px;transition:all .2s}
+.add-link-btn:active{color:var(--acc);border-color:var(--acc)}
+
+/* CONSEQUENCES */
+.cons-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px}
+.cons-block{background:var(--bg3);border-radius:10px;padding:12px}
+.cons-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cons-dot{width:8px;height:8px;border-radius:50%}
+.cons-title{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1.5px}
+.cons-block textarea{min-height:64px}
+
+/* SOLUTIONS */
+.skill-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.skill-chip{background:var(--bg3);border:1px solid var(--dim2);color:var(--dim);border-radius:6px;padding:5px 10px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .15s}
+.skill-chip.sel{border-color:var(--grn);color:var(--grn);background:rgba(39,174,96,.08)}
+.skill-chip:active{transform:scale(.95)}
+
+/* BUTTONS */
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:linear-gradient(135deg,var(--acc),#a04010);color:#fff;border:none;border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-next:active{transform:scale(.96)}
+.btn-next:disabled{opacity:.3;cursor:default;transform:none}
+.btn-back-step{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:10px;padding:15px 18px;font-size:9px;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0}
+.btn-back-step:active{color:#888;border-color:#555}
+.btn-save{background:linear-gradient(135deg,var(--grn),#1a7a3c) !important}
+.btn-print{width:100%;background:var(--bg3);color:var(--acc);border:1px solid rgba(212,98,26,.25);border-radius:10px;padding:13px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;margin-top:10px;transition:all .2s}
+.btn-print:active{transform:scale(.96)}
+
+/* SUMMARY */
+.summary-header{text-align:center;margin-bottom:20px}
+.summary-header .sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:6px}
+.sb-content{color:#ccc;font-size:11px;font-family:Georgia,serif;line-height:1.65}
+.sb-link-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.sb-link-item{background:var(--bg2);border-radius:7px;padding:8px 10px;display:flex;gap:8px;align-items:flex-start}
+.sb-link-num{color:var(--acc);font-size:8px;font-family:monospace;font-weight:800;flex-shrink:0;margin-top:2px}
+.sb-link-type{background:rgba(212,98,26,.15);border-radius:4px;padding:2px 6px;font-size:6.5px;font-family:monospace;color:var(--acc);letter-spacing:.5px;margin-right:4px;flex-shrink:0}
+.sb-link-text{color:#aaa;font-size:10px;font-family:Georgia,serif;line-height:1.5}
+.vuln-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.vuln-tag{background:rgba(212,98,26,.1);border:1px solid rgba(212,98,26,.2);border-radius:5px;padding:3px 8px;font-size:7.5px;font-family:monospace;color:var(--acc)}
+.skill-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.skill-tag{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);border-radius:5px;padding:3px 8px;font-size:7.5px;font-family:monospace;color:var(--grn)}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:10px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+
+/* PAST ENTRIES */
+.past-section{margin:0 16px 60px}
+.past-divider{border:none;border-top:1px solid var(--dim2);margin:24px 0 16px}
+.past-title{color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.past-entry{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid rgba(212,98,26,.35)}
+.pe-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.pe-date{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:1px}
+.pe-delete{background:none;border:none;color:var(--dim2);font-size:10px;cursor:pointer;padding:0 4px;transition:color .2s}
+.pe-delete:active{color:var(--red)}
+.pe-behavior{font-size:10px;font-weight:700;font-family:monospace;color:#bbb;margin-bottom:6px}
+.pe-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.pe-tag{background:rgba(212,98,26,.08);border:1px solid rgba(212,98,26,.15);border-radius:4px;padding:2px 6px;font-size:6.5px;font-family:monospace;color:rgba(212,98,26,.7)}
+.pe-links-count{color:var(--dim);font-size:7.5px;font-family:monospace;letter-spacing:1px}
+.no-past{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;text-align:center;padding:20px 0}
+
+@media print{
+  .nav-bar,.progress-bar,.step-counter,.disc-strip,.step-acts,.btn-print,.past-section,.add-link-btn{display:none!important}
+  body{color:#000;background:#fff}
+  .summary-block{border:1px solid #ddd;break-inside:avoid}
+  .sb-content,.sb-link-text{color:#333}
+}
+  *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+  <!-- NAV -->
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK • DBT TOOL</div>
+      <div class="nav-name">CHAIN ANALYSIS</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+  <div class="step-counter" id="stepCounter">STEP <span id="stepNum">1</span> OF 6</div>
+
+  <!-- DISCLAIMER -->
+  <div class="disc-strip">
+    <div class="ds-icon">⚠</div>
+    <div class="ds-text"><strong>SELF-HELP TOOL ONLY.</strong> Not therapy. Not clinical DBT. If you're in crisis or dealing with active trauma — contact a licensed professional. This is forensic prep work, not a replacement for treatment. If you're in crisis, call or text 988.</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 1: THE PROBLEM BEHAVIOR
+  ═══════════════════════════════════════════════ -->
+  <div class="step active" id="step1">
+    <div class="step-label">STEP 1 OF 6 • IDENTIFY</div>
+    <div class="step-title">THE PROBLEM BEHAVIOR</div>
+    <div class="step-desc">Name the specific behavior you want to analyze. Not a pattern — one specific incident. Concrete, observable, precise. The clearer you are here, the more useful the chain.</div>
+    <div class="step-example"><strong>NOT:</strong> "I self-destructed again." <br><strong>YES:</strong> "Tuesday night, 11pm, I drank a fifth of whiskey alone after my wife went to bed."</div>
+    <textarea id="behaviorText" rows="4" placeholder="Describe exactly what happened. What did you do? When? Where? Be specific…" oninput="updateChar('behaviorText','behaviorChar',500)"></textarea>
+    <div class="char-hint" id="behaviorChar">0 / 500</div>
+    <div style="margin-top:14px">
+      <div class="vuln-label">WHEN DID THIS HAPPEN?</div>
+      <input type="text" id="behaviorWhen" placeholder="e.g. Tuesday, 11pm — two days ago…">
+    </div>
+    <div class="step-acts">
+      <button class="btn-next" id="nextBtn1" onclick="goStep(2)" disabled>NEXT — VULNERABILITY →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 2: VULNERABILITY FACTORS
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step2">
+    <div class="step-label">STEP 2 OF 6 • FORENSICS</div>
+    <div class="step-title">VULNERABILITY FACTORS</div>
+    <div class="step-desc">What made you vulnerable BEFORE the triggering event? These are the conditions that lowered your floor. You were already compromised — by what?</div>
+    <div class="vuln-grid">
+      <div class="vuln-card" id="v_sleep" onclick="toggleVuln('sleep')">
+        <div class="vc-check" id="vc_sleep"></div>
+        <div class="vc-icon">😴</div>
+        <div class="vc-name">SLEEP</div>
+        <div class="vc-desc">Too little, too much, or broken sleep</div>
+      </div>
+      <div class="vuln-card" id="v_sub" onclick="toggleVuln('sub')">
+        <div class="vc-check" id="vc_sub"></div>
+        <div class="vc-icon">🍺</div>
+        <div class="vc-name">SUBSTANCES</div>
+        <div class="vc-desc">Alcohol, drugs, excess caffeine, meds</div>
+      </div>
+      <div class="vuln-card" id="v_ill" onclick="toggleVuln('ill')">
+        <div class="vc-check" id="vc_ill"></div>
+        <div class="vc-icon">🤕</div>
+        <div class="vc-name">ILLNESS / PAIN</div>
+        <div class="vc-desc">Physical discomfort, injury, sickness</div>
+      </div>
+      <div class="vuln-card" id="v_food" onclick="toggleVuln('food')">
+        <div class="vc-check" id="vc_food"></div>
+        <div class="vc-icon">🍽</div>
+        <div class="vc-name">NUTRITION</div>
+        <div class="vc-desc">Skipped meals, poor eating, hunger</div>
+      </div>
+      <div class="vuln-card" id="v_stress" onclick="toggleVuln('stress')">
+        <div class="vc-check" id="vc_stress"></div>
+        <div class="vc-icon">⚡</div>
+        <div class="vc-name">CHRONIC STRESS</div>
+        <div class="vc-desc">Ongoing pressure, overload, no relief</div>
+      </div>
+      <div class="vuln-card" id="v_iso" onclick="toggleVuln('iso')">
+        <div class="vc-check" id="vc_iso"></div>
+        <div class="vc-icon">🔇</div>
+        <div class="vc-name">ISOLATION</div>
+        <div class="vc-desc">Cut off, alone, no support contact</div>
+      </div>
+      <div class="vuln-card" id="v_ann" onclick="toggleVuln('ann')">
+        <div class="vc-check" id="vc_ann"></div>
+        <div class="vc-icon">📅</div>
+        <div class="vc-name">ANNIVERSARY</div>
+        <div class="vc-desc">Date tied to grief, loss, or trauma</div>
+      </div>
+      <div class="vuln-card" id="v_emo" onclick="toggleVuln('emo')">
+        <div class="vc-check" id="vc_emo"></div>
+        <div class="vc-icon">🔥</div>
+        <div class="vc-name">PRIOR EMOTION</div>
+        <div class="vc-desc">Already angry, sad, ashamed before this started</div>
+      </div>
+    </div>
+    <div class="vuln-extra">
+      <div class="vuln-label">ANYTHING ELSE?</div>
+      <textarea id="vulnOther" rows="2" placeholder="Other factors that made you vulnerable going into this day…" style="min-height:56px"></textarea>
+    </div>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+      <button class="btn-next" onclick="goStep(3)">NEXT — TRIGGER →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 3: PROMPTING EVENT
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step3">
+    <div class="step-label">STEP 3 OF 6 • THE SPARK</div>
+    <div class="step-title">THE PROMPTING EVENT</div>
+    <div class="step-desc">This is the ONE thing that started the chain — the match that lit the tinder. It's not "everything." It's the specific moment the trouble began. Often smaller than you expect.</div>
+    <div class="step-example"><strong>Examples:</strong> "She said 'you never listen.'" / "The bill notification came through." / "I drove past the bar." / "He didn't respond to my text for 3 hours."</div>
+    <textarea id="promptText" rows="3" placeholder="What was the one specific thing that set this in motion? The moment the chain started…" oninput="updateChar('promptText','promptChar',400)"></textarea>
+    <div class="char-hint" id="promptChar">0 / 400</div>
+    <div style="margin-top:14px">
+      <div class="vuln-label">WHY DID THIS HIT SO HARD?</div>
+      <div class="step-desc" style="margin-bottom:8px;font-size:9.5px">What does this event mean to you? What story did your brain tell about it?</div>
+      <textarea id="promptMeaning" rows="2" placeholder="The meaning your brain assigned — not the facts, the interpretation…" style="min-height:56px"></textarea>
+    </div>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+      <button class="btn-next" id="nextBtn3" onclick="goStep(4)" disabled>NEXT — THE CHAIN →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 4: CHAIN OF LINKS
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step4">
+    <div class="step-label">STEP 4 OF 6 • THE PATH</div>
+    <div class="step-title">LINKS IN THE CHAIN</div>
+    <div class="step-desc">Walk the path between the trigger and the behavior. Each link is a thought, feeling, body sensation, or action that led to the next. Start right after the trigger. End just before the behavior. Aim for 3–8 links.</div>
+    <div class="step-example"><strong>Link types:</strong> <em>Thought</em> — "No one cares anyway." | <em>Feeling</em> — Rage, 8/10 | <em>Body</em> — Chest tight, couldn't breathe | <em>Action</em> — Got in car, drove to liquor store</div>
+    <div class="chain-links" id="chainLinks"></div>
+    <button class="add-link-btn" onclick="addLink()">+ ADD LINK TO CHAIN</button>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+      <button class="btn-next" id="nextBtn4" onclick="goStep(5)" disabled>NEXT — CONSEQUENCES →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 5: CONSEQUENCES
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step5">
+    <div class="step-label">STEP 5 OF 6 • THE LEDGER</div>
+    <div class="step-title">CONSEQUENCES</div>
+    <div class="step-desc">What did the behavior give you in the short run? What did it cost you? The ledger has to be honest on both sides — otherwise you won't understand why your brain keeps choosing this.</div>
+    <div class="cons-grid">
+      <div class="cons-block">
+        <div class="cons-header">
+          <div class="cons-dot" style="background:var(--grn)"></div>
+          <div class="cons-title" style="color:var(--grn)">IMMEDIATE PAYOFF</div>
+        </div>
+        <div class="step-desc" style="font-size:9px;margin-bottom:8px">What did it give you right away? (Relief, numbness, control, escape, connection, power…)</div>
+        <textarea id="consImm" rows="3" placeholder="This is why your brain chose it. What did it solve in the moment?"></textarea>
+      </div>
+      <div class="cons-block">
+        <div class="cons-header">
+          <div class="cons-dot" style="background:var(--gld)"></div>
+          <div class="cons-title" style="color:var(--gld)">SHORT-TERM AFTERMATH</div>
+        </div>
+        <div class="step-desc" style="font-size:9px;margin-bottom:8px">Hours/days after. What hit? (Guilt, shame, hangover, blowback, regret, physical effects…)</div>
+        <textarea id="consST" rows="3" placeholder="The morning after. What did it cost you short-term?"></textarea>
+      </div>
+      <div class="cons-block">
+        <div class="cons-header">
+          <div class="cons-dot" style="background:var(--red)"></div>
+          <div class="cons-title" style="color:var(--red)">LONG-TERM COST</div>
+        </div>
+        <div class="step-desc" style="font-size:9px;margin-bottom:8px">What is this pattern eroding? (Relationships, self-respect, goals, health, trust, mission…)</div>
+        <textarea id="consLT" rows="3" placeholder="The slow burn. What is this pattern costing you over time?"></textarea>
+      </div>
+    </div>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(4)">← BACK</button>
+      <button class="btn-next" id="nextBtn5" onclick="goStep(6)" disabled>NEXT — SOLUTION →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       STEP 6: SOLUTION ANALYSIS
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="step6">
+    <div class="step-label">STEP 6 OF 6 • DEBRIEF</div>
+    <div class="step-title">SOLUTION ANALYSIS</div>
+    <div class="step-desc">Now you break the chain. Which link was the weakest? What skill would have changed the outcome? What do you owe repair on? Commit to one concrete change.</div>
+    <div style="margin-bottom:14px">
+      <div class="vuln-label">WHICH LINK COULD YOU HAVE BROKEN?</div>
+      <div class="step-desc" style="font-size:9px;margin-bottom:8px">Look at your chain. One or two links were the pivot points — where a different choice would have redirected everything.</div>
+      <textarea id="breakLink" rows="2" placeholder="Link #__ — if I had done ___ instead…" style="min-height:56px"></textarea>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="vuln-label">DBT SKILLS THAT WOULD HAVE HELPED</div>
+      <div class="skill-chips" id="skillChips">
+        <div class="skill-chip" onclick="toggleSkill(this,'TIPP')">TIPP</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'IMPROVE')">IMPROVE</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'Opposite Action')">OPPOSITE ACTION</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'Mindfulness')">MINDFULNESS</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'Ride the Wave')">RIDE THE WAVE</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'Check the Facts')">CHECK THE FACTS</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'DEAR MAN')">DEAR MAN</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'Radical Acceptance')">RADICAL ACCEPTANCE</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'Self-Soothe')">SELF-SOOTHE</div>
+        <div class="skill-chip" onclick="toggleSkill(this,'Reach Out')">REACH OUT</div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="vuln-label">REPAIR PLAN</div>
+      <div class="step-desc" style="font-size:9px;margin-bottom:8px">What harm was done that needs repairing? Who or what do you owe? Concrete action, not just guilt.</div>
+      <textarea id="repairPlan" rows="2" placeholder="I will repair this by…" style="min-height:56px"></textarea>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="vuln-label">ONE CONCRETE CHANGE THIS WEEK</div>
+      <div class="step-desc" style="font-size:9px;margin-bottom:8px">Not a goal — a specific, time-bound action. What will you do differently before this situation hits again?</div>
+      <textarea id="oneChange" rows="2" placeholder="By [day], I will…" style="min-height:56px" oninput="updateChar('oneChange','changeChar',300)"></textarea>
+      <div class="char-hint" id="changeChar">0 / 300</div>
+    </div>
+    <div class="step-acts">
+      <button class="btn-back-step" onclick="goStep(5)">← BACK</button>
+      <button class="btn-next btn-save" id="saveBtn" onclick="saveAnalysis()">SAVE ANALYSIS</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SUMMARY
+  ═══════════════════════════════════════════════ -->
+  <div class="step" id="stepSummary">
+    <div class="summary-header">
+      <div class="sh-icon">🔗</div>
+      <h2>CHAIN MAPPED</h2>
+      <p>You did the forensic work. You know how it happened.<br>Now you know how to break it next time.</p>
+    </div>
+    <div id="summaryContent"></div>
+    <button class="btn-print" onclick="window.print()">⊞ PRINT / SAVE AS PDF</button>
+    <div class="step-acts" style="margin-top:14px">
+    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+      <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+      <a href="dear-man-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DEAR MAN \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Script the conversation that needs to happen next</span></a><a href="opposite-action-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">OPPOSITE ACTION \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">If the emotion is still running the show</span></a>
+    </div>
+
+      <button class="btn-next" style="background:linear-gradient(135deg,var(--acc),#a04010)" onclick="startFresh()">ANALYZE ANOTHER CHAIN</button>
+    </div>
+  </div>
+
+  <!-- PAST ENTRIES -->
+  <div class="past-section" id="pastSection" style="display:none">
+    <hr class="past-divider">
+    <div class="past-title">PAST CHAIN ANALYSES</div>
+    <div id="pastList"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+const STORE = 'od_chain_analysis';
+let currentStep = 1;
+const TOTAL_STEPS = 6;
+let vulnSelected = new Set();
+let chainLinks = [];
+let skillsSelected = new Set();
+
+// ── UTILS ────────────────────────────────────────────────────────────
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch(e) { return []; }
+}
+function save(entries) {
+  try { localStorage.setItem(STORE, JSON.stringify(entries.slice(0, 100))); } catch(e) {}
+}
+function updateChar(inputId, counterId, max) {
+  const el = document.getElementById(inputId);
+  const ct = document.getElementById(counterId);
+  if (!el || !ct) return;
+  ct.textContent = el.value.length + ' / ' + max;
+  checkStep1();
+  checkStep3();
+  checkStep5();
+}
+function $(id) { return document.getElementById(id); }
+function val(id) { return ($( id) || {}).value || ''; }
+
+// ── STEP NAVIGATION ──────────────────────────────────────────────────
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const target = n > TOTAL_STEPS ? 'stepSummary' : 'step' + n;
+  const el = document.getElementById(target);
+  if (el) el.classList.add('active');
+  currentStep = n;
+  updateProgress();
+  window.scrollTo(0, 0);
+  if (n > TOTAL_STEPS) buildSummary();
+}
+
+function updateProgress() {
+  const pct = Math.min(currentStep / TOTAL_STEPS * 100, 100);
+  const fill = document.getElementById('progFill');
+  if (fill) fill.style.width = pct + '%';
+  const num = document.getElementById('stepNum');
+  if (num) num.textContent = Math.min(currentStep, TOTAL_STEPS);
+  const counter = document.getElementById('stepCounter');
+  if (counter) counter.style.display = currentStep > TOTAL_STEPS ? 'none' : 'block';
+}
+
+// ── STEP 1 ────────────────────────────────────────────────────────────
+function checkStep1() {
+  const btn = document.getElementById('nextBtn1');
+  if (btn) btn.disabled = val('behaviorText').trim().length < 10;
+}
+document.getElementById('behaviorText').addEventListener('input', checkStep1);
+checkStep1();
+
+// ── VULNERABILITY ────────────────────────────────────────────────────
+const vulnLabels = {
+  sleep: 'Sleep deprivation / excess', sub: 'Substances',
+  ill: 'Illness / pain', food: 'Poor nutrition',
+  stress: 'Chronic stress', iso: 'Isolation',
+  ann: 'Anniversary / date trauma', emo: 'Prior emotional state'
+};
+function toggleVuln(key) {
+  const card = document.getElementById('v_' + key);
+  const check = document.getElementById('vc_' + key);
+  if (vulnSelected.has(key)) {
+    vulnSelected.delete(key);
+    card.classList.remove('sel');
+    check.textContent = '';
+  } else {
+    vulnSelected.add(key);
+    card.classList.add('sel');
+    check.textContent = '✓';
+  }
+}
+
+// ── STEP 3 ────────────────────────────────────────────────────────────
+function checkStep3() {
+  const btn = document.getElementById('nextBtn3');
+  if (btn) btn.disabled = val('promptText').trim().length < 5;
+}
+document.getElementById('promptText').addEventListener('input', checkStep3);
+checkStep3();
+
+// ── CHAIN LINKS ───────────────────────────────────────────────────────
+function addLink() {
+  const id = Date.now();
+  chainLinks.push({ id, type: 'THOUGHT', text: '' });
+  renderLinks();
+  setTimeout(() => {
+    const ta = document.getElementById('lt_' + id);
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function renderLinks() {
+  const container = document.getElementById('chainLinks');
+  container.innerHTML = '';
+  chainLinks.forEach((lk, i) => {
+    const div = document.createElement('div');
+    div.className = 'chain-link';
+    div.id = 'link_' + lk.id;
+    div.innerHTML = `
+      <div class="link-node">${i + 1}</div>
+      <div class="link-body">
+        <div class="link-type-row">
+          ${['THOUGHT','FEELING','BODY','ACTION'].map(t =>
+            `<button class="link-type-btn${lk.type===t?' on':''}" onclick="setLinkType(${lk.id},'${t}')">${t}</button>`
+          ).join('')}
+        </div>
+        <textarea class="link-input" id="lt_${lk.id}" placeholder="${linkPlaceholder(lk.type)}" rows="2"
+          oninput="setLinkText(${lk.id},this.value)">${lk.text}</textarea>
+        ${chainLinks.length > 1 ? `<button class="link-remove" onclick="removeLink(${lk.id})">✕ remove</button>` : ''}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  checkStep4();
+}
+
+function linkPlaceholder(type) {
+  const map = {
+    THOUGHT: '"No one gives a shit anyway…"',
+    FEELING: 'Rage, 8/10 intensity',
+    BODY: 'Chest tight, jaw clenched, hands shaking',
+    ACTION: 'Got in car, drove to liquor store'
+  };
+  return map[type] || '';
+}
+
+function setLinkType(id, type) {
+  const lk = chainLinks.find(l => l.id === id);
+  if (lk) { lk.type = type; renderLinks(); }
+}
+
+function setLinkText(id, text) {
+  const lk = chainLinks.find(l => l.id === id);
+  if (lk) { lk.text = text; checkStep4(); }
+}
+
+function removeLink(id) {
+  chainLinks = chainLinks.filter(l => l.id !== id);
+  renderLinks();
+}
+
+function checkStep4() {
+  const btn = document.getElementById('nextBtn4');
+  if (!btn) return;
+  const hasLinks = chainLinks.length >= 1 && chainLinks.some(l => l.text.trim().length >= 3);
+  btn.disabled = !hasLinks;
+}
+
+// Init one link
+addLink();
+
+// ── STEP 5 ────────────────────────────────────────────────────────────
+function checkStep5() {
+  const btn = document.getElementById('nextBtn5');
+  if (btn) btn.disabled = val('consImm').trim().length < 5;
+}
+['consImm','consST','consLT'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', checkStep5);
+});
+checkStep5();
+
+// ── SKILLS ────────────────────────────────────────────────────────────
+function toggleSkill(el, skill) {
+  if (skillsSelected.has(skill)) {
+    skillsSelected.delete(skill);
+    el.classList.remove('sel');
+  } else {
+    skillsSelected.add(skill);
+    el.classList.add('sel');
+  }
+}
+
+// ── SAVE ─────────────────────────────────────────────────────────────
+function saveAnalysis() {
+  const entries = load();
+  const entry = {
+    ts: Date.now(),
+    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    behavior: val('behaviorText'),
+    behaviorWhen: val('behaviorWhen'),
+    vulns: Array.from(vulnSelected).map(k => vulnLabels[k]),
+    vulnOther: val('vulnOther'),
+    prompt: val('promptText'),
+    promptMeaning: val('promptMeaning'),
+    links: chainLinks.map(l => ({ type: l.type, text: l.text })),
+    consImm: val('consImm'),
+    consST: val('consST'),
+    consLT: val('consLT'),
+    breakLink: val('breakLink'),
+    skills: Array.from(skillsSelected),
+    repair: val('repairPlan'),
+    oneChange: val('oneChange')
+  };
+  entries.unshift(entry);
+  save(entries);
+  showToast('CHAIN SAVED — EVIDENCE LOGGED');
+  goStep(7);
+  renderPast();
+}
+
+function showToast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────
+function buildSummary() {
+  const content = document.getElementById('summaryContent');
+  if (!content) return;
+
+  const vulnList = [...Array.from(vulnSelected).map(k => vulnLabels[k]),
+                    val('vulnOther') ? val('vulnOther') : null].filter(Boolean);
+
+  content.innerHTML = `
+    <div class="summary-block">
+      <div class="sb-label">THE BEHAVIOR</div>
+      <div class="sb-content">${val('behaviorText')||'—'}${val('behaviorWhen') ? '<br><span style="color:var(--dim);font-size:9px;font-family:monospace">' + val('behaviorWhen') + '</span>' : ''}</div>
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">VULNERABILITY FACTORS</div>
+      <div class="sb-content">${vulnList.length ? '' : '<span style="color:var(--dim);font-size:9px">None identified</span>'}</div>
+      ${vulnList.length ? `<div class="vuln-tags">${vulnList.map(v => `<span class="vuln-tag">${v}</span>`).join('')}</div>` : ''}
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">PROMPTING EVENT</div>
+      <div class="sb-content">${val('promptText')||'—'}</div>
+      ${val('promptMeaning') ? `<div style="color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;margin-top:6px;line-height:1.5">Meaning assigned: "${val('promptMeaning')}"</div>` : ''}
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">CHAIN — ${chainLinks.length} LINK${chainLinks.length !== 1 ? 'S' : ''}</div>
+      <div class="sb-link-list">
+        ${chainLinks.map((l, i) => `
+          <div class="sb-link-item">
+            <div class="sb-link-num">${i+1}</div>
+            <div>
+              <span class="sb-link-type">${l.type}</span>
+              <span class="sb-link-text">${l.text||'—'}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">CONSEQUENCES</div>
+      ${val('consImm') ? `<div style="margin-bottom:8px"><div style="color:var(--grn);font-size:7px;font-family:monospace;letter-spacing:1.5px;margin-bottom:3px">IMMEDIATE PAYOFF</div><div class="sb-content">${val('consImm')}</div></div>` : ''}
+      ${val('consST') ? `<div style="margin-bottom:8px"><div style="color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:1.5px;margin-bottom:3px">SHORT-TERM AFTERMATH</div><div class="sb-content">${val('consST')}</div></div>` : ''}
+      ${val('consLT') ? `<div><div style="color:var(--red);font-size:7px;font-family:monospace;letter-spacing:1.5px;margin-bottom:3px">LONG-TERM COST</div><div class="sb-content">${val('consLT')}</div></div>` : ''}
+    </div>
+    <div class="summary-block">
+      <div class="sb-label">SOLUTION ANALYSIS</div>
+      ${val('breakLink') ? `<div style="margin-bottom:8px"><div style="color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:1px;margin-bottom:3px">BREAK POINT</div><div class="sb-content">${val('breakLink')}</div></div>` : ''}
+      ${skillsSelected.size ? `<div style="margin-bottom:8px"><div style="color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:1px;margin-bottom:5px">SKILLS TO DEPLOY</div><div class="skill-tags">${[...skillsSelected].map(s=>`<span class="skill-tag">${s}</span>`).join('')}</div></div>` : ''}
+      ${val('repairPlan') ? `<div style="margin-bottom:8px"><div style="color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:1px;margin-bottom:3px">REPAIR PLAN</div><div class="sb-content">${val('repairPlan')}</div></div>` : ''}
+      ${val('oneChange') ? `<div><div style="color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:1px;margin-bottom:3px">ONE CONCRETE CHANGE</div><div class="sb-content" style="color:#fff">${val('oneChange')}</div></div>` : ''}
+    </div>
+  `;
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────
+function startFresh() {
+  document.getElementById('behaviorText').value = '';
+  document.getElementById('behaviorWhen').value = '';
+  document.getElementById('vulnOther').value = '';
+  document.getElementById('promptText').value = '';
+  document.getElementById('promptMeaning').value = '';
+  document.getElementById('consImm').value = '';
+  document.getElementById('consST').value = '';
+  document.getElementById('consLT').value = '';
+  document.getElementById('breakLink').value = '';
+  document.getElementById('repairPlan').value = '';
+  document.getElementById('oneChange').value = '';
+  vulnSelected.clear();
+  document.querySelectorAll('.vuln-card').forEach(c => c.classList.remove('sel'));
+  document.querySelectorAll('.vc-check').forEach(c => c.textContent = '');
+  skillsSelected.clear();
+  document.querySelectorAll('.skill-chip').forEach(c => c.classList.remove('sel'));
+  chainLinks = [];
+  addLink();
+  goStep(1);
+  checkStep1();
+  checkStep3();
+  checkStep5();
+}
+
+// ── PAST ENTRIES ──────────────────────────────────────────────────────
+function renderPast() {
+  const entries = load();
+  const section = document.getElementById('pastSection');
+  const list = document.getElementById('pastList');
+  if (!section || !list) return;
+  if (!entries.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = entries.map((e, i) => `
+    <div class="past-entry">
+      <div class="pe-header">
+        <div class="pe-date">${e.date}</div>
+        <button class="pe-delete" onclick="deleteEntry(${i})" title="Delete">✕</button>
+      </div>
+      <div class="pe-behavior">${(e.behavior || '').substring(0, 80)}${e.behavior && e.behavior.length > 80 ? '…' : ''}</div>
+      ${e.vulns && e.vulns.length ? `<div class="pe-tags">${e.vulns.slice(0, 4).map(v => `<span class="pe-tag">${v}</span>`).join('')}</div>` : ''}
+      <div class="pe-links-count">🔗 ${(e.links || []).length} links mapped${e.skills && e.skills.length ? ' · ' + e.skills.join(', ') : ''}</div>
+    </div>
+  `).join('');
+}
+
+function deleteEntry(i) {
+  if (!confirm('Delete this chain analysis?')) return;
+  const entries = load();
+  entries.splice(i, 1);
+  save(entries);
+  renderPast();
+}
+
+// Init past
+renderPast();
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from DBT Behavioral Chain Analysis — Linehan, M.M. (2015). DBT Skills Training Manual.</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

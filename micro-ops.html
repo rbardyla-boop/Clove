@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="MICRO OPS • OPERATOR'S DECK">
+<meta property="og:description" content="Task paralysis destroyer. Overwhelming task in, micro-steps out.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/micro-ops.html">
+  <title>MICRO OPS • OPERATOR'S DECK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000; --bg2: #0a0a0a; --bg3: #111111;
+      --red: #c0392b; --grn: #27ae60; --gold: #d4a843; --blu: #4a6fa5;
+      --text: #e0e0e0; --dim: #666666; --dim2: #777; --dim3: #222;
+      --border: rgba(192,57,43,0.25);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; line-height:1.6; }
+    .app { max-width:520px; margin:0 auto; padding-bottom:80px; }
+
+    .nav-bar {
+      background:#000; border-bottom:3px solid var(--red); padding:14px 16px;
+      display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:20;
+    }
+    .nav-back {
+      background:none; border:1px solid #333; color:#666; border-radius:8px;
+      padding:8px 14px; font-size:9px; font-family:monospace; letter-spacing:1.5px; cursor:pointer;
+    }
+    .nav-back:active { color:#fff; border-color:#555; }
+    .nav-tag { color:var(--red); font-size:6.5px; font-family:monospace; letter-spacing:3px; }
+    .nav-name { font-size:13px; font-weight:900; letter-spacing:.5px; }
+
+    header {
+      background:linear-gradient(to bottom,#1a0000,#000); padding:40px 20px 30px;
+      text-align:center; border-bottom:6px solid var(--red);
+    }
+    h1 {
+      font-family:'Bebas Neue',sans-serif; font-size:80px; letter-spacing:5px;
+      color:var(--red); line-height:.85; margin-bottom:12px;
+      text-shadow:0 0 25px rgba(192,57,43,.7);
+    }
+    .sub { font-size:11px; color:#555; letter-spacing:4px; }
+
+    .tabs {
+      display:flex; border-bottom:2px solid #111; overflow-x:auto;
+      background:var(--bg2); position:sticky; top:47px; z-index:15;
+    }
+    .tab-btn {
+      flex:1; padding:14px 8px; text-align:center; font-size:9px; font-family:'DM Mono',monospace;
+      letter-spacing:2px; color:#555; background:none; border:none; cursor:pointer;
+      border-bottom:3px solid transparent; white-space:nowrap;
+    }
+    .tab-btn.active { color:var(--red); border-bottom-color:var(--red); }
+
+    .panel { display:none; padding:20px 16px; }
+    .panel.active { display:block; }
+
+    .section-label { font-size:8px; letter-spacing:4px; color:#333; text-transform:uppercase; margin:20px 0 10px; }
+
+    input[type="text"], textarea {
+      width:100%; background:var(--bg2); border:1px solid #222; color:var(--text);
+      font-family:'DM Mono',monospace; font-size:14px; padding:16px; border-radius:8px;
+    }
+    input:focus, textarea:focus { border-color:var(--red); outline:none; }
+
+    .btn-primary {
+      width:100%; padding:18px; background:var(--red); color:#fff; border:none;
+      font-family:'DM Mono',monospace; font-size:14px; font-weight:900;
+      letter-spacing:3px; border-radius:10px; cursor:pointer; margin-top:12px;
+    }
+    .btn-primary:active { transform:scale(.97); }
+
+    .step-item {
+      background:var(--bg2); border:1px solid #1a1a1a; border-radius:8px;
+      padding:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
+      border-left:4px solid var(--red); transition:all .2s;
+    }
+    .step-item.done { border-left-color:var(--grn); }
+    .step-item.done .step-text { text-decoration:line-through; color:#555; }
+    .step-text { flex:1; font-size:12px; }
+
+    .saved-item {
+      background:var(--bg2); border:1px solid #1a1a1a; border-radius:8px;
+      padding:14px; margin-bottom:6px; display:flex; align-items:center; gap:10px;
+    }
+    .saved-title { flex:1; font-size:11px; }
+    .del-btn { background:none; border:none; color:#333; font-size:16px; cursor:pointer; padding:4px; }
+    .del-btn:hover { color:var(--red); }
+
+    .estimate-result {
+      background:var(--bg2); border:2px solid var(--border); border-radius:12px;
+      padding:24px; margin-top:20px; text-align:center;
+    }
+    .estimate-result .est-task { color:var(--red); font-size:16px; margin-bottom:12px; }
+    .estimate-result .est-time { font-family:'Bebas Neue',sans-serif; font-size:64px; color:var(--text); }
+    .estimate-result .est-note { color:#444; font-size:10px; margin-top:8px; }
+    .est-tip { border-left:4px solid var(--red); padding:10px 16px; font-size:10px; color:#666; margin-top:16px; }
+
+    .compiled-item {
+      padding:10px 16px; border-left:3px solid var(--red); margin-bottom:6px;
+      font-size:12px; background:var(--bg2);
+    }
+
+    .brief { padding:20px 16px; }
+    .brief h2 { font-family:'Bebas Neue',sans-serif; font-size:36px; color:var(--red); margin-bottom:16px; letter-spacing:3px; }
+    .brief p { font-size:12px; color:#666; line-height:1.8; margin-bottom:16px; }
+    .brief .feature { display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; }
+    .brief .feature .f-icon { font-size:20px; min-width:28px; }
+    .brief .feature .f-label { font-weight:900; color:#aaa; font-size:12px; }
+    .brief .feature .f-desc { font-size:10px; color:#555; }
+    .brief .quote {
+      border-left:4px solid var(--red); padding:16px 20px; margin:20px 0;
+      font-style:italic; color:#888; font-size:12px; line-height:1.8;
+    }
+    .brief .quote .attr { color:var(--red); font-size:10px; display:block; margin-top:8px; font-style:normal; }
+
+    .empty { text-align:center; padding:40px 20px; color:#333; font-size:11px; }
+
+    footer { text-align:center; padding:40px 20px; font-size:8px; color:#222; letter-spacing:2px; line-height:2; }
+    *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK • ADHD OPS</div>
+      <div class="nav-name">MICRO OPS</div>
+    </div>
+  </div>
+
+  <header>
+    <h1>MICRO<br>OPS</h1>
+    <div class="sub">TASK PARALYSIS DESTROYER • MICRO-STEP ENGINE</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(0)">🧙 MAGIC TO-DO</button>
+    <button class="tab-btn" onclick="switchTab(1)">⏱️ ESTIMATOR</button>
+    <button class="tab-btn" onclick="switchTab(2)">📜 COMPILER</button>
+    <button class="tab-btn" onclick="switchTab(3)">BRIEF</button>
+  </div>
+
+  <!-- MAGIC TO-DO -->
+  <div class="panel active" id="panel0">
+    <input type="text" id="magic-input" placeholder="OVERWHELMING TASK → e.g. clean garage, write report...">
+    <button class="btn-primary" onclick="castMagic()">🧙 CAST MAGIC TO-DO</button>
+    <div id="magic-output" style="margin-top:20px"></div>
+    <div id="saved-breakdowns" style="margin-top:30px"></div>
+  </div>
+
+  <!-- ESTIMATOR -->
+  <div class="panel" id="panel1">
+    <input type="text" id="estimate-input" placeholder="Task to estimate...">
+    <button class="btn-primary" onclick="runEstimate()">ESTIMATE TIME + EFFORT</button>
+    <div id="estimate-result"></div>
+  </div>
+
+  <!-- COMPILER -->
+  <div class="panel" id="panel2">
+    <textarea id="dump-input" rows="6" placeholder="BRAIN DUMP → paste chaos here. One thought per line or just stream of consciousness..."></textarea>
+    <button class="btn-primary" onclick="compileDump()">COMPILE TO ACTION STEPS</button>
+    <div id="compiled-output" style="margin-top:20px"></div>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel" id="panel3">
+    <div class="brief">
+      <h2>WHY MICRO OPS?</h2>
+      <p>Built for ADHD brains that freeze on "where do I even start?"</p>
+      <div class="feature"><div class="f-icon">🧙</div><div><div class="f-label">MAGIC TO-DO</div><div class="f-desc">Instant micro-steps from vague chaos</div></div></div>
+      <div class="feature"><div class="f-icon">⏱️</div><div><div class="f-label">ESTIMATOR</div><div class="f-desc">Realistic time + effort rating</div></div></div>
+      <div class="feature"><div class="f-icon">📜</div><div><div class="f-label">COMPILER</div><div class="f-desc">Turns brain dumps into executable lists</div></div></div>
+      <div class="quote">
+        "Most tools assume your brain works. Micro Ops assumes it doesn't — and helps anyway."
+        <span class="attr">— Real operator feedback</span>
+      </div>
+      <p style="font-size:10px;color:#333">All data saved in your browser only. No cloud. No tracking. Field-ready.</p>
+    </div>
+  </div>
+
+  <footer>100% LOCAL • ZERO CLOUD • YOUR DATA STAYS YOURS<br>OPERATOR'S DECK — MARCH 2026</footer>
+</div>
+
+<script>
+// ── KEY MIGRATION (one-time) ──
+(function(){try{var v=localStorage.getItem('micro-magic');if(v!==null){localStorage.setItem('od_micro_magic',v);localStorage.removeItem('micro-magic');}}catch(e){}})();
+let savedMagic=[];try{savedMagic=JSON.parse(localStorage.getItem('od_micro_magic')||'[]');}catch(e){}
+
+const templates={
+  clean:["Gather supplies","Sort into keep / toss / donate piles","Wipe all surfaces","Vacuum or sweep the floor","Organize and label what's left","Take out trash and recycling"],
+  write:["Brain dump — 5 min free write","Create rough outline (3-5 bullet points)","Draft first section — ugly is fine","Draft second section","Revise for flow","Format + proofread + ship"],
+  report:["Gather all data sources","Create section outline","Fill in numbers and key data","Write executive summary","Proofread once out loud","Submit or share"],
+  email:["Open inbox — set 15 min timer","Flag top 3 urgent items","Draft replies to flagged items","Send all drafts","Archive everything else"],
+  garage:["Open the door (literally just start)","Sort: trash pile, donate pile, keep pile","Box up donations","Sweep the floor","Label shelves or zones","Take trash + donations out"],
+  cook:["Read recipe once","Gather all ingredients","Prep (chop, measure, preheat)","Cook step by step","Plate it","Clean as you go"],
+  move:["Make a room-by-room checklist","Get boxes and tape","Pack one room at a time","Label every box","Book the truck / helpers","Unpack essentials first"],
+  taxes:["Gather all documents (W2, 1099, receipts)","Open tax software","Enter income info","Enter deductions","Review everything once","File it"],
+  study:["Pick ONE topic","Set a 25-min timer","Read or watch — take 3 notes","Quiz yourself","Take a 5-min break","Repeat"]
+};
+
+function switchTab(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n));
+  if(n===0)renderSaved();
+}
+
+function castMagic(){
+  const input=document.getElementById('magic-input').value.trim();
+  if(!input)return;
+  let steps=[];
+  const lower=input.toLowerCase();
+  for(let key in templates){if(lower.includes(key)){steps=templates[key];break;}}
+  if(!steps.length){
+    const words=input.split(/\s+/);
+    steps=[
+      `Open/start: ${words.slice(0,3).join(' ')}`,
+      "Do the absolute smallest first action (2 min max)",
+      "Momentum check — you started. Keep going.",
+      "Next micro-step — what's obvious now?",
+      "One more push — you're closer than you think",
+      "Wrap up + celebrate the win"
+    ];
+  }
+  const entry={id:Date.now(),task:input,steps,completed:[]};
+  savedMagic.unshift(entry);
+  localStorage.setItem('od_micro_magic',JSON.stringify(savedMagic));
+  document.getElementById('magic-input').value='';
+  renderMagicResult(entry);renderSaved();
+}
+
+function renderMagicResult(entry){
+  const c=document.getElementById('magic-output');
+  const div=document.createElement('div');
+  div.style.cssText='margin-bottom:20px';
+  div.innerHTML=`<div style="color:var(--red);font-size:14px;font-weight:900;margin-bottom:12px">${esc(entry.task)}</div>
+    <div id="steps-${entry.id}"></div>`;
+  c.prepend(div);
+  const sc=document.getElementById('steps-'+entry.id);
+  entry.steps.forEach((step,i)=>{
+    const s=document.createElement('div');
+    s.className='step-item'+(entry.completed.includes(i)?' done':'');
+    s.innerHTML=`<input type="checkbox" ${entry.completed.includes(i)?'checked':''} style="accent-color:var(--red);width:18px;height:18px" onchange="toggleStep(${entry.id},${i})">
+      <span class="step-text">${esc(step)}</span>`;
+    sc.appendChild(s);
+  });
+}
+
+window.toggleStep=function(id,idx){
+  const entry=savedMagic.find(e=>e.id===id);if(!entry)return;
+  if(entry.completed.includes(idx))entry.completed=entry.completed.filter(i=>i!==idx);
+  else entry.completed.push(idx);
+  localStorage.setItem('od_micro_magic',JSON.stringify(savedMagic));
+  document.getElementById('magic-output').innerHTML='';
+  savedMagic.forEach(renderMagicResult);
+};
+
+function renderSaved(){
+  const c=document.getElementById('saved-breakdowns');
+  if(!savedMagic.length){c.innerHTML='';return;}
+  c.innerHTML='<div class="section-label">SAVED OPERATIONS</div>';
+  savedMagic.forEach((entry,idx)=>{
+    const d=document.createElement('div');d.className='saved-item';
+    const done=entry.completed.length;const total=entry.steps.length;
+    d.innerHTML=`<span class="saved-title">${esc(entry.task)} <span style="color:${done===total?'var(--grn)':'#444'};font-size:9px">(${done}/${total})</span></span>
+      <button class="del-btn" onclick="deleteMagic(${idx})">✕</button>`;
+    c.appendChild(d);
+  });
+}
+
+window.deleteMagic=function(idx){savedMagic.splice(idx,1);localStorage.setItem('od_micro_magic',JSON.stringify(savedMagic));renderSaved();document.getElementById('magic-output').innerHTML='';savedMagic.forEach(renderMagicResult);};
+
+function runEstimate(){
+  const task=document.getElementById('estimate-input').value.trim();if(!task)return;
+  const complexity=task.split(/\s+/).length;
+  const base=Math.max(10,complexity*8+Math.floor(Math.random()*20));
+  const breaks=Math.floor(base/30);
+  const r=document.getElementById('estimate-result');
+  r.innerHTML=`<div class="estimate-result">
+    <div class="est-task">${esc(task)}</div>
+    <div class="est-time">${base} MIN</div>
+    <div class="est-note">${breaks>0?`+ ${breaks} short break${breaks>1?'s':''}`:''}</div>
+  </div>
+  <div class="est-tip">Pro tip: Start with the 2-minute version. Momentum > perfection.</div>`;
+}
+
+function compileDump(){
+  const text=document.getElementById('dump-input').value.trim();if(!text)return;
+  const lines=text.split('\n').filter(l=>l.trim());
+  const out=document.getElementById('compiled-output');
+  out.innerHTML='<div class="section-label">COMPILED ACTION LIST</div>';
+  lines.forEach((l,i)=>{
+    const d=document.createElement('div');d.className='compiled-item';
+    d.textContent=`${i+1}. ${l.trim()} → EXECUTE NOW`;
+    out.appendChild(d);
+  });
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+window.onload=()=>{
+  switchTab(0);
+  document.getElementById('magic-output').innerHTML='';
+  savedMagic.forEach(renderMagicResult);renderSaved();
+};
+</script>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Task broken down? That's momentum. Draw a card and keep the chain going.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>

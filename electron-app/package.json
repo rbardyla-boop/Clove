@@ -1,0 +1,79 @@
+{
+  "name": "operators-deck",
+  "version": "3.1.0",
+  "description": "Operator's Deck + CloveLearn — Tactical personal development, recovery system, and offline cognitive intervention. 108 cards, 8 suits, 10 emotional states, 4 therapy modalities. Zero cloud.",
+  "main": "main.js",
+  "author": "Clove Syndicate",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "clovelearn": "electron . --clovelearn",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "io.clovelearn.operatorsdeck",
+    "productName": "Operators Deck",
+    "copyright": "Copyright © 2026 Clove Syndicate",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "app/icon512x512.png",
+      "artifactName": "OperatorsDeck-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "installerIcon": "app/icon512x512.png",
+      "uninstallerIcon": "app/icon512x512.png",
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "app/icon512x512.png",
+      "category": "public.app-category.healthcare-fitness",
+      "artifactName": "OperatorsDeck-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "app/icon512x512.png",
+      "category": "Utility",
+      "artifactName": "OperatorsDeck-${version}.${ext}"
+    }
+  }
+}

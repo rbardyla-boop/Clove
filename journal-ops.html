@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="JOURNAL OPS • OPERATOR'S DECK">
+<meta property="og:description" content="Structured daily journal with clinical prompts. Morning pages. Evening debrief. Nobody reads this but you.">
+<link rel="canonical" href="https://clovelearn.io/journal-ops.html">
+<title>JOURNAL OPS • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--ink:#2c5282}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--ink);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--ink);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+.disc-strip{background:#030a18;border-bottom:1px solid rgba(44,82,130,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--ink);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#3a5a7a;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#5a8aba}
+
+.stats-row{display:flex;gap:6px;padding:14px 16px;justify-content:center}
+.stat-box{background:var(--bg2);border-radius:10px;padding:10px 14px;text-align:center;flex:1}
+.stat-box .sv{font-size:18px;font-weight:900;font-family:'Courier New',monospace}
+.stat-box .sl{font-size:6px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-top:3px}
+
+.mode-row{display:flex;gap:6px;padding:0 16px 14px;justify-content:center}
+.mode-btn{flex:1;background:var(--bg2);color:var(--dim2);border:1px solid var(--dim3);border-radius:10px;padding:12px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;text-align:center;transition:all .2s}
+.mode-btn.on{color:#fff;border-color:var(--ink);background:rgba(44,82,130,.1)}
+.mode-btn:active{transform:scale(.96)}
+
+.sec{padding:0 16px 16px}
+.sec-label{color:var(--ink);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+
+.prompt-card{background:var(--bg2);border:1px solid rgba(44,82,130,.15);border-radius:14px;padding:18px;margin-bottom:12px}
+.prompt-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:6px}
+.prompt-text{font-size:13px;font-family:Georgia,serif;color:#ccc;line-height:1.7;font-style:italic}
+.prompt-source{font-size:7px;font-family:monospace;color:var(--dim3);letter-spacing:1px;margin-top:8px}
+.prompt-refresh{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:6px;padding:6px 12px;font-size:7px;font-family:monospace;letter-spacing:1px;cursor:pointer;margin-top:8px;transition:all .2s}
+.prompt-refresh:active{color:#fff;border-color:#444}
+
+textarea{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:14px;font-size:12px;font-family:Georgia,serif;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;min-height:150px}
+textarea:focus{border-color:rgba(44,82,130,.4)}
+textarea::placeholder{color:#2a2a2a;font-style:italic}
+
+.save-btn{width:100%;background:linear-gradient(135deg,var(--ink),#1a3a5a);color:#fff;border:none;border-radius:10px;padding:16px;font-size:12px;font-weight:800;cursor:pointer;font-family:monospace;letter-spacing:2px;box-shadow:0 4px 16px rgba(44,82,130,.2);transition:all .2s;margin-top:12px}
+.save-btn:active{transform:scale(.96)}
+
+.entry{background:var(--bg2);border-radius:12px;padding:14px 16px;margin-bottom:6px;border-left:3px solid var(--ink)}
+.entry-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.entry-date{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px}
+.entry-mode{font-size:6px;font-family:monospace;letter-spacing:1.5px;padding:2px 6px;border-radius:3px}
+.entry-mode.am{background:rgba(212,168,67,.15);color:var(--gld)}
+.entry-mode.pm{background:rgba(44,82,130,.15);color:var(--ink)}
+.entry-prompt{font-size:9px;color:var(--dim2);font-family:monospace;margin-bottom:6px;letter-spacing:.5px}
+.entry-text{font-size:11px;color:#bbb;font-family:Georgia,serif;line-height:1.7;white-space:pre-wrap;word-wrap:break-word}
+
+.export-row{display:flex;gap:8px;justify-content:center;padding:16px}
+.export-btn{background:var(--bg2);color:var(--ink);border:1px solid rgba(44,82,130,.2);border-radius:10px;padding:12px 20px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.export-btn:active{transform:scale(.96)}
+
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(192,57,43,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--ink)}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Journal Ops navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">DAILY PRACTICE</div>
+    <div class="nav-name">JOURNAL OPS</div>
+  </div>
+</nav>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>Private.</strong> Every word stays in your browser's localStorage. Nobody reads this.
+    Prompts drawn from CBT, ACT, CPT, and DBT frameworks. Not therapy — honest reflection.
+  </div>
+</div>
+
+<div id="statsBar" class="stats-row"></div>
+<div class="mode-row">
+  <button class="mode-btn on" id="modeAM" onclick="setMode('am')">MORNING PAGES</button>
+  <button class="mode-btn" id="modePM" onclick="setMode('pm')">EVENING DEBRIEF</button>
+</div>
+
+<div class="sec">
+  <div class="sec-label" id="promptLabel">TODAY'S PROMPT</div>
+  <div class="prompt-card">
+    <div class="prompt-tag" id="promptTag">CBT</div>
+    <div class="prompt-text" id="promptText"></div>
+    <div class="prompt-source" id="promptSource"></div>
+    <button class="prompt-refresh" onclick="newPrompt()">↻ DIFFERENT PROMPT</button>
+  </div>
+  <textarea id="journalInput" placeholder="Write. Nobody's reading this but you." maxlength="10000" aria-label="Journal entry"></textarea>
+  <button class="save-btn" onclick="saveEntry()">LOG ENTRY</button>
+</div>
+
+<div class="sec" style="margin-top:16px">
+  <div class="sec-label">RECENT ENTRIES</div>
+  <div id="entryList"></div>
+</div>
+
+<div class="export-row">
+  <button class="export-btn" onclick="exportAll()">EXPORT ALL ENTRIES</button>
+</div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <div class="dl-text">Journal entries pair with your Evidence Reports. The deck captures missions — the journal captures everything else.</div>
+  <a href="cbt-drill.html" rel="noopener">OPEN CBT DRILL →</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="cbt-drill.html">◈ CBT DRILL — Structured thought records</a>
+  <a class="next-link" href="values-drill.html">◈ VALUES DRILL — Check your compass</a>
+  <a class="next-link" href="mood-trends.html">◈ MOOD TRENDS — See the pattern over time</a>
+  <a class="next-link" href="meditation-ops.html">◈ MEDITATION OPS — Breathwork before writing</a>
+  <a class="next-link" href="toolshed.html">◈ TOOL SHED — All recovery tools</a>
+</nav>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var KEY='od_journal';
+var mode='am';
+var currentPrompt=null;
+
+var AM_PROMPTS=[
+  {text:'What is one thing you\'re avoiding today — and what would happen if you did it anyway?',source:'CBT — Behavioral activation',tag:'CBT'},
+  {text:'If today were a mission and not a day to get through, what would the objective be?',source:'ACT — Committed action',tag:'ACT'},
+  {text:'What story are you telling yourself about today before it has even happened?',source:'CBT — Fortune telling distortion',tag:'CBT'},
+  {text:'Name one value you want to move toward today. What is the smallest step?',source:'ACT — Values clarification',tag:'ACT'},
+  {text:'What part of you is most afraid right now? What does that part need to hear?',source:'IFS — Parts work',tag:'IFS'},
+  {text:'Write down three things that are actually true right now — not feared, not hoped. True.',source:'CPT — Stuck points challenge',tag:'CPT'},
+  {text:'If you were coaching someone in your exact situation, what would you tell them to do first?',source:'CBT — Perspective-taking',tag:'CBT'},
+  {text:'What emotion are you carrying from yesterday? What would it mean to set it down?',source:'ACT — Acceptance',tag:'ACT'},
+  {text:'What is one "should" statement you\'re holding right now? Is it actually yours, or was it given to you?',source:'CBT — Should statements',tag:'CBT'},
+  {text:'What would you do today if you weren\'t tired?',source:'DBT — Opposite action',tag:'DBT'},
+  {text:'What are you grateful for that you don\'t usually notice?',source:'Positive psychology',tag:'GRATITUDE'},
+  {text:'What would your 80-year-old self want you to do today?',source:'ACT — Values perspective',tag:'ACT'},
+  {text:'What thought kept circling last night? Write it down. Look at it on paper.',source:'CBT — Thought externalization',tag:'CBT'},
+  {text:'Name the emotion you woke up with. Rate it 1-10. Now write what triggered it.',source:'DBT — Emotion identification',tag:'DBT'},
+  {text:'What is one boundary you need to set today — and with whom?',source:'DBT — DEAR MAN interpersonal',tag:'DBT'}
+];
+
+var PM_PROMPTS=[
+  {text:'What actually happened today vs. what you predicted this morning?',source:'CBT — Behavioral experiment review',tag:'CBT'},
+  {text:'What emotion showed up strongest today? When? What triggered it?',source:'DBT — Emotion tracking',tag:'DBT'},
+  {text:'Write one thing you did today that aligned with your values. Even small.',source:'ACT — Values reflection',tag:'ACT'},
+  {text:'What thought caught you off guard today? Write it exactly as it appeared.',source:'CBT — Automatic thought capture',tag:'CBT'},
+  {text:'If you could redo one moment today, which would it be? What would you change?',source:'CPT — Processing',tag:'CPT'},
+  {text:'What did you avoid today? What was the cost of avoidance?',source:'ACT — Experiential avoidance',tag:'ACT'},
+  {text:'Name one thing someone did for you today that you didn\'t acknowledge.',source:'Gratitude — Relational',tag:'GRATITUDE'},
+  {text:'What part of today was harder than it needed to be? Why?',source:'CBT — Problem-solving',tag:'CBT'},
+  {text:'Where did you act on impulse today? What would wise mind have done?',source:'DBT — Wise mind',tag:'DBT'},
+  {text:'What evidence did today give you about who you\'re becoming?',source:'CPT — Evidence log',tag:'CPT'},
+  {text:'What would you tell a friend who had the exact day you just had?',source:'CBT — Self-compassion reframe',tag:'CBT'},
+  {text:'Write the sentence that describes today in five words or fewer.',source:'Mindfulness — Distillation',tag:'MINDFUL'},
+  {text:'What mask did you wear today? What was underneath it?',source:'IFS — Parts awareness',tag:'IFS'},
+  {text:'What is one thing you are holding onto that is not serving you?',source:'ACT — Letting go',tag:'ACT'},
+  {text:'What would you need to believe about yourself to have had a better day?',source:'CPT — Core belief work',tag:'CPT'}
+];
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function loadEntries(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('modeAM').classList.toggle('on',m==='am');
+  document.getElementById('modePM').classList.toggle('on',m==='pm');
+  newPrompt();
+}
+
+function newPrompt(){
+  var prompts=mode==='am'?AM_PROMPTS:PM_PROMPTS;
+  var p=prompts[Math.floor(Math.random()*prompts.length)];
+  currentPrompt=p;
+  document.getElementById('promptText').textContent=p.text;
+  document.getElementById('promptSource').textContent=p.source;
+  document.getElementById('promptTag').textContent=p.tag;
+  document.getElementById('promptLabel').textContent=mode==='am'?'MORNING PROMPT':'EVENING PROMPT';
+}
+
+function saveEntry(){
+  var text=document.getElementById('journalInput').value.trim();
+  if(!text){showToast('WRITE SOMETHING FIRST');return}
+  var entries=loadEntries();
+  entries.push({
+    text:text,
+    mode:mode,
+    prompt:currentPrompt?currentPrompt.text:'',
+    promptTag:currentPrompt?currentPrompt.tag:'',
+    date:new Date().toLocaleDateString(),
+    time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    ts:Date.now()
+  });
+  if(entries.length>500)entries.splice(0,entries.length-500);
+  try{localStorage.setItem(KEY,JSON.stringify(entries))}catch(e){}
+  document.getElementById('journalInput').value='';
+  showToast('ENTRY LOGGED');
+  newPrompt();
+  render();
+}
+
+function render(){
+  var entries=loadEntries();
+  // Stats
+  var total=entries.length;
+  var streak=0;
+  try{
+    var dates=[];entries.forEach(function(e){if(e.date&&dates.indexOf(e.date)===-1)dates.push(e.date)});
+    if(dates.length){
+      var today=new Date();today.setHours(0,0,0,0);
+      var last=new Date(dates[dates.length-1]);last.setHours(0,0,0,0);
+      if(today.getTime()-last.getTime()<=86400000){
+        streak=1;
+        for(var i=dates.length-2;i>=0;i--){
+          var d1=new Date(dates[i+1]);d1.setHours(0,0,0,0);
+          var d2=new Date(dates[i]);d2.setHours(0,0,0,0);
+          if(d1.getTime()-d2.getTime()<=86400000&&d1.getTime()-d2.getTime()>0){streak++}else{break}
+        }
+      }
+    }
+  }catch(e){streak=0}
+  var thisWeek=entries.filter(function(e){return Date.now()-e.ts<604800000}).length;
+
+  document.getElementById('statsBar').innerHTML=
+    '<div class="stat-box"><div class="sv" style="color:var(--ink)">'+total+'</div><div class="sl">ENTRIES</div></div>'+
+    '<div class="stat-box"><div class="sv" style="color:var(--gld)">'+streak+'</div><div class="sl">DAY STREAK</div></div>'+
+    '<div class="stat-box"><div class="sv" style="color:var(--grn)">'+thisWeek+'</div><div class="sl">THIS WEEK</div></div>';
+
+  // Entry list
+  var h='';
+  if(!entries.length){h='<div style="text-align:center;color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;padding:20px">No entries yet. Write your first one above.</div>'}
+  else{
+    entries.slice().reverse().slice(0,20).forEach(function(e){
+      h+='<div class="entry"><div class="entry-hdr"><span class="entry-date">'+esc(e.date)+' '+esc(e.time||'')+'</span><span class="entry-mode '+(e.mode==='am'?'am':'pm')+'">'+(e.mode==='am'?'MORNING':'EVENING')+'</span></div>';
+      if(e.prompt)h+='<div class="entry-prompt">'+esc(e.prompt)+'</div>';
+      h+='<div class="entry-text">'+esc(e.text)+'</div></div>';
+    });
+  }
+  document.getElementById('entryList').innerHTML=h;
+}
+
+function exportAll(){
+  var entries=loadEntries();
+  if(!entries.length){showToast('NO ENTRIES');return}
+  var txt='JOURNAL OPS — OPERATOR\'S DECK\nExported: '+new Date().toLocaleString()+'\n'+('═').repeat(50)+'\n\n';
+  entries.forEach(function(e){
+    txt+=e.date+' '+( e.time||'')+ ' ['+(e.mode==='am'?'MORNING':'EVENING')+']\n';
+    if(e.prompt)txt+='Prompt: '+e.prompt+'\n';
+    txt+=e.text+'\n'+('-').repeat(40)+'\n\n';
+  });
+  txt+='Generated by Operator\'s Deck (clovelearn.io)\nAll data stored locally. Zero cloud.\n';
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='journal-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  showToast('EXPORTED '+entries.length+' ENTRIES');
+}
+
+// Auto-detect AM/PM
+var hour=new Date().getHours();
+if(hour>=17||hour<4){mode='pm';document.getElementById('modeAM').classList.remove('on');document.getElementById('modePM').classList.add('on')}
+newPrompt();
+render();
+</script>
+</body>
+</html>

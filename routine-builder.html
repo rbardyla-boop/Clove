@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="ROUTINE BUILDER • OPERATOR'S DECK">
+<meta property="og:description" content="Chain your drills into custom routines. One button. Full protocol stack. Your morning ops, your crisis flow, your way.">
+<link rel="canonical" href="https://clovelearn.io/routine-builder.html">
+<title>ROUTINE BUILDER • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--fire:#ef4444}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--fire);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--fire);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.sec{padding:16px}
+.sec-label{color:var(--fire);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+/* ROUTINE CARDS */
+.routine-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px;margin-bottom:10px;position:relative}
+.routine-card .rc-name{font-size:12px;font-weight:800;font-family:monospace;letter-spacing:1px;margin-bottom:4px}
+.routine-card .rc-count{font-size:8px;font-family:monospace;color:var(--dim2);letter-spacing:1px}
+.routine-card .rc-steps{margin-top:8px}
+.routine-card .rc-step{font-size:9px;font-family:monospace;color:var(--dim);padding:3px 0;display:flex;align-items:center;gap:6px}
+.routine-card .rc-step-num{color:var(--fire);font-size:8px;font-weight:800;min-width:16px}
+.routine-card .rc-actions{display:flex;gap:6px;margin-top:10px}
+.rc-btn{border:1px solid var(--dim3);background:var(--bg3);color:#bbb;border-radius:6px;padding:8px 14px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.rc-btn:active{transform:scale(.96)}
+.rc-btn.go{background:linear-gradient(135deg,var(--fire),#991b1b);color:#fff;border-color:transparent}
+.rc-btn.del{border-color:rgba(192,57,43,.2);color:var(--red)}
+/* BUILDER */
+.build-panel{background:var(--bg2);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:18px;margin-bottom:16px}
+.build-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--fire);margin-bottom:8px}
+input[type=text]{width:100%;background:var(--bg3);color:#ccc;border:1px solid var(--dim3);border-radius:8px;padding:10px 12px;font-size:11px;font-family:monospace;outline:none;transition:border-color .2s}
+input[type=text]:focus{border-color:rgba(239,68,68,.4)}
+input::placeholder{color:#2a2a2a}
+/* DRILL PICKER */
+.drill-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:12px 0}
+.drill-opt{background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;padding:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px}
+.drill-opt:active{transform:scale(.96)}
+.drill-opt .do-icon{font-size:14px;flex-shrink:0}
+.drill-opt .do-name{font-size:8px;font-weight:800;font-family:monospace;letter-spacing:.5px;color:#bbb}
+.drill-opt.in-queue{border-color:var(--fire);background:rgba(239,68,68,.06)}
+.drill-opt.in-queue .do-name{color:#fff}
+/* QUEUE */
+.queue-item{display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:4px;border:1px solid var(--dim3)}
+.queue-num{font-size:10px;font-weight:900;font-family:monospace;color:var(--fire);min-width:20px}
+.queue-name{font-size:9px;font-family:monospace;letter-spacing:.5px;flex:1;color:#ccc}
+.queue-move{display:flex;gap:2px}
+.queue-move button{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:4px;width:24px;height:24px;font-size:10px;cursor:pointer;transition:all .15s}
+.queue-move button:active{color:#fff;border-color:#555}
+.queue-rm{background:none;border:1px solid rgba(192,57,43,.2);color:var(--red);border-radius:4px;width:24px;height:24px;font-size:10px;cursor:pointer;transition:all .15s}
+.queue-rm:active{background:rgba(192,57,43,.1)}
+
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.btn-primary{background:linear-gradient(135deg,var(--fire),#991b1b);color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-secondary{background:var(--bg2);color:#aaa;border:1px solid #222;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-primary:active,.btn-secondary:active{transform:scale(.96)}
+
+/* EXECUTION VIEW */
+.exec-panel{background:var(--bg2);border:2px solid var(--fire);border-radius:14px;padding:24px;text-align:center;margin-bottom:16px}
+.exec-step{font-size:8px;font-family:monospace;color:var(--dim2);letter-spacing:3px;margin-bottom:4px}
+.exec-name{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:8px}
+.exec-desc{font-size:10px;font-family:Georgia,serif;color:var(--dim);font-style:italic;line-height:1.7;margin-bottom:16px}
+.exec-progress{height:4px;background:var(--dim3);border-radius:2px;margin-bottom:16px}
+.exec-progress-fill{height:100%;background:var(--fire);border-radius:2px;transition:width .4s ease}
+
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(192,57,43,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--fire)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="nav-bar" role="navigation" aria-label="Routine Builder navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">PROTOCOL STITCHER</div>
+    <div class="nav-name">ROUTINE BUILDER</div>
+  </div>
+</nav>
+<div id="content"></div>
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <div class="dl-text">Build your daily stack. Chain the drills that work for you into a single launch sequence.</div>
+  <a href="toolshed.html" rel="noopener">OPEN TOOL SHED →</a>
+</div>
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="clinical-assessments.html">◈ CLINICAL ASSESSMENTS — Track your baselines</a>
+  <a class="next-link" href="journal-ops.html">◈ JOURNAL OPS — Add journaling to your routine</a>
+  <a class="next-link" href="meditation-ops.html">◈ MEDITATION OPS — Add breathwork</a>
+  <a class="next-link" href="toolshed.html">◈ TOOL SHED — All recovery tools</a>
+</nav>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var KEY='od_routines';
+var view='list';
+var editIdx=-1;
+var buildQueue=[];
+var buildName='';
+var execIdx=-1;
+var execStep=0;
+
+var DRILLS=[
+  {id:'whatsgoingon',name:'WHAT\'S GOING ON',icon:'\uD83E\uDDE0',href:'whats-going-on.html',desc:'Triage router. Identify your state.'},
+  {id:'cbt',name:'CBT DRILL',icon:'\uD83D\uDCDD',href:'cbt-drill.html',desc:'Thought record. Challenge the distortion.'},
+  {id:'act',name:'ACT DRILL',icon:'\uD83E\uDDED',href:'act-drill.html',desc:'Values + defusion + committed action.'},
+  {id:'values',name:'VALUES DRILL',icon:'\uD83E\uDDED',href:'values-drill.html',desc:'Values card sort. Find your compass.'},
+  {id:'stuck',name:'STUCK POINTS',icon:'\uD83E\uDDE0',href:'stuck-points-drill.html',desc:'CPT cognitive processing.'},
+  {id:'chain',name:'CHAIN ANALYSIS',icon:'\uD83D\uDD17',href:'chain-analysis-drill.html',desc:'Trace the behavioral chain.'},
+  {id:'opposite',name:'OPPOSITE ACTION',icon:'\u26A1',href:'opposite-action-drill.html',desc:'Override the urge.'},
+  {id:'dearman',name:'DEAR MAN',icon:'\uD83D\uDCE1',href:'dear-man-drill.html',desc:'Interpersonal effectiveness.'},
+  {id:'rsd',name:'RSD SHIELD',icon:'\uD83D\uDEE1',href:'rsd-shield-drill.html',desc:'Rejection sensitivity containment.'},
+  {id:'tipp',name:'TIPP',icon:'\u26A1',href:'tipp-drill-full.html',desc:'Temperature, intense exercise, paced breathing.'},
+  {id:'improve',name:'IMPROVE',icon:'\uD83D\uDCC8',href:'improve-drill-full.html',desc:'7 crisis coping strategies.'},
+  {id:'mindful',name:'MINDFULNESS',icon:'\uD83E\uDDD8',href:'mindfulness-drill-full.html',desc:'Grounding and sensory anchoring.'},
+  {id:'meditation',name:'MEDITATION OPS',icon:'\uD83E\uDDD8',href:'meditation-ops.html',desc:'Breathwork and binaural beats.'},
+  {id:'interceptor',name:'THOUGHT INTERCEPTOR',icon:'\uD83C\uDFAF',href:'thought-interceptor.html',desc:'Cognitive restructuring in real time.'},
+  {id:'candlebox',name:'CANDLEBOX',icon:'\uD83D\uDD6F',href:'candlebox-rebuild-full.html',desc:'Narrative reconstruction.'},
+  {id:'journal',name:'JOURNAL OPS',icon:'\uD83D\uDCD3',href:'journal-ops.html',desc:'Morning pages or evening debrief.'},
+  {id:'safety',name:'SAFETY PLAN',icon:'\uD83D\uDEE1',href:'safety-plan-drill.html',desc:'Stanley-Brown 7-step plan.'},
+  {id:'assessments',name:'ASSESSMENTS',icon:'\uD83D\uDCCA',href:'clinical-assessments.html',desc:'PHQ-9, GAD-7, PCL-5 screening.'}
+];
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function loadRoutines(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function saveRoutines(r){try{localStorage.setItem(KEY,JSON.stringify(r))}catch(e){}}
+function getDrill(id){return DRILLS.find(function(d){return d.id===id})}
+
+function render(){
+  if(view==='build')return renderBuild();
+  if(view==='exec')return renderExec();
+  renderList();
+}
+
+function renderList(){
+  var routines=loadRoutines();
+  var h='<div class="sec"><div class="sec-label">YOUR ROUTINES</div><div class="sec-title">Protocol Stacks</div>';
+  h+='<div class="sec-desc">Chain your favorite drills into single-launch sequences. Morning ops, crisis protocols, evening wind-down — build it once, run it forever.</div>';
+
+  if(!routines.length){
+    h+='<div style="text-align:center;color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;padding:20px">No routines yet. Build your first one below.</div>';
+  }else{
+    routines.forEach(function(r,i){
+      h+='<div class="routine-card"><div class="rc-name">'+esc(r.name)+'</div>';
+      h+='<div class="rc-count">'+r.steps.length+' STEP'+(r.steps.length!==1?'S':'')+'</div>';
+      h+='<div class="rc-steps">';
+      r.steps.forEach(function(sid,si){
+        var d=getDrill(sid);
+        h+='<div class="rc-step"><span class="rc-step-num">'+(si+1)+'.</span>'+(d?esc(d.name):esc(sid))+'</div>';
+      });
+      h+='</div>';
+      h+='<div class="rc-actions">';
+      h+='<button class="rc-btn go" onclick="execRoutine('+i+')">▶ LAUNCH</button>';
+      h+='<button class="rc-btn" onclick="editRoutine('+i+')">EDIT</button>';
+      h+='<button class="rc-btn del" onclick="deleteRoutine('+i+')">✕</button>';
+      h+='</div></div>';
+    });
+  }
+  h+='<div class="btn-row"><button class="btn-primary" onclick="newRoutine()">+ BUILD NEW ROUTINE</button></div>';
+  h+='</div>';
+  document.getElementById('content').innerHTML=h;
+}
+
+function newRoutine(){buildQueue=[];buildName='';editIdx=-1;view='build';render()}
+function editRoutine(i){var routines=loadRoutines();var r=routines[i];if(!r)return;buildName=r.name;buildQueue=r.steps.slice();editIdx=i;view='build';render()}
+function deleteRoutine(i){if(!confirm('Delete this routine?'))return;var r=loadRoutines();r.splice(i,1);saveRoutines(r);showToast('DELETED');render()}
+
+function renderBuild(){
+  var h='<div class="sec"><div class="build-panel">';
+  h+='<div class="build-label">'+(editIdx>=0?'EDIT':'NEW')+' ROUTINE</div>';
+  h+='<input type="text" id="routineName" placeholder="Routine name (e.g., MORNING OPS)" maxlength="60" value="'+esc(buildName)+'" oninput="buildName=this.value" aria-label="Routine name">';
+
+  // Queue
+  h+='<div style="margin-top:14px;font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:2px;margin-bottom:6px">STEP ORDER ('+buildQueue.length+')</div>';
+  if(!buildQueue.length){
+    h+='<div style="text-align:center;color:var(--dim3);font-size:9px;font-family:Georgia,serif;font-style:italic;padding:12px">Add drills below to build your sequence.</div>';
+  }else{
+    buildQueue.forEach(function(sid,i){
+      var d=getDrill(sid);
+      h+='<div class="queue-item"><span class="queue-num">'+(i+1)+'</span><span class="queue-name">'+(d?esc(d.name):esc(sid))+'</span>';
+      h+='<div class="queue-move"><button onclick="moveStep('+i+',-1)" title="Move up">\u25B2</button><button onclick="moveStep('+i+',1)" title="Move down">\u25BC</button></div>';
+      h+='<button class="queue-rm" onclick="removeStep('+i+')" title="Remove">\u2715</button></div>';
+    });
+  }
+
+  // Drill picker
+  h+='<div style="margin-top:14px;font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:2px;margin-bottom:6px">ADD DRILLS</div>';
+  h+='<div class="drill-grid">';
+  DRILLS.forEach(function(d){
+    var inQ=buildQueue.indexOf(d.id)>-1;
+    h+='<div class="drill-opt'+(inQ?' in-queue':'')+'" onclick="addDrill(\''+d.id+'\')">';
+    h+='<span class="do-icon">'+d.icon+'</span>';
+    h+='<span class="do-name">'+esc(d.name)+'</span>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+
+  h+='<div class="btn-row"><button class="btn-secondary" onclick="view=\'list\';render()">CANCEL</button>';
+  h+='<button class="btn-primary" onclick="saveRoutine()"'+(buildQueue.length?'':' style="opacity:.4;pointer-events:none"')+'>SAVE ROUTINE</button></div>';
+  h+='</div>';
+  document.getElementById('content').innerHTML=h;
+}
+
+function addDrill(id){buildQueue.push(id);render()}
+function removeStep(i){buildQueue.splice(i,1);render()}
+function moveStep(i,dir){
+  var ni=i+dir;
+  if(ni<0||ni>=buildQueue.length)return;
+  var tmp=buildQueue[i];buildQueue[i]=buildQueue[ni];buildQueue[ni]=tmp;render();
+}
+
+function saveRoutine(){
+  var name=(document.getElementById('routineName').value||'').trim()||'UNTITLED';
+  if(!buildQueue.length){showToast('ADD AT LEAST ONE DRILL');return}
+  var routines=loadRoutines();
+  var routine={name:name,steps:buildQueue.slice(),created:Date.now()};
+  if(editIdx>=0){routines[editIdx]=routine}else{routines.push(routine)}
+  if(routines.length>20)routines.splice(0,routines.length-20);
+  saveRoutines(routines);
+  showToast('ROUTINE SAVED');
+  view='list';render();
+}
+
+function execRoutine(i){
+  execIdx=i;execStep=0;view='exec';render();
+}
+
+function renderExec(){
+  var routines=loadRoutines();
+  var r=routines[execIdx];
+  if(!r){view='list';render();return}
+  var sid=r.steps[execStep];
+  var d=getDrill(sid);
+  var pct=Math.round(((execStep)/r.steps.length)*100);
+  var h='<div class="sec">';
+  h+='<div class="exec-panel">';
+  h+='<div class="exec-step">'+esc(r.name)+' \u2014 STEP '+(execStep+1)+' OF '+r.steps.length+'</div>';
+  h+='<div class="exec-name">'+(d?esc(d.name):esc(sid))+'</div>';
+  h+='<div class="exec-desc">'+(d?esc(d.desc):'')+'</div>';
+  h+='<div class="exec-progress"><div class="exec-progress-fill" style="width:'+pct+'%"></div></div>';
+  if(d){h+='<a href="'+d.href+'" style="display:inline-block;background:linear-gradient(135deg,var(--fire),#991b1b);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-size:12px;font-weight:800;font-family:monospace;letter-spacing:2px;text-decoration:none;transition:all .2s" target="_self">OPEN DRILL →</a>'}
+  h+='</div>';
+
+  // Step list with current highlighted
+  r.steps.forEach(function(sid2,si){
+    var d2=getDrill(sid2);
+    var isCurrent=si===execStep;
+    var isDone=si<execStep;
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;opacity:'+(isDone?'.4':isCurrent?'1':'.6')+'">';
+    h+='<span style="font-size:10px;font-weight:900;font-family:monospace;color:'+(isCurrent?'var(--fire)':isDone?'var(--grn)':'var(--dim3)')+';min-width:20px">'+(isDone?'\u2713':(si+1))+'</span>';
+    h+='<span style="font-size:10px;font-family:monospace;color:'+(isCurrent?'#fff':'var(--dim)')+'">'+esc(d2?d2.name:sid2)+'</span></div>';
+  });
+
+  h+='<div class="btn-row" style="margin-top:20px">';
+  if(execStep>0)h+='<button class="btn-secondary" onclick="execStep--;render()">◂ PREV</button>';
+  if(execStep<r.steps.length-1){h+='<button class="btn-primary" onclick="execStep++;render()">NEXT ▸</button>'}
+  else{h+='<button class="btn-primary" onclick="completeRoutine()" style="background:linear-gradient(135deg,var(--grn),#1a6b3a)">COMPLETE ✓</button>'}
+  h+='</div>';
+  h+='<div style="text-align:center;margin-top:10px"><button class="btn-secondary" style="font-size:8px;padding:8px 14px" onclick="view=\'list\';render()">EXIT ROUTINE</button></div>';
+  h+='</div>';
+  document.getElementById('content').innerHTML=h;
+}
+
+function completeRoutine(){
+  var routines=loadRoutines();
+  var r=routines[execIdx];
+  // Log completion
+  var logs=[];
+  try{logs=JSON.parse(localStorage.getItem('od_routine_log'))||[]}catch(e){}
+  logs.push({name:r?r.name:'',steps:r?r.steps.length:0,date:new Date().toLocaleDateString(),ts:Date.now()});
+  if(logs.length>200)logs.splice(0,logs.length-200);
+  try{localStorage.setItem('od_routine_log',JSON.stringify(logs))}catch(e){}
+  showToast('ROUTINE COMPLETE');
+  view='list';render();
+}
+
+render();
+</script>
+</body>
+</html>

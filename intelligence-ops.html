@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="INTELLIGENCE OPS • OPERATOR'S DECK">
+<meta property="og:description" content="Behavioral drift detection. Weekly situational brief. Protocol effectiveness ranking. Zero AI — pure math on your data.">
+<link rel="canonical" href="https://clovelearn.io/intelligence-ops.html">
+<title>INTELLIGENCE OPS • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--gld);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--gld);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* SECTIONS */
+.sec{padding:16px}
+.sec-hdr{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--gld);margin-bottom:10px}
+.sec-divider{border:none;border-top:1px solid var(--dim3);margin:0 16px}
+
+/* STATUS GRID */
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-card{background:var(--bg2);border-radius:10px;padding:12px;border:1px solid var(--dim3)}
+.stat-card.full{grid-column:1/-1}
+.stat-val{font-size:22px;font-weight:900;font-family:monospace;color:var(--gld);line-height:1}
+.stat-lbl{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:2px;margin-top:4px}
+.stat-sub{font-size:8px;color:var(--dim);font-family:monospace;margin-top:2px}
+
+/* BRIEF */
+.brief-card{background:var(--bg2);border:1px solid rgba(212,168,67,.2);border-radius:12px;padding:16px;margin-bottom:8px}
+.brief-text{font-size:9.5px;font-family:Georgia,serif;color:#bbb;line-height:1.9;white-space:pre-wrap;word-wrap:break-word}
+.brief-meta{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1.5px;margin-top:10px}
+.brief-empty{text-align:center;padding:20px;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7}
+
+/* DRIFT ALERTS */
+.alert-card{border-radius:10px;padding:12px 14px;margin-bottom:8px;border-left:3px solid}
+.alert-card.spike{background:rgba(192,57,43,.06);border-left-color:var(--red)}
+.alert-card.clearing{background:rgba(39,174,96,.06);border-left-color:var(--grn)}
+.alert-card.nominal{background:rgba(212,168,67,.04);border-left-color:var(--gld)}
+.alert-card.collecting{background:var(--bg2);border-left-color:var(--dim3)}
+.alert-name{font-size:10px;font-weight:900;font-family:monospace;letter-spacing:1px}
+.alert-stat{font-size:8px;font-family:monospace;color:var(--dim);margin-top:4px}
+.alert-pct{font-size:18px;font-weight:900;font-family:monospace;float:right;line-height:1}
+.alert-pct.up{color:var(--red)}
+.alert-pct.down{color:var(--grn)}
+
+/* INTENSITY TREND */
+.trend-card{background:var(--bg2);border-radius:10px;padding:14px;border:1px solid var(--dim3);margin-bottom:8px;display:flex;align-items:center;gap:14px}
+.trend-icon{font-size:28px;line-height:1}
+.trend-label{font-size:11px;font-weight:900;font-family:monospace;letter-spacing:1px}
+.trend-label.improving{color:var(--grn)}
+.trend-label.stable{color:var(--gld)}
+.trend-label.worsening{color:var(--red)}
+.trend-label.insufficient{color:var(--dim)}
+.trend-sub{font-size:8px;font-family:monospace;color:var(--dim);margin-top:4px}
+
+/* PROTOCOL RANKING */
+.proto-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.proto-row:last-child{border-bottom:none}
+.proto-rank{font-size:8px;font-family:monospace;color:var(--dim3);min-width:18px;text-align:right}
+.proto-bar-wrap{flex:1;height:12px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.proto-bar{height:100%;background:var(--gld);border-radius:4px;transition:width .5s}
+.proto-bar.zero{background:var(--dim3)}
+.proto-label{font-size:8px;font-family:monospace;color:var(--dim);min-width:90px}
+.proto-count{font-size:8px;font-family:monospace;color:var(--dim2);min-width:28px;text-align:right}
+
+/* NIGHT SHIFT TOGGLE */
+.ns-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px;margin-bottom:8px}
+.ns-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ns-info .ns-title{font-size:11px;font-weight:900;font-family:monospace;letter-spacing:1px;color:var(--gld)}
+.ns-info .ns-sub{font-size:8px;font-family:monospace;color:var(--dim);margin-top:4px;line-height:1.6}
+.ns-badge{font-size:7px;font-family:monospace;letter-spacing:2px;padding:3px 8px;border-radius:4px;background:rgba(51,51,51,.8);color:var(--dim2);margin-top:6px;display:inline-block}
+.toggle{width:44px;height:24px;background:var(--dim3);border-radius:12px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;border:none}
+.toggle.on{background:var(--gld)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:9px;top:3px;left:3px;transition:left .2s}
+.toggle.on::after{left:23px}
+
+/* ACTION BUTTONS */
+.btn-row{display:flex;gap:10px;margin-top:4px}
+.btn-refresh{flex:1;background:linear-gradient(135deg,var(--gld),#8b6914);color:#000;border:none;border-radius:10px;padding:12px;font-size:10px;font-weight:900;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .15s}
+.btn-refresh:active{transform:scale(.97)}
+.btn-purge{background:var(--bg2);color:var(--red);border:1px solid rgba(192,57,43,.2);border-radius:10px;padding:12px 16px;font-size:9px;font-weight:700;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .15s}
+.btn-purge:active{transform:scale(.97)}
+
+/* FOOTER */
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(212,168,67,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link a{color:var(--gld);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:8px 14px;display:inline-block;margin:3px;transition:all .2s}
+.deck-link a:active{background:rgba(212,168,67,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--gld)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Intelligence Ops navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'" aria-label="Back to deck">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">NIGHT SHIFT · PHASE 1</div>
+    <div class="nav-name">INTELLIGENCE OPS</div>
+  </div>
+</nav>
+
+<!-- SYSTEM STATUS -->
+<div class="sec">
+  <div class="sec-hdr">SYSTEM STATUS</div>
+  <div class="status-grid" id="statusGrid">
+    <div class="stat-card"><div class="stat-val" style="color:var(--dim2)">—</div><div class="stat-lbl">SESSIONS LOGGED</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--dim2)">—</div><div class="stat-lbl">LAST SESSION</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--dim2)">—</div><div class="stat-lbl">LAST ANALYSIS</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--dim2)">—</div><div class="stat-lbl">STORAGE USED</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-refresh" onclick="runAnalysis()">RUN ANALYSIS NOW</button>
+    <button class="btn-purge" onclick="purgeIntelData()">PURGE</button>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SITUATIONAL BRIEF -->
+<div class="sec">
+  <div class="sec-hdr">SITUATIONAL BRIEF</div>
+  <div id="briefContainer">
+    <div class="brief-empty">Analysis not run yet. Hit RUN ANALYSIS above.</div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- INTENSITY TREND -->
+<div class="sec">
+  <div class="sec-hdr">INTENSITY TREND — 14 DAYS</div>
+  <div id="intensityContainer">
+    <div class="trend-card">
+      <div class="trend-icon" aria-hidden="true">📊</div>
+      <div><div class="trend-label insufficient">COLLECTING BASELINE</div><div class="trend-sub">Need at least 6 sessions across 14 days</div></div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- DRIFT DETECTION -->
+<div class="sec">
+  <div class="sec-hdr">BEHAVIORAL DRIFT — 7-DAY VS BASELINE</div>
+  <div id="driftContainer">
+    <div class="alert-card collecting"><div class="alert-name" style="color:var(--dim)">NO DATA YET</div><div class="alert-stat">Run analysis to detect distortion pattern shifts</div></div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- PROTOCOL RANKING -->
+<div class="sec">
+  <div class="sec-hdr">PROTOCOL USAGE RANKING</div>
+  <div id="protoContainer">
+    <div style="color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;padding:8px 0">Loading...</div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- NIGHT SHIFT -->
+<div class="sec">
+  <div class="sec-hdr">NIGHT SHIFT ENGINE</div>
+  <div class="ns-card">
+    <div class="ns-row">
+      <div class="ns-info">
+        <div class="ns-title">AUTO-ANALYSIS</div>
+        <div class="ns-sub">Refreshes brief on app open (6h throttle).<br>Background sync ships in Phase 2.</div>
+        <div class="ns-badge" id="nsStatus">PHASE 1 — FOREGROUND CATCH-UP</div>
+      </div>
+      <button class="toggle" id="nsToggle" onclick="toggleNightShift()" aria-label="Toggle auto-analysis" role="switch"></button>
+    </div>
+  </div>
+</div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <a href="pattern-intelligence.html" rel="noopener">PATTERN INTEL →</a>
+  <a href="whats-going-on.html" rel="noopener">FIELD PROTOCOL →</a>
+  <a href="toolshed.html" rel="noopener">TOOL SHED →</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="pattern-intelligence.html">◈ PATTERN INTELLIGENCE — Full protocol debrief</a>
+  <a class="next-link" href="whats-going-on.html">◈ WHAT'S GOING ON — Generate new session data</a>
+  <a class="next-link" href="./?tab=more">◈ RETURN TO DECK</a>
+</nav>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script src="intel-engine.js"></script>
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2500);
+}
+
+function fmtBytes(bytes){
+  if(!bytes)return'0 KB';
+  if(bytes<1048576)return Math.round(bytes/1024)+' KB';
+  return(bytes/1048576).toFixed(1)+' MB';
+}
+
+function fmtAgo(ts){
+  if(!ts)return'Never';
+  var days=Math.floor((Date.now()-ts)/86400000);
+  if(days===0)return'Today';
+  if(days===1)return'Yesterday';
+  return days+'d ago';
+}
+
+// ── STATUS GRID ────────────────────────────────────────────────────────────
+function renderStatus(){
+  var freshness = IntelEngine.getDataFreshness();
+  var lastRun   = parseInt(localStorage.getItem('od_intel_last_run')||'0',10);
+
+  var cards = [
+    { val: freshness.totalSessions || 0, lbl: 'SESSIONS LOGGED', sub: '' },
+    { val: freshness.daysSince !== null ? (freshness.daysSince === 0 ? 'Today' : freshness.daysSince+'d ago') : '—', lbl: 'LAST SESSION', sub: freshness.lastSession || '' },
+    { val: lastRun ? fmtAgo(lastRun) : '—', lbl: 'LAST ANALYSIS', sub: lastRun ? new Date(lastRun).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'Not run yet' },
+    { val: '—', lbl: 'STORAGE USED', sub: 'Estimating…', id: 'storageCard' }
+  ];
+
+  var grid = document.getElementById('statusGrid');
+  grid.innerHTML = cards.map(function(c){
+    var col = 'var(--gld)';
+    if(c.val==='—')col='var(--dim2)';
+    return '<div class="stat-card'+(c.id?' full':'')+'"'+(c.id?' id="'+c.id+'"':'')+'>'+
+      '<div class="stat-val" style="color:'+col+'">'+esc(String(c.val))+'</div>'+
+      '<div class="stat-lbl">'+esc(c.lbl)+'</div>'+
+      (c.sub?'<div class="stat-sub">'+esc(c.sub)+'</div>':'')+
+      '</div>';
+  }).join('');
+
+  // Async storage estimate
+  IntelEngine.getStorageEstimate(function(est){
+    var el=document.getElementById('storageCard');
+    if(!el)return;
+    if(!est){
+      el.querySelector('.stat-val').textContent='—';
+      el.querySelector('.stat-sub').textContent='API unavailable';
+      return;
+    }
+    el.querySelector('.stat-val').style.color = est.pct>80?'var(--red)':est.pct>60?'#e67e22':'var(--gld)';
+    el.querySelector('.stat-val').textContent = fmtBytes(est.used);
+    el.querySelector('.stat-sub').textContent = est.pct+'% of '+fmtBytes(est.quota)+' quota';
+  });
+}
+
+// ── BRIEF ──────────────────────────────────────────────────────────────────
+function renderBrief(){
+  var brief   = localStorage.getItem('od_intel_brief');
+  var lastRun = parseInt(localStorage.getItem('od_intel_last_run')||'0',10);
+  var el      = document.getElementById('briefContainer');
+
+  if(!brief){
+    el.innerHTML='<div class="brief-empty">No brief yet. Hit RUN ANALYSIS to generate your first situational brief.</div>';
+    return;
+  }
+  el.innerHTML='<div class="brief-card">'+
+    '<pre class="brief-text">'+esc(brief)+'</pre>'+
+    '<div class="brief-meta">Generated '+new Date(lastRun).toLocaleString()+'</div>'+
+    '</div>';
+}
+
+// ── INTENSITY TREND ────────────────────────────────────────────────────────
+function renderIntensity(){
+  var t  = IntelEngine.getIntensityTrend(14);
+  var el = document.getElementById('intensityContainer');
+  var icons = {improving:'📉',stable:'📊',worsening:'📈',insufficient:'⏳'};
+  var msgs  = {
+    improving: 'Down '+Math.abs(t.pctChange)+'% — avg '+t.avgBaseline+' → '+t.avgRecent+'/10 vs prior 7d',
+    stable:    'Holding at '+t.avgRecent+'/10 — no significant trajectory',
+    worsening: 'Up '+t.pctChange+'% — avg '+t.avgBaseline+' → '+t.avgRecent+'/10. Increase protocol use.',
+    insufficient:'Need at least 6 sessions across 14 days to detect trend'
+  };
+  el.innerHTML='<div class="trend-card">'+
+    '<div class="trend-icon" aria-hidden="true">'+icons[t.trend]+'</div>'+
+    '<div><div class="trend-label '+esc(t.trend)+'">'+esc(t.trend.toUpperCase())+'</div>'+
+    '<div class="trend-sub">'+esc(msgs[t.trend])+'</div></div>'+
+    '</div>';
+}
+
+// ── DRIFT ──────────────────────────────────────────────────────────────────
+function renderDrift(){
+  var drift = IntelEngine.detectDrift(7);
+  var el    = document.getElementById('driftContainer');
+
+  if(drift.reason==='INSUFFICIENT_BASELINE'){
+    var need = Math.max(0,5-drift.baselineCount);
+    el.innerHTML='<div class="alert-card collecting">'+
+      '<div class="alert-name" style="color:var(--dim)">COLLECTING BASELINE</div>'+
+      '<div class="alert-stat">Need '+need+' more prior-week sessions. Current window: '+drift.recentCount+' sessions.</div>'+
+      '</div>';
+    return;
+  }
+
+  if(!drift.alerts.length){
+    el.innerHTML='<div class="alert-card nominal">'+
+      '<div class="alert-name" style="color:var(--gld)">◈ NOMINAL</div>'+
+      '<div class="alert-stat">No significant distortion spikes vs '+Math.round(drift.baselineCount/4)+'-session/week baseline.</div>'+
+      '</div>';
+    return;
+  }
+
+  el.innerHTML=drift.alerts.slice(0,6).map(function(a){
+    var cls  = a.direction==='up'?'spike':'clearing';
+    var sign = a.direction==='up'?'+':'';
+    var pCol = a.direction==='up'?'up':'down';
+    return '<div class="alert-card '+cls+'">'+
+      '<div class="alert-pct '+pCol+'">'+sign+a.pctChange+'%</div>'+
+      '<div class="alert-name" style="color:'+(a.direction==='up'?'var(--red)':'var(--grn)')+'">'+esc(a.name)+'</div>'+
+      '<div class="alert-stat">This week: '+a.current+' · Baseline avg: '+a.baseline+'/wk</div>'+
+      '</div>';
+  }).join('');
+}
+
+// ── PROTOCOL RANKING ───────────────────────────────────────────────────────
+function renderProtocols(){
+  var ranked = IntelEngine.rankProtocols();
+  var maxCount = ranked.length ? ranked[0].count : 1;
+  var el = document.getElementById('protoContainer');
+  el.innerHTML = ranked.slice(0,12).map(function(p,i){
+    var pct = maxCount>0 ? Math.round((p.count/maxCount)*100) : 0;
+    var barCls = p.count===0?'proto-bar zero':'proto-bar';
+    var countColor = p.count===0?'var(--dim3)':'var(--dim2)';
+    return '<div class="proto-row">'+
+      '<div class="proto-rank">'+(i+1)+'</div>'+
+      '<div class="proto-label">'+esc(p.label)+'</div>'+
+      '<div class="proto-bar-wrap"><div class="'+barCls+'" style="width:'+pct+'%"></div></div>'+
+      '<div class="proto-count" style="color:'+countColor+'">'+p.count+'</div>'+
+      '</div>';
+  }).join('');
+}
+
+// ── NIGHT SHIFT TOGGLE ─────────────────────────────────────────────────────
+function renderNightShift(){
+  var config = {};
+  try{config=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
+  var toggle = document.getElementById('nsToggle');
+  if(config.nightShift){
+    toggle.classList.add('on');
+    toggle.setAttribute('aria-checked','true');
+  }else{
+    toggle.classList.remove('on');
+    toggle.setAttribute('aria-checked','false');
+  }
+}
+
+function toggleNightShift(){
+  var config = {};
+  try{config=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
+  config.nightShift = !config.nightShift;
+  try{localStorage.setItem('od_intel_config',JSON.stringify(config));}catch(e){}
+  renderNightShift();
+  showToast(config.nightShift?'AUTO-ANALYSIS ON':'AUTO-ANALYSIS OFF');
+}
+
+// ── ANALYSIS RUN ───────────────────────────────────────────────────────────
+function runAnalysis(){
+  // Force run by clearing the lastAttempt throttle
+  var config={};
+  try{config=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
+  config.lastAttempt=0;
+  try{localStorage.setItem('od_intel_config',JSON.stringify(config));}catch(e){}
+
+  var ok = IntelEngine.runNightShift();
+  renderBrief();
+  renderStatus();
+  renderDrift();
+  renderIntensity();
+  showToast(ok?'ANALYSIS COMPLETE':'NOT ENOUGH DATA YET');
+}
+
+// ── PURGE ──────────────────────────────────────────────────────────────────
+function purgeIntelData(){
+  if(!confirm('DELETE intelligence data?\n\nThis removes:\n• Situational brief\n• Last run timestamp\n• Night Shift config\n\nProtocol and clinical data are NOT affected.')) return;
+  ['od_intel_brief','od_intel_last_run','od_intel_config'].forEach(function(k){
+    try{localStorage.removeItem(k);}catch(e){}
+  });
+  renderAll();
+  showToast('INTEL DATA PURGED');
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+function renderAll(){
+  renderStatus();
+  renderBrief();
+  renderIntensity();
+  renderDrift();
+  renderProtocols();
+  renderNightShift();
+}
+
+// Foreground catch-up on page load (respects 6h throttle)
+var config={};
+try{config=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
+if(config.nightShift!==false){
+  IntelEngine.runNightShift();
+}
+
+renderAll();
+</script>
+</body>
+</html>

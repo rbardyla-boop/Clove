@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="VISUAL PLANNER • OPERATOR'S DECK">
+<meta property="og:description" content="Visual daily planner with timeline view and template days.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/visual-planner.html">
+  <title>OPS VISUAL PLANNER • OPERATOR'S DECK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000; --bg2: #0a0a0a; --bg3: #111111;
+      --red: #c0392b; --grn: #27ae60; --gold: #d4a843; --blu: #4a6fa5;
+      --text: #e0e0e0; --dim: #666666; --dim2: #777; --dim3: #222;
+      --border: rgba(192,57,43,0.25);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; line-height:1.6; }
+    .app { max-width:520px; margin:0 auto; padding-bottom:80px; }
+
+    .nav-bar {
+      background:#000; border-bottom:3px solid var(--red); padding:14px 16px;
+      display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:20;
+    }
+    .nav-back {
+      background:none; border:1px solid #333; color:#666; border-radius:8px;
+      padding:8px 14px; font-size:9px; font-family:monospace; letter-spacing:1.5px; cursor:pointer;
+    }
+    .nav-back:active { color:#fff; border-color:#555; }
+    .nav-tag { color:var(--red); font-size:6.5px; font-family:monospace; letter-spacing:3px; }
+    .nav-name { font-size:13px; font-weight:900; letter-spacing:.5px; }
+
+    header {
+      background:linear-gradient(to bottom,#1a0000,#000); padding:40px 20px 30px;
+      text-align:center; border-bottom:6px solid var(--red);
+    }
+    h1 {
+      font-family:'Bebas Neue',sans-serif; font-size:72px; letter-spacing:5px;
+      color:var(--red); line-height:.85; margin-bottom:12px;
+      text-shadow:0 0 25px rgba(192,57,43,.7);
+    }
+    .sub { font-size:11px; color:#555; letter-spacing:4px; }
+
+    .tabs {
+      display:flex; border-bottom:2px solid #111; overflow-x:auto;
+      background:var(--bg2); position:sticky; top:47px; z-index:15;
+    }
+    .tab-btn {
+      flex:1; padding:14px 8px; text-align:center; font-size:9px; font-family:'DM Mono',monospace;
+      letter-spacing:2px; color:#555; background:none; border:none; cursor:pointer;
+      border-bottom:3px solid transparent; white-space:nowrap; min-width:80px;
+    }
+    .tab-btn.active { color:var(--red); border-bottom-color:var(--red); }
+
+    .panel { display:none; padding:20px 16px; }
+    .panel.active { display:block; }
+
+    .section-label {
+      font-size:8px; letter-spacing:4px; color:#333; text-transform:uppercase;
+      margin:24px 0 10px; padding-left:2px;
+    }
+
+    .field-group { margin-bottom:16px; }
+    .field-label { font-size:9px; color:var(--red); letter-spacing:2px; margin-bottom:6px; }
+    input[type="text"], input[type="time"], input[type="number"], select, textarea {
+      width:100%; background:var(--bg2); border:1px solid #222; color:var(--text);
+      font-family:'DM Mono',monospace; font-size:13px; padding:14px; border-radius:8px;
+    }
+    input:focus, select:focus, textarea:focus { border-color:var(--red); outline:none; }
+
+    .btn-primary {
+      width:100%; padding:16px; background:var(--red); color:#fff; border:none;
+      font-family:'DM Mono',monospace; font-size:13px; font-weight:900;
+      letter-spacing:3px; border-radius:10px; cursor:pointer; transition:all .2s;
+    }
+    .btn-primary:active { transform:scale(.97); }
+    .btn-secondary {
+      background:none; border:1px solid #333; color:#666; padding:10px 18px;
+      font-family:monospace; font-size:9px; letter-spacing:1.5px; border-radius:8px; cursor:pointer;
+    }
+    .btn-secondary:active { border-color:var(--red); color:var(--red); }
+
+    .timeline-item {
+      background:var(--bg2); border:1px solid #1a1a1a; border-radius:10px;
+      padding:16px; margin-bottom:10px; display:flex; align-items:center; gap:14px;
+      border-left:5px solid var(--red); transition:all .2s;
+    }
+    .timeline-item.done { opacity:.5; border-left-color:var(--grn); }
+    .timeline-item .ti-time { font-size:11px; color:var(--red); min-width:90px; }
+    .timeline-item .ti-emoji { font-size:28px; }
+    .timeline-item .ti-title { flex:1; font-size:12px; }
+    .timeline-item .ti-check { width:22px; height:22px; accent-color:var(--red); cursor:pointer; }
+    .timeline-item .ti-del {
+      background:none; border:none; color:#333; font-size:16px; cursor:pointer; padding:4px;
+    }
+    .timeline-item .ti-del:hover { color:var(--red); }
+
+    .dump-item {
+      background:var(--bg2); border:1px solid #1a1a1a; border-radius:8px;
+      padding:14px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
+    }
+    .dump-item.done .dump-text { text-decoration:line-through; color:#555; }
+    .dump-text { flex:1; font-size:12px; }
+
+    .routine-btn {
+      background:rgba(192,57,43,.06); border:1px solid #1a1a1a; border-radius:10px;
+      padding:20px; text-align:center; font-family:'DM Mono',monospace; font-size:11px;
+      letter-spacing:2px; color:#888; cursor:pointer; transition:all .2s;
+    }
+    .routine-btn:active { border-color:var(--red); color:var(--red); }
+
+    .timer-display {
+      font-family:'Bebas Neue',sans-serif; font-size:140px; color:var(--red);
+      text-align:center; letter-spacing:8px; line-height:1;
+      text-shadow:0 0 40px rgba(192,57,43,.5);
+    }
+    .preset-row { display:flex; gap:10px; justify-content:center; margin:20px 0 30px; }
+    .preset-btn {
+      padding:10px 20px; border:1px solid #222; background:none; color:#666;
+      font-family:'DM Mono',monospace; font-size:13px; border-radius:8px; cursor:pointer;
+    }
+    .preset-btn.active { border-color:var(--red); color:var(--red); background:rgba(192,57,43,.1); }
+    .timer-actions { display:flex; gap:12px; justify-content:center; }
+    .timer-actions .btn-primary { width:auto; padding:18px 40px; }
+
+    .empty { text-align:center; padding:50px 20px; color:#333; font-size:11px; line-height:2; }
+
+    .add-form { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:20px; margin-top:20px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+    .form-row-3 { display:flex; gap:10px; align-items:center; margin-bottom:14px; }
+    .emoji-pick {
+      width:52px; height:48px; background:var(--bg2); border:1px solid #222;
+      border-radius:8px; font-size:24px; text-align:center; cursor:pointer;
+    }
+    input[type="color"] { width:48px; height:48px; background:transparent; border:none; cursor:pointer; border-radius:8px; }
+
+    .focus-log { margin-top:30px; }
+    .focus-log-item { font-size:10px; color:#444; padding:4px 0; border-bottom:1px solid #111; }
+
+    .brief { padding:20px 16px; }
+    .brief h2 { font-family:'Bebas Neue',sans-serif; font-size:36px; color:var(--red); margin-bottom:16px; letter-spacing:3px; }
+    .brief p { font-size:12px; color:#666; line-height:1.8; margin-bottom:16px; }
+    .brief .quote {
+      border-left:4px solid var(--red); padding:16px 20px; margin:20px 0;
+      font-style:italic; color:#888; font-size:12px; line-height:1.8;
+    }
+    .brief .quote .attr { color:var(--red); font-size:10px; display:block; margin-top:8px; font-style:normal; }
+
+    footer {
+      text-align:center; padding:40px 20px; font-size:8px; color:#222;
+      letter-spacing:2px; line-height:2;
+    }
+  *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK • ADHD OPS</div>
+      <div class="nav-name">OPS VISUAL PLANNER</div>
+    </div>
+  </div>
+
+  <header>
+    <h1>VISUAL<br>PLANNER</h1>
+    <div class="sub">VISUAL TIMELINE • LOCAL • FREE • FOR REAL BRAINS</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(0)">TIMELINE</button>
+    <button class="tab-btn" onclick="switchTab(1)">INTEL DUMP</button>
+    <button class="tab-btn" onclick="switchTab(2)">ROUTINES</button>
+    <button class="tab-btn" onclick="switchTab(3)">FOCUS</button>
+    <button class="tab-btn" onclick="switchTab(4)">BRIEF</button>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="panel active" id="panel0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div id="current-date" style="font-size:16px;font-weight:900"></div>
+      <button class="btn-secondary" onclick="clearDay()">CLEAR DAY</button>
+    </div>
+    <div id="timeline"></div>
+
+    <div class="add-form">
+      <div class="section-label">ADD TASK</div>
+      <div class="form-row">
+        <div class="field-group">
+          <div class="field-label">TIME</div>
+          <input type="time" id="task-time" value="09:00">
+        </div>
+        <div class="field-group">
+          <div class="field-label">DURATION (MIN)</div>
+          <input type="number" id="task-dur" value="25" min="1" max="480">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">MISSION</div>
+        <input type="text" id="task-title" placeholder="Clear range, hydrate, review SITREP...">
+      </div>
+      <div class="form-row-3">
+        <select id="task-emoji" class="emoji-pick"></select>
+        <input type="color" id="task-color" value="#c0392b">
+        <button class="btn-primary" style="flex:1" onclick="addTask()">LOCK IN TASK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTEL DUMP -->
+  <div class="panel" id="panel1">
+    <div class="field-group">
+      <input type="text" id="dump-input" placeholder="BRAIN DUMP → type and hit enter" onkeypress="if(event.key==='Enter')addDump()">
+    </div>
+    <button class="btn-primary" onclick="addDump()" style="margin-bottom:20px">DUMP TO INBOX</button>
+    <div id="dump-list"></div>
+  </div>
+
+  <!-- ROUTINES -->
+  <div class="panel" id="panel2">
+    <div class="section-label">PRESET ROUTINES — TAP TO LOAD</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+      <div class="routine-btn" onclick="loadRoutine(0)">🚀<br>MORNING OPS</div>
+      <div class="routine-btn" onclick="loadRoutine(1)">🛡️<br>PRE-MISSION</div>
+      <div class="routine-btn" onclick="loadRoutine(2)">🎯<br>FOCUS BLOCK</div>
+      <div class="routine-btn" onclick="loadRoutine(3)">📋<br>EVENING DEBRIEF</div>
+    </div>
+  </div>
+
+  <!-- FOCUS DRILL -->
+  <div class="panel" id="panel3">
+    <div id="timer-display" class="timer-display">25:00</div>
+    <div class="preset-row">
+      <button class="preset-btn" onclick="setPreset(5)">5</button>
+      <button class="preset-btn" onclick="setPreset(15)">15</button>
+      <button class="preset-btn active" onclick="setPreset(25)">25</button>
+      <button class="preset-btn" onclick="setPreset(45)">45</button>
+    </div>
+    <div class="timer-actions">
+      <button class="btn-primary" id="start-btn" onclick="toggleTimer()">ENGAGE</button>
+      <button class="btn-secondary" onclick="resetTimer()" style="padding:18px 30px">RESET</button>
+    </div>
+    <div id="session-log" class="focus-log"></div>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel" id="panel4">
+    <div class="brief">
+      <h2>REDESIGNING PRODUCTIVITY FOR REAL BRAINS</h2>
+      <p>100% free, offline visual day planner — built into Operator's Deck. No subscription. No tracking. Visual timelines, routines, and focus tools that work for ADHD/executive-function brains.</p>
+      <div class="quote">
+        "My ADHD showed me how much the world isn't built for brains like mine. We created this so planning feels easier and actually works for you."
+        <span class="attr">— Built for operators, by operators</span>
+      </div>
+      <p style="font-size:10px;color:#333">All data saved only in your browser (localStorage). No cloud. No tracking. Field-ready.</p>
+    </div>
+  </div>
+
+  <footer>100% LOCAL • ZERO CLOUD • YOUR DATA STAYS YOURS<br>OPERATOR'S DECK — MARCH 2026</footer>
+</div>
+
+<script>
+const emojis = ['🚀','⏰','📋','🔋','🧠','🎯','⚡','🛡️','📡','🔄'];
+const presetRoutines = [
+  [{time:"07:00",dur:15,title:"Wake + hydrate",emoji:"🚀",color:"#c0392b"},
+   {time:"07:15",dur:10,title:"Stretch + breathe",emoji:"🔋",color:"#27ae60"}],
+  [{time:"08:00",dur:30,title:"Kit check + comms test",emoji:"🛡️",color:"#4a6fa5"},
+   {time:"08:30",dur:45,title:"SITREP review",emoji:"📡",color:"#d4a843"}],
+  [{time:"09:00",dur:25,title:"Deep work block",emoji:"🎯",color:"#27ae60"},
+   {time:"09:30",dur:5,title:"Break — move",emoji:"🔄",color:"#666"}],
+  [{time:"21:00",dur:20,title:"Debrief + log",emoji:"📋",color:"#9b59b6"},
+   {time:"21:20",dur:15,title:"Wind down",emoji:"🧠",color:"#4a6fa5"}]
+];
+
+let tasks=[], dumpItems=[], focusSessions=[];
+let timerInterval=null, timeLeft=25*60, isRunning=false;
+
+const todayKey=()=>new Date().toISOString().slice(0,10);
+
+// ── KEY MIGRATION (one-time) ──
+(function(){try{var fs=localStorage.getItem('ops-focus-sessions');if(fs!==null){localStorage.setItem('od_vp_focus',fs);localStorage.removeItem('ops-focus-sessions');}for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('ops-visual-')===0){var d=k.substring(11);localStorage.setItem('od_vp_'+d,localStorage.getItem(k));localStorage.removeItem(k);}}}catch(e){}})();
+
+function loadData(){
+  try{
+    const saved=localStorage.getItem('od_vp_'+todayKey());
+    if(saved){const d=JSON.parse(saved);tasks=d.tasks||[];dumpItems=d.dump||[];}
+    focusSessions=JSON.parse(localStorage.getItem('od_vp_focus')||'[]');
+  }catch(e){}
+}
+function saveData(){
+  localStorage.setItem('od_vp_'+todayKey(),JSON.stringify({tasks,dump:dumpItems}));
+  localStorage.setItem('od_vp_focus',JSON.stringify(focusSessions));
+}
+
+function switchTab(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n));
+  if(n===0)renderTimeline();if(n===1)renderDump();if(n===3)renderLog();
+}
+
+// TIMELINE
+function renderTimeline(){
+  const c=document.getElementById('timeline');c.innerHTML='';
+  tasks.sort((a,b)=>a.time.localeCompare(b.time));
+  if(!tasks.length){c.innerHTML='<div class="empty">NO TASKS LOCKED IN YET<br>Add one below ↓</div>';return;}
+  tasks.forEach((t,i)=>{
+    const endMin=parseInt(t.time.split(':')[0])*60+parseInt(t.time.split(':')[1])+parseInt(t.dur);
+    const endH=Math.floor(endMin/60).toString().padStart(2,'0');
+    const endM=(endMin%60).toString().padStart(2,'0');
+    const d=document.createElement('div');
+    d.className='timeline-item'+(t.completed?' done':'');
+    d.style.borderLeftColor=t.color||'var(--red)';
+    d.innerHTML=`<div class="ti-time">${t.time}–${endH}:${endM}</div>
+      <div class="ti-emoji">${t.emoji}</div>
+      <div class="ti-title">${esc(t.title)}</div>
+      <input type="checkbox" class="ti-check" ${t.completed?'checked':''} onchange="toggleComplete(${i})">
+      <button class="ti-del" onclick="deleteTask(${i})">✕</button>`;
+    c.appendChild(d);
+  });
+}
+function addTask(){
+  const title=document.getElementById('task-title').value.trim();
+  if(!title)return;
+  tasks.push({
+    id:Date.now(),time:document.getElementById('task-time').value,
+    dur:parseInt(document.getElementById('task-dur').value)||25,
+    title,emoji:document.getElementById('task-emoji').value,
+    color:document.getElementById('task-color').value,completed:false
+  });
+  document.getElementById('task-title').value='';
+  saveData();renderTimeline();
+}
+function toggleComplete(i){tasks[i].completed=!tasks[i].completed;saveData();renderTimeline();}
+function deleteTask(i){tasks.splice(i,1);saveData();renderTimeline();}
+function clearDay(){if(confirm('Wipe entire day?')){tasks=[];dumpItems=[];saveData();renderTimeline();renderDump();}}
+
+// INTEL DUMP
+function addDump(){
+  const input=document.getElementById('dump-input');
+  if(!input.value.trim())return;
+  dumpItems.unshift({id:Date.now(),text:input.value.trim(),done:false});
+  input.value='';saveData();renderDump();
+}
+function renderDump(){
+  const c=document.getElementById('dump-list');c.innerHTML='';
+  dumpItems.forEach((item,i)=>{
+    const d=document.createElement('div');
+    d.className='dump-item'+(item.done?' done':'');
+    d.innerHTML=`<input type="checkbox" ${item.done?'checked':''} onchange="toggleDump(${i})" style="accent-color:var(--red);width:18px;height:18px">
+      <span class="dump-text">${esc(item.text)}</span>
+      <button class="btn-secondary" onclick="scheduleFromDump(${i})" style="padding:6px 10px;font-size:8px">→ TIMELINE</button>
+      <button class="ti-del" onclick="deleteDump(${i})">✕</button>`;
+    c.appendChild(d);
+  });
+}
+function toggleDump(i){dumpItems[i].done=!dumpItems[i].done;saveData();renderDump();}
+function deleteDump(i){dumpItems.splice(i,1);saveData();renderDump();}
+function scheduleFromDump(i){document.getElementById('task-title').value=dumpItems[i].text;switchTab(0);}
+
+// ROUTINES
+function loadRoutine(n){
+  tasks=tasks.concat(presetRoutines[n].map(t=>({...t,id:Date.now()+Math.random(),completed:false})));
+  saveData();switchTab(0);
+}
+
+// FOCUS
+function updateTimerDisplay(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  document.getElementById('timer-display').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+}
+function setPreset(m){
+  timeLeft=m*60;updateTimerDisplay();
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===m));
+}
+function toggleTimer(){
+  if(isRunning){
+    clearInterval(timerInterval);isRunning=false;document.getElementById('start-btn').textContent='RESUME';
+  }else{
+    const startMin=Math.ceil(timeLeft/60);
+    timerInterval=setInterval(()=>{
+      timeLeft--;updateTimerDisplay();
+      if(timeLeft<=0){
+        clearInterval(timerInterval);isRunning=false;
+        focusSessions.push({date:new Date().toISOString(),minutes:startMin});
+        saveData();renderLog();
+        alert('MISSION COMPLETE — stand down.');
+        timeLeft=25*60;updateTimerDisplay();document.getElementById('start-btn').textContent='ENGAGE';
+      }
+    },1000);
+    isRunning=true;document.getElementById('start-btn').textContent='STAND DOWN';
+  }
+}
+function resetTimer(){clearInterval(timerInterval);isRunning=false;timeLeft=25*60;updateTimerDisplay();document.getElementById('start-btn').textContent='ENGAGE';}
+function renderLog(){
+  const c=document.getElementById('session-log');
+  c.innerHTML='<div class="section-label" style="margin-top:0">FOCUS LOG</div>';
+  focusSessions.slice(-10).reverse().forEach(s=>{
+    const d=new Date(s.date);
+    c.innerHTML+=`<div class="focus-log-item">${d.toLocaleDateString()} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} — ${s.minutes}min LOCKED</div>`;
+  });
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+window.onload=()=>{
+  loadData();
+  const sel=document.getElementById('task-emoji');
+  emojis.forEach(e=>{const o=document.createElement('option');o.value=e;o.textContent=e;sel.appendChild(o);});
+  document.getElementById('current-date').textContent=new Date().toLocaleDateString('en-CA',{weekday:'long',month:'short',day:'numeric'});
+  renderTimeline();renderDump();renderLog();updateTimerDisplay();
+};
+</script>
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="kanban-ops.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#2c5282;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">KANBAN OPS →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Move tasks through the board as the day unfolds</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Day mapped — get your operator's edge</span></a></div>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Day planned. Focus locked. Draw a card — the Deck sees what you don't.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>

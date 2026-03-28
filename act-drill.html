@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="ACT DRILL • OPERATOR'S DECK">
+<meta property="og:description" content="Values + committed action. Six steps. Defusion technique included. Pick what matters, move toward it.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/act-drill.html">
+    <title>ACT DRILL • OPERATOR'S DECK</title>
+    <style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--grn);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--grn);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim3);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--grn),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2)}
+.step-counter span{color:var(--grn)}
+/* DISCLAIMER */
+.disc-strip{background:#031603;border-bottom:1px solid rgba(39,174,96,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--grn);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#447a44;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#66aa66}
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--grn);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim3);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:var(--dim);font-style:normal}
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(39,174,96,.4)}
+textarea::placeholder,input::placeholder{color:#2a2a2a;font-style:italic}
+textarea{min-height:90px}
+.char-hint{color:var(--dim3);font-size:7px;font-family:monospace;text-align:right;margin-top:4px;letter-spacing:.5px}
+/* VALUES DOMAIN GRID */
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.domain-card{background:var(--bg3);border:1.5px solid var(--dim3);border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px}
+.domain-card.sel{border-color:var(--grn);background:rgba(39,174,96,.09)}
+.domain-card:active{transform:scale(.96)}
+.domain-card.maxed{opacity:.35;pointer-events:none}
+.domain-icon{font-size:18px;flex-shrink:0}
+.domain-name{font-size:9.5px;font-weight:800;font-family:monospace;letter-spacing:.5px;color:#bbb}
+.domain-card.sel .domain-name{color:#fff}
+.domain-check{margin-left:auto;font-size:12px;color:var(--grn);opacity:0;transition:opacity .15s}
+.domain-card.sel .domain-check{opacity:1}
+.domain-limit{text-align:center;font-size:7.5px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:10px}
+/* WILLINGNESS SLIDER */
+.will-wrap{background:var(--bg3);border-radius:10px;padding:16px;margin-bottom:12px}
+.will-label{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:10px}
+input[type=range]{width:100%;height:8px;-webkit-appearance:none;background:linear-gradient(90deg,var(--dim3),var(--grn));border-radius:4px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--grn);cursor:pointer;border:2px solid #000;box-shadow:0 0 0 3px rgba(39,174,96,.2)}
+.will-display{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px}
+.will-num{font-size:36px;font-weight:900;font-family:monospace;color:var(--grn)}
+.will-desc{font-size:9px;font-family:Georgia,serif;color:var(--dim2);text-align:right;font-style:italic;max-width:180px;line-height:1.6}
+.will-scale{display:flex;justify-content:space-between;margin-top:4px}
+.will-scale span{font-size:7px;font-family:monospace;color:var(--dim3);letter-spacing:.5px}
+/* DEFUSION CARD */
+.defusion-card{background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.15);border-radius:10px;padding:14px;margin-bottom:12px}
+.defusion-card .dc-tag{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--grn);margin-bottom:6px}
+.defusion-card .dc-title{font-size:11px;font-weight:800;font-family:monospace;letter-spacing:.5px;margin-bottom:8px}
+.defusion-card .dc-body{font-size:9.5px;font-family:Georgia,serif;color:var(--dim);line-height:1.7}
+.defusion-card .dc-ex{color:#ccc;font-style:italic;margin-top:6px;font-size:9px;font-family:Georgia,serif;line-height:1.7;padding-top:8px;border-top:1px solid rgba(39,174,96,.1)}
+/* GROUNDING */
+.ground-group{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.ground-item{background:var(--bg3);border-radius:10px;padding:4px 12px 10px;border:1px solid var(--dim3)}
+.ground-num{font-size:22px;font-weight:900;font-family:monospace;color:var(--grn);opacity:.2;margin-bottom:4px;line-height:1}
+.ground-item textarea{min-height:52px;font-size:10.5px;background:transparent;border:none;border-bottom:1px solid var(--dim3);border-radius:0;padding:6px 0}
+.ground-item textarea:focus{border-bottom-color:var(--grn)}
+/* SUMMARY */
+.summary-header{text-align:center;margin-bottom:20px}
+.summary-header .sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:8px}
+.sb-content{color:#ccc;font-size:11px;font-family:Georgia,serif;line-height:1.65}
+.domain-tags{display:flex;flex-wrap:wrap;gap:6px}
+.domain-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);border-radius:6px;padding:5px 10px;font-size:8.5px;font-family:monospace;letter-spacing:.5px;color:var(--grn)}
+.action-highlight{color:#27ae60;font-size:12px;font-family:Georgia,serif;line-height:1.7;padding:12px;background:rgba(39,174,96,.06);border-radius:8px;border-left:3px solid var(--grn)}
+/* BUTTONS */
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:linear-gradient(135deg,var(--grn),#1a7a3c);color:#fff;border:none;border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-next:active{transform:scale(.96)}
+.btn-next:disabled{opacity:.3;cursor:default;transform:none}
+.btn-back-step{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:10px;padding:15px 18px;font-size:9px;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0}
+.btn-back-step:active{color:#aaa;border-color:#666}
+.btn-new{flex:1;background:var(--bg3);color:var(--grn);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-print{width:100%;background:var(--bg3);color:var(--blu);border:1px solid rgba(74,111,165,.25);border-radius:10px;padding:13px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;margin-top:10px;transition:all .2s}
+.btn-print:active{transform:scale(.96)}
+/* PAST */
+.past-section{margin:24px 16px 60px}
+.past-title{color:var(--dim3);font-size:8px;font-family:monospace;letter-spacing:3px;margin-bottom:12px;text-transform:uppercase}
+.past-entry{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid rgba(39,174,96,.3)}
+.pe-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.pe-date{color:var(--dim3);font-size:7px;font-family:monospace;letter-spacing:1px}
+.pe-domains{color:var(--grn);font-size:7px;font-family:monospace;letter-spacing:.5px}
+.pe-action{color:#888;font-size:10px;font-family:Georgia,serif;line-height:1.55;font-style:italic;margin-bottom:6px}
+.pe-expand{background:none;border:none;color:var(--dim3);font-size:7.5px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;padding:0;transition:color .2s}
+.pe-expand:active{color:var(--dim)}
+.pe-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--dim3)}
+.pe-detail.open{display:block}
+.pd-label{color:var(--dim3);font-size:7px;font-family:monospace;letter-spacing:2px;margin:8px 0 4px}
+.pd-text{color:#666;font-size:9.5px;font-family:Georgia,serif;line-height:1.6}
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1.5px;z-index:99;animation:tin .3s ease-out,tout .3s ease-in 1.8s forwards;pointer-events:none;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+    *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="goBack()">← DECK</button>
+    <div class="nav-info">
+        <div class="nav-tag">ACCEPTANCE & COMMITMENT TOOL</div>
+        <div class="nav-name">🧭 ACT DRILL</div>
+    </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div class="disc-strip">
+    <div class="ds-icon">⚠</div>
+    <div class="ds-text"><strong>SELF-HELP TOOL ONLY.</strong> Not therapy. Not clinical ACT. Use to prepare for sessions with a licensed professional, or as a daily compass check. In crisis: call <strong>988</strong> or text HOME to <strong>686868</strong>.</div>
+</div>
+
+<!-- STEP 1: VALUES DOMAINS -->
+<div class="step active" id="step1">
+    <div class="step-counter">STEP <span>1</span> OF 6</div>
+    <div class="step-label">ORIENT THE COMPASS</div>
+    <div class="step-title">What actually matters right now?</div>
+    <div class="step-desc">Not what you think should matter. Not what looked good last year. What would make you say "that was worth fighting for" at the end of today? Select up to 3.</div>
+    <div class="domain-limit" id="domainLimit">0 / 3 SELECTED</div>
+    <div class="domain-grid" id="domainGrid"></div>
+    <div class="step-acts">
+        <button class="btn-next" id="btn1" onclick="goStep(2)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 2: VALUES STATEMENT -->
+<div class="step" id="step2">
+    <div class="step-counter">STEP <span>2</span> OF 6</div>
+    <div class="step-label">DEFINE THE MISSION</div>
+    <div class="step-title">What does living by those values look like?</div>
+    <div class="step-desc">Not a goal. A quality of action. Not "be a better father" — but "showing up at dinner without checking my phone." What does it actually look like when you're on track?</div>
+    <div class="step-example"><strong>Examples:</strong><br>"Being present with my kids even when I'm exhausted. Not checking out when things get hard."<br>"Calling my brother back the same day. Not disappearing for weeks when I'm struggling."<br>"Telling my sponsor the real version, not the edited one."</div>
+    <textarea id="f_values" maxlength="500" placeholder="Describe what living by these values looks like in practice..." oninput="charUpdate(this,'ch2');btn('btn2',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch2">0 / 500</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+        <button class="btn-next" id="btn2" onclick="goStep(3)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 3: THE HOOK -->
+<div class="step" id="step3">
+    <div class="step-counter">STEP <span>3</span> OF 6</div>
+    <div class="step-label">IDENTIFY THE SNAG</div>
+    <div class="step-title">What thought is pulling you off course?</div>
+    <div class="step-desc">Write the exact sticky thought that's running in the background. The one your brain treats like a fact even though it might not be. Don't dress it up — write it raw.</div>
+    <div class="step-example"><strong>Examples:</strong><br>"I've already ruined it, so what's the point."<br>"I don't deserve to be in the room with people who have their lives together."<br>"If I try and it doesn't work, it confirms I'm the problem."</div>
+    <textarea id="f_thought" maxlength="300" placeholder="Write the exact thought..." oninput="charUpdate(this,'ch3');btn('btn3',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch3">0 / 300</div>
+    <div class="defusion-card">
+        <div class="dc-tag">DEFUSION TECHNIQUE</div>
+        <div class="dc-title">Name it. Don't fight it.</div>
+        <div class="dc-body">The goal isn't to eliminate the thought — it's to stop treating it as a command. After writing it above, say it out loud with this prefix:</div>
+        <div class="dc-ex">"I notice I'm having the thought that..."<br><br>That distance — between you and the thought — is where the choice lives.</div>
+    </div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+        <button class="btn-next" id="btn3" onclick="goStep(4)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 4: WILLINGNESS -->
+<div class="step" id="step4">
+    <div class="step-counter">STEP <span>4</span> OF 6</div>
+    <div class="step-label">DROP THE STRUGGLE</div>
+    <div class="step-title">How willing are you to carry the discomfort and act anyway?</div>
+    <div class="step-desc">This is not about feeling ready. You don't have to want the feeling — just be willing to have it while you do what matters. Rate your willingness right now.</div>
+    <div class="will-wrap">
+        <div class="will-label">WILLINGNESS TO FEEL THE DISCOMFORT AND MOVE ANYWAY</div>
+        <input type="range" id="willSlider" min="0" max="100" value="50" oninput="updateWill(this.value)">
+        <div class="will-scale"><span>FIGHTING IT</span><span>FULLY WILLING</span></div>
+        <div class="will-display">
+            <div class="will-num" id="willNum">50</div>
+            <div class="will-desc" id="willDesc">Aware of the pull. Working on it.</div>
+        </div>
+    </div>
+    <div class="step-example" id="willNote" style="border-left-color:rgba(39,174,96,.3);margin-bottom:0"><strong>Note:</strong> Even a 30 is enough. You don't need to be at 100 to take one step. The willingness to try at 30 beats a perfect plan you never execute.</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+        <button class="btn-next" onclick="goStep(5)">NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 5: COMMITTED ACTION -->
+<div class="step" id="step5">
+    <div class="step-counter">STEP <span>5</span> OF 6</div>
+    <div class="step-label">THE ACTUAL MOVE</div>
+    <div class="step-title">One committed action. Today.</div>
+    <div class="step-desc">Specific. Time-bound. Values-aligned. Not "be a better person" — a thing you will actually do in the next 24 hours that moves toward what matters. If it's small, that's fine. Small and done beats perfect and theoretical.</div>
+    <div class="step-example"><strong>Examples:</strong><br>"Today at 1900 I will sit at the dinner table without my phone for the full meal."<br>"I will call my sponsor before I go to sleep tonight. Even if it's awkward. Even if it's just two minutes."<br>"I will write down three things I actually did right this week before I open the news."</div>
+    <textarea id="f_action" maxlength="400" placeholder="Today I will..." oninput="charUpdate(this,'ch5');btn('btn5',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch5">0 / 400</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(4)">← BACK</button>
+        <button class="btn-next" id="btn5" onclick="saveEntry()" disabled>SAVE & LOCK IN ✓</button>
+    </div>
+</div>
+
+<!-- STEP 6: GROUNDING — OPTIONAL BONUS -->
+<div class="step" id="step6">
+    <div class="step-counter">STEP <span>6</span> OF 6</div>
+    <div class="step-label">ANCHOR TO NOW</div>
+    <div class="step-title">5-4-3 Grounding</div>
+    <div class="step-desc">Optional. When the thought or the feeling is too loud to act through — ground yourself first. Use this before you execute the committed action. Name what's actually here right now.</div>
+    <div class="ground-group">
+        <div class="ground-item">
+            <div class="ground-num">5</div>
+            <textarea id="ground5" placeholder="5 things you can see right now..."></textarea>
+        </div>
+        <div class="ground-item">
+            <div class="ground-num">4</div>
+            <textarea id="ground4" placeholder="4 things you can physically feel or touch..."></textarea>
+        </div>
+        <div class="ground-item">
+            <div class="ground-num">3</div>
+            <textarea id="ground3" placeholder="3 things you can hear..."></textarea>
+        </div>
+    </div>
+    <div class="step-acts">
+        <button class="btn-new" onclick="startNew()">NEW DRILL</button>
+        <button class="btn-next" onclick="goStep(7)" style="background:linear-gradient(135deg,#2a5a3a,#1a4a2a)">SEE SUMMARY →</button>
+    </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="step" id="step7">
+    <div class="step-counter" style="color:var(--grn)">MISSION LOCKED</div>
+    <div class="summary-header">
+        <div class="sh-icon">🧭</div>
+        <h2>ACT DRILL COMPLETE</h2>
+        <p>Your compass is set. Come back when you drift — that's not failure, that's the practice.</p>
+    </div>
+
+    <div class="summary-block">
+        <div class="sb-label">DOMAINS (WHAT MATTERS)</div>
+        <div class="domain-tags" id="sum_domains"></div>
+    </div>
+
+    <div class="summary-block">
+        <div class="sb-label">WHAT IT LOOKS LIKE IN PRACTICE</div>
+        <div class="sb-content" id="sum_values" style="color:#aaa;font-style:italic"></div>
+    </div>
+
+    <div class="summary-block">
+        <div class="sb-label">THE HOOK (NAMED)</div>
+        <div class="sb-content" id="sum_thought" style="color:#888;font-style:italic"></div>
+        <div style="margin-top:8px;font-size:8px;font-family:monospace;letter-spacing:2px;color:rgba(39,174,96,.5)">→ I NOTICE I'M HAVING THE THOUGHT THAT...</div>
+    </div>
+
+    <div class="summary-block">
+        <div class="sb-label">WILLINGNESS LEVEL</div>
+        <div class="sb-content"><span id="sum_will" style="font-size:22px;font-weight:900;font-family:monospace;color:var(--grn)"></span><span style="font-size:9px;font-family:monospace;color:var(--dim2);margin-left:8px">/ 100</span></div>
+    </div>
+
+    <div class="summary-block">
+        <div class="sb-label">COMMITTED ACTION (24H)</div>
+        <div class="action-highlight" id="sum_action"></div>
+    </div>
+
+    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+      <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+      <a href="dear-man-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DEAR MAN \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Need to communicate a boundary? Script it</span></a><a href="safety-plan-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">SAFETY PLAN \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Build your crisis plan while you\'re thinking clearly</span></a>
+    </div>
+
+    <button class="btn-print" onclick="printSheet()">🖨️ PRINT MISSION SHEET FOR YOUR NEXT SESSION</button>
+    <div class="step-acts" style="margin-top:10px">
+        <button class="btn-new" onclick="startNew()">NEW ACT DRILL</button>
+    </div>
+</div>
+
+<!-- PAST ENTRIES -->
+<div class="past-section" id="pastSection"></div>
+
+</div>
+
+<script>
+const DOMAINS = [
+    {k:'family',    icon:'👨‍👧', label:'Family'},
+    {k:'sobriety',  icon:'🔑', label:'Sobriety'},
+    {k:'health',    icon:'💪', label:'Health'},
+    {k:'work',      icon:'⚙️', label:'Work'},
+    {k:'friends',   icon:'🤝', label:'Friends'},
+    {k:'faith',     icon:'🙏', label:'Faith'},
+    {k:'honesty',   icon:'🎯', label:'Honesty'},
+    {k:'growth',    icon:'📈', label:'Growth'},
+    {k:'peace',     icon:'🌊', label:'Inner Peace'},
+    {k:'purpose',   icon:'🔥', label:'Purpose'},
+];
+
+const WILL_LABELS = {
+    0: 'Fighting everything right now.',
+    20: 'Mostly resisting. Hard to move.',
+    40: 'Aware of the struggle. Not fully in it.',
+    50: 'Aware of the pull. Working on it.',
+    60: 'Starting to open up to it.',
+    70: 'Willing to try despite the discomfort.',
+    80: 'Mostly ready. Some resistance.',
+    90: 'Clear. Present. Ready to move.',
+    100: 'Fully committed. Let\'s go.'
+};
+
+let selectedDomains = [], willingness = 50;
+
+// UTILS
+function esc(s){if(typeof s!=='string')return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function san(s){return typeof s==='string'?s.substring(0,5000).replace(/<[^>]*>/g,''):''}
+function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+function hap(arr){if(navigator.vibrate)navigator.vibrate(arr)}
+function charUpdate(el,id){const d=document.getElementById(id);if(d)d.textContent=el.value.length+' / '+el.maxLength}
+function btn(id,enabled){const b=document.getElementById(id);if(b)b.disabled=!enabled}
+function loadEntries(){try{return JSON.parse(localStorage.getItem('od_act_v1'))||[]}catch(e){return[]}}
+function saveEntries(arr){try{localStorage.setItem('od_act_v1',JSON.stringify(arr.slice(0,200)))}catch(e){}}
+function goBack(){window.location.href='./?tab=more'}
+
+// PROGRESS
+function setProgress(n){document.getElementById('progressFill').style.width=Math.min((n-1)/7*100,100)+'%'}
+
+// STEP NAV
+function goStep(n){
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    const id=n===7?'step7':'step'+n;
+    const el=document.getElementById(id);
+    if(el){el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+    setProgress(n);
+}
+
+// STEP 1: DOMAIN GRID
+function buildDomains(){
+    const g=document.getElementById('domainGrid');
+    g.innerHTML='';
+    DOMAINS.forEach(d=>{
+        const card=document.createElement('div');
+        card.className='domain-card';
+        card.innerHTML=`<span class="domain-icon">${d.icon}</span><span class="domain-name">${d.label}</span><span class="domain-check">✓</span>`;
+        card.onclick=()=>{
+            const sel=card.classList.contains('sel');
+            if(sel){
+                card.classList.remove('sel');
+                selectedDomains=selectedDomains.filter(x=>x!==d.k);
+            } else if(selectedDomains.length<3){
+                card.classList.add('sel');
+                selectedDomains.push(d.k);
+            }
+            // Update maxed state
+            document.querySelectorAll('.domain-card').forEach(c=>{
+                c.classList.toggle('maxed',!c.classList.contains('sel')&&selectedDomains.length>=3);
+            });
+            document.getElementById('domainLimit').textContent=selectedDomains.length+' / 3 SELECTED';
+            btn('btn1',selectedDomains.length>0);
+        };
+        g.appendChild(card);
+    });
+}
+
+// STEP 4: WILLINGNESS
+function updateWill(v){
+    willingness=+v;
+    document.getElementById('willNum').textContent=v;
+    const keys=Object.keys(WILL_LABELS).map(Number).sort((a,b)=>a-b);
+    let label=WILL_LABELS[50];
+    for(let k of keys){if(+v>=k)label=WILL_LABELS[k]}
+    document.getElementById('willDesc').textContent=label;
+}
+
+// SAVE
+function saveEntry(){
+    const action=san(document.getElementById('f_action').value);
+    if(!action.trim()){showToast('ADD YOUR COMMITTED ACTION');return}
+    const entry={
+        domains:[...selectedDomains],
+        domainLabels:selectedDomains.map(k=>(DOMAINS.find(d=>d.k===k)||{}).label||k),
+        values:san(document.getElementById('f_values').value),
+        thought:san(document.getElementById('f_thought').value),
+        willingness,
+        action,
+        date:new Date().toLocaleDateString(),
+        ts:Date.now()
+    };
+    const arr=loadEntries();
+    arr.push(entry);
+    saveEntries(arr);
+    hap([15,30,15]);
+    showToast('ACT DRILL SAVED ✓');
+    buildSummary(entry);
+    goStep(7);
+    renderPast();
+}
+
+function buildSummary(e){
+    const labels=e.domainLabels||e.domains;
+    document.getElementById('sum_domains').innerHTML=labels.map((l,i)=>{
+        const d=DOMAINS.find(x=>x.k===e.domains[i])||{icon:'',label:l};
+        return`<div class="domain-tag">${d.icon} ${l}</div>`;
+    }).join('');
+    document.getElementById('sum_values').textContent=e.values||'(not filled)';
+    document.getElementById('sum_thought').textContent=e.thought||'(not filled)';
+    document.getElementById('sum_will').textContent=e.willingness;
+    document.getElementById('sum_action').textContent=e.action;
+}
+
+// PRINT
+function printSheet(){
+    const arr=loadEntries();
+    const last=arr[arr.length-1];
+    if(!last){showToast('SAVE FIRST');return}
+    const pw=window.open('','_blank');
+    pw.document.write(`<!DOCTYPE html><html><head><title>ACT Drill — ${last.date}</title>
+    <style>*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;padding:36px;max-width:700px;margin:0 auto;color:#111;line-height:1.65;font-size:12px}
+    h1{font-size:20px;font-weight:900;letter-spacing:1px;margin-bottom:2px}.sub{color:#666;font-size:11px}.meta{color:#999;font-size:10px;margin-bottom:20px}
+    .disc{background:#f5fff5;border:1px solid #aaddaa;border-radius:6px;padding:10px 14px;font-size:10px;color:#2a7a2a;margin-bottom:20px;line-height:1.6}
+    .disc strong{font-size:11px;display:block;margin-bottom:3px}
+    .section{margin-bottom:20px}.lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:5px;border-bottom:1px solid #eee;padding-bottom:4px}
+    .box{border:1px solid #ddd;border-radius:5px;padding:12px;min-height:60px;white-space:pre-wrap;font-size:11px;line-height:1.65;color:#222}
+    .action-box{border:2px solid #27ae60;border-radius:6px;padding:14px;background:#f5fff8;font-size:12px;font-weight:700;color:#1a6a1a}
+    .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+    .tag{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700}
+    .footer{margin-top:36px;padding-top:12px;border-top:1px solid #eee;font-size:9px;color:#aaa;text-align:center}
+    @media print{body{padding:20px}}*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style></head><body>
+    <h1>ACT DRILL</h1>
+    <div class="sub">Acceptance & Commitment Therapy — Values Compass</div>
+    <div class="meta">${last.date}</div>
+    <div class="disc"><strong>⚠ SELF-HELP TOOL — NOT CLINICAL ACT</strong>Bring this to your next session with a licensed therapist. This is a preparation tool, not a replacement for professional care.</div>
+    <div class="section"><div class="lbl">Domains (What Matters Right Now)</div><div class="tags">${(last.domainLabels||last.domains).map(l=>`<span class="tag">${l}</span>`).join('')}</div></div>
+    <div class="section"><div class="lbl">What Living By These Values Looks Like</div><div class="box">${esc(last.values)}</div></div>
+    <div class="section"><div class="lbl">The Hook — Named Thought</div><div class="box" style="color:#666;font-style:italic">"${esc(last.thought)}"<br><br><em>Defusion prompt: "I notice I'm having the thought that..."</em></div></div>
+    <div class="section"><div class="lbl">Willingness Level</div><div class="box">${last.willingness} / 100</div></div>
+    <div class="section"><div class="lbl">Committed Action (24 Hours)</div><div class="action-box">${esc(last.action)}</div></div>
+    <div class="footer">Operator's Deck • ACT Drill • ${last.date}</div>
+    </body></html>`);
+    pw.document.close();
+    setTimeout(()=>pw.print(),400);
+}
+
+// NEW / RESET
+function startNew(){
+    selectedDomains=[];
+    willingness=50;
+    ['f_values','f_thought','f_action','ground5','ground4','ground3'].forEach(id=>{
+        const e=document.getElementById(id);if(e)e.value='';
+    });
+    buildDomains();
+    document.getElementById('willSlider').value=50;
+    updateWill(50);
+    document.getElementById('domainLimit').textContent='0 / 3 SELECTED';
+    ['btn1','btn2','btn3','btn5'].forEach(id=>btn(id,false));
+    goStep(1);
+}
+
+// PAST ENTRIES
+function renderPast(){
+    const arr=loadEntries().slice().reverse();
+    const el=document.getElementById('pastSection');
+    if(!arr.length){el.innerHTML='';return}
+    let h=`<div class="past-title">PREVIOUS ACT DRILLS (${arr.length})</div>`;
+    arr.forEach((e,i)=>{
+        const labels=(e.domainLabels||e.domains).join(' · ');
+        h+=`<div class="past-entry">
+            <div class="pe-header">
+                <div class="pe-date">${esc(e.date)}</div>
+                <div class="pe-domains">${esc(labels)}</div>
+            </div>
+            <div class="pe-action">"${esc((e.action||'').substring(0,80))}${(e.action||'').length>80?'…':''}"</div>
+            <button class="pe-expand" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'LESS ↑':'MORE ↓'">MORE ↓</button>
+            <div class="pe-detail">
+                <div class="pd-label">WHAT IT LOOKS LIKE</div>
+                <div class="pd-text">${esc(e.values||'(not filled)')}</div>
+                <div class="pd-label">THE HOOK</div>
+                <div class="pd-text" style="font-style:italic">"${esc(e.thought||'(not filled)')}"</div>
+                <div class="pd-label">WILLINGNESS</div>
+                <div class="pd-text">${e.willingness} / 100</div>
+            </div>
+        </div>`;
+    });
+    el.innerHTML=h;
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{
+    buildDomains();
+    renderPast();
+    updateWill(50);
+});
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from Acceptance and Commitment Therapy (Hayes et al., 2012). Not a substitute for professional ACT.</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

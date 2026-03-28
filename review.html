@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<title>CloveLearn.io — Honest Review 2026</title>
+<meta property="og:title" content="HONEST REVIEW • OPERATOR'S DECK">
+<meta property="og:description" content="Independent field report on The Operator's Deck. What works, what doesn't. 8.7 out of 10.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/review.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06060a;
+  --bg2: #0d0d14;
+  --bg3: #12121c;
+  --border: rgba(255,255,255,0.06);
+  --text: #e8e8f0;
+  --dim: #7a7a90;
+  --dim2: #777;
+  --red: #e03030;
+  --gold: #c8963a;
+  --green: #2a8a4a;
+  --blue: #3060c0;
+  --accent: #e03030;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ─── SCAN LINE TEXTURE ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.15) 2px,
+    rgba(0,0,0,0.15) 4px
+  );
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+  background: rgba(6,6,10,0.92);
+  backdrop-filter: blur(12px);
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.nav-logo-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-family: 'Bebas Neue', sans-serif;
+  color: white;
+  clip-path: polygon(0 0, 100% 0, 100% 75%, 75% 100%, 0 100%);
+}
+
+.nav-logo span {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--text);
+}
+
+.nav-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--text); }
+
+.nav-cta {
+  background: var(--red);
+  color: white;
+  padding: 10px 22px;
+  text-decoration: none;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 92% 100%, 0 100%);
+  transition: background 0.2s;
+}
+.nav-cta:hover { background: #ff3a3a; }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 120px 40px 60px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(160deg, rgba(224,48,48,0.06) 0%, transparent 50%),
+    linear-gradient(0deg, var(--bg) 0%, transparent 60%),
+    var(--bg2);
+}
+
+/* grid pattern */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--red);
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(72px, 12vw, 160px);
+  line-height: 0.9;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title em {
+  color: var(--red);
+  font-style: normal;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-desc {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: #b0b0c8;
+  max-width: 500px;
+  line-height: 1.7;
+}
+
+.hero-score {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.score-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 80px;
+  line-height: 1;
+  color: var(--text);
+}
+
+.score-label {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+.hero-strip {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.strip-item {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+.strip-item span {
+  display: block;
+  font-size: 14px;
+  color: var(--text);
+  letter-spacing: 0;
+  font-family: 'Bebas Neue', sans-serif;
+  margin-top: 4px;
+}
+
+/* ─── SECTIONS ─── */
+section {
+  padding: 100px 40px;
+  border-bottom: 1px solid var(--border);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-tag {
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-tag::before {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: var(--red);
+}
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-bottom: 48px;
+}
+
+/* ─── WHAT IS IT ─── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.overview-body {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: #c0c0d8;
+  line-height: 1.8;
+}
+
+.overview-body p { margin-bottom: 20px; }
+.overview-body strong { color: var(--text); font-weight: 400; font-style: italic; }
+
+.quote-block {
+  margin-top: 32px;
+  padding: 28px 32px;
+  background: var(--bg3);
+  border-left: 3px solid var(--red);
+  position: relative;
+}
+
+.quote-block::before {
+  content: '"';
+  position: absolute;
+  top: -10px;
+  left: 24px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 60px;
+  color: var(--red);
+  line-height: 1;
+  opacity: 0.4;
+}
+
+.quote-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  color: #d8d8f0;
+  line-height: 1.8;
+  font-style: italic;
+  margin-bottom: 14px;
+}
+
+.quote-src {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--red);
+  text-transform: uppercase;
+}
+
+/* ─── CARD DEMO ─── */
+.card-demo {
+  max-width: 420px;
+  margin: 0 auto;
+  perspective: 1200px;
+}
+
+.card-wrap {
+  position: relative;
+  background: linear-gradient(145deg, #181825, #0d0d18);
+  border: 1px solid rgba(224,48,48,0.2);
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.card-wrap:hover { transform: scale(1.01); }
+
+.card-top {
+  padding: 28px 28px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding-bottom: 24px;
+}
+
+.card-rank-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.card-rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  color: var(--red);
+  line-height: 1;
+}
+
+.card-suit-tag {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.card-body-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 14px;
+  color: #a8a8c8;
+  line-height: 1.75;
+}
+
+.card-bottom {
+  background: #08080f;
+  padding: 24px 28px;
+}
+
+.mission-tag {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.mission-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  color: #d8d8f0;
+  line-height: 1.75;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #1DB954;
+  color: #000;
+  padding: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Mono', monospace;
+  transition: background 0.2s;
+  margin-bottom: 8px;
+  width: 100%;
+}
+.play-btn:hover { background: #1ed760; }
+
+.track-label {
+  font-size: 8px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* ─── FEATURES ─── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.feature-cell {
+  background: var(--bg2);
+  padding: 40px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-cell::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+
+.feature-cell:hover::after { transform: scaleX(1); }
+
+.feature-icon {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  font-family: 'DM Mono', monospace;
+}
+
+.feature-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.feature-body {
+  font-size: 13px;
+  color: #8888a8;
+  line-height: 1.7;
+  font-family: 'DM Serif Display', serif;
+}
+
+/* ─── PROS / CONS ─── */
+.verdict-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.verdict-col {
+  background: var(--bg2);
+  padding: 48px 40px;
+}
+
+.verdict-heading {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.verdict-heading.good { color: #4ec97a; }
+.verdict-heading.room { color: var(--gold); }
+
+.verdict-list { list-style: none; }
+
+.verdict-list li {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 22px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  color: #c0c0d8;
+  line-height: 1.6;
+}
+
+.verdict-list li::before {
+  flex-shrink: 0;
+  margin-top: 4px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+}
+
+.verdict-list.good li::before { content: '→'; color: #4ec97a; }
+.verdict-list.room li::before { content: '→'; color: var(--gold); }
+
+/* ─── FINAL SCORE ─── */
+.final-score {
+  padding: 120px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.score-display {
+  position: relative;
+}
+
+.score-giant {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 180px;
+  line-height: 0.85;
+  color: var(--text);
+  letter-spacing: -4px;
+}
+
+.score-giant em {
+  font-style: normal;
+  color: var(--red);
+}
+
+.score-denom {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--dim2);
+  letter-spacing: 2px;
+  margin-left: 4px;
+}
+
+.score-caption {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.score-right {}
+
+.score-verdict {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: #d0d0e8;
+  line-height: 1.7;
+  margin-bottom: 36px;
+}
+
+.score-sub {
+  font-size: 14px;
+  color: var(--dim);
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  line-height: 1.7;
+  margin-bottom: 48px;
+}
+
+.cta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cta-primary {
+  background: var(--red);
+  color: #fff;
+  padding: 20px 32px;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-family: 'DM Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  clip-path: polygon(0 0, 100% 0, 100% 75%, 96% 100%, 0 100%);
+  transition: background 0.2s;
+}
+.cta-primary:hover { background: #ff3a3a; }
+
+.cta-meta {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim2);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 48px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-copy {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim2);
+  text-transform: uppercase;
+  line-height: 1.8;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-links a {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--red); }
+
+/* ─── RESPONSIVE ─── */
+@media(max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 100px 20px 48px; }
+  .hero-meta { flex-direction: column; align-items: flex-start; }
+  .hero-score { text-align: left; }
+  section { padding: 60px 20px; }
+  .overview-grid { grid-template-columns: 1fr; gap: 40px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .verdict-grid { grid-template-columns: 1fr; }
+  .final-score { grid-template-columns: 1fr; gap: 40px; padding: 60px 20px; }
+  .score-giant { font-size: 120px; }
+  footer { flex-direction: column; gap: 20px; text-align: center; padding: 40px 20px; }
+}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">♣</div>
+    <span>CLOVELEARN</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#demo">The Deck</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#verdict">Verdict</a></li>
+  </ul>
+  <a href="https://clovelearn.io/" target="_blank" rel="noopener noreferrer" class="nav-cta">Open the Deck →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Field Intelligence Report 2026</div>
+
+  <div class="hero-title">
+    THE<br>OPERATOR'S<br><em>DECK</em>
+  </div>
+
+  <div class="hero-meta">
+    <p class="hero-desc">
+      108 no-bullshit tactical cards. Every one paired with a soundtrack.<br>
+      No login. No data. No therapy speak.<br>
+      Just the work.
+    </p>
+    <div class="hero-score">
+      <div class="score-num">8.7</div>
+      <div class="score-label">Out of 10 · Early Access · Feb 2026</div>
+    </div>
+  </div>
+
+  <div class="hero-strip">
+    <div class="strip-item">Status <span>Live</span></div>
+    <div class="strip-item">Storage <span>Local Only</span></div>
+    <div class="strip-item">Login <span>None</span></div>
+    <div class="strip-item">Cards <span>108</span></div>
+    <div class="strip-item">Built with <span>Grok + Claude</span></div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="section-tag">What the hell is this</div>
+  <h2 class="section-title">Tactical Cards.<br>No Therapy Speak.</h2>
+
+  <div class="overview-grid">
+    <div>
+      <div class="overview-body">
+        <p>
+          CloveLearn is <strong>The Operator's Deck</strong> — a radically private, browser-only web app for men doing the real inner work. Not journaling apps. Not mood trackers. Not anything that requires you to call your feelings by their clinical names.
+        </p>
+        <p>
+          Created by Ryan Bardyla, built live with Grok and Claude. 108 tactical op cards in playing-card format, each paired with a song that hits the right nerve, each flipping to a 24-hour mission so you actually do something with the truth.
+        </p>
+        <p>
+          8 suits covering every corner of the work: self-deception, relationships, addiction, PTSD, the rebuild, and the brotherhood you need to not do it alone.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div class="quote-block">
+        <p class="quote-text">
+          Every time your kid says "Dad, watch this" — that's a bid. A small request for connection. You get maybe 10,000 in a lifetime. Every grunt or "not now" is a declined bid.
+        </p>
+        <div class="quote-src">♥ 7 — THE BID · Shinedown — Simple Man</div>
+      </div>
+
+      <div style="margin-top: 24px; padding: 24px; background: var(--bg2); border: 1px solid var(--border);">
+        <div style="font-size: 9px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; margin-bottom: 16px;">8 Suits in the Deck</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div style="font-size: 10px; color: #5a9af5; letter-spacing: 1px;">♠ THE DIG</div>
+          <div style="font-size: 10px; color: #e03030; letter-spacing: 1px;">♥ THE PATCH-UP</div>
+          <div style="font-size: 10px; color: #3aad5a; letter-spacing: 1px;">♣ THE BREACH</div>
+          <div style="font-size: 10px; color: #c8963a; letter-spacing: 1px;">♦ THE PROTOCOL</div>
+          <div style="font-size: 10px; color: #8844cc; letter-spacing: 1px;">◈ THE TRAP</div>
+          <div style="font-size: 10px; color: #cc6020; letter-spacing: 1px;">◎ THE WATCH</div>
+          <div style="font-size: 10px; color: #20a898; letter-spacing: 1px;">◉ THE FOUNDATION</div>
+          <div style="font-size: 10px; color: #3060c0; letter-spacing: 1px;">♾ THE CREW</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CARD DEMO -->
+<section id="demo" style="background: var(--bg2); max-width: 100%; padding: 100px 40px;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div class="section-tag">Live Example</div>
+    <h2 class="section-title">A Card in the Wild</h2>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; max-width: 900px;">
+      <div class="card-wrap">
+        <div class="card-top">
+          <div class="card-rank-row">
+            <div class="card-rank">7<span style="font-size:36px; color: rgba(224,48,48,0.6);">♥</span></div>
+            <div class="card-suit-tag">The Patch-Up<br>♥ HEARTS</div>
+          </div>
+          <div class="card-name">THE BID</div>
+          <div class="card-body-text">
+            Every time your kid says "Dad, watch this" — that's a bid. A small request for connection. You get maybe 10,000 in a lifetime. Every grunt or "not now" is a declined bid.
+          </div>
+        </div>
+        <div class="card-bottom">
+          <div class="mission-tag">24-Hour Mission · Flip to Reveal</div>
+          <div class="mission-text">
+            For 24 hours, count the bids. Every reach for connection — notice it. Accept as many as you can.
+          </div>
+          <button class="play-btn" onclick="window.open('https://open.spotify.com/search/Shinedown%20Simple%20Man','_blank')">
+            ▶ PLAY — SHINEDOWN · SIMPLE MAN
+          </button>
+          <div class="track-label">Opens Spotify · All 108 cards have a track</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size: 9px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; margin-bottom: 24px;">How it works</div>
+
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="background: var(--bg3); padding: 20px 22px; display: flex; gap: 16px; align-items: flex-start;">
+            <div style="font-family: 'Bebas Neue'; font-size: 24px; color: var(--red); flex-shrink: 0; line-height: 1;">01</div>
+            <div>
+              <div style="font-size: 11px; letter-spacing: 1px; color: var(--text); margin-bottom: 4px; text-transform: uppercase;">DRAW</div>
+              <div style="font-size: 12px; color: var(--dim); font-family: 'DM Serif Display', serif;">Daily card tuned to your FIELD PROTOCOL check-in. Or pull random.</div>
+            </div>
+          </div>
+          <div style="background: var(--bg3); padding: 20px 22px; display: flex; gap: 16px; align-items: flex-start;">
+            <div style="font-family: 'Bebas Neue'; font-size: 24px; color: var(--red); flex-shrink: 0; line-height: 1;">02</div>
+            <div>
+              <div style="font-size: 11px; letter-spacing: 1px; color: var(--text); margin-bottom: 4px; text-transform: uppercase;">FLIP</div>
+              <div style="font-size: 12px; color: var(--dim); font-family: 'DM Serif Display', serif;">The card flips. Hard truth on the front. 24-hour mission on the back.</div>
+            </div>
+          </div>
+          <div style="background: var(--bg3); padding: 20px 22px; display: flex; gap: 16px; align-items: flex-start;">
+            <div style="font-family: 'Bebas Neue'; font-size: 24px; color: var(--red); flex-shrink: 0; line-height: 1;">03</div>
+            <div>
+              <div style="font-size: 11px; letter-spacing: 1px; color: var(--text); margin-bottom: 4px; text-transform: uppercase;">DO THE MISSION</div>
+              <div style="font-size: 12px; color: var(--dim); font-family: 'DM Serif Display', serif;">Log the evidence. What actually happened. Not what you wish happened.</div>
+            </div>
+          </div>
+          <div style="background: var(--bg3); padding: 20px 22px; display: flex; gap: 16px; align-items: flex-start;">
+            <div style="font-family: 'Bebas Neue'; font-size: 24px; color: var(--red); flex-shrink: 0; line-height: 1;">04</div>
+            <div>
+              <div style="font-size: 11px; letter-spacing: 1px; color: var(--text); margin-bottom: 4px; text-transform: uppercase;">RANK UP</div>
+              <div style="font-size: 12px; color: var(--dim); font-family: 'DM Serif Display', serif;">Streak tracked locally. Complete all 108 to hit UNBREAKABLE.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-tag">What's inside</div>
+  <h2 class="section-title">Every Feature<br>That Ships</h2>
+
+  <div class="features-grid">
+    <div class="feature-cell">
+      <div class="feature-icon">[ 01 ] PRIVACY</div>
+      <div class="feature-title">Zero Servers</div>
+      <div class="feature-body">No login. No account. All data lives in your browser's localStorage. Delete the tab, delete the data. Your reflections never leave your device — full stop.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 02 ] SOUNDTRACK</div>
+      <div class="feature-title">Music Preference</div>
+      <div class="feature-body">Set your genre at onboarding: Pop, Alt/Indie, Classic/Old School, or Country. When a card's original track isn't your vibe, the deck surfaces a Spotify search for your kind of sound on the same theme.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 03 ] CHECK-IN</div>
+      <div class="feature-title">Field Protocol</div>
+      <div class="feature-body">6-domain daily check-in before you draw: Mood, Attitude, Sleep, Physical Health, Activity, and Substance Use. 4 zones each — Healthy, Reacting, Injured, Ill. Routes your daily card accordingly.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 04 ] EVIDENCE</div>
+      <div class="feature-title">Mission Log</div>
+      <div class="feature-body">After completing a mission, log what actually happened. Not what you planned. Not what you wish. The evidence file builds over time — 108 missions of real data about who you're becoming.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 05 ] CRISIS</div>
+      <div class="feature-title">I'm Not Okay Mode</div>
+      <div class="feature-body">One button that immediately activates a breathing protocol, de-escalation text, and a direct link to the Therapist Finder. No judgment. No preamble. Just the thing you need when you need it.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 06 ] STUCK POINTS</div>
+      <div class="feature-title">CPT Drill</div>
+      <div class="feature-body">Embedded Cognitive Processing Therapy stuck-points worksheet. Write the thought, challenge it, rewrite it. Wired into the King cards and accessible in the More tab whenever you're spinning.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 07 ] FIELD MANUAL</div>
+      <div class="feature-title">Knowledge Library</div>
+      <div class="feature-body">32 evidence-based micro-lessons on the science behind every drill. DBT, CPT, ACT, safety planning — explained without clinical jargon. The why behind the what.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 08 ] ADHD OPS</div>
+      <div class="feature-title">10-Tool Field Kit</div>
+      <div class="feature-body">Dopamine Depot, Weekly Ops, Grove Ops, Quest Forge, Kanban, Prompt Depot, Micro Ops, Grind Ops, Body Double, Visual Planner. Executive function support built for brains that don't run on willpower.</div>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">[ 09 ] DIAGNOSTICS</div>
+      <div class="feature-title">System Check</div>
+      <div class="feature-body">Full data integrity audit. Scans all 52 localStorage keys, flags corruption, shows storage capacity, offers repair tools. The kind of thing most apps don't give you — visibility into your own data.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROS CONS -->
+<section>
+  <div class="section-tag">Honest Assessment</div>
+  <h2 class="section-title">What Works.<br>What Doesn't.</h2>
+
+  <div class="verdict-grid">
+    <div class="verdict-col">
+      <div class="verdict-heading good">What's genuinely great</div>
+      <ul class="verdict-list good">
+        <li>Radical privacy in a world that monetises every feeling you have</li>
+        <li>The cards are sharp. Not vague affirmations — actual uncomfortable truths with a specific 24-hour action</li>
+        <li>FIELD PROTOCOL check-in is the right ritual. 90 seconds, 6 domains, routes your card to where you actually are</li>
+        <li>Soundtrack matching is a legitimately clever UX choice — music creates emotional state before the card lands</li>
+        <li>The voice is consistent. Someone who does this work wrote these, not a content team chasing keywords</li>
+        <li>Music Preference now lets you swap any song for your genre — Pop, Alt, Classic, or Country Spotify searches built-in</li>
+      </ul>
+    </div>
+    <div class="verdict-col">
+      <div class="verdict-heading room">Room to grow</div>
+      <ul class="verdict-list room">
+        <li>Still early — some suits feel thinner than others. Brotherhood and Rebuild deserve more depth</li>
+        <li>Export exists now in Tool Shed (text archive of all sessions) — but no cloud backup, which is by design</li>
+        <li>The 108-card count completes the standard deck math cleanly — a thoughtful structural choice</li>
+        <li>Mobile performance improved with v1.1 RAF batching — older phones still feel some weight on tab switches</li>
+        <li>No community layer yet. These cards work better when you know someone else is doing the same mission</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL VERDICT -->
+<div id="verdict" style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="final-score">
+    <div class="score-display">
+      <div class="score-giant">8<em>.</em>7<span class="score-denom">/10</span></div>
+      <div class="score-caption">v1.1.0 · March 2026 · Operators Only</div>
+    </div>
+    <div class="score-right">
+      <p class="score-verdict">
+        If you're done with fluffy wellness apps that harvest your vulnerability for ad revenue, this is the antidote.
+      </p>
+      <p class="score-sub">
+        It's raw, private, and built by someone who did the work himself. The kind of tool you'd build for yourself — and Ryan Bardyla did exactly that, out loud, with an AI, in public. That's worth something.
+      </p>
+      <div class="cta-block">
+        <a href="https://clovelearn.io/" target="_blank" rel="noopener noreferrer" class="cta-primary">
+          ⚡ Open the Deck Now
+        </a>
+        <div class="cta-meta">No login · No account · Browser only · Free</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-copy">
+    CloveLearn.io Review · Updated March 2026 · v1.1.0<br>
+    Not affiliated · Built as a love letter to the tool
+  </div>
+  <div class="footer-links">
+    <a href="changelog.html">Changelog</a>
+    <a href="feedback.html">Feedback / Bugs</a>
+    <a href="https://clovelearn.io/" target="_blank" rel="noopener noreferrer">Open Deck</a>
+  </div>
+</footer>
+
+<script>
+console.log('%cCloveLearn Review · Operator Edition', 'color:#e03030;font-family:monospace;font-size:14px');
+</script>
+</body>
+</html>

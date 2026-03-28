@@ -1,0 +1,11 @@
+# Icon path rewrites — manifest.json, index.html, and sw.js reference /icons/
+# but actual files live at root with different naming (no hyphens).
+/icons/clove-16.png /clove16.png 200
+/icons/clove-32.png /clove32.png 200
+/icons/clove-180.png /clove180.png 200
+/icons/clove-192.png /clove192.png 200
+/icons/clove-512.png /clove512.png 200
+/icons/icon-180x180.png /icon180x180.png 200
+/icons/og-image.jpg /ogimage.jpg 200
+/icons/clove-syndicate-icon-brown.png /clovesyndicateiconbrown.png 200
+/icons/favicon.ico /clove32.png 200

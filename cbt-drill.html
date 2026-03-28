@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="CBT DRILL • OPERATOR'S DECK">
+<meta property="og:description" content="Cognitive Behavioral Therapy thought record. Catch the thought, weigh the evidence, rewrite the conclusion.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/cbt-drill.html">
+<title>CBT DRILL • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--accent:#e67e22}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--accent);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--accent);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim3);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2)}
+.step-counter span{color:var(--accent)}
+/* DISCLAIMER */
+.disc-strip{background:#1a0f03;border-bottom:1px solid rgba(230,126,34,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--accent);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#8a6530;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#b8813a}
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--accent);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim3);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:var(--dim);font-style:normal}
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(230,126,34,.4)}
+textarea::placeholder,input::placeholder{color:#2a2a2a;font-style:italic}
+textarea{min-height:90px}
+/* DISTORTION GRID */
+.dist-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.dist-card{background:var(--bg3);border:1.5px solid var(--dim3);border-radius:10px;padding:12px 10px;cursor:pointer;transition:all .15s}
+.dist-card.sel{border-color:var(--accent);background:rgba(230,126,34,.08)}
+.dist-card:active{transform:scale(.96)}
+.dist-name{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:.5px;color:#bbb;margin-bottom:4px}
+.dist-card.sel .dist-name{color:#fff}
+.dist-desc{font-size:8px;font-family:Georgia,serif;color:var(--dim2);line-height:1.5}
+.dist-check{float:right;font-size:11px;color:var(--accent);opacity:0}
+.dist-card.sel .dist-check{opacity:1}
+/* EMOTION SLIDER */
+.em-wrap{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:12px}
+.em-label{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:8px}
+input[type=range]{width:100%;height:8px;-webkit-appearance:none;background:linear-gradient(90deg,var(--dim3),var(--accent));border-radius:4px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #000;box-shadow:0 0 0 3px rgba(230,126,34,.2)}
+.em-display{display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px}
+.em-num{font-size:32px;font-weight:900;font-family:monospace;color:var(--accent)}
+.em-desc{font-size:9px;font-family:Georgia,serif;color:var(--dim2);text-align:right;font-style:italic;max-width:180px;line-height:1.5}
+/* EVIDENCE TABLE */
+.ev-row{display:flex;gap:8px;margin-bottom:8px}
+.ev-col{flex:1;background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--dim3)}
+.ev-col-label{font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+.ev-col.for .ev-col-label{color:var(--grn)}
+.ev-col.against .ev-col-label{color:var(--accent)}
+.ev-col textarea{min-height:70px;background:var(--bg2);font-size:10px}
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#8b4513);color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:monospace;letter-spacing:2px;box-shadow:0 4px 16px rgba(230,126,34,.2);transition:all .2s}
+.btn-secondary{background:var(--bg2);color:#aaa;border:1px solid #222;border-radius:10px;padding:13px 24px;font-size:11px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-primary:active,.btn-secondary:active{transform:scale(.96)}
+/* SUMMARY CARD */
+.sum-card{background:var(--bg2);border-radius:14px;border:1px solid rgba(230,126,34,.15);padding:18px;margin-bottom:12px}
+.sum-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--accent);margin-bottom:6px}
+.sum-text{font-size:11px;font-family:Georgia,serif;color:#bbb;line-height:1.7;white-space:pre-wrap;word-wrap:break-word}
+.sum-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sum-tag{font-size:7px;font-family:monospace;letter-spacing:1px;padding:4px 8px;border-radius:6px;background:rgba(230,126,34,.1);color:var(--accent)}
+/* HISTORY */
+.hist-entry{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:6px;border-left:3px solid var(--accent)}
+.hist-date{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-bottom:4px}
+.hist-thought{font-size:10px;color:#bbb;font-family:Georgia,serif;line-height:1.6;margin-bottom:4px}
+.hist-balanced{font-size:10px;color:var(--accent);font-family:Georgia,serif;line-height:1.6}
+.hist-score{font-size:8px;font-family:monospace;color:var(--dim2);margin-top:4px}
+/* DECK LINK */
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(192,57,43,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+/* NEXT STEP */
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--accent)}
+/* TOAST */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+textarea:focus-visible,input:focus-visible{outline:2px solid var(--gld);outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="CBT Drill navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">COGNITIVE BEHAVIORAL THERAPY</div>
+    <div class="nav-name">CBT THOUGHT RECORD</div>
+  </div>
+</nav>
+
+<div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+<div class="step-counter" id="stepCount">STEP <span>1</span> OF 6</div>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>Clinical context:</strong> CBT thought records are a core tool in Cognitive Behavioral Therapy (Beck, 1979).
+    This is a self-help exercise — not therapy. If you're in crisis, use
+    <a href="red-protocol.html" style="color:var(--accent);text-decoration:none">Red Protocol</a> or
+    <a href="safety-plan-drill.html" style="color:var(--accent);text-decoration:none">Safety Plan</a>.
+  </div>
+</div>
+
+<!-- STEP 1: SITUATION -->
+<div class="step active" id="step1">
+  <div class="step-label">STEP 01 — SITUATION</div>
+  <div class="step-title">What Happened?</div>
+  <div class="step-desc">
+    Describe the specific situation that triggered the thought.
+    Not the story you told yourself about it — the raw facts.
+    Who, what, where, when. Like a camera saw it.
+  </div>
+  <div class="step-example">
+    <strong>Example:</strong> "My boss didn't respond to my email for 3 hours.
+    I was at my desk. It was Tuesday afternoon."
+  </div>
+  <textarea id="in_situation" placeholder="Describe the situation as a camera would see it..." maxlength="2000" aria-label="Situation description"></textarea>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="goStep(2)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 2: EMOTIONS -->
+<div class="step" id="step2">
+  <div class="step-label">STEP 02 — EMOTIONS</div>
+  <div class="step-title">What Did You Feel?</div>
+  <div class="step-desc">
+    Name the emotion. Not the thought — the raw feeling in your body.
+    Rate its intensity. Be honest about how hard it hit.
+  </div>
+  <input type="text" id="in_emotion" placeholder="Name the emotion (e.g., anxiety, anger, shame, sadness...)" maxlength="100" aria-label="Primary emotion" style="margin-bottom:12px">
+  <div class="em-wrap">
+    <div class="em-label">INTENSITY</div>
+    <input type="range" id="in_intensity" min="0" max="100" value="50" step="1" oninput="updInt()" aria-label="Emotion intensity">
+    <div class="em-display">
+      <div class="em-num" id="intNum">50</div>
+      <div class="em-desc" id="intDesc">Moderate. Present and uncomfortable.</div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(1)">◂ BACK</button>
+    <button class="btn-primary" onclick="goStep(3)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 3: AUTOMATIC THOUGHT -->
+<div class="step" id="step3">
+  <div class="step-label">STEP 03 — AUTOMATIC THOUGHT</div>
+  <div class="step-title">What Went Through Your Mind?</div>
+  <div class="step-desc">
+    The hot thought. The first thing your brain said before you could filter it.
+    Not what you think you should have thought — what actually fired.
+  </div>
+  <div class="step-example">
+    <strong>Example:</strong> "He's ignoring me on purpose. I'm about to get fired.
+    I'm not good enough for this job."
+  </div>
+  <textarea id="in_thought" placeholder="Write the automatic thought exactly as it appeared..." maxlength="2000" aria-label="Automatic thought"></textarea>
+  <div style="margin-top:12px">
+    <div class="em-wrap">
+      <div class="em-label">HOW MUCH DO YOU BELIEVE THIS THOUGHT RIGHT NOW?</div>
+      <input type="range" id="in_belief" min="0" max="100" value="75" step="1" oninput="updBel()" aria-label="Belief rating">
+      <div class="em-display">
+        <div class="em-num" id="belNum">75</div>
+        <div class="em-desc" id="belDesc">Strong belief. Feels like fact.</div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(2)">◂ BACK</button>
+    <button class="btn-primary" onclick="goStep(4)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 4: COGNITIVE DISTORTIONS -->
+<div class="step" id="step4">
+  <div class="step-label">STEP 04 — COGNITIVE DISTORTIONS</div>
+  <div class="step-title">Name the Pattern</div>
+  <div class="step-desc">
+    Your brain has favorite tricks. Select every distortion you notice
+    in the thought you wrote. Most thoughts carry 2-3. Tap to select.
+  </div>
+  <div class="dist-grid" id="distGrid"></div>
+  <div style="text-align:center;font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-bottom:10px" id="distCount">0 SELECTED</div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(3)">◂ BACK</button>
+    <button class="btn-primary" onclick="goStep(5)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 5: EVIDENCE -->
+<div class="step" id="step5">
+  <div class="step-label">STEP 05 — EVIDENCE</div>
+  <div class="step-title">Weigh the Case</div>
+  <div class="step-desc">
+    Lawyer up. What actual evidence supports this thought?
+    What evidence contradicts it? Facts only — not feelings dressed as facts.
+  </div>
+  <div class="ev-row">
+    <div class="ev-col for">
+      <div class="ev-col-label">EVIDENCE FOR</div>
+      <textarea id="in_evfor" placeholder="What facts actually support this thought?" maxlength="2000" aria-label="Evidence supporting the thought"></textarea>
+    </div>
+    <div class="ev-col against">
+      <div class="ev-col-label">EVIDENCE AGAINST</div>
+      <textarea id="in_evagainst" placeholder="What facts contradict or weaken this thought?" maxlength="2000" aria-label="Evidence against the thought"></textarea>
+    </div>
+  </div>
+  <div class="step-example">
+    <strong>Pro tip:</strong> "I feel like" is not evidence. "He said X on Tuesday" is.
+    Look for facts you'd present in court, not feelings you'd share in a diary.
+  </div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(4)">◂ BACK</button>
+    <button class="btn-primary" onclick="goStep(6)">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- STEP 6: BALANCED THOUGHT + SAVE -->
+<div class="step" id="step6">
+  <div class="step-label">STEP 06 — BALANCED THOUGHT</div>
+  <div class="step-title">Rewrite the Verdict</div>
+  <div class="step-desc">
+    Now write a more balanced thought. Not positive thinking — accurate thinking.
+    A thought that accounts for ALL the evidence, not just the prosecution's case.
+  </div>
+  <div class="step-example">
+    <strong>Example:</strong> "He might be busy. Three hours isn't unusual.
+    He replied to my last email same day. I have no evidence I'm being fired.
+    I can follow up tomorrow if I haven't heard back."
+  </div>
+  <textarea id="in_balanced" placeholder="Write the balanced, evidence-based thought..." maxlength="2000" aria-label="Balanced thought"></textarea>
+  <div style="margin-top:12px">
+    <div class="em-wrap">
+      <div class="em-label">HOW MUCH DO YOU BELIEVE THE ORIGINAL THOUGHT NOW?</div>
+      <input type="range" id="in_belief2" min="0" max="100" value="30" step="1" oninput="updBel2()" aria-label="Updated belief rating">
+      <div class="em-display">
+        <div class="em-num" id="belNum2">30</div>
+        <div class="em-desc" id="belDesc2">Weakened. Evidence shifted the weight.</div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goStep(5)">◂ BACK</button>
+    <button class="btn-primary" onclick="saveDrill()" style="background:linear-gradient(135deg,var(--grn),#1a6b3a);box-shadow:0 4px 16px rgba(39,174,96,.25)">LOG RECORD ✓</button>
+  </div>
+</div>
+
+<!-- STEP 7: SUMMARY -->
+<div class="step" id="step7">
+  <div class="step-label">THOUGHT RECORD COMPLETE</div>
+  <div class="step-title">After-Action Review</div>
+  <div id="summary"></div>
+  <div class="btn-row" style="margin-top:20px">
+    <button class="btn-primary" onclick="resetDrill()">NEW RECORD</button>
+    <button class="btn-secondary" onclick="showHistory()">VIEW HISTORY</button>
+  </div>
+</div>
+
+<!-- STEP 8: HISTORY -->
+<div class="step" id="step8">
+  <div class="step-label">THOUGHT RECORD LOG</div>
+  <div class="step-title">Your Records</div>
+  <div id="histList"></div>
+  <div class="btn-row" style="margin-top:16px">
+    <button class="btn-primary" onclick="resetDrill()">NEW RECORD</button>
+    <button class="btn-secondary" onclick="exportHistory()">EXPORT .TXT</button>
+  </div>
+</div>
+
+<!-- DECK LINK -->
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <div class="dl-text">King cards in the deck link to the Stuck Points drill for deeper cognitive processing work. CBT thought records pair directly — use this drill to challenge the thoughts, then take them into CPT if they're stuck.</div>
+  <a href="stuck-points-drill.html" rel="noopener">OPEN STUCK POINTS DRILL →</a>
+</div>
+
+<!-- NEXT STEP -->
+<nav class="next-block" role="navigation" aria-label="Related drills">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="stuck-points-drill.html">◈ STUCK POINTS (CPT) — Deeper cognitive processing</a>
+  <a class="next-link" href="chain-analysis-drill.html">◈ CHAIN ANALYSIS — Trace the full behavioral chain</a>
+  <a class="next-link" href="act-drill.html">◈ ACT DRILL — Values + committed action</a>
+  <a class="next-link" href="opposite-action-drill.html">◈ OPPOSITE ACTION — Override the urge</a>
+  <a class="next-link" href="toolshed.html">◈ TOOL SHED — All recovery tools</a>
+</nav>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+var KEY='od_cbt_records';
+var currentStep=1;
+var selectedDists=[];
+
+var DISTORTIONS=[
+  {id:'aon',name:'ALL-OR-NOTHING',desc:'Black and white. No middle ground.'},
+  {id:'cat',name:'CATASTROPHIZING',desc:'Worst case scenario as the only scenario.'},
+  {id:'mrf',name:'MIND READING',desc:'Assuming you know what others think.'},
+  {id:'fort',name:'FORTUNE TELLING',desc:'Predicting the future as if it\'s certain.'},
+  {id:'lab',name:'LABELING',desc:'Reducing yourself to a single word.'},
+  {id:'mag',name:'MAGNIFYING',desc:'Making the negative bigger than it is.'},
+  {id:'min',name:'MINIMIZING',desc:'Shrinking the positive until it disappears.'},
+  {id:'per',name:'PERSONALIZING',desc:'Taking blame for things outside your control.'},
+  {id:'sho',name:'SHOULD STATEMENTS',desc:'"I should" = unrealistic rigid rules.'},
+  {id:'ovg',name:'OVERGENERALIZING',desc:'One event becomes "always" or "never."'},
+  {id:'fil',name:'MENTAL FILTER',desc:'Focusing only on the negative detail.'},
+  {id:'dis',name:'DISCOUNTING',desc:'Dismissing positives as irrelevant.'},
+  {id:'emr',name:'EMOTIONAL REASONING',desc:'"I feel it, so it must be true."'},
+  {id:'blm',name:'BLAMING',desc:'Others caused it. Or I caused everything.'}
+];
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+function goStep(n){
+  currentStep=n;
+  for(var i=1;i<=8;i++){
+    var el=document.getElementById('step'+i);
+    if(el)el.classList.toggle('active',i===n);
+  }
+  var pct=n<=6?Math.round(((n-1)/6)*100):100;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('stepCount').innerHTML=n<=6?'STEP <span>'+n+'</span> OF 6':n===7?'COMPLETE':'HISTORY';
+  window.scrollTo(0,0);
+}
+
+// Distortion grid
+function renderDists(){
+  var h='';
+  DISTORTIONS.forEach(function(d){
+    var sel=selectedDists.indexOf(d.id)>-1;
+    h+='<div class="dist-card'+(sel?' sel':'')+'" onclick="toggleDist(\''+d.id+'\')">';
+    h+='<span class="dist-check">&#10003;</span>';
+    h+='<div class="dist-name">'+d.name+'</div>';
+    h+='<div class="dist-desc">'+d.desc+'</div>';
+    h+='</div>';
+  });
+  document.getElementById('distGrid').innerHTML=h;
+  document.getElementById('distCount').textContent=selectedDists.length+' SELECTED';
+}
+function toggleDist(id){
+  var idx=selectedDists.indexOf(id);
+  if(idx>-1)selectedDists.splice(idx,1);else selectedDists.push(id);
+  renderDists();
+}
+
+// Intensity descriptions
+function updInt(){
+  var v=parseInt(document.getElementById('in_intensity').value);
+  document.getElementById('intNum').textContent=v;
+  var desc='Barely there.';
+  if(v>20)desc='Mild. Noticeable but manageable.';
+  if(v>40)desc='Moderate. Present and uncomfortable.';
+  if(v>60)desc='Strong. Hard to ignore.';
+  if(v>80)desc='Overwhelming. Dominating everything.';
+  document.getElementById('intDesc').textContent=desc;
+}
+
+function updBel(){
+  var v=parseInt(document.getElementById('in_belief').value);
+  document.getElementById('belNum').textContent=v;
+  var desc='Not very convincing.';
+  if(v>25)desc='Some doubt, but leaning toward belief.';
+  if(v>50)desc='More than half convinced.';
+  if(v>75)desc='Strong belief. Feels like fact.';
+  if(v>90)desc='Absolute certainty. No question.';
+  document.getElementById('belDesc').textContent=desc;
+}
+
+function updBel2(){
+  var v=parseInt(document.getElementById('in_belief2').value);
+  document.getElementById('belNum2').textContent=v;
+  var desc='Barely believe it now.';
+  if(v>25)desc='Weakened. Evidence shifted the weight.';
+  if(v>50)desc='Still somewhat convincing.';
+  if(v>75)desc='Thought held up despite the evidence.';
+  if(v>90)desc='Unchanged. Might need deeper work.';
+  document.getElementById('belDesc2').textContent=desc;
+}
+
+// Save
+function saveDrill(){
+  var record={
+    situation:document.getElementById('in_situation').value.trim(),
+    emotion:document.getElementById('in_emotion').value.trim(),
+    intensity:parseInt(document.getElementById('in_intensity').value),
+    thought:document.getElementById('in_thought').value.trim(),
+    beliefBefore:parseInt(document.getElementById('in_belief').value),
+    distortions:selectedDists.slice(),
+    evFor:document.getElementById('in_evfor').value.trim(),
+    evAgainst:document.getElementById('in_evagainst').value.trim(),
+    balanced:document.getElementById('in_balanced').value.trim(),
+    beliefAfter:parseInt(document.getElementById('in_belief2').value),
+    date:new Date().toLocaleDateString(),
+    ts:Date.now()
+  };
+
+  if(!record.thought&&!record.situation){showToast('WRITE SOMETHING FIRST');return}
+
+  var records=loadRecords();
+  records.push(record);
+  if(records.length>200)records.splice(0,records.length-200);
+  try{localStorage.setItem(KEY,JSON.stringify(records))}catch(e){}
+
+  // Render summary
+  var shift=record.beliefBefore-record.beliefAfter;
+  var shiftColor=shift>0?'var(--grn)':shift<0?'var(--red)':'var(--dim)';
+  var distNames=[];
+  record.distortions.forEach(function(id){
+    var d=DISTORTIONS.find(function(x){return x.id===id});
+    if(d)distNames.push(d.name);
+  });
+
+  var h='';
+  if(record.situation)h+='<div class="sum-card"><div class="sum-label">SITUATION</div><div class="sum-text">'+esc(record.situation)+'</div></div>';
+  if(record.emotion)h+='<div class="sum-card"><div class="sum-label">EMOTION — '+esc(record.emotion).toUpperCase()+' ('+record.intensity+'/100)</div></div>';
+  h+='<div class="sum-card"><div class="sum-label">AUTOMATIC THOUGHT (BELIEF: '+record.beliefBefore+'%)</div><div class="sum-text">'+esc(record.thought)+'</div></div>';
+  if(distNames.length)h+='<div class="sum-card"><div class="sum-label">DISTORTIONS IDENTIFIED</div><div class="sum-tags">'+distNames.map(function(n){return'<span class="sum-tag">'+esc(n)+'</span>'}).join('')+'</div></div>';
+  if(record.evFor||record.evAgainst){
+    h+='<div class="sum-card"><div class="sum-label">EVIDENCE FOR</div><div class="sum-text">'+(esc(record.evFor)||'—')+'</div></div>';
+    h+='<div class="sum-card"><div class="sum-label">EVIDENCE AGAINST</div><div class="sum-text">'+(esc(record.evAgainst)||'—')+'</div></div>';
+  }
+  h+='<div class="sum-card"><div class="sum-label">BALANCED THOUGHT (BELIEF NOW: '+record.beliefAfter+'%)</div><div class="sum-text">'+esc(record.balanced)+'</div></div>';
+  h+='<div class="sum-card" style="text-align:center"><div class="sum-label">BELIEF SHIFT</div><div style="font-size:28px;font-weight:900;font-family:monospace;color:'+shiftColor+'">'+(shift>0?'↓ ':shift<0?'↑ ':'')+(shift>0?shift:shift<0?Math.abs(shift):0)+'%</div><div style="font-size:9px;color:var(--dim2);font-family:Georgia,serif;font-style:italic;margin-top:4px">'+(shift>20?'Significant shift. The evidence did its job.':shift>0?'Some movement. Keep building the case.':'No shift this time. That\'s data, not failure.')+'</div></div>';
+
+  document.getElementById('summary').innerHTML=h;
+  showToast('THOUGHT RECORD LOGGED');
+  goStep(7);
+}
+
+function loadRecords(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+
+function resetDrill(){
+  selectedDists=[];
+  ['in_situation','in_thought','in_emotion','in_evfor','in_evagainst','in_balanced'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('in_intensity').value=50;updInt();
+  document.getElementById('in_belief').value=75;updBel();
+  document.getElementById('in_belief2').value=30;updBel2();
+  renderDists();
+  goStep(1);
+}
+
+function showHistory(){
+  var records=loadRecords();
+  if(!records.length){
+    document.getElementById('histList').innerHTML='<div style="text-align:center;color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;padding:20px">No records yet. Complete a thought record to see it here.</div>';
+    goStep(8);return;
+  }
+  var h='<div style="text-align:center;font-size:8px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-bottom:12px">'+records.length+' RECORD'+(records.length!==1?'S':'')+'</div>';
+  records.slice().reverse().slice(0,30).forEach(function(r){
+    var distNames=[];
+    if(r.distortions){r.distortions.forEach(function(id){var d=DISTORTIONS.find(function(x){return x.id===id});if(d)distNames.push(d.name)})}
+    var shift=r.beliefBefore-r.beliefAfter;
+    h+='<div class="hist-entry">';
+    h+='<div class="hist-date">'+esc(r.date)+'</div>';
+    h+='<div class="hist-thought">"'+esc(r.thought)+'"</div>';
+    if(r.balanced)h+='<div class="hist-balanced">→ '+esc(r.balanced)+'</div>';
+    h+='<div class="hist-score">'+esc(r.emotion||'')+' '+r.intensity+'/100 • belief '+r.beliefBefore+'% → '+r.beliefAfter+'%'+(shift>0?' (↓'+shift+'%)':'')+'</div>';
+    if(distNames.length)h+='<div style="margin-top:6px">'+distNames.map(function(n){return'<span class="sum-tag" style="font-size:6px">'+esc(n)+'</span>'}).join(' ')+'</div>';
+    h+='</div>';
+  });
+  document.getElementById('histList').innerHTML=h;
+  goStep(8);
+}
+
+function exportHistory(){
+  var records=loadRecords();
+  if(!records.length){showToast('NO RECORDS TO EXPORT');return}
+  var txt='CBT THOUGHT RECORDS — OPERATOR\'S DECK\nExported: '+new Date().toLocaleString()+'\n'+('═').repeat(50)+'\n\n';
+  records.forEach(function(r,i){
+    txt+='RECORD #'+(i+1)+' — '+r.date+'\n';
+    txt+='Situation: '+(r.situation||'—')+'\n';
+    txt+='Emotion: '+(r.emotion||'—')+' ('+r.intensity+'/100)\n';
+    txt+='Automatic thought: '+(r.thought||'—')+'\n';
+    txt+='Belief before: '+r.beliefBefore+'%\n';
+    var distNames=[];
+    if(r.distortions){r.distortions.forEach(function(id){var d=DISTORTIONS.find(function(x){return x.id===id});if(d)distNames.push(d.name)})}
+    if(distNames.length)txt+='Distortions: '+distNames.join(', ')+'\n';
+    txt+='Evidence for: '+(r.evFor||'—')+'\n';
+    txt+='Evidence against: '+(r.evAgainst||'—')+'\n';
+    txt+='Balanced thought: '+(r.balanced||'—')+'\n';
+    txt+='Belief after: '+r.beliefAfter+'%\n';
+    txt+=('-').repeat(40)+'\n\n';
+  });
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='cbt-thought-records-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  showToast('EXPORTED '+records.length+' RECORDS');
+}
+
+// Init
+renderDists();
+updInt();
+updBel();
+updBel2();
+</script>
+</body>
+</html>

@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<title>MISSION BRIEF • OPERATOR'S DECK</title>
+<style>
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a80c4;--gld:#d4a843;--red:#c0392b;--grn:#27ae60;--txt:#fff;--dim:#8a8a8a;--dim2:#777}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100dvh;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding-bottom:60px}
+
+/* NAV */
+.nav-bar{background:var(--bg);border-bottom:3px solid var(--blu);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid #333;color:#999;font-family:monospace;font-size:10px;letter-spacing:2px;padding:7px 12px;cursor:pointer;border-radius:6px;transition:all .2s}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--blu);text-transform:uppercase}
+.nav-name{font-size:12px;font-weight:800;font-family:monospace;letter-spacing:2px}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--bg4);position:sticky;top:47px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blu),var(--gld));transition:width .4s ease;width:0%}
+.step-counter{text-align:center;font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--blu);padding:10px 0 0}
+
+/* DISCLAIMER */
+.disc-strip{background:rgba(74,128,196,.1);border-top:1px solid rgba(74,128,196,.25);border-bottom:1px solid rgba(74,128,196,.25);padding:10px 16px;text-align:center;font-size:8px;font-family:monospace;letter-spacing:1px;color:rgba(74,128,196,.75);margin-bottom:6px}
+
+/* STEPS */
+.step{display:none;padding:20px 16px 8px}
+.step.active{display:block}
+.step-label{color:var(--blu);font-size:8px;font-family:monospace;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:1px;line-height:1.25;margin-bottom:8px}
+.step-desc{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:16px}
+
+/* DOMAIN CARDS — STEP 1 */
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.domain-card{border:1px solid var(--bg4);border-radius:10px;padding:12px 10px;background:var(--bg3);cursor:pointer;text-align:center;transition:all .2s;position:relative;-webkit-tap-highlight-color:transparent}
+.domain-card:active{transform:scale(.97)}
+.domain-card.sel{background:rgba(74,128,196,.15);border-color:var(--blu);color:var(--blu)}
+.domain-card.maxed{opacity:.3;pointer-events:none}
+.domain-icon{font-size:18px;margin-bottom:4px}
+.domain-label{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px}
+.domain-check{position:absolute;top:6px;right:8px;font-size:10px;color:var(--blu);display:none}
+.domain-card.sel .domain-check{display:block}
+.domain-limit{text-align:center;font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:8px}
+
+/* MODALITY GRID — STEP 2 */
+.mod-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+
+/* PREFERENCE GROUPS — STEPS 3 + 4 */
+.pref-group{margin-bottom:18px}
+.pref-label{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:6px}
+.pref-row{display:flex;gap:5px;flex-wrap:wrap}
+.pref-btn{background:var(--bg3);border:1px solid var(--bg4);border-radius:8px;color:var(--dim);font-family:monospace;font-size:9px;font-weight:700;letter-spacing:1px;padding:9px 12px;cursor:pointer;transition:all .2s}
+.pref-btn.sel{background:rgba(74,128,196,.15);border-color:var(--blu);color:var(--blu)}
+.pref-btn:active{transform:scale(.96)}
+
+/* TEXTAREA — STEP 5 */
+.note-wrap{margin-bottom:8px}
+.note-input{width:100%;background:var(--bg3);color:#ccc;border:1px solid var(--bg4);border-radius:10px;padding:14px;font-size:11px;font-family:Georgia,serif;line-height:1.7;min-height:120px;max-height:260px;resize:vertical;outline:none;transition:border-color .3s}
+.note-input:focus{border-color:rgba(74,128,196,.6)}
+.note-input::placeholder{color:var(--dim2);font-style:italic}
+.char-hint{font-size:7px;font-family:monospace;color:var(--dim2);text-align:right;margin-top:4px;letter-spacing:1px}
+.optional-tag{display:inline-block;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);background:var(--bg4);border-radius:4px;padding:2px 6px;margin-bottom:10px}
+
+/* SUMMARY — STEP 6 */
+.brief-header{background:linear-gradient(135deg,rgba(74,128,196,.1),var(--bg3));border:1px solid rgba(74,128,196,.25);border-radius:14px;padding:16px;margin-bottom:10px;text-align:center}
+.brief-id{font-size:9px;font-family:monospace;letter-spacing:3px;color:var(--blu);margin-bottom:4px}
+.brief-date{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2)}
+.brief-section{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px}
+.brief-sec-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--blu);text-transform:uppercase;margin-bottom:8px}
+.brief-pills{display:flex;flex-wrap:wrap;gap:5px}
+.brief-pill{font-size:8px;font-family:monospace;letter-spacing:1px;padding:4px 10px;border-radius:20px;background:rgba(74,128,196,.12);border:1px solid rgba(74,128,196,.25);color:var(--blu)}
+.brief-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bg4)}
+.brief-row:last-child{border-bottom:none}
+.brief-row-label{color:var(--dim);font-family:monospace;letter-spacing:1px;font-size:8px}
+.brief-row-val{color:#ccc;font-family:monospace;font-size:8px;font-weight:700;text-align:right;max-width:55%}
+.brief-note{color:#bbb;font-size:10px;font-family:Georgia,serif;line-height:1.7;font-style:italic;white-space:pre-wrap;word-wrap:break-word}
+.pt-link-wrap{background:linear-gradient(135deg,#0a1520,var(--bg3));border:1px solid rgba(74,128,196,.2);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center}
+.pt-link-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--blu);margin-bottom:8px}
+.pt-link-btn{display:inline-block;background:rgba(74,128,196,.15);border:1px solid var(--blu);border-radius:8px;padding:10px 20px;font-size:9px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-decoration:none;cursor:pointer;transition:all .2s}
+.pt-link-btn:active{background:rgba(74,128,196,.3)}
+
+/* BUTTONS */
+.btn-next{width:100%;background:linear-gradient(135deg,var(--blu),#2d5a96);color:#fff;border:none;border-radius:12px;padding:15px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-top:8px}
+.btn-next:active{transform:scale(.98)}
+.btn-next:disabled{background:var(--bg4);color:var(--dim2);cursor:not-allowed;transform:none}
+.btn-back-step{background:none;border:1px solid #333;color:var(--dim);font-family:monospace;font-size:9px;letter-spacing:2px;padding:10px 16px;cursor:pointer;border-radius:8px;margin-top:8px;transition:all .2s}
+.btn-back-step:active{color:#fff;border-color:#666}
+.btn-row{display:flex;gap:8px;align-items:stretch;margin-top:12px}
+.btn-save{flex:1;background:linear-gradient(135deg,var(--blu),#2d5a96);color:#fff;border:none;border-radius:12px;padding:14px;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-save:active{transform:scale(.98)}
+.btn-print{background:var(--bg2);border:1px solid rgba(74,128,196,.3);color:var(--blu);font-family:monospace;font-size:10px;font-weight:700;letter-spacing:2px;padding:14px 18px;border-radius:12px;cursor:pointer;transition:all .2s}
+.btn-print:active{transform:scale(.98);background:rgba(74,128,196,.1)}
+.btn-new{width:100%;background:var(--bg2);border:1px solid #333;color:var(--dim);font-family:monospace;font-size:10px;letter-spacing:2px;padding:12px;border-radius:10px;cursor:pointer;margin-top:8px;transition:all .2s}
+.btn-new:active{color:#fff;border-color:#666}
+.skip-link{display:block;text-align:center;color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:2px;cursor:pointer;padding:10px;margin-top:4px;transition:color .2s}
+.skip-link:active{color:var(--dim)}
+
+/* PAST BRIEFS */
+.past-section{padding:20px 16px;display:none}
+.past-hdr{font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:12px}
+.past-entry{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid var(--blu)}
+.pe-top{display:flex;justify-content:space-between;align-items:flex-start}
+.pe-id{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--blu)}
+.pe-date{font-size:7px;font-family:monospace;color:var(--dim2);margin-top:2px}
+.pe-del{background:none;border:1px dashed rgba(192,57,43,.25);color:rgba(192,57,43,.5);font-family:monospace;font-size:7px;letter-spacing:1px;padding:4px 8px;border-radius:5px;cursor:pointer;transition:all .2s}
+.pe-del:active{border-color:var(--red);color:var(--red)}
+.pe-areas{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.pe-area{font-size:7px;font-family:monospace;padding:2px 7px;border-radius:10px;background:rgba(74,128,196,.1);color:rgba(74,128,196,.85);letter-spacing:1px}
+.pe-expand{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);background:none;border:none;cursor:pointer;padding:4px 0;transition:color .2s}
+.pe-expand:active{color:#fff}
+.pe-detail{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--bg4)}
+.pe-detail.open{display:block}
+.pe-row{display:flex;justify-content:space-between;padding:4px 0;font-size:8px;border-bottom:1px solid var(--bg4)}
+.pe-row:last-of-type{border-bottom:none}
+.pe-row span:first-child{color:var(--dim);font-family:monospace;letter-spacing:1px}
+.pe-row span:last-child{color:#ccc;font-family:monospace;font-weight:700;text-align:right;max-width:55%}
+.pe-note-text{color:#aaa;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-top:10px;padding-top:10px;border-top:1px solid var(--bg4)}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--blu);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;white-space:nowrap;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK</div>
+      <div class="nav-name">MISSION BRIEF</div>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="step-counter" id="stepCounter">STEP 1 OF 5</div>
+  <div class="disc-strip">PRIVATE INTEL — 100% LOCAL — NOTHING TRANSMITTED</div>
+
+  <!-- ── STEP 1: FOCUS AREAS ─────────────────────────────────────────────── -->
+  <div class="step active" id="step1">
+    <div class="step-label">STEP 01 — PRIMARY FOCUS</div>
+    <div class="step-title">What's bringing you here?</div>
+    <div class="step-desc">Select up to 3 areas. This is what you want addressed in therapy — your operational brief.</div>
+    <div class="domain-limit" id="focusLimit">0 / 3 SELECTED</div>
+    <div class="domain-grid" id="focusGrid"></div>
+    <button class="btn-next" id="btn1" disabled onclick="goStep(2)">NEXT →</button>
+  </div>
+
+  <!-- ── STEP 2: MODALITIES ──────────────────────────────────────────────── -->
+  <div class="step" id="step2">
+    <div class="step-label">STEP 02 — PREFERRED APPROACH</div>
+    <div class="step-title">What kind of therapy interests you?</div>
+    <div class="step-desc">Select all that apply. If you don't know the difference, select the last option and let the therapist lead.</div>
+    <div class="mod-grid" id="modalityGrid"></div>
+    <button class="btn-next" onclick="goStep(3)">NEXT →</button>
+    <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+  </div>
+
+  <!-- ── STEP 3: SESSION PREFERENCES ───────────────────────────────────── -->
+  <div class="step" id="step3">
+    <div class="step-label">STEP 03 — SESSION PREFERENCES</div>
+    <div class="step-title">How do you want to work?</div>
+    <div class="step-desc">No wrong answers. These filter out mismatches before you even pick up the phone.</div>
+
+    <div class="pref-group">
+      <div class="pref-label">FORMAT</div>
+      <div class="pref-row">
+        <button class="pref-btn" data-group="format" data-val="in-person" onclick="selPref(this)">IN-PERSON</button>
+        <button class="pref-btn" data-group="format" data-val="video" onclick="selPref(this)">VIDEO</button>
+        <button class="pref-btn sel" data-group="format" data-val="any" onclick="selPref(this)">NO PREFERENCE</button>
+      </div>
+    </div>
+
+    <div class="pref-group">
+      <div class="pref-label">PACE</div>
+      <div class="pref-row">
+        <button class="pref-btn" data-group="pace" data-val="slow" onclick="selPref(this)">SLOW & STEADY</button>
+        <button class="pref-btn sel" data-group="pace" data-val="moderate" onclick="selPref(this)">MODERATE</button>
+        <button class="pref-btn" data-group="pace" data-val="intensive" onclick="selPref(this)">INTENSIVE</button>
+        <button class="pref-btn" data-group="pace" data-val="any" onclick="selPref(this)">NO PREFERENCE</button>
+      </div>
+    </div>
+
+    <div class="pref-group">
+      <div class="pref-label">THERAPIST GENDER</div>
+      <div class="pref-row">
+        <button class="pref-btn" data-group="gender" data-val="male" onclick="selPref(this)">MALE</button>
+        <button class="pref-btn" data-group="gender" data-val="female" onclick="selPref(this)">FEMALE</button>
+        <button class="pref-btn sel" data-group="gender" data-val="any" onclick="selPref(this)">NO PREFERENCE</button>
+      </div>
+    </div>
+
+    <button class="btn-next" onclick="goStep(4)">NEXT →</button>
+    <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+  </div>
+
+  <!-- ── STEP 4: PRACTICAL CONSTRAINTS ─────────────────────────────────── -->
+  <div class="step" id="step4">
+    <div class="step-label">STEP 04 — PRACTICAL CONSTRAINTS</div>
+    <div class="step-title">What are your real-world limits?</div>
+    <div class="step-desc">Budget and availability. Eliminates wasted calls before you even start looking.</div>
+
+    <div class="pref-group">
+      <div class="pref-label">BUDGET PER SESSION</div>
+      <div class="pref-row">
+        <button class="pref-btn" data-group="budget" data-val="under80" onclick="selPref(this)">UNDER $80</button>
+        <button class="pref-btn sel" data-group="budget" data-val="80-120" onclick="selPref(this)">$80–120</button>
+        <button class="pref-btn" data-group="budget" data-val="120-180" onclick="selPref(this)">$120–180</button>
+        <button class="pref-btn" data-group="budget" data-val="180plus" onclick="selPref(this)">$180+</button>
+        <button class="pref-btn" data-group="budget" data-val="benefits" onclick="selPref(this)">I HAVE BENEFITS</button>
+      </div>
+    </div>
+
+    <div class="pref-group">
+      <div class="pref-label">AVAILABILITY (select all that work)</div>
+      <div class="pref-row">
+        <button class="pref-btn" data-group="avail" data-val="weekday-am" onclick="selMultiPref(this)">WEEKDAY MORNINGS</button>
+        <button class="pref-btn" data-group="avail" data-val="weekday-pm" onclick="selMultiPref(this)">WEEKDAY EVENINGS</button>
+        <button class="pref-btn" data-group="avail" data-val="weekends" onclick="selMultiPref(this)">WEEKENDS</button>
+      </div>
+    </div>
+
+    <button class="btn-next" onclick="goStep(5)">NEXT →</button>
+    <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+  </div>
+
+  <!-- ── STEP 5: PERSONAL NOTE ──────────────────────────────────────────── -->
+  <div class="step" id="step5">
+    <div class="step-label">STEP 05 — IN YOUR OWN WORDS</div>
+    <div class="step-title">What should a therapist know before session one?</div>
+    <div class="step-desc">Optional. This anchors the first conversation. Nothing you write here leaves this device.</div>
+    <span class="optional-tag">OPTIONAL — SKIP IF YOU WANT</span>
+    <div class="note-wrap">
+      <textarea class="note-input" id="noteInput" maxlength="500" placeholder="Background, what you've already tried, what you're afraid of, anything..." oninput="charUpdate(this,'noteChars')"></textarea>
+      <div class="char-hint" id="noteChars">0 / 500</div>
+    </div>
+    <button class="btn-next" onclick="buildAndGoSummary()">GENERATE BRIEF →</button>
+    <span class="skip-link" onclick="clearNote();buildAndGoSummary()">SKIP — GENERATE WITHOUT NOTE</span>
+    <button class="btn-back-step" onclick="goStep(4)">← BACK</button>
+  </div>
+
+  <!-- ── STEP 6: SUMMARY ────────────────────────────────────────────────── -->
+  <div class="step" id="step6">
+    <div class="step-label">STEP 06 — MISSION BRIEF</div>
+    <div class="step-title">Your Therapist Search Brief</div>
+    <div class="step-desc">Take this to your first session or use it to filter on Psychology Today.</div>
+
+    <div class="brief-header">
+      <div class="brief-id" id="sumId">MB-——————</div>
+      <div class="brief-date" id="sumDate">—</div>
+    </div>
+
+    <div class="brief-section" id="sumFocus"></div>
+    <div class="brief-section" id="sumModality"></div>
+    <div class="brief-section" id="sumPrefs"></div>
+    <div class="brief-section" id="sumNote" style="display:none"></div>
+
+    <div class="pt-link-wrap">
+      <div class="pt-link-label">SUGGESTED SEARCH — PSYCHOLOGY TODAY</div>
+      <a class="pt-link-btn" id="ptLink" href="#" target="_blank" rel="noopener noreferrer">OPEN THERAPIST SEARCH →</a>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-save" onclick="saveBrief()">SAVE BRIEF</button>
+      <button class="btn-print" onclick="printSheet()">PRINT</button>
+    </div>
+    <button class="btn-new" onclick="resetForm()">← START NEW BRIEF</button>
+  </div>
+
+</div><!-- /.app -->
+
+<!-- PAST BRIEFS — always below form, shown when data exists -->
+<div class="past-section" id="pastSection">
+  <div class="past-hdr">PAST BRIEFS</div>
+  <div id="pastList"></div>
+</div>
+
+<script>
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const LS_KEY    = 'od_mission_brief_v1';
+const MAX_BRIEFS = 20;
+
+const FOCUS_AREAS = [
+  {k:'trauma',       icon:'🎖', label:'TRAUMA / PTSD'},
+  {k:'addiction',    icon:'🔒', label:'ADDICTION & SOBRIETY'},
+  {k:'anger',        icon:'⚡', label:'ANGER & REGULATION'},
+  {k:'relationship', icon:'📡', label:'RELATIONSHIP & COMMS'},
+  {k:'grief',        icon:'🌑', label:'GRIEF & LOSS'},
+  {k:'anxiety',      icon:'🌀', label:'ANXIETY & STRESS'},
+  {k:'depression',   icon:'📉', label:'DEPRESSION'},
+  {k:'purpose',      icon:'🎯', label:'PURPOSE & IDENTITY'},
+  {k:'family',       icon:'🏠', label:'FAMILY & PARENTING'},
+  {k:'rebuild',      icon:'🔧', label:'REBUILDING & RECOVERY'},
+];
+
+const MODALITIES = [
+  {k:'cbt',     label:'CBT'},
+  {k:'act',     label:'ACT'},
+  {k:'cpt',     label:'CPT'},
+  {k:'emdr',    label:'EMDR'},
+  {k:'dbt',     label:'DBT'},
+  {k:'somatic', label:'SOMATIC'},
+  {k:'talk',    label:'TALK / INSIGHT'},
+  {k:'nodpref', label:'LET THERAPIST LEAD'},
+];
+
+const FOCUS_TO_PT = {
+  trauma:'trauma-and-ptsd', addiction:'substance-use', anger:'anger-management',
+  relationship:'relationship-issues', grief:'grief', anxiety:'anxiety',
+  depression:'depression', purpose:'life-transitions', family:'parenting',
+  rebuild:'life-transitions',
+};
+
+const MODALITY_TO_PT = {
+  cbt:'cbt', act:'act', cpt:'trauma-and-ptsd', emdr:'emdr', dbt:'dbt', somatic:'somatic',
+};
+
+const BUDGET_LABELS = {
+  'under80':'Under $80 / session','80-120':'$80–120 / session',
+  '120-180':'$120–180 / session','180plus':'$180+ / session','benefits':'I have insurance benefits',
+};
+const AVAIL_LABELS  = {'weekday-am':'Weekday mornings','weekday-pm':'Weekday evenings','weekends':'Weekends'};
+const FORMAT_LABELS = {'in-person':'In-person','video':'Video / telehealth','any':'No preference'};
+const PACE_LABELS   = {'slow':'Slow & steady','moderate':'Moderate','intensive':'Intensive','any':'No preference'};
+const GENDER_LABELS = {'male':'Male preferred','female':'Female preferred','any':'No preference'};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let selectedFocus = [];
+let selectedMods  = [];
+let selectedAvail = [];
+let prefs         = {format:'any', pace:'moderate', gender:'any', budget:'80-120'};
+let currentBriefId = null;
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+function san(s) {
+  return typeof s === 'string' ? s.substring(0, 500).replace(/<[^>]*>/g, '') : '';
+}
+function safeGet(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+function esc(s) {
+  if (typeof s !== 'string') return '';
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+function genId() {
+  const d  = new Date();
+  const dt = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const r  = Math.random().toString(36).toUpperCase().slice(2,6);
+  return `MB-${dt}-${r}`;
+}
+function charUpdate(el, cid) {
+  const c = document.getElementById(cid);
+  if (c) c.textContent = `${el.value.length} / 500`;
+}
+function clearNote() {
+  const n = document.getElementById('noteInput');
+  if (n) { n.value = ''; charUpdate(n, 'noteChars'); }
+}
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ─── STEP NAVIGATION ──────────────────────────────────────────────────────────
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(`step${n}`);
+  if (target) target.classList.add('active');
+  const label = n <= 5 ? `STEP ${n} OF 5` : 'MISSION BRIEF';
+  const pct   = n <= 5 ? ((n - 1) / 5 * 100) : 100;
+  document.getElementById('stepCounter').textContent  = label;
+  document.getElementById('progressFill').style.width = pct + '%';
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// ─── STEP 1: FOCUS GRID ───────────────────────────────────────────────────────
+function buildFocusGrid() {
+  document.getElementById('focusGrid').innerHTML = FOCUS_AREAS.map(a =>
+    `<div class="domain-card" id="fc-${a.k}" onclick="toggleFocus('${a.k}')">
+       <div class="domain-check">&#10003;</div>
+       <div class="domain-icon">${a.icon}</div>
+       <div class="domain-label">${a.label}</div>
+     </div>`
+  ).join('');
+}
+
+function toggleFocus(k) {
+  const idx = selectedFocus.indexOf(k);
+  if (idx > -1) { selectedFocus.splice(idx, 1); }
+  else { if (selectedFocus.length >= 3) return; selectedFocus.push(k); }
+  FOCUS_AREAS.forEach(a => {
+    const card = document.getElementById(`fc-${a.k}`);
+    if (!card) return;
+    const isSel = selectedFocus.includes(a.k);
+    card.classList.toggle('sel', isSel);
+    card.classList.toggle('maxed', !isSel && selectedFocus.length >= 3);
+  });
+  document.getElementById('focusLimit').textContent = `${selectedFocus.length} / 3 SELECTED`;
+  document.getElementById('btn1').disabled = selectedFocus.length === 0;
+}
+
+// ─── STEP 2: MODALITY GRID ────────────────────────────────────────────────────
+function buildModalityGrid() {
+  document.getElementById('modalityGrid').innerHTML = MODALITIES.map(m =>
+    `<div class="domain-card" id="mc-${m.k}" onclick="toggleMod('${m.k}')">
+       <div class="domain-check">&#10003;</div>
+       <div class="domain-label" style="font-size:8px;padding-top:4px">${m.label}</div>
+     </div>`
+  ).join('');
+}
+
+function toggleMod(k) {
+  const idx = selectedMods.indexOf(k);
+  if (idx > -1) { selectedMods.splice(idx, 1); }
+  else {
+    if (k === 'nodpref') selectedMods = [];
+    else selectedMods = selectedMods.filter(m => m !== 'nodpref');
+    selectedMods.push(k);
+  }
+  MODALITIES.forEach(m => {
+    const card = document.getElementById(`mc-${m.k}`);
+    if (card) card.classList.toggle('sel', selectedMods.includes(m.k));
+  });
+}
+
+// ─── STEPS 3 + 4: PREFERENCE SELECTION ───────────────────────────────────────
+function selPref(btn) {
+  const group = btn.dataset.group;
+  document.querySelectorAll(`.pref-btn[data-group="${group}"]`).forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  prefs[group] = btn.dataset.val;
+}
+
+function selMultiPref(btn) {
+  btn.classList.toggle('sel');
+  const val = btn.dataset.val;
+  const idx = selectedAvail.indexOf(val);
+  if (idx > -1) selectedAvail.splice(idx, 1);
+  else selectedAvail.push(val);
+}
+
+// ─── BUILD SUMMARY ────────────────────────────────────────────────────────────
+function buildAndGoSummary() {
+  currentBriefId = genId();
+  document.getElementById('sumId').textContent   = currentBriefId;
+  document.getElementById('sumDate').textContent =
+    new Date().toLocaleDateString('en-CA', {year:'numeric', month:'long', day:'numeric'});
+
+  const focusLabels = selectedFocus.map(k => FOCUS_AREAS.find(a => a.k === k)?.label || k);
+  document.getElementById('sumFocus').innerHTML =
+    `<div class="brief-sec-label">PRIMARY FOCUS AREAS</div>
+     <div class="brief-pills">${focusLabels.map(l => `<span class="brief-pill">${esc(l)}</span>`).join('')}</div>`;
+
+  const modLabels = selectedMods.length
+    ? selectedMods.map(k => MODALITIES.find(m => m.k === k)?.label || k)
+    : ['No preference — let therapist lead'];
+  document.getElementById('sumModality').innerHTML =
+    `<div class="brief-sec-label">PREFERRED THERAPEUTIC APPROACH</div>
+     <div class="brief-pills">${modLabels.map(l => `<span class="brief-pill">${esc(l)}</span>`).join('')}</div>`;
+
+  const availStr = selectedAvail.length
+    ? selectedAvail.map(k => AVAIL_LABELS[k] || k).join(' · ')
+    : 'Flexible';
+  document.getElementById('sumPrefs').innerHTML =
+    `<div class="brief-sec-label">SESSION PREFERENCES</div>
+     <div class="brief-row"><span class="brief-row-label">FORMAT</span><span class="brief-row-val">${esc(FORMAT_LABELS[prefs.format]||prefs.format)}</span></div>
+     <div class="brief-row"><span class="brief-row-label">PACE</span><span class="brief-row-val">${esc(PACE_LABELS[prefs.pace]||prefs.pace)}</span></div>
+     <div class="brief-row"><span class="brief-row-label">THERAPIST</span><span class="brief-row-val">${esc(GENDER_LABELS[prefs.gender]||prefs.gender)}</span></div>
+     <div class="brief-row"><span class="brief-row-label">BUDGET</span><span class="brief-row-val">${esc(BUDGET_LABELS[prefs.budget]||prefs.budget)}</span></div>
+     <div class="brief-row"><span class="brief-row-label">AVAILABILITY</span><span class="brief-row-val">${esc(availStr)}</span></div>`;
+
+  const noteVal = san(document.getElementById('noteInput').value.trim());
+  const noteEl  = document.getElementById('sumNote');
+  if (noteVal) {
+    noteEl.style.display = '';
+    noteEl.innerHTML = `<div class="brief-sec-label">PERSONAL NOTE</div><div class="brief-note">${esc(noteVal)}</div>`;
+  } else {
+    noteEl.style.display = 'none';
+  }
+
+  document.getElementById('ptLink').href = buildPTUrl();
+  goStep(6);
+  renderPast();
+}
+
+function buildPTUrl() {
+  const specs = new Set(['men-issues']);
+  selectedFocus.forEach(k => { if (FOCUS_TO_PT[k]) specs.add(FOCUS_TO_PT[k]); });
+  selectedMods.forEach(k  => { if (MODALITY_TO_PT[k]) specs.add(MODALITY_TO_PT[k]); });
+  const params = new URLSearchParams();
+  params.set('spec', Array.from(specs).join(','));
+  if (prefs.format === 'video') params.set('telehealth', 'true');
+  return `https://www.psychologytoday.com/ca/therapists/bc?${params.toString()}`;
+}
+
+// ─── SAVE ─────────────────────────────────────────────────────────────────────
+function saveBrief() {
+  if (!currentBriefId) return;
+  const noteVal = san(document.getElementById('noteInput').value.trim());
+  const entry = {
+    id:           currentBriefId,
+    focusAreas:   [...selectedFocus],
+    modalities:   [...selectedMods],
+    format:       prefs.format,
+    pace:         prefs.pace,
+    gender:       prefs.gender,
+    budget:       prefs.budget,
+    availability: [...selectedAvail],
+    note:         noteVal,
+    date:         new Date().toLocaleDateString(),
+    ts:           Date.now(),
+  };
+  const existing = safeGet(LS_KEY);
+  // Prevent duplicate saves of the same brief ID
+  if (existing.some(e => e.id === currentBriefId)) {
+    showToast('ALREADY SAVED');
+    return;
+  }
+  existing.unshift(entry);
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(existing.slice(0, MAX_BRIEFS)));
+    showToast('BRIEF SAVED');
+    renderPast();
+  } catch(e) {
+    showToast('STORAGE UNAVAILABLE');
+  }
+}
+
+// ─── PRINT ────────────────────────────────────────────────────────────────────
+function printSheet() {
+  const noteVal   = san(document.getElementById('noteInput').value.trim());
+  const focusLbls = selectedFocus.map(k => FOCUS_AREAS.find(a => a.k === k)?.label || k);
+  const modLbls   = selectedMods.length ? selectedMods.map(k => MODALITIES.find(m => m.k === k)?.label || k) : ['No preference'];
+  const availStr  = selectedAvail.length ? selectedAvail.map(k => AVAIL_LABELS[k]||k).join(', ') : 'Flexible';
+  const ptUrl     = buildPTUrl();
+  const dateStr   = new Date().toLocaleDateString('en-CA', {year:'numeric', month:'long', day:'numeric'});
+
+  const pw = window.open('', '_blank');
+  if (!pw) { showToast('ALLOW POP-UPS TO PRINT'); return; }
+
+  pw.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Mission Brief ${esc(currentBriefId||'')}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#111;background:#fff;padding:36px;max-width:640px;margin:0 auto}
+h1{font-size:18pt;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.tag{font-size:8pt;letter-spacing:3px;color:#555;text-transform:uppercase;font-family:'Courier New',monospace}
+.id-line{font-family:'Courier New',monospace;font-size:9pt;letter-spacing:2px;color:#333;margin-top:2px}
+hr{border:none;border-top:2px solid #111;margin:16px 0}
+.thin{border:none;border-top:1px solid #ccc;margin:10px 0}
+section{margin-bottom:20px}
+.sec-label{font-size:7pt;letter-spacing:4px;text-transform:uppercase;color:#555;margin-bottom:8px;font-family:'Courier New',monospace}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{border:1px solid #444;border-radius:3px;padding:3px 10px;font-size:9pt;font-family:'Courier New',monospace;letter-spacing:1px}
+.prow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;font-size:10pt}
+.prow .lbl{color:#555;font-size:8pt;letter-spacing:1px;text-transform:uppercase;font-family:'Courier New',monospace}
+.prow .val{font-weight:700;font-family:'Courier New',monospace;font-size:9pt}
+.note-box{border:1px solid #ccc;border-left:4px solid #333;padding:12px 14px;font-family:Georgia,serif;font-size:10.5pt;line-height:1.7;color:#222;white-space:pre-wrap;word-wrap:break-word}
+.pt-box{border:2px solid #111;padding:14px;text-align:center;margin-top:4px}
+.pt-label{font-size:7pt;letter-spacing:3px;text-transform:uppercase;color:#555;margin-bottom:8px;font-family:'Courier New',monospace}
+.pt-url{font-family:'Courier New',monospace;font-size:8pt;word-break:break-all;color:#222}
+.footer{margin-top:24px;font-size:7.5pt;color:#888;text-align:center;font-family:'Courier New',monospace;letter-spacing:1px;border-top:1px solid #eee;padding-top:14px}
+@media print{body{padding:16px}.pt-box{page-break-inside:avoid}}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style></head><body>
+<div class="tag">OPERATOR'S DECK — THERAPIST SEARCH BRIEF</div>
+<h1>Mission Brief</h1>
+<div class="id-line">${esc(currentBriefId||'')}</div>
+<div class="tag" style="margin-top:4px">${esc(dateStr)}</div>
+<hr>
+<section>
+  <div class="sec-label">Primary Focus Areas</div>
+  <div class="pills">${focusLbls.map(l=>`<span class="pill">${esc(l)}</span>`).join('')}</div>
+</section>
+<section>
+  <div class="sec-label">Preferred Therapeutic Approach</div>
+  <div class="pills">${modLbls.map(l=>`<span class="pill">${esc(l)}</span>`).join('')}</div>
+</section>
+<section>
+  <div class="sec-label">Session Preferences</div>
+  <div class="prow"><span class="lbl">Format</span><span class="val">${esc(FORMAT_LABELS[prefs.format]||prefs.format)}</span></div>
+  <div class="prow"><span class="lbl">Pace</span><span class="val">${esc(PACE_LABELS[prefs.pace]||prefs.pace)}</span></div>
+  <div class="prow"><span class="lbl">Therapist</span><span class="val">${esc(GENDER_LABELS[prefs.gender]||prefs.gender)}</span></div>
+  <div class="prow"><span class="lbl">Budget</span><span class="val">${esc(BUDGET_LABELS[prefs.budget]||prefs.budget)}</span></div>
+  <div class="prow"><span class="lbl">Availability</span><span class="val">${esc(availStr)}</span></div>
+</section>
+${noteVal ? `<section>
+  <div class="sec-label">Personal Note</div>
+  <div class="note-box">${esc(noteVal)}</div>
+</section>` : ''}
+<div class="pt-box">
+  <div class="pt-label">Suggested Therapist Search — Psychology Today</div>
+  <div class="pt-url">${esc(ptUrl)}</div>
+</div>
+<div class="footer">
+  Generated by The Operator's Deck &bull; clovelearn.io &bull; ${esc(dateStr)}<br>
+  100% local &bull; Nothing was transmitted &bull; Your data stayed on your device
+</div>
+</body></html>`);
+  pw.document.close();
+  setTimeout(() => pw.print(), 400);
+}
+
+// ─── PAST BRIEFS ──────────────────────────────────────────────────────────────
+function renderPast() {
+  const data = safeGet(LS_KEY);
+  const sec  = document.getElementById('pastSection');
+  const list = document.getElementById('pastList');
+  if (!data.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  list.innerHTML = data.map((e, i) => {
+    const areas = (e.focusAreas||[]).map(k => FOCUS_AREAS.find(a => a.k===k)?.label||k);
+    const mods  = (e.modalities||[]).map(k => MODALITIES.find(m => m.k===k)?.label||k);
+    const avail = (e.availability||[]).map(k => AVAIL_LABELS[k]||k).join(', ') || 'Flexible';
+    return `<div class="past-entry">
+      <div class="pe-top">
+        <div>
+          <div class="pe-id">${esc(e.id||'—')}</div>
+          <div class="pe-date">${esc(e.date||'')}</div>
+        </div>
+        <button class="pe-del" onclick="deleteBrief(${i})">DELETE</button>
+      </div>
+      <div class="pe-areas">${areas.map(a=>`<span class="pe-area">${esc(a)}</span>`).join('')}</div>
+      <button class="pe-expand" onclick="toggleDetail(this)">DETAILS ↓</button>
+      <div class="pe-detail">
+        <div class="pe-row"><span>APPROACH</span><span>${esc(mods.join(', ')||'Not specified')}</span></div>
+        <div class="pe-row"><span>FORMAT</span><span>${esc(FORMAT_LABELS[e.format]||e.format||'—')}</span></div>
+        <div class="pe-row"><span>BUDGET</span><span>${esc(BUDGET_LABELS[e.budget]||e.budget||'—')}</span></div>
+        <div class="pe-row"><span>AVAILABILITY</span><span>${esc(avail)}</span></div>
+        ${e.note ? `<div class="pe-note-text">${esc(e.note)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDetail(btn) {
+  const detail = btn.nextElementSibling;
+  const open   = detail.classList.toggle('open');
+  btn.textContent = open ? 'DETAILS ↑' : 'DETAILS ↓';
+}
+
+function deleteBrief(idx) {
+  if (!confirm('Delete this brief? Cannot be undone.')) return;
+  const data = safeGet(LS_KEY);
+  data.splice(idx, 1);
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+    renderPast();
+    showToast('BRIEF DELETED');
+  } catch(e) { showToast('DELETE FAILED'); }
+}
+
+// ─── RESET ────────────────────────────────────────────────────────────────────
+function resetForm() {
+  selectedFocus  = [];
+  selectedMods   = [];
+  selectedAvail  = [];
+  prefs          = {format:'any', pace:'moderate', gender:'any', budget:'80-120'};
+  currentBriefId = null;
+
+  document.getElementById('noteInput').value = '';
+  document.getElementById('noteChars').textContent = '0 / 500';
+  document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('sel','maxed'));
+  document.getElementById('focusLimit').textContent = '0 / 3 SELECTED';
+  document.getElementById('btn1').disabled = true;
+
+  // Restore default pref button states
+  document.querySelectorAll('.pref-btn').forEach(b => b.classList.remove('sel'));
+  document.querySelectorAll('.pref-btn[data-val="any"]').forEach(b => {
+    if (['format','gender'].includes(b.dataset.group)) b.classList.add('sel');
+  });
+  document.querySelectorAll('.pref-btn[data-val="moderate"]').forEach(b => b.classList.add('sel'));
+  document.querySelectorAll('.pref-btn[data-val="80-120"]').forEach(b => b.classList.add('sel'));
+
+  goStep(1);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildFocusGrid();
+buildModalityGrid();
+goStep(1);
+renderPast();
+</script>
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Brief is locked — let the Deck assign the first objective</span></a></div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

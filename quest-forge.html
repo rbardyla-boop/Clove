@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="QUEST FORGE • OPERATOR'S DECK">
+<meta property="og:description" content="Avatar builder and soundboard armory. Turn tasks into quests.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/quest-forge.html">
+<title>QUEST FORGE • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#9b59b6;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.tabs{display:flex;border-bottom:1px solid var(--dim3);position:sticky;top:53px;z-index:18;background:var(--bg)}
+.tab{flex:1;padding:12px 0;text-align:center;font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+.panel{display:none;padding:16px}
+.panel.active{display:block}
+.section-title{font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim);margin-bottom:12px}
+/* AVATAR */
+.avatar-preview{text-align:center;margin-bottom:24px}
+.avatar-preview .ap-icon{font-size:100px;margin-bottom:8px;transition:transform .3s}
+.avatar-preview .ap-name{font-size:14px;font-weight:900;letter-spacing:1px;color:var(--acc)}
+.avatar-preview .ap-title{font-size:8px;font-family:monospace;color:var(--dim);letter-spacing:2px}
+.avatar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.av-opt{font-size:28px;text-align:center;cursor:pointer;padding:8px;border-radius:10px;border:2px solid transparent;transition:all .15s}
+.av-opt.sel{border-color:var(--acc);background:rgba(155,89,182,.12)}
+.av-opt:active{transform:scale(.9)}
+.title-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.title-opt{background:var(--bg3);border:1.5px solid var(--dim3);border-radius:8px;padding:10px;text-align:center;cursor:pointer;font-size:9px;font-family:monospace;letter-spacing:1px;transition:all .15s}
+.title-opt.sel{border-color:var(--acc);color:var(--acc);background:rgba(155,89,182,.08)}
+input[type=text]{width:100%;background:var(--bg);color:#ccc;border:1px solid var(--dim3);border-radius:8px;padding:10px 12px;font-size:11px;font-family:monospace;margin-bottom:12px;outline:none}
+input:focus{border-color:rgba(155,89,182,.4)}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:10px;font-family:monospace;letter-spacing:2px;font-weight:900;cursor:pointer;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-purple{background:var(--acc);color:#000}
+/* SOUNDBOARD */
+.sound-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sound-card .sc-label{font-size:9px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:8px}
+.sound-card .sc-name{font-size:12px;font-weight:900;margin-bottom:10px}
+.tone-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tone-opt{background:var(--bg3);border:1.5px solid var(--dim3);border-radius:6px;padding:6px 12px;font-size:8px;font-family:monospace;cursor:pointer;color:var(--dim);transition:all .15s}
+.tone-opt.sel{border-color:var(--acc);color:var(--acc)}
+.tone-opt:active{transform:scale(.95)}
+.test-btn{background:none;border:1px solid var(--dim3);color:var(--dim);border-radius:6px;padding:8px 14px;font-size:8px;font-family:monospace;cursor:pointer;width:100%}
+.test-btn:active{border-color:var(--acc);color:var(--acc)}
+/* BRIEF */
+.brief h2{font-size:16px;font-weight:900;margin-bottom:12px}
+.brief p{color:var(--dim);font-size:11px;line-height:1.8;margin-bottom:14px;font-family:Georgia,serif}
+.brief .quote{background:var(--bg3);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:12px 14px;margin:16px 0;font-style:italic;font-size:10px;color:#999;font-family:Georgia,serif;line-height:1.7}
+/* STAT BAR */
+.stat-bar{background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.stat-item{text-align:center;min-width:60px}
+.stat-item .si-val{font-size:20px;font-weight:900;color:var(--acc)}
+.stat-item .si-label{font-size:7px;font-family:monospace;color:var(--dim);letter-spacing:1px}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK</div>
+      <div class="nav-name">QUEST FORGE</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="go(0)">AVATAR</div>
+    <div class="tab" onclick="go(1)">SOUNDBOARD</div>
+    <div class="tab" onclick="go(2)">BRIEF</div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="panel active" id="p0">
+    <div class="avatar-preview">
+      <div class="ap-icon" id="previewIcon">🪖</div>
+      <div class="ap-name" id="previewName">OPERATOR</div>
+      <div class="ap-title" id="previewTitle">RECRUIT</div>
+    </div>
+    <div class="section-title">OPERATOR NAME</div>
+    <input type="text" id="nameInput" placeholder="Enter callsign" oninput="updatePreview()">
+    <div class="section-title">CHOOSE BASE</div>
+    <div class="avatar-grid" id="avatarGrid"></div>
+    <div class="section-title">CHOOSE TITLE</div>
+    <div class="title-grid" id="titleGrid"></div>
+    <button class="btn btn-purple" onclick="saveAvatar()">FORGE AVATAR</button>
+  </div>
+
+  <!-- SOUNDBOARD -->
+  <div class="panel" id="p1">
+    <div class="section-title">ARM YOUR SOUND EFFECTS</div>
+    <div id="soundCards"></div>
+    <button class="btn btn-purple" onclick="saveSounds()" style="margin-top:16px">ARM SOUNDBOARD</button>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel" id="p2">
+    <div class="brief">
+      <h2>QUEST FORGE — FIELD MANUAL</h2>
+      <p>Personalize your operator identity. Forge a custom avatar and arm sound effects that fire on key RPG events. Level ups hit harder when they come with audio.</p>
+      <div class="quote">
+        "My operator went from stock emoji to full tactical legend. And the level-up sound? Chef's kiss for dopamine."
+      </div>
+      <p>All customizations saved locally. Your identity, your sounds, your build.</p>
+      <p style="font-size:8px;color:var(--dim3);font-family:monospace;margin-top:24px">Stored in localStorage. No cloud. No tracking.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const AVATARS=['🪖','🕵️','🧑‍🚀','🧑‍🔬','🧑‍✈️','🧑‍⚕️','🧑‍🌾','🧑‍🍳','🧑‍🏭','🧑‍💻','🧑‍🔧','🧑‍🎤','🧑‍🎨','🧑‍🏫','🤖'];
+const TITLES=['RECRUIT','SPECIALIST','SERGEANT','LIEUTENANT','COMMANDER','GHOST','PHANTOM','SENTINEL'];
+const SOUND_EVENTS=[
+  {key:'levelUp',label:'LEVEL UP',name:'Level Up Blast'},
+  {key:'dailyDone',label:'DAILY COMPLETE',name:'Daily Complete Chime'},
+  {key:'hpCrit',label:'HP CRITICAL',name:'HP Critical Alert'},
+  {key:'questDone',label:'QUEST COMPLETE',name:'Quest Victory Fanfare'}
+];
+const TONES=['SILENT','BEEP','CHIME','BLAST','CLICK','SWOOSH'];
+
+// Web Audio for tones
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function playTone(type){
+  if(type==='SILENT')return;
+  const osc=audioCtx.createOscillator();const gain=audioCtx.createGain();
+  osc.connect(gain);gain.connect(audioCtx.destination);
+  gain.gain.value=0.15;
+  const freqs={BEEP:880,CHIME:1320,BLAST:440,CLICK:2200,SWOOSH:660};
+  osc.frequency.value=freqs[type]||880;
+  osc.type=type==='BLAST'?'sawtooth':type==='SWOOSH'?'triangle':'sine';
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+(type==='BLAST'?0.4:0.2));
+  osc.stop(audioCtx.currentTime+0.5);
+}
+
+// ── KEY MIGRATION (one-time) ──
+(function(){try{['qf-avatar','qf-sounds'].forEach(function(k){var v=localStorage.getItem(k);if(v!==null){localStorage.setItem('od_'+k.replace('-','_'),v);localStorage.removeItem(k);}});}catch(e){}})();
+let avatar;try{avatar=JSON.parse(localStorage.getItem('od_qf_avatar')||'{"icon":"🪖","name":"OPERATOR","title":"RECRUIT"}');}catch(e){avatar={icon:'🪖',name:'OPERATOR',title:'RECRUIT'};}
+let sounds;try{sounds=JSON.parse(localStorage.getItem('od_qf_sounds')||'{}');}catch(e){sounds={};}
+
+function save(){localStorage.setItem('od_qf_avatar',JSON.stringify(avatar));localStorage.setItem('od_qf_sounds',JSON.stringify(sounds));}
+
+function go(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  if(n===0)renderAvatar();if(n===1)renderSounds();
+}
+
+function renderAvatar(){
+  document.getElementById('nameInput').value=avatar.name;
+  updatePreview();
+  const ag=document.getElementById('avatarGrid');ag.innerHTML='';
+  AVATARS.forEach(a=>{
+    const s=document.createElement('span');s.className='av-opt'+(a===avatar.icon?' sel':'');s.textContent=a;
+    s.onclick=()=>{avatar.icon=a;renderAvatar();};
+    ag.appendChild(s);
+  });
+  const tg=document.getElementById('titleGrid');tg.innerHTML='';
+  TITLES.forEach(t=>{
+    const d=document.createElement('div');d.className='title-opt'+(t===avatar.title?' sel':'');d.textContent=t;
+    d.onclick=()=>{avatar.title=t;renderAvatar();};
+    tg.appendChild(d);
+  });
+}
+
+function updatePreview(){
+  avatar.name=document.getElementById('nameInput').value.trim()||'OPERATOR';
+  document.getElementById('previewIcon').textContent=avatar.icon;
+  document.getElementById('previewName').textContent=avatar.name;
+  document.getElementById('previewTitle').textContent=avatar.title;
+}
+
+function saveAvatar(){
+  avatar.name=document.getElementById('nameInput').value.trim()||'OPERATOR';
+  save();alert('✅ AVATAR FORGED — '+avatar.icon+' '+avatar.name+', '+avatar.title);
+}
+
+function renderSounds(){
+  const c=document.getElementById('soundCards');c.innerHTML='';
+  SOUND_EVENTS.forEach(ev=>{
+    const current=sounds[ev.key]||'SILENT';
+    let tonesHTML=TONES.map(t=>`<div class="tone-opt${t===current?' sel':''}" onclick="pickTone('${ev.key}','${t}')">${t}</div>`).join('');
+    c.innerHTML+=`<div class="sound-card"><div class="sc-label">${ev.label}</div><div class="sc-name">${ev.name}</div><div class="tone-row">${tonesHTML}</div><button class="test-btn" onclick="playTone('${current}')">▶ TEST</button></div>`;
+  });
+}
+
+window.pickTone=function(key,tone){sounds[key]=tone;renderSounds();};
+
+function saveSounds(){save();alert('✅ SOUNDBOARD ARMED');}
+
+renderAvatar();
+</script>
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="grind-ops.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#7c3aed;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">GRIND OPS →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Deploy the avatar — start building XP</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Operator configured — first mission awaits</span></a></div>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Avatar forged. Soundboard armed. Now draw a card and put the operator to work.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>

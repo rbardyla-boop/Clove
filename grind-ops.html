@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="GRIND OPS • OPERATOR'S DECK">
+<meta property="og:description" content="RPG execution system. XP, levels, streaks. Gamify the daily grind.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/grind-ops.html">
+  <title>GRIND OPS • OPERATOR'S DECK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000; --bg2: #0a0a0a; --bg3: #111111;
+      --red: #c0392b; --grn: #27ae60; --gold: #d4a843; --blu: #4a6fa5;
+      --text: #e0e0e0; --dim: #666666; --dim2: #777; --dim3: #222;
+      --border: rgba(192,57,43,0.25);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; line-height:1.6; }
+    .app { max-width:520px; margin:0 auto; padding-bottom:80px; }
+
+    .nav-bar {
+      background:#000; border-bottom:3px solid var(--red); padding:14px 16px;
+      display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:20;
+    }
+    .nav-back {
+      background:none; border:1px solid #333; color:#666; border-radius:8px;
+      padding:8px 14px; font-size:9px; font-family:monospace; letter-spacing:1.5px; cursor:pointer;
+    }
+    .nav-back:active { color:#fff; border-color:#555; }
+    .nav-tag { color:var(--red); font-size:6.5px; font-family:monospace; letter-spacing:3px; }
+    .nav-name { font-size:13px; font-weight:900; letter-spacing:.5px; }
+
+    header {
+      background:linear-gradient(to bottom,#1a0000,#000); padding:40px 20px 30px;
+      text-align:center; border-bottom:6px solid var(--red);
+    }
+    h1 {
+      font-family:'Bebas Neue',sans-serif; font-size:72px; letter-spacing:5px;
+      color:var(--red); line-height:.85; margin-bottom:12px;
+      text-shadow:0 0 25px rgba(192,57,43,.7);
+    }
+    .sub { font-size:11px; color:#555; letter-spacing:4px; }
+
+    /* CHARACTER BAR */
+    .char-bar {
+      background:var(--bg3); border:2px solid var(--border); border-radius:12px;
+      padding:16px 20px; margin:20px 16px 0; display:flex; align-items:center; gap:16px;
+    }
+    .char-avatar { font-size:56px; }
+    .char-info { flex:1; }
+    .char-row { display:flex; justify-content:space-between; align-items:center; }
+    .char-name { font-size:11px; color:var(--red); letter-spacing:2px; }
+    .char-level { font-size:9px; color:#888; }
+    .char-level span { font-size:24px; color:#fff; font-weight:900; }
+    .xp-track { height:8px; background:#1a1a1a; border-radius:4px; margin-top:6px; overflow:hidden; }
+    .xp-fill { height:100%; background:var(--red); border-radius:4px; transition:width .6s cubic-bezier(.23,1,.32,1); }
+    .char-stats { display:flex; gap:12px; margin-top:6px; font-size:10px; color:#555; }
+    .char-stats span { color:var(--gold); }
+
+    .tabs {
+      display:flex; border-bottom:2px solid #111; overflow-x:auto;
+      background:var(--bg2); position:sticky; top:47px; z-index:15;
+    }
+    .tab-btn {
+      flex:1; padding:14px 6px; text-align:center; font-size:8px; font-family:'DM Mono',monospace;
+      letter-spacing:1.5px; color:#555; background:none; border:none; cursor:pointer;
+      border-bottom:3px solid transparent; white-space:nowrap;
+    }
+    .tab-btn.active { color:var(--red); border-bottom-color:var(--red); }
+
+    .panel { display:none; padding:20px 16px; }
+    .panel.active { display:block; }
+
+    .section-label { font-size:8px; letter-spacing:4px; color:#333; text-transform:uppercase; margin:16px 0 10px; }
+
+    input[type="text"], select {
+      width:100%; background:var(--bg2); border:1px solid #222; color:var(--text);
+      font-family:'DM Mono',monospace; font-size:13px; padding:14px; border-radius:8px;
+    }
+    input:focus, select:focus { border-color:var(--red); outline:none; }
+
+    .btn-primary {
+      width:100%; padding:16px; background:var(--red); color:#fff; border:none;
+      font-family:'DM Mono',monospace; font-size:13px; font-weight:900;
+      letter-spacing:3px; border-radius:10px; cursor:pointer; margin-top:10px;
+    }
+    .btn-primary:active { transform:scale(.97); }
+    .btn-good {
+      padding:10px 18px; background:var(--grn); color:#000; border:none;
+      font-family:'DM Mono',monospace; font-size:10px; font-weight:900;
+      letter-spacing:1px; border-radius:6px; cursor:pointer;
+    }
+    .btn-bad {
+      padding:10px 18px; background:#600; color:var(--red); border:none;
+      font-family:'DM Mono',monospace; font-size:10px; font-weight:900;
+      letter-spacing:1px; border-radius:6px; cursor:pointer;
+    }
+    .btn-check {
+      padding:10px 22px; background:var(--red); color:#fff; border:none;
+      font-family:'DM Mono',monospace; font-size:10px; font-weight:900;
+      border-radius:6px; cursor:pointer;
+    }
+    .btn-done { background:#1a3a1a; color:var(--grn); }
+
+    .item-card {
+      background:var(--bg2); border:1px solid #1a1a1a; border-radius:10px;
+      padding:16px; margin-bottom:10px; display:flex; align-items:center; gap:12px;
+    }
+    .item-card.completed { border-color:rgba(39,174,96,.3); }
+    .item-card.completed .item-text { text-decoration:line-through; color:#555; }
+    .item-text { flex:1; font-size:12px; }
+    .item-streak { font-size:10px; color:#2a6; }
+
+    .shop-card {
+      background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+      padding:20px; text-align:center;
+    }
+    .shop-icon { font-size:48px; margin-bottom:10px; }
+    .shop-name { font-size:12px; font-weight:900; margin-bottom:4px; }
+    .shop-cost { color:var(--gold); font-size:11px; margin-bottom:12px; }
+    .shop-buy {
+      width:100%; padding:12px; background:var(--red); color:#fff; border:none;
+      font-family:'DM Mono',monospace; font-size:11px; font-weight:900;
+      border-radius:8px; cursor:pointer;
+    }
+    .shop-buy:disabled { background:#222; color:#444; cursor:not-allowed; }
+
+    .add-form { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:20px; }
+
+    .brief { padding:20px 16px; }
+    .brief h2 { font-family:'Bebas Neue',sans-serif; font-size:36px; color:var(--red); margin-bottom:16px; letter-spacing:3px; }
+    .brief p { font-size:12px; color:#666; line-height:1.8; margin-bottom:16px; }
+    .brief .quote {
+      border-left:4px solid var(--red); padding:16px 20px; margin:20px 0;
+      font-style:italic; color:#888; font-size:12px;
+    }
+    .brief .quote .attr { color:var(--red); font-size:10px; display:block; margin-top:8px; font-style:normal; }
+
+    .toast {
+      position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+      background:var(--grn); color:#000; padding:12px 28px; border-radius:10px;
+      font-size:12px; font-weight:900; letter-spacing:2px; z-index:100;
+      animation:toastIn .3s, toastOut .3s 2.2s forwards;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(20px)} }
+    @keyframes toastOut { to{opacity:0;transform:translateX(-50%) translateY(-10px)} }
+
+    .empty { text-align:center; padding:40px 20px; color:#333; font-size:11px; }
+    footer { text-align:center; padding:40px 20px; font-size:8px; color:#222; letter-spacing:2px; line-height:2; }
+  *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK • ADHD OPS</div>
+      <div class="nav-name">GRIND OPS</div>
+    </div>
+  </div>
+
+  <header>
+    <h1>GRIND<br>OPS</h1>
+    <div class="sub">RPG EXECUTION SYSTEM • LEVEL UP OR DIE TRYING</div>
+  </header>
+
+  <div class="char-bar" id="char-bar">
+    <div class="char-avatar" id="avatar">🪖</div>
+    <div class="char-info">
+      <div class="char-row">
+        <div class="char-name" id="char-name">OPERATOR</div>
+        <div class="char-level">LVL <span id="level">1</span></div>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="xp-bar" style="width:0%"></div></div>
+      <div class="char-stats">
+        <span>XP <span id="xp">0</span>/<span id="xp-max">100</span></span>
+        <span>💰 <span id="gold">0</span></span>
+        <span>❤️ <span id="hp">100</span>/100</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(0)">DASHBOARD</button>
+    <button class="tab-btn" onclick="switchTab(1)">HABITS</button>
+    <button class="tab-btn" onclick="switchTab(2)">DAILIES</button>
+    <button class="tab-btn" onclick="switchTab(3)">TO-DOS</button>
+    <button class="tab-btn" onclick="switchTab(4)">SHOP</button>
+    <button class="tab-btn" onclick="switchTab(5)">BRIEF</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel active" id="panel0">
+    <div class="section-label">TODAY'S MISSIONS</div>
+    <div id="today-tasks"></div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="panel" id="panel1">
+    <div class="add-form">
+      <input type="text" id="habit-input" placeholder="New habit (e.g. 5k run, no doomscroll)">
+      <button class="btn-primary" onclick="addHabit()">LOCK HABIT</button>
+    </div>
+    <div id="habits-list"></div>
+  </div>
+
+  <!-- DAILIES -->
+  <div class="panel" id="panel2">
+    <div class="add-form">
+      <input type="text" id="daily-input" placeholder="Daily mission (e.g. hydrate 3L)">
+      <button class="btn-primary" onclick="addDaily()">ADD DAILY</button>
+    </div>
+    <div id="dailies-list"></div>
+  </div>
+
+  <!-- TO-DOS -->
+  <div class="panel" id="panel3">
+    <div class="add-form">
+      <input type="text" id="todo-input" placeholder="One-time task" style="margin-bottom:10px">
+      <select id="todo-diff">
+        <option value="1">EASY (+10 XP)</option>
+        <option value="2" selected>MEDIUM (+25 XP)</option>
+        <option value="3">HARD (+50 XP)</option>
+      </select>
+      <button class="btn-primary" onclick="addTodo()">DEPLOY TASK</button>
+    </div>
+    <div id="todos-list"></div>
+  </div>
+
+  <!-- SHOP -->
+  <div class="panel" id="panel4">
+    <div class="section-label">ARMORY — SPEND FIELD CREDITS</div>
+    <div id="shop-items" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel" id="panel5">
+    <div class="brief">
+      <h2>GRIND OPS FIELD MANUAL</h2>
+      <p>Gamified habits that actually stick for ADHD brains. 100% free, offline, unlimited, no account.</p>
+      <p style="font-size:11px;color:#888">✅ Habits give XP on check-in<br>✅ Dailies auto-reset every 24h<br>✅ To-dos scale with difficulty<br>✅ Level up → bigger rewards</p>
+      <div class="quote">
+        "I went from 0 habits to 47-day streak because my character literally dies if I slack. This works."
+        <span class="attr">— every operator on the deck</span>
+      </div>
+      <p style="font-size:10px;color:#333">All progress saved forever in your browser. No account. No tracking. Pure operator discipline.</p>
+    </div>
+  </div>
+
+  <footer>100% LOCAL • ZERO CLOUD • YOUR DATA STAYS YOURS<br>OPERATOR'S DECK — MARCH 2026</footer>
+</div>
+
+<script>
+// Key migration: ops-* → od_grind_*
+(function(){try{var map={'ops-character':'od_grind_character','ops-habits':'od_grind_habits','ops-dailies':'od_grind_dailies','ops-todos':'od_grind_todos','ops-shop':'od_grind_shop'};Object.keys(map).forEach(function(old){var v=localStorage.getItem(old);if(v!==null){localStorage.setItem(map[old],v);localStorage.removeItem(old)}});}catch(e){}})();
+var character;try{character=JSON.parse(localStorage.getItem('od_grind_character')||'{"name":"OPERATOR","level":1,"xp":0,"gold":50,"hp":100,"avatar":"🪖","gear":0}');}catch(e){character={name:"OPERATOR",level:1,xp:0,gold:50,hp:100,avatar:"🪖",gear:0};}
+var habits;try{habits=JSON.parse(localStorage.getItem('od_grind_habits')||'[]');}catch(e){habits=[];}
+var dailies;try{dailies=JSON.parse(localStorage.getItem('od_grind_dailies')||'[]');}catch(e){dailies=[];}
+var todos;try{todos=JSON.parse(localStorage.getItem('od_grind_todos')||'[]');}catch(e){todos=[];}
+var shopPurchases;try{shopPurchases=JSON.parse(localStorage.getItem('od_grind_shop')||'[]');}catch(e){shopPurchases=[];}
+
+const shopStock=[
+  {id:1,name:"Tactical Patch",cost:30,effect:"avatar",icon:"🔰",desc:"New operator insignia"},
+  {id:2,name:"Focus Serum",cost:50,effect:"hp",icon:"🧪",desc:"Full HP restore"},
+  {id:3,name:"Extra Life Token",cost:100,effect:"revive",icon:"🛡️",desc:"Emergency revival"},
+  {id:4,name:"Gold Visor",cost:75,effect:"avatar",icon:"🥽",desc:"Tactical upgrade"},
+  {id:5,name:"Stim Pack",cost:40,effect:"hp",icon:"💊",desc:"+50 HP boost"},
+  {id:6,name:"Elite Badge",cost:200,effect:"avatar",icon:"⭐",desc:"Operator elite status"}
+];
+
+function saveAll(){
+  localStorage.setItem('od_grind_character',JSON.stringify(character));
+  localStorage.setItem('od_grind_habits',JSON.stringify(habits));
+  localStorage.setItem('od_grind_dailies',JSON.stringify(dailies));
+  localStorage.setItem('od_grind_todos',JSON.stringify(todos));
+  localStorage.setItem('od_grind_shop',JSON.stringify(shopPurchases));
+}
+
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+function gainXP(amount){
+  character.xp+=amount;
+  const needed=character.level*100;
+  if(character.xp>=needed){
+    character.level++;character.xp-=needed;character.gold+=25;
+    character.hp=Math.min(100,character.hp+20);
+    toast(`LEVEL UP! Operator Level ${character.level}`);
+  }
+  if(character.hp<100)character.hp=Math.min(100,character.hp+Math.floor(amount/3));
+  renderCharBar();saveAll();
+}
+
+function loseHP(amount){
+  character.hp=Math.max(0,character.hp-amount);
+  renderCharBar();saveAll();
+  if(character.hp<=0)toast("CRITICAL: Operator down. Rebuild momentum.");
+}
+
+function renderCharBar(){
+  document.getElementById('char-name').textContent=character.name;
+  document.getElementById('level').textContent=character.level;
+  document.getElementById('xp').textContent=character.xp;
+  document.getElementById('xp-max').textContent=character.level*100;
+  document.getElementById('gold').textContent=character.gold;
+  document.getElementById('hp').textContent=character.hp;
+  document.getElementById('xp-bar').style.width=(character.xp/(character.level*100)*100)+'%';
+  document.getElementById('avatar').textContent=character.avatar;
+}
+
+function switchTab(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n));
+  if(n===0)renderDashboard();if(n===1)renderHabits();if(n===2)renderDailies();if(n===3)renderTodos();if(n===4)renderShop();
+}
+
+function renderDashboard(){
+  const c=document.getElementById('today-tasks');c.innerHTML='';
+  const today=new Date().toISOString().slice(0,10);
+  dailies.forEach((d,i)=>{
+    if(d.lastDone!==today)d.done=false;
+    const div=document.createElement('div');
+    div.className='item-card'+(d.done?' completed':'');
+    div.innerHTML=`<span class="item-text">${esc(d.text)}</span>
+      <button class="${d.done?'btn-check btn-done':'btn-check'}" onclick="completeDaily(${i})">${d.done?'✓':'CHECK'}</button>`;
+    c.appendChild(div);
+  });
+  todos.filter(t=>!t.done).slice(0,5).forEach((t,i)=>{
+    const idx=todos.indexOf(t);
+    const div=document.createElement('div');div.className='item-card';
+    div.innerHTML=`<span class="item-text">${esc(t.text)}</span>
+      <button class="btn-check" onclick="completeTodo(${idx})">COMPLETE</button>`;
+    c.appendChild(div);
+  });
+  if(!dailies.length&&!todos.filter(t=>!t.done).length)c.innerHTML='<div class="empty">No missions deployed. Add habits, dailies, or to-dos.</div>';
+}
+
+function addHabit(){
+  const text=document.getElementById('habit-input').value.trim();if(!text)return;
+  habits.push({id:Date.now(),text,streak:0});
+  document.getElementById('habit-input').value='';renderHabits();saveAll();
+}
+function renderHabits(){
+  const c=document.getElementById('habits-list');c.innerHTML='';
+  habits.forEach((h,i)=>{
+    const div=document.createElement('div');div.className='item-card';
+    div.innerHTML=`<span class="item-text">${esc(h.text)} <span class="item-streak">🔥${h.streak}</span></span>
+      <button class="btn-good" onclick="hitHabit(${i},true)">+ GOOD</button>
+      <button class="btn-bad" onclick="hitHabit(${i},false)">- BAD</button>`;
+    c.appendChild(div);
+  });
+  if(!habits.length)c.innerHTML='<div class="empty">No habits locked in yet.</div>';
+}
+function hitHabit(i,positive){
+  if(positive){gainXP(15);habits[i].streak++;}
+  else{loseHP(15);habits[i].streak=Math.max(0,habits[i].streak-1);}
+  renderHabits();renderDashboard();saveAll();
+}
+
+function addDaily(){
+  const text=document.getElementById('daily-input').value.trim();if(!text)return;
+  dailies.push({id:Date.now(),text,done:false,lastDone:''});
+  document.getElementById('daily-input').value='';renderDailies();saveAll();
+}
+function renderDailies(){
+  const c=document.getElementById('dailies-list');c.innerHTML='';
+  const today=new Date().toISOString().slice(0,10);
+  dailies.forEach((d,i)=>{
+    if(d.lastDone!==today)d.done=false;
+    const div=document.createElement('div');
+    div.className='item-card'+(d.done?' completed':'');
+    div.innerHTML=`<span class="item-text">${esc(d.text)}</span>
+      <button class="${d.done?'btn-check btn-done':'btn-check'}" onclick="completeDaily(${i})">${d.done?'✓':'EXECUTE'}</button>`;
+    c.appendChild(div);
+  });
+  if(!dailies.length)c.innerHTML='<div class="empty">No dailies set. Add your non-negotiables.</div>';
+}
+window.completeDaily=function(i){
+  const today=new Date().toISOString().slice(0,10);
+  if(dailies[i].done)return;
+  dailies[i].done=true;dailies[i].lastDone=today;
+  gainXP(20);toast('+20 XP');renderDailies();renderDashboard();saveAll();
+};
+
+function addTodo(){
+  const text=document.getElementById('todo-input').value.trim();
+  const diff=parseInt(document.getElementById('todo-diff').value);
+  if(!text)return;
+  todos.push({id:Date.now(),text,done:false,diff});
+  document.getElementById('todo-input').value='';renderTodos();saveAll();
+}
+function renderTodos(){
+  const c=document.getElementById('todos-list');c.innerHTML='';
+  todos.forEach((t,i)=>{
+    if(t.done)return;
+    const div=document.createElement('div');div.className='item-card';
+    div.innerHTML=`<span class="item-text">${esc(t.text)}</span>
+      <button class="btn-check" onclick="completeTodo(${i})">+${t.diff*10} XP</button>`;
+    c.appendChild(div);
+  });
+  if(!todos.filter(t=>!t.done).length)c.innerHTML='<div class="empty">All clear. Deploy new tasks.</div>';
+}
+window.completeTodo=function(i){
+  todos[i].done=true;gainXP(todos[i].diff*10);
+  toast(`+${todos[i].diff*10} XP`);renderTodos();renderDashboard();saveAll();
+};
+
+function renderShop(){
+  const c=document.getElementById('shop-items');c.innerHTML='';
+  shopStock.forEach(item=>{
+    const owned=shopPurchases.includes(item.id);
+    const div=document.createElement('div');div.className='shop-card';
+    div.innerHTML=`<div class="shop-icon">${item.icon}</div>
+      <div class="shop-name">${item.name}</div>
+      <div style="font-size:9px;color:#444;margin-bottom:6px">${item.desc}</div>
+      <div class="shop-cost">💰 ${item.cost}</div>
+      <button class="shop-buy" ${owned||character.gold<item.cost?'disabled':''} onclick="buyItem(${item.id})">
+        ${owned?'OWNED':character.gold<item.cost?'NEED MORE':'ACQUIRE'}
+      </button>`;
+    c.appendChild(div);
+  });
+}
+window.buyItem=function(id){
+  const item=shopStock.find(s=>s.id===id);
+  if(!item||character.gold<item.cost)return;
+  character.gold-=item.cost;shopPurchases.push(id);
+  if(item.effect==="avatar")character.avatar=item.icon;
+  if(item.effect==="hp")character.hp=100;
+  if(item.effect==="revive")character.hp=100;
+  saveAll();renderCharBar();renderShop();
+  toast("EQUIPMENT ACQUIRED");
+};
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+window.onload=()=>{renderCharBar();switchTab(0);};
+</script>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">XP earned. Streak alive. Draw a card and log the day's real mission.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>

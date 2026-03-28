@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'">
+<meta property="og:title" content="DOWNLOAD • OPERATOR'S DECK">
+<meta property="og:description" content="Download the Operator's Deck desktop app. 100% offline. Zero tracking. Windows, Mac, Linux.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/downloads.html">
+<meta name="description" content="Download the Operator's Deck desktop app. Fully offline, zero tracking, permanent data. Windows, Mac, Linux.">
+<meta name="referrer" content="no-referrer">
+<title>DOWNLOAD • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--red-bright:#e74c3c;--grn:#27ae60;--gld:#d4a843;--dim:#8a8a8a;--dim2:#777;--dim3:#1a1a22;--ver:3.1.0}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+html{height:100%}
+body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:hidden;min-height:100%;min-height:100dvh;-webkit-font-smoothing:antialiased;line-height:1.6}
+.app{max-width:480px;margin:0 auto;position:relative;min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+
+/* NAV */
+.top-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:2px solid var(--red);display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.back-btn{background:none;border:1px solid var(--bg4);color:#aaa;font-size:9px;font-family:'Courier New',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s;text-decoration:none}
+.back-btn:active{color:#fff;border-color:#444}
+.top-title{color:var(--dim2);font-size:7px;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase}
+
+/* HERO */
+.hero{padding:40px 20px 28px;text-align:center;border-bottom:1px solid rgba(192,57,43,.1)}
+.hero-tag{font-size:8px;letter-spacing:5px;color:var(--red);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px}
+.hero-tag::before,.hero-tag::after{content:'';width:20px;height:1px;background:var(--red)}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;line-height:1;margin-bottom:14px}
+.hero-sub{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.8;max-width:340px;margin:0 auto}
+.ver-badge{display:inline-block;background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.25);border-radius:6px;padding:3px 12px;font-size:7px;letter-spacing:2px;color:var(--red);font-family:monospace;margin-top:14px}
+
+/* SECTIONS */
+.sec{padding:20px 16px}
+.sec-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'';width:14px;height:1px;background:var(--red)}
+
+/* PLATFORM CARDS */
+.plat-card{background:var(--bg2);border-radius:12px;padding:20px 16px;margin-bottom:10px;border-left:3px solid var(--bg4);transition:all .2s}
+.plat-hdr{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.plat-icon{font-size:20px;flex-shrink:0;width:32px;text-align:center}
+.plat-info{flex:1}
+.plat-name{font-size:12px;font-weight:700;letter-spacing:1px}
+.plat-detail{color:var(--dim);font-size:8px;font-family:Georgia,serif;margin-top:2px;line-height:1.5}
+.plat-dl{display:block;width:100%;text-align:center;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;border:none;border-radius:8px;padding:13px 20px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:all .2s}
+.plat-dl:active{transform:scale(.96)}
+.plat-file{font-size:7px;color:var(--dim2);letter-spacing:1px;margin-top:8px;text-align:center;font-family:monospace}
+
+/* FEATURE GRID */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.feat-cell{background:var(--bg3);border-radius:10px;padding:14px 12px;text-align:center}
+.feat-cell .fc-icon{font-size:16px;margin-bottom:6px;opacity:.7}
+.feat-cell .fc-title{font-size:8px;font-weight:700;letter-spacing:1.5px;margin-bottom:4px}
+.feat-cell .fc-desc{font-size:7px;color:var(--dim);font-family:Georgia,serif;line-height:1.5}
+
+/* COMPARE */
+.compare{background:var(--bg2);border-radius:12px;padding:16px;margin-bottom:10px}
+.compare-hdr{display:flex;justify-content:space-between;margin-bottom:12px;padding:0 8px}
+.compare-hdr span{font-size:7px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase}
+.compare-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid rgba(255,255,255,.02)}
+.compare-row:last-child{border-bottom:none}
+.compare-row .cr-label{font-size:9px;color:var(--dim);flex:1}
+.compare-row .cr-web,.compare-row .cr-app{font-size:8px;text-align:center;width:60px;letter-spacing:1px}
+.cr-yes{color:var(--grn)}
+.cr-no{color:var(--dim2)}
+
+/* INFO */
+.info-block{background:var(--bg3);border:1px solid rgba(192,57,43,.08);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.info-block .ib-title{font-size:8px;letter-spacing:3px;color:var(--red);margin-bottom:8px}
+.info-block .ib-body{color:var(--dim);font-size:9px;font-family:Georgia,serif;line-height:1.7}
+.info-block .ib-body strong{color:#aaa}
+
+/* CTA */
+.cta-sec{display:block;width:100%;text-align:center;background:var(--bg2);color:#aaa;border:1px solid var(--bg4);border-radius:10px;padding:13px 24px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;text-decoration:none;margin-top:8px;transition:all .2s}
+.cta-sec:active{transform:scale(.96);color:#fff;border-color:#444}
+
+/* FOOTER */
+.footer{text-align:center;padding:28px 16px;margin-top:10px;border-top:1px solid rgba(192,57,43,.06)}
+.f-ver{font-size:7px;letter-spacing:3px;color:var(--dim2);margin-bottom:6px}
+.f-copy{font-size:7px;color:var(--dim3);letter-spacing:1px;line-height:2}
+.f-link{display:inline-block;color:var(--dim2);font-size:7px;letter-spacing:2px;text-decoration:none;margin-top:8px;font-family:monospace}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<!-- NAV -->
+<div class="top-bar">
+  <a href="./?tab=more" class="back-btn">&larr; DECK</a>
+  <div class="top-title">DOWNLOAD</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">DESKTOP FORTRESS</div>
+  <h1>DOWNLOAD<br>THE DECK</h1>
+  <div class="hero-sub">Same tool. No browser required.<br>100% offline. Permanent data. Real app icon.<br>Your missions never disappear.</div>
+  <div class="ver-badge">v3.1.0 &middot; EARLY ACCESS</div>
+</div>
+
+<!-- PLATFORMS -->
+<div class="sec">
+  <div class="sec-label">Choose your platform</div>
+
+  <!-- WINDOWS -->
+  <div class="plat-card" style="border-left-color:#0078d4">
+    <div class="plat-hdr">
+      <div class="plat-icon">&#9638;</div>
+      <div class="plat-info">
+        <div class="plat-name">WINDOWS</div>
+        <div class="plat-detail">Windows 10/11 &middot; 64-bit &middot; One-click installer &middot; ~90 MB</div>
+      </div>
+    </div>
+    <a href="https://clovelearn.io/downloads/OperatorsDeck-3.1.0-Setup.exe" class="plat-dl" download>DOWNLOAD .EXE</a>
+    <div class="plat-file">OperatorsDeck-3.1.0-Setup.exe</div>
+  </div>
+
+  <!-- MAC -->
+  <div class="plat-card" style="border-left-color:#999">
+    <div class="plat-hdr">
+      <div class="plat-icon">&#9830;</div>
+      <div class="plat-info">
+        <div class="plat-name">MAC</div>
+        <div class="plat-detail">macOS 12+ &middot; Intel + Apple Silicon &middot; Drag to Applications &middot; ~95 MB</div>
+      </div>
+    </div>
+    <a href="https://clovelearn.io/downloads/OperatorsDeck-3.1.0.dmg" class="plat-dl" download>DOWNLOAD .DMG</a>
+    <div class="plat-file">OperatorsDeck-3.1.0.dmg</div>
+  </div>
+
+  <!-- LINUX -->
+  <div class="plat-card" style="border-left-color:#e95420">
+    <div class="plat-hdr">
+      <div class="plat-icon">&#9662;</div>
+      <div class="plat-info">
+        <div class="plat-name">LINUX</div>
+        <div class="plat-detail">Ubuntu/Fedora/Arch &middot; 64-bit &middot; AppImage (no install needed) &middot; ~90 MB</div>
+      </div>
+    </div>
+    <a href="https://clovelearn.io/downloads/OperatorsDeck-3.1.0.AppImage" class="plat-dl" download>DOWNLOAD .APPIMAGE</a>
+    <div class="plat-file">OperatorsDeck-3.1.0.AppImage &middot; chmod +x to run</div>
+  </div>
+</div>
+
+<!-- WHAT YOU GET -->
+<div class="sec" style="padding-top:0">
+  <div class="sec-label">What the desktop version adds</div>
+
+  <div class="feat-grid">
+    <div class="feat-cell">
+      <div class="fc-icon">&#128274;</div>
+      <div class="fc-title">PERMANENT DATA</div>
+      <div class="fc-desc">Missions, evidence, check-ins survive forever. No cache clearing risk.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="fc-icon">&#9889;</div>
+      <div class="fc-title">FULLY OFFLINE</div>
+      <div class="fc-desc">Works on airplanes, in the field, with zero internet. Always.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="fc-icon">&#128190;</div>
+      <div class="fc-title">EXPORT / IMPORT</div>
+      <div class="fc-desc">One-click backup of all your data. Move between machines.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="fc-icon">&#9000;</div>
+      <div class="fc-title">KEYBOARD SHORTCUTS</div>
+      <div class="fc-desc">Ctrl+1 Deck &middot; Ctrl+2 CloveLearn &middot; Ctrl+E Export &middot; Ctrl+I Import</div>
+    </div>
+  </div>
+
+  <!-- WEB vs DESKTOP COMPARE -->
+  <div class="compare">
+    <div class="compare-hdr">
+      <span>Feature</span>
+      <span>Web</span>
+      <span>Desktop</span>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Free, no account</div>
+      <div class="cr-web cr-yes">YES</div>
+      <div class="cr-app cr-yes">YES</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Zero tracking</div>
+      <div class="cr-web cr-yes">YES</div>
+      <div class="cr-app cr-yes">YES</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">All 108 cards + drills</div>
+      <div class="cr-web cr-yes">YES</div>
+      <div class="cr-app cr-yes">YES</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Works offline</div>
+      <div class="cr-web cr-no">PARTIAL</div>
+      <div class="cr-app cr-yes">FULL</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Data survives cache clear</div>
+      <div class="cr-web cr-no">NO</div>
+      <div class="cr-app cr-yes">YES</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Export / import backups</div>
+      <div class="cr-web cr-no">NO</div>
+      <div class="cr-app cr-yes">YES</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Real app icon + taskbar</div>
+      <div class="cr-web cr-no">NO</div>
+      <div class="cr-app cr-yes">YES</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Keyboard shortcuts</div>
+      <div class="cr-web cr-no">NO</div>
+      <div class="cr-app cr-yes">YES</div>
+    </div>
+  </div>
+</div>
+
+<!-- TRUST / SAFETY -->
+<div class="sec" style="padding-top:0">
+  <div class="sec-label">Trust &amp; safety</div>
+
+  <div class="info-block">
+    <div class="ib-title">WHAT'S INSIDE</div>
+    <div class="ib-body">The desktop app is <strong>the exact same HTML files</strong> as the web version, wrapped in an Electron shell. No hidden code. No network calls. No telemetry. You can unzip the installer and read every file yourself.</div>
+  </div>
+
+  <div class="info-block">
+    <div class="ib-title">YOUR DATA</div>
+    <div class="ib-body">All data stays in your user folder (<strong>%APPDATA%</strong> on Windows, <strong>~/Library</strong> on Mac). Uninstalling the app does <strong>not</strong> delete your missions, evidence, or check-in history. Your data outlives the app.</div>
+  </div>
+
+  <div class="info-block">
+    <div class="ib-title">SECURITY</div>
+    <div class="ib-body"><strong>Context isolation ON. Node integration OFF. Sandbox ON.</strong> The app can't access your files, network, or anything outside its own window. Camera blocked. Microphone pre-granted for future voice features (local only, never cloud).</div>
+  </div>
+</div>
+
+<!-- SECONDARY CTAs -->
+<div class="sec" style="padding-top:0">
+  <a href="./" class="cta-sec">USE THE WEB VERSION INSTEAD &rarr;</a>
+  <a href="./no-excuses.html" class="cta-sec">STILL HAVE EXCUSES? READ THIS &rarr;</a>
+  <a href="./feedback.html" class="cta-sec">REPORT A BUG &rarr;</a>
+</div>
+
+<!-- DISCLAIMER -->
+<div class="sec">
+  <div style="background:var(--bg3);border:1px solid rgba(192,57,43,.15);border-radius:10px;padding:14px 16px;text-align:center">
+    <div style="color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:8px">&#9888; IMPORTANT</div>
+    <div style="color:var(--dim);font-size:9px;font-family:Georgia,serif;line-height:1.7">The Operator's Deck is a self-help tool, not therapy. It is not a substitute for professional treatment. If you're dealing with active trauma, PTSD, addiction, or suicidal thoughts &mdash; work with a licensed professional. Call or text <strong style="color:#ccc">988</strong> for the Suicide &amp; Crisis Lifeline.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="f-ver">THE OPERATOR'S DECK &middot; v3.1.0 &middot; 2026</div>
+  <div class="f-copy">Created by Ryan Bardyla<br>Clinical frameworks: DBT (Linehan) &middot; CPT (Resick) &middot; ACT &middot; Stanley-Brown Safety Planning<br>No affiliation with any clinical program</div>
+  <a href="./feedback.html" class="f-link">BUG REPORT / FEEDBACK &rarr;</a>
+</div>
+
+</div><!-- .app -->
+</body>
+</html>

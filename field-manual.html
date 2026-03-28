@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="FIELD MANUAL • OPERATOR'S DECK">
+<meta property="og:description" content="Evidence-based knowledge library. Learn the science behind every drill. 32 micro-lessons. Zero data collection.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/field-manual.html">
+<title>FIELD MANUAL • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d14;--bg3:#111118;--bg4:#1a1a22;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--pur:#9333ea;--acc:#e67e22;--txt:#ddd;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding-bottom:100px}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--gld);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0;min-height:36px}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--gld);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* HEADER */
+.fm-header{text-align:center;padding:28px 20px 20px}
+.fm-tag{color:var(--gld);font-size:8px;font-family:monospace;letter-spacing:4px;margin-bottom:8px}
+.fm-title{font-size:22px;font-weight:900;letter-spacing:2px;margin-bottom:8px}
+.fm-sub{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.8;max-width:340px;margin:0 auto}
+
+/* PROGRESS STRIP */
+.prog-strip{margin:0 16px 20px;background:var(--bg2);border-radius:12px;padding:14px 16px;border:1px solid rgba(212,168,67,.12)}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.prog-label{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:2px}
+.prog-pct{color:var(--gld);font-size:16px;font-weight:900;font-family:'Courier New',monospace}
+.prog-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gld),var(--acc));border-radius:2px;transition:width .4s ease}
+.prog-detail{display:flex;justify-content:space-between;margin-top:6px}
+.prog-detail span{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px}
+
+/* SEARCH */
+.search-wrap{margin:0 16px 16px;position:relative}
+.search-wrap input{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px 12px 36px;font-size:11px;font-family:monospace;letter-spacing:.5px;outline:none;transition:border-color .2s;min-height:40px}
+.search-wrap input:focus{border-color:rgba(212,168,67,.4)}
+.search-wrap input::placeholder{color:#2a2a2a}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--dim3);pointer-events:none}
+
+/* DOMAIN FILTERS */
+.filters{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding:0 16px;margin-bottom:20px}
+.filt-btn{background:var(--bg2);color:var(--dim);border:1px solid var(--dim3);border-radius:7px;padding:7px 11px;font-size:7.5px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;min-height:32px}
+.filt-btn.on{color:#fff;border-color:var(--gld);background:rgba(212,168,67,.08)}
+.filt-btn:active{transform:scale(.96)}
+
+/* DOMAIN SECTIONS */
+.domain{margin:0 16px 24px}
+.domain-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;padding:8px 0;min-height:44px}
+.domain-hdr:active{opacity:.8}
+.dh-icon{font-size:16px;flex-shrink:0}
+.dh-info{flex:1}
+.dh-name{font-size:11px;font-weight:900;font-family:monospace;letter-spacing:1.5px}
+.dh-count{font-size:7px;font-family:monospace;letter-spacing:1px;margin-top:2px}
+.dh-arrow{color:var(--dim2);font-size:14px;transition:transform .2s}
+.dh-arrow.open{transform:rotate(90deg)}
+.domain-body{display:none}
+.domain-body.open{display:block}
+
+/* LESSON CARDS */
+.lesson{background:var(--bg2);border-radius:12px;margin-bottom:8px;border:1px solid transparent;transition:all .2s;overflow:hidden}
+.lesson.read{border-color:rgba(39,174,96,.15)}
+.lesson-top{padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;min-height:48px}
+.lesson-top:active{background:rgba(255,255,255,.02)}
+.ls-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--dim3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--grn);transition:all .2s}
+.lesson.read .ls-check{border-color:var(--grn);background:rgba(39,174,96,.12)}
+.ls-info{flex:1;min-width:0}
+.ls-name{font-size:10.5px;font-weight:800;font-family:monospace;letter-spacing:.5px}
+.ls-one{color:var(--dim);font-size:8.5px;font-family:Georgia,serif;margin-top:3px;line-height:1.5}
+.lesson.read .ls-name{color:var(--grn)}
+.ls-arrow{color:var(--dim3);font-size:12px;flex-shrink:0;transition:transform .2s}
+.ls-arrow.open{transform:rotate(90deg);color:var(--dim)}
+
+/* LESSON EXPANDED */
+.lesson-body{display:none;padding:0 16px 16px}
+.lesson-body.open{display:block}
+.lb-section{margin-bottom:14px}
+.lb-tag{color:var(--gld);font-size:6.5px;font-family:monospace;letter-spacing:2.5px;margin-bottom:5px}
+.lb-text{color:#bbb;font-size:10px;font-family:Georgia,serif;line-height:1.8}
+.lb-text strong{color:#ddd;font-weight:700}
+.lb-quote{background:var(--bg3);border-left:3px solid var(--gld);border-radius:0 8px 8px 0;padding:10px 12px;margin:10px 0;color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7}
+.lb-source{color:var(--dim2);font-size:7.5px;font-family:monospace;letter-spacing:.5px;margin-top:4px;font-style:normal}
+
+/* DRILL LINK */
+.drill-link{display:flex;align-items:center;gap:10px;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.15);border-radius:10px;padding:12px 14px;margin-top:10px;text-decoration:none;transition:all .2s;min-height:44px}
+.drill-link:active{background:rgba(192,57,43,.12);transform:scale(.98)}
+.dl-icon{font-size:14px;flex-shrink:0}
+.dl-info{flex:1}
+.dl-label{color:var(--red);font-size:6.5px;font-family:monospace;letter-spacing:2px}
+.dl-name{color:#ccc;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:.5px;margin-top:2px}
+.dl-arrow{color:var(--dim2);font-size:12px}
+
+/* PLAYBOOK LINK */
+.playbook-link{display:flex;align-items:center;gap:10px;background:rgba(212,168,67,.05);border:1px solid rgba(212,168,67,.15);border-radius:10px;padding:12px 14px;margin-top:8px;text-decoration:none;transition:all .2s;min-height:44px}
+.playbook-link:active{background:rgba(212,168,67,.12);transform:scale(.98)}
+
+/* READING REC */
+.reading-rec{background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;margin-top:10px}
+.rr-tag{color:var(--dim2);font-size:6.5px;font-family:monospace;letter-spacing:2px;margin-bottom:4px}
+.rr-title{color:#ccc;font-size:10px;font-weight:700;margin-bottom:2px}
+.rr-author{color:var(--dim);font-size:8.5px;font-family:Georgia,serif;font-style:italic}
+
+/* MARK READ BUTTON */
+.mark-btn{background:var(--bg3);color:var(--dim);border:1px solid var(--dim3);border-radius:8px;padding:10px 16px;font-size:8px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;width:100%;margin-top:12px;transition:all .2s;min-height:40px}
+.mark-btn:active{transform:scale(.97)}
+.lesson.read .mark-btn{color:var(--grn);border-color:rgba(39,174,96,.25)}
+
+/* STATS PANEL */
+.stats-panel{margin:0 16px 24px;background:var(--bg2);border-radius:12px;padding:16px;border:1px solid rgba(212,168,67,.1)}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-item{text-align:center;padding:10px 4px;background:var(--bg3);border-radius:8px}
+.stat-val{font-size:18px;font-weight:900;font-family:'Courier New',monospace}
+.stat-lbl{color:var(--dim);font-size:6.5px;font-family:monospace;letter-spacing:1.5px;margin-top:3px}
+
+/* DISC FOOTER */
+.disc-footer{margin:30px 16px 0;padding:16px;background:var(--bg2);border-radius:12px;border:1px solid rgba(39,174,96,.1)}
+.disc-footer .df-tag{color:var(--grn);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+.disc-footer .df-text{color:var(--dim);font-size:8px;font-family:Georgia,serif;line-height:1.8}
+.disc-footer .df-text strong{color:var(--dim2)}
+
+/* NEXT STEP */
+.next-step{margin:20px 16px 0;background:linear-gradient(135deg,rgba(192,57,43,.06),var(--bg2));border:1px dashed rgba(192,57,43,.2);border-radius:12px;padding:16px;text-align:center}
+.next-step .ns-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+.next-step a{display:inline-block;color:#ccc;font-size:9px;font-weight:700;font-family:monospace;letter-spacing:1px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:8px;padding:10px 20px;margin:4px;transition:all .2s;min-height:40px;line-height:20px}
+.next-step a:active{background:rgba(192,57,43,.1);transform:scale(.97)}
+
+/* EMPTY STATE */
+.empty-search{text-align:center;padding:40px 20px;color:var(--dim2);font-size:11px;font-family:Georgia,serif;font-style:italic}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:10px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards;white-space:nowrap;pointer-events:none}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+
+/* PROGRESSIVE DISCLOSURE (TIER 3) */
+.deep-toggle-btn{background:transparent;color:var(--dim2);border:1px dashed var(--dim3);border-radius:8px;padding:8px 12px;font-size:7.5px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;width:100%;margin-top:14px;margin-bottom:8px;transition:all .2s;text-align:center;min-height:36px}
+.deep-toggle-btn:active{transform:scale(.98)}
+.deep-toggle-btn.open{border-style:solid;color:var(--gld);border-color:rgba(212,168,67,.3);background:rgba(212,168,67,.05)}
+.lb-deep-content{display:none;background:var(--bg3);border-left:2px solid var(--dim3);padding:12px 14px;margin-bottom:14px;border-radius:0 8px 8px 0}
+.lb-deep-content.open{display:block;animation:deepFadeIn .3s ease}
+@keyframes deepFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.deep-grid{display:grid;gap:12px}
+.deep-item .di-tag{color:var(--dim2);font-size:6.5px;font-family:monospace;letter-spacing:2px;margin-bottom:4px}
+.deep-item.neuro .di-tag{color:var(--blu)}
+.deep-item.data .di-tag{color:var(--grn)}
+.deep-item.pitfall .di-tag{color:var(--red)}
+.deep-item .di-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;line-height:1.6}
+
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+input:focus-visible{outline:2px solid var(--gld);outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'" aria-label="Back to deck">&#8592; DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">OPERATOR&#8217;S DECK</div>
+    <div class="nav-name">FIELD MANUAL</div>
+  </div>
+</div>
+
+<div id="root"></div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════════
+   FIELD MANUAL • OPERATOR'S DECK
+   Evidence-based knowledge library — 36 micro-lessons, 8 domains
+   100% offline • localStorage only • zero external dependencies
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+// ── SANITIZE ──────────────────────────────────────────────────────────────────
+function esc(s){
+  if(s==null)return'';
+  var d=document.createElement('div');
+  d.textContent=String(s);
+  return d.innerHTML;
+}
+function escAttr(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+// ── ALLOWED HREFS (whitelist for drill links) ─────────────────────────────────
+var ALLOWED_HREFS={
+  'tipp-drill-full.html':1,'mindfulness-drill-full.html':1,'opposite-action-drill.html':1,
+  'improve-drill-full.html':1,'whats-going-on.html':1,'stuck-points-drill.html':1,
+  'thought-interceptor.html':1,'chain-analysis-drill.html':1,'act-drill.html':1,
+  'dear-man-drill.html':1,'rsd-shield-drill.html':1,'pattern-recon.html':1,
+  'safety-plan-drill.html':1,'red-protocol.html':1,'dopamine-depot.html':1,
+  'body-double-ops.html':1,'visual-planner.html':1,'micro-ops.html':1,
+  'operators-playbook.html':1,'toolshed.html':1,'parts-mapping-drill.html':1
+};
+function safeHref(h){return ALLOWED_HREFS[h]?h:'#';}
+
+// ── LOCALSTORAGE ──────────────────────────────────────────────────────────────
+var KEY='od_fieldmanual';
+var state;
+try{
+  var raw=localStorage.getItem(KEY);
+  state=raw?JSON.parse(raw):null;
+  if(!state||typeof state!=='object'||Array.isArray(state))state={};
+}catch(e){state={};}
+if(!state.read||typeof state.read!=='object'||Array.isArray(state.read))state.read={};
+// Purge any non-string keys or non-number values in read
+(function(){
+  var clean={};
+  var keys=Object.keys(state.read);
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i];
+    if(typeof k==='string'&&k.length<10&&typeof state.read[k]==='number'){
+      clean[k]=state.read[k];
+    }
+  }
+  state.read=clean;
+})();
+
+function save(){
+  try{
+    var out=JSON.stringify(state);
+    if(out.length>50000)return; // sanity cap
+    localStorage.setItem(KEY,out);
+  }catch(e){}
+}
+
+// ── KNOWLEDGE BASE ────────────────────────────────────────────────────────────
+var DOMAINS=[
+{
+  id:'regulate',icon:'\uD83D\uDD25',name:'EMOTIONAL REGULATION',color:'var(--red)',
+  desc:'DBT-based skills for when your nervous system is running the show.',
+  lessons:[
+    {id:'r1',name:'THE EMOTIONAL BRAIN vs THE RATIONAL BRAIN',
+     one:'Your amygdala fires 80ms before your prefrontal cortex even gets the signal.',
+     body:'When you feel hijacked by emotion, you are \u2014 literally. The amygdala processes threat signals faster than the thinking brain can override them. DBT calls this \u201Cemotion mind.\u201D The goal is not to suppress it. The goal is to buy your prefrontal cortex enough time to catch up. Every regulation skill in this deck exists to create that window.',
+     quote:'Between stimulus and response there is a space. In that space is our freedom.',
+     quoteSource:'Viktor Frankl, Man\u2019s Search for Meaning',
+     source:'LeDoux, J. (1996). The Emotional Brain. Simon & Schuster.',
+     drill:{name:'TIPP DRILL',href:'tipp-drill-full.html',icon:'\u26A1'},
+     book:{title:'The Body Keeps the Score',author:'Bessel van der Kolk'}},
+    {id:'r2',name:'WINDOW OF TOLERANCE',
+     one:'There\u2019s a zone where you can think and feel at the same time. The work is staying in it.',
+     body:'Dan Siegel\u2019s \u201Cwindow of tolerance\u201D is the bandwidth where you can experience emotions without being overwhelmed (hyperarousal) or shutting down (hypoarousal). Trauma narrows this window. Recovery widens it. Every time you use a grounding skill successfully, you are literally expanding the zone where you can function. This is measurable, neurological progress \u2014 even when it doesn\u2019t feel like it.',
+     source:'Siegel, D. (1999). The Developing Mind. Guilford Press.',
+     drill:{name:'MINDFULNESS DRILL',href:'mindfulness-drill-full.html',icon:'\uD83E\uDDD8'},
+     book:{title:'Mindsight',author:'Daniel J. Siegel'}},
+    {id:'r3',name:'OPPOSITE ACTION',
+     one:'The urge says \u201Chide.\u201D The skill says \u201Cshow up anyway.\u201D That gap is where you rebuild.',
+     body:'Opposite Action is Marsha Linehan\u2019s core DBT technique: when an emotion is unjustified by the facts, or when acting on the emotion makes things worse, you do the exact behavioral opposite. Afraid and want to avoid? Approach. Ashamed and want to hide? Make it visible. Angry and want to attack? Gently pull back. The key is that you change the behavior \u2014 full body, full commitment \u2014 not just intellectually decide to feel different.',
+     source:'Linehan, M. (2015). DBT Skills Training Manual, 2nd Ed. Guilford.',
+     drill:{name:'OPPOSITE ACTION',href:'opposite-action-drill.html',icon:'\u26A1'},
+     book:{title:'DBT Skills Training Handouts and Worksheets',author:'Marsha M. Linehan'}},
+    {id:'r4',name:'TIPP: BODY BEFORE BRAIN',
+     one:'You can\u2019t think your way out of a 9/10 crisis. You have to change the body first.',
+     body:'TIPP stands for Temperature, Intense exercise, Paced breathing, and Progressive relaxation. It targets the autonomic nervous system directly. Cold water on the face triggers the mammalian dive reflex, dropping heart rate by 10\u201325%. Intense exercise metabolizes adrenaline. Paced breathing (exhale longer than inhale) activates the vagus nerve and shifts from sympathetic to parasympathetic dominance. These are not coping strategies. These are physiological interventions.',
+     source:'Linehan, M. (2015). DBT Skills Training Manual. Chapter 9: Distress Tolerance.',
+     drill:{name:'TIPP DRILL',href:'tipp-drill-full.html',icon:'\u26A1'},
+     book:{title:'The Pocket Guide to the Polyvagal Theory',author:'Stephen W. Porges'}},
+    {id:'r5',name:'IMPROVE THE MOMENT',
+     one:'You can\u2019t fix the whole situation right now. But you can make this minute survivable.',
+     body:'IMPROVE is a DBT acronym: Imagery, Meaning, Prayer, Relaxation, One thing at a time, Vacation (brief), Encouragement. It is designed for moments when you cannot change the situation but need to change your ability to endure it. The core insight: distress tolerance is not about removing pain. It is about surviving it without making it worse. The difference between someone who relapses and someone who doesn\u2019t is often 15 minutes of tolerance.',
+     source:'Linehan, M. (2015). DBT Skills Training Manual. Chapter 9.',
+     drill:{name:'IMPROVE DRILL',href:'improve-drill-full.html',icon:'\uD83D\uDCC8'},
+     book:{title:'Distress Tolerance',author:'Marsha Linehan (DBT Manual, Ch. 9)'}},
+    {id:'r6',name:'NAMING THE EMOTION',
+     one:'Putting a name to it reduces its power. Neuroscience calls this \u201Caffect labeling.\u201D',
+     body:'Matthew Lieberman\u2019s fMRI research at UCLA showed that simply labeling an emotion (\u201CI am feeling anger\u201D) reduces amygdala activation. The act of naming recruits the prefrontal cortex, which dampens the emotional response. This is why \u201CWhat\u2019s Going On\u201D in the Operator\u2019s Deck asks you to name your state first \u2014 it is not a formality. It is the first intervention. The more specific the label, the greater the dampening effect.',
+     source:'Lieberman, M.D. et al. (2007). Putting Feelings into Words. Psychological Science, 18(5).',
+     drill:{name:'WHAT\u2019S GOING ON',href:'whats-going-on.html',icon:'\uD83E\uDDE0'},
+     book:{title:'Emotional Intelligence',author:'Daniel Goleman'}}
+  ]
+},
+{
+  id:'cognitive',icon:'\uD83E\uDDE0',name:'COGNITIVE PROCESSING',color:'var(--blu)',
+  desc:'CPT and CBT-based tools for dismantling distorted thinking patterns.',
+  lessons:[
+    {id:'c1',name:'STUCK POINTS: THE BELIEFS THAT RUN YOUR LIFE',
+     one:'A stuck point is a thought you treat as fact. It was installed without your consent.',
+     body:'In Cognitive Processing Therapy (CPT), a \u201Cstuck point\u201D is a belief that blocks recovery. It is not just a negative thought \u2014 it is a load-bearing assumption your entire worldview rests on. \u201CI should have done something\u201D (self-blame). \u201CNobody can be trusted\u201D (safety). \u201CI am fundamentally broken\u201D (esteem). These beliefs were often adaptive at the time of trauma but are now preventing forward movement. The Stuck Points drill walks you through the Socratic process of examining them forensically.',
+     source:'Resick, P.A. et al. (2017). Cognitive Processing Therapy for PTSD. Guilford.',
+     drill:{name:'STUCK POINTS DRILL',href:'stuck-points-drill.html',icon:'\uD83E\uDDE0'},
+     book:{title:'Cognitive Processing Therapy for PTSD',author:'Resick, Monson & Chard'}},
+    {id:'c2',name:'THE ABC MODEL',
+     one:'It\u2019s not the event that hurts you. It\u2019s the meaning you attach to the event.',
+     body:'Albert Ellis\u2019s ABC model (Activating event \u2192 Belief \u2192 Consequence) is the foundation of cognitive therapy. The same event can produce completely different emotional outcomes depending on the belief that mediates it. Getting left on read (A) \u2192 \u201CThey hate me\u201D (B) \u2192 panic (C). Same event (A) \u2192 \u201CThey\u2019re probably busy\u201D (B) \u2192 mild concern (C). The work is always at B. The Thought Interceptor targets this layer directly.',
+     source:'Ellis, A. (1962). Reason and Emotion in Psychotherapy. Lyle Stuart.',
+     drill:{name:'THOUGHT INTERCEPTOR',href:'thought-interceptor.html',icon:'\uD83C\uDFAF'},
+     book:{title:'A Guide to Rational Living',author:'Albert Ellis & Robert Harper'}},
+    {id:'c3',name:'COGNITIVE DISTORTIONS',
+     one:'Your brain has 15+ named glitches. Learning them is like installing antivirus.',
+     body:'David Burns identified systematic errors in thinking: all-or-nothing thinking, catastrophizing, mind reading, emotional reasoning, should statements, personalization, magnification, mental filter, disqualifying the positive, jumping to conclusions, labeling, fortune-telling, overgeneralization, and more. These are not character flaws. They are predictable, pattern-matchable errors that every human brain makes. The difference between suffering and processing is recognizing the distortion in real time.',
+     source:'Burns, D. (1980). Feeling Good: The New Mood Therapy. William Morrow.',
+     drill:{name:'STUCK POINTS DRILL',href:'stuck-points-drill.html',icon:'\uD83E\uDDE0'},
+     book:{title:'Feeling Good',author:'David D. Burns'}},
+    {id:'c4',name:'CHAIN ANALYSIS: REVERSE-ENGINEERING A CRISIS',
+     one:'Every blowup has a chain. Vulnerability \u2192 trigger \u2192 link \u2192 link \u2192 behavior. Map it. Break it.',
+     body:'Behavioral chain analysis is a core DBT tool for understanding problem behaviors. Instead of asking \u201Cwhy did I do that?\u201D (which produces shame), it asks \u201Cwhat was the sequence?\u201D Vulnerability factors (poor sleep, hunger, isolation) create conditions. A trigger activates the chain. Each link \u2014 a thought, sensation, urge, or micro-decision \u2014 leads to the next. The power is in finding the earliest breakable link. Prevention lives upstream, not at the moment of crisis.',
+     source:'Linehan, M. (2015). DBT Skills Training Manual. Chapter 8.',
+     drill:{name:'CHAIN ANALYSIS',href:'chain-analysis-drill.html',icon:'\uD83D\uDD17'},
+     book:{title:'Building a Life Worth Living',author:'Marsha M. Linehan'}},
+    {id:'c5',name:'THE REFRAME: THREAT OR CHALLENGE?',
+     one:'Same situation. Two interpretations. One shuts you down. The other mobilizes you.',
+     body:'Cognitive reframing is not about toxic positivity or pretending everything is fine. It is about examining whether your automatic interpretation is the only valid one. The SOMA Reframing Protocol used in the Thought Interceptor asks: \u201CIs this a demand (threat to my identity) or a challenge (something I can act on)?\u201D Research on stress appraisal shows that interpreting a stressor as a challenge activates approach motivation and mobilizes resources, while threat appraisal activates avoidance and depletion.',
+     source:'Lazarus, R.S. & Folkman, S. (1984). Stress, Appraisal, and Coping. Springer.',
+     drill:{name:'THOUGHT INTERCEPTOR',href:'thought-interceptor.html',icon:'\uD83C\uDFAF'},
+     book:{title:'Stress, Appraisal, and Coping',author:'Lazarus & Folkman'}},
+    {id:'c6',name:'METACOGNITION: THINKING ABOUT THINKING',
+     one:'You are not your thoughts. You are the one watching your thoughts.',
+     body:'Metacognitive awareness \u2014 the ability to observe your own thought processes \u2014 is the common thread across ACT, DBT, CBT, and mindfulness. Adrian Wells\u2019 metacognitive therapy argues that it is not the content of thoughts that causes suffering, but how we relate to them: ruminating, worrying, monitoring for threats. The shift from \u201CI am worthless\u201D to \u201CI am having the thought that I am worthless\u201D is not semantic \u2014 it is neurological. It activates different brain networks and creates space for choice.',
+     source:'Wells, A. (2009). Metacognitive Therapy for Anxiety and Depression. Guilford.',
+     drill:{name:'ACT DRILL',href:'act-drill.html',icon:'\uD83E\uDDED'},
+     book:{title:'Metacognitive Therapy for Anxiety and Depression',author:'Adrian Wells'}}
+  ]
+},
+{
+  id:'values',icon:'\uD83E\uDDED',name:'VALUES & COMMITMENT',color:'var(--grn)',
+  desc:'ACT-based framework: defuse from thoughts, connect to values, take committed action.',
+  lessons:[
+    {id:'v1',name:'DEFUSION: UNHOOKING FROM THOUGHTS',
+     one:'You don\u2019t have to believe every thought your brain generates.',
+     body:'Cognitive defusion is the core ACT technique. Instead of fighting or believing a thought, you change your relationship to it. \u201CI am a failure\u201D becomes \u201CI notice I\u2019m having the thought that I am a failure.\u201D The content hasn\u2019t changed, but the grip has loosened. Techniques include saying the thought in a silly voice, thanking your mind for the input, visualizing thoughts as leaves on a stream. The goal is not to eliminate thoughts but to reduce their behavioral impact.',
+     source:'Hayes, S.C. et al. (2012). Acceptance and Commitment Therapy, 2nd Ed. Guilford.',
+     drill:{name:'ACT DRILL',href:'act-drill.html',icon:'\uD83E\uDDED'},
+     book:{title:'Get Out of Your Mind and Into Your Life',author:'Steven C. Hayes'}},
+    {id:'v2',name:'VALUES vs GOALS',
+     one:'Goals are destinations. Values are directions. You can live a value right now.',
+     body:'In ACT, values are chosen directions \u2014 they are not achievements to be completed. \u201CBeing a present father\u201D is a value. \u201CAttending my son\u2019s game on Saturday\u201D is a goal in service of that value. This distinction matters because goals can be blocked by circumstances, but values can always be acted on. Even in a hospital bed, you can express kindness. Even while grieving, you can choose honesty. Values are the compass; goals are waypoints. The Operator\u2019s Deck cards are designed as value-aligned micro-actions.',
+     source:'Hayes, S.C. et al. (2012). ACT, 2nd Ed. Chapter 12: Values.',
+     drill:{name:'ACT DRILL',href:'act-drill.html',icon:'\uD83E\uDDED'},
+     book:{title:'The Happiness Trap',author:'Russ Harris'}},
+    {id:'v3',name:'WILLINGNESS & ACCEPTANCE',
+     one:'Acceptance is not giving up. It is refusing to waste energy fighting what has already happened.',
+     body:'Experiential acceptance means allowing internal experiences (thoughts, feelings, sensations, memories) to exist without trying to change, avoid, or control them. This is the opposite of experiential avoidance \u2014 the engine behind addiction, procrastination, and most self-destructive behavior. Willingness is the behavioral commitment to move toward valued action even when uncomfortable internal experiences are present. You do not have to feel ready. You choose to act anyway.',
+     source:'Hayes, S.C. (2005). Get Out of Your Mind and Into Your Life. New Harbinger.',
+     drill:{name:'ACT DRILL',href:'act-drill.html',icon:'\uD83E\uDDED'},
+     book:{title:'ACT Made Simple',author:'Russ Harris'}},
+    {id:'v4',name:'COMMITTED ACTION: THE ONLY THING THAT COUNTS',
+     one:'Insight without action is entertainment. Committed action is values made visible.',
+     body:'ACT\u2019s six-process model ends with committed action \u2014 behavior change aligned with chosen values. This is not about motivation or willpower. It is about building patterns of valued action even when the mind says \u201Cnot today,\u201D \u201Cyou\u2019re not ready,\u201D or \u201Cwhat\u2019s the point.\u201D The Operator\u2019s Deck is built on this: draw a card, flip it, do the mission. The action comes first. The feeling follows. Research consistently shows that behavioral activation precedes mood improvement, not the other way around.',
+     source:'Martell, C.R. et al. (2010). Behavioral Activation for Depression. Guilford.',
+     drill:{name:'ACT DRILL',href:'act-drill.html',icon:'\uD83E\uDDED'},
+     book:{title:'Behavioral Activation for Depression',author:'Martell, Dimidjian & Herman-Dunn'}},
+    {id:'v5',name:'PSYCHOLOGICAL FLEXIBILITY',
+     one:'The single best predictor of mental health is not happiness. It\u2019s flexibility.',
+     body:'Psychological flexibility \u2014 the ability to contact the present moment, open up to difficult experiences, and do what matters \u2014 is the unifying construct of ACT. Research across 900+ studies shows it predicts mental health outcomes better than almost any other single factor. Rigid avoidance, fusion with thoughts, disconnection from values, and inaction are the four barriers. Every tool in this deck targets at least one of them. Flexibility is not a personality trait. It is a trainable skill.',
+     source:'Kashdan, T. & Rottenberg, J. (2010). Psychological Flexibility as a Fundamental Aspect of Health. Clinical Psychology Review, 30(7).',
+     drill:{name:'ACT DRILL',href:'act-drill.html',icon:'\uD83E\uDDED'},
+     book:{title:'The Upside of Your Dark Side',author:'Todd Kashdan & Robert Biswas-Diener'}}
+  ]
+},
+{
+  id:'interpersonal',icon:'\uD83D\uDCE1',name:'INTERPERSONAL EFFECTIVENESS',color:'var(--acc)',
+  desc:'DBT communication skills, boundary setting, and rejection sensitivity protocols.',
+  lessons:[
+    {id:'i1',name:'DEAR MAN: THE CONVERSATION FORMULA',
+     one:'Describe, Express, Assert, Reinforce, Mindful, Appear confident, Negotiate.',
+     body:'DEAR MAN is Linehan\u2019s structured framework for asking for what you need or saying no effectively. Describe the situation with facts. Express your feelings using \u201CI\u201D statements. Assert clearly what you want. Reinforce why it benefits them too. Stay Mindful of your objective (don\u2019t get derailed). Appear confident even if you don\u2019t feel it. Negotiate if needed. Most people avoid hard conversations because they don\u2019t have a structure. DEAR MAN gives you one.',
+     source:'Linehan, M. (2015). DBT Skills Training Manual. Chapter 8: Interpersonal Effectiveness.',
+     drill:{name:'DEAR MAN DRILL',href:'dear-man-drill.html',icon:'\uD83D\uDCE1'},
+     book:{title:'Interpersonal Effectiveness Skills',author:'Linehan (DBT Manual, Ch. 8)'}},
+    {id:'i2',name:'REJECTION SENSITIVITY DYSPHORIA (RSD)',
+     one:'RSD makes \u201Cno reply\u201D feel like \u201CI hate you.\u201D It\u2019s neurological, not irrational.',
+     body:'RSD is common in ADHD and describes an extreme emotional response to perceived rejection or criticism. It is not a character flaw or oversensitivity \u2014 it appears to involve dysregulation in the brain\u2019s emotional processing circuits. A delayed text response, a neutral facial expression, or ambiguous feedback can trigger a pain response as intense as physical injury. Recognizing RSD is the first step. The RSD Shield drill walks you through evidence checking and response delay to prevent the spiral.',
+     source:'Dodson, W. (2021). Rejection Sensitive Dysphoria and ADHD. ADDitude Magazine / Clinical Practice.',
+     drill:{name:'RSD SHIELD',href:'rsd-shield-drill.html',icon:'\uD83D\uDEE1'},
+     book:{title:'Delivered from Distraction',author:'Edward Hallowell & John Ratey'}},
+    {id:'i3',name:'BOUNDARIES: WHAT THEY ARE AND WHAT THEY\u2019RE NOT',
+     one:'A boundary is not a wall. It\u2019s a door with a lock that you control.',
+     body:'Boundaries define where you end and another person begins. They are not punishment, ultimatums, or attempts to control others. They are statements of what you will and will not accept, paired with actions you will take. \u201CIf you yell, I will leave the room\u201D is a boundary. \u201CStop yelling at me\u201D is a request. The difference is agency. Boundaries require you to follow through \u2014 which is why most people struggle with them. DEAR MAN provides the language; the follow-through is yours.',
+     source:'Cloud, H. & Townsend, J. (1992). Boundaries. Zondervan.',
+     drill:{name:'DEAR MAN DRILL',href:'dear-man-drill.html',icon:'\uD83D\uDCE1'},
+     book:{title:'Boundaries',author:'Henry Cloud & John Townsend'}},
+    {id:'i4',name:'VALIDATION: THE MOST UNDERRATED SKILL',
+     one:'Validation doesn\u2019t mean agreement. It means \u201CI see that your experience is real.\u201D',
+     body:'Linehan identifies six levels of validation, from paying attention (Level 1) to radical genuineness (Level 6). Most interpersonal conflict escalates because people feel invalidated \u2014 their experience is dismissed, minimized, or argued against. Self-validation is equally critical: acknowledging your own pain without judgment. \u201CIt makes sense that I feel this way given what happened\u201D is self-validation. It is not self-pity. It is accurate recognition of cause and effect.',
+     source:'Linehan, M. (1997). Validation and Psychotherapy. In Bohart & Greenberg (Eds.), Empathy Reconsidered.',
+     drill:{name:'DEAR MAN DRILL',href:'dear-man-drill.html',icon:'\uD83D\uDCE1'},
+     book:{title:'I Hear You',author:'Michael S. Sorensen'}},
+    {id:'i5',name:'PATTERN RECOGNITION IN RELATIONSHIPS',
+     one:'If it\u2019s happening again, it\u2019s a pattern. Patterns have structures. Structures can be broken.',
+     body:'Pattern Recon in the Operator\u2019s Deck tracks recurring interpersonal cycles: the same type of conflict, the same withdrawal behavior, the same people-pleasing collapse. The goal is not to blame yourself but to see the system. Once you can name the pattern (\u201CI over-give until I resent, then I withdraw completely\u201D), you can intervene earlier in the chain. This is chain analysis applied to relationships rather than crisis events.',
+     source:'Young, J.E. et al. (2003). Schema Therapy. Guilford.',
+     drill:{name:'PATTERN RECON',href:'pattern-recon.html',icon:'\uD83D\uDCE1'},
+     book:{title:'Reinventing Your Life',author:'Jeffrey Young & Janet Klosko'}}
+  ]
+},
+{
+  id:'crisis',icon:'\uD83D\uDD34',name:'CRISIS MANAGEMENT',color:'var(--red)',
+  desc:'Safety planning, grounding, and protocols for when the floor drops out.',
+  lessons:[
+    {id:'x1',name:'THE SAFETY PLAN: YOUR PRE-BUILT EXIT ROUTE',
+     one:'You build a safety plan when you\u2019re stable so it works when you\u2019re not.',
+     body:'The Stanley-Brown Safety Planning Intervention is a brief, evidence-based intervention that has been shown to reduce suicidal behavior by 50% in emergency department studies. It is not a contract. It is a personalized, hierarchical list: warning signs, internal coping strategies, social contacts for distraction, professional contacts, restricting access to means, and your personal reason for living. The key is building it when you can think clearly. In crisis, you follow the steps without having to think.',
+     source:'Stanley, B. & Brown, G.K. (2012). Safety Planning Intervention: A Brief Intervention to Mitigate Suicide Risk. Cognitive and Behavioral Practice, 19(2).',
+     drill:{name:'SAFETY PLAN',href:'safety-plan-drill.html',icon:'\uD83D\uDEE1'},
+     book:{title:'Choosing to Live',author:'Thomas Ellis & Cory Newman'}},
+    {id:'x2',name:'THE 5-4-3-2-1 GROUNDING TECHNIQUE',
+     one:'Name 5 things you see. 4 you hear. 3 you touch. 2 you smell. 1 you taste. You\u2019re back.',
+     body:'Grounding techniques work by redirecting attention from internal distress to external sensory input. The 5-4-3-2-1 method systematically engages all five senses, pulling you out of flashback, dissociation, or panic and into present-moment awareness. It works because the brain cannot fully process past trauma and current sensory input simultaneously. This is not meditation. It is an emergency technique for acute distress. The Mindfulness Drill includes grounding as its first layer.',
+     source:'Najavits, L.M. (2002). Seeking Safety: A Treatment Manual for PTSD and Substance Abuse. Guilford.',
+     drill:{name:'MINDFULNESS DRILL',href:'mindfulness-drill-full.html',icon:'\uD83E\uDDD8'},
+     book:{title:'Seeking Safety',author:'Lisa M. Najavits'}},
+    {id:'x3',name:'THE MAMMALIAN DIVE REFLEX',
+     one:'Cold water on your face drops your heart rate in under 30 seconds. It\u2019s not a trick. It\u2019s biology.',
+     body:'When cold water contacts the area around your eyes and cheeks, it triggers the mammalian dive reflex \u2014 an autonomic response that slows heart rate, redirects blood to vital organs, and activates the parasympathetic nervous system. This is the physiological basis of the \u201CT\u201D in TIPP. Holding your breath while submerging your face in cold water for 30 seconds can reduce heart rate by 10\u201325%. It is one of the fastest evidence-based techniques for de-escalating acute physiological arousal.',
+     source:'Panneton, W.M. (2013). The Mammalian Diving Response. Neuroscience & Biobehavioral Reviews, 37(8).',
+     drill:{name:'TIPP DRILL',href:'tipp-drill-full.html',icon:'\u26A1'},
+     book:{title:'The Polyvagal Theory',author:'Stephen W. Porges'}},
+    {id:'x4',name:'RED PROTOCOL: WHEN NOTHING ELSE WORKS',
+     one:'This is the tool for the 10/10 moment. No thinking required. Just follow the steps.',
+     body:'Red Protocol in the Operator\u2019s Deck is designed for the absolute worst-case scenario \u2014 when distress is so high that multi-step tools are impossible. It strips everything down to a single-path sequence: breathe, cold water, call someone, get safe. It is not therapy. It is a survival protocol. It exists because in a genuine crisis, the executive function required to choose between tools is itself offline. One path. No decisions. Follow it.',
+     drill:{name:'RED PROTOCOL',href:'red-protocol.html',icon:'\uD83D\uDD34'},
+     book:{title:'Reasons to Stay Alive',author:'Matt Haig'}},
+    {id:'x5',name:'THE 24-HOUR RULE',
+     one:'Most crises that feel permanent are temporary states. 24 hours changes everything.',
+     body:'Research on suicidal crises consistently shows that the acute period of highest risk is brief \u2014 often minutes to hours. The gap between impulse and action is where intervention lives. This is why delay-based techniques (the response delay in the Operator\u2019s Playbook, the TIPP sequence, calling someone from a safety plan) are so effective. You do not need to fix the problem. You need to survive the spike. Almost every crisis that felt like the end of the world looked different 24 hours later. That is not dismissive. That is data.',
+     source:'Deisenhammer, E.A. et al. (2009). The Duration of the Suicidal Process. Journal of Clinical Psychiatry, 70(1).',
+     drill:{name:'SAFETY PLAN',href:'safety-plan-drill.html',icon:'\uD83D\uDEE1'},
+     book:{title:'Stay',author:'Jennifer Michael Hecht'}}
+  ]
+},
+{
+  id:'adhd',icon:'\u26A1',name:'ADHD & EXECUTIVE FUNCTION',color:'#3498db',
+  desc:'Neurological context for attention, motivation, and dopamine-driven decision-making.',
+  lessons:[
+    {id:'a1',name:'ADHD IS NOT A DEFICIT OF ATTENTION',
+     one:'It\u2019s a deficit of regulation. You have attention. You can\u2019t steer it.',
+     body:'ADHD is fundamentally a disorder of executive function \u2014 the brain\u2019s management system for attention, working memory, planning, impulse control, and emotional regulation. The \u201Cattention deficit\u201D label is misleading: people with ADHD can hyperfocus for hours on interesting tasks while being unable to sustain attention for five minutes on important but unstimulating ones. The deficit is not in attention itself but in the ability to direct attention voluntarily. This is why dopamine-based systems (gamification, urgency, novelty) work.',
+     source:'Barkley, R.A. (2015). Attention-Deficit Hyperactivity Disorder, 4th Ed. Guilford.',
+     drill:{name:'DOPAMINE DEPOT',href:'dopamine-depot.html',icon:'\uD83C\uDFB0'},
+     book:{title:'Taking Charge of Adult ADHD',author:'Russell A. Barkley'}},
+    {id:'a2',name:'THE DOPAMINE BRIDGE',
+     one:'Your brain doesn\u2019t lack motivation. It lacks dopamine for the \u201Cboring but important\u201D tasks.',
+     body:'The dopamine system in ADHD brains is dysregulated \u2014 not deficient in dopamine overall, but underactive in the pathways that connect effort to reward for low-stimulation tasks. This is why an ADHD brain can spend six hours on a video game but cannot start a five-minute email. The Dopamine Depot in the Operator\u2019s Deck uses externalized reward systems (activity randomization, streak tracking) to bridge this gap artificially. Body doubling, time-boxing, and gamification all work on the same principle: adding enough stimulation to activate the reward pathway.',
+     source:'Volkow, N.D. et al. (2009). Evaluating Dopamine Reward Pathway in ADHD. JAMA, 302(10).',
+     drill:{name:'DOPAMINE DEPOT',href:'dopamine-depot.html',icon:'\uD83C\uDFB0'},
+     book:{title:'ADHD 2.0',author:'Edward Hallowell & John Ratey'}},
+    {id:'a3',name:'BODY DOUBLING: WHY PRESENCE HELPS',
+     one:'Having another person nearby \u2014 even silently \u2014 makes tasks 40% more completable.',
+     body:'Body doubling is the practice of working alongside another person who is also working. The mechanism appears to involve social accountability, external regulation of attention, and the mirror neuron system. For ADHD brains, the presence of another person creates enough environmental structure to compensate for internal executive function gaps. It does not require interaction \u2014 parallel work in the same space, or even a silent video call, produces the effect.',
+     source:'Hallowell, E. & Ratey, J. (2021). ADHD 2.0. Random House. + Clinical practice evidence.',
+     drill:{name:'BODY DOUBLE OPS',href:'body-double-ops.html',icon:'\uD83D\uDC65'},
+     book:{title:'ADHD 2.0',author:'Edward Hallowell & John Ratey'}},
+    {id:'a4',name:'TIME BLINDNESS',
+     one:'ADHD doesn\u2019t just make you lose track of time. It makes time invisible.',
+     body:'Russell Barkley identifies \u201Ctime blindness\u201D \u2014 a reduced ability to sense the passage of time and to use time as information \u2014 as one of the most impairing features of ADHD. This is why \u201CI\u2019ll do it later\u201D means \u201Cit no longer exists in my awareness.\u201D External time systems (timers, alarms, visual calendars, time-boxing) are not optional productivity hacks for ADHD. They are prosthetics for a missing neurological function. The Visual Planner and Weekly Ops tools externalize time so it becomes visible.',
+     source:'Barkley, R.A. (2015). Attention-Deficit Hyperactivity Disorder, 4th Ed. Guilford.',
+     drill:{name:'VISUAL PLANNER',href:'visual-planner.html',icon:'\uD83D\uDDD3'},
+     book:{title:'Taking Charge of Adult ADHD',author:'Russell A. Barkley'}},
+    {id:'a5',name:'THE WALL OF AWFUL',
+     one:'That paralysis before a task isn\u2019t laziness. It\u2019s a wall of accumulated negative emotion.',
+     body:'Brendan Mahan\u2019s \u201CWall of Awful\u201D concept describes the emotional barrier that builds up around tasks that have been associated with failure, shame, criticism, or overwhelm. Each time you fail to complete a task, the wall gets higher. The task itself might take 10 minutes, but the emotional weight of past failures around similar tasks creates a barrier that feels insurmountable. Breaking the wall requires acknowledging the emotions first (not pushing through them), then reducing the task to its smallest possible first step.',
+     source:'Mahan, B. (2019). The Wall of Awful. ADHD Essentials Podcast / Clinical Practice.',
+     drill:{name:'MICRO OPS',href:'micro-ops.html',icon:'\uD83D\uDD2C'},
+     book:{title:'How to ADHD',author:'Jessica McCabe'}}
+  ]
+},
+{
+  id:'ifs',icon:'\uD83D\uDEE1',name:'INTERNAL FAMILY SYSTEMS (PARTS WORK)',color:'var(--pur)',
+  desc:'Framework for unblending from protective trauma responses and accessing the core Self.',
+  lessons:[
+    {id:'f1',name:'THE MULTIPLICITY OF MIND',
+     one:'You do not have one single mind. You are a system of parts, and none of them are bad.',
+     body:'Internal Family Systems (IFS) dismantles the idea of a \u201Cunitary mind.\u201D When you say \u201Cpart of me wants to heal, but part of me wants to self-destruct,\u201D you are speaking literal psychological truth. Trauma fragments the psyche into distinct sub-personalities (parts) to compartmentalize pain. Healing isn\u2019t about killing off the \u201Cbad\u201D parts\u2014it\u2019s about understanding what they are protecting.',
+     source:'Schwartz, R.C. (2001). Introduction to the Internal Family Systems Model. Trailheads.',
+     drill:{name:'PARTS MAPPING',href:'parts-mapping-drill.html',icon:'\uD83D\uDDFA'},
+     book:{title:'No Bad Parts',author:'Richard Schwartz'},
+     deep:{
+       neuro:'Trauma disrupts the integration of the brain\u2019s default mode network (DMN). \u201CParts\u201D can be viewed as distinct, isolated neural networks that fire together to execute specific protective behavioral scripts without communicating with the broader system.',
+       data:'In a 2021 clinical trial, IFS was shown to significantly reduce PTSD symptoms, with 92% of participants no longer meeting the diagnostic criteria for PTSD after 16 sessions.',
+       pitfall:'Trying to logic or force a part to stop its behavior. Parts dig in harder when attacked. They only step back when they feel heard and believe the system is safe.'
+     }},
+    {id:'f2',name:'MANAGERS vs. FIREFIGHTERS',
+     one:'Managers try to control the environment to prevent pain. Firefighters burn the house down to numb it.',
+     body:'Your protective parts fall into two camps. Managers are proactive: perfectionism, people-pleasing, hyper-vigilance, and obsessive planning. They run the system to keep you safe from rejection or failure. When Managers fail and pain bleeds through, Firefighters react. Firefighters don\u2019t care about the future; they care about right now. Binge eating, substance abuse, dissociation, and self-harm are Firefighter activities designed to extinguish the pain immediately.',
+     source:'Sweezy, M. & Ziskind, E. (2013). Internal Family Systems Therapy: New Dimensions. Routledge.',
+     drill:{name:'PATTERN RECON',href:'pattern-recon.html',icon:'\uD83D\uDCE1'},
+     book:{title:'Transcending Trauma',author:'Frank Anderson'},
+     deep:{
+       neuro:'Managers rely heavily on hyper-activation of the prefrontal cortex and anterior cingulate to maintain rigid behavioral control. Firefighters bypass executive function entirely, hijacking the reward and survival circuits (nucleus accumbens, amygdala) for rapid state-change.',
+       data:'Recognizing a destructive behavior as a \u201CFirefighter\u201D rather than a \u201Cmoral failure\u201D reduces shame-based cortisol spikes, allowing executive function to come back online up to 40% faster.',
+       pitfall:'Judging your Firefighters. If you shame a Firefighter (e.g., beating yourself up for relapsing), you create more pain, which ironically forces the Firefighter to act up again to numb the new pain.'
+     }},
+    {id:'f3',name:'UNBLENDING: CREATING SPACE',
+     one:'You cannot heal a part while you are completely merged with it. Step back.',
+     body:'When a part takes over your executive functioning, you are \u201Cblended.\u201D You don\u2019t just feel angry; you are the anger. Unblending is the mechanical process of separating your core Self from the activated part. The simplest unblending technique is shifting your language from \u201CI am overwhelmed\u201D to \u201CA part of me is overwhelmed, and I am observing it.\u201D It creates immediate psychological distance.',
+     source:'Anderson, F. (2021). Transcending Trauma. PESI Publishing.',
+     drill:{name:'ACT DRILL',href:'act-drill.html',icon:'\uD83E\uDDED'},
+     book:{title:'Self-Therapy',author:'Jay Earley'},
+     deep:{
+       neuro:'Unblending actively shifts blood flow and electrical activity from the limbic system (emotional center) back to the medial prefrontal cortex (the brain\u2019s observation deck), re-establishing metacognition.',
+       data:'Functional MRI scans of patients practicing unblending show a measurable decoupling between the amygdala and the default mode network within 60 to 90 seconds of the intervention.',
+       pitfall:'Mistaking a \u201Cmanager\u201D part for the Self. Sometimes an intellectual, analytical part steps in to analyze the trauma. That is not unblending; that is just a different part taking the wheel.'
+     }}
+  ]
+},
+{
+  id:'somatic',icon:'\uD83E\uDEC0',name:'SOMATIC PROCESSING',color:'var(--acc)',
+  desc:'Bottom-up protocols to discharge trapped trauma and regulate the nervous system directly.',
+  lessons:[
+    {id:'s1',name:'PENDULATION: DIPPING INTO THE FIRE',
+     one:'Don\u2019t dive into the trauma. Touch it, then return to safety. Expand the container.',
+     body:'Peter Levine\u2019s Somatic Experiencing uses \u201Cpendulation\u201D\u2014the natural rhythmic oscillation between states of contraction (trauma/pain) and expansion (safety/calm). When processing heavy emotions, you don\u2019t force yourself to stay in the pain until you break. You focus on the physical sensation of the distress, and the moment it peaks, you deliberately shift your focus to a neutral or safe part of your body (like your hands or feet). This trains the nervous system that it can visit the pain and survive.',
+     source:'Levine, P.A. (2010). In an Unspoken Voice. North Atlantic Books.',
+     drill:{name:'MINDFULNESS DRILL',href:'mindfulness-drill-full.html',icon:'\uD83E\uDDD8'},
+     book:{title:'Waking the Tiger',author:'Peter A. Levine'},
+     deep:{
+       neuro:'Pendulation prevents the amygdala from signaling a full systemic freeze response. By oscillating attention, you keep the sympathetic and parasympathetic nervous systems dynamically engaged, processing the trapped survival energy without overwhelming the anterior insula.',
+       data:'Somatic interventions utilizing pendulation show a significant decrease in autonomic hyper-arousal symptoms in complex trauma survivors within 6\u20138 weeks, compared to standard talk therapy.',
+       pitfall:'Flooding. Pushing yourself to stay in the traumatic sensation too long reinforces the trauma loop. The medicine is in the movement back to safety, not the endurance of pain.'
+     }}
+  ]
+}
+];
+
+// ── PRECOMPUTE LESSON COUNT ───────────────────────────────────────────────────
+var TOTAL_LESSONS=0;
+(function(){for(var i=0;i<DOMAINS.length;i++)TOTAL_LESSONS+=DOMAINS[i].lessons.length;})();
+
+// ── UI STATE ──────────────────────────────────────────────────────────────────
+var openDomains={};
+var openLessons={};
+var openDeep={};
+var searchQuery='';
+var activeDomain='all';
+var _searchTimer=null;
+var _toastEl=null;
+
+function readCount(){
+  var n=0;
+  for(var i=0;i<DOMAINS.length;i++){
+    var ls=DOMAINS[i].lessons;
+    for(var j=0;j<ls.length;j++){if(state.read[ls[j].id])n++;}
+  }
+  return n;
+}
+
+function domainReadCount(dom){
+  var n=0;
+  for(var j=0;j<dom.lessons.length;j++){if(state.read[dom.lessons[j].id])n++;}
+  return n;
+}
+
+function toggleRead(lid){
+  if(state.read[lid]){delete state.read[lid];}else{state.read[lid]=Date.now();}
+  save();render();
+  if(state.read[lid])showToast('LESSON COMPLETED');
+}
+
+function showToast(msg){
+  if(_toastEl&&_toastEl.parentNode)_toastEl.parentNode.removeChild(_toastEl);
+  var t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);_toastEl=t;
+  setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);if(_toastEl===t)_toastEl=null;},2200);
+}
+
+function toggleDomain(did){openDomains[did]=!openDomains[did];render();}
+function toggleLesson(lid){openLessons[lid]=!openLessons[lid];render();}
+function toggleDeep(lid){openDeep[lid]=!openDeep[lid];render();}
+function setFilter(f){activeDomain=f;render();}
+
+function setSearch(v){
+  searchQuery=String(v).toLowerCase().substring(0,200);
+  if(_searchTimer)clearTimeout(_searchTimer);
+  _searchTimer=setTimeout(function(){_searchTimer=null;render();},150);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  var root=document.getElementById('root');
+  if(!root)return;
+
+  var scrollY=window.scrollY||window.pageYOffset||0;
+  var total=TOTAL_LESSONS;
+  var done=readCount();
+  var pct=total?Math.round(done/total*100):0;
+
+  // Auto-open domains when searching (BEFORE building HTML)
+  if(searchQuery){
+    for(var si=0;si<DOMAINS.length;si++){openDomains[DOMAINS[si].id]=true;}
+  }
+
+  var hasPlaybook=(typeof window.go==='function');
+  var h='';
+
+  // Header
+  h+='<div class="fm-header">';
+  h+='<div class="fm-tag">EVIDENCE-BASED KNOWLEDGE</div>';
+  h+='<div class="fm-title">FIELD MANUAL</div>';
+  h+='<div class="fm-sub">The science behind every drill. Learn why these tools work so the skills become second nature. No cloud. No tracking. Just knowledge.</div>';
+  h+='</div>';
+
+  // Progress
+  h+='<div class="prog-strip">';
+  h+='<div class="prog-top"><span class="prog-label">KNOWLEDGE PROGRESS</span><span class="prog-pct">'+pct+'%</span></div>';
+  h+='<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div>';
+  h+='<div class="prog-detail"><span>'+done+' / '+total+' LESSONS</span><span>'+(total-done)+' REMAINING</span></div>';
+  h+='</div>';
+
+  // Stats
+  h+='<div class="stats-panel"><div class="stats-grid">';
+  for(var di=0;di<DOMAINS.length;di++){
+    var d=DOMAINS[di];
+    var dc=domainReadCount(d);
+    var dt=d.lessons.length;
+    var dpct=dt?Math.round(dc/dt*100):0;
+    h+='<div class="stat-item"><div class="stat-val" style="color:'+escAttr(d.color)+'">'+dpct+'%</div><div class="stat-lbl">'+esc(d.icon)+' '+esc(d.name.split(' ')[0])+'</div></div>';
+  }
+  h+='</div></div>';
+
+  // Search
+  h+='<div class="search-wrap"><span class="search-icon" aria-hidden="true">\uD83D\uDD0D</span><input type="text" id="fmSearch" placeholder="Search lessons..." value="'+escAttr(searchQuery)+'" oninput="setSearch(this.value)" aria-label="Search lessons"></div>';
+
+  // Domain filters
+  h+='<div class="filters" role="tablist" aria-label="Filter by domain">';
+  h+='<button class="filt-btn'+(activeDomain==='all'?' on':'')+'" onclick="setFilter(\'all\')" role="tab" aria-selected="'+(activeDomain==='all'?'true':'false')+'">ALL</button>';
+  for(di=0;di<DOMAINS.length;di++){
+    d=DOMAINS[di];
+    h+='<button class="filt-btn'+(activeDomain===d.id?' on':'')+'" onclick="setFilter(\''+escAttr(d.id)+'\')" role="tab" aria-selected="'+(activeDomain===d.id?'true':'false')+'" aria-label="'+escAttr(d.name)+'">'+esc(d.icon)+'</button>';
+  }
+  h+='</div>';
+
+  // Domains + Lessons
+  var anyVisible=false;
+  for(di=0;di<DOMAINS.length;di++){
+    d=DOMAINS[di];
+    if(activeDomain!=='all'&&activeDomain!==d.id)continue;
+
+    var filteredLessons=d.lessons;
+    if(searchQuery){
+      filteredLessons=[];
+      for(var fi=0;fi<d.lessons.length;fi++){
+        var fl=d.lessons[fi];
+        if(fl.name.toLowerCase().indexOf(searchQuery)!==-1||
+           fl.one.toLowerCase().indexOf(searchQuery)!==-1||
+           fl.body.toLowerCase().indexOf(searchQuery)!==-1||
+           (fl.book&&fl.book.title.toLowerCase().indexOf(searchQuery)!==-1)){
+          filteredLessons.push(fl);
+        }
+      }
+      if(!filteredLessons.length)continue;
+    }
+    anyVisible=true;
+
+    var drc=domainReadCount(d);
+    var isOpen=!!openDomains[d.id];
+
+    h+='<div class="domain">';
+    h+='<div class="domain-hdr" onclick="toggleDomain(\''+escAttr(d.id)+'\')" role="button" aria-expanded="'+isOpen+'" tabindex="0">';
+    h+='<span class="dh-icon" aria-hidden="true">'+esc(d.icon)+'</span>';
+    h+='<div class="dh-info"><div class="dh-name" style="color:'+escAttr(d.color)+'">'+esc(d.name)+'</div>';
+    h+='<div class="dh-count" style="color:'+escAttr(d.color)+'">'+drc+'/'+d.lessons.length+' COMPLETE \u2022 '+esc(d.desc)+'</div></div>';
+    h+='<span class="dh-arrow'+(isOpen?' open':'')+'" aria-hidden="true">\u203A</span>';
+    h+='</div>';
+
+    h+='<div class="domain-body'+(isOpen?' open':'')+'">';
+    for(var li=0;li<filteredLessons.length;li++){
+      var l=filteredLessons[li];
+      var isRead=!!state.read[l.id];
+      var isLOpen=!!openLessons[l.id];
+
+      h+='<div class="lesson'+(isRead?' read':'')+'">';
+      h+='<div class="lesson-top" onclick="toggleLesson(\''+escAttr(l.id)+'\')" role="button" aria-expanded="'+isLOpen+'" tabindex="0">';
+      h+='<div class="ls-check" aria-hidden="true">'+(isRead?'\u2713':'')+'</div>';
+      h+='<div class="ls-info"><div class="ls-name">'+esc(l.name)+'</div><div class="ls-one">'+esc(l.one)+'</div></div>';
+      h+='<span class="ls-arrow'+(isLOpen?' open':'')+'" aria-hidden="true">\u203A</span>';
+      h+='</div>';
+
+      h+='<div class="lesson-body'+(isLOpen?' open':'')+'">';
+
+      // Main content
+      h+='<div class="lb-section"><div class="lb-tag">THE CONCEPT</div><div class="lb-text">'+esc(l.body)+'</div></div>';
+
+      // Quote
+      if(l.quote){
+        h+='<div class="lb-quote">\u201C'+esc(l.quote)+'\u201D';
+        if(l.quoteSource)h+='<div class="lb-source">\u2014 '+esc(l.quoteSource)+'</div>';
+        h+='</div>';
+      }
+
+      // Source
+      if(l.source){
+        h+='<div class="lb-section"><div class="lb-tag">CLINICAL SOURCE</div><div class="lb-text" style="font-size:8.5px;color:var(--dim2)">'+esc(l.source)+'</div></div>';
+      }
+
+      // Tier 3: Deep Dive Toggle (Progressive Disclosure)
+      if(l.deep){
+        var isDOpen=!!openDeep[l.id];
+        h+='<button class="deep-toggle-btn'+(isDOpen?' open':'')+'" onclick="event.stopPropagation();toggleDeep(\''+escAttr(l.id)+'\')">';
+        h+=(isDOpen?'[ \u2212 CLOSE CLINICAL MECHANICS ]':'[ + VIEW CLINICAL MECHANICS ]');
+        h+='</button>';
+        h+='<div class="lb-deep-content'+(isDOpen?' open':'')+'">';
+        h+='<div class="deep-grid">';
+        if(l.deep.neuro)h+='<div class="deep-item neuro"><div class="di-tag">\u2699\uFE0F NEUROBIOLOGY</div><div class="di-text">'+esc(l.deep.neuro)+'</div></div>';
+        if(l.deep.data)h+='<div class="deep-item data"><div class="di-tag">\uD83D\uDCCA CLINICAL DATA</div><div class="di-text">'+esc(l.deep.data)+'</div></div>';
+        if(l.deep.pitfall)h+='<div class="deep-item pitfall"><div class="di-tag">\u26A0\uFE0F COMMON PITFALL</div><div class="di-text">'+esc(l.deep.pitfall)+'</div></div>';
+        h+='</div></div>';
+      }
+
+      // Drill link (sanitized href via whitelist)
+      if(l.drill){
+        h+='<a class="drill-link" href="'+escAttr(safeHref(l.drill.href))+'" rel="noopener">';
+        h+='<span class="dl-icon" aria-hidden="true">'+esc(l.drill.icon)+'</span>';
+        h+='<div class="dl-info"><div class="dl-label">PRACTICE THIS SKILL</div><div class="dl-name">'+esc(l.drill.name)+'</div></div>';
+        h+='<span class="dl-arrow" aria-hidden="true">\u203A</span>';
+        h+='</a>';
+      }
+
+      // Playbook integration — conditional dynamic State Lock
+      if(hasPlaybook){
+        h+='<button class="mark-btn" onclick="event.stopPropagation();if(typeof window.go===\'function\')window.go()" style="color:var(--gld);border-color:rgba(212,168,67,.2);margin-top:8px">\u26A1 RUN STATE LOCK ON THIS</button>';
+      }
+
+      // Playbook static link — always available
+      h+='<a class="playbook-link" href="'+escAttr(safeHref('operators-playbook.html'))+'" rel="noopener">';
+      h+='<span class="dl-icon" aria-hidden="true">\uD83D\uDCD6</span>';
+      h+='<div class="dl-info"><div class="dl-label" style="color:var(--gld)">NEED IMMEDIATE ACTION?</div><div class="dl-name" style="color:var(--gld)">OPERATOR\u2019S PLAYBOOK</div></div>';
+      h+='<span class="dl-arrow" aria-hidden="true">\u203A</span>';
+      h+='</a>';
+
+      // Reading rec
+      if(l.book){
+        h+='<div class="reading-rec"><div class="rr-tag">RECOMMENDED READING</div>';
+        h+='<div class="rr-title">'+esc(l.book.title)+'</div>';
+        h+='<div class="rr-author">'+esc(l.book.author)+'</div></div>';
+      }
+
+      // Mark read button
+      h+='<button class="mark-btn" onclick="event.stopPropagation();toggleRead(\''+escAttr(l.id)+'\')">'+(isRead?'\u2713 COMPLETED \u2014 TAP TO UNMARK':'MARK AS READ')+'</button>';
+
+      h+='</div>'; // lesson-body
+      h+='</div>'; // lesson
+    }
+    h+='</div>'; // domain-body
+    h+='</div>'; // domain
+  }
+
+  if(!anyVisible){
+    h+='<div class="empty-search">No lessons match \u201C'+esc(searchQuery)+'\u201D</div>';
+  }
+
+  // Disclaimer footer
+  h+='<div class="disc-footer">';
+  h+='<div class="df-tag">\u26A0 CLINICAL DISCLAIMER</div>';
+  h+='<div class="df-text">This Field Manual provides <strong>educational summaries</strong> of evidence-based therapeutic frameworks (DBT, CPT, ACT). It is not therapy, not a diagnosis, and not a substitute for professional treatment. Clinical sources are cited for further reading. If you are in crisis, use the <strong>Safety Plan</strong> or <strong>Red Protocol</strong> tools, or contact a crisis line.</div>';
+  h+='</div>';
+
+  // Next step
+  h+='<div class="next-step">';
+  h+='<div class="ns-tag">NEXT STEP?</div>';
+  h+='<a href="toolshed.html" rel="noopener">\uD83D\uDEE0 TOOL SHED</a>';
+  h+='<a href="./?tab=more">\u2663 BACK TO DECK</a>';
+  h+='</div>';
+
+  // Attribution
+  h+='<div style="text-align:center;margin-top:30px;padding:0 16px">';
+  h+='<div style="color:var(--dim3);font-size:7px;font-family:monospace;letter-spacing:1.5px">FIELD MANUAL \u2022 THE OPERATOR\u2019S DECK</div>';
+  h+='<div style="color:var(--dim3);font-size:6px;font-family:monospace;letter-spacing:1px;margin-top:4px">CLOVELEARN.IO \u2022 2026 \u2022 ZERO DATA COLLECTION</div>';
+  h+='<div style="color:var(--dim3);font-size:6px;font-family:monospace;letter-spacing:1px;margin-top:4px">\uD83D\uDD12 ALL PROGRESS STORED LOCALLY. YOUR EYES ONLY.</div>';
+  h+='</div>';
+
+  root.innerHTML=h;
+
+  // Restore scroll position after DOM update
+  window.scrollTo(0,scrollY);
+}
+
+// ── KEYBOARD SUPPORT (Enter triggers role=button elements) ────────────────────
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    var t=e.target;
+    if(t&&t.getAttribute&&t.getAttribute('role')==='button'){
+      t.click();
+    }
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

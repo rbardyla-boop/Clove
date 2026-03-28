@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta name="referrer" content="no-referrer">
+<title>PATTERN RECON • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08080f;
+  --bg2: #0e0e16;
+  --bg3: #14141e;
+  --red: #c0392b;
+  --grn: #27ae60;
+  --gld: #d4a843;
+  --blu: #4a6fa5;
+  --pur: #9333ea;
+  --text: #d4d4dc;
+  --dim: #666;
+  --dim2: #777;
+  --dim3: #2a2a35;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+.app { max-width: 520px; margin: 0 auto; padding-bottom: 80px; }
+
+/* NAV */
+.nav {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--red);
+  background: rgba(8,8,15,.95);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  background: none;
+  border: 1px solid var(--dim2);
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.back-btn:active { color: var(--red); border-color: var(--red); }
+
+.nav-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--red);
+}
+
+/* HEADER */
+.hero {
+  padding: 32px 24px 24px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+
+.hero-tag {
+  font-size: 8px;
+  letter-spacing: 5px;
+  color: var(--red);
+  margin-bottom: 8px;
+}
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.hero-sub {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+
+/* SECTIONS */
+.section {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+
+.sec-label {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--red);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sec-label::before {
+  content: '';
+  width: 12px;
+  height: 1px;
+  background: var(--red);
+}
+
+/* STAT GRID */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid rgba(255,255,255,.04);
+  border-radius: 10px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 800;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 7px;
+  color: var(--dim);
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+/* SUIT DISTRIBUTION BAR */
+.suit-bars { margin-bottom: 16px; }
+
+.suit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.suit-icon {
+  font-size: 14px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.suit-name {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.suit-bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: var(--bg3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.suit-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .6s ease-out;
+  min-width: 2px;
+}
+
+.suit-pct {
+  font-size: 8px;
+  color: var(--dim);
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* HEATMAP */
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.hm-day-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.hm-day-label {
+  font-size: 6px;
+  color: var(--dim2);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.hm-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--bg3);
+  position: relative;
+}
+
+.hm-cell.today { border: 1px solid var(--gld); }
+.hm-cell.g0 { background: var(--bg3); }
+.hm-cell.g1 { background: #0e3b1c; }
+.hm-cell.g2 { background: #196d32; }
+.hm-cell.g3 { background: #27ae60; }
+.hm-cell.g4 { background: #2ecc71; }
+.hm-cell.future { background: rgba(255,255,255,.01); }
+
+.hm-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 7px;
+  color: var(--dim2);
+  letter-spacing: 1px;
+}
+
+.hm-legend-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* INSIGHTS */
+.insight {
+  background: var(--bg2);
+  border: 1px solid rgba(255,255,255,.04);
+  border-left: 3px solid var(--gld);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+
+.insight-label {
+  font-size: 7px;
+  letter-spacing: 2px;
+  color: var(--gld);
+  margin-bottom: 6px;
+}
+
+.insight-text {
+  font-size: 10px;
+  color: #bbb;
+  line-height: 1.7;
+}
+
+.insight-text em {
+  color: #fff;
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* WORD CLOUD (simple) */
+.word-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.word-tag {
+  background: var(--bg2);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: .5px;
+}
+
+.word-tag.hot {
+  border-color: rgba(192,57,43,.2);
+  color: var(--red);
+  background: rgba(192,57,43,.05);
+}
+
+.word-tag.warm {
+  border-color: rgba(212,168,67,.15);
+  color: var(--gld);
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.empty-icon {
+  font-size: 32px;
+  opacity: .15;
+  margin-bottom: 12px;
+}
+
+.empty-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 9px;
+  color: var(--dim2);
+  line-height: 1.8;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* FOOTER */
+.foot {
+  text-align: center;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.foot-line {
+  font-size: 7px;
+  color: var(--dim2);
+  letter-spacing: 3px;
+  line-height: 2.5;
+}
+
+/* REFRESH BTN */
+.refresh-btn {
+  display: block;
+  width: 100%;
+  background: var(--bg2);
+  color: var(--dim);
+  border: 1px solid var(--dim3);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all .2s;
+}
+
+.refresh-btn:active { color: var(--red); border-color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="nav">
+    <a href="./?tab=more" class="back-btn">← DECK</a>
+    <div class="nav-label">PATTERN RECON</div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-tag">SITUATIONAL AWARENESS</div>
+    <h1>PATTERN RECON</h1>
+    <div class="hero-sub">READ-ONLY ANALYSIS OF YOUR EXISTING DATA</div>
+  </div>
+
+  <div id="report"></div>
+
+  <div class="foot">
+    <div class="foot-line">PATTERN RECON • OPERATOR'S DECK</div>
+    <div class="foot-line">NO DATA LEAVES THIS DEVICE</div>
+    <div class="foot-line">OBSERVATION — NOT DIAGNOSIS</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// PATTERN RECON — Read-only localStorage analyzer
+// Reads all od_* keys. Creates nothing new.
+// ═══════════════════════════════════════════
+
+function analyze() {
+  const report = document.getElementById('report');
+
+  // ── GATHER ALL DATA ──
+  const allKeys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('od_') || k.startsWith('od3')) allKeys.push(k);
+  }
+
+  const od3raw = localStorage.getItem('od3');
+  if (!od3raw && allKeys.length < 3) {
+    report.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📡</div>
+        <div class="empty-title">INSUFFICIENT DATA</div>
+        <div class="empty-desc">
+          Pattern Recon requires operational history.<br>
+          Draw cards, complete missions, write evidence.<br>
+          Come back when there's something to read.
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── PARSE CORE METRICS ──
+  // Main deck data: stored in od3 bundle (not individual od_ keys)
+  const od3 = (() => { try { return JSON.parse(od3raw) || {}; } catch(e) { return {}; } })();
+  const playlist     = od3.p || [];
+  const total        = od3.t || 0;
+  const streak       = od3.s || 0;
+  const done         = od3.d || 0;
+  const deckLog      = od3.l || [];
+  const evidence     = safeJSON('od3ev', []);
+  const mirrors      = safeJSON('od3mr', []);
+
+  const evidenceCount = evidence.length;
+  const mirrorCount   = mirrors.length;
+
+  // Days active: infer from oldest deck log entry (last 100 stored)
+  let daysActive = 0;
+  if (deckLog.length > 0) {
+    const dates = deckLog
+      .map(e => e && e.dt ? new Date(e.dt) : null)
+      .filter(d => d && !isNaN(d.getTime()));
+    if (dates.length > 0) {
+      const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
+      daysActive = Math.max(1, Math.floor((new Date() - earliest) / 86400000));
+    }
+  }
+
+  // ── SUIT DISTRIBUTION ──
+  const suitCounts = {};
+  const suitNames = {
+    spades: { icon: '♠', color: '#4a6fa5', label: 'SPADES' },
+    hearts: { icon: '♥', color: '#c0392b', label: 'HEARTS' },
+    clubs: { icon: '♣', color: '#27ae60', label: 'CLUBS' },
+    diamonds: { icon: '♦', color: '#d4a843', label: 'DIAMONDS' },
+    addiction: { icon: '◈', color: '#9333ea', label: 'ADDICTION' },
+    ptsd: { icon: '◎', color: '#c2410c', label: 'PTSD' },
+    rebuild: { icon: '◉', color: '#0d9488', label: 'REBUILD' },
+    brotherhood: { icon: '♾', color: '#1e40af', label: 'BROTHERHOOD' }
+  };
+
+  playlist.forEach(id => {
+    // Extract suit from card ID (e.g., "spades3" -> "spades")
+    const suit = id.replace(/[0-9AJQK★]+$/, '');
+    suitCounts[suit] = (suitCounts[suit] || 0) + 1;
+  });
+
+  const maxSuitCount = Math.max(1, ...Object.values(suitCounts));
+
+  // ── ACTIVITY HEATMAP (last 28 days) ──
+  const drawDates = {};
+  // Deck log entries: dt is a locale date string (e.g. "2/27/2026")
+  deckLog.forEach(entry => {
+    if (entry && entry.dt) {
+      const d = new Date(entry.dt);
+      if (!isNaN(d.getTime())) {
+        const ds = d.toISOString().split('T')[0];
+        drawDates[ds] = (drawDates[ds] || 0) + 1;
+      }
+    }
+  });
+  // Evidence entries have ts (timestamp)
+  evidence.forEach(e => {
+    if (e && e.ts) {
+      const ds = new Date(e.ts).toISOString().split('T')[0];
+      drawDates[ds] = (drawDates[ds] || 0) + 1;
+    }
+  });
+
+  // ── WORD FREQUENCY FROM EVIDENCE ──
+  const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','is','it','my','i','me','was','that','this','not','be','are','have','had','has','do','did','you','we','they','so','if','no','just','about','what','when','how','all','can','will','been','would','could','than','more','some','like','from','very','its','out','up','into','get','got','one','two','dont','im','ive','wasnt','isnt','didnt','cant','know','think','feel','want','need','going','something','thing','things','today','really','even','still','much','well','back','way','over','because','through','after','before','then','now','here','there','down','where','time','day','said','were','them','those','these','which','other','only','also','too','any','being','does','made','make','should']);
+
+  const wordFreq = {};
+  evidence.forEach(e => {
+    if (e && e.tx && typeof e.tx === 'string') {
+      e.tx.toLowerCase()
+        .replace(/[^a-z\s'-]/g, '')
+        .split(/\s+/)
+        .filter(w => w.length > 3 && !stopWords.has(w))
+        .forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+    }
+  });
+
+  // Also scan mirror entries
+  mirrors.forEach(m => {
+    if (m && m.tx && typeof m.tx === 'string') {
+      m.tx.toLowerCase()
+        .replace(/[^a-z\s'-]/g, '')
+        .split(/\s+/)
+        .filter(w => w.length > 3 && !stopWords.has(w))
+        .forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+    }
+  });
+
+  const topWords = Object.entries(wordFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20);
+
+  // ── INSIGHTS ──
+  const insights = [];
+
+  // Most drawn suit
+  const sortedSuits = Object.entries(suitCounts).sort((a, b) => b[1] - a[1]);
+  if (sortedSuits.length >= 2) {
+    const top = sortedSuits[0];
+    const topInfo = suitNames[top[0]];
+    if (topInfo) {
+      insights.push({
+        label: 'GRAVITATIONAL PULL',
+        text: `You tend to draw <em>${topInfo.label}</em> cards most often (${top[1]} draws). This suit keeps showing up in your rotation.`
+      });
+    }
+  }
+
+  // Least drawn suit (avoided?)
+  if (sortedSuits.length >= 3) {
+    const bottom = sortedSuits[sortedSuits.length - 1];
+    const botInfo = suitNames[bottom[0]];
+    if (botInfo && bottom[1] < done * 0.08) {
+      insights.push({
+        label: 'POSSIBLE AVOIDANCE',
+        text: `<em>${botInfo.label}</em> shows up least in your draws (${bottom[1]}). This might be coincidence. It might be the area you're not looking at.`
+      });
+    }
+  }
+
+  // Streak analysis
+  if (streak >= 7) {
+    insights.push({
+      label: 'CONSISTENCY SIGNAL',
+      text: `Your current streak is <em>${streak} days</em>. That's not motivation — that's discipline. The system is working.`
+    });
+  }
+
+  // Evidence depth
+  const evidenceWithText = evidence.filter(e => e && e.tx && e.tx.length > 20);
+  if (evidenceWithText.length >= 5) {
+    const avgLen = Math.round(evidenceWithText.reduce((s, e) => s + e.tx.length, 0) / evidenceWithText.length);
+    insights.push({
+      label: 'EVIDENCE DEPTH',
+      text: `You've written <em>${evidenceWithText.length} substantive entries</em> averaging ~${avgLen} characters. You're not just drawing cards — you're processing.`
+    });
+  } else if (evidenceCount > 5 && evidenceWithText.length < 3) {
+    insights.push({
+      label: 'SURFACE PATTERN',
+      text: `You draw cards but rarely write evidence. The cards work better when you engage with them. Even one sentence changes the dynamic.`
+    });
+  }
+
+  // Recurring words (potential stuck points)
+  if (topWords.length >= 3) {
+    const recurring = topWords.slice(0, 5).map(w => w[0]);
+    insights.push({
+      label: 'RECURRING THEMES',
+      text: `Words that keep appearing in your entries: <em>${recurring.join(', ')}</em>. These are the territories your mind keeps returning to.`
+    });
+  }
+
+  // Draw frequency
+  if (daysActive > 7 && total > 0) {
+    const frequency = (total / daysActive).toFixed(1);
+    if (frequency > 1.5) {
+      insights.push({
+        label: 'HIGH ENGAGEMENT',
+        text: `You average <em>${frequency} draws per day</em> over ${daysActive} days. You're using this tool actively.`
+      });
+    } else if (frequency < 0.3 && daysActive > 14) {
+      insights.push({
+        label: 'LOW FREQUENCY',
+        text: `You average <em>${frequency} draws per day</em>. The deck works best with daily use. Even one card a day builds the pattern.`
+      });
+    }
+  }
+
+  // ── BUILD REPORT ──
+  let h = '';
+
+  // Core Stats
+  h += `<div class="section">`;
+  h += `<div class="sec-label">OPERATIONAL SUMMARY</div>`;
+  h += `<div class="stat-grid">`;
+  h += `<div class="stat-card"><div class="stat-val" style="color:var(--red)">${total}</div><div class="stat-label">TOTAL DRAWS</div></div>`;
+  h += `<div class="stat-card"><div class="stat-val" style="color:var(--grn)">${done}</div><div class="stat-label">MISSIONS</div></div>`;
+  h += `<div class="stat-card"><div class="stat-val" style="color:var(--gld)">${streak}</div><div class="stat-label">STREAK</div></div>`;
+  h += `</div>`;
+  h += `<div class="stat-grid">`;
+  h += `<div class="stat-card"><div class="stat-val">${mirrorCount}</div><div class="stat-label">MIRRORS</div></div>`;
+  h += `<div class="stat-card"><div class="stat-val">${evidenceCount}</div><div class="stat-label">EVIDENCE</div></div>`;
+  h += `<div class="stat-card"><div class="stat-val">${daysActive}</div><div class="stat-label">DAYS ACTIVE</div></div>`;
+  h += `</div>`;
+  h += `</div>`;
+
+  // Suit Distribution
+  h += `<div class="section">`;
+  h += `<div class="sec-label">SUIT DISTRIBUTION</div>`;
+  h += `<div class="suit-bars">`;
+  Object.entries(suitNames).forEach(([key, info]) => {
+    const count = suitCounts[key] || 0;
+    const pct = maxSuitCount > 0 ? Math.round((count / maxSuitCount) * 100) : 0;
+    h += `<div class="suit-row">`;
+    h += `<div class="suit-icon" style="color:${info.color}">${info.icon}</div>`;
+    h += `<div class="suit-name">${info.label}</div>`;
+    h += `<div class="suit-bar-wrap"><div class="suit-bar-fill" style="width:${pct}%;background:${info.color}"></div></div>`;
+    h += `<div class="suit-pct">${count}</div>`;
+    h += `</div>`;
+  });
+  h += `</div>`;
+  h += `</div>`;
+
+  // Heatmap (last 28 days)
+  h += `<div class="section">`;
+  h += `<div class="sec-label">LAST 28 DAYS</div>`;
+  h += `<div class="hm-day-labels">`;
+  ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].forEach(d => {
+    h += `<div class="hm-day-label">${d}</div>`;
+  });
+  h += `</div>`;
+  h += `<div class="heatmap-grid">`;
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Go back 28 days, align to start of week
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - 27);
+  // Align to Sunday
+  startDate.setDate(startDate.getDate() - startDate.getDay());
+
+  for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+    const ds = d.toISOString().split('T')[0];
+    const count = drawDates[ds] || 0;
+    const isToday = ds === todayStr;
+    let cls = 'hm-cell';
+    if (isToday) cls += ' today';
+    if (count === 0) cls += ' g0';
+    else if (count === 1) cls += ' g1';
+    else if (count === 2) cls += ' g2';
+    else if (count <= 4) cls += ' g3';
+    else cls += ' g4';
+    h += `<div class="${cls}" title="${ds}: ${count}"></div>`;
+  }
+
+  // Fill remaining cells for future
+  const endDate = new Date(today);
+  endDate.setDate(endDate.getDate() + (6 - today.getDay()));
+  for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
+    if (d.toISOString().split('T')[0] !== todayStr) {
+      h += `<div class="hm-cell future"></div>`;
+    }
+  }
+
+  h += `</div>`;
+  h += `<div class="hm-legend">`;
+  h += `<span>LESS</span>`;
+  h += `<div class="hm-legend-cell" style="background:var(--bg3)"></div>`;
+  h += `<div class="hm-legend-cell" style="background:#0e3b1c"></div>`;
+  h += `<div class="hm-legend-cell" style="background:#196d32"></div>`;
+  h += `<div class="hm-legend-cell" style="background:#27ae60"></div>`;
+  h += `<div class="hm-legend-cell" style="background:#2ecc71"></div>`;
+  h += `<span>MORE</span>`;
+  h += `</div>`;
+  h += `</div>`;
+
+  // Insights
+  if (insights.length > 0) {
+    h += `<div class="section">`;
+    h += `<div class="sec-label">PATTERN ANALYSIS</div>`;
+    insights.forEach(ins => {
+      h += `<div class="insight">`;
+      h += `<div class="insight-label">${ins.label}</div>`;
+      h += `<div class="insight-text">${ins.text}</div>`;
+      h += `</div>`;
+    });
+    h += `</div>`;
+  }
+
+  // Word frequency
+  if (topWords.length >= 5) {
+    h += `<div class="section">`;
+    h += `<div class="sec-label">WORD FREQUENCY — YOUR ENTRIES</div>`;
+    h += `<div class="word-list">`;
+    topWords.forEach((w, i) => {
+      const cls = i < 3 ? 'word-tag hot' : i < 8 ? 'word-tag warm' : 'word-tag';
+      h += `<div class="${cls}">${esc(w[0])} <span style="opacity:.4;font-size:7px">${w[1]}</span></div>`;
+    });
+    h += `</div>`;
+    h += `</div>`;
+  }
+
+  // Data inventory
+  h += `<div class="section">`;
+  h += `<div class="sec-label">DATA INVENTORY</div>`;
+  h += `<div style="font-size:8px;color:var(--dim2);line-height:2;letter-spacing:1px">`;
+  allKeys.sort().forEach(k => {
+    const val = localStorage.getItem(k);
+    const size = val ? val.length : 0;
+    const sizeLabel = size > 1000 ? (size / 1024).toFixed(1) + 'KB' : size + 'B';
+    h += `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.02)">`;
+    h += `<span style="color:var(--dim)">${esc(k)}</span>`;
+    h += `<span>${sizeLabel}</span>`;
+    h += `</div>`;
+  });
+  h += `</div>`;
+  h += `<button class="refresh-btn" onclick="analyze()">↻ REFRESH ANALYSIS</button>`;
+  h += `</div>`;
+
+  report.innerHTML = h;
+}
+
+// ── UTILS ──
+function safeJSON(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch (e) { return fallback; }
+}
+
+function safeInt(key, fallback) {
+  const v = parseInt(localStorage.getItem(key));
+  return isNaN(v) ? fallback : v;
+}
+
+function esc(s) {
+  if (typeof s !== 'string') return '';
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+
+// ── INIT ──
+analyze();
+</script>
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="pattern-intelligence.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d97706;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">PATTERN INTELLIGENCE →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">See the full pattern map across all your data</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Recon complete — get your next move</span></a></div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

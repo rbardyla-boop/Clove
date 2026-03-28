@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="SAFETY PLAN • OPERATOR'S DECK">
+<meta property="og:description" content="Build your safety plan before the crisis. Warning signs, coping strategies, contacts, reasons for living.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/safety-plan-drill.html">
+<title>SAFETY PLAN • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#2c5282;--acc2:#3b6ba5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.progress-bar{height:3px;background:var(--dim3);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2)}
+.step-counter span{color:var(--acc)}
+.disc-strip{background:#020a18;border-bottom:1px solid rgba(44,82,130,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--acc);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#4a6a8a;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#6a9aca}
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim3);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:var(--dim);font-style:normal}
+textarea,input[type=text],input[type=tel]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input:focus{border-color:rgba(44,82,130,.5)}
+textarea::placeholder,input::placeholder{color:#2a2a2a;font-style:italic}
+textarea{min-height:90px}
+.char-hint{color:var(--dim3);font-size:7px;font-family:monospace;text-align:right;margin-top:4px;letter-spacing:.5px}
+.contact-card{background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:12px;margin-bottom:8px}
+.contact-card input{margin-bottom:6px;font-size:10px;padding:10px 12px}
+.contact-card input:last-child{margin-bottom:0}
+.add-btn{display:block;width:100%;background:none;border:1px dashed rgba(44,82,130,.3);color:var(--acc);border-radius:10px;padding:12px;font-size:9px;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-top:8px;transition:all .2s}
+.add-btn:active{background:rgba(44,82,130,.08);border-color:var(--acc)}
+.remove-btn{background:none;border:none;color:var(--dim3);font-size:8px;font-family:monospace;cursor:pointer;float:right;padding:2px 6px;transition:color .2s}
+.remove-btn:active{color:var(--red)}
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:linear-gradient(135deg,var(--acc),#1a4a7a);color:#fff;border:none;border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-next:active{transform:scale(.96)}
+.btn-next:disabled{opacity:.3;cursor:default;transform:none}
+.btn-back-step{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:10px;padding:15px 18px;font-size:9px;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0}
+.btn-back-step:active{color:#aaa;border-color:#666}
+.btn-save{width:100%;background:linear-gradient(135deg,var(--acc),#1a4a7a);color:#fff;border:none;border-radius:10px;padding:16px;font-size:11px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;margin-top:10px;transition:all .2s}
+.btn-save:active{transform:scale(.96)}
+.btn-new{flex:1;background:var(--bg3);color:var(--acc);border:1px solid rgba(44,82,130,.3);border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-print{width:100%;background:var(--bg3);color:var(--acc);border:1px solid rgba(44,82,130,.25);border-radius:10px;padding:13px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;margin-top:10px;transition:all .2s}
+.btn-print:active{transform:scale(.96)}
+/* SUMMARY */
+.summary-header{text-align:center;padding:20px 0 16px}
+.summary-header h2{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:8px}
+.sb-content{color:#ccc;font-size:11px;font-family:Georgia,serif;line-height:1.65;white-space:pre-wrap}
+.sb-contact{background:var(--bg2);border-radius:8px;padding:10px;margin-top:6px}
+.sb-contact-name{color:#fff;font-size:10px;font-weight:700;font-family:monospace}
+.sb-contact-phone{color:var(--acc);font-size:9px;font-family:monospace;margin-top:2px}
+.sb-contact-note{color:var(--dim);font-size:8px;font-family:Georgia,serif;font-style:italic;margin-top:2px}
+.reason-highlight{color:var(--acc2);font-size:13px;font-family:Georgia,serif;line-height:1.7;padding:16px;background:rgba(44,82,130,.08);border-radius:10px;border-left:3px solid var(--acc);text-align:center;font-style:italic}
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--acc);color:#fff;padding:10px 24px;border-radius:10px;font-size:10px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+/* PAST PLANS */
+.past-section{margin:0 16px 60px}
+.past-divider{border:none;border-top:1px solid var(--dim3);margin:24px 0 16px}
+.past-title{color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:3px;margin-bottom:12px}
+.past-entry{background:var(--bg2);border-radius:12px;padding:14px 16px;margin-bottom:8px;border-left:3px solid var(--acc);cursor:pointer;transition:all .2s}
+.past-entry:active{transform:scale(.98)}
+.pe-date{color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:1px;margin-bottom:4px}
+.pe-reason{color:#bbb;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.5}
+.pe-meta{color:var(--dim2);font-size:7px;font-family:monospace;margin-top:6px}
+.pe-actions{display:flex;gap:6px;margin-top:8px}
+.pe-btn{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:6px;padding:5px 10px;font-size:7px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.pe-btn:active{color:#fff;border-color:#666}
+.pe-btn.del{border-color:rgba(192,57,43,.2);color:rgba(192,57,43,.5)}
+.pe-btn.del:active{color:var(--red);border-color:var(--red)}
+.pe-expanded{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--dim3)}
+.pe-expanded.show{display:block}
+/* PRINT */
+@media print{body{background:#fff!important;color:#000!important;padding:20px}:root{--bg:#fff;--bg2:#f5f5f5;--bg3:#eee;--acc:#2c5282;--dim:#666;--dim2:#999;--dim3:#ccc}.nav-bar,.progress-bar,.step-counter,.btn-next,.btn-back-step,.btn-save,.btn-new,.btn-print,.add-btn,.remove-btn,.past-section,.toast,.pe-actions{display:none!important}.step{display:block!important;border-bottom:1px solid #ddd;margin-bottom:16px;padding-bottom:16px}.step-title{color:#000!important}.sb-content{color:#333!important}.reason-highlight{border-color:#2c5282;color:#2c5282;background:#f0f5ff}.summary-block{border:1px solid #ddd;break-inside:avoid}}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'" aria-label="Go back to deck">← DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">OPERATOR'S DECK • RECOVERY TOOL</div>
+    <div class="nav-name">SAFETY PLAN</div>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+<div class="step-counter" id="stepCount"></div>
+
+<div class="disc-strip">
+  <div class="ds-icon">⚠</div>
+  <div class="ds-text"><strong>THIS IS A SELF-HELP TOOL — NOT A CLINICAL SAFETY PLAN.</strong> If you are in immediate danger, call 911, go to your nearest emergency room, or call/text 988 (Suicide & Crisis Lifeline). This tool helps you organize your plan — it does not replace professional safety planning with a licensed therapist.</div>
+</div>
+
+<!-- STEP 1: WARNING SIGNS -->
+<div class="step active" id="step1">
+  <div class="step-label">STEP 1 OF 7</div>
+  <div class="step-title">Warning Signs</div>
+  <div class="step-desc">What do you notice when things start going sideways? These are your early indicators — the feelings, thoughts, situations, or behaviors that tell you a crisis might be building.</div>
+  <div class="step-example"><strong>Examples:</strong> "I stop answering texts." "I start picking fights." "I can't sleep for 2+ nights." "I start thinking about drinking." "Everything feels pointless."</div>
+  <textarea id="warningSigns" maxlength="2000" placeholder="List your personal warning signs..."></textarea>
+  <div class="char-hint"><span id="ws-count">0</span>/2000</div>
+  <div class="step-acts">
+    <button class="btn-next" id="btn1" onclick="goStep(2)">NEXT →</button>
+  </div>
+</div>
+
+<!-- STEP 2: INTERNAL COPING -->
+<div class="step" id="step2">
+  <div class="step-label">STEP 2 OF 7</div>
+  <div class="step-title">Internal Coping</div>
+  <div class="step-desc">What can you do on your own — without contacting anyone — to take your mind off the crisis or resist the urge? These are your solo tools.</div>
+  <div class="step-example"><strong>Examples:</strong> "Box breathing for 4 minutes." "Go for a walk — doesn't matter where." "Cold water on my face (TIPP)." "Write what I'm feeling." "Push-ups until I can't."</div>
+  <textarea id="internalCoping" maxlength="2000" placeholder="List things you can do on your own..."></textarea>
+  <div class="char-hint"><span id="ic-count">0</span>/2000</div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(1)">←</button>
+    <button class="btn-next" id="btn2" onclick="goStep(3)">NEXT →</button>
+  </div>
+</div>
+
+<!-- STEP 3: DISTRACTION PEOPLE & PLACES -->
+<div class="step" id="step3">
+  <div class="step-label">STEP 3 OF 7</div>
+  <div class="step-title">Distraction</div>
+  <div class="step-desc">People you can contact and places you can go — not to talk about the crisis, but just to be around someone or somewhere that takes you out of your head.</div>
+  <div class="step-example"><strong>Examples:</strong> "Call my brother — talk about literally anything." "Go to the gym." "Drive to the coffee shop and sit there." "Text my buddy about the game."</div>
+  <textarea id="distraction" maxlength="2000" placeholder="People to call, places to go — for distraction, not crisis talk..."></textarea>
+  <div class="char-hint"><span id="di-count">0</span>/2000</div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(2)">←</button>
+    <button class="btn-next" id="btn3" onclick="goStep(4)">NEXT →</button>
+  </div>
+</div>
+
+<!-- STEP 4: PEOPLE TO ASK FOR HELP -->
+<div class="step" id="step4">
+  <div class="step-label">STEP 4 OF 7</div>
+  <div class="step-title">People to Ask for Help</div>
+  <div class="step-desc">People you trust enough to tell the truth to. These are the ones you call when it's real — when you need to say "I'm not okay" and mean it.</div>
+  <div id="helpContacts"></div>
+  <button class="add-btn" onclick="addContact('help')">+ ADD PERSON</button>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(3)">←</button>
+    <button class="btn-next" id="btn4" onclick="goStep(5)">NEXT →</button>
+  </div>
+</div>
+
+<!-- STEP 5: PROFESSIONALS & CRISIS LINES -->
+<div class="step" id="step5">
+  <div class="step-label">STEP 5 OF 7</div>
+  <div class="step-title">Professionals & Crisis Lines</div>
+  <div class="step-desc">Your therapist, sponsor, counselor, crisis lines. The people trained for exactly this moment. Write their info here so you don't have to search for it when you need it most.</div>
+  <div id="proContacts"></div>
+  <button class="add-btn" onclick="addContact('pro')">+ ADD PROFESSIONAL / LINE</button>
+  <div style="margin-top:14px;background:var(--bg3);border-radius:10px;padding:12px;color:var(--dim2);font-size:8px;font-family:monospace;line-height:2;letter-spacing:.5px">
+    <div style="color:var(--acc);font-size:7px;letter-spacing:2px;margin-bottom:6px">CRISIS LINES — ALWAYS AVAILABLE</div>
+    988 Suicide & Crisis Lifeline (call or text 988)<br>
+    Crisis Text Line (text HOME to 741741)<br>
+    Veterans Crisis Line (call 988, press 1)<br>
+    Canada: Talk Suicide (1-833-456-4566)<br>
+    Canada: Crisis Text Line (text HOME to 686868)
+  </div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(4)">←</button>
+    <button class="btn-next" id="btn5" onclick="goStep(6)">NEXT →</button>
+  </div>
+</div>
+
+<!-- STEP 6: ENVIRONMENT SAFETY -->
+<div class="step" id="step6">
+  <div class="step-label">STEP 6 OF 7</div>
+  <div class="step-title">Making the Environment Safe</div>
+  <div class="step-desc">What can you do to reduce access to things that could hurt you during a crisis? This is about removing or securing means — not permanently, but when the risk is high.</div>
+  <div class="step-example"><strong>Examples:</strong> "Give my firearms to [name] when I'm in the red." "Move medications to [person]'s house." "Delete the dealer's number." "Put the car keys in the lockbox."</div>
+  <textarea id="envSafety" maxlength="2000" placeholder="Steps to make your environment safer during a crisis..."></textarea>
+  <div class="char-hint"><span id="es-count">0</span>/2000</div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(5)">←</button>
+    <button class="btn-next" id="btn6" onclick="goStep(7)">NEXT →</button>
+  </div>
+</div>
+
+<!-- STEP 7: MY REASON -->
+<div class="step" id="step7">
+  <div class="step-label">STEP 7 OF 7</div>
+  <div class="step-title">My Reason</div>
+  <div class="step-desc">The one thing — or the few things — that keep you here. Not what you think you should say. What actually works when it's 3 AM and you're in the garage. Write the real thing.</div>
+  <textarea id="myReason" maxlength="2000" placeholder="The thing that keeps me here..." style="min-height:120px"></textarea>
+  <div class="char-hint"><span id="mr-count">0</span>/2000</div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(6)">←</button>
+    <button class="btn-save" onclick="savePlan()">SAVE SAFETY PLAN</button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="step" id="stepSummary">
+  <div class="summary-header">
+    <div style="font-size:32px;margin-bottom:8px">🛡️</div>
+    <h2>SAFETY PLAN SAVED</h2>
+    <p>Stored locally. Your eyes only. Print a copy and keep it where you can reach it.</p>
+  </div>
+  <div id="summaryContent"></div>
+  <div class="step-acts">
+    <button class="btn-new" onclick="startFresh()">NEW PLAN</button>
+    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+      <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+      <a href="red-protocol.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">RED PROTOCOL \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Practice the crisis containment sequence now</span></a><a href="stuck-points-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">STUCK POINTS \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Challenge the beliefs underneath the crisis</span></a>
+    </div>
+
+    <button class="btn-print" onclick="printPlan()">🖨️ PRINT / SAVE AS PDF</button>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<!-- PAST PLANS -->
+<div class="past-section" id="pastSection" style="display:none;max-width:480px;margin:0 auto">
+  <hr class="past-divider">
+  <div class="past-title">PAST SAFETY PLANS</div>
+  <div id="pastList"></div>
+</div>
+
+<script>
+(function(){try{var v=localStorage.getItem('sp-plans');if(v!==null){localStorage.setItem('od_sp_plans',v);localStorage.removeItem('sp-plans');}}catch(e){}})();
+const STORE_KEY = 'od_sp_plans';
+let currentStep = 1;
+let helpContacts = [];
+let proContacts = [];
+
+function load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e) { return []; } }
+function save(d) { localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function goStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const target = n === 8 ? 'stepSummary' : 'step' + n;
+  document.getElementById(target).classList.add('active');
+  document.getElementById('progFill').style.width = (n === 8 ? 100 : ((n - 1) / 7 * 100)) + '%';
+  document.getElementById('stepCount').innerHTML = n <= 7 ? 'STEP <span>' + n + '</span> OF 7' : '<span>COMPLETE</span>';
+  window.scrollTo(0, 0);
+}
+
+// Contact management
+function addContact(type) {
+  const list = type === 'help' ? helpContacts : proContacts;
+  list.push({ name: '', phone: '', note: '' });
+  renderContacts(type);
+}
+
+function removeContact(type, idx) {
+  const list = type === 'help' ? helpContacts : proContacts;
+  list.splice(idx, 1);
+  renderContacts(type);
+}
+
+function updateContact(type, idx, field, value) {
+  const list = type === 'help' ? helpContacts : proContacts;
+  if (list[idx]) list[idx][field] = value;
+}
+
+function renderContacts(type) {
+  const list = type === 'help' ? helpContacts : proContacts;
+  const container = document.getElementById(type === 'help' ? 'helpContacts' : 'proContacts');
+  container.innerHTML = list.map((c, i) => `
+    <div class="contact-card">
+      <button class="remove-btn" onclick="removeContact('${type}',${i})">✕ REMOVE</button>
+      <input type="text" placeholder="Name" value="${esc(c.name)}" oninput="updateContact('${type}',${i},'name',this.value)">
+      <input type="tel" placeholder="Phone number" value="${esc(c.phone)}" oninput="updateContact('${type}',${i},'phone',this.value)">
+      <input type="text" placeholder="${type === 'help' ? 'What to say when I call' : 'Role (therapist, sponsor, etc.)'}" value="${esc(c.note)}" oninput="updateContact('${type}',${i},'note',this.value)">
+    </div>
+  `).join('');
+}
+
+// Character counters
+['warningSigns','internalCoping','distraction','envSafety','myReason'].forEach(id => {
+  const el = document.getElementById(id);
+  const countId = {'warningSigns':'ws','internalCoping':'ic','distraction':'di','envSafety':'es','myReason':'mr'}[id];
+  if (el) el.addEventListener('input', () => {
+    document.getElementById(countId + '-count').textContent = el.value.length;
+  });
+});
+
+function savePlan() {
+  const plan = {
+    date: new Date().toLocaleString(),
+    warningSigns: val('warningSigns'),
+    internalCoping: val('internalCoping'),
+    distraction: val('distraction'),
+    helpContacts: helpContacts.filter(c => c.name || c.phone),
+    proContacts: proContacts.filter(c => c.name || c.phone),
+    envSafety: val('envSafety'),
+    myReason: val('myReason')
+  };
+
+  const plans = load();
+  plans.unshift(plan);
+  save(plans);
+  showSummary(plan);
+  goStep(8);
+  renderPast();
+  showToast('SAFETY PLAN SAVED');
+}
+
+function showSummary(p) {
+  let h = '';
+  if (p.myReason) h += `<div class="reason-highlight">"${esc(p.myReason)}"</div><div style="text-align:center;margin:6px 0 14px;color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2px">MY REASON</div>`;
+  if (p.warningSigns) h += `<div class="summary-block"><div class="sb-label">1 · WARNING SIGNS</div><div class="sb-content">${esc(p.warningSigns)}</div></div>`;
+  if (p.internalCoping) h += `<div class="summary-block"><div class="sb-label">2 · INTERNAL COPING</div><div class="sb-content">${esc(p.internalCoping)}</div></div>`;
+  if (p.distraction) h += `<div class="summary-block"><div class="sb-label">3 · DISTRACTION</div><div class="sb-content">${esc(p.distraction)}</div></div>`;
+  if (p.helpContacts && p.helpContacts.length) {
+    h += `<div class="summary-block"><div class="sb-label">4 · PEOPLE TO ASK FOR HELP</div>`;
+    p.helpContacts.forEach(c => {
+      h += `<div class="sb-contact"><div class="sb-contact-name">${esc(c.name)}</div>`;
+      if (c.phone) h += `<div class="sb-contact-phone">${esc(c.phone)}</div>`;
+      if (c.note) h += `<div class="sb-contact-note">${esc(c.note)}</div>`;
+      h += `</div>`;
+    });
+    h += `</div>`;
+  }
+  if (p.proContacts && p.proContacts.length) {
+    h += `<div class="summary-block"><div class="sb-label">5 · PROFESSIONALS & CRISIS LINES</div>`;
+    p.proContacts.forEach(c => {
+      h += `<div class="sb-contact"><div class="sb-contact-name">${esc(c.name)}</div>`;
+      if (c.phone) h += `<div class="sb-contact-phone">${esc(c.phone)}</div>`;
+      if (c.note) h += `<div class="sb-contact-note">${esc(c.note)}</div>`;
+      h += `</div>`;
+    });
+    h += `</div>`;
+  }
+  if (p.envSafety) h += `<div class="summary-block"><div class="sb-label">6 · ENVIRONMENT SAFETY</div><div class="sb-content">${esc(p.envSafety)}</div></div>`;
+  document.getElementById('summaryContent').innerHTML = h;
+}
+
+function startFresh() {
+  ['warningSigns','internalCoping','distraction','envSafety','myReason'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['ws','ic','di','es','mr'].forEach(id => {
+    const el = document.getElementById(id + '-count');
+    if (el) el.textContent = '0';
+  });
+  helpContacts = [];
+  proContacts = [];
+  renderContacts('help');
+  renderContacts('pro');
+  goStep(1);
+}
+
+function printPlan() {
+  window.print();
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 2500);
+}
+
+// Past plans
+function renderPast() {
+  const plans = load();
+  const section = document.getElementById('pastSection');
+  const list = document.getElementById('pastList');
+  if (!plans.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = plans.map((p, i) => {
+    const contactCount = (p.helpContacts || []).length + (p.proContacts || []).length;
+    return `
+      <div class="past-entry" onclick="toggleExpand(${i})">
+        <div class="pe-date">${esc(p.date)}</div>
+        <div class="pe-reason">${p.myReason ? '"' + esc(p.myReason.substring(0, 100)) + (p.myReason.length > 100 ? '...' : '') + '"' : 'No reason recorded'}</div>
+        <div class="pe-meta">${contactCount} contact${contactCount !== 1 ? 's' : ''} · ${p.warningSigns ? 'Signs' : '—'} · ${p.envSafety ? 'Env' : '—'}</div>
+        <div class="pe-actions">
+          <button class="pe-btn" onclick="event.stopPropagation();viewPlan(${i})">VIEW FULL</button>
+          <button class="pe-btn del" onclick="event.stopPropagation();deletePlan(${i})">DELETE</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function viewPlan(idx) {
+  const plans = load();
+  if (!plans[idx]) return;
+  showSummary(plans[idx]);
+  goStep(8);
+  window.scrollTo(0, 0);
+}
+
+function deletePlan(idx) {
+  if (!confirm('Delete this safety plan?')) return;
+  const plans = load();
+  plans.splice(idx, 1);
+  save(plans);
+  renderPast();
+  showToast('PLAN DELETED');
+}
+
+// Init
+addContact('help');
+addContact('pro');
+renderPast();
+goStep(1);
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from the Stanley-Brown Safety Planning Intervention (Stanley & Brown, 2012).</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

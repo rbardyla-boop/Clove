@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="MEDITATION OPS • OPERATOR'S DECK">
+<meta property="og:description" content="8 tactical meditation protocols. Box breathing, body scan, grounding, stillness. No crystals. No guided imagery. Just the work.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/meditation-ops.html">
+<meta name="description" content="8 tactical meditation types for men. Box breathing, body scan, 5-4-3-2-1 grounding, progressive relaxation, and more. Fully offline.">
+<meta name="referrer" content="no-referrer">
+<title>MEDITATION OPS • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06060a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--pur:#9333ea;--dim:#8a8a8a;--dim2:#777;--dim3:#1a1a22;--teal:#0d9488}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:hidden;min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased;line-height:1.6}
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+.nav{position:sticky;top:0;z-index:10;background:#000;border-bottom:2px solid var(--teal);display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.nav a{background:none;border:1px solid var(--bg4);color:#aaa;font-size:9px;font-family:'Courier New',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:6px;text-decoration:none}
+.nav-title{color:var(--dim2);font-size:7px;letter-spacing:3px;text-transform:uppercase}
+.hero{padding:36px 20px 24px;text-align:center;border-bottom:1px solid rgba(13,148,136,.1)}
+.hero-tag{font-size:8px;letter-spacing:5px;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:10px}
+.hero-tag::before,.hero-tag::after{content:'';width:20px;height:1px;background:var(--teal)}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;line-height:1;margin-bottom:10px}
+.hero-sub{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.8;max-width:320px;margin:0 auto}
+.stats-bar{display:flex;gap:6px;justify-content:center;margin:16px 16px 4px}
+.stat-box{background:var(--bg2);border-radius:8px;padding:8px 14px;text-align:center;flex:1}
+.stat-box .sv{font-size:16px;font-weight:900;font-family:'Courier New',monospace}
+.stat-box .sl{color:var(--dim);font-size:6px;font-family:monospace;letter-spacing:1.5px;margin-top:2px}
+.sec{padding:16px}
+.sec-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--teal);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'';width:14px;height:1px;background:var(--teal)}
+.med-card{background:var(--bg2);border-radius:12px;padding:16px;margin-bottom:8px;cursor:pointer;border-left:3px solid var(--bg4);transition:all .2s;user-select:none}
+.med-card:active{transform:scale(.98)}
+.med-card.active{border-left-color:var(--teal);background:#0a1218}
+.mc-hdr{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.mc-icon{font-size:14px;flex-shrink:0;width:24px;text-align:center}
+.mc-name{font-size:11px;font-weight:700;letter-spacing:1px}
+.mc-time{margin-left:auto;font-size:8px;color:var(--dim);font-family:monospace}
+.mc-desc{color:var(--dim);font-size:8px;font-family:Georgia,serif;line-height:1.6;padding-left:34px}
+
+/* SESSION */
+.session{display:none;padding:16px;animation:fadeIn .3s ease}
+.session.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.s-header{text-align:center;margin-bottom:20px}
+.s-tag{font-size:8px;letter-spacing:4px;color:var(--teal);margin-bottom:6px}
+.s-name{font-size:20px;font-weight:900;letter-spacing:2px;margin-bottom:6px}
+.s-brief{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;max-width:320px;margin:0 auto}
+
+/* TIMER RING */
+.ring-wrap{text-align:center;margin:24px 0}
+.ring{width:140px;height:140px;border-radius:50%;border:3px solid var(--bg4);margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all 1s ease-in-out;position:relative}
+.ring.active{border-color:var(--teal);box-shadow:0 0 40px rgba(13,148,136,.12)}
+.ring .phase-label{font-size:9px;letter-spacing:3px;color:var(--dim);transition:color .5s}
+.ring.active .phase-label{color:var(--teal)}
+.ring .time-display{font-size:32px;font-weight:900;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;margin-top:2px}
+.ring .round-label{font-size:7px;color:var(--dim2);letter-spacing:2px;margin-top:4px}
+
+/* GUIDE TEXT */
+.guide{background:var(--bg3);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:16px 18px;margin:16px 0;min-height:60px}
+.guide-text{color:#ccc;font-size:10px;font-family:Georgia,serif;line-height:1.8}
+
+/* ZONES (body scan) */
+.zone-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:16px 0}
+.zone-item{background:var(--bg3);border:1px solid var(--bg4);border-radius:8px;padding:10px;text-align:center;font-size:9px;font-family:monospace;letter-spacing:1px;transition:all .3s;color:var(--dim)}
+.zone-item.current{border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,.08)}
+.zone-item.done{border-color:var(--grn);color:var(--grn)}
+
+/* SENSORY (5-4-3-2-1) */
+.sensory-step{background:var(--bg3);border-radius:10px;padding:14px 16px;margin:8px 0;border-left:3px solid var(--bg4);transition:all .3s}
+.sensory-step.current{border-left-color:var(--teal);background:rgba(13,148,136,.05)}
+.sensory-step.done{border-left-color:var(--grn);opacity:.5}
+.ss-count{font-size:24px;font-weight:900;color:var(--teal);font-family:'Bebas Neue',sans-serif;margin-bottom:4px}
+.ss-sense{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:4px}
+.ss-prompt{color:var(--dim);font-size:8px;font-family:Georgia,serif;line-height:1.6}
+.ss-input{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--bg4);border-radius:6px;padding:8px 10px;font-size:9px;font-family:'DM Mono',monospace;outline:none;margin-top:6px;resize:none}
+.ss-input:focus{border-color:rgba(13,148,136,.4)}
+
+/* BUTTONS */
+.btn-primary{display:block;width:100%;background:linear-gradient(135deg,var(--teal),#085041);color:#fff;border:none;border-radius:10px;padding:15px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;transition:all .2s;margin:10px 0}
+.btn-primary:active{transform:scale(.96)}
+.btn-sec{display:block;width:100%;background:var(--bg2);color:#aaa;border:1px solid var(--bg4);border-radius:10px;padding:12px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s;margin:6px 0}
+.btn-sec:active{transform:scale(.96);color:#fff;border-color:#444}
+
+/* BOX BREATHING VISUAL */
+.box-visual{width:120px;height:120px;border:2px solid var(--bg4);margin:0 auto 16px;position:relative;transition:border-color 1s}
+.box-visual.active{border-color:var(--teal)}
+.box-dot{width:10px;height:10px;background:var(--teal);border-radius:50%;position:absolute;top:-5px;left:-5px;transition:all 4s linear;box-shadow:0 0 12px rgba(13,148,136,.5)}
+.box-dot.top-right{top:-5px;left:calc(100% - 5px)}
+.box-dot.bottom-right{top:calc(100% - 5px);left:calc(100% - 5px)}
+.box-dot.bottom-left{top:calc(100% - 5px);left:-5px}
+
+/* PMR */
+.pmr-muscle{background:var(--bg3);border-radius:8px;padding:12px 16px;margin:6px 0;display:flex;align-items:center;gap:12px;border-left:3px solid var(--bg4);transition:all .3s}
+.pmr-muscle.current{border-left-color:var(--gld);background:rgba(212,168,67,.05)}
+.pmr-muscle.done{border-left-color:var(--grn);opacity:.5}
+.pmr-name{font-size:10px;font-weight:700;letter-spacing:1px;flex:1}
+.pmr-status{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim)}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);color:#fff;border:1px solid var(--teal);border-radius:10px;padding:12px 24px;font-size:9px;font-family:monospace;letter-spacing:2px;z-index:100;opacity:0;transition:all .3s;pointer-events:none;text-align:center;max-width:360px}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* HISTORY */
+.history{padding:16px}
+.h-entry{background:var(--bg2);border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.h-type{font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1px;color:var(--teal);width:80px;flex-shrink:0}
+.h-dur{font-size:9px;color:var(--dim);font-family:monospace}
+.h-date{font-size:7px;color:var(--dim2);font-family:monospace;margin-left:auto}
+
+/* FOOTER */
+.footer{text-align:center;padding:28px 16px;border-top:1px solid rgba(13,148,136,.06)}
+
+/* AUDIO CONTROLS */
+.audio-panel{background:var(--bg3);border:1px solid var(--bg4);border-radius:10px;padding:12px 14px;margin:12px 0}
+.ap-row{display:flex;gap:6px;align-items:center}
+.ap-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:6px}
+.ap-btn{flex:1;background:var(--bg2);border:1px solid var(--bg4);color:var(--dim);border-radius:8px;padding:8px 6px;font-size:7px;font-family:monospace;letter-spacing:1px;cursor:pointer;text-align:center;transition:all .2s}
+.ap-btn:active{transform:scale(.96)}
+.ap-btn.on{border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,.08)}
+.ap-btn.spot{border-color:rgba(29,185,84,.3);color:#1db954}
+.ap-btn.spot:active{background:rgba(29,185,84,.08)}
+.ap-vol{display:flex;align-items:center;gap:6px;margin-top:8px}
+.ap-vol label{font-size:6px;font-family:monospace;color:var(--dim);letter-spacing:1px;flex-shrink:0}
+.ap-vol input[type=range]{flex:1;height:3px;-webkit-appearance:none;appearance:none;background:var(--bg4);border-radius:2px;outline:none}
+.ap-vol input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--teal);cursor:pointer}
+
+/* GUIDED SECTION */
+.guided-card{background:var(--bg2);border:1px solid rgba(29,185,84,.15);border-radius:10px;padding:12px 14px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s;text-decoration:none}
+.guided-card:active{transform:scale(.98);border-color:rgba(29,185,84,.3)}
+.gc-icon{color:#1db954;font-size:14px;flex-shrink:0}
+.gc-info{flex:1}
+.gc-name{font-size:9px;font-weight:700;letter-spacing:1px;color:#1db954}
+.gc-desc{font-size:7px;color:var(--dim);font-family:Georgia,serif;margin-top:2px;line-height:1.5}
+.f-ver{font-size:7px;letter-spacing:3px;color:var(--dim2);margin-bottom:6px}
+.f-copy{font-size:7px;color:var(--dim3);letter-spacing:1px;line-height:2}
+
+/* DISC LINK */
+.disc-link{display:block;background:var(--bg3);border:1px solid var(--bg4);border-radius:8px;padding:10px 14px;margin-top:12px;text-decoration:none;text-align:center;transition:border-color .2s}
+.disc-link:active{border-color:var(--teal)}
+.disc-link .dl-name{color:var(--teal);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1.5px}
+.disc-link .dl-desc{color:var(--dim);font-size:7px;font-family:Georgia,serif;font-style:italic;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="app" role="main" id="app">
+
+<div class="nav" role="navigation" aria-label="Page navigation">
+  <a href="./?tab=more">&larr; DECK</a>
+  <div class="nav-title">MEDITATION OPS</div>
+</div>
+
+<div class="hero">
+  <div class="hero-tag">TACTICAL STILLNESS</div>
+  <h1>MEDITATION<br>OPS</h1>
+  <div class="hero-sub">8 protocols. No crystals. No guided imagery with waterfalls.<br>Just your breath, your body, and the timer.</div>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div id="menuView">
+  <div class="sec">
+    <div class="sec-label">Select protocol</div>
+    <div id="medMenu"></div>
+  </div>
+
+  <div class="sec" style="padding-top:0">
+    <div class="sec-label">Guided &amp; Brainwaves</div>
+    <div id="guidedMenu"></div>
+  </div>
+
+  <div class="sec" style="padding-top:0">
+    <div class="sec-label">Session log</div>
+    <div id="historyList"></div>
+  </div>
+
+  <div class="sec" style="padding-top:0">
+    <div class="sec-label">Next step?</div>
+    <a href="red-protocol.html" class="disc-link"><div class="dl-name">RED PROTOCOL &rarr;</div><div class="dl-desc">If you're still activated — crisis containment first</div></a>
+    <a href="thought-interceptor.html" class="disc-link"><div class="dl-name">THOUGHT INTERCEPTOR &rarr;</div><div class="dl-desc">Ground the body here, then intercept the thought</div></a>
+    <a href="./?tab=home" class="disc-link"><div class="dl-name">DRAW A CARD &rarr;</div><div class="dl-desc">Calm enough to do the work? Pull today's card.</div></a>
+  </div>
+</div>
+
+<div class="session" id="sessionView"></div>
+
+<div class="footer">
+  <div class="f-ver">THE OPERATOR'S DECK &middot; MEDITATION OPS &middot; 2026</div>
+  <div class="f-copy">Not therapy. Not clinical mindfulness. A self-help stillness tool.<br>If you're in crisis, call or text 988.</div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+var KEY='od_meditation';
+var logs=[];try{logs=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){logs=[]}
+logs=logs.slice(0,200);
+
+var activeTimer=null,activeType=null,timerSeconds=0,timerTotal=0,timerRunning=false;
+var currentStep=0;
+
+var TYPES=[
+  {id:'box',name:'BOX BREATHING',icon:'\u25A1',time:'4 min',dur:240,desc:'4-4-4-4 cadence. The Navy SEAL reset. Breathe in, hold, out, hold — each 4 seconds.'},
+  {id:'breath478',name:'4-7-8 BREATHING',icon:'\u25CB',time:'3 min',dur:180,desc:'Inhale 4, hold 7, exhale 8. Activates the parasympathetic brake harder than any other pattern.'},
+  {id:'bodyscan',name:'BODY SCAN',icon:'\u2503',time:'5 min',dur:300,desc:'7 zones, top to bottom. Find where you\'re holding the day. Name it. Release it. Move on.'},
+  {id:'grounding',name:'5-4-3-2-1 GROUNDING',icon:'\u25CE',time:'3 min',dur:180,desc:'Sensory anchor. 5 things you see, 4 hear, 3 touch, 2 smell, 1 taste. Pulls you back into the room.'},
+  {id:'pmr',name:'PROGRESSIVE RELAXATION',icon:'\u2261',time:'6 min',dur:360,desc:'Tense each muscle group 5 seconds, release. Feet to jaw. Your body doesn\'t lie about where the tension is.'},
+  {id:'viz',name:'TACTICAL VISUALIZATION',icon:'\u25C8',time:'5 min',dur:300,desc:'Build a safe location in your mind. Every detail. This is your extraction point when the noise gets loud.'},
+  {id:'walk',name:'WALKING MEDITATION',icon:'\u2192',time:'5 min',dur:300,desc:'Stand up. Walk slowly. Feel each step. Heel, ball, toe. Your body remembers how to be here.'},
+  {id:'still',name:'STILLNESS TIMER',icon:'\u2014',time:'Custom',dur:0,desc:'No guidance. No prompts. Just you and the clock. Set your time and sit. Permission to do nothing.'}
+];
+
+var BODY_ZONES=['HEAD / SCALP','FACE / JAW','NECK / SHOULDERS','CHEST / UPPER BACK','ARMS / HANDS','CORE / LOWER BACK','LEGS / FEET'];
+var PMR_MUSCLES=['FEET — curl toes tight','CALVES — flex hard','THIGHS — squeeze together','CORE — brace like a punch','FISTS — clench white-knuckle','SHOULDERS — shrug to ears','JAW — clench teeth'];
+var SENSORY=[
+  {count:5,sense:'SEE',prompt:'Name 5 things you can see right now. Anything. A crack in the wall counts.'},
+  {count:4,sense:'HEAR',prompt:'Name 4 things you can hear. Traffic, breathing, the fridge humming. Listen.'},
+  {count:3,sense:'TOUCH',prompt:'Name 3 things you can physically feel. The chair under you. Your shirt on your skin.'},
+  {count:2,sense:'SMELL',prompt:'Name 2 things you can smell. If nothing — breathe deep and try again.'},
+  {count:1,sense:'TASTE',prompt:'Name 1 thing you can taste. Coffee, toothpaste, nothing. That\'s the answer.'}
+];
+var VIZ_PROMPTS=[
+  'Close your eyes. Build a place in your mind where you are completely safe.',
+  'What do you see? Ground, sky, walls, trees. Make it specific.',
+  'What do you hear in this place? Wind, water, silence, a fire.',
+  'What\'s the temperature? What does the air feel like on your skin?',
+  'Place one object here that means something to you. See it clearly.',
+  'You are here. Nobody needs anything from you. Breathe in this place.',
+  'When you\'re ready, take one breath and slowly open your eyes.'
+];
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function fmtTime(s){var m=Math.floor(s/60);var sec=s%60;return(m<10?'0':'')+m+':'+(sec<10?'0':'')+sec}
+
+// ── BINAURAL BEAT ENGINE (Web Audio API) ──
+var binCtx=null,binOscL=null,binOscR=null,binGain=null,binActive=false,binType='alpha';
+var BINAURAL={
+  delta:{name:'DELTA',hz:2,desc:'Deep sleep / recovery',base:100,color:'var(--pur)'},
+  theta:{name:'THETA',hz:6,desc:'Deep meditation / creativity',base:150,color:'var(--blu)'},
+  alpha:{name:'ALPHA',hz:10,desc:'Calm focus / relaxation',base:200,color:'var(--teal)'},
+  beta:{name:'BETA',hz:20,desc:'Alert focus / energy',base:250,color:'var(--gld)'}
+};
+// Map each meditation type to a default brainwave
+var TYPE_WAVES={box:'alpha',breath478:'alpha',bodyscan:'theta',grounding:'alpha',pmr:'alpha',viz:'theta',walk:'beta',still:'theta'};
+
+function startBinaural(type){
+  stopBinaural();
+  try{
+    var b=BINAURAL[type]||BINAURAL.alpha;
+    binCtx=new(window.AudioContext||window.webkitAudioContext)();
+    binGain=binCtx.createGain();binGain.gain.value=0.15;binGain.connect(binCtx.destination);
+    var merger=binCtx.createChannelMerger(2);merger.connect(binGain);
+    binOscL=binCtx.createOscillator();binOscL.type='sine';binOscL.frequency.value=b.base;
+    binOscR=binCtx.createOscillator();binOscR.type='sine';binOscR.frequency.value=b.base+b.hz;
+    var gainL=binCtx.createGain();gainL.gain.value=1;
+    var gainR=binCtx.createGain();gainR.gain.value=1;
+    binOscL.connect(gainL);gainL.connect(merger,0,0);
+    binOscR.connect(gainR);gainR.connect(merger,0,1);
+    binOscL.start();binOscR.start();
+    binActive=true;binType=type;
+  }catch(e){binActive=false}
+}
+function stopBinaural(){
+  try{if(binOscL){binOscL.stop();binOscL=null}if(binOscR){binOscR.stop();binOscR=null}if(binCtx){binCtx.close();binCtx=null}}catch(e){}
+  binActive=false;binGain=null;
+}
+function setBinVol(v){if(binGain)binGain.gain.value=parseFloat(v)}
+function toggleBin(type){if(binActive&&binType===type){stopBinaural()}else{startBinaural(type)}updateAudioUI()}
+function updateAudioUI(){
+  var el=document.getElementById('audioPanel');if(!el)return;
+  ['delta','theta','alpha','beta'].forEach(function(k){
+    var btn=document.getElementById('bin_'+k);if(btn){btn.className='ap-btn'+(binActive&&binType===k?' on':'')}
+  });
+  var volEl=document.getElementById('binVol');if(volEl)volEl.value=binGain?binGain.gain.value:0.15;
+}
+
+// ── SPOTIFY GUIDED LINKS ──
+var GUIDED=[
+  {name:'Guided Meditation for Beginners',q:'guided meditation for beginners 10 minutes',desc:'Simple guided session. No experience needed.'},
+  {name:'Body Scan Meditation',q:'body scan guided meditation',desc:'Full body awareness with voice guidance.'},
+  {name:'Breathing Exercise Guided',q:'breathing exercise guided meditation calm',desc:'Paced breathing with a guide keeping time.'},
+  {name:'Sleep Meditation for Men',q:'deep sleep meditation male voice',desc:'Low-energy guided session for winding down.'},
+  {name:'Stress Relief Meditation',q:'stress relief meditation 10 minutes',desc:'Targeted relaxation for high-pressure days.'},
+  {name:'Binaural Beats — Focus',q:'binaural beats focus alpha waves',desc:'Alpha wave tracks for calm concentration.'},
+  {name:'Binaural Beats — Deep Sleep',q:'binaural beats deep sleep delta waves',desc:'Delta wave tracks for recovery sleep.'},
+  {name:'Binaural Beats — Meditation',q:'binaural beats meditation theta waves',desc:'Theta wave tracks for deep meditation.'}
+];
+
+// ── AUDIO PANEL HTML (inserted into each session) ──
+function audioPanel(typeId){
+  var wave=TYPE_WAVES[typeId]||'alpha';
+  var h='<div class="audio-panel" id="audioPanel">';
+  h+='<div class="ap-label">\u223F BRAINWAVE GENERATOR (HEADPHONES REQUIRED)</div>';
+  h+='<div class="ap-row">';
+  ['delta','theta','alpha','beta'].forEach(function(k){
+    var b=BINAURAL[k];var on=binActive&&binType===k;
+    h+='<button class="ap-btn'+(on?' on':'')+'" id="bin_'+k+'" onclick="toggleBin(\''+k+'\')" style="'+(on?'border-color:'+b.color+';color:'+b.color:'')+'"><div style="font-size:9px;font-weight:800">'+b.name+'</div><div style="font-size:5px;margin-top:2px;opacity:.6">'+b.hz+'Hz</div></button>';
+  });
+  h+='</div>';
+  h+='<div class="ap-vol"><label>VOL</label><input type="range" id="binVol" min="0" max="0.4" step="0.01" value="'+(binGain?binGain.gain.value:0.15)+'" oninput="setBinVol(this.value)"><label style="color:var(--dim2);font-size:5px">'+(['DELTA','THETA','ALPHA','BETA'][[0,1,2,3][['delta','theta','alpha','beta'].indexOf(wave)]])+'</label></div>';
+  h+='<div style="margin-top:8px"><button class="ap-btn spot" onclick="window.open(\'https://open.spotify.com/search/'+encodeURIComponent(BINAURAL[wave].name.toLowerCase()+' binaural beats meditation')+'\',\'_blank\')" style="width:100%">\u25B6 FIND '+BINAURAL[wave].name+' BEATS ON SPOTIFY</button></div>';
+  h+='</div>';
+  return h;
+}
+
+function render(){
+  renderStats();
+  renderMenu();
+  renderGuided();
+  renderHistory();
+}
+
+function renderStats(){
+  var total=logs.length;
+  var totalMin=0;logs.forEach(function(l){totalMin+=Math.round((l.dur||0)/60)});
+  var streak=0;
+  try{
+    var dates=[];logs.forEach(function(l){if(l.date&&dates.indexOf(l.date)===-1)dates.push(l.date)});
+    if(dates.length){
+      var today=new Date();today.setHours(0,0,0,0);
+      var lastDate=new Date(dates[dates.length-1]);lastDate.setHours(0,0,0,0);
+      var diffMs=today.getTime()-lastDate.getTime();
+      if(diffMs<=86400000){
+        streak=1;
+        for(var i=dates.length-2;i>=0;i--){
+          var d1=new Date(dates[i+1]);d1.setHours(0,0,0,0);
+          var d2=new Date(dates[i]);d2.setHours(0,0,0,0);
+          if(d1.getTime()-d2.getTime()<=86400000&&d1.getTime()-d2.getTime()>0){streak++}else{break}
+        }
+      }
+    }
+  }catch(e){streak=0}
+  document.getElementById('statsBar').innerHTML=
+    '<div class="stat-box"><div class="sv" style="color:var(--teal)">'+total+'</div><div class="sl">SESSIONS</div></div>'+
+    '<div class="stat-box"><div class="sv" style="color:var(--gld)">'+totalMin+'</div><div class="sl">MINUTES</div></div>'+
+    '<div class="stat-box"><div class="sv" style="color:var(--grn)">'+streak+'</div><div class="sl">DAY STREAK</div></div>';
+}
+
+function renderMenu(){
+  var h='';
+  TYPES.forEach(function(t){
+    h+='<div class="med-card" onclick="startSession(\''+t.id+'\')"><div class="mc-hdr"><div class="mc-icon">'+t.icon+'</div><div class="mc-name">'+t.name+'</div><div class="mc-time">'+t.time+'</div></div><div class="mc-desc">'+t.desc+'</div></div>';
+  });
+  document.getElementById('medMenu').innerHTML=h;
+}
+
+function renderGuided(){
+  var h='<div style="color:var(--dim);font-size:8px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px;padding:0 4px">Spotify guided sessions and binaural beats. Requires headphones for stereo brainwave effect.</div>';
+  GUIDED.forEach(function(g){
+    var url='https://open.spotify.com/search/'+encodeURIComponent(g.q);
+    h+='<a class="guided-card" href="'+url+'" target="_blank" rel="noopener noreferrer"><div class="gc-icon">\u25B6</div><div class="gc-info"><div class="gc-name">'+esc(g.name)+'</div><div class="gc-desc">'+esc(g.desc)+'</div></div></a>';
+  });
+  h+='<div style="font-size:6px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-top:8px;text-align:center">OPENS SPOTIFY SEARCH \u2022 FREE OR PREMIUM</div>';
+  document.getElementById('guidedMenu').innerHTML=h;
+}
+
+function renderHistory(){
+  var h='';
+  if(!logs.length){h='<div style="text-align:center;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;padding:20px">No sessions yet. Pick a protocol and sit.</div>'}
+  else{logs.slice().reverse().slice(0,20).forEach(function(l){
+    h+='<div class="h-entry"><div class="h-type">'+esc(l.type)+'</div><div class="h-dur">'+fmtTime(l.dur||0)+'</div><div class="h-date">'+esc(l.date)+'</div></div>';
+  })}
+  document.getElementById('historyList').innerHTML=h;
+}
+
+function startSession(id){
+  var type=TYPES.find(function(t){return t.id===id});
+  if(!type)return;
+  activeType=type;
+  currentStep=0;
+  document.getElementById('menuView').style.display='none';
+  document.getElementById('sessionView').classList.add('show');
+
+  if(id==='still'){renderStillness();appendAudio(id);return}
+  if(id==='grounding'){renderGrounding();appendAudio(id);return}
+  if(id==='bodyscan'){renderBodyScan();appendAudio(id);return}
+  if(id==='pmr'){renderPMR();appendAudio(id);return}
+  if(id==='viz'){renderVisualization();appendAudio(id);return}
+  if(id==='walk'){renderWalking();appendAudio(id);return}
+  if(id==='box'){renderBoxBreathing();appendAudio(id);return}
+  if(id==='breath478'){render478();appendAudio(id);return}
+}
+
+function appendAudio(id){
+  var sv=document.getElementById('sessionView');
+  if(sv){var d=document.createElement('div');d.innerHTML=audioPanel(id);sv.appendChild(d.firstChild)}
+}
+
+function endSession(){
+  if(activeTimer){clearInterval(activeTimer);activeTimer=null}
+  timerRunning=false;stopBinaural();
+  document.getElementById('menuView').style.display='';
+  document.getElementById('sessionView').classList.remove('show');
+  document.getElementById('sessionView').innerHTML='';
+  activeType=null;
+  render();
+}
+
+function logAndEnd(type,dur){
+  logs.push({type:type,dur:dur,date:new Date().toLocaleDateString(),ts:Date.now()});
+  try{localStorage.setItem(KEY,JSON.stringify(logs.slice(-200)))}catch(e){}
+  showToast('SESSION LOGGED \u2014 '+fmtTime(dur));
+  endSession();
+}
+
+// ── BOX BREATHING ──
+function renderBoxBreathing(){
+  var el=document.getElementById('sessionView');
+  el.innerHTML='<div class="s-header"><div class="s-tag">BOX BREATHING</div><div class="s-name">4-4-4-4</div><div class="s-brief">In 4. Hold 4. Out 4. Hold 4. The box closes. The noise stops.</div></div>'+
+    '<div class="ring-wrap"><div class="box-visual" id="boxVis"><div class="box-dot" id="boxDot"></div></div></div>'+
+    '<div style="text-align:center"><div class="phase-label" id="boxPhase" style="font-size:14px;letter-spacing:3px;color:var(--teal);margin-bottom:4px">READY</div><div class="time-display" id="boxTime" style="font-size:28px;font-weight:900;font-family:\'Bebas Neue\';letter-spacing:2px">4:00</div><div class="round-label" id="boxRound" style="font-size:7px;color:var(--dim2);letter-spacing:2px;margin-top:4px">8 ROUNDS</div></div>'+
+    '<button class="btn-primary" id="boxBtn" onclick="toggleBox()">START</button>'+
+    '<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  timerSeconds=240;timerTotal=240;timerRunning=false;
+}
+var boxPhaseIdx=0,boxCount=0,boxRounds=0;
+function toggleBox(){
+  if(timerRunning){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('boxBtn').textContent='RESUME';return}
+  timerRunning=true;boxPhaseIdx=0;boxCount=4;boxRounds=0;
+  document.getElementById('boxBtn').textContent='PAUSE';
+  document.getElementById('boxVis').classList.add('active');
+  var phases=['BREATHE IN','HOLD','BREATHE OUT','HOLD'];
+  var dotPos=['top-right','bottom-right','bottom-left',''];
+  activeTimer=setInterval(function(){
+    boxCount--;
+    if(boxCount<=0){boxPhaseIdx=(boxPhaseIdx+1)%4;boxCount=4;if(boxPhaseIdx===0)boxRounds++}
+    document.getElementById('boxPhase').textContent=phases[boxPhaseIdx];
+    document.getElementById('boxTime').textContent=boxCount;
+    document.getElementById('boxRound').textContent='ROUND '+(boxRounds+1)+' OF 8';
+    var dot=document.getElementById('boxDot');dot.className='box-dot';if(dotPos[boxPhaseIdx])dot.classList.add(dotPos[boxPhaseIdx]);
+    timerSeconds--;
+    if(timerSeconds<=0||boxRounds>=8){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('boxPhase').textContent='COMPLETE';logAndEnd('BOX 4-4-4-4',timerTotal-timerSeconds)}
+  },1000);
+}
+
+// ── 4-7-8 BREATHING ──
+function render478(){
+  var el=document.getElementById('sessionView');
+  el.innerHTML='<div class="s-header"><div class="s-tag">4-7-8 BREATHING</div><div class="s-name">PARASYMPATHETIC BRAKE</div><div class="s-brief">Inhale 4. Hold 7. Exhale 8. The exhale must be longer. That\'s what activates the brake.</div></div>'+
+    '<div class="ring-wrap"><div class="ring" id="ring478"><div class="phase-label" id="ph478">READY</div><div class="time-display" id="ct478">\u2014</div><div class="round-label" id="rd478">6 ROUNDS</div></div></div>'+
+    '<button class="btn-primary" id="btn478" onclick="toggle478()">START</button>'+
+    '<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  timerSeconds=180;timerTotal=180;timerRunning=false;
+}
+var ph478Idx=0,ct478=0,rd478=0;
+function toggle478(){
+  if(timerRunning){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('btn478').textContent='RESUME';return}
+  timerRunning=true;ph478Idx=0;ct478=4;rd478=0;
+  document.getElementById('btn478').textContent='PAUSE';
+  var phases=[{name:'BREATHE IN',dur:4,cls:'inhale'},{name:'HOLD',dur:7,cls:'hold'},{name:'BREATHE OUT',dur:8,cls:'exhale'}];
+  var ring=document.getElementById('ring478');
+  ring.classList.add('active');
+  activeTimer=setInterval(function(){
+    ct478--;
+    if(ct478<=0){ph478Idx++;if(ph478Idx>=3){ph478Idx=0;rd478++}ct478=phases[ph478Idx].dur}
+    document.getElementById('ph478').textContent=phases[ph478Idx].name;
+    document.getElementById('ct478').textContent=ct478;
+    document.getElementById('rd478').textContent='ROUND '+(rd478+1)+' OF 6';
+    ring.className='ring active '+phases[ph478Idx].cls;
+    timerSeconds--;
+    if(timerSeconds<=0||rd478>=6){clearInterval(activeTimer);activeTimer=null;timerRunning=false;ring.className='ring';document.getElementById('ph478').textContent='COMPLETE';logAndEnd('4-7-8',timerTotal-timerSeconds)}
+  },1000);
+}
+
+// ── BODY SCAN ──
+function renderBodyScan(){
+  var el=document.getElementById('sessionView');
+  var h='<div class="s-header"><div class="s-tag">BODY SCAN</div><div class="s-name">7 ZONES</div><div class="s-brief">Top to bottom. Where are you holding it today? Name it. Breathe into it. Let it go.</div></div>';
+  h+='<div class="zone-grid" id="zones">';
+  BODY_ZONES.forEach(function(z,i){h+='<div class="zone-item" id="zone'+i+'">'+z+'</div>'});
+  h+='</div>';
+  h+='<div class="guide" id="scanGuide"><div class="guide-text">Tap START. Focus on each zone for 40 seconds. Notice tension without fixing it.</div></div>';
+  h+='<div style="text-align:center"><div class="time-display" id="scanTime" style="font-size:28px;font-weight:900;font-family:\'Bebas Neue\'">5:00</div></div>';
+  h+='<button class="btn-primary" id="scanBtn" onclick="toggleScan()">START</button>';
+  h+='<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  el.innerHTML=h;
+  timerSeconds=300;timerTotal=300;timerRunning=false;currentStep=0;
+}
+function toggleScan(){
+  if(timerRunning){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('scanBtn').textContent='RESUME';return}
+  timerRunning=true;document.getElementById('scanBtn').textContent='PAUSE';
+  var prompts=['Bring attention to your scalp and the top of your head. Notice any tightness.','Feel your face. Jaw clenched? Brow furrowed? Let it soften.','Neck and shoulders. Where most men carry the day. Breathe into it.','Chest and upper back. Is your breathing shallow? Open up.','Arms and hands. Unclench your fists. Spread your fingers. Let them be heavy.','Your core and lower back. The foundation. Is it braced? Release.','Legs and feet. Feel them on the ground. You are here. Solid.'];
+  activeTimer=setInterval(function(){
+    timerSeconds--;
+    var elapsed=timerTotal-timerSeconds;
+    var zoneIdx=Math.min(6,Math.floor(elapsed/42));
+    if(zoneIdx!==currentStep){
+      if(currentStep<7)document.getElementById('zone'+currentStep).classList.replace('current','done');
+      currentStep=zoneIdx;
+      if(currentStep<7){document.getElementById('zone'+currentStep).classList.add('current');document.getElementById('scanGuide').querySelector('.guide-text').textContent=prompts[currentStep]}
+    }
+    if(currentStep===0&&elapsed<3)document.getElementById('zone0').classList.add('current');
+    document.getElementById('scanTime').textContent=fmtTime(timerSeconds);
+    if(timerSeconds<=0){clearInterval(activeTimer);activeTimer=null;timerRunning=false;BODY_ZONES.forEach(function(z,i){document.getElementById('zone'+i).className='zone-item done'});document.getElementById('scanGuide').querySelector('.guide-text').textContent='Scan complete. You know where you are now.';logAndEnd('BODY SCAN',timerTotal)}
+  },1000);
+}
+
+// ── 5-4-3-2-1 GROUNDING ──
+function renderGrounding(){
+  var el=document.getElementById('sessionView');
+  var h='<div class="s-header"><div class="s-tag">5-4-3-2-1 GROUNDING</div><div class="s-name">SENSORY ANCHOR</div><div class="s-brief">Pull yourself back into the room. One sense at a time.</div></div>';
+  h+='<div id="sensoryList">';
+  SENSORY.forEach(function(s,i){
+    h+='<div class="sensory-step'+(i===0?' current':'')+'" id="ss'+i+'"><div class="ss-count">'+s.count+'</div><div class="ss-sense">'+s.sense+'</div><div class="ss-prompt">'+s.prompt+'</div>'+(i===0?'<textarea class="ss-input" id="ssIn'+i+'" rows="2" placeholder="Name them here (optional)..."></textarea>':'')+'</div>';
+  });
+  h+='</div>';
+  h+='<button class="btn-primary" id="groundBtn" onclick="nextSensory()">NEXT SENSE</button>';
+  h+='<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  el.innerHTML=h;
+  currentStep=0;timerSeconds=0;window._groundStart=Date.now();
+}
+function nextSensory(){
+  if(currentStep<4){
+    document.getElementById('ss'+currentStep).classList.replace('current','done');
+    currentStep++;
+    var step=document.getElementById('ss'+currentStep);
+    step.classList.add('current');
+    var inp=document.createElement('textarea');inp.className='ss-input';inp.id='ssIn'+currentStep;inp.rows=2;inp.placeholder='Name them here (optional)...';
+    step.appendChild(inp);inp.focus();
+    document.getElementById('groundBtn').textContent=currentStep===4?'COMPLETE':'NEXT SENSE';
+  } else {
+    document.getElementById('ss'+currentStep).classList.replace('current','done');
+    var elapsed=Math.round((Date.now()-(window._groundStart||Date.now()))/1000);
+    logAndEnd('5-4-3-2-1',Math.max(elapsed,15));
+  }
+}
+
+// ── PMR ──
+function renderPMR(){
+  var el=document.getElementById('sessionView');
+  var h='<div class="s-header"><div class="s-tag">PROGRESSIVE RELAXATION</div><div class="s-name">TENSE &amp; RELEASE</div><div class="s-brief">5 seconds tension. Then let go. Your body tells you where the fight is stored.</div></div>';
+  h+='<div id="pmrList">';PMR_MUSCLES.forEach(function(m,i){h+='<div class="pmr-muscle'+(i===0?' current':'')+'" id="pmr'+i+'"><div class="pmr-name">'+m+'</div><div class="pmr-status" id="pmrSt'+i+'">'+(i===0?'TENSE NOW':'WAITING')+'</div></div>'});h+='</div>';
+  h+='<div style="text-align:center;margin:16px 0"><div class="time-display" id="pmrTime" style="font-size:28px;font-weight:900;font-family:\'Bebas Neue\'">6:00</div><div class="phase-label" id="pmrPhase" style="font-size:10px;letter-spacing:3px;color:var(--gld);margin-top:4px">TAP START</div></div>';
+  h+='<button class="btn-primary" id="pmrBtn" onclick="togglePMR()">START</button>';
+  h+='<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  el.innerHTML=h;
+  timerSeconds=360;timerTotal=360;timerRunning=false;currentStep=0;
+}
+var pmrPhase='tense',pmrCount=5;
+function togglePMR(){
+  if(timerRunning){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('pmrBtn').textContent='RESUME';return}
+  timerRunning=true;document.getElementById('pmrBtn').textContent='PAUSE';pmrPhase='tense';pmrCount=5;
+  activeTimer=setInterval(function(){
+    timerSeconds--;pmrCount--;
+    document.getElementById('pmrPhase').textContent=pmrPhase==='tense'?'TENSE '+pmrCount+'s':'RELEASE '+pmrCount+'s';
+    document.getElementById('pmrPhase').style.color=pmrPhase==='tense'?'var(--gld)':'var(--grn)';
+    document.getElementById('pmrSt'+currentStep).textContent=pmrPhase==='tense'?'TENSE '+pmrCount+'s':'RELEASE '+pmrCount+'s';
+    document.getElementById('pmrTime').textContent=fmtTime(timerSeconds);
+    if(pmrCount<=0){
+      if(pmrPhase==='tense'){pmrPhase='release';pmrCount=5}
+      else{
+        document.getElementById('pmr'+currentStep).classList.replace('current','done');
+        document.getElementById('pmrSt'+currentStep).textContent='DONE';
+        currentStep++;
+        if(currentStep>=7){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('pmrPhase').textContent='COMPLETE';logAndEnd('PMR',timerTotal-timerSeconds);return}
+        document.getElementById('pmr'+currentStep).classList.add('current');
+        document.getElementById('pmrSt'+currentStep).textContent='TENSE NOW';
+        pmrPhase='tense';pmrCount=5;
+      }
+    }
+    if(timerSeconds<=0){clearInterval(activeTimer);activeTimer=null;timerRunning=false;logAndEnd('PMR',timerTotal)}
+  },1000);
+}
+
+// ── VISUALIZATION ──
+function renderVisualization(){
+  var el=document.getElementById('sessionView');
+  el.innerHTML='<div class="s-header"><div class="s-tag">TACTICAL VISUALIZATION</div><div class="s-name">SAFE LOCATION</div><div class="s-brief">Build a place in your mind where nothing can reach you. This is your extraction point.</div></div>'+
+    '<div class="guide" id="vizGuide"><div class="guide-text">'+VIZ_PROMPTS[0]+'</div></div>'+
+    '<div style="text-align:center"><div class="time-display" id="vizTime" style="font-size:28px;font-weight:900;font-family:\'Bebas Neue\'">5:00</div></div>'+
+    '<button class="btn-primary" id="vizBtn" onclick="toggleViz()">START</button>'+
+    '<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  timerSeconds=300;timerTotal=300;timerRunning=false;currentStep=0;
+}
+function toggleViz(){
+  if(timerRunning){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('vizBtn').textContent='RESUME';return}
+  timerRunning=true;document.getElementById('vizBtn').textContent='PAUSE';
+  activeTimer=setInterval(function(){
+    timerSeconds--;
+    var elapsed=timerTotal-timerSeconds;
+    var step=Math.min(6,Math.floor(elapsed/42));
+    if(step!==currentStep){currentStep=step;document.getElementById('vizGuide').querySelector('.guide-text').textContent=VIZ_PROMPTS[currentStep]}
+    document.getElementById('vizTime').textContent=fmtTime(timerSeconds);
+    if(timerSeconds<=0){clearInterval(activeTimer);activeTimer=null;timerRunning=false;logAndEnd('VISUALIZATION',timerTotal)}
+  },1000);
+}
+
+// ── WALKING ──
+function renderWalking(){
+  var el=document.getElementById('sessionView');
+  var walkPrompts=['Stand up. Feel both feet on the ground. Equal weight.','Begin walking. Slowly. Feel the heel touch first.','Left foot. Right foot. Notice the weight transfer.','What do you hear? Keep walking. Stay with the sound.','Feel the air on your skin. Temperature. Movement.','Your breathing and your steps. Let them sync.','Slow to a stop. Stand still. You arrived.'];
+  el.innerHTML='<div class="s-header"><div class="s-tag">WALKING MEDITATION</div><div class="s-name">HEEL. BALL. TOE.</div><div class="s-brief">Stand up. Move slowly. Your body remembers how to be present.</div></div>'+
+    '<div class="guide" id="walkGuide"><div class="guide-text">'+walkPrompts[0]+'</div></div>'+
+    '<div style="text-align:center"><div class="time-display" id="walkTime" style="font-size:28px;font-weight:900;font-family:\'Bebas Neue\'">5:00</div></div>'+
+    '<button class="btn-primary" id="walkBtn" onclick="toggleWalk()">START WALKING</button>'+
+    '<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  timerSeconds=300;timerTotal=300;timerRunning=false;currentStep=0;
+  window._walkPrompts=walkPrompts;
+}
+function toggleWalk(){
+  if(timerRunning){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('walkBtn').textContent='RESUME';return}
+  timerRunning=true;document.getElementById('walkBtn').textContent='PAUSE';
+  activeTimer=setInterval(function(){
+    timerSeconds--;
+    var elapsed=timerTotal-timerSeconds;
+    var step=Math.min(6,Math.floor(elapsed/42));
+    if(step!==currentStep){currentStep=step;document.getElementById('walkGuide').querySelector('.guide-text').textContent=window._walkPrompts[currentStep]}
+    document.getElementById('walkTime').textContent=fmtTime(timerSeconds);
+    if(timerSeconds<=0){clearInterval(activeTimer);activeTimer=null;timerRunning=false;logAndEnd('WALKING',timerTotal)}
+  },1000);
+}
+
+// ── STILLNESS ──
+function renderStillness(){
+  var el=document.getElementById('sessionView');
+  el.innerHTML='<div class="s-header"><div class="s-tag">STILLNESS</div><div class="s-name">NOTHING</div><div class="s-brief">No guidance. No prompts. Set a timer and sit. You have permission to do absolutely nothing.</div></div>'+
+    '<div style="display:flex;gap:8px;justify-content:center;margin:20px 0"><button class="btn-sec" onclick="setStill(120)" style="flex:1">2 MIN</button><button class="btn-sec" onclick="setStill(300)" style="flex:1">5 MIN</button><button class="btn-sec" onclick="setStill(600)" style="flex:1">10 MIN</button><button class="btn-sec" onclick="setStill(900)" style="flex:1">15 MIN</button></div>'+
+    '<div class="ring-wrap"><div class="ring" id="stillRing"><div class="phase-label" id="stillPhase">CHOOSE TIME</div><div class="time-display" id="stillTime">\u2014</div></div></div>'+
+    '<button class="btn-primary" id="stillBtn" onclick="toggleStill()" disabled>SELECT A TIME</button>'+
+    '<button class="btn-sec" onclick="endSession()">EXIT</button>';
+  timerSeconds=0;timerTotal=0;timerRunning=false;
+}
+function setStill(s){timerSeconds=s;timerTotal=s;document.getElementById('stillTime').textContent=fmtTime(s);document.getElementById('stillPhase').textContent='READY';document.getElementById('stillBtn').disabled=false;document.getElementById('stillBtn').textContent='START'}
+function toggleStill(){
+  if(!timerTotal)return;
+  if(timerRunning){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('stillBtn').textContent='RESUME';return}
+  timerRunning=true;document.getElementById('stillBtn').textContent='PAUSE';
+  document.getElementById('stillRing').classList.add('active');
+  document.getElementById('stillPhase').textContent='BE STILL';
+  activeTimer=setInterval(function(){
+    timerSeconds--;
+    document.getElementById('stillTime').textContent=fmtTime(timerSeconds);
+    if(timerSeconds<=0){clearInterval(activeTimer);activeTimer=null;timerRunning=false;document.getElementById('stillRing').classList.remove('active');document.getElementById('stillPhase').textContent='COMPLETE';logAndEnd('STILLNESS',timerTotal)}
+  },1000);
+}
+
+render();
+</script>
+</body>
+</html>

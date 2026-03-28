@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="PROMPT DEPOT • OPERATOR'S DECK">
+<meta property="og:description" content="Local AI prompt armory with fuzzy search, tags, and version history.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/prompt-depot.html">
+<title>PROMPT DEPOT • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#3498db;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.tabs{display:flex;border-bottom:1px solid var(--dim3);position:sticky;top:53px;z-index:18;background:var(--bg)}
+.tab{flex:1;padding:12px 0;text-align:center;font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+.panel{display:none;padding:16px}
+.panel.active{display:block}
+.section-title{font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim);margin-bottom:12px}
+/* PROMPT CARDS */
+.prompt-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:14px;margin-bottom:12px}
+.prompt-card .pc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.prompt-card .pc-title{font-size:12px;font-weight:900;color:var(--acc);flex:1;word-break:break-word}
+.prompt-card .pc-meta{font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--dim);background:var(--bg3);padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.prompt-card .pc-text{font-size:10px;color:#888;line-height:1.6;font-family:Georgia,serif;margin-bottom:8px;white-space:pre-wrap;word-break:break-word}
+.prompt-card .pc-text mark{background:rgba(39,174,96,.2);color:var(--grn);border-radius:2px;padding:0 2px}
+.prompt-card .pc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.prompt-card .pc-tag{font-size:7px;font-family:monospace;color:var(--grn);letter-spacing:1px;background:rgba(39,174,96,.08);padding:3px 8px;border-radius:4px}
+.prompt-card .pc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.pc-btn{background:none;border:1px solid var(--dim3);color:var(--dim);border-radius:6px;padding:6px 12px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;text-align:center;transition:all .15s}
+.pc-btn:active{border-color:var(--acc);color:var(--acc)}
+.pc-btn.copy-btn{border-color:rgba(52,152,219,.3);color:var(--acc);flex:1}
+.pc-btn.del-btn:active{border-color:var(--red);color:var(--red)}
+/* FORM */
+.add-box{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px}
+input[type=text],textarea,select{width:100%;background:var(--bg);color:#ccc;border:1px solid var(--dim3);border-radius:8px;padding:10px 12px;font-size:11px;font-family:monospace;margin-bottom:10px;outline:none;resize:vertical}
+input:focus,textarea:focus{border-color:rgba(52,152,219,.4)}
+textarea{min-height:120px;font-size:10px;line-height:1.6}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:10px;font-family:monospace;letter-spacing:2px;font-weight:900;cursor:pointer;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-blue{background:var(--acc);color:#000}
+.btn-outline{background:none;border:1px solid var(--dim3);color:var(--dim);margin-top:8px}
+.btn-outline:active{border-color:var(--acc);color:var(--acc)}
+/* SEARCH */
+.search-input{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;font-size:12px;font-family:monospace;margin-bottom:10px;outline:none}
+.search-input:focus{border-color:rgba(52,152,219,.4)}
+.search-input::placeholder{color:var(--dim3)}
+.filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.filter-row select{width:auto;flex:1;min-width:0;font-size:9px;padding:8px;margin-bottom:0}
+.result-count{font-size:8px;font-family:monospace;color:var(--dim);letter-spacing:1px;margin-bottom:12px}
+.empty-hint{text-align:center;padding:40px 0;color:var(--dim3);font-size:10px}
+/* TAG SUGGEST */
+.tag-suggest{font-size:8px;font-family:monospace;color:var(--grn);letter-spacing:1px;margin-bottom:10px;min-height:14px}
+.tag-suggest span{cursor:pointer;background:rgba(39,174,96,.1);padding:2px 8px;border-radius:4px;margin-right:4px;display:inline-block;margin-bottom:4px}
+.tag-suggest span:active{background:rgba(39,174,96,.25)}
+/* VERSION HISTORY */
+.ver-card{background:var(--bg);border:1px solid var(--dim3);border-radius:8px;padding:10px;margin-bottom:8px;font-size:9px}
+.ver-card .ver-label{font-family:monospace;color:var(--acc);font-size:7px;letter-spacing:1px;margin-bottom:4px}
+.ver-card pre{white-space:pre-wrap;word-break:break-word;color:#888;line-height:1.5;font-family:Georgia,serif}
+/* TOAST */
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--acc);color:#000;padding:10px 24px;border-radius:999px;font-size:10px;font-weight:900;font-family:monospace;letter-spacing:2px;z-index:999;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* BRIEF */
+.brief h2{font-size:16px;font-weight:900;margin-bottom:12px}
+.brief p{color:var(--dim);font-size:11px;line-height:1.8;margin-bottom:14px;font-family:Georgia,serif}
+.brief .quote{background:var(--bg3);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:12px 14px;margin:16px 0;font-style:italic;font-size:10px;color:#999;font-family:Georgia,serif;line-height:1.7}
+.brief ul{list-style:none;padding:0}
+.brief ul li{font-size:10px;font-family:monospace;color:var(--dim);padding:4px 0;letter-spacing:.5px}
+.brief ul li::before{content:'> ';color:var(--acc)}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:50;justify-content:center;align-items:flex-start;padding:60px 16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--dim2);border-radius:14px;padding:20px;width:100%;max-width:440px}
+.modal h3{font-size:12px;font-weight:900;margin-bottom:12px;color:var(--acc)}
+.modal .close-btn{background:none;border:1px solid var(--dim3);color:var(--dim);border-radius:8px;padding:10px;font-size:9px;font-family:monospace;cursor:pointer;width:100%;margin-top:12px;letter-spacing:2px}
+.modal .close-btn:active{border-color:var(--acc);color:var(--acc)}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">&larr; DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK</div>
+      <div class="nav-name">PROMPT DEPOT</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="go(0)">DEPOT</div>
+    <div class="tab" onclick="go(1)">ADD</div>
+    <div class="tab" onclick="go(2)">SEARCH</div>
+    <div class="tab" onclick="go(3)">BRIEF</div>
+  </div>
+
+  <!-- DEPOT -->
+  <div class="panel active" id="p0">
+    <div class="section-title">YOUR PROMPT ARMORY &mdash; <span id="depotCount">0</span> PROMPTS</div>
+    <div id="promptList"></div>
+  </div>
+
+  <!-- ADD -->
+  <div class="panel" id="p1">
+    <div class="add-box">
+      <div class="section-title" id="formLabel">NEW PROMPT</div>
+      <input type="text" id="pTitle" placeholder="Prompt title">
+      <textarea id="pText" placeholder="Full prompt text..." oninput="autoSuggest()"></textarea>
+      <div class="tag-suggest" id="tagSuggest"></div>
+      <input type="text" id="pTags" placeholder="Tags (comma separated)">
+      <select id="pCat">
+        <option>GENERAL</option><option>RESEARCH</option><option>CODE</option>
+        <option>CREATIVE</option><option>ANALYSIS</option><option>SYSTEM</option>
+      </select>
+      <button class="btn btn-blue" id="saveBtn" onclick="savePrompt()">LOCK INTO DEPOT</button>
+      <button class="btn btn-outline" onclick="importJson()">&#8593; IMPORT FROM JSON</button>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="panel" id="p2">
+    <input class="search-input" id="searchInput" placeholder="Search depot..." oninput="runSearch()">
+    <div class="filter-row">
+      <select id="searchMode" onchange="runSearch()">
+        <option value="keyword">KEYWORD</option>
+        <option value="regex">REGEX</option>
+        <option value="fuzzy">FUZZY</option>
+      </select>
+      <select id="searchCat" onchange="runSearch()">
+        <option value="">ALL</option>
+        <option>GENERAL</option><option>RESEARCH</option><option>CODE</option>
+        <option>CREATIVE</option><option>ANALYSIS</option><option>SYSTEM</option>
+      </select>
+      <select id="searchSort" onchange="runSearch()">
+        <option value="rel">RELEVANCE</option>
+        <option value="az">TITLE A-Z</option>
+        <option value="newest">NEWEST</option>
+        <option value="oldest">OLDEST</option>
+      </select>
+    </div>
+    <div class="result-count" id="resultCount"></div>
+    <div id="searchResults"></div>
+    <button class="btn btn-outline" onclick="exportAll()" style="margin-top:16px">&#8595; EXPORT ALL (JSON)</button>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel" id="p3">
+    <div class="brief">
+      <h2>PROMPT DEPOT &mdash; FIELD MANUAL</h2>
+      <p>Local-only armory for your AI prompts. Build a tactical library &mdash; store, tag, search, copy with one tap. No cloud, no tracking, infinite capacity.</p>
+      <div class="quote">"Store your winners, remix on the fly, deploy faster than ever."</div>
+      <p>Features packed in:</p>
+      <ul>
+        <li>Keyword, Regex, and Fuzzy (typo-tolerant) search</li>
+        <li>Category and tag filters with sort options</li>
+        <li>Result highlighting on keyword/regex matches</li>
+        <li>Version history &mdash; every edit is tracked</li>
+        <li>Auto-suggest tags based on prompt content</li>
+        <li>Import/Export JSON for backup and restore</li>
+        <li>One-tap copy to clipboard</li>
+      </ul>
+      <p style="font-size:8px;color:var(--dim3);font-family:monospace;margin-top:24px">All data in localStorage key 'od_pd_prompts'. No cloud. No tracking.</p>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION HISTORY MODAL -->
+<div class="modal-bg" id="histModal">
+  <div class="modal">
+    <h3>VERSION HISTORY</h3>
+    <div id="histContent"></div>
+    <button class="close-btn" onclick="document.getElementById('histModal').classList.remove('open')">CLOSE</button>
+  </div>
+</div>
+
+<script>
+/* === DATA LAYER === */
+(function(){try{var v=localStorage.getItem('pd-prompts');if(v!==null){localStorage.setItem('od_pd_prompts',v);localStorage.removeItem('pd-prompts');}}catch(e){}})();
+let P=[];try{P=JSON.parse(localStorage.getItem('od_pd_prompts') || '[]');}catch(e){}
+P = P.map(function(p) {
+  return {
+    id: p.id || Date.now(),
+    title: p.title || '',
+    text: p.text || '',
+    tags: p.tags || [],
+    category: p.category || 'GENERAL',
+    date: p.date || Date.now(),
+    versions: p.versions || [p.text]
+  };
+});
+var editIdx = -1;
+
+function save() { localStorage.setItem('od_pd_prompts', JSON.stringify(P)); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function toast(m) {
+  var t = document.createElement('div');
+  t.className = 'toast'; t.textContent = m;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 2000);
+}
+
+/* === NAVIGATION === */
+function go(n) {
+  var panels = document.querySelectorAll('.panel');
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < panels.length; i++) {
+    panels[i].classList.toggle('active', i === n);
+    tabs[i].classList.toggle('active', i === n);
+  }
+  if (n === 0) renderDepot();
+  if (n === 1 && editIdx < 0) resetForm();
+}
+
+/* === DEPOT VIEW === */
+function renderDepot() {
+  document.getElementById('depotCount').textContent = P.length;
+  var c = document.getElementById('promptList');
+  c.innerHTML = '';
+  if (!P.length) {
+    c.innerHTML = '<div class="empty-hint">No prompts yet. Tap ADD to create your first one.</div>';
+    return;
+  }
+  for (var i = 0; i < P.length; i++) {
+    var p = P[i];
+    var tg = '';
+    for (var j = 0; j < p.tags.length; j++) tg += '<span class="pc-tag">' + esc(p.tags[j]) + '</span>';
+    var pr = esc(p.text.substring(0, 200)) + (p.text.length > 200 ? '...' : '');
+    var vc = p.versions ? p.versions.length : 1;
+    var html = '<div class="prompt-card">';
+    html += '<div class="pc-top"><div class="pc-title">' + esc(p.title) + '</div>';
+    html += '<span class="pc-meta">' + esc(p.category) + (vc > 1 ? ' &bull; v' + vc : '') + '</span></div>';
+    html += '<div class="pc-text">' + pr + '</div>';
+    if (tg) html += '<div class="pc-tags">' + tg + '</div>';
+    html += '<div class="pc-actions">';
+    html += '<button class="pc-btn copy-btn" onclick="copyP(' + i + ')">COPY</button>';
+    if (vc > 1) html += '<button class="pc-btn" onclick="viewHist(' + i + ')">v' + vc + '</button>';
+    html += '<button class="pc-btn" onclick="editP(' + i + ')">EDIT</button>';
+    html += '<button class="pc-btn del-btn" onclick="delP(' + i + ')">DEL</button>';
+    html += '</div></div>';
+    c.innerHTML += html;
+  }
+}
+
+/* === ADD / EDIT === */
+function savePrompt() {
+  var title = document.getElementById('pTitle').value.trim();
+  var text = document.getElementById('pText').value.trim();
+  if (!title || !text) return;
+  var tags = document.getElementById('pTags').value.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+  var cat = document.getElementById('pCat').value;
+
+  if (editIdx >= 0) {
+    var old = P[editIdx];
+    if (text !== old.text) old.versions.push(text);
+    old.title = title; old.text = text; old.tags = tags;
+    old.category = cat; old.date = Date.now();
+    editIdx = -1;
+  } else {
+    P.unshift({
+      id: Date.now(), title: title, text: text,
+      versions: [text], tags: tags, category: cat, date: Date.now()
+    });
+  }
+  save(); resetForm(); go(0); toast('PROMPT SAVED');
+}
+
+function resetForm() {
+  editIdx = -1;
+  document.getElementById('pTitle').value = '';
+  document.getElementById('pText').value = '';
+  document.getElementById('pTags').value = '';
+  document.getElementById('pCat').selectedIndex = 0;
+  document.getElementById('tagSuggest').innerHTML = '';
+  document.getElementById('saveBtn').textContent = 'LOCK INTO DEPOT';
+  document.getElementById('formLabel').textContent = 'NEW PROMPT';
+}
+
+/* === ACTIONS === */
+window.copyP = function(i) {
+  navigator.clipboard.writeText(P[i].text).then(function() { toast('COPIED TO CLIPBOARD'); });
+};
+
+window.editP = function(i) {
+  editIdx = i;
+  var p = P[i];
+  document.getElementById('pTitle').value = p.title;
+  document.getElementById('pText').value = p.text;
+  document.getElementById('pTags').value = p.tags.join(', ');
+  document.getElementById('pCat').value = p.category;
+  document.getElementById('saveBtn').textContent = 'UPDATE PROMPT';
+  document.getElementById('formLabel').textContent = 'EDITING: ' + p.title;
+  go(1);
+};
+
+window.delP = function(i) {
+  if (!confirm('Delete "' + P[i].title + '"?')) return;
+  P.splice(i, 1); save(); renderDepot(); toast('DELETED');
+};
+
+window.viewHist = function(i) {
+  var p = P[i];
+  var c = document.getElementById('histContent');
+  c.innerHTML = '';
+  for (var j = 0; j < p.versions.length; j++) {
+    var label = 'VERSION ' + (j + 1) + (j === p.versions.length - 1 ? ' (CURRENT)' : '');
+    var txt = esc(p.versions[j].substring(0, 400)) + (p.versions[j].length > 400 ? '...' : '');
+    c.innerHTML += '<div class="ver-card"><div class="ver-label">' + esc(label) + '</div><pre>' + esc(txt) + '</pre></div>';
+  }
+  document.getElementById('histModal').classList.add('open');
+};
+
+/* === SEARCH (Keyword + Regex + Fuzzy) === */
+function runSearch() {
+  var q = document.getElementById('searchInput').value.trim();
+  var mode = document.getElementById('searchMode').value;
+  var cat = document.getElementById('searchCat').value;
+  var sort = document.getElementById('searchSort').value;
+  var rc = document.getElementById('resultCount');
+  var c = document.getElementById('searchResults');
+  c.innerHTML = '';
+  if (!q) { rc.textContent = ''; return; }
+
+  var matches = [];
+  for (var i = 0; i < P.length; i++) {
+    var p = P[i];
+    if (cat && p.category !== cat) continue;
+    var hay = (p.title + ' ' + p.text + ' ' + p.tags.join(' ')).toLowerCase();
+    var matched = false;
+    var score = 0;
+
+    if (mode === 'fuzzy') {
+      score = fuzzyScore(q.toLowerCase(), hay);
+      matched = score > 0.3;
+    } else if (mode === 'regex') {
+      try { matched = new RegExp(q, 'i').test(hay); } catch(e) { matched = false; }
+    } else {
+      matched = hay.indexOf(q.toLowerCase()) >= 0;
+    }
+    if (matched) matches.push({ p: p, idx: i, score: score });
+  }
+
+  // Sort
+  if (mode === 'fuzzy') matches.sort(function(a, b) { return b.score - a.score; });
+  else if (sort === 'az') matches.sort(function(a, b) { return a.p.title.localeCompare(b.p.title); });
+  else if (sort === 'newest') matches.sort(function(a, b) { return b.p.date - a.p.date; });
+  else if (sort === 'oldest') matches.sort(function(a, b) { return a.p.date - b.p.date; });
+
+  rc.textContent = matches.length + ' MATCH' + (matches.length !== 1 ? 'ES' : '');
+
+  for (var k = 0; k < matches.length; k++) {
+    var p = matches[k].p;
+    var preview = p.text.substring(0, 220);
+
+    // Highlight for keyword/regex
+    if (mode !== 'fuzzy' && q) {
+      try {
+        var re = mode === 'regex' ? new RegExp('(' + q + ')', 'gi') : new RegExp('(' + escRe(q) + ')', 'gi');
+        preview = esc(preview).replace(re, '<mark>$1</mark>');
+      } catch(e) { preview = esc(preview); }
+    } else {
+      preview = esc(preview);
+    }
+    if (p.text.length > 220) preview += '...';
+
+    var tg = '';
+    for (var j = 0; j < p.tags.length; j++) tg += '<span class="pc-tag">' + esc(p.tags[j]) + '</span>';
+    var scoreHtml = mode === 'fuzzy' ? ' <span style="font-size:7px;color:var(--grn);font-family:monospace">' + (matches[k].score * 100).toFixed(0) + '%</span>' : '';
+
+    var html = '<div class="prompt-card">';
+    html += '<div class="pc-top"><div class="pc-title">' + esc(p.title) + scoreHtml + '</div>';
+    html += '<span class="pc-meta">' + esc(p.category) + '</span></div>';
+    html += '<div class="pc-text">' + preview + '</div>';
+    if (tg) html += '<div class="pc-tags">' + tg + '</div>';
+    html += '<div class="pc-actions">';
+    html += '<button class="pc-btn copy-btn" onclick="copyP(' + matches[k].idx + ')">COPY</button>';
+    html += '<button class="pc-btn" onclick="editP(' + matches[k].idx + ')">EDIT</button>';
+    html += '</div></div>';
+    c.innerHTML += html;
+  }
+  if (!matches.length) c.innerHTML = '<div class="empty-hint">No matches. Try different terms.</div>';
+}
+
+/* === LEVENSHTEIN FUZZY === */
+function levenshtein(a, b) {
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  var m = [];
+  for (var i = 0; i <= a.length; i++) { m[i] = []; m[i][0] = i; }
+  for (var j = 0; j <= b.length; j++) m[0][j] = j;
+  for (var i = 1; i <= a.length; i++) {
+    for (var j = 1; j <= b.length; j++) {
+      m[i][j] = a[i-1] === b[j-1]
+        ? m[i-1][j-1]
+        : Math.min(m[i-1][j] + 1, m[i][j-1] + 1, m[i-1][j-1] + 1);
+    }
+  }
+  return m[a.length][b.length];
+}
+
+function fuzzyScore(query, text) {
+  if (text.indexOf(query) >= 0) return 1;
+  var best = 0;
+  var words = text.split(/\s+/);
+  for (var i = 0; i < words.length; i++) {
+    if (words[i].length < 2) continue;
+    var sub = words[i].substring(0, query.length + 2);
+    var dist = levenshtein(query, sub);
+    var score = 1 - (dist / Math.max(query.length, sub.length));
+    if (score > best) best = score;
+  }
+  return best;
+}
+
+/* === AUTO-SUGGEST TAGS === */
+var TAG_HINTS = {
+  'research':'research','study':'research','paper':'research','experiment':'research',
+  'code':'code','function':'code','script':'code','debug':'code','api':'code',
+  'python':'code','javascript':'code','rust':'code',
+  'creative':'creative','story':'creative','write':'creative',
+  'analyze':'analysis','compare':'analysis','evaluate':'analysis','review':'analysis',
+  'system':'system','prompt':'system','role':'system','instruction':'system','persona':'system',
+  'generate':'generation','create':'generation','build':'generation',
+  'summarize':'summary','explain':'explanation','translate':'translation','format':'formatting'
+};
+
+function autoSuggest() {
+  var text = document.getElementById('pText').value.toLowerCase();
+  var found = {};
+  for (var k in TAG_HINTS) {
+    if (text.indexOf(k) >= 0) found[TAG_HINTS[k]] = 1;
+  }
+  var keys = Object.keys(found);
+  var el = document.getElementById('tagSuggest');
+  if (!keys.length) { el.innerHTML = ''; return; }
+  el.innerHTML = 'SUGGESTED: ' + keys.map(function(t) {
+    return '<span onclick="addTag(\'' + t + '\')">' + t + '</span>';
+  }).join('');
+}
+
+window.addTag = function(tag) {
+  var inp = document.getElementById('pTags');
+  var cur = inp.value.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+  if (cur.indexOf(tag) < 0) { cur.push(tag); inp.value = cur.join(', '); }
+};
+
+/* === IMPORT / EXPORT === */
+function exportAll() {
+  var blob = new Blob([JSON.stringify(P, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'prompt-depot-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('EXPORTED ' + P.length + ' PROMPTS');
+}
+
+function importJson() {
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = function(e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var imported = JSON.parse(ev.target.result);
+        if (!Array.isArray(imported)) throw new Error('not array');
+        imported = imported.slice(0, 500);
+        var existingIds = {};
+        for (var i = 0; i < P.length; i++) existingIds[P[i].id] = 1;
+        var added = 0;
+        for (var j = 0; j < imported.length; j++) {
+          var ip = imported[j];
+          if (typeof ip !== 'object' || ip === null) continue;
+          var clean = {
+            id: typeof ip.id === 'number' ? ip.id : Date.now() + j,
+            title: typeof ip.title === 'string' ? ip.title.substring(0,200) : '',
+            text: typeof ip.text === 'string' ? ip.text.substring(0,10000) : '',
+            tags: Array.isArray(ip.tags) ? ip.tags.filter(function(t){return typeof t==='string'}).slice(0,20) : [],
+            category: typeof ip.category === 'string' ? ip.category.substring(0,30) : 'GENERAL',
+            date: typeof ip.date === 'number' ? ip.date : Date.now(),
+            versions: Array.isArray(ip.versions) ? ip.versions.filter(function(v){return typeof v==='string'}).slice(0,20) : [typeof ip.text === 'string' ? ip.text : '']
+          };
+          if (!existingIds[clean.id]) {
+            P.push(clean);
+            added++;
+          }
+        }
+        save();
+        toast('IMPORTED ' + added + ' NEW PROMPTS');
+        go(0);
+      } catch(err) {
+        toast('INVALID JSON FILE');
+      }
+    };
+    reader.readAsText(f);
+  };
+  inp.click();
+}
+
+go(0);
+</script>
+
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Prompts loaded — draw a card and put them to work</span></a></div>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Prompt saved? When you use it, log the output as evidence. Build your case.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>

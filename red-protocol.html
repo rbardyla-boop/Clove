@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0000">
+<meta property="og:title" content="RED PROTOCOL • OPERATOR'S DECK">
+<meta property="og:description" content="Crisis containment. One mission: survive the next 24 hours. Breathing and floor checklist.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/red-protocol.html">
+<meta name="referrer" content="no-referrer">
+<title>RED PROTOCOL • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0000;
+  --bg2: #110404;
+  --bg3: #1a0808;
+  --red: #c0392b;
+  --red-bright: #e74c3c;
+  --red-dim: rgba(192,57,43,.15);
+  --red-glow: rgba(192,57,43,.06);
+  --text: #d4cccc;
+  --dim: #665555;
+  --dim2: #777;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ─── AMBIENT ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, var(--red-glow) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+  animation: ambientPulse 8s ease-in-out infinite;
+}
+
+@keyframes ambientPulse {
+  0%, 100% { opacity: .4; }
+  50% { opacity: .8; }
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,.9) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ─── NAV ─── */
+.nav {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--red);
+  background: rgba(10,0,0,.95);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  background: none;
+  border: 1px solid var(--dim2);
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all .2s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.back-btn:active { color: var(--red); border-color: var(--red); }
+
+.nav-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--red);
+}
+
+/* ─── HEADER ─── */
+.hero {
+  padding: 40px 24px 32px;
+  text-align: center;
+  position: relative;
+}
+
+.hero-tag {
+  font-size: 8px;
+  letter-spacing: 5px;
+  color: var(--red);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hero-tag::before, .hero-tag::after {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: var(--red);
+}
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--red-bright);
+  letter-spacing: 6px;
+  line-height: 1;
+  margin-bottom: 16px;
+  text-shadow: 0 0 40px rgba(231,76,60,.2);
+}
+
+.hero-mission {
+  font-size: 12px;
+  color: var(--text);
+  letter-spacing: 1px;
+  line-height: 1.8;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.hero-mission strong {
+  color: #fff;
+  font-weight: 500;
+}
+
+.divider {
+  width: 60px;
+  height: 1px;
+  background: var(--red);
+  margin: 24px auto;
+  opacity: .4;
+}
+
+/* ─── SINGLE DIRECTIVE ─── */
+.directive {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.directive-box {
+  background: var(--bg2);
+  border: 1px solid rgba(192,57,43,.2);
+  border-left: 3px solid var(--red);
+  border-radius: 0 10px 10px 0;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.directive-text {
+  font-size: 14px;
+  color: #fff;
+  letter-spacing: 1px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.directive-sub {
+  font-size: 9px;
+  color: var(--dim);
+  margin-top: 10px;
+  letter-spacing: 1.5px;
+}
+
+/* ─── BREATHING ─── */
+.breath-section {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.breath-card {
+  background: var(--bg2);
+  border: 1px solid rgba(192,57,43,.12);
+  border-radius: 14px;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.breath-label {
+  font-size: 8px;
+  letter-spacing: 4px;
+  color: var(--red);
+  margin-bottom: 20px;
+}
+
+.breath-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid var(--dim2);
+  margin: 0 auto 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 4s ease-in-out;
+  position: relative;
+}
+
+.breath-ring.inhale {
+  border-color: var(--red);
+  transform: scale(1.15);
+  box-shadow: 0 0 40px rgba(192,57,43,.15);
+}
+
+.breath-ring.hold {
+  border-color: var(--dim);
+  box-shadow: 0 0 20px rgba(102,85,85,.1);
+}
+
+.breath-ring.exhale {
+  border-color: var(--dim2);
+  transform: scale(1);
+  box-shadow: none;
+}
+
+.breath-phase {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  transition: color .5s;
+}
+
+.breath-ring.inhale .breath-phase { color: var(--red); }
+
+.breath-count {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: 'Bebas Neue', sans-serif;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+.breath-round {
+  font-size: 7px;
+  color: var(--dim2);
+  letter-spacing: 2px;
+  margin-top: 8px;
+}
+
+.breath-toggle {
+  background: var(--bg3);
+  color: var(--red);
+  border: 1px solid rgba(192,57,43,.25);
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: all .2s;
+}
+
+.breath-toggle:active {
+  background: rgba(192,57,43,.1);
+  transform: scale(.97);
+}
+
+/* ─── FLOOR CHECKLIST ─── */
+.floor-section {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.floor-header {
+  font-size: 8px;
+  letter-spacing: 4px;
+  color: var(--red);
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.floor-item {
+  background: var(--bg2);
+  border: 1px solid rgba(192,57,43,.08);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all .25s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.floor-item:active { transform: scale(.98); }
+
+.floor-item.done {
+  border-color: rgba(192,57,43,.25);
+  background: rgba(192,57,43,.04);
+}
+
+.floor-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid var(--dim2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .25s;
+  font-size: 14px;
+  color: transparent;
+}
+
+.floor-item.done .floor-check {
+  border-color: var(--red);
+  background: rgba(192,57,43,.15);
+  color: var(--red);
+}
+
+.floor-info {
+  flex: 1;
+}
+
+.floor-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: #ddd;
+  letter-spacing: .5px;
+  transition: color .25s;
+}
+
+.floor-item.done .floor-name {
+  color: var(--dim);
+}
+
+.floor-desc {
+  font-size: 8px;
+  color: var(--dim);
+  margin-top: 3px;
+  letter-spacing: .5px;
+  line-height: 1.5;
+}
+
+.floor-progress {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--dim2);
+}
+
+.floor-progress .count {
+  color: var(--red);
+  font-weight: 800;
+  font-size: 10px;
+}
+
+/* ─── HOLD LINE ─── */
+.hold-section {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.hold-box {
+  background: var(--bg2);
+  border: 1px dashed rgba(192,57,43,.2);
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.hold-text {
+  font-size: 11px;
+  color: #bbb;
+  line-height: 1.9;
+  letter-spacing: .3px;
+}
+
+.hold-text em {
+  color: #fff;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.hold-sig {
+  font-size: 7px;
+  color: var(--dim2);
+  letter-spacing: 3px;
+  margin-top: 16px;
+}
+
+/* ─── ONE PERSON ─── */
+.person-section {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.person-card {
+  background: var(--bg2);
+  border: 1px solid rgba(192,57,43,.1);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.person-label {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--red);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.person-prompt {
+  font-size: 10px;
+  color: #999;
+  text-align: center;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.person-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--dim2);
+  border-radius: 8px;
+  color: #fff;
+  padding: 14px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  text-align: center;
+  letter-spacing: 1px;
+  outline: none;
+  transition: border-color .3s;
+}
+
+.person-input:focus {
+  border-color: var(--red);
+}
+
+.person-input::placeholder {
+  color: var(--dim2);
+  font-style: italic;
+}
+
+.person-note {
+  font-size: 7px;
+  color: var(--dim2);
+  text-align: center;
+  margin-top: 10px;
+  letter-spacing: 1.5px;
+}
+
+/* ─── TIMESTAMP LOG ─── */
+.log-section {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.log-btn {
+  width: 100%;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 4px 20px rgba(192,57,43,.25);
+}
+
+.log-btn:active {
+  transform: scale(.97);
+  box-shadow: 0 2px 10px rgba(192,57,43,.15);
+}
+
+.log-btn.logged {
+  background: var(--bg3);
+  color: var(--dim);
+  border: 1px solid var(--dim2);
+  box-shadow: none;
+  cursor: default;
+}
+
+.log-confirm {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 8px;
+  color: var(--dim);
+  letter-spacing: 2px;
+  display: none;
+}
+
+.log-confirm.show { display: block; }
+
+/* ─── PAST ACTIVATIONS ─── */
+.history-section {
+  padding: 0 24px;
+  margin-bottom: 40px;
+}
+
+.history-header {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.history-entry {
+  font-size: 8px;
+  color: var(--dim2);
+  text-align: center;
+  padding: 6px 0;
+  letter-spacing: 1.5px;
+  border-bottom: 1px solid rgba(255,255,255,.02);
+}
+
+.history-empty {
+  font-size: 9px;
+  color: var(--dim2);
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+/* ─── FOOTER ─── */
+.foot {
+  text-align: center;
+  padding: 24px;
+  border-top: 1px solid rgba(192,57,43,.08);
+}
+
+.foot-line {
+  font-size: 7px;
+  color: var(--dim2);
+  letter-spacing: 3px;
+  line-height: 2.5;
+}
+
+/* ─── PRINT ─── */
+@media print {
+  body { background: #fff; color: #000; }
+  body::before, body::after { display: none; }
+  .nav, .breath-section, .log-section, .history-section, .foot { display: none; }
+  .app { max-width: 100%; }
+  .hero h1 { color: #c0392b; text-shadow: none; font-size: 36px; }
+  .directive-box { border: 2px solid #c0392b; background: #fff; }
+  .directive-text { color: #000; }
+  .floor-item { border: 1px solid #ccc; background: #fff; page-break-inside: avoid; }
+  .floor-check { border: 2px solid #999; }
+  .floor-name { color: #000; }
+  .floor-desc { color: #666; }
+  .hold-box { border: 1px solid #999; background: #fff; }
+  .hold-text { color: #333; }
+  .person-card { border: 1px solid #ccc; background: #fff; }
+  .person-input { border: 1px solid #999; color: #000; }
+  @page { margin: 1in; }
+}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div style="background:#180202;border-bottom:1px solid rgba(192,57,43,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start"><div style="color:#c0392b;font-size:11px;flex-shrink:0;margin-top:1px">⚠</div><div style="color:#c0392b88;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7"><strong style="color:#c0392bcc">THIS IS A CRISIS SELF-HELP TOOL — NOT EMERGENCY SERVICES.</strong> If you are in immediate danger, call 911. Call or text 988 for the Suicide & Crisis Lifeline. This tool helps you stabilize — it does not replace emergency care or professional treatment.</div></div>
+
+
+<div class="app" role="main">
+
+  <!-- NAV -->
+  <div class="nav" role="navigation" aria-label="Page navigation">
+    <a href="./?tab=more" class="back-btn" aria-label="Go back to deck">← DECK</a>
+    <div class="nav-label">RED PROTOCOL</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">CRISIS CONTAINMENT</div>
+    <h1>RED<br>PROTOCOL</h1>
+    <div class="hero-mission">
+      You don't need to fix anything today.<br>
+      <strong>One mission: get through the next 24 hours.</strong>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- DIRECTIVE -->
+  <div class="directive">
+    <div class="directive-box">
+      <div class="directive-text">
+        Do not make any permanent decisions today.
+      </div>
+      <div class="directive-sub">
+        NO QUITTING. NO TEXTING. NO SOLVING. JUST HOLD.
+      </div>
+    </div>
+  </div>
+
+  <!-- BREATHING -->
+  <div class="breath-section">
+    <div class="breath-card">
+      <div class="breath-label">REGULATE FIRST</div>
+      <div class="breath-ring" id="breathRing">
+        <div class="breath-phase" id="breathPhase">READY</div>
+        <div class="breath-count" id="breathCount">—</div>
+      </div>
+      <div class="breath-round" id="breathRound">4-7-8 CADENCE</div>
+      <button class="breath-toggle" id="breathBtn" onclick="toggleBreath()">START BREATHING</button>
+    </div>
+  </div>
+
+  <!-- FLOOR CHECKLIST -->
+  <div class="floor-section">
+    <div class="floor-header">THE FLOOR — SECURE THESE FIVE</div>
+
+    <div class="floor-item" onclick="toggleFloor(this, 0)">
+      <div class="floor-check">✓</div>
+      <div class="floor-info">
+        <div class="floor-name">Water</div>
+        <div class="floor-desc">Drink something. Right now. Full glass.</div>
+      </div>
+    </div>
+
+    <div class="floor-item" onclick="toggleFloor(this, 1)">
+      <div class="floor-check">✓</div>
+      <div class="floor-info">
+        <div class="floor-name">Food</div>
+        <div class="floor-desc">Eat something. Anything. It doesn't have to be good.</div>
+      </div>
+    </div>
+
+    <div class="floor-item" onclick="toggleFloor(this, 2)">
+      <div class="floor-check">✓</div>
+      <div class="floor-info">
+        <div class="floor-name">Temperature</div>
+        <div class="floor-desc">Are you warm enough? Cool enough? Fix the room.</div>
+      </div>
+    </div>
+
+    <div class="floor-item" onclick="toggleFloor(this, 3)">
+      <div class="floor-check">✓</div>
+      <div class="floor-info">
+        <div class="floor-name">Safety</div>
+        <div class="floor-desc">Lock the door. You are allowed to be somewhere safe.</div>
+      </div>
+    </div>
+
+    <div class="floor-item" onclick="toggleFloor(this, 4)">
+      <div class="floor-check">✓</div>
+      <div class="floor-info">
+        <div class="floor-name">One person</div>
+        <div class="floor-desc">Text one human. Just say "hey." Nothing more required.</div>
+      </div>
+    </div>
+
+    <div class="floor-progress">
+      <span class="count" id="floorCount">0</span> / 5 SECURED
+    </div>
+  </div>
+
+  <!-- HOLD LINE -->
+  <div class="hold-section">
+    <div class="hold-box">
+      <div class="hold-text">
+        You are not required to be okay right now.<br>
+        You are not required to understand why.<br>
+        You are not required to perform for anyone.<br><br>
+        You are required to <em>still be here tomorrow</em>.<br>
+        That's the only mission.
+      </div>
+      <div class="hold-sig">OPERATOR'S DECK • RED PROTOCOL</div>
+    </div>
+  </div>
+
+  <!-- ONE PERSON -->
+  <div class="person-section">
+    <div class="person-card">
+      <div class="person-label">EMERGENCY CONTACT — YOUR CALL</div>
+      <div class="person-prompt">
+        Who would you text if you had to?<br>
+        Not who you should. Who you would.
+      </div>
+      <input type="text" class="person-input" id="personInput"
+        placeholder="A name. Just for you."
+        maxlength="60"
+        autocomplete="off">
+      <div class="person-note">STORED ON THIS DEVICE ONLY • NEVER TRANSMITTED</div>
+    </div>
+  </div>
+
+  <!-- LOG ACTIVATION -->
+  <div class="log-section">
+    <button class="log-btn" id="logBtn" onclick="logActivation()">
+      LOG THIS ACTIVATION
+    </button>
+    <div class="log-confirm" id="logConfirm">
+      ACTIVATION LOGGED • YOU HELD THE LINE
+    </div>
+  </div>
+
+  <!-- PAST ACTIVATIONS -->
+  <div class="history-section">
+    <div class="history-header">PAST ACTIVATIONS</div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <div class="foot-line">RED PROTOCOL • CRISIS CONTAINMENT</div>
+    <div class="foot-line">NO DATA LEAVES THIS DEVICE</div>
+    <div class="foot-line" style="color:var(--dim);font-size:7px;margin-top:6px">INFORMED BY CRISIS STABILIZATION & SAFETY PLANNING FRAMEWORKS (STANLEY-BROWN). NOT A SUBSTITUTE FOR PROFESSIONAL CRISIS INTERVENTION.</div>
+    <div class="foot-line">YOU ARE STILL HERE. THAT COUNTS.</div>
+  </div>
+
+</div>
+
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+// ─── BREATHING (4-7-8) ───
+let breathActive = false;
+let breathInterval = null;
+let breathTimeout = null;
+let breathRounds = 0;
+
+function toggleBreath() {
+  if (breathActive) {
+    stopBreath();
+  } else {
+    startBreath();
+  }
+}
+
+function startBreath() {
+  breathActive = true;
+  breathRounds = 0;
+  document.getElementById('breathBtn').textContent = 'STOP';
+  runBreathCycle();
+}
+
+function stopBreath() {
+  breathActive = false;
+  clearInterval(breathInterval);
+  clearTimeout(breathTimeout);
+  const ring = document.getElementById('breathRing');
+  ring.className = 'breath-ring';
+  document.getElementById('breathPhase').textContent = 'READY';
+  document.getElementById('breathCount').textContent = '—';
+  document.getElementById('breathRound').textContent = '4-7-8 CADENCE';
+  document.getElementById('breathBtn').textContent = 'START BREATHING';
+}
+
+function runBreathCycle() {
+  if (!breathActive) return;
+  breathRounds++;
+  breathPhaseRun('INHALE', 'inhale', 4, () => {
+    breathPhaseRun('HOLD', 'hold', 7, () => {
+      breathPhaseRun('EXHALE', 'exhale', 8, () => {
+        document.getElementById('breathRound').textContent =
+          'ROUND ' + breathRounds + ' COMPLETE';
+        if (breathRounds >= 5) {
+          stopBreath();
+          document.getElementById('breathRound').textContent = '5 ROUNDS DONE • REGULATED';
+          return;
+        }
+        breathTimeout = setTimeout(runBreathCycle, 800);
+      });
+    });
+  });
+}
+
+function breathPhaseRun(label, cls, seconds, cb) {
+  if (!breathActive) return;
+  const ring = document.getElementById('breathRing');
+  const phase = document.getElementById('breathPhase');
+  const count = document.getElementById('breathCount');
+
+  ring.className = 'breath-ring ' + cls;
+  phase.textContent = label;
+  let remaining = seconds;
+  count.textContent = remaining;
+
+  breathInterval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(breathInterval);
+      cb();
+    } else {
+      count.textContent = remaining;
+    }
+  }, 1000);
+}
+
+// ─── FLOOR CHECKLIST ───
+let floorState = [false, false, false, false, false];
+
+// Load saved state for today
+(function loadFloor() {
+  const today = new Date().toISOString().split('T')[0];
+  const saved = localStorage.getItem('od_redprotocol_floor');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.date === today) {
+        floorState = data.items;
+        document.querySelectorAll('.floor-item').forEach((el, i) => {
+          if (floorState[i]) el.classList.add('done');
+        });
+        updateFloorCount();
+      }
+    } catch(e) {}
+  }
+})();
+
+function toggleFloor(el, idx) {
+  floorState[idx] = !floorState[idx];
+  el.classList.toggle('done');
+  updateFloorCount();
+
+  const today = new Date().toISOString().split('T')[0];
+  localStorage.setItem('od_redprotocol_floor', JSON.stringify({
+    date: today,
+    items: floorState
+  }));
+}
+
+function updateFloorCount() {
+  const count = floorState.filter(Boolean).length;
+  document.getElementById('floorCount').textContent = count;
+}
+
+// ─── PERSON INPUT (persist locally) ───
+(function loadPerson() {
+  const saved = localStorage.getItem('od_redprotocol_person');
+  if (saved) document.getElementById('personInput').value = saved;
+})();
+
+document.getElementById('personInput').addEventListener('input', function() {
+  localStorage.setItem('od_redprotocol_person', this.value);
+});
+
+// ─── LOG ACTIVATION ───
+let todayLogged = false;
+
+(function checkTodayLog() {
+  let logs = [];
+  try{logs = JSON.parse(localStorage.getItem('od_redprotocol_log') || '[]');}catch(e){}
+  const today = new Date().toISOString().split('T')[0];
+  if (logs.length && logs[0].date === today) {
+    todayLogged = true;
+    const btn = document.getElementById('logBtn');
+    btn.classList.add('logged');
+    btn.textContent = 'LOGGED TODAY';
+    document.getElementById('logConfirm').classList.add('show');
+  }
+})();
+
+function logActivation() {
+  if (todayLogged) return;
+
+  const now = new Date();
+  const entry = {
+    date: now.toISOString().split('T')[0],
+    time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    floor: floorState.filter(Boolean).length
+  };
+
+  let logs = [];
+  try{logs = JSON.parse(localStorage.getItem('od_redprotocol_log') || '[]');}catch(e){}
+  logs.unshift(entry);
+  if (logs.length > 100) logs.length = 100;
+  localStorage.setItem('od_redprotocol_log', JSON.stringify(logs));
+
+  todayLogged = true;
+  const btn = document.getElementById('logBtn');
+  btn.classList.add('logged');
+  btn.textContent = 'ACTIVATION LOGGED';
+  document.getElementById('logConfirm').classList.add('show');
+
+  renderHistory();
+}
+
+// ─── HISTORY ───
+function renderHistory() {
+  let logs = [];
+  try{logs = JSON.parse(localStorage.getItem('od_redprotocol_log') || '[]');}catch(e){}
+  const container = document.getElementById('historyList');
+  container.innerHTML = '';
+
+  if (!logs.length) {
+    container.innerHTML = '<div class="history-empty">No activations recorded.</div>';
+    return;
+  }
+
+  logs.slice(0, 10).forEach(log => {
+    const div = document.createElement('div');
+    div.className = 'history-entry';
+    div.textContent = log.date + ' • ' + log.time + ' • FLOOR: ' + log.floor + '/5';
+    container.appendChild(div);
+  });
+
+  if (logs.length > 10) {
+    const more = document.createElement('div');
+    more.className = 'history-entry';
+    more.textContent = '+ ' + (logs.length - 10) + ' MORE';
+    container.appendChild(more);
+  }
+}
+
+renderHistory();
+</script>
+
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="safety-plan-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#2c5282;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">SAFETY PLAN →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Build your floor before the next wave hits</span></a><a href="meditation-ops.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#0d9488;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">MEDITATION OPS →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Ground the nervous system — breathing or body scan</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">When you're stable — back to the mission</span></a></div>
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Crisis stabilization tool. Not a substitute for emergency services. Call 911 or 988 if in danger.</div>
+</body>
+</html>

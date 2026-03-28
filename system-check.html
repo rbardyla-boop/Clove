@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="SYSTEM CHECK • OPERATOR'S DECK">
+<meta property="og:description" content="Full diagnostic on your localStorage data. Integrity, storage, health check.">
+<link rel="canonical" href="https://clovelearn.io/system-check.html">
+<title>SYSTEM CHECK • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--gld);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--gld);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* SECTIONS */
+.section{padding:16px}
+.sec-tag{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-sub{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;margin-bottom:14px;line-height:1.6}
+
+/* HEALTH BAR */
+.health-bar{background:var(--bg2);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--dim3)}
+.hb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hb-label{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim)}
+.hb-value{font-size:18px;font-weight:900;font-family:'Courier New',monospace}
+.hb-value.green{color:var(--grn)}
+.hb-value.gold{color:var(--gld)}
+.hb-value.red{color:var(--red)}
+.hb-bar{height:4px;background:var(--dim3);border-radius:2px;overflow:hidden}
+.hb-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* SCORE GRID */
+.score-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.score-cell{background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center;border:1px solid var(--dim3)}
+.sc-val{font-size:20px;font-weight:900;font-family:'Courier New',monospace;margin-bottom:4px}
+.sc-label{font-size:6.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim)}
+
+/* KEY TABLE */
+.key-table{margin-bottom:16px}
+.kt-row{background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:4px;display:flex;align-items:center;gap:10px;border-left:3px solid transparent}
+.kt-row.ok{border-left-color:var(--grn)}
+.kt-row.warn{border-left-color:var(--gld)}
+.kt-row.err{border-left-color:var(--red)}
+.kt-row.empty{border-left-color:var(--dim3)}
+.kt-icon{font-size:12px;flex-shrink:0;width:18px;text-align:center}
+.kt-info{flex:1;min-width:0}
+.kt-name{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kt-meta{font-size:7px;font-family:monospace;color:var(--dim);letter-spacing:.5px;margin-top:2px}
+.kt-size{font-size:8px;font-family:monospace;color:var(--dim2);flex-shrink:0}
+
+/* STATUS BADGES */
+.status-pass{color:var(--grn);font-size:8px;font-family:monospace;letter-spacing:1.5px;font-weight:800}
+.status-warn{color:var(--gld);font-size:8px;font-family:monospace;letter-spacing:1.5px;font-weight:800}
+.status-fail{color:var(--red);font-size:8px;font-family:monospace;letter-spacing:1.5px;font-weight:800}
+
+/* ACTIONS */
+.action-row{display:flex;gap:8px;margin-top:12px}
+.btn-action{flex:1;background:var(--bg3);color:var(--gld);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px;font-size:8px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;text-align:center;transition:all .2s}
+.btn-action:active{transform:scale(.96);background:rgba(212,168,67,.05)}
+.btn-action.danger{color:var(--red);border-color:rgba(192,57,43,.2)}
+.btn-action.danger:active{background:rgba(192,57,43,.05)}
+
+/* ISSUE LIST */
+.issue{background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;gap:10px;align-items:flex-start}
+.issue-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.issue-text{font-size:9px;font-family:monospace;letter-spacing:.5px;line-height:1.7;color:#bbb}
+.issue-text strong{color:#fff;font-weight:800}
+
+/* TOAST */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+
+/* DIVIDERS */
+.divider{height:1px;background:var(--dim3);margin:20px 0}
+
+/* CLINICAL FOOTER */
+.clin-footer{margin:24px 16px 0;padding:14px;background:var(--bg2);border-radius:10px;border:1px solid var(--dim3);text-align:center}
+.clin-footer .cf-tag{color:var(--dim2);font-size:6.5px;font-family:monospace;letter-spacing:2px;margin-bottom:4px}
+.clin-footer .cf-text{color:var(--dim);font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.8}
+
+/* FOCUS */
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+
+/* BACK LINK */
+.back-link{display:flex;align-items:center;gap:6px;color:#888;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;padding:16px 16px 0;transition:color .2s}
+.back-link:active{color:#fff}
+
+/* COLLAPSE */
+.collapse-hdr{display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 0;user-select:none}
+.collapse-hdr .arrow{color:var(--dim);font-size:10px;transition:transform .2s}
+.collapse-hdr .arrow.open{transform:rotate(90deg)}
+.collapse-hdr .ch-label{font-size:9px;font-family:monospace;letter-spacing:2px;font-weight:800}
+.collapse-hdr .ch-count{color:var(--dim);font-size:8px;font-family:monospace;margin-left:auto}
+.collapse-body{overflow:hidden;transition:max-height .3s ease}
+.collapse-body.shut{max-height:0}
+
+/* ORPHAN KEYS */
+.orphan-tag{display:inline-block;background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.15);border-radius:4px;padding:2px 6px;font-size:7px;font-family:monospace;letter-spacing:.5px;color:var(--gld);margin:2px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAV -->
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+  <button class="nav-back" onclick="goBack()">← DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">DIAGNOSTICS</div>
+    <div class="nav-name">SYSTEM CHECK</div>
+  </div>
+  <div style="color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:1px" id="runTime"></div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+  <div style="padding:40px;text-align:center">
+    <div style="color:var(--gld);font-size:10px;font-family:monospace;letter-spacing:3px;margin-bottom:8px">RUNNING DIAGNOSTICS</div>
+    <div style="color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic">Scanning localStorage integrity...</div>
+  </div>
+</div>
+
+<!-- CLINICAL FOOTER -->
+<div class="clin-footer">
+  <div class="cf-tag">SYSTEM TOOL</div>
+  <div class="cf-text">This tool reads your localStorage data and checks for corruption or inconsistencies.<br>No data is sent anywhere. Everything runs on your device.</div>
+</div>
+
+</div>
+
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function showToast(msg,bg){var old=document.querySelector('.toast');if(old)old.remove();var t=document.createElement('div');t.className='toast';if(bg)t.style.background=bg;t.textContent=msg;document.body.appendChild(t);setTimeout(function(){if(t.parentNode)t.remove()},2500)}
+function goBack(){window.location.href='./?tab=more'}
+
+// ── KEY REGISTRY ──────────────────────────────────────────────
+// Every known OD localStorage key, its expected type, and source page.
+var REGISTRY = [
+  {key:'od3',         type:'object', src:'index.html',             desc:'Core deck state (streak, log, playlist, settings)'},
+  {key:'od3ev',       type:'array',  src:'index.html',             desc:'Evidence file entries'},
+  {key:'od3mr',       type:'array',  src:'index.html',             desc:'Mirror question responses'},
+  {key:'od3sp',       type:'array',  src:'index.html',             desc:'Stuck points list'},
+  {key:'od3_goals',   type:'array',  src:'index.html',             desc:'Goal setting (outcome/performance/process)'},
+  {key:'od3_resonance',type:'array', src:'index.html',             desc:'Resonance log entries'},
+  {key:'od3_songnotes',type:'object',src:'index.html',             desc:'Per-song notes'},
+  {key:'od3_listenfirst',type:'boolean',src:'index.html',          desc:'Listen-first toggle'},
+  {key:'od3ob',       type:'object', src:'index.html',             desc:'Onboarding state + session count'},
+  {key:'od3_backup_nudge',type:'string',src:'index.html',          desc:'Backup reminder threshold'},
+  {key:'od_act_v1',   type:'array',  src:'act-drill.html',         desc:'ACT drill sessions'},
+  {key:'od_dm_v1',    type:'array',  src:'dear-man-drill.html',    desc:'DEAR MAN sessions'},
+  {key:'od_chain_analysis',type:'array',src:'chain-analysis-drill.html',desc:'Chain Analysis sessions'},
+  {key:'od_opposite_action',type:'array',src:'opposite-action-drill.html',desc:'Opposite Action sessions'},
+  {key:'od_rsd',      type:'array',  src:'rsd-shield-drill.html',  desc:'RSD Shield sessions'},
+  {key:'od_intercepts',type:'array', src:'thought-interceptor.html',desc:'Thought interceptor entries'},
+  {key:'od_meditation',type:'object',src:'meditation-ops.html',    desc:'Meditation session log'},
+  {key:'od_protocol_logs',type:'array',src:'red-protocol.html',    desc:'Red Protocol logs'},
+  {key:'od_redprotocol_log',type:'array',src:'red-protocol.html',  desc:'Red Protocol history'},
+  {key:'od_redprotocol_floor',type:'string',src:'red-protocol.html',desc:'Red Protocol floor setting'},
+  {key:'od_redprotocol_person',type:'string',src:'red-protocol.html',desc:'Red Protocol person'},
+  {key:'od_playbook_log',type:'array',src:'operators-playbook.html',desc:'Playbook session log'},
+  {key:'od_playbook_last',type:'string',src:'operators-playbook.html',desc:'Last playbook entry'},
+  {key:'od_mission_brief_v1',type:'array',src:'mission-brief.html',desc:'Mission Brief sessions'},
+  {key:'od_be_yourself_full',type:'array',src:'be-yourself-full.html',desc:'Be Yourself full sessions'},
+  {key:'od_candlebox_full',type:'array',src:'candlebox-rebuild-full.html',desc:'Candlebox Rebuild sessions'},
+  {key:'od_like_a_stone_full',type:'array',src:'like-a-stone-full.html',desc:'Like A Stone sessions'},
+  {key:'od_improve_full',type:'array',src:'improve-drill-full.html',desc:'IMPROVE sessions'},
+  {key:'od_tipp_full', type:'array', src:'tipp-drill-full.html',   desc:'TIPP sessions'},
+  {key:'od_mindfulness_full',type:'array',src:'mindfulness-drill-full.html',desc:'Mindfulness sessions'},
+  {key:'od_wgo',      type:'object', src:'whats-going-on.html',    desc:"What's Going On state"},
+  {key:'od_sp_plans',  type:'array',  src:'safety-plan-drill.html', desc:'Safety Plan entries'},
+  {key:'od_grove_trees',type:'array',src:'grove-ops.html',         desc:'Grove trees'},
+  {key:'od_grove_log',type:'array',  src:'grove-ops.html',         desc:'Grove activity log'},
+  {key:'od_qf_avatar',type:'string', src:'quest-forge.html',       desc:'Quest Forge avatar'},
+  {key:'od_qf_sounds',type:'object', src:'quest-forge.html',       desc:'Quest Forge sound prefs'},
+  {key:'od_micro_magic',type:'array',src:'micro-ops.html',         desc:'Micro Ops magic list'},
+  {key:'od_dd_activities',type:'array',src:'dopamine-depot.html',  desc:'Dopamine Depot activities'},
+  {key:'od_dd_log',   type:'array',  src:'dopamine-depot.html',    desc:'Dopamine Depot log'},
+  {key:'od_dd_streak',type:'number', src:'dopamine-depot.html',    desc:'Dopamine Depot streak'},
+  {key:'od_dd_lastdate',type:'string',src:'dopamine-depot.html',   desc:'Dopamine Depot last date'},
+  {key:'od_kb_tasks', type:'array',  src:'kanban-ops.html',        desc:'Kanban board tasks'},
+  {key:'od_bd_history',type:'array', src:'body-double-ops.html',   desc:'Body Double session history'},
+  {key:'od_bd_streak',type:'number', src:'body-double-ops.html',   desc:'Body Double streak'},
+  {key:'od_bd_lastdate',type:'string',src:'body-double-ops.html',  desc:'Body Double last date'},
+  {key:'od_vp_focus', type:'string', src:'visual-planner.html',    desc:'Visual Planner focus area'},
+  {key:'od_pd_prompts',type:'array',  src:'prompt-depot.html',      desc:'Prompt Depot saved prompts'},
+  {key:'od_grind_character',type:'object',src:'grind-ops.html',         desc:'Grind Ops character'},
+  {key:'od_grind_dailies', type:'array',  src:'grind-ops.html',         desc:'Grind Ops dailies'},
+  {key:'od_grind_todos',   type:'array',  src:'grind-ops.html',         desc:'Grind Ops todos'},
+  {key:'od_grind_habits',  type:'array',  src:'grind-ops.html',         desc:'Grind Ops habits'},
+  {key:'od_grind_shop',    type:'array',  src:'grind-ops.html',         desc:'Grind Ops shop items'},
+  {key:'od_cbt_records',   type:'array',  src:'cbt-drill.html',         desc:'CBT thought records'},
+  {key:'od_values_records',type:'array',  src:'values-drill.html',      desc:'Values clarification logs'},
+  {key:'od_journal',       type:'array',  src:'journal-ops.html',       desc:'Journal Ops entries'},
+  {key:'od_clinical_scores',type:'array', src:'clinical-assessments.html',desc:'Clinical assessment scores'},
+  {key:'od_routines',      type:'array',  src:'routine-builder.html',    desc:'Saved routines'},
+  {key:'od_routine_log',   type:'array',  src:'routine-builder.html',    desc:'Routine completion log'}
+];
+
+// ── DIAGNOSTIC ENGINE ─────────────────────────────────────────
+function runDiagnostics(){
+  var t0 = performance.now();
+  var results = [];
+  var issues = [];
+  var totalBytes = 0;
+  var okCount = 0;
+  var warnCount = 0;
+  var errCount = 0;
+  var emptyCount = 0;
+
+  // Check each registered key
+  REGISTRY.forEach(function(entry){
+    var r = {key:entry.key, desc:entry.desc, src:entry.src, expectedType:entry.type};
+    try {
+      var raw = localStorage.getItem(entry.key);
+      if (raw === null) {
+        r.status = 'empty';
+        r.bytes = 0;
+        r.detail = 'Not created yet';
+        emptyCount++;
+      } else {
+        r.bytes = (entry.key.length + raw.length) * 2;
+        totalBytes += r.bytes;
+        try {
+          var parsed = JSON.parse(raw);
+          var actualType = Array.isArray(parsed) ? 'array' :
+                          (parsed === null) ? 'null' :
+                          typeof parsed;
+
+          if (entry.type === 'boolean' && (actualType === 'boolean' || actualType === 'string' || actualType === 'number')) {
+            r.status = 'ok';
+            r.detail = 'Value: ' + String(parsed);
+            okCount++;
+          } else if (entry.type === 'number' && (actualType === 'number' || actualType === 'string')) {
+            r.status = 'ok';
+            r.detail = 'Value: ' + String(parsed);
+            okCount++;
+          } else if (entry.type === 'string' && actualType === 'string') {
+            r.status = 'ok';
+            r.detail = raw.length + ' chars';
+            okCount++;
+          } else if (entry.type === 'array' && actualType === 'array') {
+            r.status = 'ok';
+            r.detail = parsed.length + ' entries';
+            okCount++;
+            // Warn on large arrays
+            if (parsed.length > 150) {
+              r.status = 'warn';
+              r.detail = parsed.length + ' entries (consider pruning)';
+              okCount--; warnCount++;
+              issues.push({icon:'📊', text:'<strong>' + esc(entry.key) + '</strong> has ' + parsed.length + ' entries. Large arrays slow down read/write cycles.'});
+            }
+          } else if (entry.type === 'object' && actualType === 'object') {
+            var keys = Object.keys(parsed);
+            r.status = 'ok';
+            r.detail = keys.length + ' keys';
+            okCount++;
+            if (keys.length > 200) {
+              r.status = 'warn';
+              r.detail = keys.length + ' keys (large object)';
+              okCount--; warnCount++;
+              issues.push({icon:'📊', text:'<strong>' + esc(entry.key) + '</strong> has ' + keys.length + ' keys. Consider pruning stale entries.'});
+            }
+          } else {
+            r.status = 'warn';
+            r.detail = 'Expected ' + entry.type + ', got ' + actualType;
+            warnCount++;
+            issues.push({icon:'⚠️', text:'<strong>' + esc(entry.key) + '</strong>: type mismatch. Expected <strong>' + entry.type + '</strong>, found <strong>' + actualType + '</strong>.'});
+          }
+        } catch(e) {
+          r.status = 'err';
+          r.detail = 'CORRUPT — JSON parse failed';
+          errCount++;
+          issues.push({icon:'🔴', text:'<strong>' + esc(entry.key) + '</strong> contains corrupt data that cannot be parsed. This key may need to be deleted and rebuilt.'});
+        }
+      }
+    } catch(e) {
+      r.status = 'err';
+      r.detail = 'Read failed: ' + String(e).substring(0, 50);
+      errCount++;
+    }
+    results.push(r);
+  });
+
+  // Scan for orphan keys (not in registry)
+  var knownKeys = {};
+  REGISTRY.forEach(function(e){ knownKeys[e.key] = true; });
+  var orphans = [];
+  var dynamicPrefixes = ['od_wo-','od_vp_','od_stuck_','od_pattern_'];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (!k) continue;
+      if (knownKeys[k]) continue;
+      // Check dynamic prefix keys
+      var isDynamic = false;
+      for (var p = 0; p < dynamicPrefixes.length; p++) {
+        if (k.indexOf(dynamicPrefixes[p]) === 0) { isDynamic = true; break; }
+      }
+      // Check if it's an OD-related key
+      if (k.indexOf('od') === 0 || k.indexOf('sp-') === 0 || k.indexOf('ops-') === 0 || k.indexOf('pd-') === 0 || k === 'kb-tasks') {
+        if (!isDynamic) {
+          orphans.push(k);
+        }
+      }
+    }
+  } catch(e){}
+
+  if (orphans.length > 0) {
+    issues.push({icon:'🔍', text:'Found <strong>' + orphans.length + ' unregistered key(s)</strong> in localStorage. These may be from older versions or testing.'});
+  }
+
+  // Storage capacity test
+  var quota = 0;
+  try {
+    for (var j = 0; j < localStorage.length; j++) {
+      var lk = localStorage.key(j);
+      var lv = localStorage.getItem(lk);
+      if (lv) quota += (lk.length + lv.length) * 2;
+    }
+  } catch(e){}
+  var maxQuota = 5 * 1024 * 1024; // 5MB typical
+  var usagePercent = Math.round((quota / maxQuota) * 100);
+
+  if (usagePercent > 80) {
+    issues.push({icon:'💾', text:'localStorage is <strong>' + usagePercent + '% full</strong>. Consider exporting and pruning old data from Tool Shed.'});
+  }
+
+  // Core state validation
+  try {
+    var od3 = JSON.parse(localStorage.getItem('od3') || '{}');
+    if (typeof od3.s === 'number' && od3.s < 0) {
+      issues.push({icon:'🔢', text:'<strong>Streak counter</strong> is negative (' + od3.s + '). This should not happen.'});
+    }
+    if (typeof od3.t === 'number' && typeof od3.d === 'number' && od3.d > od3.t) {
+      issues.push({icon:'🔢', text:'<strong>Missions done</strong> (' + od3.d + ') exceeds <strong>total draws</strong> (' + od3.t + '). Possible data corruption.'});
+    }
+    if (Array.isArray(od3.l) && od3.l.length > 100) {
+      issues.push({icon:'📊', text:'<strong>Draw log</strong> has ' + od3.l.length + ' entries (cap is 100). Older entries should auto-prune.'});
+    }
+  } catch(e){}
+
+  var elapsed = Math.round(performance.now() - t0);
+  render(results, issues, totalBytes, okCount, warnCount, errCount, emptyCount, orphans, quota, maxQuota, elapsed);
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function render(results, issues, totalBytes, okCount, warnCount, errCount, emptyCount, orphans, quota, maxQuota, elapsed) {
+  var h = '';
+  var activeCount = okCount + warnCount + errCount;
+  var totalKeys = results.length;
+
+  // Overall health score
+  var healthScore = Math.round(((okCount + (emptyCount * 0.5)) / totalKeys) * 100);
+  if (errCount > 0) healthScore = Math.max(healthScore - (errCount * 15), 0);
+  if (warnCount > 0) healthScore = Math.max(healthScore - (warnCount * 5), 0);
+  var healthClass = healthScore >= 80 ? 'green' : healthScore >= 50 ? 'gold' : 'red';
+  var healthLabel = healthScore >= 90 ? 'OPERATIONAL' : healthScore >= 70 ? 'MINOR ISSUES' : healthScore >= 50 ? 'NEEDS ATTENTION' : 'DEGRADED';
+  var healthBg = healthScore >= 80 ? 'var(--grn)' : healthScore >= 50 ? 'var(--gld)' : 'var(--red)';
+
+  // Section: Health Score
+  h += '<div class="section">';
+  h += '<div class="sec-tag">SYSTEM HEALTH</div>';
+  h += '<div class="health-bar">';
+  h += '<div class="hb-row"><div class="hb-label">' + healthLabel + '</div><div class="hb-value ' + healthClass + '">' + healthScore + '%</div></div>';
+  h += '<div class="hb-bar"><div class="hb-fill" style="width:' + healthScore + '%;background:' + healthBg + '"></div></div>';
+  h += '</div>';
+
+  // Score grid
+  h += '<div class="score-grid">';
+  h += '<div class="score-cell"><div class="sc-val" style="color:var(--grn)">' + okCount + '</div><div class="sc-label">HEALTHY</div></div>';
+  h += '<div class="score-cell"><div class="sc-val" style="color:var(--gld)">' + warnCount + '</div><div class="sc-label">WARNINGS</div></div>';
+  h += '<div class="score-cell"><div class="sc-val" style="color:var(--red)">' + errCount + '</div><div class="sc-label">ERRORS</div></div>';
+  h += '</div>';
+  h += '<div class="score-grid">';
+  h += '<div class="score-cell"><div class="sc-val">' + activeCount + '</div><div class="sc-label">ACTIVE KEYS</div></div>';
+  h += '<div class="score-cell"><div class="sc-val" style="color:var(--dim)">' + emptyCount + '</div><div class="sc-label">UNUSED</div></div>';
+  h += '<div class="score-cell"><div class="sc-val">' + formatBytes(totalBytes) + '</div><div class="sc-label">OD DATA</div></div>';
+  h += '</div>';
+  h += '</div>';
+
+  // Section: Storage Capacity
+  var usedPct = Math.round((quota / maxQuota) * 100);
+  var capClass = usedPct > 80 ? 'red' : usedPct > 50 ? 'gold' : 'green';
+  var capBg = usedPct > 80 ? 'var(--red)' : usedPct > 50 ? 'var(--gld)' : 'var(--grn)';
+  h += '<div class="section">';
+  h += '<div class="sec-tag">STORAGE CAPACITY</div>';
+  h += '<div class="health-bar">';
+  h += '<div class="hb-row"><div class="hb-label">TOTAL BROWSER STORAGE</div><div class="hb-value ' + capClass + '">' + formatBytes(quota) + '</div></div>';
+  h += '<div class="hb-bar"><div class="hb-fill" style="width:' + Math.min(usedPct, 100) + '%;background:' + capBg + '"></div></div>';
+  h += '<div style="display:flex;justify-content:space-between;margin-top:6px"><div style="font-size:7px;font-family:monospace;color:var(--dim);letter-spacing:1px">0 KB</div><div style="font-size:7px;font-family:monospace;color:var(--dim);letter-spacing:1px">' + formatBytes(maxQuota) + ' est.</div></div>';
+  h += '</div>';
+
+  // Top 5 largest keys
+  var sorted = results.filter(function(r){return r.bytes > 0}).sort(function(a,b){return b.bytes - a.bytes}).slice(0, 5);
+  if (sorted.length > 0) {
+    h += '<div style="margin-top:8px">';
+    h += '<div style="color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:6px">TOP 5 BY SIZE</div>';
+    sorted.forEach(function(r){
+      var pct = totalBytes > 0 ? Math.round((r.bytes / totalBytes) * 100) : 0;
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+      h += '<div style="flex:1;font-size:8px;font-family:monospace;color:#bbb;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(r.key) + '</div>';
+      h += '<div style="width:60px;height:3px;background:var(--dim3);border-radius:2px;flex-shrink:0"><div style="height:100%;background:var(--gld);border-radius:2px;width:' + Math.max(pct, 2) + '%"></div></div>';
+      h += '<div style="font-size:7px;font-family:monospace;color:var(--dim);width:40px;text-align:right">' + formatBytes(r.bytes) + '</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+
+  // Section: Issues
+  if (issues.length > 0) {
+    h += '<div class="section">';
+    h += '<div class="sec-tag">ISSUES FOUND</div>';
+    h += '<div class="sec-title" style="color:var(--gld)">' + issues.length + ' Issue' + (issues.length > 1 ? 's' : '') + '</div>';
+    h += '<div class="sec-sub">Review and resolve for optimal performance.</div>';
+    issues.forEach(function(iss){
+      h += '<div class="issue"><div class="issue-icon">' + iss.icon + '</div><div class="issue-text">' + iss.text + '</div></div>';
+    });
+    h += '</div>';
+  } else {
+    h += '<div class="section">';
+    h += '<div class="sec-tag">ISSUES FOUND</div>';
+    h += '<div style="text-align:center;padding:16px;color:var(--grn);font-size:10px;font-family:monospace;letter-spacing:2px">✓ NO ISSUES DETECTED</div>';
+    h += '</div>';
+  }
+
+  // Section: Key Inventory (collapsible groups)
+  h += '<div class="section">';
+  h += '<div class="sec-tag">KEY INVENTORY</div>';
+  h += '<div class="sec-title">' + totalKeys + ' Registered Keys</div>';
+  h += '<div class="sec-sub">Tap a group to expand. Color codes: 🟢 healthy, 🟡 warning, 🔴 error, ⚫ unused.</div>';
+
+  // Group by source page
+  var groups = {};
+  results.forEach(function(r){
+    var g = r.src || 'unknown';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(r);
+  });
+
+  var groupKeys = Object.keys(groups).sort();
+  groupKeys.forEach(function(gk, gi){
+    var items = groups[gk];
+    var gOk = items.filter(function(r){return r.status==='ok'}).length;
+    var gErr = items.filter(function(r){return r.status==='err'}).length;
+    var gWarn = items.filter(function(r){return r.status==='warn'}).length;
+    var gLabel = gk.replace('.html','').toUpperCase();
+
+    h += '<div class="collapse-hdr" onclick="toggleGroup(' + gi + ')">';
+    h += '<span class="arrow" id="arr' + gi + '">▸</span>';
+    h += '<span class="ch-label">' + esc(gLabel) + '</span>';
+    if (gErr > 0) h += '<span style="color:var(--red);font-size:7px;font-family:monospace;margin-left:6px">' + gErr + ' ERR</span>';
+    if (gWarn > 0) h += '<span style="color:var(--gld);font-size:7px;font-family:monospace;margin-left:6px">' + gWarn + ' WARN</span>';
+    h += '<span class="ch-count">' + items.length + ' key' + (items.length > 1 ? 's' : '') + '</span>';
+    h += '</div>';
+    h += '<div class="collapse-body shut" id="grp' + gi + '">';
+
+    items.forEach(function(r){
+      var icon = r.status === 'ok' ? '🟢' : r.status === 'warn' ? '🟡' : r.status === 'err' ? '🔴' : '⚫';
+      h += '<div class="kt-row ' + r.status + '">';
+      h += '<div class="kt-icon">' + icon + '</div>';
+      h += '<div class="kt-info">';
+      h += '<div class="kt-name">' + esc(r.key) + '</div>';
+      h += '<div class="kt-meta">' + esc(r.detail) + '</div>';
+      h += '</div>';
+      if (r.bytes > 0) h += '<div class="kt-size">' + formatBytes(r.bytes) + '</div>';
+      h += '</div>';
+    });
+
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Section: Orphan Keys
+  if (orphans.length > 0) {
+    h += '<div class="section">';
+    h += '<div class="sec-tag">UNREGISTERED KEYS</div>';
+    h += '<div class="sec-sub">Found in localStorage but not in the key registry. May be from older app versions, testing, or dynamic features.</div>';
+    orphans.forEach(function(ok){
+      h += '<span class="orphan-tag">' + esc(ok) + '</span>';
+    });
+    h += '</div>';
+  }
+
+  // Section: Actions
+  h += '<div class="section">';
+  h += '<div class="sec-tag">ACTIONS</div>';
+  h += '<div class="action-row">';
+  h += '<button class="btn-action" onclick="rerun()">↻ RE-SCAN</button>';
+  h += '<button class="btn-action" onclick="exportReport()">📋 COPY REPORT</button>';
+  h += '</div>';
+  if (errCount > 0) {
+    h += '<div class="action-row" style="margin-top:8px">';
+    h += '<button class="btn-action danger" onclick="purgeCorrupt()">🗑 PURGE CORRUPT KEYS</button>';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  // NEXT STEP block
+  h += '<div style="margin:0 16px 10px;padding:14px;background:#08080f;border-left:3px solid var(--gld);border-radius:0 10px 10px 0">';
+  h += '<div style="color:var(--gld);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>';
+  h += '<a href="toolshed.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s">';
+  h += '<span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">TOOL SHED →</span><br>';
+  h += '<span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Export your data. See all session counts.</span></a>';
+  h += '<a href="./?tab=more" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s">';
+  h += '<span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">BACK TO DECK →</span><br>';
+  h += '<span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Return to the Operator\'s Deck</span></a>';
+  h += '</div>';
+
+  document.getElementById('content').innerHTML = h;
+  document.getElementById('runTime').textContent = elapsed + 'ms';
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function formatBytes(b) {
+  if (b < 1024) return b + 'B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + 'KB';
+  return (b / (1024 * 1024)).toFixed(2) + 'MB';
+}
+
+function toggleGroup(idx) {
+  var el = document.getElementById('grp' + idx);
+  var arr = document.getElementById('arr' + idx);
+  if (!el) return;
+  if (el.classList.contains('shut')) {
+    el.classList.remove('shut');
+    el.style.maxHeight = el.scrollHeight + 'px';
+    if (arr) arr.classList.add('open');
+  } else {
+    el.classList.add('shut');
+    el.style.maxHeight = '0';
+    if (arr) arr.classList.remove('open');
+  }
+}
+
+function rerun() {
+  document.getElementById('content').innerHTML = '<div style="padding:40px;text-align:center"><div style="color:var(--gld);font-size:10px;font-family:monospace;letter-spacing:3px;margin-bottom:8px">RE-SCANNING</div></div>';
+  setTimeout(runDiagnostics, 100);
+}
+
+function exportReport() {
+  var lines = ['OPERATOR\'S DECK — SYSTEM CHECK REPORT'];
+  lines.push('Generated: ' + new Date().toISOString());
+  lines.push('');
+
+  REGISTRY.forEach(function(entry) {
+    var raw = null;
+    try { raw = localStorage.getItem(entry.key); } catch(e){}
+    var status = 'EMPTY';
+    var detail = '';
+    if (raw !== null) {
+      try {
+        var p = JSON.parse(raw);
+        status = 'OK';
+        if (Array.isArray(p)) detail = p.length + ' entries';
+        else if (typeof p === 'object' && p) detail = Object.keys(p).length + ' keys';
+        else detail = String(p).substring(0, 50);
+      } catch(e) {
+        status = 'CORRUPT';
+      }
+      detail += ' (' + formatBytes((entry.key.length + raw.length) * 2) + ')';
+    }
+    lines.push('[' + status.padEnd(7) + '] ' + entry.key.padEnd(28) + ' ' + detail);
+  });
+
+  var text = lines.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('REPORT COPIED');
+    }).catch(function(){
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast('REPORT COPIED'); }
+  catch(e) { showToast('Copy failed — try manually', 'var(--red)'); }
+  ta.remove();
+}
+
+function purgeCorrupt() {
+  if (!confirm('Delete all corrupt (unparseable) keys? This cannot be undone.')) return;
+  var purged = 0;
+  REGISTRY.forEach(function(entry) {
+    try {
+      var raw = localStorage.getItem(entry.key);
+      if (raw !== null) {
+        try { JSON.parse(raw); }
+        catch(e) {
+          localStorage.removeItem(entry.key);
+          purged++;
+        }
+      }
+    } catch(e){}
+  });
+  showToast(purged + ' corrupt key' + (purged !== 1 ? 's' : '') + ' purged');
+  setTimeout(runDiagnostics, 500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+setTimeout(runDiagnostics, 50);
+</script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="AFTER-ACTION REVIEW • OPERATOR'S DECK">
+<meta property="og:description" content="Weekly retrospective. What you committed, completed, and carry forward. 5 fields, 52-week history.">
+<link rel="canonical" href="https://clovelearn.io/after-action-review.html">
+<title>AFTER-ACTION REVIEW • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--gld);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--gld);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.pad{padding:16px}
+.field-block{margin-bottom:18px}
+.field-label{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.field-counter{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:1px}
+textarea{width:100%;background:var(--bg3);border:1px solid var(--bg4);border-radius:10px;padding:14px;font-size:12px;font-family:Georgia,serif;color:#ccc;line-height:1.6;min-height:80px;max-height:200px;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:rgba(212,168,67,.4)}
+.btn-row{display:flex;gap:10px;margin-top:4px}
+.btn-primary{flex:1;background:linear-gradient(135deg,var(--grn),#1a6b3a);color:#fff;border:none;border-radius:10px;padding:14px;font-size:11px;font-weight:900;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .15s}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{flex:1;background:var(--bg2);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:14px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .15s}
+.btn-secondary:active{transform:scale(.97)}
+.section-hdr{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--gld);margin:24px 0 12px;padding:0 16px}
+.review-card{background:var(--bg2);border-radius:12px;padding:14px;margin:0 16px 8px}
+.rc-date{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.rc-field-lbl{font-size:7.5px;font-family:monospace;color:var(--dim);letter-spacing:2px;margin-bottom:3px;margin-top:8px}
+.rc-field-val{font-size:9px;font-family:Georgia,serif;color:#bbb;line-height:1.6}
+.rc-field-val:first-of-type{margin-top:0}
+.btn-del{background:none;border:1px dashed var(--dim3);color:var(--red);border-radius:6px;padding:3px 10px;font-size:7px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .15s}
+.btn-del:active{background:rgba(192,57,43,.08)}
+.empty-state{text-align:center;padding:24px 16px;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic}
+.disclaimer{margin:16px 16px 0;padding:12px 14px;background:rgba(0,0,0,.3);border-radius:10px;border-left:2px solid var(--dim3)}
+.disclaimer p{font-size:8px;font-family:Georgia,serif;color:var(--dim2);line-height:1.7;font-style:italic}
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(212,168,67,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--gld);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:8px 14px;display:inline-block;margin:3px;transition:all .2s}
+.deck-link a:active{background:rgba(212,168,67,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--gld)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="nav-bar" role="navigation" aria-label="After-Action Review navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'" aria-label="Back to deck">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">INTEL TOOL</div>
+    <div class="nav-name">AFTER-ACTION REVIEW</div>
+  </div>
+</nav>
+
+<div class="pad">
+  <div class="field-block">
+    <div class="field-label">
+      <span>COMMITTED</span>
+      <span class="field-counter" id="cnt-committed">0 / 2000</span>
+    </div>
+    <textarea id="f-committed" placeholder="What did I commit to this week?" maxlength="2000" oninput="updateCounter(this,'cnt-committed')"></textarea>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">
+      <span>COMPLETED</span>
+      <span class="field-counter" id="cnt-completed">0 / 2000</span>
+    </div>
+    <textarea id="f-completed" placeholder="What did I actually complete?" maxlength="2000" oninput="updateCounter(this,'cnt-completed')"></textarea>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">
+      <span>BLOCKED</span>
+      <span class="field-counter" id="cnt-blocked">0 / 2000</span>
+    </div>
+    <textarea id="f-blocked" placeholder="What blocked me? Be specific." maxlength="2000" oninput="updateCounter(this,'cnt-blocked')"></textarea>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">
+      <span>CARRYING FORWARD</span>
+      <span class="field-counter" id="cnt-carrying">0 / 2000</span>
+    </div>
+    <textarea id="f-carrying" placeholder="What carries into next week?" maxlength="2000" oninput="updateCounter(this,'cnt-carrying')"></textarea>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">
+      <span>GRATITUDE</span>
+      <span class="field-counter" id="cnt-gratitude">0 / 2000</span>
+    </div>
+    <textarea id="f-gratitude" placeholder="One thing I'm grateful for. Even small." maxlength="2000" oninput="updateCounter(this,'cnt-gratitude')"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="logReview()">LOG REVIEW</button>
+    <button class="btn-secondary" onclick="clearFields()">CLEAR FIELDS</button>
+  </div>
+</div>
+
+<div class="section-hdr">PAST REVIEWS</div>
+<div id="historyList"></div>
+
+<div class="disclaimer">
+  <p>This is a self-reflection tool. It is not therapy. If you're in crisis, use the Red Protocol or call 988.</p>
+</div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <div class="dl-text">After-action data pairs with Pattern Intelligence and Field Protocol. Together they show the gap between intention and execution over time.</div>
+  <a href="toolshed.html" rel="noopener">TOOL SHED →</a>
+  <a href="pattern-intelligence.html" rel="noopener">PATTERN INTEL →</a>
+  <a href="whats-going-on.html" rel="noopener">FIELD PROTOCOL →</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="./?tab=more">◈ RETURN TO DECK</a>
+</nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'od_aar_entries';
+const MAX_ENTRIES = 52;
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+function loadEntries(){
+  try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){return[];}
+}
+
+function saveEntries(entries){
+  try{localStorage.setItem(KEY,JSON.stringify(entries));}catch(e){}
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2500);
+}
+
+function updateCounter(el,counterId){
+  document.getElementById(counterId).textContent=el.value.length+' / 2000';
+}
+
+function clearFields(){
+  ['committed','completed','blocked','carrying','gratitude'].forEach(function(f){
+    document.getElementById('f-'+f).value='';
+    document.getElementById('cnt-'+f).textContent='0 / 2000';
+  });
+}
+
+function logReview(){
+  const committed=document.getElementById('f-committed').value.trim();
+  const completed=document.getElementById('f-completed').value.trim();
+  const blocked=document.getElementById('f-blocked').value.trim();
+  const carrying=document.getElementById('f-carrying').value.trim();
+  const gratitude=document.getElementById('f-gratitude').value.trim();
+
+  if(!committed&&!completed&&!blocked&&!carrying&&!gratitude){
+    showToast('FILL AT LEAST ONE FIELD');
+    return;
+  }
+
+  const entry={
+    id:Date.now(),
+    date:new Date().toISOString(),
+    committed:committed,
+    completed:completed,
+    blocked:blocked,
+    carrying:carrying,
+    gratitude:gratitude
+  };
+
+  const entries=loadEntries();
+  entries.push(entry);
+  if(entries.length>MAX_ENTRIES)entries.splice(0,entries.length-MAX_ENTRIES);
+  saveEntries(entries);
+  clearFields();
+  renderHistory();
+  showToast('REVIEW LOGGED');
+}
+
+function deleteEntry(id){
+  const entries=loadEntries().filter(function(e){return e.id!==id;});
+  saveEntries(entries);
+  renderHistory();
+}
+
+function fmtDate(iso){
+  try{return new Date(iso).toLocaleDateString(undefined,{weekday:'short',year:'numeric',month:'short',day:'numeric'});}catch(e){return iso;}
+}
+
+function renderHistory(){
+  const entries=loadEntries().slice().reverse();
+  const el=document.getElementById('historyList');
+  if(!entries.length){
+    el.innerHTML='<div class="empty-state">No reviews logged yet. File your first after-action above.</div>';
+    return;
+  }
+  const LABELS={committed:'COMMITTED',completed:'COMPLETED',blocked:'BLOCKED',carrying:'CARRYING FORWARD',gratitude:'GRATITUDE'};
+  const FIELDS=['committed','completed','blocked','carrying','gratitude'];
+  el.innerHTML=entries.map(function(e){
+    const fields=FIELDS.map(function(f){
+      if(!e[f])return'';
+      return'<div class="rc-field-lbl">'+LABELS[f]+'</div><div class="rc-field-val">'+esc(e[f])+'</div>';
+    }).join('');
+    return'<div class="review-card">'
+      +'<div class="rc-date"><span>'+esc(fmtDate(e.date))+'</span>'
+      +'<button class="btn-del" onclick="deleteEntry('+e.id+')" aria-label="Delete this review">DELETE</button></div>'
+      +fields
+      +'</div>';
+  }).join('');
+}
+
+renderHistory();
+</script>
+</body>
+</html>

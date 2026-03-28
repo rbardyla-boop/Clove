@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="TOOL SHED • OPERATOR'S DECK">
+<meta property="og:description" content="All recovery drills in one place. ACT, DEAR MAN, Stuck Points, Chain Analysis, and more.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/toolshed.html">
+  <title>TOOL SHED • OPERATOR'S DECK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --bg2: #0a0a0a;
+      --bg3: #111111;
+      --red: #c0392b;
+      --grn: #27ae60;
+      --gold: #d4a843;
+      --blu: #4a6fa5;
+      --text: #e0e0e0;
+      --dim: #666666;
+      --border: rgba(192,57,43,0.25);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .app { max-width: 520px; margin: 0 auto; padding-bottom: 80px; }
+
+    /* NAV */
+    .nav-bar {
+      background: #000;
+      border-bottom: 3px solid var(--red);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .nav-back {
+      background: none;
+      border: 1px solid #333;
+      color: #666;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 9px;
+      font-family: monospace;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .nav-back:active { color: #fff; border-color: #555; }
+    .nav-info { flex: 1; }
+    .nav-tag { color: var(--red); font-size: 6.5px; font-family: monospace; letter-spacing: 3px; }
+    .nav-name { font-size: 13px; font-weight: 900; letter-spacing: .5px; }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(to bottom, #1a0000, #000000);
+      padding: 40px 20px 30px;
+      text-align: center;
+      border-bottom: 3px solid rgba(192,57,43,0.3);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 76px;
+      letter-spacing: 5px;
+      color: var(--red);
+      line-height: 0.9;
+      margin-bottom: 8px;
+      text-shadow: 0 0 25px rgba(192,57,43,0.7);
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 4px;
+    }
+
+    /* SCORE */
+    .score-panel {
+      background: rgba(39,174,96,0.06);
+      border: 2px solid rgba(39,174,96,0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 20px 0;
+      text-align: center;
+    }
+    .score-label {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #555;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .score-value {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--grn);
+      line-height: 1;
+      font-family: 'DM Mono', monospace;
+      min-height: 64px;
+    }
+    .score-caption {
+      font-size: 11px;
+      color: #555;
+      margin-top: 8px;
+    }
+    .score-breakdown {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .score-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 9px;
+      color: #555;
+    }
+    .score-item span {
+      color: var(--grn);
+      font-weight: 900;
+    }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: #333;
+      text-transform: uppercase;
+      padding: 24px 20px 8px;
+    }
+
+    /* TOOL GRID */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      padding: 0 20px;
+    }
+
+    .tool-card {
+      background: rgba(192,57,43,0.04);
+      border: 1px solid #1a1a1a;
+      border-radius: 14px;
+      padding: 24px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      display: block;
+      color: var(--text);
+    }
+
+    .tool-card:hover, .tool-card:active {
+      transform: translateY(-4px);
+      border-color: var(--red);
+      box-shadow: 0 12px 30px rgba(192,57,43,0.2);
+      background: rgba(192,57,43,0.07);
+    }
+
+    .tool-card.legendary {
+      border-color: rgba(192,57,43,0.5);
+      background: linear-gradient(145deg, #120808, #000000);
+      border-width: 2px;
+    }
+
+    .tool-card.legendary::before {
+      content: 'LEGENDARY';
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--red);
+      color: #000;
+      font-size: 8px;
+      font-weight: 900;
+      padding: 3px 10px;
+      border-radius: 4px;
+      letter-spacing: 1.5px;
+    }
+
+    .tool-icon { font-size: 44px; margin-bottom: 14px; }
+
+    .tool-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      color: #ddd;
+    }
+
+    .tool-desc {
+      font-size: 11px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .tool-stat {
+      font-size: 9px;
+      color: var(--grn);
+      margin-top: 8px;
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+
+    /* EXPORT */
+    .export-section {
+      padding: 32px 20px 0;
+    }
+
+    .export-btn {
+      background: linear-gradient(135deg, var(--grn), #1e7a44);
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 22px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(39,174,96,0.3);
+      transition: all 0.2s;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 40px rgba(39,174,96,0.5);
+    }
+
+    .export-btn:active { transform: scale(0.98); }
+
+    .export-note {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 9px;
+      color: #333;
+      letter-spacing: 1px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--grn);
+      color: #000;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      white-space: nowrap;
+      z-index: 9999;
+      box-shadow: 0 8px 30px rgba(39,174,96,0.5);
+      animation: toastIn .25s ease-out;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    footer {
+      text-align: center;
+      padding: 60px 20px 100px;
+      color: #2a2a2a;
+      font-size: 10px;
+      letter-spacing: 1px;
+      border-top: 1px solid #0d0d0d;
+      margin-top: 40px;
+    }
+  *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+
+<div class="app" role="main">
+
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK</div>
+      <div class="nav-name">TOOL SHED</div>
+    </div>
+  </div>
+
+  <header>
+    <div class="subtitle">COMMAND CENTER</div>
+    <h1>TOOL SHED</h1>
+  </header>
+
+  <div class="score-panel">
+    <div class="score-label">OPERATOR SCORE — LIVE</div>
+    <div class="score-value" id="opScore">—</div>
+    <div class="score-caption" id="scoreCaption">Calculating...</div>
+    <div class="score-breakdown" id="scoreBreakdown"></div>
+  </div>
+
+  <div class="section-label">COGNITIVE TOOLS</div>
+
+  <div class="tool-grid">
+
+    <a class="tool-card" href="stuck-points-drill.html">
+      <div class="tool-icon" aria-hidden="true">🧠</div>
+      <div class="tool-name">STUCK POINTS</div>
+      <div class="tool-desc">CPT-inspired. 8-step forensic worksheet. Crack the locked belief.</div>
+      <div class="tool-stat" id="stat-stuck">—</div>
+    </a>
+
+    <a class="tool-card" href="act-drill.html">
+      <div class="tool-icon" aria-hidden="true">🧭</div>
+      <div class="tool-name">ACT DRILL</div>
+      <div class="tool-desc">Values → Defusion → Acceptance → Committed Action</div>
+      <div class="tool-stat" id="stat-act">—</div>
+    </a>
+
+    <a class="tool-card" href="dear-man-drill.html">
+      <div class="tool-icon" aria-hidden="true">📡</div>
+      <div class="tool-name">DEAR MAN</div>
+      <div class="tool-desc">DBT boundary scripting. The conversation you keep avoiding.</div>
+      <div class="tool-stat" id="stat-dearman">—</div>
+    </a>
+
+    <a class="tool-card" href="chain-analysis-drill.html">
+      <div class="tool-icon" aria-hidden="true" style="color:#e07030">🔗</div>
+      <div class="tool-name" style="color:#e07030">CHAIN ANALYSIS</div>
+      <div class="tool-desc">DBT forensic tool. Map vulnerability → trigger → links → behavior. Break it.</div>
+      <div class="tool-stat">—</div>
+    </a>
+
+    <a class="tool-card" href="opposite-action-drill.html">
+      <div class="tool-icon" aria-hidden="true" style="color:#9d5ff0">⚡</div>
+      <div class="tool-name" style="color:#9d5ff0">OPPOSITE ACTION</div>
+      <div class="tool-desc">DBT emotion regulation. When the urge makes it worse — act the other way.</div>
+      <div class="tool-stat">—</div>
+    </a>
+
+    <a class="tool-card" href="rsd-shield-drill.html">
+      <div class="tool-icon" aria-hidden="true" style="color:#d35400">🛡️</div>
+      <div class="tool-name" style="color:#d35400">RSD SHIELD</div>
+      <div class="tool-desc">Rejection sensitivity intervention. Catch the spike. Find the calibrated read.</div>
+      <div class="tool-stat">—</div>
+    </a>
+
+    <a class="tool-card" href="cbt-drill.html" style="border-color:rgba(230,126,34,.35);background:rgba(230,126,34,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#e67e22">📝</div>
+      <div class="tool-name" style="color:#e67e22">CBT DRILL</div>
+      <div class="tool-desc">Thought records. Catch the distortion, weigh the evidence, rewrite the verdict.</div>
+      <div class="tool-stat">CBT</div>
+    </a>
+
+    <a class="tool-card" href="values-drill.html" style="border-color:rgba(147,51,234,.35);background:rgba(147,51,234,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#9333ea">🧭</div>
+      <div class="tool-name" style="color:#9333ea">VALUES DRILL</div>
+      <div class="tool-desc">ACT values card sort. Find your compass. See where you're off course.</div>
+      <div class="tool-stat">ACT</div>
+    </a>
+
+  </div>
+
+  <div class="section-label">CRISIS PROTOCOLS</div>
+
+  <div class="tool-grid">
+
+    <a class="tool-card" href="tipp-drill-full.html">
+      <div class="tool-icon" aria-hidden="true">⚡</div>
+      <div class="tool-name">TIPP</div>
+      <div class="tool-desc">Temperature • Intense exercise • Paced breathing • Progressive relaxation</div>
+      <div class="tool-stat" id="stat-tipp">—</div>
+    </a>
+
+    <a class="tool-card" href="improve-drill-full.html">
+      <div class="tool-icon" aria-hidden="true">📈</div>
+      <div class="tool-name">IMPROVE</div>
+      <div class="tool-desc">9-step distress tolerance. Imagery, meaning, prayer, relaxation + more.</div>
+      <div class="tool-stat" id="stat-improve">—</div>
+    </a>
+
+    <a class="tool-card" href="mindfulness-drill-full.html">
+      <div class="tool-icon" aria-hidden="true">🧘</div>
+      <div class="tool-name">MINDFULNESS</div>
+      <div class="tool-desc">DBT core. Observe • Describe • Participate. Timed cycles. Presence reclaimed.</div>
+      <div class="tool-stat" id="stat-mindfulness">—</div>
+    </a>
+
+    <a class="tool-card" href="meditation-ops.html" style="border-color:#0d9488">
+      <div class="tool-icon" aria-hidden="true">◈</div>
+      <div class="tool-name" style="color:#0d9488">MEDITATION OPS</div>
+      <div class="tool-desc">8 protocols. Box breathing, body scan, grounding, PMR, visualization, stillness.</div>
+      <div class="tool-stat" id="stat-meditation">—</div>
+    </a>
+
+    <a class="tool-card" href="red-protocol.html" style="border-color:var(--red);background:rgba(192,57,43,0.06)">
+      <div class="tool-icon" aria-hidden="true">🔴</div>
+      <div class="tool-name" style="color:var(--red)">RED PROTOCOL</div>
+      <div class="tool-desc">Crisis containment. Survive the next 24 hours. Breathing + floor checklist.</div>
+      <div class="tool-stat">CRISIS</div>
+    </a>
+
+    <a class="tool-card" href="safety-plan-drill.html">
+      <div class="tool-icon" aria-hidden="true" style="color:#2c5282">🛡️</div>
+      <div class="tool-name" style="color:#2c5282">SAFETY PLAN</div>
+      <div class="tool-desc">Build your crisis plan before the crisis. Warning signs, contacts, your reason.</div>
+      <div class="tool-stat">—</div>
+    </a>
+
+    <a class="tool-card" href="operators-playbook.html" style="border-color:rgba(192,57,43,0.25);background:rgba(192,57,43,0.04)">
+      <div class="tool-icon" aria-hidden="true">📖</div>
+      <div class="tool-name" style="color:var(--red)">OPERATOR'S PLAYBOOK</div>
+      <div class="tool-desc">20 interventions. State Lock forces a pause. DBT, CBT, ACT, RSD tools — zero friction.</div>
+      <div class="tool-stat">STATE LOCK</div>
+    </a>
+
+  </div>
+
+  <div class="section-label">COMMAND CENTER</div>
+
+  <div class="tool-grid">
+    <a class="tool-card" href="warroom.html" style="border-color:var(--gold);background:rgba(212,168,67,0.06)">
+      <div class="tool-icon" aria-hidden="true">⚔️</div>
+      <div class="tool-name" style="color:var(--gold)">WAR ROOM</div>
+      <div class="tool-desc">All reps. All drills. Streak tracker. Operator rank. Live command center.</div>
+      <div class="tool-stat" id="stat-warroom">CENTRAL COMMAND</div>
+    </a>
+    <a class="tool-card" href="thought-interceptor.html" style="border-color:#7b52ab;background:rgba(123,82,171,0.06)">
+      <div class="tool-icon" aria-hidden="true">🎯</div>
+      <div class="tool-name" style="color:#a47bd6">THOUGHT INTERCEPTOR</div>
+      <div class="tool-desc">4 questions. Catch the thought. Name the lie. Write the hard truth.</div>
+      <div class="tool-stat" id="stat-intercepts">—</div>
+    </a>
+
+    <a class="tool-card" href="whats-going-on.html" style="border-color:var(--gold);background:rgba(230,126,34,0.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#e67e22">🧠</div>
+      <div class="tool-name" style="color:#e67e22">WHAT'S GOING ON</div>
+      <div class="tool-desc">Dump it. The system reads the state, picks the protocol, routes you there.</div>
+      <div class="tool-stat">TRIAGE</div>
+    </a>
+  </div>
+
+  <div class="section-label">LEGENDARY MISSIONS</div>
+
+  <div class="tool-grid">
+
+    <a class="tool-card legendary" href="candlebox-rebuild-full.html">
+      <div class="tool-icon" aria-hidden="true">🔥</div>
+      <div class="tool-name">CANDLEBOX</div>
+      <div class="tool-desc">"Fuck you, I don't want it no more. And it's mine."</div>
+      <div class="tool-stat" id="stat-candlebox">—</div>
+    </a>
+
+    <a class="tool-card legendary" href="like-a-stone-full.html">
+      <div class="tool-icon" aria-hidden="true">🪨</div>
+      <div class="tool-name">LIKE A STONE</div>
+      <div class="tool-desc">"I'll wait for you there, alone, like a stone."</div>
+      <div class="tool-stat" id="stat-stone">—</div>
+    </a>
+
+    <a class="tool-card legendary" href="be-yourself-full.html">
+      <div class="tool-icon" aria-hidden="true">🛡️</div>
+      <div class="tool-name">BE YOURSELF</div>
+      <div class="tool-desc">"Be yourself is all that you can do."</div>
+      <div class="tool-stat" id="stat-beyourself">—</div>
+    </a>
+
+  </div>
+
+  <div class="section-label">INTEL &amp; MATCHING</div>
+
+  <div class="tool-grid">
+    <a class="tool-card" href="mission-brief.html" style="border-color:rgba(74,128,196,0.35);background:rgba(74,128,196,0.06)">
+      <div class="tool-icon" aria-hidden="true">📋</div>
+      <div class="tool-name" style="color:#4a80c4">MISSION BRIEF</div>
+      <div class="tool-desc">Build your therapist search profile. 5 steps. Printable. Bring it to session one.</div>
+      <div class="tool-stat" id="stat-brief">—</div>
+    </a>
+    <a class="tool-card" href="pattern-recon.html" style="border-color:rgba(212,168,67,.35);background:rgba(212,168,67,.06)">
+      <div class="tool-icon" aria-hidden="true">📡</div>
+      <div class="tool-name" style="color:#d4a843">PATTERN RECON</div>
+      <div class="tool-desc">Read-only analysis. Suit distribution, streak patterns, word frequency, behavioral insights.</div>
+      <div class="tool-stat">ANALYTICS</div>
+    </a>
+
+    <a class="tool-card" href="mood-trends.html" style="border-color:rgba(13,148,136,.35);background:rgba(13,148,136,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#0d9488">📈</div>
+      <div class="tool-name" style="color:#0d9488">MOOD TRENDS</div>
+      <div class="tool-desc">Visual timeline from Field Protocol check-ins. Charts, heatmaps, domain breakdown. Export for your therapist.</div>
+      <div class="tool-stat">TRENDS</div>
+    </a>
+
+    <a class="tool-card" href="clinical-assessments.html" style="border-color:rgba(99,102,241,.35);background:rgba(99,102,241,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#6366f1">📊</div>
+      <div class="tool-name" style="color:#6366f1">CLINICAL ASSESSMENTS</div>
+      <div class="tool-desc">PHQ-9, GAD-7, PCL-5. Gold-standard screening. Scored locally. Trend tracking. Export for your therapist.</div>
+      <div class="tool-stat">SCREENING</div>
+    </a>
+
+    <a class="tool-card" href="intelligence-ops.html" style="border-color:rgba(212,168,67,.35);background:rgba(212,168,67,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#d4a843">🧩</div>
+      <div class="tool-name" style="color:#d4a843">INTELLIGENCE OPS</div>
+      <div class="tool-desc">Behavioral drift detection. Distortion spikes vs baseline. Protocol ranking. Weekly situational brief. Zero AI.</div>
+      <div class="tool-stat">PHASE 1</div>
+    </a>
+
+    <a class="tool-card" href="pattern-intelligence.html" style="border-color:rgba(230,126,34,.35);background:rgba(230,126,34,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#e67e22">📊</div>
+      <div class="tool-name" style="color:#e67e22">PATTERN INTELLIGENCE</div>
+      <div class="tool-desc">Protocol logs, delay analytics, correction history, adaptive bias profile. Full debrief.</div>
+      <div class="tool-stat">WARROOM</div>
+    </a>
+
+    <a class="tool-card" href="field-manual.html" style="border-color:rgba(212,168,67,.35);background:rgba(212,168,67,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#d4a843">📖</div>
+      <div class="tool-name" style="color:#d4a843">FIELD MANUAL</div>
+      <div class="tool-desc">Evidence-based knowledge library. The science behind every drill. 32 micro-lessons.</div>
+      <div class="tool-stat">LIBRARY</div>
+    </a>
+
+    <a class="tool-card" href="after-action-review.html" style="border-color:rgba(212,168,67,.35);background:rgba(212,168,67,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#d4a843">📝</div>
+      <div class="tool-name" style="color:#d4a843">AFTER-ACTION REVIEW</div>
+      <div class="tool-desc">Weekly retrospective. What you committed, completed, and carry forward. 5 fields, 52-week history.</div>
+      <div class="tool-stat">INTEL</div>
+    </a>
+
+    <a class="tool-card" href="system-check.html" style="border-color:rgba(212,168,67,.35);background:rgba(212,168,67,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#d4a843">⚙️</div>
+      <div class="tool-name" style="color:#d4a843">SYSTEM CHECK</div>
+      <div class="tool-desc">Full diagnostic. Data integrity audit. Storage capacity. Corruption scan. Repair tools.</div>
+      <div class="tool-stat">DIAGNOSTICS</div>
+    </a>
+  </div>
+
+  <!-- ADHD OPS — FIELD KIT -->
+  <div class="section-label" style="margin-top:32px;color:#3498db">ADHD OPS — FIELD KIT</div>
+  <div class="tool-grid">
+    <a class="tool-card" href="dopamine-depot.html" style="border-color:rgba(212,168,67,.35);background:rgba(212,168,67,.06)">
+      <div class="tool-icon" aria-hidden="true">🎰</div>
+      <div class="tool-name" style="color:#d4a843">DOPAMINE DEPOT</div>
+      <div class="tool-desc">Reward menu + spin wheel. Build your dopamine menu before the craving decides for you.</div>
+    </a>
+    <a class="tool-card" href="weekly-ops.html" style="border-color:rgba(74,111,165,.35);background:rgba(74,111,165,.06)">
+      <div class="tool-icon" aria-hidden="true">📅</div>
+      <div class="tool-name" style="color:#4a6fa5">WEEKLY OPS</div>
+      <div class="tool-desc">7-day visual command map. See the whole week. Drag your energy where it matters.</div>
+    </a>
+    <a class="tool-card" href="grove-ops.html" style="border-color:rgba(39,174,96,.35);background:rgba(39,174,96,.06)">
+      <div class="tool-icon" aria-hidden="true">🌳</div>
+      <div class="tool-name" style="color:#27ae60">GROVE OPS</div>
+      <div class="tool-desc">Gamified Pomodoro. Grow trees with focus blocks. Kill the tree if you bail early.</div>
+    </a>
+    <a class="tool-card" href="quest-forge.html" style="border-color:rgba(155,89,182,.35);background:rgba(155,89,182,.06)">
+      <div class="tool-icon" aria-hidden="true">⚔️</div>
+      <div class="tool-name" style="color:#9b59b6">QUEST FORGE</div>
+      <div class="tool-desc">Avatar builder + soundboard armory. Turn tasks into quests. Earn your gear.</div>
+    </a>
+    <a class="tool-card" href="kanban-ops.html" style="border-color:rgba(230,126,34,.35);background:rgba(230,126,34,.06)">
+      <div class="tool-icon" aria-hidden="true">📋</div>
+      <div class="tool-name" style="color:#e67e22">KANBAN OPS</div>
+      <div class="tool-desc">Mission board. To Do → Doing → Done. Drag cards across the wall.</div>
+    </a>
+    <a class="tool-card" href="prompt-depot.html" style="border-color:rgba(52,152,219,.35);background:rgba(52,152,219,.06)">
+      <div class="tool-icon" aria-hidden="true">🤖</div>
+      <div class="tool-name" style="color:#3498db">PROMPT DEPOT</div>
+      <div class="tool-desc">Local AI prompt armory. Store, search, tag, version. Fuzzy search built in.</div>
+    </a>
+    <a class="tool-card" href="micro-ops.html" style="border-color:rgba(46,204,113,.35);background:rgba(46,204,113,.06)">
+      <div class="tool-icon" aria-hidden="true">🔬</div>
+      <div class="tool-name" style="color:#2ecc71">MICRO OPS</div>
+      <div class="tool-desc">Task paralysis destroyer. Overwhelming task in, micro-steps out. Break the freeze.</div>
+    </a>
+    <a class="tool-card" href="grind-ops.html" style="border-color:rgba(192,57,43,.35);background:rgba(192,57,43,.06)">
+      <div class="tool-icon" aria-hidden="true">⚡</div>
+      <div class="tool-name" style="color:#c0392b">GRIND OPS</div>
+      <div class="tool-desc">RPG execution system. XP, levels, streaks. Gamify your daily grind or die trying.</div>
+    </a>
+    <a class="tool-card" href="body-double-ops.html" style="border-color:rgba(149,165,166,.35);background:rgba(149,165,166,.06)">
+      <div class="tool-icon" aria-hidden="true">👥</div>
+      <div class="tool-name" style="color:#95a5a6">BODY DOUBLE OPS</div>
+      <div class="tool-desc">Virtual accountability partner. Set the task, start the timer, don't quit alone.</div>
+    </a>
+    <a class="tool-card" href="visual-planner.html" style="border-color:rgba(241,196,15,.35);background:rgba(241,196,15,.06)">
+      <div class="tool-icon" aria-hidden="true">🗓️</div>
+      <div class="tool-name" style="color:#f1c40f">VISUAL PLANNER</div>
+      <div class="tool-desc">Visual daily planner. Timeline view. Template days. Built for brains that need to see it.</div>
+    </a>
+    <a class="tool-card" href="journal-ops.html" style="border-color:rgba(44,82,130,.35);background:rgba(44,82,130,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#2c5282">📓</div>
+      <div class="tool-name" style="color:#2c5282">JOURNAL OPS</div>
+      <div class="tool-desc">Morning pages + evening debrief. Rotating clinical prompts from CBT, ACT, CPT, DBT. Streak tracking.</div>
+    </a>
+    <a class="tool-card" href="routine-builder.html" style="border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.06)">
+      <div class="tool-icon" aria-hidden="true" style="color:#ef4444">🔗</div>
+      <div class="tool-name" style="color:#ef4444">ROUTINE BUILDER</div>
+      <div class="tool-desc">Chain drills into custom routines. Morning ops, crisis stacks, evening protocols. One button launch.</div>
+    </a>
+  </div>
+
+  <div class="export-section">
+    <button class="export-btn" id="exportBtn" onclick="exportAll()">
+      ↓ EXPORT FULL RECOVERY ARCHIVE (.txt)
+    </button>
+    <div class="export-note">All sessions • All entries • One file • 100% local</div>
+  </div>
+
+  <footer>
+    100% local • Zero cloud • Zero login • Your rebuild stays yours<br>
+    Operator's Deck — February 2026
+  </footer>
+
+</div>
+
+<script>
+// ─── SCORE ENGINE ─────────────────────────────────────────────────────────────
+const KEYS = {
+  stuck:       'od3sp',
+  act:         'od_act_v1',
+  dearman:     'od_dm_v1',
+  tipp:        'od_tipp_full',
+  improve:     'od_improve_full',
+  candlebox:   'od_candlebox_full',
+  stone:       'od_like_a_stone_full',
+  beyourself:  'od_be_yourself_full',
+  mindfulness: 'od_mindfulness_full',
+  intercepts:  'od_intercepts',
+  brief:       'od_mission_brief_v1',
+  meditation:  'od_meditation',
+};
+
+function safeGet(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+
+function countEntries(key) {
+  const data = safeGet(key);
+  return Array.isArray(data) ? data.length : 0;
+}
+
+function initScore() {
+  try {
+    const counts = {
+      stuck:       countEntries(KEYS.stuck),
+      act:         countEntries(KEYS.act),
+      dearman:     countEntries(KEYS.dearman),
+      tipp:        countEntries(KEYS.tipp),
+      improve:     countEntries(KEYS.improve),
+      candlebox:   countEntries(KEYS.candlebox),
+      stone:       countEntries(KEYS.stone),
+      beyourself:  countEntries(KEYS.beyourself),
+      mindfulness: countEntries(KEYS.mindfulness),
+      intercepts:  countEntries(KEYS.intercepts),
+      brief:       countEntries(KEYS.brief),
+      meditation:  countEntries(KEYS.meditation),
+    };
+
+    // Score formula: each entry = 10pts, candlebox reps = 25pts each
+    const score =
+      (counts.stuck * 10) +
+      (counts.act * 10) +
+      (counts.dearman * 10) +
+      (counts.tipp * 8) +
+      (counts.improve * 8) +
+      (counts.candlebox * 25) +
+      (counts.stone * 20) +
+      (counts.beyourself * 20) +
+      (counts.mindfulness * 10) +
+      (counts.intercepts * 15) +
+      (counts.brief * 15) +
+      (counts.meditation * 10);
+
+    const totalEntries = Object.values(counts).reduce((a,b) => a+b, 0);
+
+    document.getElementById('opScore').textContent = score || '00';
+    document.getElementById('scoreCaption').textContent =
+      totalEntries === 0
+        ? 'No sessions logged yet. First one changes everything.'
+        : `${totalEntries} total session${totalEntries !== 1 ? 's' : ''} across all drills`;
+
+    // Breakdown chips
+    const bd = document.getElementById('scoreBreakdown');
+    const chips = [
+      { label: 'STUCK',    val: counts.stuck },
+      { label: 'ACT',      val: counts.act   },
+      { label: 'DEAR MAN', val: counts.dearman },
+      { label: 'TIPP',     val: counts.tipp  },
+      { label: 'IMPROVE',  val: counts.improve },
+      { label: 'CBX',      val: counts.candlebox },
+      { label: 'BRIEF',    val: counts.brief },
+      { label: 'MEDITATE', val: counts.meditation },
+    ].filter(c => c.val > 0);
+
+    bd.innerHTML = chips.map(c =>
+      `<div class="score-item">${c.label} <span>${c.val}</span></div>`
+    ).join('');
+
+    // Per-card stats
+    setStatLabel('stat-stuck',     counts.stuck,     'sessions');
+    setStatLabel('stat-act',       counts.act,       'sessions');
+    setStatLabel('stat-dearman',   counts.dearman,   'scripts');
+    setStatLabel('stat-tipp',      counts.tipp,      'resets');
+    setStatLabel('stat-improve',   counts.improve,   'sessions');
+    setStatLabel('stat-candlebox', counts.candlebox, 'reps logged');
+    setStatLabel('stat-stone',     counts.stone,     'reps logged');
+    setStatLabel('stat-beyourself',counts.beyourself,'reps logged');
+    setStatLabel('stat-mindfulness',counts.mindfulness,'cycles logged');
+    setStatLabel('stat-meditation', counts.meditation, 'sessions');
+    setStatLabel('stat-intercepts', counts.intercepts, 'thoughts caught');
+    setStatLabel('stat-brief',      counts.brief,      'briefs filed');
+
+  } catch(e) {
+    document.getElementById('opScore').textContent = '?';
+    document.getElementById('scoreCaption').textContent = 'Storage unavailable — open directly in browser';
+  }
+}
+
+function setStatLabel(id, count, unit) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = count > 0 ? `${count} ${unit}` : '';
+}
+
+// ─── EXPORT ENGINE ────────────────────────────────────────────────────────────
+function exportAll() {
+  try {
+    const lines = [];
+    const ts = new Date().toLocaleString();
+
+    lines.push('═══════════════════════════════════════════════════════════');
+    lines.push('  OPERATOR\'S DECK — FULL RECOVERY ARCHIVE');
+    lines.push(`  Exported: ${ts}`);
+    lines.push('═══════════════════════════════════════════════════════════');
+    lines.push('');
+
+    const sections = [
+      { key: KEYS.stuck,      label: 'STUCK POINTS DRILL' },
+      { key: KEYS.act,        label: 'ACT DRILL' },
+      { key: KEYS.dearman,    label: 'DEAR MAN DRILL' },
+      { key: KEYS.tipp,       label: 'TIPP PROTOCOL' },
+      { key: KEYS.improve,    label: 'IMPROVE THE MOMENT' },
+      { key: KEYS.candlebox,  label: 'CANDLEBOX — REBUILD' },
+      { key: KEYS.stone,      label: 'LIKE A STONE' },
+      { key: KEYS.beyourself, label: 'BE YOURSELF' },
+      { key: KEYS.mindfulness, label: 'MINDFULNESS — DBT CORE' },
+      { key: KEYS.intercepts, label: 'THOUGHT INTERCEPTOR' },
+      { key: KEYS.brief,      label: 'MISSION BRIEFS' },
+    ];
+
+    let totalEntries = 0;
+
+    sections.forEach(({ key, label }) => {
+      const data = safeGet(key);
+      if (data.length === 0) return;
+
+      totalEntries += data.length;
+      lines.push(`───────────────────────────────────────────────────────────`);
+      lines.push(`  ${label} (${data.length} entries)`);
+      lines.push(`───────────────────────────────────────────────────────────`);
+
+      data.forEach((entry, i) => {
+        lines.push('');
+        lines.push(`  Entry ${i + 1}`);
+        if (entry.date) lines.push(`  Date: ${entry.date}`);
+        if (entry.ts)   lines.push(`  Time: ${new Date(entry.ts).toLocaleString()}`);
+
+        // Dump all string/number fields
+        Object.entries(entry).forEach(([k, v]) => {
+          if (['ts', 'date', 'time'].includes(k)) return;
+          if (typeof v === 'string' && v.trim()) {
+            lines.push(`  ${k}: ${v}`);
+          } else if (typeof v === 'number') {
+            lines.push(`  ${k}: ${v}`);
+          }
+        });
+      });
+
+      lines.push('');
+    });
+
+    // ── ADHD TOOLS EXPORT ──
+    var adhdTools = [
+      { key: 'od_grove_log',   label: 'GROVE OPS — FOCUS LOG' },
+      { key: 'od_dd_log',      label: 'DOPAMINE DEPOT — LOG' },
+      { key: 'od_micro_magic', label: 'MICRO OPS — SAVED BREAKDOWNS' },
+      { key: 'od_bd_history',  label: 'BODY DOUBLE — SESSIONS' },
+      { key: 'od_vp_focus',    label: 'VISUAL PLANNER — FOCUS LOG' },
+      { key: 'od_playbook_log',label: 'OPERATOR\'S PLAYBOOK — ACTIVATIONS' },
+      { key: 'od_cbt_records', label: 'CBT DRILL — THOUGHT RECORDS' },
+      { key: 'od_values_records', label: 'VALUES DRILL — CLARIFICATIONS' },
+      { key: 'od_journal',     label: 'JOURNAL OPS — ENTRIES' },
+      { key: 'od_clinical_scores', label: 'CLINICAL ASSESSMENTS — SCORES' },
+      { key: 'od_routines',   label: 'ROUTINE BUILDER — ROUTINES' },
+      { key: 'od_routine_log',label: 'ROUTINE BUILDER — COMPLETION LOG' },
+    ];
+    adhdTools.forEach(function(tool) {
+      var data = safeGet(tool.key);
+      if (data.length === 0) return;
+      totalEntries += data.length;
+      lines.push('───────────────────────────────────────────────────────────');
+      lines.push('  ' + tool.label + ' (' + data.length + ' entries)');
+      lines.push('───────────────────────────────────────────────────────────');
+      data.forEach(function(entry, i) {
+        lines.push('');
+        lines.push('  Entry ' + (i + 1));
+        if (typeof entry === 'object' && entry !== null) {
+          Object.entries(entry).forEach(function(pair) {
+            var k = pair[0], v = pair[1];
+            if (typeof v === 'string' && v.trim()) lines.push('  ' + k + ': ' + v);
+            else if (typeof v === 'number') lines.push('  ' + k + ': ' + v);
+          });
+        } else if (typeof entry === 'string') { lines.push('  ' + entry); }
+      });
+      lines.push('');
+    });
+
+    // ADHD structured data (non-array)
+    var adhdStructured = [
+      { key: 'od_kb_tasks',    label: 'KANBAN OPS' },
+      { key: 'od_qf_avatar',   label: 'QUEST FORGE — AVATAR' },
+      { key: 'od_grove_trees', label: 'GROVE OPS — TREES' },
+    ];
+    adhdStructured.forEach(function(tool) {
+      try {
+        var raw = localStorage.getItem(tool.key);
+        if (!raw) return;
+        var data = JSON.parse(raw);
+        totalEntries++;
+        lines.push('───────────────────────────────────────────────────────────');
+        lines.push('  ' + tool.label);
+        lines.push('───────────────────────────────────────────────────────────');
+        lines.push('  ' + JSON.stringify(data, null, 2).split('\n').join('\n  '));
+        lines.push('');
+      } catch(e) {}
+    });
+
+    if (totalEntries === 0) {
+      showToast('No sessions to export yet.');
+      return;
+    }
+
+    lines.push('═══════════════════════════════════════════════════════════');
+    lines.push(`  Total entries: ${totalEntries}`);
+    lines.push('  End of archive. Keep going, operator.');
+    lines.push('═══════════════════════════════════════════════════════════');
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `operators-deck-archive-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showToast(`✓ EXPORTED ${totalEntries} ENTRIES`);
+
+  } catch(e) {
+    showToast('Export failed — open page directly in browser.');
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+initScore();
+</script>
+</body>
+</html>

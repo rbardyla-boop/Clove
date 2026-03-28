@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="STUCK POINTS DRILL • OPERATOR'S DECK">
+<meta property="og:description" content="CPT-inspired tool. Identify locked beliefs, examine the evidence, find the calibrated version.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/stuck-points-drill.html">
+    <title>STUCK POINTS DRILL • OPERATOR'S DECK</title>
+    <style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+.app{max-width:480px;margin:0 auto}
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--blu);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--blu);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim2);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blu),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim)}
+.step-counter span{color:var(--blu)}
+/* DISCLAIMER */
+.disc-strip{background:#0a0a0a;border-bottom:1px solid rgba(192,57,43,.25);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--red);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#4a6fa588;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#4a6fa5cc}
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--blu);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim2);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:#555;font-style:normal}
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(74,111,165,.4)}
+textarea::placeholder,input::placeholder{color:#222;font-style:italic}
+textarea{min-height:90px}
+.char-hint{color:var(--dim2);font-size:7px;font-family:monospace;text-align:right;margin-top:4px;letter-spacing:.5px}
+/* EMOTIONS */
+.emotions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.emo-item{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s}
+.emo-item.sel{border-color:var(--blu);background:rgba(74,111,165,.1)}
+.emo-item:active{transform:scale(.96)}
+.emo-name{font-size:10px;font-weight:700;font-family:monospace;letter-spacing:1px;margin-bottom:8px}
+.emo-slider{width:100%;height:4px;-webkit-appearance:none;background:var(--dim2);border-radius:2px;outline:none}
+.emo-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blu);cursor:pointer}
+.emo-val{color:var(--blu);font-size:9px;font-family:monospace;text-align:right;margin-top:4px}
+.add-emo{width:100%;background:none;border:1px dashed var(--dim2);color:var(--dim);border-radius:10px;padding:10px;font-size:8px;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-top:4px;transition:all .2s}
+.add-emo:active{color:#888}
+/* THEMES */
+.themes-grid{display:flex;flex-direction:column;gap:8px}
+.theme-card{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;display:flex;gap:12px;align-items:flex-start}
+.theme-card.sel{border-color:var(--blu);background:rgba(74,111,165,.08)}
+.theme-card:active{transform:scale(.98)}
+.tc-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.tc-name{font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1.5px;margin-bottom:4px}
+.tc-desc{color:#666;font-size:9px;font-family:Georgia,serif;line-height:1.6}
+.tc-ex{color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:.5px;margin-top:5px;font-style:italic}
+/* EVIDENCE */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.col-head{font-size:7.5px;font-family:monospace;letter-spacing:2px;padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid}
+.col-for .col-head{color:#c0392b;border-color:rgba(192,57,43,.2)}
+.col-against .col-head{color:var(--grn);border-color:rgba(39,174,96,.2)}
+.col-for textarea,.col-against textarea{min-height:150px;font-size:10.5px}
+/* ERRORS */
+.errors-list{display:flex;flex-direction:column;gap:8px}
+.error-item{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;gap:10px;align-items:flex-start}
+.error-item.sel{border-color:rgba(212,168,67,.4);background:rgba(212,168,67,.05)}
+.error-item:active{transform:scale(.98)}
+.ei-check{width:16px;height:16px;border:1.5px solid var(--dim2);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .2s}
+.error-item.sel .ei-check{border-color:var(--gld);background:rgba(212,168,67,.2);color:var(--gld)}
+.ei-name{font-size:9.5px;font-weight:700;font-family:monospace;letter-spacing:1px;margin-bottom:3px}
+.ei-desc{color:#555;font-size:8.5px;font-family:Georgia,serif;line-height:1.55}
+/* RERATE */
+.rerate-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rerate-item{background:var(--bg3);border:1px solid var(--dim2);border-radius:10px;padding:12px}
+.rerate-name{font-size:9px;font-weight:700;font-family:monospace;letter-spacing:1px;margin-bottom:6px}
+.rerate-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.rerate-old{font-size:9px;font-family:monospace;color:var(--dim);text-decoration:line-through}
+.rerate-arrow{color:var(--dim2)}
+.rerate-new{font-size:11px;font-weight:800;font-family:monospace;color:var(--blu)}
+.rerate-slider{width:100%;height:4px;-webkit-appearance:none;background:var(--dim2);border-radius:2px;outline:none}
+.rerate-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blu);cursor:pointer}
+/* BUTTONS */
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:linear-gradient(135deg,var(--blu),#2a4f85);color:#fff;border:none;border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-next:active{transform:scale(.96)}
+.btn-next:disabled{opacity:.3;cursor:default;transform:none}
+.btn-back-step{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:10px;padding:15px 18px;font-size:9px;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0}
+.btn-back-step:active{color:#888;border-color:#555}
+.btn-save{background:linear-gradient(135deg,var(--grn),#1a7a3c)}
+.btn-print{width:100%;background:var(--bg3);color:var(--blu);border:1px solid rgba(74,111,165,.25);border-radius:10px;padding:13px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;margin-top:10px;transition:all .2s}
+.btn-print:active{transform:scale(.96)}
+/* SUMMARY */
+.summary-header{text-align:center;margin-bottom:20px}
+.summary-header .sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:6px}
+.sb-content{color:#ccc;font-size:11px;font-family:Georgia,serif;line-height:1.65}
+.sb-theme{display:inline-flex;align-items:center;gap:6px;background:rgba(74,111,165,.1);border:1px solid rgba(74,111,165,.2);border-radius:6px;padding:4px 10px;font-size:8px;font-family:monospace;letter-spacing:1px;color:var(--blu)}
+.shift-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.shift-item{background:var(--bg2);border-radius:8px;padding:8px 10px;text-align:center;min-width:70px}
+.shift-item .si-label{color:var(--dim);font-size:6.5px;font-family:monospace;letter-spacing:1px;margin-bottom:3px}
+.shift-item .si-val{font-size:12px;font-weight:900;font-family:monospace}
+.errors-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.error-tag{background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.2);border-radius:5px;padding:4px 8px;font-size:7.5px;font-family:monospace;letter-spacing:.5px;color:var(--gld)}
+/* PAST */
+.past-section{margin:0 16px 60px}
+.past-title{color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.past-entry{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid rgba(74,111,165,.35)}
+.pe-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.pe-date{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:1px}
+.pe-theme{color:var(--blu);font-size:7px;font-family:monospace;letter-spacing:1px}
+.pe-stuck{color:#888;font-size:10px;font-family:Georgia,serif;line-height:1.55;margin-bottom:6px;font-style:italic}
+.pe-thought{color:#4a8a5a;font-size:10px;font-family:Georgia,serif;line-height:1.55}
+.pe-expand{background:none;border:none;color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;margin-top:6px;padding:0;transition:color .2s}
+.pe-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--dim2)}
+.pe-detail.open{display:block}
+.pd-label{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2px;margin:8px 0 4px}
+.pd-text{color:#666;font-size:9.5px;font-family:Georgia,serif;line-height:1.6}
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1.5px;z-index:99;animation:tin .3s ease-out,tout .3s ease-in 1.8s forwards;pointer-events:none;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+    *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="goBack()">← DECK</button>
+    <div class="nav-info">
+        <div class="nav-tag">COGNITIVE RESTRUCTURING TOOL</div>
+        <div class="nav-name">🧠 STUCK POINTS DRILL</div>
+    </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div class="disc-strip">
+    <div class="ds-icon">⚠</div>
+    <div class="ds-text"><strong>SELF-HELP TOOL ONLY.</strong> Not therapy. Not clinical CPT. Built by a communications specialist, not a clinician. Use to prepare for sessions with a licensed professional. In crisis: call <strong>988</strong> or text HOME to <strong>686868</strong>.</div>
+</div>
+
+<!-- STEP 1: SITUATION -->
+<div class="step active" id="step1">
+    <div class="step-counter">STEP <span>1</span> OF 8</div>
+    <div class="step-label">FIELD INTEL</div>
+    <div class="step-title">What happened?</div>
+    <div class="step-desc">Briefly describe the situation, event, or trigger. Facts only — not your interpretation yet. Two or three sentences is enough.</div>
+    <div class="step-example"><strong>Example:</strong> "Got passed over for promotion again. Supervisor said I wasn't ready. Third year running."</div>
+    <textarea id="f_situation" maxlength="500" placeholder="Describe the situation..." oninput="charUpdate(this,'ch1');btn('btn1',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch1">0 / 500</div>
+    <div class="step-acts"><button class="btn-next" id="btn1" onclick="goStep(2)" disabled>NEXT →</button></div>
+</div>
+
+<!-- STEP 2: STUCK POINT -->
+<div class="step" id="step2">
+    <div class="step-counter">STEP <span>2</span> OF 8</div>
+    <div class="step-label">TARGET ACQUISITION</div>
+    <div class="step-title">What's the locked belief?</div>
+    <div class="step-desc">Write the exact thought your brain is stuck on. This is the interpretation, not the event. Be specific. Start with "I am..." or "People always..." or "It was my fault that..."</div>
+    <div class="step-example"><strong>Examples:</strong><br>"I am fundamentally not good enough."<br>"If I trust people, I will get hurt."<br>"I have no control over anything that matters."<br>"It is my fault this happened to me."</div>
+    <textarea id="f_stuck" maxlength="300" placeholder="Write the exact stuck thought..." oninput="charUpdate(this,'ch2');btn('btn2',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch2">0 / 300</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+        <button class="btn-next" id="btn2" onclick="goStep(3)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 3: EMOTIONS -->
+<div class="step" id="step3">
+    <div class="step-counter">STEP <span>3</span> OF 8</div>
+    <div class="step-label">CASUALTY REPORT</div>
+    <div class="step-title">What does it cost you emotionally?</div>
+    <div class="step-desc">Tap to select each emotion this thought triggers. Slide to rate intensity from 0 (barely there) to 100 (overwhelming). Select at least one.</div>
+    <div class="emotions-grid" id="emotionsGrid"></div>
+    <button class="add-emo" onclick="addCustomEmo()">+ ADD ANOTHER EMOTION</button>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+        <button class="btn-next" id="btn3" onclick="goStep(4)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 4: THEME -->
+<div class="step" id="step4">
+    <div class="step-counter">STEP <span>4</span> OF 8</div>
+    <div class="step-label">PATTERN RECOGNITION</div>
+    <div class="step-title">Which core belief area is disrupted?</div>
+    <div class="step-desc">Prolonged stress and trauma tend to hit five specific areas of how we see ourselves and the world. Identifying your area tells you what you're actually challenging. Pick the one that fits best.</div>
+    <div class="themes-grid" id="themesGrid"></div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+        <button class="btn-next" id="btn4" onclick="goStep(5)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 5: EVIDENCE -->
+<div class="step" id="step5">
+    <div class="step-counter">STEP <span>5</span> OF 8</div>
+    <div class="step-label">EVIDENCE LOCKER</div>
+    <div class="step-title">What does the actual record show?</div>
+    <div class="step-desc">List real facts and events — not feelings — on both sides. Your brain only files evidence that confirms what it already believes. Force it to give up the rest. Fill at least one side.</div>
+    <div class="two-col">
+        <div class="col-for">
+            <div class="col-head">FOR THE THOUGHT</div>
+            <textarea id="f_for" maxlength="1000" placeholder="Experiences that make this feel true..." oninput="charUpdate(this,'ch5a');checkEvidence()"></textarea>
+            <div class="char-hint" id="ch5a">0 / 1000</div>
+        </div>
+        <div class="col-against">
+            <div class="col-head">AGAINST THE THOUGHT</div>
+            <textarea id="f_against" maxlength="1000" placeholder="Times it wasn't true. Contradictions..." oninput="charUpdate(this,'ch5b');checkEvidence()"></textarea>
+            <div class="char-hint" id="ch5b">0 / 1000</div>
+        </div>
+    </div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(4)">← BACK</button>
+        <button class="btn-next" id="btn5" onclick="goStep(6)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 6: THINKING ERRORS -->
+<div class="step" id="step6">
+    <div class="step-counter">STEP <span>6</span> OF 8</div>
+    <div class="step-label">BREACH AND CLEAR</div>
+    <div class="step-title">Which thinking traps are running?</div>
+    <div class="step-desc">These are shortcuts your nervous system built to protect you. They worked once. Name them and they lose power. Select all that apply — or skip if none fit.</div>
+    <div class="errors-list" id="errorsList"></div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(5)">← BACK</button>
+        <button class="btn-next" onclick="goStep(7)">NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 7: BALANCED THOUGHT -->
+<div class="step" id="step7">
+    <div class="step-counter">STEP <span>7</span> OF 8</div>
+    <div class="step-label">NEW OPERATING TRUTH</div>
+    <div class="step-title">What's the calibrated version?</div>
+    <div class="step-desc">Write a balanced alternative. Not toxic positivity. Not denial. A statement that accounts for evidence on both sides. It should feel true, just less extreme. A calibrated operator doesn't pretend everything is fine — he holds the full picture.</div>
+    <div class="step-example"><strong>Not this:</strong> "Everything is fine."<br><strong>This:</strong> "I've had real failures AND real wins. One outcome isn't a verdict."<br><strong>Or:</strong> "I can't control everything. I can control what I do next."<br><strong>Or:</strong> "I was hurt. That doesn't mean I'm broken or that it defines what happens next."</div>
+    <textarea id="f_balanced" maxlength="500" placeholder="Write the balanced alternative thought..." oninput="charUpdate(this,'ch7');btn('btn7',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch7">0 / 500</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(6)">← BACK</button>
+        <button class="btn-next" id="btn7" onclick="goStep(8)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 8: RE-RATE -->
+<div class="step" id="step8">
+    <div class="step-counter">STEP <span>8</span> OF 8</div>
+    <div class="step-label">AFTER ACTION</div>
+    <div class="step-title">How intense are those emotions now?</div>
+    <div class="step-desc">After working through the evidence and building a balanced thought — re-rate the same emotions. The goal isn't zero. A reduction is progress. If some went up, that's also data worth logging.</div>
+    <div class="rerate-grid" id="rerateGrid"></div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(7)">← BACK</button>
+        <button class="btn-next btn-save" onclick="saveEntry()">SAVE WORKSHEET ✓</button>
+    </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="step" id="stepSummary">
+    <div class="step-counter" style="color:var(--grn)">WORKSHEET COMPLETE</div>
+    <div class="summary-header">
+        <div class="sh-icon">✅</div>
+        <h2>FILED TO EVIDENCE</h2>
+        <p>Print it and take it to your next session. Show your therapist. That's what this is for.</p>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">STUCK POINT</div>
+        <div class="sb-content" id="sum_stuck" style="color:#999;font-style:italic"></div>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">BELIEF AREA</div>
+        <div class="sb-theme" id="sum_theme"></div>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">EMOTION SHIFT (BEFORE → AFTER)</div>
+        <div class="shift-row" id="sum_shift"></div>
+    </div>
+    <div class="summary-block" id="sum_errors_block" style="display:none">
+        <div class="sb-label">THINKING TRAPS IDENTIFIED</div>
+        <div class="errors-tags" id="sum_errors"></div>
+    </div>
+    <div class="summary-block">
+        <div class="sb-label">BALANCED THOUGHT</div>
+        <div class="sb-content" id="sum_balanced" style="color:#4a8a5a"></div>
+    </div>
+    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+      <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+      <a href="act-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">ACT DRILL \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Commit to action based on what you just uncovered</span></a><a href="./?tab=evidence" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">GOAL SETTING \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Set a goal around this belief change</span></a>
+    </div>
+
+    <button class="btn-print" onclick="printSheet()">🖨️ PRINT CLEAN VERSION FOR THERAPY</button>
+    <div class="step-acts" style="margin-top:10px">
+        <button class="btn-next" onclick="startNew()">START NEW WORKSHEET</button>
+    </div>
+</div>
+
+<!-- PAST ENTRIES -->
+<div class="past-section" id="pastSection"></div>
+
+</div>
+
+<script>
+const EMOTIONS=['Shame','Guilt','Anger','Fear','Sadness','Helplessness','Numbness','Anxiety','Grief','Betrayal','Disgust','Hopelessness'];
+const THEMES=[
+  {k:'safety',icon:'🛡️',name:'SAFETY',desc:'Beliefs about your own safety or the safety of the world around you.',ex:'"The world is always dangerous." / "I can never truly be safe."'},
+  {k:'trust',icon:'🔑',name:'TRUST',desc:'Beliefs about your ability to trust yourself or to trust other people.',ex:'"I can\'t trust anyone." / "I can\'t trust my own judgment."'},
+  {k:'power',icon:'⚙️',name:'POWER / CONTROL',desc:'Beliefs about your ability to influence and control what happens in your life.',ex:'"I am helpless." / "I must control everything or it falls apart."'},
+  {k:'esteem',icon:'🪞',name:'ESTEEM',desc:'Beliefs about your own worth or the worth of other people.',ex:'"I am broken." / "I am fundamentally not good enough." / "I am a failure."'},
+  {k:'intimacy',icon:'🤝',name:'INTIMACY',desc:'Beliefs about being emotionally close to or connected with other people.',ex:'"I am completely alone." / "People always leave." / "I am a burden."'},
+];
+const ERRORS=[
+  {k:'jumping',name:'JUMPING TO CONCLUSIONS',desc:'Treating a guess as an established fact. "This means X" when you don\'t actually know.'},
+  {k:'overgeneralize',name:'OVERGENERALIZING',desc:'"Always," "never," "everyone," "no one." One event becomes a permanent universal law.'},
+  {k:'ignore',name:'IGNORING THE EVIDENCE',desc:'Discounting facts that don\'t fit the thought. Only filing evidence that confirms what you already believe.'},
+  {k:'overestimate',name:'OVERESTIMATING THE THREAT',desc:'Making the bad thing bigger than it actually is, or discounting how much you can handle it.'},
+  {k:'blame',name:'SELF-BLAME',desc:'Taking full responsibility for things that were not entirely within your control.'},
+  {k:'mindread',name:'MIND-READING',desc:'Assuming you know what others are thinking — usually that it\'s negative or about you.'},
+  {k:'emotional',name:'EMOTIONAL REASONING',desc:'"I feel worthless, therefore I am." Treating an internal feeling as proof of an external fact.'},
+  {k:'allornothing',name:'ALL-OR-NOTHING THINKING',desc:'No middle ground exists. You\'re either a total success or a complete failure. No grey.'},
+  {k:'catastrophize',name:'CATASTROPHIZING',desc:'The worst possible outcome is the most likely one. Every setback is evidence of inevitable disaster.'},
+  {k:'should',name:'"SHOULD" STATEMENTS',desc:'Rigid rules about how you or others must behave. Any violation is proof of fundamental failure.'},
+];
+
+let emoData={},themeData='',errorData=new Set(),rerateData={};
+
+// UTILS
+function esc(s){if(typeof s!=='string')return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function san(s){return typeof s==='string'?s.substring(0,5000).replace(/<[^>]*>/g,''):''}
+function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+function hap(arr){if(navigator.vibrate)navigator.vibrate(arr)}
+function charUpdate(el,id){const d=document.getElementById(id);if(d)d.textContent=el.value.length+' / '+el.maxLength}
+function btn(id,enabled){const b=document.getElementById(id);if(b)b.disabled=!enabled}
+function loadEntries(){try{return JSON.parse(localStorage.getItem('od3sp'))||[]}catch(e){return[]}}
+function saveEntries(arr){try{localStorage.setItem('od3sp',JSON.stringify(arr.slice(0,200)))}catch(e){}}
+
+// NAV — use history.back() to fix the 404
+function goBack(){window.location.href='./?tab=more'}
+
+// PROGRESS
+function setProgress(n){document.getElementById('progressFill').style.width=Math.min((n-1)/8*100,100)+'%'}
+
+// STEP NAV
+function goStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  const id=n===9?'stepSummary':'step'+n;
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+  if(n===8)buildRerate();
+  setProgress(n);
+}
+
+// STEP 3: EMOTIONS
+function buildEmotions(){
+  const g=document.getElementById('emotionsGrid');g.innerHTML='';
+  EMOTIONS.forEach(name=>{
+    const d=document.createElement('div');d.className='emo-item';
+    d.innerHTML=`<div class="emo-name">${name}</div><input type="range" class="emo-slider" min="0" max="100" value="50"><div class="emo-val" id="ev_${name}">50</div>`;
+    const slider=d.querySelector('.emo-slider');
+    slider.addEventListener('input',e=>{e.stopPropagation();document.getElementById('ev_'+name).textContent=slider.value;if(emoData[name]!==undefined)emoData[name]=+slider.value});
+    slider.addEventListener('click',e=>e.stopPropagation());
+    d.addEventListener('click',e=>{if(e.target.type==='range')return;d.classList.toggle('sel');if(d.classList.contains('sel')){emoData[name]=+slider.value}else{delete emoData[name]}btn('btn3',Object.keys(emoData).length>0)});
+    g.appendChild(d);
+  });
+}
+function addCustomEmo(){
+  const name=prompt('Enter emotion name:');if(!name||!name.trim())return;
+  const n=name.trim().toUpperCase().substring(0,20);
+  const g=document.getElementById('emotionsGrid');
+  const d=document.createElement('div');d.className='emo-item sel';
+  d.innerHTML=`<div class="emo-name">${n}</div><input type="range" class="emo-slider" min="0" max="100" value="50"><div class="emo-val" id="ev_${n}">50</div>`;
+  const slider=d.querySelector('.emo-slider');
+  slider.addEventListener('input',e=>{e.stopPropagation();document.getElementById('ev_'+n).textContent=slider.value;emoData[n]=+slider.value});
+  slider.addEventListener('click',e=>e.stopPropagation());
+  d.addEventListener('click',e=>{if(e.target.type==='range')return;d.classList.toggle('sel');if(d.classList.contains('sel')){emoData[n]=+slider.value}else{delete emoData[n]}btn('btn3',Object.keys(emoData).length>0)});
+  g.appendChild(d);emoData[n]=50;btn('btn3',true);
+}
+
+// STEP 4: THEMES
+function buildThemes(){
+  const g=document.getElementById('themesGrid');g.innerHTML='';
+  THEMES.forEach(t=>{
+    const d=document.createElement('div');d.className='theme-card';
+    d.innerHTML=`<div class="tc-icon">${t.icon}</div><div><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div><div class="tc-ex">${t.ex}</div></div>`;
+    d.onclick=()=>{document.querySelectorAll('.theme-card').forEach(c=>c.classList.remove('sel'));d.classList.add('sel');themeData=t.k;btn('btn4',true)};
+    g.appendChild(d);
+  });
+}
+
+// STEP 5: EVIDENCE
+function checkEvidence(){btn('btn5',!!(document.getElementById('f_for').value.trim()||document.getElementById('f_against').value.trim()))}
+
+// STEP 6: ERRORS
+function buildErrors(){
+  const l=document.getElementById('errorsList');l.innerHTML='';
+  ERRORS.forEach(e=>{
+    const d=document.createElement('div');d.className='error-item';
+    d.innerHTML=`<div class="ei-check">✓</div><div><div class="ei-name">${e.name}</div><div class="ei-desc">${e.desc}</div></div>`;
+    d.onclick=()=>{d.classList.toggle('sel');if(d.classList.contains('sel'))errorData.add(e.k);else errorData.delete(e.k)};
+    l.appendChild(d);
+  });
+}
+
+// STEP 8: RERATE
+function buildRerate(){
+  const g=document.getElementById('rerateGrid');g.innerHTML='';
+  const keys=Object.keys(emoData);
+  if(!keys.length){g.innerHTML='<div style="color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;grid-column:1/-1;padding:8px 0">No emotions selected in step 3.</div>';return}
+  keys.forEach(name=>{
+    const orig=emoData[name]||50;rerateData[name]=orig;
+    const d=document.createElement('div');d.className='rerate-item';
+    d.innerHTML=`<div class="rerate-name">${name}</div><div class="rerate-row"><span class="rerate-old">${orig}</span><span class="rerate-arrow"> → </span><span class="rerate-new" id="rr_${name}">${orig}</span></div><input type="range" class="rerate-slider" min="0" max="100" value="${orig}">`;
+    d.querySelector('.rerate-slider').addEventListener('input',function(){rerateData[name]=+this.value;const el=document.getElementById('rr_'+name);if(el)el.textContent=this.value});
+    g.appendChild(d);
+  });
+}
+
+// SAVE
+function saveEntry(){
+  const stuck=san(document.getElementById('f_stuck').value);
+  if(!stuck.trim()){showToast('GO BACK AND ADD A STUCK POINT');return}
+  const entry={
+    stuck1:stuck,
+    situation:san(document.getElementById('f_situation').value),
+    evidenceFor:san(document.getElementById('f_for').value),
+    evidenceAgainst:san(document.getElementById('f_against').value),
+    newThought:san(document.getElementById('f_balanced').value),
+    theme:themeData,
+    themeName:(THEMES.find(t=>t.k===themeData)||THEMES[3]).name,
+    emotions:{...emoData},rerateEmotions:{...rerateData},
+    errors:ERRORS.filter(e=>errorData.has(e.k)).map(e=>e.name),
+    date:new Date().toLocaleDateString(),ts:Date.now()
+  };
+  const arr=loadEntries();arr.push(entry);saveEntries(arr);
+  hap([15,30,15]);showToast('WORKSHEET SAVED');
+
+  const theme=THEMES.find(t=>t.k===entry.theme)||THEMES[3];
+  document.getElementById('sum_stuck').textContent=entry.stuck1;
+  document.getElementById('sum_theme').textContent=theme.icon+' '+theme.name;
+  document.getElementById('sum_balanced').textContent=entry.newThought||'(not filled)';
+
+  const sr=document.getElementById('sum_shift');sr.innerHTML='';
+  Object.keys(entry.emotions).slice(0,6).forEach(e=>{
+    const b=entry.emotions[e],a=(entry.rerateEmotions||{})[e]||b,d=b-a;
+    const color=d>0?'#27ae60':d<0?'#c0392b':'#555';
+    sr.innerHTML+=`<div class="shift-item"><div class="si-label">${e}</div><div class="si-val" style="color:${color}">${b}→${a}</div></div>`;
+  });
+
+  if(entry.errors&&entry.errors.length){
+    document.getElementById('sum_errors_block').style.display='';
+    document.getElementById('sum_errors').innerHTML=entry.errors.map(e=>`<div class="error-tag">${esc(e)}</div>`).join('');
+  }else{document.getElementById('sum_errors_block').style.display='none'}
+
+  goStep(9);renderPast();
+}
+
+// NEW
+function startNew(){
+  emoData={};themeData='';errorData=new Set();rerateData={};
+  ['f_situation','f_stuck','f_for','f_against','f_balanced'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  buildEmotions();buildThemes();buildErrors();
+  ['btn1','btn2','btn3','btn4','btn5','btn7'].forEach(id=>btn(id,false));
+  goStep(1);
+}
+
+// PRINT
+function printSheet(){
+  const arr=loadEntries();const last=arr[arr.length-1];
+  if(!last){showToast('SAVE FIRST');return}
+  const theme=THEMES.find(t=>t.k===last.theme)||THEMES[3];
+  const eRows=Object.keys(last.emotions||{}).map(e=>{
+    const b=last.emotions[e],a=(last.rerateEmotions||{})[e]||b,d=b-a;
+    return`<tr><td>${e}</td><td>${b}</td><td>${a}</td><td style="color:${d>0?'#27ae60':d<0?'#c0392b':'#555'}">${d>0?'↓ Reduced':d<0?'↑ Increased':'No change'}</td></tr>`;
+  }).join('');
+  const pw=window.open('','_blank');
+  pw.document.write(`<!DOCTYPE html><html><head><title>Stuck Points Worksheet — ${last.date}</title>
+  <style>*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;padding:36px;max-width:720px;margin:0 auto;color:#111;line-height:1.65;font-size:12px}
+  h1{font-size:20px;font-weight:900;letter-spacing:1px;margin-bottom:2px}.sub{color:#666;font-size:11px}.meta{color:#999;font-size:10px;margin-bottom:20px}
+  .disc{background:#fff5f5;border:1px solid #ffaaaa;border-radius:6px;padding:10px 14px;font-size:10px;color:#c0392b;margin-bottom:20px;line-height:1.6}
+  .disc strong{font-size:11px;display:block;margin-bottom:3px}
+  .section{margin-bottom:20px}.lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:5px;border-bottom:1px solid #eee;padding-bottom:4px}
+  .box{border:1px solid #ddd;border-radius:5px;padding:12px;min-height:60px;white-space:pre-wrap;font-size:11px;line-height:1.65;color:#222}
+  .badge{display:inline-block;background:#eef3fa;border:1px solid #c0d0e8;border-radius:4px;padding:4px 10px;font-size:10px;font-weight:700;color:#2a4f85}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .for-box{border-color:#f5cccc;background:#fffafa}.against-box{border-color:#bfe8ca;background:#f5fff8}
+  table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ddd;padding:7px 10px}th{background:#f5f5f5;font-size:9px;text-transform:uppercase;letter-spacing:1px}
+  .bal-box{border-color:#4a8a5a;background:#f5fff8;color:#2a5a3a}
+  .footer{margin-top:36px;padding-top:12px;border-top:1px solid #eee;font-size:9px;color:#aaa;text-align:center}
+  @media print{.disc{-webkit-print-color-adjust:exact;print-color-adjust:exact}}*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style></head><body>
+  <h1>STUCK POINTS WORKSHEET</h1>
+  <div class="sub">Operator's Deck — Cognitive Restructuring Tool</div>
+  <div class="meta">Date: ${last.date}</div>
+  <div class="disc"><strong>⚠ SELF-HELP TOOL ONLY — NOT CLINICAL TREATMENT</strong>Generated by a self-help app, not a licensed clinician. Not a substitute for CPT, EMDR, or any professional treatment. Bring this sheet to your therapist. In crisis: 988 (US/Canada) or text HOME to 686868.</div>
+  <div class="section"><div class="lbl">1 — Situation / Trigger</div><div class="box">${esc((last.situation||'').replace(/\n/g,'<br>'))}</div></div>
+  <div class="section"><div class="lbl">2 — The Stuck Point (Locked Belief)</div><div class="box">${esc((last.stuck1||'').replace(/\n/g,'<br>'))}</div></div>
+  <div class="section"><div class="lbl">3 — Belief Area</div><div class="badge">${theme.icon} ${theme.name}</div><p style="font-size:10px;color:#666;margin-top:6px;font-style:italic">${theme.desc}</p></div>
+  <div class="section"><div class="lbl">4 — Evidence Audit</div><div class="two">
+    <div><p style="font-size:9px;font-weight:700;color:#c0392b;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">For the Thought</p><div class="box for-box">${esc((last.evidenceFor||'(none listed)').replace(/\n/g,'<br>'))}</div></div>
+    <div><p style="font-size:9px;font-weight:700;color:#27ae60;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Against the Thought</p><div class="box against-box">${esc((last.evidenceAgainst||'(none listed)').replace(/\n/g,'<br>'))}</div></div>
+  </div></div>
+  ${last.errors&&last.errors.length?`<div class="section"><div class="lbl">5 — Thinking Traps Identified</div><div style="display:flex;flex-wrap:wrap;gap:6px">${last.errors.map(e=>`<span class="badge">${e}</span>`).join('')}</div></div>`:''}
+  <div class="section"><div class="lbl">${last.errors?.length?6:5} — Balanced Alternative Thought</div><div class="box bal-box">${esc((last.newThought||'(not filled)').replace(/\n/g,'<br>'))}</div></div>
+  ${eRows?`<div class="section"><div class="lbl">Emotion Shift (Before → After)</div><table><tr><th>Emotion</th><th>Before</th><th>After</th><th>Result</th></tr>${eRows}</table></div>`:''}
+  <div class="footer">Operator's Deck — clovelearn.io &nbsp;|&nbsp; Built by a communications specialist, not a clinician &nbsp;|&nbsp; Bring this to your therapist</div>
+  </body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
+}
+
+// PAST ENTRIES
+function renderPast(){
+  const arr=loadEntries().slice().reverse();
+  const el=document.getElementById('pastSection');
+  if(!arr.length){el.innerHTML='';return}
+  let h=`<div class="past-title">PREVIOUS WORKSHEETS (${arr.length})</div>`;
+  arr.forEach((e,i)=>{
+    const th=THEMES.find(t=>t.k===e.theme);
+    const hasDetail=e.evidenceFor||e.evidenceAgainst||e.errors?.length;
+    h+=`<div class="past-entry">
+      <div class="pe-header"><div class="pe-date">${esc(e.date||'')}</div>${th?`<div class="pe-theme">${th.icon} ${th.name}</div>`:''}</div>
+      <div class="pe-stuck">"${esc((e.stuck1||'').substring(0,120))}${e.stuck1?.length>120?'…':''}"</div>
+      ${e.newThought?`<div class="pe-thought">→ ${esc((e.newThought).substring(0,120))}${e.newThought.length>120?'…':''}</div>`:''}
+      ${hasDetail?`<button class="pe-expand" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'HIDE ↑':'SHOW FULL RECORD ↓'">SHOW FULL RECORD ↓</button>
+      <div class="pe-detail">
+        ${e.evidenceFor?`<div class="pd-label">EVIDENCE FOR</div><div class="pd-text">${esc((e.evidenceFor).substring(0,400))}</div>`:''}
+        ${e.evidenceAgainst?`<div class="pd-label">EVIDENCE AGAINST</div><div class="pd-text">${esc((e.evidenceAgainst).substring(0,400))}</div>`:''}
+        ${e.errors?.length?`<div class="pd-label">THINKING TRAPS</div><div class="errors-tags">${e.errors.map(er=>`<div class="error-tag">${esc(er)}</div>`).join('')}</div>`:''}
+      </div>`:``}
+    </div>`;
+  });
+  el.innerHTML=h;
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{buildEmotions();buildThemes();buildErrors();renderPast()});
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from Cognitive Processing Therapy (Resick et al., 2017). Not a substitute for professional CPT.</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

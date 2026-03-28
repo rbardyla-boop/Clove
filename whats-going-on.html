@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="WHAT'S GOING ON • OPERATOR'S DECK">
+<meta property="og:description" content="30 seconds to relief. Emotional detection → protocol routing → action steps. Zero cloud. Zero cost.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/whats-going-on.html">
+<title>WHAT'S GOING ON • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--blu:#4a6fa5;--pur:#7b52ab;--dim:#8a8a8a;--dim2:#777;--dim3:#333;--acc:#e67e22}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+.app{max-width:480px;margin:0 auto}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--red);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--red);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* DISCLAIMER */
+.disc-strip{background:#160303;border-bottom:1px solid rgba(192,57,43,.25);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--red);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#884444;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#cc4444}
+
+/* INPUT */
+.input-section{padding:16px}
+.input-label{color:var(--red);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px}
+.input-area{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim2);border-radius:12px;padding:14px;font-size:13px;font-family:Georgia,serif;line-height:1.65;resize:vertical;min-height:120px;outline:none;transition:border-color .2s}
+.input-area:focus{border-color:rgba(192,57,43,.4)}
+.input-area::placeholder{color:#222;font-style:italic}
+.char-hint{color:var(--dim2);font-size:7px;font-family:monospace;text-align:right;margin-top:4px}
+.analyze-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:12px;padding:16px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-top:12px;transition:all .15s}
+.analyze-btn:disabled{background:var(--dim2);color:var(--dim);cursor:not-allowed}
+.analyze-btn:not(:disabled):active{transform:scale(.97)}
+/* VOICE INPUT */
+.voice-row{display:flex;gap:8px;margin-top:8px}
+.voice-btn{width:52px;height:52px;border-radius:50%;background:var(--bg3);border:2px solid var(--dim3);color:var(--dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;position:relative}
+.voice-btn:active{transform:scale(.93)}
+.voice-btn.recording{border-color:var(--red);color:var(--red);background:rgba(192,57,43,.1);animation:vpulse 1.2s infinite}
+.voice-btn.unavailable{opacity:.25;cursor:not-allowed}
+@keyframes vpulse{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.3)}50%{box-shadow:0 0 0 10px rgba(192,57,43,0)}}
+.voice-status{font-size:7px;font-family:monospace;letter-spacing:1.5px;text-align:center;margin-top:4px;min-height:14px;transition:color .2s}
+.voice-status.active{color:var(--red)}
+.voice-status.done{color:var(--grn)}
+
+/* RESULTS */
+.results{display:none;padding:0 16px 16px}
+.results.show{display:block}
+.result-header{text-align:center;padding:16px 0 12px}
+.rh-icon{font-size:28px;margin-bottom:6px}
+.rh-state{font-size:18px;font-weight:900;letter-spacing:1px}
+.rh-conf{font-size:9px;font-family:monospace;letter-spacing:1px;margin-top:4px}
+.rh-ambig{display:inline-block;background:rgba(212,168,67,.15);border:1px solid rgba(212,168,67,.3);color:var(--gld);border-radius:6px;padding:3px 10px;font-size:7px;font-family:monospace;letter-spacing:1px;margin-top:6px}
+
+/* INTENSITY BAR */
+.intensity-bar{margin:12px 0 16px}
+.ib-label{display:flex;justify-content:space-between;font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--dim);margin-bottom:4px}
+.ib-track{height:6px;background:var(--dim3);border-radius:3px;overflow:hidden}
+.ib-fill{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* MODALITY CARD */
+.mod-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:14px;margin-bottom:10px}
+.mc-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.mc-badge{padding:3px 10px;border-radius:6px;font-size:7px;font-family:monospace;letter-spacing:1.5px;font-weight:700}
+.mc-title{font-size:11px;font-weight:800;letter-spacing:.5px}
+.mc-desc{color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+
+/* STEPS */
+.steps-list{margin-top:10px}
+.step-item{background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;gap:10px;align-items:flex-start}
+.si-num{background:var(--red);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;font-family:monospace;flex-shrink:0}
+.si-text{font-size:10px;line-height:1.6;color:#bbb}
+
+/* MICRO INTERVENTION */
+.micro-card{background:linear-gradient(135deg,#1a0808,var(--bg2));border:2px solid rgba(192,57,43,.3);border-radius:12px;padding:16px;margin:12px 0;text-align:center}
+.micro-label{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.micro-text{font-size:12px;font-weight:700;line-height:1.5}
+
+/* DISTORTIONS */
+.distortions{margin:12px 0}
+.dist-label{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+.dist-tags{display:flex;flex-wrap:wrap;gap:6px}
+.dist-tag{background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);color:var(--gld);border-radius:6px;padding:4px 10px;font-size:8px;font-family:monospace;letter-spacing:.5px;font-weight:700}
+
+/* TOP 3 */
+.alt-states{margin:12px 0}
+.alt-label{color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+.alt-row{display:flex;gap:8px}
+.alt-chip{background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;padding:8px 12px;flex:1;cursor:pointer;transition:all .15s;text-align:center}
+.alt-chip:active{transform:scale(.96)}
+.alt-name{font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1px;margin-bottom:2px}
+.alt-conf{font-size:7px;font-family:monospace;color:var(--dim)}
+
+/* TOOL ROUTES */
+.route-section{margin:16px 0}
+.route-label{color:var(--grn);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:8px}
+.route-btn{display:block;background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;margin-bottom:6px;text-decoration:none;transition:all .15s;cursor:pointer}
+.route-btn:active{transform:scale(.98);border-color:#444}
+.rb-name{font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1px}
+.rb-desc{color:#666;font-size:8px;font-family:Georgia,serif;font-style:italic;margin-top:2px}
+
+/* FEEDBACK */
+.feedback{margin:20px 0;text-align:center}
+.fb-label{color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:1.5px;margin-bottom:8px}
+.fb-row{display:flex;gap:8px;justify-content:center}
+.fb-btn{background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:10px 18px;font-size:9px;font-family:monospace;letter-spacing:1px;color:var(--dim);cursor:pointer;transition:all .15s}
+.fb-btn:active{transform:scale(.96)}
+.fb-btn.yes{border-color:rgba(39,174,96,.3);color:var(--grn)}
+.fb-btn.no{border-color:rgba(192,57,43,.3);color:var(--red)}
+
+/* CORRECTION */
+.correction{display:none;margin:12px 0;background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:14px}
+.correction.show{display:block}
+.corr-label{color:var(--acc);font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:8px}
+.corr-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.corr-opt{background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;padding:10px;cursor:pointer;text-align:center;font-size:9px;font-family:monospace;letter-spacing:.5px;color:var(--dim);transition:all .15s}
+.corr-opt:active{transform:scale(.96)}
+.corr-opt.sel{border-color:var(--acc);color:var(--acc);background:rgba(230,126,34,.08)}
+
+/* DELAY OVERLAY */
+.delay-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.97);z-index:100;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:30px}
+.delay-overlay.show{display:flex}
+.delay-icon{font-size:48px;margin-bottom:16px}
+.delay-title{font-size:20px;font-weight:900;letter-spacing:2px;color:var(--red);margin-bottom:8px}
+.delay-sub{color:#666;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.6;max-width:320px;margin-bottom:20px}
+.delay-timer{font-size:64px;font-weight:900;font-family:monospace;color:#fff;margin-bottom:10px;letter-spacing:4px}
+.delay-bar{width:260px;height:4px;background:var(--dim3);border-radius:2px;margin:0 auto 24px;overflow:hidden}
+.delay-bar-fill{height:100%;background:var(--red);border-radius:2px;transition:width 1s linear}
+.delay-msg{color:#444;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:20px}
+.delay-override{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:10px 20px;font-size:8px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .3s}
+.delay-override:hover{color:var(--dim);border-color:var(--dim)}
+
+/* PAST */
+.past-section{padding:0 16px}
+.past-title{color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:2px;margin:30px 0 12px;border-top:1px solid var(--dim3);padding-top:16px}
+.past-entry{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.pe-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.pe-date{color:var(--dim);font-size:7px;font-family:monospace}
+.pe-state{font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1px}
+.pe-input{color:#666;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.4}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 22px;border-radius:20px;font-size:9px;font-family:monospace;letter-spacing:1.5px;font-weight:700;z-index:99;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<!-- NAV -->
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+  <button class="nav-back" onclick="window.location.href='./?tab=more'">◄ DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">CLOVELEARN DETECTION ENGINE</div>
+    <div class="nav-name">WHAT'S GOING ON</div>
+  </div>
+</div>
+
+<!-- DISCLAIMER -->
+<div class="disc-strip">
+  <div class="ds-icon">⚠</div>
+  <div class="ds-text"><strong>SELF-HELP TOOL — NOT CLINICAL DIAGNOSIS.</strong> This tool uses keyword matching to suggest coping strategies. It does not diagnose conditions. It is not therapy. In crisis: <strong>988</strong> (US/Canada) or text <strong>HOME</strong> to <strong>686868</strong>.</div>
+</div>
+
+<!-- INPUT -->
+<div class="input-section">
+  <div class="input-label">DUMP IT — WHAT'S HAPPENING RIGHT NOW</div>
+  <textarea class="input-area" id="mainInput" maxlength="2000" placeholder="Just write. Whatever's in your head right now. The messier, the more accurate the read. Don't filter it."></textarea>
+  <div class="char-hint" id="charHint">0 / 2000</div>
+  <div style="color:var(--dim3);font-size:7px;font-family:monospace;text-align:right;margin-top:2px;letter-spacing:.5px">CTRL+ENTER TO ANALYZE · MIC TO VOICE DUMP</div>
+  <div class="voice-row">
+    <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input — tap to speak">🎙</button>
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()" disabled style="flex:1">ANALYZE — WHAT'S GOING ON</button>
+  </div>
+  <div class="voice-status" id="voiceStatus"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+  <div class="result-header" id="resultHeader">
+    <div class="rh-icon" id="rhIcon"></div>
+    <div class="rh-state" id="rhState"></div>
+    <div class="rh-conf" id="rhConf"></div>
+    <div class="rh-ambig" id="rhAmbig" style="display:none">⚠ AMBIGUOUS READ — MULTIPLE STATES DETECTED</div>
+    <div class="rh-ambig" id="overrideBanner" style="display:none;background:rgba(231,76,60,.15);border-color:rgba(231,76,60,.3);color:#e74c3c"></div>
+  </div>
+
+  <!-- INTENSITY -->
+  <div class="intensity-bar">
+    <div class="ib-label"><span>INTENSITY</span><span id="ibVal">0</span></div>
+    <div class="ib-track"><div class="ib-fill" id="ibFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- DISTORTIONS -->
+  <div class="distortions" id="distSection" style="display:none">
+    <div class="dist-label">COGNITIVE DISTORTIONS DETECTED</div>
+    <div class="dist-tags" id="distTags"></div>
+  </div>
+
+  <!-- MICRO INTERVENTION -->
+  <div class="micro-card" id="microCard">
+    <div class="micro-label">DO THIS RIGHT NOW — 30 SECONDS</div>
+    <div class="micro-text" id="microText"></div>
+  </div>
+
+  <!-- MODALITY + STEPS -->
+  <div class="mod-card" id="modCard">
+    <div class="mc-head">
+      <div class="mc-badge" id="modBadge"></div>
+      <div class="mc-title" id="modTitle"></div>
+    </div>
+    <div class="mc-desc" id="modDesc"></div>
+    <div class="steps-list" id="stepsList"></div>
+  </div>
+
+  <!-- STATE-SPECIFIC QUICK RESPONSE -->
+  <div class="mod-card" id="ctxSection" style="display:none;border-color:var(--dim3)">
+    <div class="mc-title" id="ctxTitle" style="font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:8px"></div>
+    <div class="steps-list" id="ctxSteps"></div>
+  </div>
+
+  <!-- ALTERNATE STATES -->
+  <div class="alt-states" id="altSection" style="display:none">
+    <div class="alt-label">ALSO DETECTING</div>
+    <div class="alt-row" id="altRow"></div>
+  </div>
+
+  <!-- TOOL ROUTES -->
+  <div class="route-section" id="routeSection">
+    <div class="route-label">RECOMMENDED TOOLS</div>
+    <div id="routeList"></div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="feedback">
+    <div class="fb-label">WAS THIS READ ACCURATE?</div>
+    <div class="fb-row">
+      <button class="fb-btn yes" onclick="feedback(true)">✓ YES — CLOSE</button>
+      <button class="fb-btn no" onclick="feedback(false)">✗ NO — CORRECT</button>
+    </div>
+    <button class="fb-btn" onclick="newAnalysis()" style="margin-top:8px;width:100%;border-color:var(--dim3);color:var(--dim)">↻ NEW ANALYSIS</button>
+  </div>
+
+  <!-- CORRECTION -->
+  <div class="correction" id="corrSection">
+    <div class="corr-label">WHAT WERE YOU ACTUALLY FEELING?</div>
+    <div class="corr-grid" id="corrGrid"></div>
+    <button class="analyze-btn" style="margin-top:10px;background:var(--acc)" id="corrSubmit" onclick="submitCorrection()" disabled>SUBMIT CORRECTION</button>
+  </div>
+</div>
+
+<!-- PAST ENTRIES -->
+<div id="learningProfile" style="padding:0 16px;display:none">
+  <div style="color:var(--dim);font-size:8px;font-family:monospace;letter-spacing:2px;margin:20px 0 10px;border-top:1px solid var(--dim3);padding-top:14px">ADAPTIVE LEARNING PROFILE</div>
+  <div style="background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+      <div><div style="color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:1px">ACCURACY</div><div id="lpAccuracy" style="font-size:20px;font-weight:900;font-family:monospace;color:var(--grn)">—</div></div>
+      <div style="text-align:center"><div style="color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:1px">PROTOCOLS</div><div id="lpProto" style="font-size:20px;font-weight:900;font-family:monospace;color:#ddd">0</div></div>
+      <div style="text-align:right"><div style="color:var(--dim);font-size:7px;font-family:monospace;letter-spacing:1px">CORRECTIONS</div><div id="lpCorr" style="font-size:20px;font-weight:900;font-family:monospace;color:var(--acc)">0</div></div>
+    </div>
+    <div id="lpBiasGrid" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"></div>
+    <div id="lpMisses" style="margin-top:10px;font-size:8px;font-family:monospace;color:var(--dim);line-height:1.6"></div>
+  </div>
+</div>
+<div class="past-section" id="pastSection"></div>
+
+<!-- DASHBOARD LINK -->
+<div style="padding:0 16px 16px;text-align:center">
+  <a href="pattern-intelligence.html" style="display:block;background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px;text-decoration:none;transition:border-color .2s">
+    <div style="color:var(--acc);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1.5px">📊 FULL PATTERN INTELLIGENCE DASHBOARD →</div>
+    <div style="color:var(--dim);font-size:8px;font-family:Georgia,serif;font-style:italic;margin-top:3px">Protocol logs, delay analytics, heatmap, bias profile, corrections</div>
+  </a>
+</div>
+
+<!-- DELAY OVERLAY -->
+<div class="delay-overlay" id="delayOverlay">
+  <div class="delay-icon">🛑</div>
+  <div class="delay-title">IMPULSE LOCK ENGAGED</div>
+  <div class="delay-sub" id="delayReason">Your system flagged high impulse or crisis-level intensity. This pause is not punishment — it's tactical. The urge peaks and drops. Ride the curve. You chose to pause.</div>
+  <div class="delay-timer" id="delayTimer">3:00</div>
+  <div class="delay-bar"><div class="delay-bar-fill" id="delayFill" style="width:100%"></div></div>
+
+  <!-- URGE CURVE VISUALIZATION -->
+  <div style="margin:8px auto 16px;width:280px;height:60px;position:relative">
+    <svg id="urgeCurve" viewBox="0 0 280 60" width="280" height="60" style="display:block">
+      <path d="M0,55 C30,55 50,8 80,5 C110,2 140,20 170,35 C200,45 230,50 280,52" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <path d="M0,55 C30,55 50,8 80,5 C110,2 140,20 170,35 C200,45 230,50 280,52" fill="none" stroke="var(--red)" stroke-width="2" id="urgePath" style="stroke-dasharray:400;stroke-dashoffset:400;transition:stroke-dashoffset 180s linear"/>
+      <circle id="urgeDot" cx="0" cy="55" r="4" fill="var(--red)" style="transition:cx .5s,cy .5s"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:6px;font-family:monospace;color:#333;letter-spacing:1px;margin-top:2px">
+      <span>START</span><span>PEAK</span><span>PASSING</span><span>SAFE</span>
+    </div>
+  </div>
+
+  <div class="delay-msg" id="delayPhase">THE URGE PEAKS THEN DROPS — WAIT IT OUT</div>
+  <button class="delay-override" onclick="overrideDelay()">I UNDERSTAND THE RISK — OVERRIDE</button>
+  <div style="color:#222;font-size:7px;font-family:monospace;letter-spacing:1px;margin-top:12px">ESC KEY ALSO OVERRIDES — USE WITH AWARENESS</div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// EMOTIONAL ROUTER v2 — CloveLearn Detection Engine
+// Phrase-based regex + keyword scoring + negation + distortion detection
+// Zero dependencies. Zero cloud. 100% client-side.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── STATE DEFINITIONS ────────────────────────────────────────────────────────
+const STATES = {
+  panic: {
+    icon:'🔴', color:'#e74c3c', label:'PANIC / CRISIS',
+    phrases:[/can'?t breathe/i,/panic attack/i,/heart rac/i,/going to die/i,/losing (my |it|control)/i,/everything.{0,15}falling apart/i,/can'?t (stop|handle|cope|take)/i,/spiraling/i,/drowning/i,/walls.{0,10}closing/i,/chest.{0,10}tight/i,/hyperventilat/i],
+    keywords:['panic','terror','frantic','emergency','crisis','desperate','overwhelmed','suffocating','collapse','meltdown'],
+    modality:'DBT', modalityColor:'#e74c3c',
+    tools:['tipp-drill-full.html','red-protocol.html','mindfulness-drill-full.html'],
+    toolNames:['TIPP DRILL → Temperature + Paced breathing','RED PROTOCOL → Crisis containment, 24hr survival','MINDFULNESS → Ground yourself right now'],
+    micro:'Breathe in 4 counts. Hold 4. Out 8. Repeat 3 times. You are not dying. Your nervous system is misfiring. You are safe in this room.',
+    steps:['Drop your shoulders. Unclench your jaw. Open your hands flat.','Breathe: 4 in, 4 hold, 8 out. Do this 3 times before anything else.','Name 5 things you can see. 4 you can touch. 3 you can hear.','The panic will peak and pass. It always does. Your only job is to wait.'],
+    desc:'Your nervous system hit the alarm. DBT distress tolerance is the fastest reset — it works at the body level before the mind catches up.'
+  },
+  rsd: {
+    icon:'🛡️', color:'#d35400', label:'REJECTION SENSITIVITY',
+    phrases:[/they (don'?t|never) (like|want|care|love|include|invite)/i,/everyone.{0,15}(hates|rejects|ignores|excludes)/i,/not (good|smart|worthy) enough/i,/left out/i,/they'?re.{0,10}(judging|laughing|talking about)/i,/nobody.{0,10}(wants|cares|likes|loves)/i,/they.{0,10}(tolerate|pity)/i,/don'?t (belong|fit|matter)/i,/always.{0,10}(rejected|excluded|alone)/i,/they.{0,10}(replaced|forgot)/i],
+    keywords:['rejected','excluded','ignored','unwanted','abandoned','unworthy','replaced','outcast','outsider','invisible','unloved','discarded'],
+    modality:'CBT+RSD', modalityColor:'#d35400',
+    tools:['rsd-shield-drill.html','thought-interceptor.html','opposite-action-drill.html'],
+    toolNames:['RSD SHIELD → Catch the spike, separate fact from feeling','THOUGHT INTERCEPTOR → SOMA reframe on the rejection story','OPPOSITE ACTION → When the urge is to withdraw, act opposite'],
+    micro:'Name the trigger. One sentence. "They did X." Not the story — the event. The gap between the event and the story is where RSD lives.',
+    steps:['What specifically happened? Name the trigger in one sentence.','What did your brain tell you it meant? Write the ugliest version.','How much of that is fact vs. interpretation? Separate them.','What would you tell a friend in this exact situation?'],
+    desc:'Your brain detected rejection and wrote a screenplay in 0.2 seconds. The pain is real. The narrative may not be. RSD Shield separates fact from feeling.'
+  },
+  rumination: {
+    icon:'🔄', color:'#8e44ad', label:'RUMINATION / STUCK LOOP',
+    phrases:[/can'?t stop (thinking|replaying|going over)/i,/keep (thinking|replaying|going back|obsessing)/i,/stuck.{0,10}(in|on|loop)/i,/over and over/i,/same (thought|thing|loop)/i,/why did (I|they)/i,/should have/i,/what if I had/i,/can'?t let (it |this )?go/i,/playing.{0,10}(over|back|again)/i],
+    keywords:['ruminating','obsessing','replaying','overthinking','loop','fixated','dwelling','regret','brooding','spiraling'],
+    modality:'ACT', modalityColor:'#8e44ad',
+    tools:['act-drill.html','thought-interceptor.html','mindfulness-drill-full.html'],
+    toolNames:['ACT DRILL → Defusion + values + committed action','THOUGHT INTERCEPTOR → Name the hook, catch the loop','MINDFULNESS → Break the loop with present-moment anchoring'],
+    micro:'Say this out loud: "I notice I\'m having the thought that [X]." That\'s defusion. You are not the thought. You are the one observing it.',
+    steps:['Name the thought loop in one sentence. What are you replaying?','Say: "I notice I\'m having the thought that..." — this is defusion.','The loop is not solving anything. What value can you move toward instead?','One small action in the next 10 minutes that aligns with that value.'],
+    desc:'Rumination is your brain\'s attempt to solve an unsolvable problem by running it again. ACT breaks the loop by shifting from thinking to doing.'
+  },
+  shame: {
+    icon:'🪞', color:'#c0392b', label:'SHAME / WORTHLESSNESS',
+    phrases:[/i('?m| am) (worthless|broken|damaged|garbage|trash|nothing|disgusting|pathetic|a (failure|fraud|burden|waste|monster|joke))/i,/hate myself/i,/don'?t deserve/i,/fundamentally.{0,10}(wrong|broken|bad)/i,/what('?s| is) wrong with me/i,/i('?m| am) the problem/i,/everyone.{0,10}better off/i,/i ruin/i,/can'?t (stand|look at) myself/i,/toxic/i],
+    keywords:['shame','worthless','disgusting','pathetic','broken','defective','unlovable','burden','monster','failure','fraud','useless','garbage'],
+    modality:'CBT+IFS', modalityColor:'#c0392b',
+    tools:['stuck-points-drill.html','thought-interceptor.html','act-drill.html'],
+    toolNames:['STUCK POINTS → Crack the locked belief driving the shame','THOUGHT INTERCEPTOR → Challenge the shame narrative','ACT → Reconnect to values despite the shame'],
+    micro:'The shame is a belief, not a fact. Name it: "I believe I am [X]." Then ask: "Would I say this to someone I care about?" That gap is the data.',
+    steps:['Write the shame belief word for word. Don\'t soften it.','What evidence actually supports this? List hard facts only.','What evidence contradicts it? Times you showed up, helped, tried?','Write a calibrated version that accounts for both sides.'],
+    desc:'Shame tells you that you ARE the problem, not that you HAVE a problem. CBT and IFS separate the belief from the evidence and find the part of you that\'s doing the shaming.'
+  },
+  impulse: {
+    icon:'⚡', color:'#e67e22', label:'IMPULSE / URGE',
+    phrases:[/want to (hit|punch|break|smash|throw|scream|drink|use|cut|hurt|quit|leave|destroy|burn|blow)/i,/urge to/i,/about to (snap|lose|blow|explode|do something)/i,/can'?t (resist|control|hold back)/i,/going to do something (stupid|I'?ll regret)/i,/fuck (it|this|everything|them)/i,/just want.{0,10}(numb|gone|out|over|escape|disappear)/i],
+    keywords:['urge','impulse','craving','relapse','rage','snap','temptation','trigger','compulsion','binge'],
+    modality:'DBT', modalityColor:'#e67e22',
+    tools:['opposite-action-drill.html','tipp-drill-full.html','chain-analysis-drill.html'],
+    toolNames:['OPPOSITE ACTION → Act exactly opposite to the urge','TIPP → Body-level reset: cold water, intense exercise','CHAIN ANALYSIS → Map the chain that led to this urge'],
+    micro:'The urge will peak in 90 seconds and then drop. Set a timer. Do NOT act until the timer ends. You are not choosing — your nervous system is. Wait.',
+    steps:['Name the urge specifically. "I want to [X]."','Rate it 0-100. This number will drop — watch it.','Apply TIPP: cold water on face, 30 jumping jacks, 4-7-8 breathing.','What\'s the opposite of the urge? Do that instead. All the way.'],
+    desc:'Impulse is your nervous system demanding action NOW. DBT doesn\'t fight the urge — it buys you 90 seconds. That\'s all you need.'
+  },
+  anger: {
+    icon:'🔥', color:'#e74c3c', label:'ANGER / RAGE',
+    phrases:[/so (angry|pissed|furious|mad)/i,/want.{0,10}(scream|yell|punch|destroy)/i,/how (dare|could) (they|he|she|you)/i,/sick of/i,/fed up/i,/done with/i,/had enough/i,/can'?t believe (they|he|she)/i,/makes me.{0,10}(sick|furious|rage|livid)/i,/blood.{0,10}boil/i],
+    keywords:['angry','furious','enraged','livid','fuming','seething','resentful','bitter','hostile','outraged','infuriated','pissed'],
+    modality:'DBT', modalityColor:'#e74c3c',
+    tools:['opposite-action-drill.html','tipp-drill-full.html','dear-man-drill.html'],
+    toolNames:['OPPOSITE ACTION → Opposite to the anger urge','TIPP → Body-level reset before the anger acts','DEAR MAN → Script the conversation instead of exploding'],
+    micro:'Drop your shoulders. Unclench your jaw. Open your hands flat. Hold for 10 seconds. The anger is valid. The action it wants may not be.',
+    steps:['What is the anger protecting? Name the vulnerability underneath.','Is the anger justified by facts, or amplified by interpretation?','What does the anger want you to DO? Is that helpful or destructive?','What action actually serves you here? Script it with DEAR MAN.'],
+    desc:'Anger is valid data — it means a boundary was crossed or a value was violated. DBT helps you use the anger without letting it drive.'
+  },
+  sadness: {
+    icon:'🌧️', color:'#3498db', label:'SADNESS / GRIEF',
+    phrases:[/so (sad|empty|hollow|lonely)/i,/miss (them|him|her|you|it|what)/i,/feel (nothing|empty|hollow|numb|flat)/i,/crying/i,/can'?t stop (crying|tearing)/i,/lost (everything|them|him|her|my|it)/i,/grief/i,/mourning/i,/hole.{0,10}(inside|chest|heart)/i,/wish (they|it|things|I) (were|was|could)/i],
+    keywords:['sad','depressed','lonely','empty','hollow','grieving','mourning','loss','heartbroken','desolate','bereft','miserable','melancholy'],
+    modality:'ACT', modalityColor:'#3498db',
+    tools:['act-drill.html','candlebox-rebuild-full.html','improve-drill-full.html'],
+    toolNames:['ACT → Values-based action despite the sadness','CANDLEBOX → Narrative reconstruction for the hard memory','IMPROVE → Distress tolerance when the sadness is heavy'],
+    micro:'Put your hand on your chest. Feel it rise and fall. The sadness is here. It will not be here forever. You are allowed to feel this.',
+    steps:['Name the loss. What are you actually grieving?','Is this sadness asking you to do something, or just to be felt?','If it just needs to be felt — sit with it. 5 minutes. No fixing.','If it needs action — what\'s one small move toward what matters?'],
+    desc:'Sadness doesn\'t need to be fixed. Sometimes it needs to be felt. ACT creates space for the pain while still moving toward what matters.'
+  },
+  anxiety: {
+    icon:'⚙️', color:'#f39c12', label:'ANXIETY / DREAD',
+    phrases:[/what if.{0,10}(goes wrong|happens|they|I|it)/i,/worried (about|that|sick)/i,/can'?t (relax|calm down|stop worrying|sit still)/i,/something.{0,10}(bad|wrong|terrible).{0,10}(going to|will) happen/i,/on edge/i,/waiting for.{0,10}(bad|worst|other shoe)/i,/nervous/i,/dread/i,/knot in/i,/pit in.{0,10}stomach/i],
+    keywords:['anxious','worried','nervous','dread','uneasy','apprehensive','restless','tense','fearful','overwhelmed','stressed','agitated','jittery'],
+    modality:'CBT+DBT', modalityColor:'#f39c12',
+    tools:['mindfulness-drill-full.html','tipp-drill-full.html','stuck-points-drill.html'],
+    toolNames:['MINDFULNESS → Anchor to present, stop the future-tripping','TIPP → Body-level calm when the anxiety is physical','STUCK POINTS → Challenge the anxious belief driving the dread'],
+    micro:'Right now, name 5 things you can see. 4 you can touch. 3 you can hear. 2 you can smell. 1 you can taste. You are here, not in the future.',
+    steps:['What specific outcome are you afraid of? Name it precisely.','How likely is that outcome, 0-100%? Honestly.','What would you do if it actually happened? You\'d handle it.','What can you control right now? Focus only on that.'],
+    desc:'Anxiety is your brain time-traveling to a future that hasn\'t happened yet. CBT challenges the prediction. DBT brings you back to the present.'
+  },
+  guilt: {
+    icon:'⚖️', color:'#2980b9', label:'GUILT / REGRET',
+    phrases:[/shouldn'?t have/i,/I (messed|screwed|fucked) up/i,/my fault/i,/I caused/i,/they.{0,10}(hurt|suffered).{0,10}because of me/i,/if (only )?I had/i,/I let.{0,10}(them|everyone|her|him) down/i,/never forgive myself/i,/how could I/i,/I (did|said) something (terrible|awful|wrong)/i],
+    keywords:['guilt','guilty','regret','responsible','blame','remorse','ashamed','accountable','wrong','mistake','sorry','apologize'],
+    modality:'CBT', modalityColor:'#2980b9',
+    tools:['chain-analysis-drill.html','stuck-points-drill.html','dear-man-drill.html'],
+    toolNames:['CHAIN ANALYSIS → Map what actually happened, link by link','STUCK POINTS → Is the guilt proportional to the evidence?','DEAR MAN → Script the repair conversation'],
+    micro:'Write one sentence: "I feel guilty because I [specific action]." Is this guilt about something you DID, or something you ARE? Only the first one is actionable.',
+    steps:['Name the specific action you feel guilty about.','Was this fully within your control? Assign honest percentage.','What would make this right? Is repair possible?','If yes: script the repair with DEAR MAN. If no: process with Stuck Points.'],
+    desc:'Guilt is useful when it\'s proportional and actionable. CBT tests whether the guilt fits the facts. Chain Analysis maps what actually happened.'
+  },
+  hopelessness: {
+    icon:'🕳️', color:'#7f8c8d', label:'HOPELESSNESS / SHUTDOWN',
+    phrases:[/no point/i,/what'?s the (point|use|purpose)/i,/nothing (matters|works|helps|changes|will change)/i,/give up/i,/can'?t (go on|keep|do this|anymore)/i,/done (trying|caring|fighting)/i,/it'?s over/i,/too late/i,/never (get|going to|going to be)/i,/already (lost|ruined|over|too late)/i],
+    keywords:['hopeless','pointless','helpless','stuck','trapped','resigned','numb','defeated','done','finished','meaningless','worthless','futile'],
+    modality:'ACT+DBT', modalityColor:'#7f8c8d',
+    tools:['act-drill.html','improve-drill-full.html','red-protocol.html'],
+    toolNames:['ACT → Find one value still alive, commit to one micro-action','IMPROVE → Distress tolerance when everything feels flat','RED PROTOCOL → If you\'re in the red, this stabilizes the next 24 hours'],
+    micro:'You don\'t need to feel hope to take the next step. You just need to take it. One action. The smallest one. That\'s the entire mission right now.',
+    steps:['You don\'t have to believe it gets better. Just survive the next hour.','Name one thing — even tiny — that still matters to you.','What\'s the smallest action you can take toward that? Not big. Tiny.','Do it. Not because you feel like it. Because you chose to.'],
+    desc:'Hopelessness is your nervous system in shutdown mode. ACT doesn\'t ask you to feel hope — it asks you to move anyway. One micro-action.'
+  }
+};
+
+// ── DISTORTION DETECTION ─────────────────────────────────────────────────────
+const DISTORTIONS = [
+  {k:'mindreading',  name:'MIND-READING',     patterns:[/they (think|believe|feel|know|see)/i,/I (know|can tell) (they|he|she|everyone)/i,/probably (thinks|laughing|judging|talking)/i,/I bet they/i,/they must (think|feel|be)/i]},
+  {k:'catastrophize', name:'CATASTROPHIZING',   patterns:[/everything.{0,10}(ruined|over|destroyed|lost)/i,/worst.{0,10}(thing|case|possible)/i,/never.{0,10}(recover|get|be|going to)/i,/always.{0,10}(goes wrong|happens|fails)/i,/end of/i,/nothing.{0,10}ever/i]},
+  {k:'personalize',  name:'PERSONALIZING',      patterns:[/my fault/i,/because of me/i,/I (caused|made|created|ruined)/i,/if I (had|hadn'?t|was|wasn'?t)/i,/they.{0,10}because.{0,10}I/i,/it'?s (all )?on me/i]},
+  {k:'blackwhite',   name:'ALL-OR-NOTHING',     patterns:[/always/i,/never/i,/everyone/i,/nobody/i,/nothing/i,/everything/i,/completely/i,/totally/i,/every (single|time|one)/i,/(no one|not a single)/i]},
+  {k:'labeling',     name:'LABELING',           patterns:[/I('?m| am) (a |an )?(failure|idiot|loser|fraud|monster|coward|burden|joke|disaster|mess|wreck|fake)/i,/they('?re| are) (a |an )?(narcissist|psychopath|monster|toxic|evil|terrible)/i,/I('?m| am) just/i]},
+  {k:'emotional',    name:'EMOTIONAL REASONING', patterns:[/I feel.{0,10}(therefore|so|which means)/i,/feel.{0,10}(like|as if|that).{0,10}(I am|they|it)/i,/feels (true|real|like fact)/i]},
+  {k:'shoulding',    name:'"SHOULD" STATEMENTS', patterns:[/I should (have|be|know|do|not)/i,/they should (have|be|know|do|not)/i,/shouldn'?t (have|be|feel)/i,/supposed to/i,/ought to/i]},
+  {k:'filtering',    name:'MENTAL FILTERING',    patterns:[/only (bad|negative|wrong|failure)/i,/nothing (good|positive|right)/i,/can'?t see.{0,10}(any|the)/i,/no (good|bright|positive)/i]},
+];
+
+// ── NEGATION PATTERNS ────────────────────────────────────────────────────────
+const NEGATION_WINDOW = 4; // words
+const NEGATION_WORDS = ['not','no','never','don\'t','doesn\'t','didn\'t','won\'t','wouldn\'t','isn\'t','aren\'t','wasn\'t','weren\'t','hardly','barely','cannot','can\'t'];
+
+function hasNearbyNegation(text, matchIndex) {
+  const before = text.substring(Math.max(0, matchIndex - 40), matchIndex).toLowerCase();
+  const words = before.split(/\s+/).slice(-NEGATION_WINDOW);
+  return words.some(w => NEGATION_WORDS.includes(w.replace(/[^a-z']/g,'')));
+}
+
+// ── ADAPTIVE CORRECTION ENGINE v2 ─────────────────────────────────────────────
+// Stores userBias in localStorage. Default bias = 1.0 for all states.
+// Learns from corrections: +0.25 boost (actual), -0.15 penalty (predicted, min 0.7)
+// Keeps last 50 corrections. Applies decay so old corrections fade.
+// Exposed globally: window.recordCorrection, window.getUserBias
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BIAS_KEY = 'od_wgo_bias';
+const CORR_KEY = 'od_wgo_corrections';
+const BIAS_DEFAULT = 1.0;
+const BIAS_BOOST = 0.25;
+const BIAS_PENALTY = 0.15;
+const BIAS_MIN = 0.7;
+const BIAS_MAX = 2.0;
+const BIAS_DECAY_RATE = 0.02;  // per session, toward 1.0
+const CORR_MAX = 50;
+
+function loadBias() { try { return JSON.parse(localStorage.getItem(BIAS_KEY) || '{}'); } catch(e) { return {}; } }
+function saveBias(b) { try { localStorage.setItem(BIAS_KEY, JSON.stringify(b)); } catch(e) {} }
+function loadCorrections() { try { return JSON.parse(localStorage.getItem(CORR_KEY) || '[]'); } catch(e) { return []; } }
+
+// ── applyBiasToScores: multiply scores by learned bias multipliers
+// Called inside analyzeInput Phase 4. Does not break normalization
+// because it runs BEFORE the maxScore normalize pass.
+function applyBiasToScores(scores) {
+  const bias = loadBias();
+  Object.keys(scores).forEach(s => {
+    const multiplier = bias[s] || BIAS_DEFAULT;
+    scores[s] *= multiplier;
+  });
+  return scores;
+}
+// Alias for backward compat
+const applyBias = applyBiasToScores;
+
+// ── recordCorrection: adjust bias when user says "wrong state"
+// Boosts actual (+0.25, max 2.0), penalizes predicted (-0.15, min 0.7)
+// Stores correction log capped at 50 entries.
+function recordCorrection(input, predicted, actual) {
+  if (!predicted || !actual || predicted === actual) return;
+
+  const bias = loadBias();
+
+  // Boost the state the user said was correct
+  bias[actual] = Math.min(BIAS_MAX, (bias[actual] || BIAS_DEFAULT) + BIAS_BOOST);
+
+  // Penalize the state the system got wrong
+  bias[predicted] = Math.max(BIAS_MIN, (bias[predicted] || BIAS_DEFAULT) - BIAS_PENALTY);
+
+  saveBias(bias);
+
+  // Log the correction
+  const corr = loadCorrections();
+  corr.push({
+    input: (typeof input === 'string' ? input : '').substring(0, 200),
+    predicted,
+    actual,
+    date: new Date().toISOString(),
+    ts: Date.now()
+  });
+  // Keep last 50
+  if (corr.length > CORR_MAX) corr.splice(0, corr.length - CORR_MAX);
+  try { localStorage.setItem(CORR_KEY, JSON.stringify(corr)); } catch(e) {}
+}
+
+// ── getUserBias: returns current bias map with defaults for all known states
+function getUserBias() {
+  const bias = loadBias();
+  const full = {};
+  Object.keys(STATES).forEach(s => {
+    full[s] = bias[s] || BIAS_DEFAULT;
+  });
+  return full;
+}
+
+// ── getBiasReport: returns full adaptive learning snapshot
+// Used by Pattern Intelligence dashboard and debug UI
+function getBiasReport() {
+  const bias = getUserBias();
+  const corrections = loadCorrections();
+  const totalCorr = corrections.length;
+
+  // Accuracy: how often the FIRST correction in a chain was the only one needed
+  // (i.e., how many sessions ended with "Yes" vs "No")
+  // We track this from protocol logs — positive = no correction needed
+  let protocolCount = 0;
+  try {
+    const pLogs = JSON.parse(localStorage.getItem('od_protocol_logs') || '[]');
+    protocolCount = pLogs.length;
+  } catch(e) {}
+
+  const correctedCount = totalCorr;
+  const uncorrectedCount = Math.max(0, protocolCount - correctedCount);
+  const accuracy = protocolCount > 0 ? Math.round((uncorrectedCount / protocolCount) * 100) : 0;
+
+  // Most corrected: which states get predicted wrong most often
+  const wrongMap = {};
+  corrections.forEach(c => {
+    wrongMap[c.predicted] = (wrongMap[c.predicted] || 0) + 1;
+  });
+  const mostMisPredicted = Object.entries(wrongMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
+
+  // Most boosted: what the user actually reports feeling
+  const rightMap = {};
+  corrections.forEach(c => {
+    rightMap[c.actual] = (rightMap[c.actual] || 0) + 1;
+  });
+  const mostActual = Object.entries(rightMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
+
+  // Bias deltas from default
+  const deltas = {};
+  Object.entries(bias).forEach(([k, v]) => {
+    if (Math.abs(v - BIAS_DEFAULT) > 0.01) deltas[k] = +(v - BIAS_DEFAULT).toFixed(2);
+  });
+
+  return {
+    bias,
+    corrections: totalCorr,
+    protocolRuns: protocolCount,
+    accuracy,
+    mostMisPredicted,
+    mostActual,
+    deltas,
+    lastCorrection: corrections.length ? corrections[corrections.length - 1] : null
+  };
+}
+
+// ── applyBiasDecay: call once per session to gently pull all biases toward 1.0
+// Prevents overfit from old corrections. Called on DOMContentLoaded.
+function applyBiasDecay() {
+  const bias = loadBias();
+  let changed = false;
+  Object.keys(bias).forEach(s => {
+    const val = bias[s];
+    if (val === undefined || val === BIAS_DEFAULT) return;
+    if (val > BIAS_DEFAULT) {
+      bias[s] = Math.max(BIAS_DEFAULT, val - BIAS_DECAY_RATE);
+      changed = true;
+    } else if (val < BIAS_DEFAULT) {
+      bias[s] = Math.min(BIAS_DEFAULT, val + BIAS_DECAY_RATE);
+      changed = true;
+    }
+    // Clean up values that have returned to default
+    if (Math.abs(bias[s] - BIAS_DEFAULT) < 0.005) {
+      delete bias[s];
+      changed = true;
+    }
+  });
+  if (changed) saveBias(bias);
+}
+
+// ── resetBias: clear all learned bias (for dev/debug use)
+function resetBias() {
+  try {
+    localStorage.removeItem(BIAS_KEY);
+    localStorage.removeItem(CORR_KEY);
+  } catch(e) {}
+}
+
+// ── GLOBAL EXPOSURE ──────────────────────────────────────────────────────────
+window.recordCorrection = recordCorrection;
+window.getUserBias = getUserBias;
+window.getBiasReport = getBiasReport;
+window.resetBias = resetBias;
+
+// ── CORE ANALYSIS ────────────────────────────────────────────────────────────
+function analyzeInput(text) {
+  const clean = text.trim().toLowerCase();
+  if (!clean) return null;
+
+  let scores = {};
+  const detectedDistortions = [];
+
+  // ── Phase 1: Phrase-based scoring (primary, higher weight)
+  Object.entries(STATES).forEach(([key, state]) => {
+    scores[key] = 0;
+    state.phrases.forEach(regex => {
+      const match = regex.exec(clean);
+      if (match && !hasNearbyNegation(clean, match.index)) {
+        scores[key] += 3; // phrase match = 3 points
+      }
+    });
+  });
+
+  // ── Phase 2: Keyword scoring (secondary, lower weight)
+  const words = clean.split(/\s+/).map(w => w.replace(/[^a-z']/g, ''));
+  Object.entries(STATES).forEach(([key, state]) => {
+    state.keywords.forEach(kw => {
+      words.forEach((word, idx) => {
+        if (word === kw || word.startsWith(kw.substring(0, Math.max(4, kw.length - 2)))) {
+          // Check negation: look at previous NEGATION_WINDOW words
+          const prevWords = words.slice(Math.max(0, idx - NEGATION_WINDOW), idx);
+          const negated = prevWords.some(w => NEGATION_WORDS.includes(w));
+          if (!negated) {
+            scores[key] += 1; // keyword match = 1 point
+          }
+        }
+      });
+    });
+  });
+
+  // ── Phase 3: Distortion detection + state boosting
+  DISTORTIONS.forEach(d => {
+    const matched = d.patterns.some(p => p.test(clean));
+    if (matched) {
+      detectedDistortions.push(d);
+      // Distortions boost related states
+      if (d.k === 'mindreading') { scores.rsd = (scores.rsd || 0) + 1.5; scores.anxiety = (scores.anxiety || 0) + 1; }
+      if (d.k === 'catastrophize') { scores.panic = (scores.panic || 0) + 1.5; scores.anxiety = (scores.anxiety || 0) + 1.5; scores.hopelessness = (scores.hopelessness || 0) + 1; }
+      if (d.k === 'personalize') { scores.guilt = (scores.guilt || 0) + 2; scores.shame = (scores.shame || 0) + 1; }
+      if (d.k === 'blackwhite') { scores.shame = (scores.shame || 0) + 1; scores.hopelessness = (scores.hopelessness || 0) + 1; }
+      if (d.k === 'labeling') { scores.shame = (scores.shame || 0) + 2; scores.rsd = (scores.rsd || 0) + 1; }
+      if (d.k === 'emotional') { scores.anxiety = (scores.anxiety || 0) + 1; scores.shame = (scores.shame || 0) + 1; }
+      if (d.k === 'shoulding') { scores.guilt = (scores.guilt || 0) + 1.5; scores.shame = (scores.shame || 0) + 0.5; }
+      if (d.k === 'filtering') { scores.sadness = (scores.sadness || 0) + 1; scores.hopelessness = (scores.hopelessness || 0) + 1.5; }
+    }
+  });
+
+  // ── Phase 4: Apply adaptive bias
+  scores = applyBias(scores);
+
+  // ── Phase 5: Normalize relative to maxScore
+  const maxScore = Math.max(...Object.values(scores), 0.001);
+  const normalized = {};
+  Object.entries(scores).forEach(([k, v]) => {
+    normalized[k] = Math.round((v / maxScore) * 100);
+  });
+
+  // ── Phase 6: Rank and pick top 3
+  const ranked = Object.entries(normalized)
+    .sort((a, b) => b[1] - a[1])
+    .filter(([, v]) => v > 0)
+    .slice(0, 3)
+    .map(([state, confidence]) => ({
+      state,
+      confidence,
+      ...STATES[state]
+    }));
+
+  if (!ranked.length) return null;
+
+  // ── Phase 7: Ambiguity detection (top two within 18%)
+  const isAmbiguous = ranked.length >= 2 && (ranked[0].confidence - ranked[1].confidence) <= 18;
+
+  // ── Phase 8: Intensity scoring (word count, caps, punctuation, keywords)
+  let intensity = 0;
+  intensity += Math.min(3, Math.floor(clean.length / 100)); // length
+  intensity += (clean.match(/[!?]{2,}/g) || []).length * 0.5; // emphatic punctuation
+  intensity += (clean.match(/[A-Z]{3,}/g) || []).length * 0.5; // all-caps words
+  const intensityKeywords = ['can\'t','never','always','everyone','nobody','nothing','everything','hate','dying','kill','destroy','worst','ever'];
+  intensityKeywords.forEach(kw => { if (clean.includes(kw)) intensity += 0.5; });
+  intensity += detectedDistortions.length * 0.5;
+  intensity = Math.min(10, Math.round(intensity * 10) / 10);
+
+  return {
+    topStates: ranked,
+    distortions: detectedDistortions,
+    intensity,
+    isAmbiguous,
+    confidenceOverall: ranked[0].confidence,
+    rawScores: scores
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PROTOCOL ENGINE v2 — Modality Selection + Full Step Arrays
+// Input: raw text → analyzeInput() → intensity override → protocol steps
+// Output: { state, confidence, modality, intensity, steps[], microIntervention }
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── FULL MODALITY PROTOCOLS ──────────────────────────────────────────────────
+const PROTOCOLS = {
+  DBT: {
+    name: 'DBT — DISTRESS TOLERANCE',
+    badge: 'DBT', badgeColor: '#e74c3c',
+    desc: 'Linehan\'s Dialectical Behavior Therapy. Body-first. Survive the wave. Act opposite to the urge. This is the crisis protocol — it works at the nervous system level before cognition kicks in.',
+    steps: [
+      {n:'TIPP — TEMPERATURE',t:'Splash ice-cold water on your face or hold ice cubes in your hands for 30 seconds. Cold activates the dive reflex and drops your heart rate. This is physiology, not psychology.'},
+      {n:'TIPP — INTENSE EXERCISE',t:'30 jumping jacks, run in place, push-ups — anything that burns in 60 seconds. You\'re dumping the adrenaline your body loaded. It needs to go somewhere.'},
+      {n:'TIPP — PACED BREATHING',t:'Breathe in 4 counts. Hold 4. Out 8. The exhale MUST be longer than the inhale — this activates the parasympathetic brake. Do 5 rounds minimum.'},
+      {n:'TIPP — PROGRESSIVE RELAXATION',t:'Starting at your feet, tense each muscle group for 5 seconds then release. Move up: calves, thighs, glutes, abs, fists, shoulders, jaw. Notice the release.'},
+      {n:'CHECK THE FACTS',t:'Write what happened in one sentence — only what a camera would record. No interpretation. No mind-reading. Just the observable event. Compare it to the story your brain wrote.'},
+      {n:'OPPOSITE ACTION',t:'Name the urge. What does the emotion want you to DO? (withdraw, attack, hide, use, run). Now do the exact opposite. All the way. Not halfway. Opposite action has to be complete.'},
+      {n:'RADICAL ACCEPTANCE',t:'Say: "This is what happened. I cannot change it. I can only choose what I do next." Acceptance is not approval. It\'s refusing to fight reality — because fighting reality is what\'s causing the suffering.'},
+      {n:'WISE MIND CHECK',t:'Emotion Mind says: act NOW. Reasonable Mind says: analyze forever. Wise Mind says: acknowledge the feeling AND choose skillfully. What does Wise Mind say about this situation?'}
+    ]
+  },
+  CBT: {
+    name: 'CBT — COGNITIVE RESTRUCTURING',
+    badge: 'CBT', badgeColor: '#3498db',
+    desc: 'Beck\'s Cognitive Behavioral Therapy. Thought → Feeling → Behavior chain. The distortion is in the interpretation, not the event. Challenge the thought, change the feeling.',
+    steps: [
+      {n:'CATCH THE THOUGHT',t:'What is the automatic thought? Write it word for word. Don\'t clean it up. The raw version is the one that\'s running the show. "I am [X]." "They think [X]." "It means [X]."'},
+      {n:'NAME THE DISTORTION',t:'Which thinking trap is active? Mind-reading? Catastrophizing? All-or-nothing? Labeling? Emotional reasoning? Personalizing? Shoulding? Most thoughts use 2-3 distortions at once.'},
+      {n:'EXAMINE THE EVIDENCE — FOR',t:'What facts support this thought? Not feelings — facts. Things a camera would record. Things that actually happened. Be honest. Some evidence may be real.'},
+      {n:'EXAMINE THE EVIDENCE — AGAINST',t:'What facts contradict this thought? Times it wasn\'t true. Exceptions. People who\'d disagree. Your brain is filtering — force it to file the other evidence.'},
+      {n:'IDENTIFY THE PATTERN',t:'Which core belief area is this touching? Safety? Trust? Power/Control? Esteem? Intimacy? The surface thought is a symptom. The core belief is the operating system.'},
+      {n:'GENERATE THE ALTERNATIVE',t:'Write a balanced thought that accounts for BOTH columns of evidence. Not toxic positivity. Not denial. A calibrated statement that\'s honest and less extreme.'},
+      {n:'BEHAVIORAL EXPERIMENT',t:'How could you test the old thought vs. the new thought? What would you see if the new thought were true? Design one small real-world test and commit to running it.'},
+      {n:'RE-RATE THE EMOTION',t:'Read the balanced thought. Rate the original emotion again 0-100. Any reduction — even 5 points — means the thought was doing part of the damage. That\'s the evidence this works.'}
+    ]
+  },
+  ACT: {
+    name: 'ACT — ACCEPTANCE & COMMITMENT',
+    badge: 'ACT', badgeColor: '#8e44ad',
+    desc: 'Hayes\' Acceptance and Commitment Therapy. You don\'t need to fix the thought. You need to change your relationship to it. Defuse, accept, choose values, take committed action.',
+    steps: [
+      {n:'NAME THE HOOK',t:'What thought or feeling has you hooked right now? Say it out loud: "I notice I\'m having the thought that [X]." This is defusion — you are the observer, not the thought.'},
+      {n:'EXPANSION',t:'Where do you feel this in your body? Chest? Jaw? Gut? Instead of fighting it, breathe INTO that spot. Give it space. You\'re not making it bigger — you\'re stopping the war with it.'},
+      {n:'DEFUSION TECHNIQUE',t:'Take the thought and say it in a cartoon voice. Or sing it. Or prefix it with "My mind is telling me that..." The content doesn\'t change. Your grip on it does.'},
+      {n:'THE PASSENGERS ON THE BUS',t:'You\'re driving the bus. The thoughts are passengers yelling directions. They can yell. You don\'t have to turn the wheel. Who is driving — you or the passengers?'},
+      {n:'VALUES COMPASS',t:'What matters to you in this area of life? Not goals — values. Connection? Integrity? Growth? Courage? What kind of person do you want to be in this moment?'},
+      {n:'COMMITTED ACTION',t:'What is one small action you can take in the next 10 minutes that moves toward that value? Not a big thing. A micro-step. The action IS the therapy.'},
+      {n:'WILLINGNESS CHECK',t:'Are you willing to have the uncomfortable thought/feeling AND still take the action? Willingness doesn\'t mean wanting. It means choosing to move despite the discomfort.'},
+      {n:'PROCESS REFLECTION',t:'After the action: Did the thought change? Did the feeling shift? Did you prove you can act with the pain present? That\'s the data. Write it down.'}
+    ]
+  },
+  IFS: {
+    name: 'IFS — INTERNAL FAMILY SYSTEMS',
+    badge: 'IFS', badgeColor: '#e74c3c',
+    desc: 'Schwartz\'s Internal Family Systems. The shame, the critic, the protector — they\'re all parts of you. They\'re not the enemy. They\'re trying to help in outdated ways. Meet them.',
+    steps: [
+      {n:'NOTICE THE PART',t:'Which part of you is loudest right now? The Critic? The Exile (the hurt one)? The Protector (the one that numbs, rages, or withdraws)? Give it a name or a feeling.'},
+      {n:'FIND IT IN YOUR BODY',t:'Where does this part live? Chest tightness? Stomach drop? Jaw clench? Throat closing? Locate it physically. That\'s how parts communicate.'},
+      {n:'HOW DO YOU FEEL TOWARD IT?',t:'Notice your reaction to this part. Annoyed? Scared? Wanting it gone? If you feel anything other than curiosity or compassion, there\'s ANOTHER part reacting. Step back further.'},
+      {n:'GET TO SELF-ENERGY',t:'Self-energy = calm, curious, compassionate, connected. Not blank — present. You don\'t have to force it. Just ask the reactive parts to step aside for a moment.'},
+      {n:'ASK THE PART',t:'From Self-energy, ask the part: "What are you afraid would happen if you stopped doing this?" Listen. The answer is usually about protection. It\'s been doing a job.'},
+      {n:'ACKNOWLEDGE ITS ROLE',t:'Say to the part: "I see what you\'ve been doing for me. Thank you. You were protecting me when I couldn\'t protect myself. You don\'t have to work this hard anymore."'},
+      {n:'WHAT DOES IT NEED?',t:'Ask: "What do you need from me?" The answer is usually some version of: safety, attention, validation, or permission to rest. Offer that. From Self, you can.'},
+      {n:'UNBURDEN',t:'If the part is carrying an old belief ("I\'m worthless," "I\'m unsafe"), ask: "Would you be willing to let that go if I stay with you?" Not forcing. Offering. The part decides.'}
+    ]
+  }
+};
+
+// ── MODALITY MAP (state → default modality key) ─────────────────────────────
+const MODALITY_MAP = {
+  panic:        'DBT',
+  rsd:          'CBT',   // CBT+RSD uses CBT protocol with RSD-specific state steps
+  rumination:   'ACT',
+  shame:        'IFS',   // CBT+IFS uses IFS protocol for shame specifically
+  impulse:      'DBT',
+  anger:        'DBT',
+  sadness:      'ACT',
+  anxiety:      'CBT',
+  guilt:        'CBT',
+  hopelessness: 'ACT'
+};
+
+// ── PROTOCOL ENGINE: runProtocol(text) ───────────────────────────────────────
+// Calls analyzeInput(), applies intensity override, selects full protocol
+function runProtocol(text) {
+  const analysis = analyzeInput(text);
+  if (!analysis || !analysis.topStates.length) return null;
+
+  const primary = analysis.topStates[0];
+  let modalityKey = MODALITY_MAP[primary.state] || 'DBT';
+
+  // ── OVERRIDE 1: Intensity >= 8 → force DBT (body-first, crisis protocol)
+  let overrideReason = null;
+  if (analysis.intensity >= 8) {
+    modalityKey = 'DBT';
+    overrideReason = 'INTENSITY ≥ 8 — FORCED DBT (BODY-FIRST STABILIZATION)';
+  }
+
+  // ── OVERRIDE 2: Impulse state → always DBT regardless of intensity
+  if (primary.state === 'impulse') {
+    modalityKey = 'DBT';
+    overrideReason = overrideReason || 'IMPULSE DETECTED — FORCED DBT (SAFETY OVERRIDE)';
+  }
+
+  const protocol = PROTOCOLS[modalityKey];
+  const stateData = STATES[primary.state];
+
+  const output = {
+    // From router
+    state: primary.state,
+    label: stateData.label,
+    confidence: primary.confidence,
+    intensity: analysis.intensity,
+    isAmbiguous: analysis.isAmbiguous,
+    distortions: analysis.distortions,
+    topStates: analysis.topStates,
+
+    // From protocol engine
+    modality: modalityKey,
+    modalityName: protocol.name,
+    modalityBadge: protocol.badge,
+    modalityColor: protocol.badgeColor,
+    modalityDesc: protocol.desc,
+    protocolSteps: protocol.steps,
+    overrideReason: overrideReason,
+
+    // From state (contextual)
+    stateSteps: stateData.steps,
+    microIntervention: stateData.micro,
+    tools: stateData.tools,
+    toolNames: stateData.toolNames,
+    stateDesc: stateData.desc,
+
+    // Meta
+    input: text.substring(0, 500),
+    timestamp: Date.now(),
+    date: new Date().toLocaleDateString()
+  };
+
+  // ── Log to protocolLogs
+  logProtocol(output);
+
+  return output;
+}
+
+// ── PROTOCOL LOGGING ─────────────────────────────────────────────────────────
+const KEY_PROTOCOL = 'od_protocol_logs';
+function loadProtocolLogs() { try { return JSON.parse(localStorage.getItem(KEY_PROTOCOL) || '[]'); } catch(e) { return []; } }
+function logProtocol(output) {
+  try {
+    const logs = loadProtocolLogs();
+    logs.push({
+      state: output.state,
+      label: output.label,
+      confidence: output.confidence,
+      modality: output.modality,
+      intensity: output.intensity,
+      distortions: (output.distortions || []).map(d => d.name || d),
+      overrideReason: output.overrideReason,
+      isAmbiguous: output.isAmbiguous,
+      input: output.input,
+      timestamp: output.timestamp,
+      date: output.date
+    });
+    // Cap at 200 entries
+    if (logs.length > 200) logs.splice(0, logs.length - 200);
+    localStorage.setItem(KEY_PROTOCOL, JSON.stringify(logs));
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UI LOGIC
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const KEY_LOGS = 'od_wgo_logs';
+let lastResult = null;
+let lastInput = '';
+let corrSelection = '';
+let delayInterval = null;
+let delayRemaining = 0;
+
+function esc(s){if(typeof s!=='string')return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+function hap(arr){if(navigator.vibrate)navigator.vibrate(arr)}
+function loadLogs(){try{return JSON.parse(localStorage.getItem(KEY_LOGS)||'[]')}catch(e){return[]}}
+function saveLogs(arr){try{localStorage.setItem(KEY_LOGS,JSON.stringify(arr.slice(-200)))}catch(e){}}
+
+// ── Input handling
+const inputEl = document.getElementById('mainInput');
+const btnEl = document.getElementById('analyzeBtn');
+inputEl.addEventListener('input', () => {
+  document.getElementById('charHint').textContent = inputEl.value.length + ' / 2000';
+  btnEl.disabled = !inputEl.value.trim();
+});
+
+// ── Ctrl+Enter / Cmd+Enter to submit (zero friction)
+inputEl.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !btnEl.disabled) {
+    e.preventDefault();
+    analyze();
+  }
+});
+
+// ── Auto-focus textarea on load (user can type immediately)
+setTimeout(() => inputEl.focus(), 100);
+
+// ── VOICE INPUT ──────────────────────────────────────────────────────────────
+// STATUS: DISABLED — AWAITING LOCAL-ONLY STT
+//
+// RULE 1 VIOLATION LOG:
+// Chrome's Web Speech API was previously used here. It streams audio to
+// Google's cloud servers for transcription. In a tool where users dump
+// raw emotional crisis text ("I want to kill myself", "I hate my wife"),
+// that is an unacceptable privacy violation. Removed 2026-03-21.
+//
+// APPROVED PATH FORWARD (must follow CLOVELEARN_RULES.md):
+// - Whisper WASM (whisper-tiny.en, ~40MB) bundled locally
+// - Model served from same origin (clovelearn.io) or bundled in Electron
+// - Cached by service worker after first download
+// - All audio processing happens in-browser, zero network requests
+// - Transcription latency: 2-5s per utterance (not real-time streaming)
+//
+// UNTIL THEN: Mic button is visible but disabled with honest messaging.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function isVoiceEnabled() {
+  try { return !!(JSON.parse(localStorage.getItem('od3'))||{}).ve; } catch(e) { return false; }
+}
+
+function initVoice() {
+  const btn = document.getElementById('voiceBtn');
+  if (!btn) return;
+  if (!isVoiceEnabled()) {
+    btn.classList.add('unavailable');
+    btn.title = 'Enable Offline Voice in the Deck → More tab first';
+    setVoiceStatus('VOICE: ENABLE IN DECK → MORE TAB → OFFLINE VOICE LOG', '');
+    return;
+  }
+  if (typeof voiceCapable === 'function' && !voiceCapable()) {
+    btn.classList.add('unavailable');
+    btn.title = 'Your device does not support offline voice';
+    setVoiceStatus('VOICE: NOT SUPPORTED ON THIS DEVICE', '');
+    return;
+  }
+  btn.classList.remove('unavailable');
+  btn.title = 'Tap to speak — offline voice log';
+  setVoiceStatus('', '');
+}
+
+function toggleVoice() {
+  if (!isVoiceEnabled()) {
+    showToast('ENABLE VOICE FIRST: DECK → MORE TAB → OFFLINE VOICE LOG');
+    return;
+  }
+  if (typeof voiceCapable === 'function' && !voiceCapable()) {
+    showToast('VOICE NOT SUPPORTED ON THIS DEVICE');
+    return;
+  }
+  if (typeof voiceMicTap === 'function') {
+    voiceMicTap('mainInput');
+  } else {
+    showToast('VOICE ENGINE NOT LOADED — REFRESH PAGE');
+  }
+}
+
+function stopVoice() { if (typeof voiceStop === 'function') voiceStop(); }
+function stopVoiceUI() { stopVoice(); }
+
+function setVoiceStatus(msg, cls) {
+  const el = document.getElementById('voiceStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'voice-status' + (cls ? ' ' + cls : '');
+}
+
+// Init on load
+setTimeout(initVoice, 200);
+
+// ── Core analyze
+function analyze() {
+  stopVoice(); // Kill any active voice recording before analyzing
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  lastInput = text;
+  const proto = runProtocol(text);
+  if (!proto) {
+    showToast('NOT ENOUGH SIGNAL — WRITE MORE');
+    return;
+  }
+
+  // Store raw analysis for feedback system
+  lastResult = { topStates: proto.topStates, intensity: proto.intensity, isAmbiguous: proto.isAmbiguous, distortions: proto.distortions };
+
+  const stateData = STATES[proto.state];
+
+  // ── Header
+  document.getElementById('rhIcon').textContent = stateData.icon;
+  document.getElementById('rhState').textContent = proto.label;
+  document.getElementById('rhState').style.color = stateData.color;
+  document.getElementById('rhConf').textContent = `CONFIDENCE: ${proto.confidence}%`;
+  document.getElementById('rhConf').style.color = proto.confidence > 70 ? stateData.color : 'var(--dim)';
+  document.getElementById('rhAmbig').style.display = proto.isAmbiguous ? 'inline-block' : 'none';
+
+  // ── Override banner
+  const overEl = document.getElementById('overrideBanner');
+  if (proto.overrideReason) {
+    overEl.textContent = '⚠ ' + proto.overrideReason;
+    overEl.style.display = 'block';
+  } else {
+    overEl.style.display = 'none';
+  }
+
+  // ── Intensity bar
+  document.getElementById('ibVal').textContent = proto.intensity + ' / 10';
+  const ibFill = document.getElementById('ibFill');
+  const intensityPct = proto.intensity * 10;
+  ibFill.style.width = intensityPct + '%';
+  ibFill.style.background = intensityPct >= 80 ? '#e74c3c' : intensityPct >= 50 ? '#e67e22' : '#27ae60';
+
+  // ── Distortions
+  if (proto.distortions.length) {
+    document.getElementById('distSection').style.display = '';
+    document.getElementById('distTags').innerHTML = proto.distortions.map(d => `<div class="dist-tag">${d.name}</div>`).join('');
+  } else {
+    document.getElementById('distSection').style.display = 'none';
+  }
+
+  // ── Micro intervention
+  document.getElementById('microText').textContent = proto.microIntervention;
+
+  // ── PROTOCOL STEPS (full modality protocol from engine)
+  document.getElementById('modBadge').textContent = proto.modalityBadge;
+  document.getElementById('modBadge').style.background = proto.modalityColor + '22';
+  document.getElementById('modBadge').style.color = proto.modalityColor;
+  document.getElementById('modBadge').style.border = '1px solid ' + proto.modalityColor + '44';
+  document.getElementById('modTitle').textContent = proto.modalityName;
+  document.getElementById('modDesc').textContent = proto.modalityDesc;
+  document.getElementById('stepsList').innerHTML = proto.protocolSteps.map((s, i) =>
+    `<div class="step-item"><div class="si-num">${i+1}</div><div class="si-text"><strong style="color:${proto.modalityColor};font-size:8px;font-family:monospace;letter-spacing:1px;display:block;margin-bottom:4px">${s.n}</strong>${s.t}</div></div>`
+  ).join('');
+
+  // ── STATE-SPECIFIC QUICK STEPS (contextual 4-step from state)
+  document.getElementById('ctxTitle').textContent = proto.label + ' — QUICK RESPONSE';
+  document.getElementById('ctxSteps').innerHTML = proto.stateSteps.map((s, i) =>
+    `<div class="step-item"><div class="si-num" style="background:${stateData.color}">${i+1}</div><div class="si-text">${s}</div></div>`
+  ).join('');
+  document.getElementById('ctxSection').style.display = '';
+
+  // ── Alt states
+  if (proto.topStates.length > 1) {
+    document.getElementById('altSection').style.display = '';
+    document.getElementById('altRow').innerHTML = proto.topStates.slice(1).map(s =>
+      `<div class="alt-chip" onclick="switchTo('${s.state}')" style="border-color:${STATES[s.state].color}33">
+        <div class="alt-name" style="color:${STATES[s.state].color}">${STATES[s.state].icon} ${STATES[s.state].label}</div>
+        <div class="alt-conf">${s.confidence}%</div>
+      </div>`
+    ).join('');
+  } else {
+    document.getElementById('altSection').style.display = 'none';
+  }
+
+  // ── Tool routes
+  document.getElementById('routeList').innerHTML = proto.tools.map((url, i) =>
+    `<a class="route-btn" href="${url}" style="border-color:${stateData.color}22">
+      <div class="rb-name" style="color:${stateData.color}">${proto.toolNames[i].split(' → ')[0]} →</div>
+      <div class="rb-desc">${proto.toolNames[i].split(' → ')[1] || ''}</div>
+    </a>`
+  ).join('');
+
+  // ── Reset feedback/correction
+  document.getElementById('corrSection').classList.remove('show');
+  corrSelection = '';
+
+  // ── Show results
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  hap([15, 30]);
+
+  // ── Log to WGO logs (separate from protocol logs)
+  const logs = loadLogs();
+  logs.push({
+    input: text.substring(0, 500),
+    state: proto.state,
+    label: proto.label,
+    confidence: proto.confidence,
+    modality: proto.modality,
+    intensity: proto.intensity,
+    distortions: proto.distortions.map(d => d.name),
+    overrideReason: proto.overrideReason,
+    isAmbiguous: proto.isAmbiguous,
+    ts: Date.now(),
+    date: new Date().toLocaleDateString()
+  });
+  saveLogs(logs);
+  renderPast();
+
+  // ── Auto-trigger delay: impulse confidence > 65 OR intensity >= 8
+  if (proto.state === 'impulse' && proto.confidence > 65) {
+    triggerDelay('IMPULSE DETECTED — CONFIDENCE ' + proto.confidence + '%');
+  } else if (proto.intensity >= 8) {
+    triggerDelay('INTENSITY ' + proto.intensity + '/10 — CRISIS-LEVEL ACTIVATION');
+  }
+}
+
+// ── Switch to alternate state
+function switchTo(stateKey) {
+  const state = STATES[stateKey];
+  if (!state) return;
+
+  // Resolve modality — use MODALITY_MAP + same override logic
+  let modalityKey = MODALITY_MAP[stateKey] || 'DBT';
+  let overrideReason = null;
+  if (lastResult && lastResult.intensity >= 8) {
+    modalityKey = 'DBT';
+    overrideReason = 'INTENSITY ≥ 8 — FORCED DBT (BODY-FIRST STABILIZATION)';
+  }
+  if (stateKey === 'impulse') {
+    modalityKey = 'DBT';
+    overrideReason = overrideReason || 'IMPULSE DETECTED — FORCED DBT (SAFETY OVERRIDE)';
+  }
+  const protocol = PROTOCOLS[modalityKey];
+
+  document.getElementById('rhIcon').textContent = state.icon;
+  document.getElementById('rhState').textContent = state.label;
+  document.getElementById('rhState').style.color = state.color;
+  document.getElementById('microText').textContent = state.micro;
+
+  // Override banner
+  const overEl = document.getElementById('overrideBanner');
+  if (overrideReason) { overEl.textContent = '⚠ ' + overrideReason; overEl.style.display = 'block'; }
+  else { overEl.style.display = 'none'; }
+
+  // Protocol steps
+  document.getElementById('modBadge').textContent = protocol.badge;
+  document.getElementById('modBadge').style.background = protocol.badgeColor + '22';
+  document.getElementById('modBadge').style.color = protocol.badgeColor;
+  document.getElementById('modBadge').style.border = '1px solid ' + protocol.badgeColor + '44';
+  document.getElementById('modTitle').textContent = protocol.name;
+  document.getElementById('modDesc').textContent = protocol.desc;
+  document.getElementById('stepsList').innerHTML = protocol.steps.map((s, i) =>
+    `<div class="step-item"><div class="si-num">${i+1}</div><div class="si-text"><strong style="color:${protocol.badgeColor};font-size:8px;font-family:monospace;letter-spacing:1px;display:block;margin-bottom:4px">${s.n}</strong>${s.t}</div></div>`
+  ).join('');
+
+  // State quick steps
+  document.getElementById('ctxTitle').textContent = state.label + ' — QUICK RESPONSE';
+  document.getElementById('ctxSteps').innerHTML = state.steps.map((s, i) =>
+    `<div class="step-item"><div class="si-num" style="background:${state.color}">${i+1}</div><div class="si-text">${s}</div></div>`
+  ).join('');
+  document.getElementById('ctxSection').style.display = '';
+
+  document.getElementById('routeList').innerHTML = state.tools.map((url, i) =>
+    `<a class="route-btn" href="${url}" style="border-color:${state.color}22">
+      <div class="rb-name" style="color:${state.color}">${state.toolNames[i].split(' → ')[0]} →</div>
+      <div class="rb-desc">${state.toolNames[i].split(' → ')[1] || ''}</div>
+    </a>`
+  ).join('');
+  window.scrollTo({ top: document.getElementById('results').offsetTop, behavior: 'smooth' });
+}
+
+// ── Feedback
+function feedback(correct) {
+  if (correct) {
+    showToast('LOGGED — SYSTEM LEARNING');
+    newAnalysis();
+  } else {
+    // Show correction grid
+    const grid = document.getElementById('corrGrid');
+    grid.innerHTML = '';
+    corrSelection = '';
+    Object.entries(STATES).forEach(([k, s]) => {
+      const div = document.createElement('div');
+      div.className = 'corr-opt';
+      div.textContent = s.icon + ' ' + s.label;
+      div.onclick = () => {
+        grid.querySelectorAll('.corr-opt').forEach(o => o.classList.remove('sel'));
+        div.classList.add('sel');
+        corrSelection = k;
+        document.getElementById('corrSubmit').disabled = false;
+      };
+      grid.appendChild(div);
+    });
+    document.getElementById('corrSection').classList.add('show');
+    document.getElementById('corrSection').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function submitCorrection() {
+  if (!corrSelection || !lastResult) return;
+  const predicted = lastResult.topStates[0].state;
+  recordCorrection(lastInput, predicted, corrSelection);
+  showToast('CORRECTION LOGGED — SYSTEM ADAPTING');
+  newAnalysis();
+}
+
+// ── New analysis: clear results, reset input, focus textarea
+function newAnalysis() {
+  stopVoice();
+  setVoiceStatus('', '');
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('corrSection').classList.remove('show');
+  inputEl.value = '';
+  document.getElementById('charHint').textContent = '0 / 2000';
+  btnEl.disabled = true;
+  corrSelection = '';
+  inputEl.focus();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── DELAY ENGINE v2 ──────────────────────────────────────────────────────────
+// Full-screen overlay impulse lock. Persists across refresh.
+// Urge curve visualization. ESC key override. Clean interval handling.
+// Logs to od_delay_logs: { timestamp, reason, minutes, overridden }
+// Auto-trigger: impulse confidence > 65 OR intensity >= 8
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DELAY_KEY = 'od_delay_logs';
+const DELAY_END_KEY = 'od_wgo_delay_end';
+const DELAY_REASON_KEY = 'od_wgo_delay_reason';
+const DELAY_DURATION = 180; // 3 minutes in seconds
+
+function loadDelayLogs() { try { return JSON.parse(localStorage.getItem(DELAY_KEY) || '[]'); } catch(e) { return []; } }
+function saveDelayLogs(arr) { try { localStorage.setItem(DELAY_KEY, JSON.stringify(arr.slice(-200))); } catch(e) {} }
+
+// ── Urge curve keyframes: maps elapsed% → {x, y, phase message}
+// Models a typical urge curve: rapid rise → peak at ~30s → gradual decline
+const URGE_CURVE_POINTS = [
+  {pct:0,   x:0,   y:55},
+  {pct:0.05,x:14,  y:45},
+  {pct:0.1, x:28,  y:30},
+  {pct:0.17,x:48,  y:12},
+  {pct:0.25,x:70,  y:5},   // PEAK
+  {pct:0.33,x:92,  y:8},
+  {pct:0.42,x:118, y:18},
+  {pct:0.5, x:140, y:28},
+  {pct:0.6, x:168, y:35},
+  {pct:0.7, x:196, y:42},
+  {pct:0.8, x:224, y:47},
+  {pct:0.9, x:252, y:50},
+  {pct:1.0, x:280, y:52},
+];
+
+function getUrgePosition(elapsedPct) {
+  const p = Math.max(0, Math.min(1, elapsedPct));
+  // Find surrounding keyframes
+  let lo = URGE_CURVE_POINTS[0], hi = URGE_CURVE_POINTS[URGE_CURVE_POINTS.length - 1];
+  for (let i = 0; i < URGE_CURVE_POINTS.length - 1; i++) {
+    if (p >= URGE_CURVE_POINTS[i].pct && p <= URGE_CURVE_POINTS[i+1].pct) {
+      lo = URGE_CURVE_POINTS[i];
+      hi = URGE_CURVE_POINTS[i+1];
+      break;
+    }
+  }
+  const range = hi.pct - lo.pct || 0.001;
+  const t = (p - lo.pct) / range;
+  return {
+    x: lo.x + (hi.x - lo.x) * t,
+    y: lo.y + (hi.y - lo.y) * t
+  };
+}
+
+function getUrgePhase(elapsedPct) {
+  if (elapsedPct < 0.15) return 'URGE IS RISING — THIS IS THE HARDEST PART';
+  if (elapsedPct < 0.3)  return 'APPROACHING PEAK — DO NOT ACT AT THE PEAK';
+  if (elapsedPct < 0.5)  return 'PEAK IS PASSING — THE WORST IS BEHIND YOU';
+  if (elapsedPct < 0.75) return 'URGE IS DECLINING — YOU ARE WINNING THIS';
+  return 'ALMOST CLEAR — YOU CHOSE TO PAUSE AND IT WORKED';
+}
+
+function triggerDelay(reason) {
+  // Clean up any existing interval first — prevents stacking
+  if (delayInterval) { clearInterval(delayInterval); delayInterval = null; }
+
+  const reasonText = reason || 'HIGH INTENSITY OR IMPULSE DETECTED';
+
+  // Check for already-running persisted delay
+  const stored = localStorage.getItem(DELAY_END_KEY);
+  if (stored) {
+    const remaining = Math.ceil((parseInt(stored) - Date.now()) / 1000);
+    if (remaining > 0) {
+      delayRemaining = remaining;
+    } else {
+      delayRemaining = DELAY_DURATION;
+    }
+  } else {
+    delayRemaining = DELAY_DURATION;
+  }
+
+  // Persist end time + reason
+  localStorage.setItem(DELAY_END_KEY, String(Date.now() + delayRemaining * 1000));
+  localStorage.setItem(DELAY_REASON_KEY, reasonText);
+
+  // Show overlay
+  const overlay = document.getElementById('delayOverlay');
+  overlay.classList.add('show');
+  document.getElementById('delayReason').textContent = reasonText + '. This pause is not punishment — it\'s tactical. The urge peaks and drops. Ride the curve. You chose to pause.';
+
+  // Reset urge curve
+  const urgePath = document.getElementById('urgePath');
+  if (urgePath) urgePath.style.strokeDashoffset = '400';
+
+  updateDelayDisplay();
+
+  // Start urge curve animation after a frame
+  requestAnimationFrame(() => {
+    if (urgePath) urgePath.style.strokeDashoffset = '0';
+  });
+
+  // Start countdown
+  delayInterval = setInterval(() => {
+    delayRemaining--;
+    updateDelayDisplay();
+    if (delayRemaining <= 0) {
+      completeDelay(false);
+    }
+  }, 1000);
+
+  // Log delay start
+  const logs = loadDelayLogs();
+  logs.push({
+    timestamp: Date.now(),
+    reason: reasonText,
+    minutes: Math.round(DELAY_DURATION / 60),
+    overridden: false,
+    date: new Date().toLocaleDateString()
+  });
+  saveDelayLogs(logs);
+}
+
+function updateDelayDisplay() {
+  const m = Math.floor(Math.max(0, delayRemaining) / 60);
+  const s = Math.max(0, delayRemaining) % 60;
+  document.getElementById('delayTimer').textContent = m + ':' + String(s).padStart(2, '0');
+
+  // Progress bar
+  const totalDuration = DELAY_DURATION;
+  const elapsed = totalDuration - delayRemaining;
+  const pct = Math.min(1, elapsed / totalDuration);
+  document.getElementById('delayFill').style.width = ((1 - pct) * 100) + '%';
+
+  // Urge curve dot position
+  const pos = getUrgePosition(pct);
+  const dot = document.getElementById('urgeDot');
+  if (dot) { dot.setAttribute('cx', pos.x); dot.setAttribute('cy', pos.y); }
+
+  // Phase messaging
+  const phaseEl = document.getElementById('delayPhase');
+  if (phaseEl) phaseEl.textContent = getUrgePhase(pct);
+
+  // Color shift: red → orange → green as timer progresses
+  const timerEl = document.getElementById('delayTimer');
+  if (timerEl) {
+    if (pct < 0.33) timerEl.style.color = '#e74c3c';
+    else if (pct < 0.66) timerEl.style.color = '#e67e22';
+    else timerEl.style.color = '#27ae60';
+  }
+}
+
+function completeDelay(wasOverridden) {
+  if (delayInterval) { clearInterval(delayInterval); delayInterval = null; }
+  document.getElementById('delayOverlay').classList.remove('show');
+  localStorage.removeItem(DELAY_END_KEY);
+  localStorage.removeItem(DELAY_REASON_KEY);
+
+  if (wasOverridden) {
+    // Update the last delay log entry to mark as overridden
+    const logs = loadDelayLogs();
+    if (logs.length) {
+      logs[logs.length - 1].overridden = true;
+      logs[logs.length - 1].overriddenAt = Date.now();
+      logs[logs.length - 1].secondsRemaining = delayRemaining;
+      saveDelayLogs(logs);
+    }
+    showToast('OVERRIDE LOGGED — PROCEED WITH AWARENESS');
+  } else {
+    showToast('IMPULSE LOCK RELEASED — YOU WAITED');
+  }
+}
+
+function overrideDelay() {
+  completeDelay(true);
+}
+
+// ── ESC key support for override
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('delayOverlay').classList.contains('show')) {
+    overrideDelay();
+  }
+});
+
+// ── Resume delay on page load (persists across refresh/tab close)
+function checkPendingDelay() {
+  const stored = localStorage.getItem(DELAY_END_KEY);
+  if (!stored) return;
+
+  const endTime = parseInt(stored);
+  const remaining = Math.ceil((endTime - Date.now()) / 1000);
+
+  if (remaining <= 0) {
+    // Delay expired while page was closed — clean up
+    localStorage.removeItem(DELAY_END_KEY);
+    localStorage.removeItem(DELAY_REASON_KEY);
+    return;
+  }
+
+  // Resume the delay
+  if (delayInterval) { clearInterval(delayInterval); delayInterval = null; }
+  delayRemaining = remaining;
+
+  const overlay = document.getElementById('delayOverlay');
+  overlay.classList.add('show');
+
+  const reason = localStorage.getItem(DELAY_REASON_KEY) || 'RESUMED — DELAY WAS ACTIVE';
+  document.getElementById('delayReason').textContent = reason + '. Resumed after page reload. The urge peaks and drops. You chose to pause.';
+
+  updateDelayDisplay();
+
+  delayInterval = setInterval(() => {
+    delayRemaining--;
+    updateDelayDisplay();
+    if (delayRemaining <= 0) {
+      completeDelay(false);
+    }
+  }, 1000);
+}
+
+// ── visibilitychange: recalculate from stored endTime (no drift)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    // Tab came back — recalculate remaining from stored end time
+    const stored = localStorage.getItem(DELAY_END_KEY);
+    if (stored) {
+      const remaining = Math.ceil((parseInt(stored) - Date.now()) / 1000);
+      if (remaining > 0) {
+        delayRemaining = remaining;
+        updateDelayDisplay();
+        // Restart interval if it died (some browsers pause intervals on hidden tabs)
+        if (!delayInterval) {
+          const overlay = document.getElementById('delayOverlay');
+          if (!overlay.classList.contains('show')) overlay.classList.add('show');
+          delayInterval = setInterval(() => {
+            delayRemaining--;
+            updateDelayDisplay();
+            if (delayRemaining <= 0) completeDelay(false);
+          }, 1000);
+        }
+      } else {
+        // Timer expired while hidden
+        completeDelay(false);
+      }
+    }
+  }
+});
+
+// ── getDelayReport: returns delay analytics for pattern intelligence
+function getDelayReport() {
+  const logs = loadDelayLogs();
+  const total = logs.length;
+  const overrides = logs.filter(l => l.overridden);
+  const overrideRate = total > 0 ? Math.round((overrides.length / total) * 100) : 0;
+
+  // Reason breakdown
+  const reasonMap = {};
+  logs.forEach(l => {
+    const r = (l.reason || 'UNKNOWN').substring(0, 40);
+    reasonMap[r] = (reasonMap[r] || 0) + 1;
+  });
+  const topReasons = Object.entries(reasonMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+  // Override timing: how many seconds were left when they overrode
+  const overrideTimings = overrides.map(l => l.secondsRemaining || 0).filter(Boolean);
+  const avgOverrideAt = overrideTimings.length ? Math.round(overrideTimings.reduce((a,b)=>a+b,0) / overrideTimings.length) : 0;
+
+  return {
+    totalDelays: total,
+    totalOverrides: overrides.length,
+    overrideRate,
+    topReasons,
+    avgSecondsWhenOverridden: avgOverrideAt,
+    lastDelay: logs.length ? logs[logs.length - 1] : null
+  };
+}
+
+window.getDelayReport = getDelayReport;
+function renderLearningProfile() {
+  const report = getBiasReport();
+  const panel = document.getElementById('learningProfile');
+
+  // Only show if there's data
+  if (report.protocolRuns < 1 && report.corrections < 1) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+
+  document.getElementById('lpAccuracy').textContent = report.accuracy + '%';
+  document.getElementById('lpAccuracy').style.color = report.accuracy >= 80 ? 'var(--grn)' : report.accuracy >= 50 ? 'var(--acc)' : 'var(--red)';
+  document.getElementById('lpProto').textContent = report.protocolRuns;
+  document.getElementById('lpCorr').textContent = report.corrections;
+
+  // Bias grid — show all states with delta from 1.0
+  const grid = document.getElementById('lpBiasGrid');
+  const biasEntries = Object.entries(report.bias).sort((a,b) => b[1] - a[1]);
+  grid.innerHTML = biasEntries.map(([k, v]) => {
+    const st = STATES[k];
+    if (!st) return '';
+    const delta = v - 1.0;
+    const col = delta > 0.05 ? 'var(--grn)' : delta < -0.05 ? 'var(--red)' : 'var(--dim)';
+    const arrow = delta > 0.05 ? '↑' : delta < -0.05 ? '↓' : '·';
+    return `<div style="background:var(--bg3);border:1px solid var(--dim3);border-radius:6px;padding:4px 8px;font-size:7px;font-family:monospace;letter-spacing:.5px"><span style="color:${st.color}">${st.icon}</span> <span style="color:${col}">${v.toFixed(2)} ${arrow}</span></div>`;
+  }).join('');
+
+  // Misses summary
+  const missEl = document.getElementById('lpMisses');
+  if (report.mostMisPredicted.length) {
+    missEl.innerHTML = '<span style="color:var(--gld)">MOST MIS-PREDICTED:</span> ' +
+      report.mostMisPredicted.map(([k, c]) => {
+        const st = STATES[k];
+        return st ? `${st.icon} ${st.label} (${c}×)` : '';
+      }).filter(Boolean).join(' · ');
+  } else {
+    missEl.innerHTML = '';
+  }
+}
+
+// ── Past entries
+function renderPast() {
+  renderLearningProfile();
+  const logs = loadLogs().filter(l => l.state).slice().reverse().slice(0, 20);
+  const el = document.getElementById('pastSection');
+  if (!logs.length) { el.innerHTML = ''; return; }
+  let h = `<div class="past-title">RECENT READS (${logs.length})</div>`;
+  logs.forEach(l => {
+    const s = STATES[l.state];
+    if (!s) return;
+    h += `<div class="past-entry">
+      <div class="pe-head"><div class="pe-date">${esc(l.date||'')}</div><div class="pe-state" style="color:${s.color}">${s.icon} ${s.label} · ${l.confidence}%</div></div>
+      <div class="pe-input">"${esc((l.input||'').substring(0,100))}${(l.input||'').length>100?'…':''}"</div>
+    </div>`;
+  });
+  el.innerHTML = h;
+}
+
+// ── Init
+document.addEventListener('DOMContentLoaded', () => {
+  applyBiasDecay(); // gently pull biases toward 1.0 each session
+  checkPendingDelay();
+  renderPast();
+});
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">CloveLearn Detection Engine v2.0 — Not a diagnostic tool. Not therapy. Keyword-based state detection for self-awareness and protocol routing only. Adapted from CBT, DBT, ACT clinical frameworks.</div>
+<script src="voice-engine.js?v=6"></script>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

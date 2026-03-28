@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="DEAR MAN DRILL • OPERATOR'S DECK">
+<meta property="og:description" content="DBT script builder for the conversation you keep avoiding. Seven steps. Saves your full script.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/dear-man-drill.html">
+    <title>DEAR MAN DRILL • OPERATOR'S DECK</title>
+    <style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--red);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--red);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim3);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2)}
+.step-counter span{color:var(--red)}
+/* DISCLAIMER */
+.disc-strip{background:#160303;border-bottom:1px solid rgba(192,57,43,.25);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--red);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#884444;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#cc4444}
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim3);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:var(--dim);font-style:normal}
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(192,57,43,.35)}
+textarea::placeholder,input::placeholder{color:#2a2a2a;font-style:italic}
+textarea{min-height:90px}
+.char-hint{color:var(--dim3);font-size:7px;font-family:monospace;text-align:right;margin-top:4px;letter-spacing:.5px}
+/* LETTER HEADER */
+.letter-header{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.letter-badge{width:52px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:28px;font-weight:900;font-family:monospace;border:2px solid}
+.letter-info{flex:1}
+.letter-word{font-size:10px;font-weight:900;font-family:monospace;letter-spacing:2px;margin-bottom:4px}
+.letter-def{font-size:9.5px;font-family:Georgia,serif;color:var(--dim2);line-height:1.65;font-style:italic}
+/* CONTEXT BOX */
+.context-box{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:12px;border:1px solid var(--dim3)}
+.context-box .cb-tag{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--dim2);margin-bottom:6px}
+.context-box .cb-body{font-size:9.5px;font-family:Georgia,serif;color:var(--dim);line-height:1.7}
+/* REMINDER CARDS */
+.reminder-row{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.reminder-card{border-radius:10px;padding:14px;border:1px solid}
+.reminder-card .rc-letter{font-size:22px;font-weight:900;font-family:monospace;margin-bottom:6px}
+.reminder-card .rc-word{font-size:9px;font-weight:900;font-family:monospace;letter-spacing:2px;margin-bottom:6px}
+.reminder-card .rc-text{font-size:10px;font-family:Georgia,serif;line-height:1.7;color:#bbb}
+.reminder-card .rc-script{font-size:9.5px;font-family:Georgia,serif;color:var(--dim);line-height:1.65;font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)}
+/* SUMMARY */
+.summary-header{text-align:center;margin-bottom:20px}
+.summary-header .sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:6px}
+.sb-letter-tag{display:inline-flex;align-items:center;gap:6px;border-radius:5px;padding:3px 9px;font-size:9px;font-family:monospace;font-weight:800;letter-spacing:1px;border:1px solid;margin-right:6px;margin-bottom:6px}
+.sb-content{color:#ccc;font-size:11px;font-family:Georgia,serif;line-height:1.65}
+.script-preview{background:var(--bg2);border-radius:10px;padding:16px;border-left:3px solid var(--red)}
+.sp-line{margin-bottom:12px}
+.sp-line:last-child{margin-bottom:0}
+.sp-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--red);opacity:.7;margin-bottom:3px}
+.sp-text{font-size:11px;font-family:Georgia,serif;color:#ccc;line-height:1.65;font-style:italic}
+/* BUTTONS */
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:linear-gradient(135deg,#8a1a1a,var(--red));color:#fff;border:none;border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-next:active{transform:scale(.96)}
+.btn-next:disabled{opacity:.3;cursor:default;transform:none}
+.btn-back-step{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:10px;padding:15px 18px;font-size:9px;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0}
+.btn-back-step:active{color:#aaa;border-color:#666}
+.btn-new{flex:1;background:var(--bg3);color:var(--red);border:1px solid rgba(192,57,43,.3);border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-print{width:100%;background:var(--bg3);color:var(--blu);border:1px solid rgba(74,111,165,.25);border-radius:10px;padding:13px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;margin-top:10px;transition:all .2s}
+.btn-print:active{transform:scale(.96)}
+/* PAST */
+.past-section{margin:24px 16px 60px}
+.past-title{color:var(--dim3);font-size:8px;font-family:monospace;letter-spacing:3px;margin-bottom:12px;text-transform:uppercase}
+.past-entry{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid rgba(192,57,43,.3)}
+.pe-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.pe-date{color:var(--dim3);font-size:7px;font-family:monospace;letter-spacing:1px}
+.pe-situation{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:.5px;opacity:.7;max-width:180px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe-assert{color:#888;font-size:10px;font-family:Georgia,serif;line-height:1.55;font-style:italic;margin-bottom:6px}
+.pe-expand{background:none;border:none;color:var(--dim3);font-size:7.5px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;padding:0;transition:color .2s}
+.pe-expand:active{color:var(--dim)}
+.pe-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--dim3)}
+.pe-detail.open{display:block}
+.pd-label{color:var(--dim3);font-size:7px;font-family:monospace;letter-spacing:2px;margin:8px 0 4px}
+.pd-text{color:#666;font-size:9.5px;font-family:Georgia,serif;line-height:1.6}
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1.5px;z-index:99;animation:tin .3s ease-out,tout .3s ease-in 1.8s forwards;pointer-events:none;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+    *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="goBack()">← DECK</button>
+    <div class="nav-info">
+        <div class="nav-tag">INTERPERSONAL EFFECTIVENESS — DBT</div>
+        <div class="nav-name">📡 DEAR MAN DRILL</div>
+    </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div class="disc-strip">
+    <div class="ds-icon">⚠</div>
+    <div class="ds-text"><strong>SELF-HELP TOOL ONLY.</strong> Not clinical DBT. Built for operators who need to have hard conversations without blowing up the relationship or backing down from what they need. In crisis: call <strong>988</strong>.</div>
+</div>
+
+<!-- STEP 1: SITUATION -->
+<div class="step active" id="step1">
+    <div class="step-counter">STEP <span>1</span> OF 9</div>
+    <div class="step-label">INTELLIGENCE BRIEF</div>
+    <div class="step-title">What's the conversation?</div>
+    <div class="step-desc">Who is this with, and what's the core of what needs to be said? Brief. You don't need the whole story — just enough to orient the drill. This doesn't go in your script.</div>
+    <div class="step-example"><strong>Examples:</strong><br>"My partner about feeling shut out since I got back."<br>"My boss about the workload being unsustainable."<br>"My sponsor about the situation I haven't told them yet."<br>"My ex about the kids' schedule."</div>
+    <textarea id="f_situation" maxlength="400" placeholder="This conversation is with... about..." oninput="charUpdate(this,'ch1');btn('btn1',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch1">0 / 400</div>
+    <div class="step-acts">
+        <button class="btn-next" id="btn1" onclick="goStep(2)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 2: D — DESCRIBE -->
+<div class="step" id="step2">
+    <div class="step-counter">STEP <span>2</span> OF 9</div>
+    <div class="step-label">THE SCRIPT — LETTER D</div>
+    <div class="letter-header">
+        <div class="letter-badge" style="color:#c0392b;border-color:rgba(192,57,43,.4);background:rgba(192,57,43,.1)">D</div>
+        <div class="letter-info">
+            <div class="letter-word" style="color:#c0392b">DESCRIBE</div>
+            <div class="letter-def">State the situation using only observable facts. What happened, when, and what was said or done. No interpretations. No blame. No story about why they did it.</div>
+        </div>
+    </div>
+    <div class="context-box">
+        <div class="cb-tag">WHY THIS MATTERS</div>
+        <div class="cb-body">When you lead with interpretation ("You always ignore me"), the other person defends, not listens. When you lead with fact ("Last three times I called, it went to voicemail"), they can't argue with what happened.</div>
+    </div>
+    <div class="step-example"><strong>Not this:</strong> "You've been completely checked out since you got home."<br><strong>This:</strong> "The last four evenings you came home, ate, and went straight to the basement. We haven't talked for more than ten minutes."</div>
+    <textarea id="f_describe" maxlength="500" placeholder="Facts only. What happened? When? What was specifically said or done?" oninput="charUpdate(this,'ch2');btn('btn2',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch2">0 / 500</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+        <button class="btn-next" id="btn2" onclick="goStep(3)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 3: E — EXPRESS -->
+<div class="step" id="step3">
+    <div class="step-counter">STEP <span>3</span> OF 9</div>
+    <div class="step-label">THE SCRIPT — LETTER E</div>
+    <div class="letter-header">
+        <div class="letter-badge" style="color:#d46427;border-color:rgba(212,100,39,.4);background:rgba(212,100,39,.1)">E</div>
+        <div class="letter-info">
+            <div class="letter-word" style="color:#d46427">EXPRESS</div>
+            <div class="letter-def">How you feel about it. Your feelings, your experience. One or two sentences. "I feel..." — not "You make me feel..."</div>
+        </div>
+    </div>
+    <div class="context-box">
+        <div class="cb-tag">WHY THIS MATTERS</div>
+        <div class="cb-body">Most men were trained to skip this step entirely. That's why the conversation goes sideways — the other person doesn't know what's at stake for you. One honest sentence does more work than twenty minutes of arguments.</div>
+    </div>
+    <div class="step-example"><strong>Not this:</strong> "You obviously don't care about this family."<br><strong>This:</strong> "I feel like I'm losing you, and I don't know what to do with that."<br><br><strong>Or keep it simple:</strong> "When that happens, I feel alone. And that's hard for me to say."</div>
+    <textarea id="f_express" maxlength="400" placeholder="I feel... when... It matters to me because..." oninput="charUpdate(this,'ch3');btn('btn3',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch3">0 / 400</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+        <button class="btn-next" id="btn3" onclick="goStep(4)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 4: A — ASSERT -->
+<div class="step" id="step4">
+    <div class="step-counter">STEP <span>4</span> OF 9</div>
+    <div class="step-label">THE SCRIPT — LETTER A</div>
+    <div class="letter-header">
+        <div class="letter-badge" style="color:#d4a843;border-color:rgba(212,168,67,.4);background:rgba(212,168,67,.1)">A</div>
+        <div class="letter-info">
+            <div class="letter-word" style="color:#d4a843">ASSERT</div>
+            <div class="letter-def">Say clearly what you want or need. Not a hint wrapped in a complaint. Not a question designed to make them guess. A direct ask.</div>
+        </div>
+    </div>
+    <div class="context-box">
+        <div class="cb-tag">WHY THIS MATTERS</div>
+        <div class="cb-body">Most failed conversations never include a clear ask. You assume they should know. They assume you would just say it. The ask bridges that gap. It's not weakness — it's precision.</div>
+    </div>
+    <div class="step-example"><strong>Not this:</strong> "I just wish things were different." (hint)<br><strong>Not this:</strong> "Don't you think we should talk more?" (guilt trap)<br><strong>This:</strong> "I need us to eat dinner together three nights a week without devices. That's what I'm asking."</div>
+    <textarea id="f_assert" maxlength="400" placeholder="I need / I want / I'm asking for... Be specific." oninput="charUpdate(this,'ch4');btn('btn4',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch4">0 / 400</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+        <button class="btn-next" id="btn4" onclick="goStep(5)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 5: R — REINFORCE -->
+<div class="step" id="step5">
+    <div class="step-counter">STEP <span>5</span> OF 9</div>
+    <div class="step-label">THE SCRIPT — LETTER R</div>
+    <div class="letter-header">
+        <div class="letter-badge" style="color:#27ae60;border-color:rgba(39,174,96,.4);background:rgba(39,174,96,.1)">R</div>
+        <div class="letter-info">
+            <div class="letter-word" style="color:#27ae60">REINFORCE</div>
+            <div class="letter-def">Tell them what's in it for them if they respond well. How does this help the relationship, the situation, them specifically? Show you're not just extracting something.</div>
+        </div>
+    </div>
+    <div class="context-box">
+        <div class="cb-tag">WHY THIS MATTERS</div>
+        <div class="cb-body">Without this, the other person calculates only what they're giving up. Reinforcement shows what they gain — and signals you're thinking about the relationship, not just your need.</div>
+    </div>
+    <div class="step-example"><strong>Examples:</strong><br>"If we can do this, I'll stop disappearing in my head every evening. You'll actually have me back."<br>"This gives us something to hold on to when things get hard again."<br>"It means I won't need to keep carrying this alone. That'll make things better for both of us."</div>
+    <textarea id="f_reinforce" maxlength="400" placeholder="If you can do this, it means... / This helps us both because..." oninput="charUpdate(this,'ch5');btn('btn5',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch5">0 / 400</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(4)">← BACK</button>
+        <button class="btn-next" id="btn5" onclick="goStep(6)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 6: N — NEGOTIATE -->
+<div class="step" id="step6">
+    <div class="step-counter">STEP <span>6</span> OF 9</div>
+    <div class="step-label">THE SCRIPT — LETTER N</div>
+    <div class="letter-header">
+        <div class="letter-badge" style="color:#4a6fa5;border-color:rgba(74,111,165,.4);background:rgba(74,111,165,.1)">N</div>
+        <div class="letter-info">
+            <div class="letter-word" style="color:#4a6fa5">NEGOTIATE</div>
+            <div class="letter-def">What are you willing to flex on? What alternative would you accept? Showing willingness to work with them isn't giving in — it's what separates a negotiation from an ultimatum.</div>
+        </div>
+    </div>
+    <div class="context-box">
+        <div class="cb-tag">WHY THIS MATTERS</div>
+        <div class="cb-body">If your ask is "all or nothing," most people shut down. Offering a flex shows good faith. It also helps you clarify internally: what's truly non-negotiable versus what's just preference.</div>
+    </div>
+    <div class="step-example"><strong>Examples:</strong><br>"If three nights is too much right now, I could start with two. What feels doable to you?"<br>"I don't need the answer today — I just need to know you heard me and we're going to talk about it."<br>"If you're not ready to do it this way, tell me what you could do. I'm open to that."</div>
+    <textarea id="f_negotiate" maxlength="400" placeholder="What I can flex on... / An alternative I'd accept... / What I'm asking you to counter with..." oninput="charUpdate(this,'ch6');btn('btn6',this.value.trim())"></textarea>
+    <div class="char-hint" id="ch6">0 / 400</div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(5)">← BACK</button>
+        <button class="btn-next" id="btn6" onclick="goStep(7)" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- STEP 7: M + A — REMINDERS -->
+<div class="step" id="step7">
+    <div class="step-counter">STEP <span>7</span> OF 9</div>
+    <div class="step-label">DURING THE CONVERSATION</div>
+    <div class="step-title">M + A — The two things you can't script</div>
+    <div class="step-desc">These aren't lines to rehearse. They're postures to hold when the conversation doesn't go according to plan — which it won't.</div>
+    <div class="reminder-row">
+        <div class="reminder-card" style="background:rgba(147,51,234,.06);border-color:rgba(147,51,234,.2)">
+            <div class="rc-letter" style="color:#9333ea">M</div>
+            <div class="rc-word" style="color:#9333ea">MINDFUL — STAY ON OBJECTIVE</div>
+            <div class="rc-text">They will deflect. They will bring up the past. They will make it about something else. Your job is to notice that, and return.<br><br>You don't have to win every sub-argument. You have one goal in this conversation.</div>
+            <div class="rc-script">"I hear you. That's a fair point. And I still need to talk about what I came here to talk about."<br><br>Say it calmly. Say it as many times as it takes. Don't bite the bait.</div>
+        </div>
+        <div class="reminder-card" style="background:rgba(74,111,165,.06);border-color:rgba(74,111,165,.2)">
+            <div class="rc-letter" style="color:#4a6fa5">A</div>
+            <div class="rc-word" style="color:#4a6fa5">APPEAR CONFIDENT</div>
+            <div class="rc-text">You don't need to feel ready. You need to show up anyway.<br><br>Stand or sit straight. Don't fold your arms. Keep your voice even — not louder, not smaller. Eye contact.</div>
+            <div class="rc-script">Confidence in this context isn't certainty that it'll go well. It's showing up like you believe you deserve to have this conversation — because you do.</div>
+        </div>
+    </div>
+    <div class="step-acts">
+        <button class="btn-back-step" onclick="goStep(6)">← BACK</button>
+        <button class="btn-next" onclick="saveEntry()">SAVE MY SCRIPT ✓</button>
+    </div>
+</div>
+
+<!-- STEP 8: SUMMARY — FULL SCRIPT VIEW -->
+<div class="step" id="step8">
+    <div class="step-counter" style="color:var(--red)">SCRIPT COMPLETE</div>
+    <div class="summary-header">
+        <div class="sh-icon">📡</div>
+        <h2>YOUR DEAR MAN SCRIPT</h2>
+        <p>Read it once. Then put the phone down and be present. The goal is the conversation — not the script.</p>
+    </div>
+
+    <div class="summary-block" id="sum_situation_block">
+        <div class="sb-label">SITUATION</div>
+        <div class="sb-content" id="sum_situation" style="color:var(--dim2);font-style:italic"></div>
+    </div>
+
+    <div class="script-preview">
+        <div class="sp-line" id="sp_describe">
+            <div class="sp-tag">D — DESCRIBE</div>
+            <div class="sp-text" id="sum_describe"></div>
+        </div>
+        <div class="sp-line" id="sp_express">
+            <div class="sp-tag">E — EXPRESS</div>
+            <div class="sp-text" id="sum_express"></div>
+        </div>
+        <div class="sp-line" id="sp_assert">
+            <div class="sp-tag">A — ASSERT</div>
+            <div class="sp-text" id="sum_assert"></div>
+        </div>
+        <div class="sp-line" id="sp_reinforce">
+            <div class="sp-tag">R — REINFORCE</div>
+            <div class="sp-text" id="sum_reinforce"></div>
+        </div>
+        <div class="sp-line" id="sp_negotiate">
+            <div class="sp-tag">N — NEGOTIATE</div>
+            <div class="sp-text" id="sum_negotiate"></div>
+        </div>
+    </div>
+
+    <div class="summary-block" style="margin-top:12px">
+        <div class="sb-label">DURING THE CONVERSATION</div>
+        <div style="display:flex;gap:8px">
+            <span style="background:rgba(147,51,234,.1);border:1px solid rgba(147,51,234,.25);border-radius:6px;padding:6px 12px;font-size:8px;font-family:monospace;letter-spacing:1px;color:#9333ea">M — STAY ON GOAL</span>
+            <span style="background:rgba(74,111,165,.1);border:1px solid rgba(74,111,165,.25);border-radius:6px;padding:6px 12px;font-size:8px;font-family:monospace;letter-spacing:1px;color:var(--blu)">A — APPEAR CONFIDENT</span>
+        </div>
+    </div>
+
+    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+      <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+      <a href="chain-analysis-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">CHAIN ANALYSIS \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Map what led to this conversation being necessary</span></a><a href="act-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">ACT DRILL \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Reconnect to the values driving this conversation</span></a>
+    </div>
+
+    <button class="btn-print" onclick="printSheet()">🖨️ PRINT SCRIPT FOR YOUR SESSION</button>
+    <div class="step-acts" style="margin-top:10px">
+        <button class="btn-new" onclick="startNew()">NEW DEAR MAN DRILL</button>
+    </div>
+</div>
+
+<!-- PAST ENTRIES -->
+<div class="past-section" id="pastSection"></div>
+
+</div>
+
+<script>
+let savedEntry = null;
+
+// UTILS
+function esc(s){if(typeof s!=='string')return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function san(s){return typeof s==='string'?s.substring(0,5000).replace(/<[^>]*>/g,''):''}
+function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+function hap(arr){if(navigator.vibrate)navigator.vibrate(arr)}
+function charUpdate(el,id){const d=document.getElementById(id);if(d)d.textContent=el.value.length+' / '+el.maxLength}
+function btn(id,enabled){const b=document.getElementById(id);if(b)b.disabled=!enabled}
+function loadEntries(){try{return JSON.parse(localStorage.getItem('od_dm_v1'))||[]}catch(e){return[]}}
+function saveEntries(arr){try{localStorage.setItem('od_dm_v1',JSON.stringify(arr.slice(0,200)))}catch(e){}}
+function goBack(){window.location.href='./?tab=more'}
+
+// PROGRESS (9 steps but last is summary)
+function setProgress(n){document.getElementById('progressFill').style.width=Math.min((n-1)/8*100,100)+'%'}
+
+// STEP NAV
+function goStep(n){
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    const id=n===8?'step8':'step'+n;
+    const el=document.getElementById(id);
+    if(el){el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+    setProgress(n);
+}
+
+// SAVE
+function saveEntry(){
+    const describe=san(document.getElementById('f_describe').value);
+    const assert_=san(document.getElementById('f_assert').value);
+    if(!describe.trim()||!assert_.trim()){showToast('NEED D AND A AT MINIMUM');return}
+
+    const entry={
+        situation:san(document.getElementById('f_situation').value),
+        describe,
+        express:san(document.getElementById('f_express').value),
+        assert:assert_,
+        reinforce:san(document.getElementById('f_reinforce').value),
+        negotiate:san(document.getElementById('f_negotiate').value),
+        date:new Date().toLocaleDateString(),
+        ts:Date.now()
+    };
+    const arr=loadEntries();
+    arr.push(entry);
+    saveEntries(arr);
+    savedEntry=entry;
+    hap([15,30,15]);
+    showToast('DEAR MAN SAVED ✓');
+    buildSummary(entry);
+    goStep(8);
+    renderPast();
+}
+
+function buildSummary(e){
+    document.getElementById('sum_situation').textContent=e.situation||'(not specified)';
+    document.getElementById('sum_describe').textContent=e.describe||'(not filled)';
+    document.getElementById('sum_express').textContent=e.express||'(skipped)';
+    document.getElementById('sum_assert').textContent=e.assert||'(not filled)';
+    document.getElementById('sum_reinforce').textContent=e.reinforce||'(skipped)';
+    document.getElementById('sum_negotiate').textContent=e.negotiate||'(skipped)';
+}
+
+// PRINT
+function printSheet(){
+    const arr=loadEntries();
+    const last=arr[arr.length-1];
+    if(!last){showToast('SAVE FIRST');return}
+    const pw=window.open('','_blank');
+    const field=(label,value,color)=>value?`<div class="section"><div class="lbl">${label}</div><div class="box" style="border-left:3px solid ${color}">${esc(value)}</div></div>`:'';
+    pw.document.write(`<!DOCTYPE html><html><head><title>DEAR MAN Script — ${last.date}</title>
+    <style>*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;padding:36px;max-width:700px;margin:0 auto;color:#111;line-height:1.65;font-size:12px}
+    h1{font-size:20px;font-weight:900;letter-spacing:1px;margin-bottom:2px}.sub{color:#666;font-size:11px}.meta{color:#999;font-size:10px;margin-bottom:20px}
+    .disc{background:#fff5f5;border:1px solid #ffaaaa;border-radius:6px;padding:10px 14px;font-size:10px;color:#c0392b;margin-bottom:20px;line-height:1.6}
+    .disc strong{font-size:11px;display:block;margin-bottom:3px}
+    .section{margin-bottom:16px}.lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:5px}
+    .box{border:1px solid #ddd;border-radius:5px;padding:12px;min-height:50px;white-space:pre-wrap;font-size:11px;line-height:1.65;color:#222}
+    .reminders{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+    .rem{border:1px solid #ddd;border-radius:6px;padding:12px}
+    .rem h4{font-size:11px;font-weight:900;margin-bottom:6px}
+    .rem p{font-size:10px;color:#555;line-height:1.6}
+    .footer{margin-top:36px;padding-top:12px;border-top:1px solid #eee;font-size:9px;color:#aaa;text-align:center}
+    @media print{body{padding:20px}}*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style></head><body>
+    <h1>DEAR MAN SCRIPT</h1>
+    <div class="sub">DBT Interpersonal Effectiveness</div>
+    <div class="meta">${last.date}${last.situation?' · '+esc(last.situation.substring(0,60)):''}</div>
+    <div class="disc"><strong>⚠ SELF-HELP TOOL — NOT CLINICAL DBT</strong>Bring this to your next session with a therapist if needed. This is a preparation tool, not a substitute for professional care.</div>
+    ${field('D — DESCRIBE (Facts Only)','border-left:3px solid #c0392b',last.describe).replace('border-left:3px solid #c0392b','')||field('D — DESCRIBE',last.describe,'#c0392b')}
+    ${field('E — EXPRESS (Your Feelings)',last.express,'#d46427')}
+    ${field('A — ASSERT (Your Direct Ask)',last.assert,'#d4a843')}
+    ${field('R — REINFORCE (What\'s in It for Them)',last.reinforce,'#27ae60')}
+    ${field('N — NEGOTIATE (What You Can Flex On)',last.negotiate,'#4a6fa5')}
+    <div class="reminders">
+        <div class="rem"><h4>M — MINDFUL</h4><p>Stay on your goal. If they deflect, return: "I hear you. I still need to talk about..."</p></div>
+        <div class="rem"><h4>A — APPEAR CONFIDENT</h4><p>Stand or sit straight. Even voice. Eye contact. You deserve to have this conversation.</p></div>
+    </div>
+    <div class="footer">Operator's Deck • DEAR MAN Drill • ${last.date}</div>
+    </body></html>`);
+    pw.document.close();
+    setTimeout(()=>pw.print(),400);
+}
+
+// NEW / RESET
+function startNew(){
+    savedEntry=null;
+    ['f_situation','f_describe','f_express','f_assert','f_reinforce','f_negotiate'].forEach(id=>{
+        const e=document.getElementById(id);if(e)e.value='';
+    });
+    ['btn1','btn2','btn3','btn4','btn5','btn6'].forEach(id=>btn(id,false));
+    goStep(1);
+}
+
+// PAST ENTRIES
+function renderPast(){
+    const arr=loadEntries().slice().reverse();
+    const el=document.getElementById('pastSection');
+    if(!arr.length){el.innerHTML='';return}
+    let h=`<div class="past-title">PREVIOUS DEAR MAN SCRIPTS (${arr.length})</div>`;
+    arr.forEach((e,i)=>{
+        const sitShort=(e.situation||'').substring(0,50);
+        const assertShort=(e.assert||'(not saved)').substring(0,80);
+        h+=`<div class="past-entry">
+            <div class="pe-header">
+                <div class="pe-date">${esc(e.date)}</div>
+                <div class="pe-situation">${esc(sitShort)}${(e.situation||'').length>50?'…':''}</div>
+            </div>
+            <div class="pe-assert">"${esc(assertShort)}${(e.assert||'').length>80?'…':''}"</div>
+            <button class="pe-expand" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'LESS ↑':'FULL SCRIPT ↓'">FULL SCRIPT ↓</button>
+            <div class="pe-detail">
+                ${e.describe?`<div class="pd-label">D — DESCRIBE</div><div class="pd-text">${esc(e.describe)}</div>`:''}
+                ${e.express?`<div class="pd-label">E — EXPRESS</div><div class="pd-text" style="font-style:italic">${esc(e.express)}</div>`:''}
+                ${e.assert?`<div class="pd-label">A — ASSERT</div><div class="pd-text">${esc(e.assert)}</div>`:''}
+                ${e.reinforce?`<div class="pd-label">R — REINFORCE</div><div class="pd-text">${esc(e.reinforce)}</div>`:''}
+                ${e.negotiate?`<div class="pd-label">N — NEGOTIATE</div><div class="pd-text">${esc(e.negotiate)}</div>`:''}
+            </div>
+        </div>`;
+    });
+    el.innerHTML=h;
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{
+    renderPast();
+});
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from DBT Interpersonal Effectiveness — Linehan, M.M. (2015). DBT Skills Training Manual.</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+</body>
+</html>

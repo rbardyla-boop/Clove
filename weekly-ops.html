@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="WEEKLY OPS • OPERATOR'S DECK">
+<meta property="og:description" content="7-day visual command map. See the whole week at a glance.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/weekly-ops.html">
+<title>WEEKLY OPS • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+/* WEEK NAV */
+.week-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--dim3);position:sticky;top:53px;z-index:18;background:var(--bg)}
+.week-nav button{background:none;border:1px solid var(--dim3);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1px;cursor:pointer}
+.week-nav button:active{border-color:var(--acc);color:var(--acc)}
+.week-title{font-size:11px;font-weight:900;font-family:monospace;color:var(--acc);letter-spacing:1px}
+/* DAY COLUMNS */
+.days{padding:12px 16px}
+.day-col{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.day-col.today{border-color:var(--acc);box-shadow:0 0 12px rgba(74,111,165,.15)}
+.day-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--dim3)}
+.day-name{font-size:9px;font-family:monospace;letter-spacing:2px;font-weight:900}
+.day-col.today .day-name{color:var(--acc)}
+.day-date{font-size:8px;font-family:monospace;color:var(--dim)}
+.day-add{background:none;border:1px solid var(--dim3);color:var(--dim);border-radius:6px;padding:4px 10px;font-size:8px;font-family:monospace;cursor:pointer}
+.day-add:active{border-color:var(--acc);color:var(--acc)}
+.day-tasks{min-height:30px;padding:6px 10px}
+.task-chip{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s;font-size:10px;border-left:4px solid var(--acc)}
+.task-chip:active{transform:scale(.97)}
+.task-chip.done{opacity:.4;text-decoration:line-through}
+.task-chip .tc-time{font-size:8px;font-family:monospace;color:var(--acc);min-width:40px}
+.task-chip .tc-emoji{font-size:16px}
+.task-chip .tc-title{flex:1;font-weight:600}
+.task-chip .tc-del{background:none;border:none;color:var(--dim3);font-size:12px;cursor:pointer;padding:2px 4px}
+.task-chip .tc-del:active{color:var(--red)}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:50;justify-content:center;align-items:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--dim2);border-radius:14px;padding:24px;width:90%;max-width:400px}
+.modal h3{font-size:12px;font-weight:900;margin-bottom:4px}
+.modal .m-sub{font-size:8px;font-family:monospace;color:var(--acc);letter-spacing:2px;margin-bottom:16px}
+input[type=text],input[type=time],select{width:100%;background:var(--bg);color:#ccc;border:1px solid var(--dim3);border-radius:8px;padding:10px 12px;font-size:11px;font-family:monospace;margin-bottom:10px;outline:none}
+input:focus{border-color:rgba(74,111,165,.4)}
+.emoji-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.emoji-opt{font-size:20px;cursor:pointer;padding:4px;border-radius:6px;border:2px solid transparent}
+.emoji-opt.sel{border-color:var(--acc);background:rgba(74,111,165,.15)}
+.color-row{display:flex;gap:8px;margin-bottom:14px}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.color-opt.sel{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.3)}
+.btn-row{display:flex;gap:10px}
+.btn{flex:1;padding:14px;border:none;border-radius:10px;font-size:10px;font-family:monospace;letter-spacing:2px;font-weight:900;cursor:pointer;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-blue{background:var(--acc);color:#000}
+.btn-dim{background:var(--dim3);color:var(--dim)}
+.empty-hint{text-align:center;padding:10px;color:var(--dim3);font-size:9px;font-family:monospace}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK</div>
+      <div class="nav-name">WEEKLY OPS</div>
+    </div>
+  </div>
+  <div class="week-nav">
+    <button onclick="shiftWeek(-1)">← PREV</button>
+    <div class="week-title" id="weekTitle"></div>
+    <button onclick="shiftWeek(1)">NEXT →</button>
+  </div>
+  <div class="days" id="daysContainer"></div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3>ADD MISSION</h3>
+    <div class="m-sub" id="modalDay"></div>
+    <input type="time" id="mTime" value="09:00">
+    <input type="text" id="mTitle" placeholder="Mission name">
+    <div style="font-size:8px;font-family:monospace;color:var(--dim);margin-bottom:6px;letter-spacing:1px">ICON</div>
+    <div class="emoji-row" id="emojiRow"></div>
+    <div style="font-size:8px;font-family:monospace;color:var(--dim);margin-bottom:6px;letter-spacing:1px">COLOR</div>
+    <div class="color-row" id="colorRow"></div>
+    <div class="btn-row">
+      <button class="btn btn-dim" onclick="closeModal()">CANCEL</button>
+      <button class="btn btn-blue" onclick="saveTask()">LOCK IN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+const EMOJIS=['🚀','📋','🛡️','🎯','⚡','📡','🔋','🧠','🔄','⏰','💪','📞'];
+const COLORS=['#4a6fa5','#c0392b','#27ae60','#d4a843','#9b59b6','#e67e22'];
+let weekStart=getMonday(new Date());
+let weekData={};
+let addDay='';
+let selEmoji='🚀';
+let selColor='#4a6fa5';
+
+function getMonday(d){const dt=new Date(d);const day=dt.getDay();const diff=dt.getDate()-day+(day===0?-6:1);dt.setDate(diff);dt.setHours(0,0,0,0);return dt;}
+function weekKey(d){const y=d.getFullYear();const jan1=new Date(y,0,1);const days=Math.floor((d-jan1)/86400000);const w=Math.ceil((days+jan1.getDay()+1)/7);return y+'-W'+String(w).padStart(2,'0');}
+// ── KEY MIGRATION (one-time) ──
+(function(){try{for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('wo-')===0){localStorage.setItem('od_'+k,localStorage.getItem(k));localStorage.removeItem(k);}}}catch(e){}})();
+function load(){try{weekData=JSON.parse(localStorage.getItem('od_wo-'+weekKey(weekStart))||'{}');}catch(e){weekData={};}render();}
+function save(){localStorage.setItem('od_wo-'+weekKey(weekStart),JSON.stringify(weekData));}
+
+function render(){
+  const end=new Date(weekStart);end.setDate(end.getDate()+6);
+  document.getElementById('weekTitle').textContent=weekStart.toLocaleDateString('en-CA',{month:'short',day:'numeric'})+' — '+end.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+  const c=document.getElementById('daysContainer');
+  c.innerHTML='';
+  const todayStr=new Date().toISOString().slice(0,10);
+  for(let i=0;i<7;i++){
+    const day=new Date(weekStart);day.setDate(day.getDate()+i);
+    const dk=day.toISOString().slice(0,10);
+    const isToday=dk===todayStr;
+    const dayName=day.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase();
+    const col=document.createElement('div');
+    col.className='day-col'+(isToday?' today':'');
+    let tasksHTML='';
+    const tasks=(weekData[dk]||[]).sort((a,b)=>a.time.localeCompare(b.time));
+    if(tasks.length===0){
+      tasksHTML='<div class="empty-hint">No missions</div>';
+    }else{
+      tasks.forEach((t,idx)=>{
+        tasksHTML+=`<div class="task-chip${t.done?' done':''}" style="border-left-color:${esc(t.color)||'var(--acc)'}" onclick="toggleTask('${dk}',${idx})">
+          <span class="tc-time">${esc(t.time)}</span><span class="tc-emoji">${esc(t.emoji)}</span><span class="tc-title">${esc(t.title)}</span>
+          <button class="tc-del" onclick="event.stopPropagation();delTask('${dk}',${idx})">×</button>
+        </div>`;
+      });
+    }
+    col.innerHTML=`<div class="day-header"><div><div class="day-name">${dayName}</div><div class="day-date">${day.toLocaleDateString('en-CA')}</div></div><button class="day-add" onclick="openModal('${dk}','${dayName} ${day.getDate()}')">+ ADD</button></div><div class="day-tasks">${tasksHTML}</div>`;
+    c.appendChild(col);
+  }
+}
+
+function shiftWeek(dir){weekStart.setDate(weekStart.getDate()+(dir*7));load();}
+
+function openModal(dk,label){
+  addDay=dk;
+  document.getElementById('modalDay').textContent=label;
+  document.getElementById('mTitle').value='';
+  document.getElementById('mTime').value='09:00';
+  selEmoji='🚀';selColor='#4a6fa5';
+  renderEmojis();renderColors();
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+function renderEmojis(){
+  const r=document.getElementById('emojiRow');r.innerHTML='';
+  EMOJIS.forEach(e=>{
+    const s=document.createElement('span');
+    s.className='emoji-opt'+(e===selEmoji?' sel':'');
+    s.textContent=e;s.onclick=()=>{selEmoji=e;renderEmojis();};
+    r.appendChild(s);
+  });
+}
+function renderColors(){
+  const r=document.getElementById('colorRow');r.innerHTML='';
+  COLORS.forEach(c=>{
+    const s=document.createElement('span');
+    s.className='color-opt'+(c===selColor?' sel':'');
+    s.style.background=c;s.onclick=()=>{selColor=c;renderColors();};
+    r.appendChild(s);
+  });
+}
+
+function saveTask(){
+  const title=document.getElementById('mTitle').value.trim();
+  if(!title)return;
+  if(!weekData[addDay])weekData[addDay]=[];
+  weekData[addDay].push({id:Date.now(),time:document.getElementById('mTime').value,title,emoji:selEmoji,color:selColor,done:false});
+  save();closeModal();render();
+}
+
+function toggleTask(dk,idx){
+  if(weekData[dk]&&weekData[dk][idx]){weekData[dk][idx].done=!weekData[dk][idx].done;save();render();}
+}
+function delTask(dk,idx){
+  if(!confirm('Remove this mission?'))return;
+  weekData[dk].splice(idx,1);if(weekData[dk].length===0)delete weekData[dk];save();render();
+}
+
+load();
+</script>
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="mission-brief.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#2c5282;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">MISSION BRIEF →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Lock in today's specific objective from your weekly plan</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Week planned — draw your first mission</span></a></div>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Week mapped out? Draw a card. Let the Deck add one thing you didn't plan for.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="MOOD TRENDS • OPERATOR'S DECK">
+<meta property="og:description" content="Visual mood timeline from your Field Protocol check-ins. See the pattern. Show your therapist.">
+<link rel="canonical" href="https://clovelearn.io/mood-trends.html">
+<title>MOOD TRENDS • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--teal:#0d9488}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--teal);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--teal);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+.disc-strip{background:#031a18;border-bottom:1px solid rgba(13,148,136,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--teal);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#447a76;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#66aaaa}
+
+.sec{padding:16px}
+.sec-label{color:var(--teal);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px}
+.stat-box{background:var(--bg2);border-radius:10px;padding:10px 8px;text-align:center}
+.stat-box .sv{font-size:18px;font-weight:900;font-family:'Courier New',monospace}
+.stat-box .sl{font-size:6px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-top:3px}
+
+.chart-wrap{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid var(--dim3)}
+.chart-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:8px}
+.chart-container{position:relative;width:100%;height:200px}
+
+.filter-row{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+.fil-btn{background:var(--bg2);color:var(--dim2);border:1px solid var(--dim3);border-radius:7px;padding:7px 12px;font-size:8px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s}
+.fil-btn.on{color:#fff;border-color:var(--teal)}
+.fil-btn:active{transform:scale(.96)}
+
+.heatmap{margin-bottom:16px}
+.hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.hm-cell{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;font-family:monospace;color:transparent;transition:all .2s;cursor:default}
+.hm-cell:hover{color:#fff}
+.hm-cell.lv0{background:var(--bg4)}
+.hm-cell.lv1{background:#0e3b1c}
+.hm-cell.lv2{background:#196d32}
+.hm-cell.lv3{background:#27ae60}
+.hm-cell.lv4{background:#2ecc71}
+.hm-warn{background:rgba(212,168,67,.2)!important}
+.hm-danger{background:rgba(192,57,43,.25)!important}
+.hm-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+.hm-labels span{font-size:6px;font-family:monospace;color:var(--dim2);text-align:center;letter-spacing:1px}
+.hm-legend{display:flex;gap:8px;justify-content:center;margin-top:8px;font-size:7px;font-family:monospace;color:var(--dim2)}
+.hm-legend span{display:flex;align-items:center;gap:3px}
+.hm-legend .dot{width:8px;height:8px;border-radius:2px}
+
+.domain-card{background:var(--bg2);border-radius:10px;padding:12px;margin-bottom:6px;display:flex;align-items:center;gap:12px;border:1px solid var(--dim3)}
+.domain-card .d-name{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px;flex:1}
+.domain-card .d-bar{flex:2;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.domain-card .d-fill{height:100%;border-radius:3px;transition:width .5s}
+.domain-card .d-pct{font-size:10px;font-weight:900;font-family:monospace;min-width:36px;text-align:right}
+
+.export-row{display:flex;gap:8px;justify-content:center;margin:20px 0}
+.export-btn{background:var(--bg2);color:var(--teal);border:1px solid rgba(13,148,136,.2);border-radius:10px;padding:12px 20px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.export-btn:active{transform:scale(.96);background:rgba(13,148,136,.05)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--dim2);font-size:11px;font-family:Georgia,serif;font-style:italic;line-height:1.8}
+
+.deck-link{margin:24px 16px;background:var(--bg2);border:1px solid rgba(192,57,43,.15);border-radius:12px;padding:16px;text-align:center}
+.deck-link .dl-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--teal)}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Mood Trends navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">◂ BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">INTELLIGENCE</div>
+    <div class="nav-name">MOOD TRENDS</div>
+  </div>
+</nav>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>Data source:</strong> Your Field Protocol daily check-ins (6 domains × 4 zones).
+    All data is read from localStorage — nothing is sent anywhere.
+    Share the export with your therapist if you choose to.
+  </div>
+</div>
+
+<div id="content"></div>
+
+<!-- DECK LINK -->
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">◈ DECK LINK</div>
+  <div class="dl-text">Field Protocol check-ins route your daily card to the right suit.
+  Mood Trends shows you the pattern over time — what your therapist needs to see.</div>
+  <a href="pattern-recon.html" rel="noopener">OPEN PATTERN RECON →</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="pattern-recon.html">◈ PATTERN RECON — Raw analytics dashboard</a>
+  <a class="next-link" href="pattern-intelligence.html">◈ PATTERN INTELLIGENCE — Protocol log analysis</a>
+  <a class="next-link" href="warroom.html">◈ WAR ROOM — Command center</a>
+  <a class="next-link" href="cbt-drill.html">◈ CBT DRILL — Thought record for bad days</a>
+  <a class="next-link" href="toolshed.html">◈ TOOL SHED — All recovery tools</a>
+</nav>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+var DOMAINS=['mood','attitude','sleep','physical','activity','substance'];
+var DOMAIN_LABELS={mood:'MOOD',attitude:'ATTITUDE',sleep:'SLEEP',physical:'PHYSICAL',activity:'ACTIVITY',substance:'SUBSTANCE'};
+var ZONE_SCORES={h:4,r:3,i:2,l:1};
+var ZONE_NAMES={h:'Healthy',r:'Reacting',i:'Injured',l:'Ill'};
+var ZONE_COLORS={h:'#27ae60',r:'#d4a843',i:'#d46427',l:'#c0392b'};
+
+function loadData(){
+  try{
+    var raw=JSON.parse(localStorage.getItem('od3'))||{};
+    return raw.ciz||{};
+  }catch(e){return{}}
+}
+
+function getSortedDates(zones){
+  return Object.keys(zones).sort(function(a,b){
+    return new Date(a)-new Date(b);
+  });
+}
+
+function scoreDay(dayZones){
+  var total=0;var count=0;
+  DOMAINS.forEach(function(d){
+    if(dayZones[d]){
+      var s=ZONE_SCORES[dayZones[d]]||0;
+      if(s){total+=s;count++}
+    }
+  });
+  return count?Math.round((total/count)*25):0; // 0-100 scale
+}
+
+function render(){
+  var zones=loadData();
+  var dates=getSortedDates(zones);
+
+  if(!dates.length){
+    document.getElementById('content').innerHTML='<div class="empty-state">No Field Protocol check-ins yet.<br>Complete your first daily check-in on the Home tab to see trends here.<br><br><a href="./" style="color:var(--teal);font-size:10px;font-family:monospace;text-decoration:none;border:1px solid rgba(13,148,136,.2);border-radius:6px;padding:8px 16px">GO TO HOME →</a></div>';
+    return;
+  }
+
+  var h='';
+
+  // Stats row
+  var totalDays=dates.length;
+  var scores=dates.map(function(d){return scoreDay(zones[d])});
+  var avg=Math.round(scores.reduce(function(a,b){return a+b},0)/scores.length);
+  var trend=scores.length>=7?(scores.slice(-7).reduce(function(a,b){return a+b},0)/7)-(scores.slice(-14,-7).length?scores.slice(-14,-7).reduce(function(a,b){return a+b},0)/scores.slice(-14,-7).length:avg):0;
+  var trendDir=trend>2?'↑':trend<-2?'↓':'→';
+  var trendColor=trend>2?'var(--grn)':trend<-2?'var(--red)':'var(--dim)';
+
+  // Count zone distribution
+  var zoneCounts={h:0,r:0,i:0,l:0};
+  dates.forEach(function(d){
+    DOMAINS.forEach(function(dom){
+      var z=zones[d][dom];
+      if(z&&zoneCounts[z]!==undefined)zoneCounts[z]++;
+    });
+  });
+
+  h+='<div class="sec"><div class="sec-label">OVERVIEW</div><div class="sec-title">Your Trend</div>';
+  h+='<div class="stats-row">';
+  h+='<div class="stat-box"><div class="sv" style="color:var(--teal)">'+totalDays+'</div><div class="sl">CHECK-INS</div></div>';
+  h+='<div class="stat-box"><div class="sv" style="color:var(--gld)">'+avg+'</div><div class="sl">AVG SCORE</div></div>';
+  h+='<div class="stat-box"><div class="sv" style="color:'+trendColor+'">'+trendDir+'</div><div class="sl">7-DAY TREND</div></div>';
+  h+='<div class="stat-box"><div class="sv" style="color:var(--grn)">'+zoneCounts.h+'</div><div class="sl">HEALTHY</div></div>';
+  h+='</div>';
+
+  // Main trend chart
+  h+='<div class="chart-wrap"><div class="chart-label">DAILY WELLNESS SCORE (0–100)</div><div class="chart-container"><canvas id="trendChart"></canvas></div></div>';
+
+  // Domain breakdown chart
+  h+='<div class="chart-wrap"><div class="chart-label">ZONE DISTRIBUTION (ALL TIME)</div><div class="chart-container" style="height:160px"><canvas id="zoneChart"></canvas></div></div>';
+
+  // Heatmap — last 35 days
+  h+='<div class="sec"><div class="sec-label">HEATMAP</div><div class="sec-title">Last 35 Days</div>';
+  h+='<div class="heatmap"><div class="hm-labels"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div><div class="hm-grid" id="heatGrid"></div>';
+  h+='<div class="hm-legend"><span><div class="dot" style="background:var(--bg4)"></div>No data</span><span><div class="dot" style="background:#0e3b1c"></div>Low</span><span><div class="dot" style="background:#27ae60"></div>Good</span><span><div class="dot" style="background:#2ecc71"></div>Great</span></div></div>';
+  h+='</div>';
+
+  // Per-domain averages
+  h+='<div class="sec"><div class="sec-label">DOMAIN BREAKDOWN</div><div class="sec-title">Average by Domain</div><div class="sec-desc">How each domain scores across all check-ins. 100 = all Healthy, 25 = all Ill.</div>';
+  DOMAINS.forEach(function(dom){
+    var domScores=[];
+    dates.forEach(function(d){
+      var z=zones[d][dom];
+      if(z&&ZONE_SCORES[z])domScores.push(ZONE_SCORES[z]*25);
+    });
+    var domAvg=domScores.length?Math.round(domScores.reduce(function(a,b){return a+b},0)/domScores.length):0;
+    var barColor=domAvg>=75?'var(--grn)':domAvg>=50?'var(--gld)':domAvg>=25?'#d46427':'var(--red)';
+    h+='<div class="domain-card"><div class="d-name">'+DOMAIN_LABELS[dom]+'</div><div class="d-bar"><div class="d-fill" style="width:'+domAvg+'%;background:'+barColor+'"></div></div><div class="d-pct" style="color:'+barColor+'">'+domAvg+'</div></div>';
+  });
+  h+='</div>';
+
+  // Export
+  h+='<div class="export-row"><button class="export-btn" onclick="exportCSV()">EXPORT CSV</button><button class="export-btn" onclick="exportReport()">EXPORT REPORT</button></div>';
+
+  document.getElementById('content').innerHTML=h;
+
+  // Render charts
+  renderTrendChart(dates,scores);
+  renderZoneChart(zoneCounts);
+  renderHeatmap(zones);
+}
+
+function renderTrendChart(dates,scores){
+  var labels=dates.map(function(d){
+    var parts=d.split('/');
+    return parts.length>=2?(parts[0]+'/'+parts[1]):d;
+  });
+  var last30Labels=labels.slice(-30);
+  var last30Scores=scores.slice(-30);
+
+  new Chart(document.getElementById('trendChart'),{
+    type:'line',
+    data:{
+      labels:last30Labels,
+      datasets:[{
+        data:last30Scores,
+        borderColor:'#0d9488',
+        backgroundColor:'rgba(13,148,136,0.08)',
+        fill:true,
+        tension:0.3,
+        pointRadius:3,
+        pointBackgroundColor:'#0d9488',
+        pointBorderColor:'#08080f',
+        pointBorderWidth:2,
+        borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{min:0,max:100,ticks:{color:'#555',font:{size:9},stepSize:25},grid:{color:'rgba(255,255,255,.04)'},border:{color:'transparent'}},
+        x:{ticks:{color:'#444',font:{size:7},maxRotation:45,autoSkip:true,maxTicksLimit:10},grid:{display:false},border:{color:'transparent'}}
+      }
+    }
+  });
+}
+
+function renderZoneChart(zoneCounts){
+  new Chart(document.getElementById('zoneChart'),{
+    type:'doughnut',
+    data:{
+      labels:['Healthy','Reacting','Injured','Ill'],
+      datasets:[{
+        data:[zoneCounts.h,zoneCounts.r,zoneCounts.i,zoneCounts.l],
+        backgroundColor:['#27ae60','#d4a843','#d46427','#c0392b'],
+        borderColor:'#08080f',
+        borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#888',font:{size:9,family:'monospace'},padding:12,usePointStyle:true,pointStyle:'rectRounded'}}
+      },
+      cutout:'60%'
+    }
+  });
+}
+
+function renderHeatmap(zones){
+  var grid=document.getElementById('heatGrid');
+  if(!grid)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var cells=[];
+
+  // Go back 35 days and align to Sunday
+  var start=new Date(today);
+  start.setDate(start.getDate()-34);
+  // Align to previous Sunday
+  while(start.getDay()!==0)start.setDate(start.getDate()-1);
+
+  var d=new Date(start);
+  while(d<=today){
+    var key=d.toLocaleDateString();
+    var dayZones=zones[key];
+    var score=dayZones?scoreDay(dayZones):0;
+    var cls='lv0';
+    if(score>0&&score<=25)cls='hm-danger';
+    else if(score>25&&score<=50)cls='hm-warn';
+    else if(score>50&&score<=75)cls='lv2';
+    else if(score>75)cls='lv3';
+    cells.push('<div class="hm-cell '+cls+'" title="'+(d.toLocaleDateString())+': '+(dayZones?score+'%':'No data')+'">'+(d.getDate())+'</div>');
+    d.setDate(d.getDate()+1);
+  }
+  grid.innerHTML=cells.join('');
+}
+
+function exportCSV(){
+  var zones=loadData();
+  var dates=getSortedDates(zones);
+  if(!dates.length){showToast('NO DATA TO EXPORT');return}
+  var csv='Date,Mood,Attitude,Sleep,Physical,Activity,Substance,Score\n';
+  dates.forEach(function(d){
+    var z=zones[d];
+    var row=[d];
+    DOMAINS.forEach(function(dom){row.push(ZONE_NAMES[z[dom]]||'')});
+    row.push(scoreDay(z));
+    csv+=row.join(',')+'\n';
+  });
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='mood-trends-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  showToast('CSV EXPORTED');
+}
+
+function exportReport(){
+  var zones=loadData();
+  var dates=getSortedDates(zones);
+  if(!dates.length){showToast('NO DATA TO EXPORT');return}
+  var scores=dates.map(function(d){return scoreDay(zones[d])});
+  var avg=Math.round(scores.reduce(function(a,b){return a+b},0)/scores.length);
+
+  var txt='MOOD TRENDS REPORT — OPERATOR\'S DECK\n';
+  txt+='Generated: '+new Date().toLocaleString()+'\n';
+  txt+='Source: Field Protocol daily check-ins (clovelearn.io)\n';
+  txt+=('═').repeat(50)+'\n\n';
+  txt+='SUMMARY\n';
+  txt+='Total check-ins: '+dates.length+'\n';
+  txt+='Date range: '+dates[0]+' to '+dates[dates.length-1]+'\n';
+  txt+='Average wellness score: '+avg+'/100\n\n';
+  txt+='DOMAIN AVERAGES\n';
+  DOMAINS.forEach(function(dom){
+    var domScores=[];
+    dates.forEach(function(d){
+      var z=zones[d][dom];
+      if(z&&ZONE_SCORES[z])domScores.push(ZONE_SCORES[z]*25);
+    });
+    var domAvg=domScores.length?Math.round(domScores.reduce(function(a,b){return a+b},0)/domScores.length):0;
+    txt+=DOMAIN_LABELS[dom]+': '+domAvg+'/100\n';
+  });
+  txt+='\nDAILY LOG\n';
+  txt+=('-').repeat(40)+'\n';
+  dates.forEach(function(d){
+    var z=zones[d];
+    txt+=d+' — Score: '+scoreDay(z)+' — ';
+    DOMAINS.forEach(function(dom){txt+=(dom.charAt(0).toUpperCase()+':'+(ZONE_NAMES[z[dom]]||'?')+' ')});
+    txt+='\n';
+  });
+  txt+='\n'+('═').repeat(50)+'\n';
+  txt+='Generated by Operator\'s Deck (clovelearn.io)\n';
+  txt+='All data stored locally. Zero cloud. Zero tracking.\n';
+
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='mood-report-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  showToast('REPORT EXPORTED');
+}
+
+render();
+</script>
+</body>
+</html>

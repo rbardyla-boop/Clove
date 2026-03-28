@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="DOPAMINE DEPOT • OPERATOR'S DECK">
+<meta property="og:description" content="Reward menu and spin wheel. Build your dopamine menu before the craving decides.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/dopamine-depot.html">
+<title>DOPAMINE DEPOT • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#d4a843;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim2);color:var(--dim);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#555}
+.nav-info{flex:1}
+.nav-tag{color:var(--acc);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.tabs{display:flex;border-bottom:1px solid var(--dim3);position:sticky;top:53px;z-index:18;background:var(--bg)}
+.tab{flex:1;padding:12px 0;text-align:center;font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+.tab:active{opacity:.6}
+.panel{display:none;padding:16px}
+.panel.active{display:block}
+.section-title{font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim);margin-bottom:12px}
+/* MENU CARDS */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.menu-card{background:var(--bg3);border:1.5px solid var(--dim3);border-radius:12px;padding:18px 10px;text-align:center;cursor:pointer;transition:all .15s}
+.menu-card:active{transform:scale(.95);border-color:var(--acc)}
+.menu-card .mc-emoji{font-size:36px;margin-bottom:8px}
+.menu-card .mc-name{font-size:10px;font-weight:700;margin-bottom:3px}
+.menu-card .mc-time{font-size:8px;font-family:monospace;color:var(--acc);letter-spacing:1px}
+/* ADD FORM */
+.add-box{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px;margin-top:12px}
+input[type=text],select{width:100%;background:var(--bg);color:#ccc;border:1px solid var(--dim3);border-radius:8px;padding:10px 12px;font-size:11px;font-family:monospace;margin-bottom:10px;outline:none}
+input:focus{border-color:rgba(212,168,67,.4)}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:10px;font-family:monospace;letter-spacing:2px;font-weight:900;cursor:pointer;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:var(--acc);color:#000}
+.btn-outline{background:none;border:1px solid var(--dim3);color:var(--dim)}
+/* WHEEL */
+.wheel-zone{text-align:center;padding:30px 0}
+.wheel-circle{width:200px;height:200px;border:6px solid var(--acc);border-radius:50%;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-size:64px;cursor:pointer;transition:transform 3s cubic-bezier(.23,1,.32,1)}
+.wheel-result{min-height:50px;font-size:15px;font-weight:900;margin-bottom:16px}
+.wheel-result .wr-time{font-size:9px;color:var(--acc);font-family:monospace;letter-spacing:1px;display:block;margin-top:4px}
+/* LOG */
+.log-entry{background:var(--bg2);border:1px solid var(--dim3);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:10px}
+.log-entry .le-date{color:var(--acc);font-family:monospace;font-size:8px}
+.log-entry .le-time{color:var(--acc);font-family:monospace;font-size:9px;font-weight:900}
+.streak-bar{background:var(--bg3);border:1px solid var(--dim3);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px}
+.streak-bar .sb-num{font-size:48px;font-weight:900;color:var(--acc);line-height:1}
+.streak-bar .sb-label{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-top:6px}
+/* BRIEF */
+.brief{padding:16px}
+.brief h2{font-size:16px;font-weight:900;margin-bottom:12px}
+.brief p{color:var(--dim);font-size:11px;line-height:1.8;margin-bottom:14px;font-family:Georgia,serif}
+.brief .quote{background:var(--bg3);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:12px 14px;margin:16px 0;font-style:italic;font-size:10px;color:#999;font-family:Georgia,serif;line-height:1.7}
+.brief .quote .attr{display:block;margin-top:6px;color:var(--acc);font-size:8px;font-family:monospace;font-style:normal;letter-spacing:1px}
+.del-btn{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--dim3);font-size:14px;cursor:pointer;padding:4px}
+.del-btn:active{color:var(--red)}
+.menu-card{position:relative}
+*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+  <div class="nav-bar" role="navigation" aria-label="Page navigation">
+    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <div class="nav-info">
+      <div class="nav-tag">OPERATOR'S DECK</div>
+      <div class="nav-name">DOPAMINE DEPOT</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="go(0)">MENU</div>
+    <div class="tab" onclick="go(1)">SPIN</div>
+    <div class="tab" onclick="go(2)">LOG</div>
+    <div class="tab" onclick="go(3)">BRIEF</div>
+  </div>
+
+  <!-- MENU -->
+  <div class="panel active" id="p0">
+    <div class="section-title">QUICK-HIT REWARDS</div>
+    <div class="menu-grid" id="menuGrid"></div>
+    <div class="add-box">
+      <input type="text" id="newName" placeholder="New dopamine hit (e.g. 3min cat videos)">
+      <select id="newTime">
+        <option value="2">2 MIN</option>
+        <option value="5" selected>5 MIN</option>
+        <option value="10">10 MIN</option>
+        <option value="20">20 MIN</option>
+      </select>
+      <button class="btn btn-gold" onclick="addActivity()">ADD TO DEPOT</button>
+    </div>
+  </div>
+
+  <!-- SPIN -->
+  <div class="panel" id="p1">
+    <div class="wheel-zone">
+      <div class="section-title">CAN'T DECIDE? LET FATE CHOOSE.</div>
+      <div class="wheel-circle" id="wheel" onclick="spin()">🎰</div>
+      <div class="wheel-result" id="spinResult"></div>
+      <button class="btn btn-gold" onclick="spin()">SPIN FOR RANDOM HIT</button>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="panel" id="p2">
+    <div class="streak-bar">
+      <div class="sb-num" id="streakNum">0</div>
+      <div class="sb-label">DAY STREAK</div>
+    </div>
+    <div class="section-title">RECENT HITS</div>
+    <div id="logList"></div>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel" id="p3">
+    <div class="brief">
+      <h2>DOPAMINE DEPOT — FIELD MANUAL</h2>
+      <p>When your brain refuses to start anything, pick from the menu or spin the wheel. Quick wins build momentum. Momentum enables real work.</p>
+      <div class="quote">
+        "I had 47 tabs open and zero motivation. Spun the wheel, did 5min of stretching, suddenly cleared my inbox."
+        <span class="attr">— Every operator on the deck</span>
+      </div>
+      <p>This is the #1 hack for task paralysis. Don't fight the brain — bribe it. Pick a small hit, collect the dopamine, then redirect the momentum into something that matters.</p>
+      <p style="font-size:8px;color:var(--dim3);font-family:monospace;margin-top:24px">All data saved in browser localStorage. No tracking. No cloud. Pure field kit.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function esc(s){if(typeof s!=='string')return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+const DEFAULTS=[
+  {id:1,name:"3min funny memes",time:3,emoji:"😂"},
+  {id:2,name:"Pet the cat/dog",time:5,emoji:"🐱"},
+  {id:3,name:"Quick walk outside",time:10,emoji:"🚶"},
+  {id:4,name:"Make fancy coffee",time:5,emoji:"☕"},
+  {id:5,name:"Dance to one song",time:4,emoji:"🕺"},
+  {id:6,name:"Stretch for 5",time:5,emoji:"🧘"},
+  {id:7,name:"Doodle something",time:5,emoji:"✏️"},
+  {id:8,name:"Text a friend",time:3,emoji:"💬"}
+];
+// ── KEY MIGRATION (one-time) ──
+(function(){try{['dd-activities','dd-log','dd-streak','dd-lastdate'].forEach(function(k){var v=localStorage.getItem(k);if(v!==null){localStorage.setItem('od_'+k.replace('-','_'),v);localStorage.removeItem(k);}});}catch(e){}})();
+let activities=[];try{activities=JSON.parse(localStorage.getItem('od_dd_activities')||'null')||[...DEFAULTS];}catch(e){}
+let log=[];try{log=JSON.parse(localStorage.getItem('od_dd_log')||'[]');}catch(e){}
+let streak=parseInt(localStorage.getItem('od_dd_streak')||'0');
+let lastDate=localStorage.getItem('od_dd_lastdate')||'';
+const EMOJIS=['🍭','🎮','📱','🎵','🧘','🍪','📖','🎨','🏃','🧩'];
+
+function save(){
+  localStorage.setItem('od_dd_activities',JSON.stringify(activities));
+  localStorage.setItem('od_dd_log',JSON.stringify(log));
+  localStorage.setItem('od_dd_streak',streak);
+  localStorage.setItem('od_dd_lastdate',lastDate);
+}
+
+function go(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>{p.classList.toggle('active',i===n)});
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',i===n)});
+  if(n===0)renderMenu();
+  if(n===2)renderLog();
+}
+
+function renderMenu(){
+  const g=document.getElementById('menuGrid');
+  g.innerHTML='';
+  activities.forEach((a,i)=>{
+    const d=document.createElement('div');
+    d.className='menu-card';
+    d.innerHTML=`<button class="del-btn" onclick="event.stopPropagation();delActivity(${i})">×</button><div class="mc-emoji">${esc(a.emoji)}</div><div class="mc-name">${esc(a.name)}</div><div class="mc-time">${a.time} MIN</div>`;
+    d.onclick=()=>startHit(a);
+    g.appendChild(d);
+  });
+}
+
+function addActivity(){
+  const name=document.getElementById('newName').value.trim();
+  if(!name)return;
+  const time=parseInt(document.getElementById('newTime').value);
+  activities.push({id:Date.now(),name,time,emoji:EMOJIS[Math.floor(Math.random()*EMOJIS.length)]});
+  document.getElementById('newName').value='';
+  save();renderMenu();
+}
+
+function delActivity(i){
+  if(!confirm('Remove "'+activities[i].name+'"?'))return;
+  activities.splice(i,1);save();renderMenu();
+}
+
+function startHit(a){
+  if(!confirm('LOCK IN: '+a.name+' ('+a.time+' min)?'))return;
+  const today=new Date().toISOString().slice(0,10);
+  if(today!==lastDate){streak++;lastDate=today;}
+  log.unshift({date:new Date().toISOString(),activity:a.name,time:a.time,emoji:a.emoji});
+  if(log.length>100)log=log.slice(0,100);
+  save();
+  alert('✅ DOPAMINE HIT ACQUIRED — GO DO IT.');
+}
+
+function spin(){
+  const w=document.getElementById('wheel');
+  const r=document.getElementById('spinResult');
+  w.style.transform='rotate('+(Math.random()*2000+720)+'deg)';
+  r.innerHTML='<span style="color:var(--dim)">Spinning...</span>';
+  setTimeout(()=>{
+    const pick=activities[Math.floor(Math.random()*activities.length)];
+    r.innerHTML=esc(pick.emoji)+' '+esc(pick.name)+'<span class="wr-time">'+pick.time+' MIN</span>';
+    if(confirm('Start: '+pick.name+'?'))startHit(pick);
+  },2800);
+}
+
+function renderLog(){
+  document.getElementById('streakNum').textContent=streak;
+  const c=document.getElementById('logList');
+  c.innerHTML='';
+  log.slice(0,20).forEach(e=>{
+    const d=new Date(e.date);
+    const div=document.createElement('div');
+    div.className='log-entry';
+    div.innerHTML='<div><span class="le-date">'+d.toLocaleDateString('en-CA')+'</span> '+e.emoji+' '+e.activity+'</div><div class="le-time">'+e.time+' MIN</div>';
+    c.appendChild(div);
+  });
+  if(log.length===0)c.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--dim3);font-size:10px">No hits yet — pick from the menu.</div>';
+}
+
+go(0);
+</script>
+
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="grind-ops.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#7c3aed;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">GRIND OPS →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Turn the hit into a logged habit rep</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Reward system recharged — back to the mission</span></a></div>
+<div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Healthy reward chosen? That's a mission win. Track it in the Deck's evidence tab.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
+</body>
+</html>
