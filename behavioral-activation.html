@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="BEHAVIORAL ACTIVATION • OPERATOR'S DECK">
+<meta property="og:description" content="Depression's kryptonite. Schedule activities, rate pleasure and mastery, track mood shifts. See what actually moves the needle.">
+<link rel="canonical" href="https://clovelearn.io/behavioral-activation.html">
+<title>BEHAVIORAL ACTIVATION • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--teal:#22d3ee;--fire:#ef4444}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:520px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--teal);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--teal);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.disc-strip{display:flex;gap:10px;align-items:flex-start;background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.12);border-radius:10px;padding:12px 14px;margin:12px 16px 0}
+.ds-icon{font-size:14px;flex-shrink:0;color:var(--teal)}
+.ds-text{font-size:8px;color:#bbb;font-family:Georgia,serif;line-height:1.7}
+.ds-text strong{color:#ddd}
+.sec{padding:16px}
+.sec-label{color:var(--teal);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+/* FORM */
+.field{margin-bottom:12px}
+.field-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:4px;display:flex;justify-content:space-between}
+.field-counter{color:var(--dim3)}
+textarea,input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;color:#fff;padding:10px 12px;font-size:10px;font-family:Georgia,serif;line-height:1.7;resize:vertical;min-height:60px;outline:none}
+textarea:focus,input:focus{border-color:var(--teal);box-shadow:0 0 0 2px rgba(34,211,238,.1)}
+input[type=text]{min-height:auto;resize:none;font-family:monospace}
+/* CATEGORY CHIPS */
+.cat-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cat-chip{padding:6px 12px;background:var(--bg3);border:1px solid var(--dim3);border-radius:20px;font-size:8px;font-family:monospace;letter-spacing:1px;color:var(--dim);cursor:pointer;transition:all .2s}
+.cat-chip.sel{background:rgba(34,211,238,.1);border-color:var(--teal);color:var(--teal)}
+/* SLIDER ROWS */
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slider-label{font-size:8px;font-family:monospace;letter-spacing:1px;color:var(--dim);min-width:80px}
+.slider-wrap{flex:1;position:relative}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:var(--bg3);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+.slider-val{font-size:14px;font-weight:900;font-family:monospace;color:var(--teal);min-width:28px;text-align:right}
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;margin-top:8px}
+.btn-primary{flex:1;background:linear-gradient(135deg,var(--teal),#0e7490);color:#000;border:none;border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{flex:1;background:var(--bg3);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer}
+.btn-secondary:active{color:#fff;border-color:#666}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.stat-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px 8px;text-align:center}
+.stat-val{font-size:20px;font-weight:900;font-family:monospace;line-height:1}
+.stat-lbl{font-size:6px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-top:4px}
+/* ENTRY CARDS */
+.entry{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid var(--teal)}
+.entry-date{font-size:6px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:6px}
+.entry-activity{font-size:11px;font-weight:800;font-family:monospace;letter-spacing:.5px;margin-bottom:4px}
+.entry-cat{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--teal);margin-bottom:8px}
+.entry-meters{display:flex;gap:12px;flex-wrap:wrap}
+.entry-meter{text-align:center}
+.em-val{font-size:14px;font-weight:900;font-family:monospace}
+.em-lbl{font-size:6px;font-family:monospace;letter-spacing:1px;color:var(--dim)}
+.entry-mood{margin-top:8px;font-size:8px;font-family:monospace;color:var(--dim)}
+.mood-shift{font-weight:900}
+.mood-up{color:var(--grn)}
+.mood-down{color:var(--red)}
+.mood-flat{color:var(--dim)}
+/* INSIGHT */
+.insight-card{background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.12);border-radius:10px;padding:14px;margin-bottom:12px}
+.insight-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--teal);margin-bottom:6px}
+.insight-text{font-size:9px;font-family:Georgia,serif;color:#ccc;line-height:1.7}
+/* TABS */
+.tab-row{display:flex;gap:0;margin:12px 16px 0;border-radius:10px;overflow:hidden;border:1px solid var(--dim3)}
+.tab-btn{flex:1;padding:10px;text-align:center;font-size:8px;font-family:monospace;letter-spacing:1.5px;color:var(--dim);background:var(--bg2);cursor:pointer;transition:all .2s;border:none}
+.tab-btn.active{background:rgba(34,211,238,.1);color:var(--teal)}
+/* DECK LINK / NEXT */
+.deck-link{margin:20px 16px;padding:14px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3);text-align:center}
+.deck-link .dl-tag{color:var(--teal);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--teal)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Behavioral Activation navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">&#9666; BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">DEPRESSION COUNTERMEASURE</div>
+    <div class="nav-name">BEHAVIORAL ACTIVATION</div>
+  </div>
+</nav>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>Behavioral Activation is the most effective single-component treatment for depression.</strong>
+    When you're depressed, you stop doing things. When you stop doing things, you get more depressed.
+    This tool breaks the cycle: schedule activities, rate how they felt, and discover what actually moves
+    the needle for you. Not theory. Data. (Jacobson et al. 1996; Dimidjian et al. 2006)
+  </div>
+</div>
+
+<div class="tab-row">
+  <button class="tab-btn active" id="tabLog" onclick="setTab('log')">LOG ACTIVITY</button>
+  <button class="tab-btn" id="tabHistory" onclick="setTab('history')">HISTORY</button>
+</div>
+
+<div id="content"></div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">&#9674; DECK LINK</div>
+  <div class="dl-text">Activity data pairs with your PHQ-9 scores and Mood Trends. Do more of what scores high.</div>
+  <a href="clinical-assessments.html" rel="noopener">CHECK YOUR PHQ-9 &#8594;</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="exposure-hierarchy.html">&#9674; EXPOSURE HIERARCHY &#8212; Face the fear ladder</a>
+  <a class="next-link" href="clinical-report.html">&#9674; CLINICAL REPORT &#8212; Print for your therapist</a>
+  <a class="next-link" href="mood-trends.html">&#9674; MOOD TRENDS &#8212; Track daily wellness</a>
+  <a class="next-link" href="toolshed.html">&#9674; TOOL SHED &#8212; All recovery tools</a>
+</nav>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var KEY='od_ba_activities';
+var tab='log';
+var CATS=['ROUTINE','SOCIAL','PHYSICAL','CREATIVE','PRODUCTIVE','SELF-CARE','FUN'];
+var selCat='';
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function save(arr){try{localStorage.setItem(KEY,JSON.stringify(arr))}catch(e){}}
+
+function setTab(t){
+  tab=t;
+  document.getElementById('tabLog').className='tab-btn'+(t==='log'?' active':'');
+  document.getElementById('tabHistory').className='tab-btn'+(t==='history'?' active':'');
+  render();
+}
+
+function render(){
+  var el=document.getElementById('content');
+  if(tab==='history')return renderHistory(el);
+  renderLog(el);
+}
+
+function renderLog(el){
+  var h='<div class="sec"><div class="sec-label">LOG AN ACTIVITY</div><div class="sec-title">What Did You Do?</div>';
+  h+='<div class="sec-desc">Log anything you did &#8212; even small things. The data shows you what helps.</div>';
+
+  h+='<div class="field"><div class="field-label"><span>ACTIVITY</span><span class="field-counter" id="cntAct">0 / 200</span></div>';
+  h+='<input type="text" id="fActivity" placeholder="e.g., Walked 20 minutes, Called a friend, Cooked dinner" maxlength="200" oninput="document.getElementById(\'cntAct\').textContent=this.value.length+\' / 200\'"></div>';
+
+  h+='<div class="field"><div class="field-label"><span>CATEGORY</span></div>';
+  h+='<div class="cat-grid">';
+  CATS.forEach(function(c){
+    h+='<div class="cat-chip'+(selCat===c?' sel':'')+'" onclick="selCat=\''+(selCat===c?'':c)+'\';render()">'+c+'</div>';
+  });
+  h+='</div></div>';
+
+  h+='<div class="slider-row"><div class="slider-label">PLEASURE</div><div class="slider-wrap"><input type="range" id="sPleasure" min="0" max="10" value="5" oninput="document.getElementById(\'vPleasure\').textContent=this.value"></div><div class="slider-val" id="vPleasure">5</div></div>';
+  h+='<div class="slider-row"><div class="slider-label">MASTERY</div><div class="slider-wrap"><input type="range" id="sMastery" min="0" max="10" value="5" oninput="document.getElementById(\'vMastery\').textContent=this.value"></div><div class="slider-val" id="vMastery">5</div></div>';
+  h+='<div class="slider-row"><div class="slider-label">MOOD BEFORE</div><div class="slider-wrap"><input type="range" id="sMoodBefore" min="0" max="10" value="5" oninput="document.getElementById(\'vMoodBefore\').textContent=this.value"></div><div class="slider-val" id="vMoodBefore">5</div></div>';
+  h+='<div class="slider-row"><div class="slider-label">MOOD AFTER</div><div class="slider-wrap"><input type="range" id="sMoodAfter" min="0" max="10" value="5" oninput="document.getElementById(\'vMoodAfter\').textContent=this.value"></div><div class="slider-val" id="vMoodAfter">5</div></div>';
+
+  h+='<div class="btn-row"><button class="btn-primary" onclick="logActivity()">LOG ACTIVITY</button></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function logActivity(){
+  var activity=(document.getElementById('fActivity').value||'').trim();
+  if(!activity){showToast('NAME THE ACTIVITY');return}
+  var entry={
+    activity:activity,
+    category:selCat||'UNCATEGORIZED',
+    pleasure:+document.getElementById('sPleasure').value,
+    mastery:+document.getElementById('sMastery').value,
+    moodBefore:+document.getElementById('sMoodBefore').value,
+    moodAfter:+document.getElementById('sMoodAfter').value,
+    date:new Date().toLocaleDateString(),
+    ts:Date.now()
+  };
+  var arr=load();
+  arr.push(entry);
+  if(arr.length>300)arr.splice(0,arr.length-300);
+  save(arr);
+  selCat='';
+  showToast('ACTIVITY LOGGED');
+  render();
+}
+
+function renderHistory(el){
+  var arr=load();
+  var h='';
+
+  if(!arr.length){
+    h='<div class="sec" style="text-align:center;padding:60px 20px"><div style="font-size:28px;margin-bottom:12px" aria-hidden="true">&#128203;</div><div class="sec-title">No Activities Logged</div><div class="sec-desc">Switch to the LOG tab and record your first activity.</div></div>';
+    el.innerHTML=h;return;
+  }
+
+  // Stats
+  var totalP=0,totalM=0,totalShift=0,posShifts=0;
+  arr.forEach(function(e){totalP+=e.pleasure;totalM+=e.mastery;var s=e.moodAfter-e.moodBefore;totalShift+=s;if(s>0)posShifts++});
+  var avgP=Math.round(totalP/arr.length*10)/10;
+  var avgM=Math.round(totalM/arr.length*10)/10;
+  var avgShift=Math.round(totalShift/arr.length*10)/10;
+  var posRate=Math.round(posShifts/arr.length*100);
+
+  h+='<div class="sec"><div class="sec-label">OVERVIEW</div>';
+  h+='<div class="stats-grid">';
+  h+='<div class="stat-card"><div class="stat-val" style="color:var(--teal)">'+arr.length+'</div><div class="stat-lbl">LOGGED</div></div>';
+  h+='<div class="stat-card"><div class="stat-val" style="color:var(--gld)">'+avgP+'</div><div class="stat-lbl">AVG PLEASURE</div></div>';
+  h+='<div class="stat-card"><div class="stat-val" style="color:var(--grn)">'+avgM+'</div><div class="stat-lbl">AVG MASTERY</div></div>';
+  h+='</div>';
+
+  // Insight
+  h+='<div class="insight-card"><div class="insight-label">MOOD SHIFT ANALYSIS</div>';
+  h+='<div class="insight-text">Average mood shift: <strong style="color:'+(avgShift>0?'var(--grn)':avgShift<0?'var(--red)':'var(--dim)')+'">'+(avgShift>0?'+':'')+avgShift+'</strong> points per activity. '+posRate+'% of activities improved your mood.</div></div>';
+
+  // Top activities by mood lift
+  var actMap={};
+  arr.forEach(function(e){
+    if(!actMap[e.activity])actMap[e.activity]={count:0,totalShift:0,totalP:0,totalM:0};
+    var a=actMap[e.activity];a.count++;a.totalShift+=(e.moodAfter-e.moodBefore);a.totalP+=e.pleasure;a.totalM+=e.mastery;
+  });
+  var ranked=Object.entries(actMap).map(function(e){return{name:e[0],count:e[1].count,avgShift:Math.round(e[1].totalShift/e[1].count*10)/10,avgP:Math.round(e[1].totalP/e[1].count*10)/10}}).sort(function(a,b){return b.avgShift-a.avgShift});
+  if(ranked.length>1){
+    h+='<div class="insight-card"><div class="insight-label">TOP MOOD LIFTERS</div><div class="insight-text">';
+    ranked.slice(0,3).forEach(function(r,i){
+      h+=(i>0?'<br>':'')+(i+1)+'. <strong>'+esc(r.name)+'</strong> &#8212; avg shift '+(r.avgShift>0?'+':'')+r.avgShift+' ('+r.count+'&#215;)';
+    });
+    h+='</div></div>';
+  }
+
+  // Category breakdown
+  var catMap={};
+  arr.forEach(function(e){catMap[e.category]=(catMap[e.category]||0)+1});
+  var catSorted=Object.entries(catMap).sort(function(a,b){return b[1]-a[1]});
+  if(catSorted.length){
+    h+='<div class="sec-label" style="margin-top:8px">BY CATEGORY</div>';
+    h+='<div class="cat-grid" style="margin-bottom:16px">';
+    catSorted.forEach(function(c){
+      h+='<div class="cat-chip sel" style="cursor:default">'+esc(c[0])+' ('+c[1]+')</div>';
+    });
+    h+='</div>';
+  }
+
+  // Entries
+  h+='<div class="sec-label">RECENT ENTRIES</div>';
+  arr.slice().reverse().slice(0,30).forEach(function(e){
+    var shift=e.moodAfter-e.moodBefore;
+    var shiftCls=shift>0?'mood-up':shift<0?'mood-down':'mood-flat';
+    var arrow=shift>0?'&#9650;':shift<0?'&#9660;':'&#8594;';
+    h+='<div class="entry"><div class="entry-date">'+esc(e.date)+'</div>';
+    h+='<div class="entry-activity">'+esc(e.activity)+'</div>';
+    h+='<div class="entry-cat">'+esc(e.category)+'</div>';
+    h+='<div class="entry-meters">';
+    h+='<div class="entry-meter"><div class="em-val" style="color:var(--gld)">'+e.pleasure+'</div><div class="em-lbl">PLEASURE</div></div>';
+    h+='<div class="entry-meter"><div class="em-val" style="color:var(--grn)">'+e.mastery+'</div><div class="em-lbl">MASTERY</div></div>';
+    h+='<div class="entry-meter"><div class="em-val" style="color:var(--dim)">'+e.moodBefore+'</div><div class="em-lbl">MOOD BEFORE</div></div>';
+    h+='<div class="entry-meter"><div class="em-val" style="color:var(--teal)">'+e.moodAfter+'</div><div class="em-lbl">MOOD AFTER</div></div>';
+    h+='</div>';
+    h+='<div class="entry-mood">Mood shift: <span class="mood-shift '+shiftCls+'">'+arrow+' '+(shift>0?'+':'')+shift+'</span></div>';
+    h+='</div>';
+  });
+  if(arr.length>30)h+='<div style="text-align:center;color:var(--dim3);font-size:8px;font-family:monospace;padding:8px">Showing 30 of '+arr.length+'</div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+render();
+</script>
+</body>
+</html>

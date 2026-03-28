@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="PROGRESS REPORT • OPERATOR'S DECK">
+<meta property="og:description" content="Comprehensive recovery export. Every tool, every drill, every data point — one document. Print-ready.">
+<link rel="canonical" href="https://clovelearn.io/progress-report.html">
+<title>PROGRESS REPORT • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:520px;margin:0 auto}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--gld);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--gld);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* PRINT HEADER */
+.print-header{display:none}
+
+/* SECTIONS */
+.sec{padding:16px}
+.sec-label{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+.sec-divider{border:none;border-top:1px solid rgba(255,255,255,.03);margin:0 16px}
+
+/* REPORT CARDS */
+.rpt-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px;margin-bottom:8px}
+.rc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rc-title{font-size:9px;font-family:monospace;letter-spacing:2px;color:var(--gld);font-weight:800}
+.rc-badge{font-size:7px;font-family:monospace;letter-spacing:1px;padding:3px 8px;border-radius:4px}
+
+/* STAT ROWS */
+.sr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+.sr:last-child{border-bottom:none}
+.sr-label{font-size:9px;font-family:Georgia,serif;color:#999}
+.sr-val{font-size:10px;font-family:monospace;font-weight:800;letter-spacing:.5px}
+
+/* PROTOCOL TABLE */
+.ptbl{width:100%;border-collapse:collapse;margin-top:6px}
+.ptbl th{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim);text-align:left;padding:6px;border-bottom:1px solid var(--dim3)}
+.ptbl td{font-size:9px;font-family:monospace;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.02);color:#bbb}
+.ptbl tr:last-child td{border-bottom:none}
+
+/* MILESTONE LIST */
+.ms-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+.ms-item:last-child{border-bottom:none}
+.ms-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0}
+.ms-body{flex:1}
+.ms-title{font-size:9px;font-family:monospace;font-weight:800;letter-spacing:.5px;color:#ccc}
+.ms-date{font-size:7px;font-family:monospace;color:var(--dim3);margin-top:2px}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;padding:0 16px;margin-top:8px}
+.btn-print{flex:1;background:linear-gradient(135deg,var(--gld),#b8861e);color:#000;border:none;border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-print:active{transform:scale(.98)}
+.btn-export{flex:1;background:var(--bg3);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-export:active{color:#fff;border-color:#666}
+
+/* FOOTER / LINKS */
+.deck-link{margin:20px 16px;padding:14px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3);text-align:center}
+.deck-link .dl-tag{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--gld)}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+
+/* ═══════════════ PRINT ═══════════════ */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;color:#111!important;padding:0!important;font-size:10pt}
+  .app{max-width:100%!important}
+  .print-header{display:block!important;text-align:center;padding:20px 0 12px;border-bottom:2px solid #111;margin-bottom:16px}
+  .ph-title{font-size:16pt;font-weight:900;letter-spacing:3px;color:#111;font-family:monospace}
+  .ph-conf{font-size:8pt;font-weight:700;letter-spacing:4px;color:#c0392b;margin-top:4px;font-family:monospace}
+  .ph-date{font-size:8pt;color:#666;margin-top:6px;font-family:monospace}
+  .ph-source{font-size:7pt;color:#999;margin-top:2px;font-family:monospace}
+  .nav-bar,.btn-row,.deck-link,.next-block,.toast{display:none!important}
+  .rpt-card{border:1px solid #ccc!important;background:#f9f9f9!important;break-inside:avoid;page-break-inside:avoid}
+  .rc-title{color:#333!important}
+  .sr-label{color:#555!important}
+  .sr-val{color:#111!important}
+  .sec-label{color:#333!important}
+  .sec-title{color:#111!important}
+  .ptbl th{background:#eee!important;color:#333!important;border-bottom:1px solid #999!important}
+  .ptbl td{color:#111!important;border-bottom:1px solid #ddd!important}
+  .print-footer{display:block!important;text-align:center;padding:16px 0;border-top:1px solid #ccc;margin-top:16px;font-size:7pt;color:#999;font-family:monospace;letter-spacing:1px}
+  @page{margin:15mm 12mm;size:A4}
+}
+.print-footer{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- PRINT HEADER -->
+<div class="print-header">
+  <div class="ph-title">RECOVERY PROGRESS REPORT</div>
+  <div class="ph-conf">CONFIDENTIAL &#8212; SELF-REPORT DATA</div>
+  <div class="ph-date" id="printDate"></div>
+  <div class="ph-source">Generated by Operator's Deck (clovelearn.io) &#8212; All data stored locally on device</div>
+</div>
+
+<!-- SCREEN NAV -->
+<nav class="nav-bar" role="navigation" aria-label="Progress Report navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">&#9666; BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">COMPREHENSIVE EXPORT</div>
+    <div class="nav-name">PROGRESS REPORT</div>
+  </div>
+</nav>
+
+<div id="content"></div>
+
+<div class="btn-row" id="btnRow" style="display:none">
+  <button class="btn-print" onclick="window.print()">PRINT / SAVE PDF</button>
+  <button class="btn-export" onclick="exportText()">EXPORT .TXT</button>
+</div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">&#9674; DECK LINK</div>
+  <div class="dl-text">This report covers everything. For clinical-only data, use the Clinical Report instead.</div>
+  <a href="clinical-report.html" rel="noopener">CLINICAL REPORT &#8594;</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="progress-dashboard.html">&#9674; SITREP &#8212; Live unified dashboard</a>
+  <a class="next-link" href="clinical-report.html">&#9674; CLINICAL REPORT &#8212; Therapist-ready PDF</a>
+  <a class="next-link" href="toolshed.html">&#9674; TOOL SHED &#8212; All recovery tools</a>
+</nav>
+
+<!-- PRINT FOOTER -->
+<div class="print-footer">
+  Generated by Operator's Deck (clovelearn.io) &#8212; Zero cloud. Zero tracking.<br>
+  All data self-reported and stored locally on patient device.
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+function sg(k,fb){try{var r=localStorage.getItem(k);if(r===null)return fb;return JSON.parse(r)}catch(e){return fb}}
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+// Rank engine
+var RANKS=[
+  {min:0,name:'RECRUIT'},{min:5,name:'PRIVATE'},{min:15,name:'CORPORAL'},
+  {min:25,name:'SERGEANT'},{min:35,name:'WARRANT'},{min:45,name:'LIEUTENANT'},
+  {min:55,name:'CAPTAIN'},{min:70,name:'MAJOR'},{min:90,name:'COLONEL'},
+  {min:108,name:'UNBREAKABLE'}
+];
+function getRank(n){var r=RANKS[0];for(var i=RANKS.length-1;i>=0;i--){if(n>=RANKS[i].min){r=RANKS[i];break}}return r}
+
+// Clinical severity
+var CLIN_SEV={
+  phq9:function(s){if(s<=4)return'MINIMAL';if(s<=9)return'MILD';if(s<=14)return'MODERATE';if(s<=19)return'MOD SEVERE';return'SEVERE'},
+  gad7:function(s){if(s<=4)return'MINIMAL';if(s<=9)return'MILD';if(s<=14)return'MODERATE';return'SEVERE'},
+  pcl5:function(s){if(s<=10)return'MINIMAL';if(s<=20)return'LOW';if(s<=32)return'MODERATE';if(s<=50)return'PROVISIONAL PTSD';return'SEVERE'}
+};
+var CLIN_NAMES={phq9:'PHQ-9 (Depression)',gad7:'GAD-7 (Anxiety)',pcl5:'PCL-5 (PTSD)'};
+var CLIN_MAX={phq9:27,gad7:21,pcl5:80};
+
+function render(){
+  document.getElementById('printDate').textContent='Report Date: '+new Date().toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+
+  // Harvest everything
+  var od=sg('od3',{});
+  var streak=od.s||0,total=od.t||0,done=od.d||0;
+  var playlist=Array.isArray(od.p)?od.p:[];
+  var log=Array.isArray(od.l)?od.l:[];
+  var evidence=sg('od3ev',[]);var mirrors=sg('od3mr',[]);var stuckPts=sg('od3sp',[]);
+  var goals=sg('od3_goals',[]);var clinical=sg('od_clinical_scores',[]);
+  var journal=sg('od_journal',[]);var aar=sg('od_aar',[]);
+  var routineLog=sg('od_routine_log',[]);var wgo=sg('od_wgo_corrections',[]);
+
+  // Protocol counts
+  var protocols=[
+    {name:'What\'s Going On',key:'od_wgo_corrections'},
+    {name:'ACT Drill',key:'od_act_v1'},
+    {name:'DEAR MAN',key:'od_dm_v1'},
+    {name:'Chain Analysis',key:'od_chain_analysis'},
+    {name:'Opposite Action',key:'od_opposite_action'},
+    {name:'RSD Shield',key:'od_rsd'},
+    {name:'TIPP',key:'od_tipp_full'},
+    {name:'IMPROVE',key:'od_improve_full'},
+    {name:'Mindfulness',key:'od_mindfulness_full'},
+    {name:'Meditation',key:'od_meditation'},
+    {name:'CBT Drill',key:'od_cbt_records'},
+    {name:'Values Drill',key:'od_values_records'},
+    {name:'Candlebox',key:'od_candlebox_full'},
+    {name:'Thought Interceptor',key:'od_intercepts'},
+    {name:'Journal Ops',key:'od_journal'},
+    {name:'Grove Ops',key:'od_grove_log'},
+    {name:'Body Double',key:'od_bd_history'},
+    {name:'Dopamine Depot',key:'od_dd_log'},
+    {name:'Micro Ops',key:'od_micro_magic'},
+    {name:'Routine Completions',key:'od_routine_log'},
+    {name:'After-Action Review',key:'od_aar'},
+    {name:'Mission Brief',key:'od_mission_brief_v1'},
+    {name:'Behavioral Activation',key:'od_ba_activities'},
+    {name:'Exposure Hierarchy',key:'od_exposure_hierarchy'}
+  ];
+  protocols.forEach(function(p){p.count=sg(p.key,[]).length});
+  protocols.sort(function(a,b){return b.count-a.count});
+  var totalProtoEntries=0;protocols.forEach(function(p){totalProtoEntries+=p.count});
+
+  // Active days
+  var daySet={};
+  protocols.forEach(function(p){
+    var arr=sg(p.key,[]);
+    if(!Array.isArray(arr))return;
+    arr.forEach(function(e){var t=e.ts||e.timestamp;if(t)daySet[new Date(t).toISOString().split('T')[0]]=1});
+  });
+  log.forEach(function(e){if(e.ts)daySet[new Date(e.ts).toISOString().split('T')[0]]=1});
+  var activeDays=Object.keys(daySet).length;
+
+  // First activity date
+  var firstDate=null;
+  Object.keys(daySet).sort().forEach(function(d,i){if(i===0)firstDate=d});
+
+  // Distortion analysis from WGO
+  var distMap={};
+  wgo.forEach(function(e){
+    if(Array.isArray(e.distortions)){e.distortions.forEach(function(d){if(d)distMap[d]=(distMap[d]||0)+1})}
+  });
+  var sortedDist=Object.entries(distMap).sort(function(a,b){return b[1]-a[1]});
+
+  var rank=getRank(done);
+  var hasData=total>0||totalProtoEntries>0;
+  var el=document.getElementById('content');
+
+  if(!hasData){
+    el.innerHTML='<div class="sec" style="text-align:center;padding:60px 20px"><div style="font-size:28px;margin-bottom:12px" aria-hidden="true">&#128203;</div><div class="sec-title">Nothing to Report</div><div class="sec-desc">Use the deck, run drills, journal, or take assessments. Your data will populate this report automatically.</div></div>';
+    return;
+  }
+
+  document.getElementById('btnRow').style.display='flex';
+  var h='';
+
+  // ── DECK OVERVIEW ──
+  h+='<div class="sec"><div class="sec-label">DECK OVERVIEW</div>';
+  h+='<div class="rpt-card"><div class="rc-header"><div class="rc-title">OPERATIONAL SUMMARY</div>';
+  h+='<div class="rc-badge" style="background:rgba(192,57,43,.1);color:var(--red)">'+rank.name+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Cards drawn (total)</div><div class="sr-val">'+total+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Missions completed</div><div class="sr-val" style="color:var(--grn)">'+done+' / 108</div></div>';
+  h+='<div class="sr"><div class="sr-label">Evidence entries logged</div><div class="sr-val">'+evidence.length+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Mirror responses</div><div class="sr-val">'+mirrors.length+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Stuck points processed</div><div class="sr-val">'+stuckPts.length+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Goals set</div><div class="sr-val">'+goals.length+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Current streak</div><div class="sr-val" style="color:'+(streak>0?'var(--grn)':'var(--dim3)')+'">'+streak+' day'+(streak!==1?'s':'')+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Active days</div><div class="sr-val">'+activeDays+'</div></div>';
+  if(firstDate){h+='<div class="sr"><div class="sr-label">First activity</div><div class="sr-val" style="color:var(--dim)">'+firstDate+'</div></div>'}
+  h+='</div></div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── CLINICAL ASSESSMENTS ──
+  h+='<div class="sec"><div class="sec-label">CLINICAL ASSESSMENTS</div>';
+  if(!clinical.length){
+    h+='<div class="rpt-card"><div class="rc-title">NO ASSESSMENTS TAKEN</div><div style="font-size:9px;color:var(--dim2);font-family:Georgia,serif;font-style:italic;margin-top:6px">Complete PHQ-9, GAD-7, or PCL-5 in Clinical Assessments to populate this section.</div></div>';
+  }else{
+    h+='<div class="rpt-card"><div class="rc-header"><div class="rc-title">SCREENING RESULTS</div><div class="rc-badge" style="background:rgba(212,168,67,.08);color:var(--gld)">'+clinical.length+' TOTAL</div></div>';
+    ['phq9','gad7','pcl5'].forEach(function(id){
+      var arr=clinical.filter(function(s){return s.test===id});
+      if(!arr.length)return;
+      var last=arr[arr.length-1];
+      var sev=CLIN_SEV[id](last.score);
+      h+='<div class="sr"><div class="sr-label">'+CLIN_NAMES[id]+' &#8212; latest</div><div class="sr-val">'+last.score+'/'+CLIN_MAX[id]+' ['+sev+']</div></div>';
+      if(arr.length>1){
+        var first=arr[0];
+        var change=last.score-first.score;
+        var dir=change<0?'Improved by '+Math.abs(change):change>0?'Increased by '+change:'No change';
+        h+='<div class="sr"><div class="sr-label" style="padding-left:12px">Change from first ('+first.date+')</div><div class="sr-val" style="color:'+(change<0?'var(--grn)':change>0?'var(--red)':'var(--dim)')+'">'+dir+'</div></div>';
+      }
+      h+='<div class="sr"><div class="sr-label" style="padding-left:12px">Total assessments</div><div class="sr-val" style="color:var(--dim)">'+arr.length+'</div></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── PROTOCOL USAGE ──
+  h+='<div class="sec"><div class="sec-label">PROTOCOL USAGE</div>';
+  h+='<div class="rpt-card"><div class="rc-header"><div class="rc-title">TOOL ENGAGEMENT</div><div class="rc-badge" style="background:rgba(39,174,96,.08);color:var(--grn)">'+totalProtoEntries+' ENTRIES</div></div>';
+  var usedProtos=protocols.filter(function(p){return p.count>0});
+  if(!usedProtos.length){
+    h+='<div style="font-size:9px;color:var(--dim2);font-family:Georgia,serif;font-style:italic;padding:8px 0">No protocols used yet.</div>';
+  }else{
+    h+='<table class="ptbl"><thead><tr><th>#</th><th>PROTOCOL</th><th>SESSIONS</th></tr></thead><tbody>';
+    usedProtos.forEach(function(p,i){
+      h+='<tr><td>'+(i+1)+'</td><td>'+esc(p.name)+'</td><td>'+p.count+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='<div style="margin-top:10px"><div class="sr"><div class="sr-label">Journal entries</div><div class="sr-val">'+journal.length+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Routine completions</div><div class="sr-val">'+routineLog.length+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">After-action reviews</div><div class="sr-val">'+aar.length+'</div></div></div>';
+  h+='</div></div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── DISTORTION PATTERNS ──
+  if(sortedDist.length){
+    h+='<div class="sec"><div class="sec-label">COGNITIVE DISTORTION PATTERNS</div>';
+    h+='<div class="rpt-card"><div class="rc-header"><div class="rc-title">TOP DISTORTIONS (FROM WGO)</div><div class="rc-badge" style="background:rgba(230,126,34,.08);color:#e67e22">'+wgo.length+' SESSIONS</div></div>';
+    h+='<table class="ptbl"><thead><tr><th>#</th><th>DISTORTION</th><th>COUNT</th></tr></thead><tbody>';
+    sortedDist.slice(0,10).forEach(function(d,i){
+      h+='<tr><td>'+(i+1)+'</td><td>'+esc(d[0])+'</td><td>'+d[1]+'</td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+    h+='<hr class="sec-divider">';
+  }
+
+  // ── KEY MILESTONES ──
+  h+='<div class="sec"><div class="sec-label">KEY MILESTONES</div>';
+  h+='<div class="rpt-card"><div class="rc-title">ACHIEVEMENTS</div>';
+  var milestones=[];
+  if(done>=1)milestones.push({icon:'&#9827;',title:'First Mission Complete',condition:true});
+  if(done>=10)milestones.push({icon:'&#9733;',title:'10 Missions',condition:true});
+  if(done>=25)milestones.push({icon:'&#9733;&#9733;',title:'25 Missions &#8212; Sergeant',condition:true});
+  if(done>=54)milestones.push({icon:'&#128275;',title:'The Vault Unlocked (54)',condition:true});
+  if(done>=108)milestones.push({icon:'&#9827;&#9827;&#9827;',title:'UNBREAKABLE &#8212; All 108 Complete',condition:true});
+  if(evidence.length>=10)milestones.push({icon:'&#128196;',title:'10 Evidence Entries Logged',condition:true});
+  if(clinical.length>=1)milestones.push({icon:'&#128202;',title:'First Clinical Assessment',condition:true});
+  if(journal.length>=7)milestones.push({icon:'&#128211;',title:'7+ Journal Entries',condition:true});
+  if(routineLog.length>=10)milestones.push({icon:'&#128279;',title:'10 Routine Completions',condition:true});
+  if(aar.length>=4)milestones.push({icon:'&#128221;',title:'4+ After-Action Reviews (1 month)',condition:true});
+
+  if(!milestones.length){
+    h+='<div style="font-size:9px;color:var(--dim2);font-family:Georgia,serif;font-style:italic;padding:8px 0">Keep going. Milestones appear as you use the tools.</div>';
+  }else{
+    milestones.forEach(function(m){
+      h+='<div class="ms-item"><div class="ms-icon">'+m.icon+'</div><div class="ms-body"><div class="ms-title">'+m.title+'</div></div></div>';
+    });
+  }
+  h+='</div></div>';
+
+  // ── DATA INTEGRITY ──
+  h+='<div class="sec"><div class="rpt-card" style="border-color:rgba(212,168,67,.1)">';
+  h+='<div class="rc-title" style="color:var(--dim)">DATA INTEGRITY</div>';
+  var totalBytes=0;
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);var v=localStorage.getItem(k);if(v)totalBytes+=(k.length+v.length)*2}}catch(e){}
+  var kbUsed=Math.round(totalBytes/1024);
+  h+='<div class="sr"><div class="sr-label">Total localStorage keys</div><div class="sr-val">'+localStorage.length+'</div></div>';
+  h+='<div class="sr"><div class="sr-label">Storage used</div><div class="sr-val">'+kbUsed+' KB</div></div>';
+  h+='<div class="sr"><div class="sr-label">Data location</div><div class="sr-val" style="color:var(--grn)">LOCAL ONLY</div></div>';
+  h+='<div class="sr"><div class="sr-label">Cloud transmission</div><div class="sr-val" style="color:var(--grn)">ZERO</div></div>';
+  h+='</div></div>';
+
+  el.innerHTML=h;
+}
+
+// ── TEXT EXPORT ───────────────────────────────────────────────────
+function exportText(){
+  var od=sg('od3',{});var done=od.d||0;var total=od.t||0;var streak=od.s||0;
+  var evidence=sg('od3ev',[]);var mirrors=sg('od3mr',[]);var stuckPts=sg('od3sp',[]);
+  var goals=sg('od3_goals',[]);var clinical=sg('od_clinical_scores',[]);
+  var journal=sg('od_journal',[]);var aar=sg('od_aar',[]);
+  var routineLog=sg('od_routine_log',[]);var wgo=sg('od_wgo_corrections',[]);
+  var rank=getRank(done);
+
+  var txt='RECOVERY PROGRESS REPORT \u2014 CONFIDENTIAL\n';
+  txt+='Generated: '+new Date().toLocaleString()+'\n';
+  txt+='Source: Operator\'s Deck (clovelearn.io)\n';
+  txt+=('\u2550').repeat(60)+'\n\n';
+
+  txt+='DECK OVERVIEW\n'+('-').repeat(40)+'\n';
+  txt+='Rank: '+rank.name+'\n';
+  txt+='Cards drawn: '+total+'\n';
+  txt+='Missions completed: '+done+' / 108\n';
+  txt+='Evidence entries: '+evidence.length+'\n';
+  txt+='Mirror responses: '+mirrors.length+'\n';
+  txt+='Stuck points: '+stuckPts.length+'\n';
+  txt+='Goals: '+goals.length+'\n';
+  txt+='Current streak: '+streak+' days\n\n';
+
+  txt+='CLINICAL ASSESSMENTS\n'+('-').repeat(40)+'\n';
+  if(!clinical.length){txt+='No assessments taken.\n\n'}
+  else{
+    ['phq9','gad7','pcl5'].forEach(function(id){
+      var arr=clinical.filter(function(s){return s.test===id});
+      if(!arr.length)return;
+      var last=arr[arr.length-1];
+      txt+=CLIN_NAMES[id]+': '+last.score+'/'+CLIN_MAX[id]+' ['+CLIN_SEV[id](last.score)+'] ('+last.date+')\n';
+      if(arr.length>1){var first=arr[0];txt+='  Change from first: '+(last.score-first.score>0?'+':'')+String(last.score-first.score)+'\n'}
+      txt+='  Assessments: '+arr.length+'\n';
+    });
+    txt+='\n';
+  }
+
+  txt+='PROTOCOL USAGE\n'+('-').repeat(40)+'\n';
+  var protocols=[
+    {name:'What\'s Going On',key:'od_wgo_corrections'},{name:'ACT',key:'od_act_v1'},
+    {name:'DEAR MAN',key:'od_dm_v1'},{name:'Chain Analysis',key:'od_chain_analysis'},
+    {name:'Opposite Action',key:'od_opposite_action'},{name:'RSD Shield',key:'od_rsd'},
+    {name:'TIPP',key:'od_tipp_full'},{name:'IMPROVE',key:'od_improve_full'},
+    {name:'Mindfulness',key:'od_mindfulness_full'},{name:'Meditation',key:'od_meditation'},
+    {name:'CBT',key:'od_cbt_records'},{name:'Values',key:'od_values_records'},
+    {name:'Candlebox',key:'od_candlebox_full'},{name:'Thought Interceptor',key:'od_intercepts'},
+    {name:'Journal',key:'od_journal'},{name:'Grove Ops',key:'od_grove_log'},
+    {name:'Body Double',key:'od_bd_history'},{name:'Routines',key:'od_routine_log'},
+    {name:'AAR',key:'od_aar'},
+    {name:'Behavioral Activation',key:'od_ba_activities'},
+    {name:'Exposure Hierarchy',key:'od_exposure_hierarchy'}
+  ];
+  protocols.forEach(function(p){p.count=sg(p.key,[]).length});
+  protocols.sort(function(a,b){return b.count-a.count});
+  protocols.filter(function(p){return p.count>0}).forEach(function(p){
+    txt+='  '+p.name+': '+p.count+'\n';
+  });
+
+  // Distortions
+  var distMap={};
+  wgo.forEach(function(e){if(Array.isArray(e.distortions))e.distortions.forEach(function(d){if(d)distMap[d]=(distMap[d]||0)+1})});
+  var sd=Object.entries(distMap).sort(function(a,b){return b[1]-a[1]});
+  if(sd.length){
+    txt+='\nTOP COGNITIVE DISTORTIONS\n'+('-').repeat(40)+'\n';
+    sd.slice(0,10).forEach(function(d,i){txt+='  '+(i+1)+'. '+d[0]+': '+d[1]+'\n'});
+  }
+
+  txt+='\n'+('\u2550').repeat(60)+'\n';
+  txt+='All data self-reported. Stored locally on device.\n';
+  txt+='Generated by Operator\'s Deck (clovelearn.io)\n';
+
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='recovery-report-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  showToast('REPORT EXPORTED');
+}
+
+render();
+</script>
+</body>
+</html>

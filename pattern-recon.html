@@ -490,7 +490,7 @@ function analyze() {
     if (entry && entry.dt) {
       const d = new Date(entry.dt);
       if (!isNaN(d.getTime())) {
-        const ds = d.toISOString().split('T')[0];
+        const ds = ldk(d);
         drawDates[ds] = (drawDates[ds] || 0) + 1;
       }
     }
@@ -498,7 +498,7 @@ function analyze() {
   // Evidence entries have ts (timestamp)
   evidence.forEach(e => {
     if (e && e.ts) {
-      const ds = new Date(e.ts).toISOString().split('T')[0];
+      const ds = ldk(new Date(e.ts));
       drawDates[ds] = (drawDates[ds] || 0) + 1;
     }
   });
@@ -654,7 +654,7 @@ function analyze() {
   h += `<div class="heatmap-grid">`;
 
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = ldk(today);
 
   // Go back 28 days, align to start of week
   const startDate = new Date(today);
@@ -663,7 +663,7 @@ function analyze() {
   startDate.setDate(startDate.getDate() - startDate.getDay());
 
   for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-    const ds = d.toISOString().split('T')[0];
+    const ds = ldk(d);
     const count = drawDates[ds] || 0;
     const isToday = ds === todayStr;
     let cls = 'hm-cell';
@@ -680,7 +680,7 @@ function analyze() {
   const endDate = new Date(today);
   endDate.setDate(endDate.getDate() + (6 - today.getDay()));
   for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
-    if (d.toISOString().split('T')[0] !== todayStr) {
+    if (ldk(d) !== todayStr) {
       h += `<div class="hm-cell future"></div>`;
     }
   }
@@ -753,6 +753,8 @@ function safeInt(key, fallback) {
   const v = parseInt(localStorage.getItem(key));
   return isNaN(v) ? fallback : v;
 }
+
+function ldk(d){var y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day}
 
 function esc(s) {
   if (typeof s !== 'string') return '';

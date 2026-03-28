@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="SITREP • OPERATOR'S DECK">
+<meta property="og:description" content="Situation Report. Unified progress dashboard across every tool, drill, and dataset in your recovery stack.">
+<link rel="canonical" href="https://clovelearn.io/progress-dashboard.html">
+<title>SITREP • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--teal:#22d3ee;--rose:#f43f5e;--indigo:#6366f1;--fire:#ef4444}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:520px;margin:0 auto}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--red);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--red);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.nav-live{color:var(--grn);font-size:8px;font-family:monospace;letter-spacing:2px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* SECTIONS */
+.sec{padding:16px}
+.sec-label{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+.sec-divider{border:none;border-top:1px solid rgba(255,255,255,.03);margin:0 16px}
+
+/* RECOVERY SCORE */
+.score-hero{text-align:center;padding:24px 16px 16px}
+.score-ring{width:120px;height:120px;margin:0 auto 12px;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring-bg{fill:none;stroke:var(--bg3);stroke-width:8}
+.score-ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .8s ease,stroke .5s}
+.score-val{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;font-weight:900;font-family:monospace}
+.score-sub{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:4px}
+.score-label{font-size:10px;font-family:monospace;letter-spacing:1.5px;font-weight:800}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:4px}
+.stat-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px 6px;text-align:center}
+.stat-val{font-size:20px;font-weight:900;font-family:monospace;line-height:1}
+.stat-lbl{font-size:5.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim);margin-top:4px}
+@media(max-width:360px){.stats-grid{grid-template-columns:1fr 1fr}}
+
+/* CLINICAL TRAJECTORY */
+.clin-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.clin-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px 8px;text-align:center;position:relative}
+.cc-name{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:4px}
+.cc-score{font-size:24px;font-weight:900;font-family:monospace;line-height:1}
+.cc-max{font-size:7px;font-family:monospace;color:var(--dim3)}
+.cc-sev{font-size:6px;font-family:monospace;letter-spacing:1.5px;margin-top:4px;padding:2px 6px;border-radius:3px;display:inline-block}
+.cc-arrow{font-size:8px;font-family:monospace;margin-top:3px}
+.cc-empty{font-size:18px;color:var(--dim3);line-height:1;margin:4px 0}
+.cc-link{display:block;font-size:6px;font-family:monospace;letter-spacing:1px;color:var(--dim3);margin-top:4px;text-decoration:none;transition:color .2s}
+.cc-link:active{color:var(--gld)}
+
+/* DECK PROGRESS */
+.deck-prog{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px;margin-bottom:8px}
+.dp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dp-count{font-size:28px;font-weight:900;font-family:monospace}
+.dp-of{font-size:10px;color:var(--dim);font-family:monospace}
+.dp-rank{text-align:right}
+.dp-rank-icon{font-size:18px}
+.dp-rank-name{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--gld)}
+.dp-bar-wrap{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.dp-bar{height:100%;background:linear-gradient(90deg,var(--red),#e74c3c);border-radius:4px;transition:width .8s}
+.suit-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.suit-icon{font-size:12px;width:18px;text-align:center}
+.suit-name{font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--dim);width:70px}
+.suit-bar-w{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.suit-bar-f{height:100%;border-radius:3px;transition:width .5s}
+.suit-count{font-size:7px;font-family:monospace;color:var(--dim2);width:30px;text-align:right}
+
+/* 30-DAY ACTIVITY */
+.activity-chart{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px}
+.ac-title{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:10px}
+.ac-bars{display:flex;align-items:flex-end;gap:2px;height:60px}
+.ac-bar{flex:1;border-radius:2px 2px 0 0;min-height:1px;transition:height .3s;position:relative;cursor:default}
+.ac-bar:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#000;color:#ddd;padding:3px 6px;border-radius:3px;font-size:6px;white-space:nowrap;z-index:5;border:1px solid var(--dim3)}
+.ac-bar.today{box-shadow:inset 0 -2px 0 var(--gld)}
+.ac-labels{display:flex;justify-content:space-between;margin-top:4px}
+.ac-labels span{font-size:5px;font-family:monospace;color:var(--dim3);letter-spacing:1px}
+
+/* PROTOCOL USAGE */
+.proto-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+.proto-row:last-child{border-bottom:none}
+.proto-rank{font-size:8px;font-family:monospace;color:var(--dim3);min-width:16px;text-align:right}
+.proto-icon{font-size:12px;width:18px;text-align:center;flex-shrink:0}
+.proto-name{font-size:8px;font-family:monospace;color:#bbb;flex:1;letter-spacing:.5px}
+.proto-bar-w{width:80px;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;flex-shrink:0}
+.proto-bar-f{height:100%;background:var(--red);border-radius:4px;transition:width .5s}
+.proto-count{font-size:8px;font-family:monospace;color:var(--dim2);min-width:24px;text-align:right}
+
+/* ACTIVITY FEED */
+.feed-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+.feed-item:last-child{border-bottom:none}
+.fi-time{font-size:6px;font-family:monospace;color:var(--dim3);letter-spacing:1px;min-width:50px;padding-top:2px}
+.fi-icon{font-size:12px;width:18px;text-align:center;flex-shrink:0}
+.fi-body{flex:1}
+.fi-type{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim);margin-bottom:2px}
+.fi-text{font-size:9px;font-family:Georgia,serif;color:#bbb;line-height:1.5}
+
+/* DECK LINK / NEXT */
+.deck-link{margin:20px 16px;padding:14px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3);text-align:center}
+.deck-link .dl-tag{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--red)}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="SITREP navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">&#9666; BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">UNIFIED INTELLIGENCE</div>
+    <div class="nav-name">SITUATION REPORT</div>
+  </div>
+  <div class="nav-live">&#9679; LIVE</div>
+</nav>
+
+<div id="content"></div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">&#9674; DECK LINK</div>
+  <div class="dl-text">This is your single-pane view of everything. Drill into any tool for detail.</div>
+  <a href="toolshed.html" rel="noopener">OPEN TOOL SHED &#8594;</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="clinical-report.html">&#9674; CLINICAL REPORT &#8212; Therapist-ready PDF</a>
+  <a class="next-link" href="pattern-intelligence.html">&#9674; PATTERN INTELLIGENCE &#8212; Deep analytics</a>
+  <a class="next-link" href="routine-heatmap.html">&#9674; ROUTINE HEATMAP &#8212; Consistency tracker</a>
+  <a class="next-link" href="progress-report.html">&#9674; FULL PROGRESS EXPORT &#8212; Everything in one file</a>
+</nav>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SAFE READ ────────────────────────────────────────────────────
+function sg(k,fb){try{var r=localStorage.getItem(k);if(r===null)return fb;return JSON.parse(r)}catch(e){return fb}}
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ── DATA HARVEST ─────────────────────────────────────────────────
+function harvest(){
+  var d={};
+  // Core deck
+  var od=sg('od3',{});
+  d.streak=od.s||0;d.total=od.t||0;d.done=od.d||0;
+  d.playlist=Array.isArray(od.p)?od.p:[];
+  d.log=Array.isArray(od.l)?od.l:[];
+  d.checkIn=od.ci||'';d.darkUnlocked=!!od.dk;
+  d.lastPhase=od.lp||'';
+  // Evidence, mirrors, stuck points
+  d.evidence=sg('od3ev',[]);d.mirrors=sg('od3mr',[]);d.stuckPts=sg('od3sp',[]);
+  d.goals=sg('od3_goals',[]);d.resonance=sg('od3_resonance',[]);
+  // Clinical
+  d.clinical=sg('od_clinical_scores',[]);
+  // Protocols
+  d.act=sg('od_act_v1',[]);d.dm=sg('od_dm_v1',[]);
+  d.chain=sg('od_chain_analysis',[]);d.opposite=sg('od_opposite_action',[]);
+  d.rsd=sg('od_rsd',[]);d.intercepts=sg('od_intercepts',[]);
+  d.tipp=sg('od_tipp_full',[]);d.improve=sg('od_improve_full',[]);
+  d.candlebox=sg('od_candlebox_full',[]);d.mindfulness=sg('od_mindfulness_full',[]);
+  d.stone=sg('od_like_a_stone_full',[]);d.beyourself=sg('od_be_yourself_full',[]);
+  d.meditation=sg('od_meditation',[]);d.wgo=sg('od_wgo_corrections',[]);
+  d.cbt=sg('od_cbt_records',[]);d.values=sg('od_values_records',[]);
+  d.journal=sg('od_journal',[]);d.safetyPlan=sg('od_sp_plans',[]);
+  d.missionBrief=sg('od_mission_brief_v1',[]);
+  // ADHD
+  d.grove=sg('od_grove_log',[]);d.dd=sg('od_dd_log',[]);
+  d.micro=sg('od_micro_magic',[]);d.bd=sg('od_bd_history',[]);
+  d.vp=sg('od_vp_focus',[]);d.playbook=sg('od_playbook_log',[]);
+  // Routines
+  d.routines=sg('od_routines',[]);d.routineLog=sg('od_routine_log',[]);
+  // AAR
+  d.aar=sg('od_aar',[]);
+  // Clinical behaviour tools
+  d.ba=sg('od_ba_activities',[]);d.exposureH=sg('od_exposure_hierarchy',[]);
+  d.relapseP=sg('od_relapse_plan',null);
+  // Intel
+  d.intelBrief=sg('od_intel_brief',null);d.intelConfig=sg('od_intel_config',{});
+  return d;
+}
+
+// ── RANK ENGINE ──────────────────────────────────────────────────
+var RANKS=[
+  {min:0,name:'RECRUIT',icon:'&#9723;'},
+  {min:5,name:'PRIVATE',icon:'&#9724;'},
+  {min:15,name:'CORPORAL',icon:'&#9733;'},
+  {min:25,name:'SERGEANT',icon:'&#9733;&#9733;'},
+  {min:35,name:'WARRANT',icon:'&#9733;&#9733;&#9733;'},
+  {min:45,name:'LIEUTENANT',icon:'&#9830;'},
+  {min:55,name:'CAPTAIN',icon:'&#9830;&#9830;'},
+  {min:70,name:'MAJOR',icon:'&#9830;&#9830;&#9830;'},
+  {min:90,name:'COLONEL',icon:'&#9827;'},
+  {min:108,name:'UNBREAKABLE',icon:'&#9827;&#9827;&#9827;'}
+];
+function getRank(done){
+  var r=RANKS[0];
+  for(var i=RANKS.length-1;i>=0;i--){if(done>=RANKS[i].min){r=RANKS[i];break}}
+  return r;
+}
+
+// ── SUIT MAP ─────────────────────────────────────────────────────
+var SUITS={
+  spade:{icon:'&#9824;',name:'THE DIG',color:'#aaa',total:13},
+  heart:{icon:'&#9829;',name:'THE PATCH-UP',color:'#e74c3c',total:13},
+  club:{icon:'&#9827;',name:'THE BREACH',color:'#27ae60',total:13},
+  diamond:{icon:'&#9830;',name:'THE PROTOCOL',color:'#3498db',total:13},
+  trap:{icon:'&#9674;',name:'THE TRAP',color:'#e67e22',total:13},
+  watch:{icon:'&#9678;',name:'THE WATCH',color:'#9b59b6',total:14},
+  foundation:{icon:'&#9673;',name:'THE FOUNDATION',color:'#f1c40f',total:14},
+  crew:{icon:'&#8734;',name:'THE CREW',color:'#1abc9c',total:14}
+};
+
+// ── CLINICAL DEFS ────────────────────────────────────────────────
+var CLIN={
+  phq9:{name:'PHQ-9',max:27,sev:function(s){
+    if(s<=4)return{l:'MINIMAL',c:'var(--grn)'};if(s<=9)return{l:'MILD',c:'var(--gld)'};
+    if(s<=14)return{l:'MODERATE',c:'#e67e22'};if(s<=19)return{l:'MOD SEVERE',c:'var(--red)'};
+    return{l:'SEVERE',c:'#ff0000'};}},
+  gad7:{name:'GAD-7',max:21,sev:function(s){
+    if(s<=4)return{l:'MINIMAL',c:'var(--grn)'};if(s<=9)return{l:'MILD',c:'var(--gld)'};
+    if(s<=14)return{l:'MODERATE',c:'#e67e22'};return{l:'SEVERE',c:'var(--red)'};}},
+  pcl5:{name:'PCL-5',max:80,sev:function(s){
+    if(s<=10)return{l:'MINIMAL',c:'var(--grn)'};if(s<=20)return{l:'LOW',c:'var(--gld)'};
+    if(s<=32)return{l:'MODERATE',c:'#e67e22'};if(s<=50)return{l:'PROVISIONAL',c:'var(--red)'};
+    return{l:'SEVERE',c:'#ff0000'};}}
+};
+
+// ── RECOVERY SCORE ───────────────────────────────────────────────
+function calcScore(d){
+  // Weighted composite: consistency (40%), engagement (30%), clinical trajectory (30%)
+  var consistency=0,engagement=0,trajectory=0;
+
+  // Consistency: streak + routine completions + recent activity
+  var streakPts=Math.min(d.streak/14,1)*100;// 14-day streak = 100
+  var last7=0;var now=Date.now();var week=7*86400000;
+  function countRecent(arr){var c=0;if(!Array.isArray(arr))return 0;arr.forEach(function(e){var t=e.ts||e.timestamp;if(t&&(now-t)<week)c++});return c}
+  last7+=countRecent(d.log);last7+=countRecent(d.routineLog);last7+=countRecent(d.journal);
+  last7+=countRecent(d.wgo);last7+=countRecent(d.aar);
+  var activityPts=Math.min(last7/10,1)*100;// 10 activities in 7 days = 100
+  consistency=(streakPts*0.5+activityPts*0.5);
+
+  // Engagement: tools used breadth + evidence count + protocol diversity
+  var toolsUsed=0;
+  var toolArrays=[d.act,d.dm,d.chain,d.opposite,d.rsd,d.tipp,d.improve,d.candlebox,
+    d.mindfulness,d.meditation,d.cbt,d.values,d.journal,d.wgo,d.intercepts,d.grove,
+    d.routineLog,d.aar,d.missionBrief,d.stone,d.beyourself,d.ba,d.exposureH];
+  toolArrays.forEach(function(a){if(Array.isArray(a)&&a.length>0)toolsUsed++});
+  // Relapse plan is an object — count as a tool if any section has items
+  if(d.relapseP){var rpFilled=['triggers','warnings','high_risk','coping','emergency'].some(function(k){return Array.isArray(d.relapseP[k])&&d.relapseP[k].length>0});if(rpFilled)toolsUsed++}
+  var breadthPts=Math.min(toolsUsed/8,1)*100;// 8 different tools = 100
+  var evidencePts=Math.min(d.evidence.length/20,1)*100;// 20 evidence entries = 100
+  engagement=(breadthPts*0.6+evidencePts*0.4);
+
+  // Clinical trajectory: improvement trend
+  if(d.clinical.length>=2){
+    var phq=d.clinical.filter(function(s){return s.test==='phq9'});
+    var gad=d.clinical.filter(function(s){return s.test==='gad7'});
+    var pcl=d.clinical.filter(function(s){return s.test==='pcl5'});
+    var trends=[];
+    [phq,gad,pcl].forEach(function(arr){
+      if(arr.length>=2){
+        var first=arr[0].score,last=arr[arr.length-1].score;
+        var change=first-last;// Positive = improvement
+        trends.push(Math.min(Math.max(change/10,-1),1)*50+50);// -10→0, 0→50, +10→100
+      }
+    });
+    trajectory=trends.length?trends.reduce(function(a,b){return a+b},0)/trends.length:50;
+  }else{
+    trajectory=50;// Neutral if insufficient data
+  }
+
+  var total=Math.round(consistency*0.4+engagement*0.3+trajectory*0.3);
+  return Math.max(0,Math.min(100,total));
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function render(){
+  var d=harvest();
+  var el=document.getElementById('content');
+  var score=calcScore(d);
+  var rank=getRank(d.done);
+
+  // Total entries across everything
+  var allArrays=[d.evidence,d.mirrors,d.stuckPts,d.goals,d.resonance,d.clinical,
+    d.act,d.dm,d.chain,d.opposite,d.rsd,d.intercepts,d.tipp,d.improve,d.candlebox,
+    d.mindfulness,d.stone,d.beyourself,d.meditation,d.wgo,d.cbt,d.values,d.journal,
+    d.safetyPlan,d.missionBrief,d.grove,d.dd,d.micro,d.bd,d.vp,d.playbook,
+    d.routineLog,d.aar,d.ba,d.exposureH];
+  var totalEntries=0;allArrays.forEach(function(a){if(Array.isArray(a))totalEntries+=a.length});
+  totalEntries+=d.total;// Card draws
+
+  // Unique active days
+  var daySet={};
+  allArrays.forEach(function(arr){
+    if(!Array.isArray(arr))return;
+    arr.forEach(function(e){
+      var t=e.ts||e.timestamp;
+      if(t)daySet[new Date(t).toISOString().split('T')[0]]=1;
+    });
+  });
+  d.log.forEach(function(e){if(e.ts)daySet[new Date(e.ts).toISOString().split('T')[0]]=1});
+  var activeDays=Object.keys(daySet).length;
+
+  // Score color
+  var scoreColor=score>=70?'var(--grn)':score>=40?'var(--gld)':'var(--red)';
+  var scoreLabel=score>=80?'STRONG':score>=60?'BUILDING':score>=40?'ACTIVE':score>=20?'EMERGING':'BASELINE';
+
+  var h='';
+
+  // ── RECOVERY SCORE RING ──
+  var circumference=2*Math.PI*52;
+  var offset=circumference-(score/100)*circumference;
+  h+='<div class="score-hero">';
+  h+='<div class="score-sub">RECOVERY SCORE</div>';
+  h+='<div class="score-ring">';
+  h+='<svg width="120" height="120" viewBox="0 0 120 120">';
+  h+='<circle class="score-ring-bg" cx="60" cy="60" r="52"/>';
+  h+='<circle class="score-ring-fill" cx="60" cy="60" r="52" stroke="'+scoreColor+'" stroke-dasharray="'+circumference+'" stroke-dashoffset="'+offset+'"/>';
+  h+='</svg>';
+  h+='<div class="score-val" style="color:'+scoreColor+'">'+score+'</div>';
+  h+='</div>';
+  h+='<div class="score-label" style="color:'+scoreColor+'">'+scoreLabel+'</div>';
+  h+='</div>';
+
+  // ── STAT CARDS ──
+  h+='<div class="sec"><div class="stats-grid">';
+  h+='<div class="stat-card"><div class="stat-val" style="color:var(--gld)">'+totalEntries+'</div><div class="stat-lbl">TOTAL ENTRIES</div></div>';
+  h+='<div class="stat-card"><div class="stat-val" style="color:var(--teal)">'+activeDays+'</div><div class="stat-lbl">ACTIVE DAYS</div></div>';
+  h+='<div class="stat-card"><div class="stat-val" style="color:'+(d.streak>0?'var(--grn)':'var(--dim3)')+'">'+d.streak+'</div><div class="stat-lbl">STREAK</div></div>';
+  h+='<div class="stat-card"><div class="stat-val" style="color:var(--red)">'+d.done+'<span style="font-size:10px;color:var(--dim3)">/108</span></div><div class="stat-lbl">MISSIONS</div></div>';
+  h+='</div></div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── CLINICAL TRAJECTORY ──
+  h+='<div class="sec"><div class="sec-label">CLINICAL TRAJECTORY</div>';
+  h+='<div class="clin-grid">';
+  ['phq9','gad7','pcl5'].forEach(function(id){
+    var c=CLIN[id];
+    var arr=d.clinical.filter(function(s){return s.test===id});
+    h+='<div class="clin-card"><div class="cc-name">'+c.name+'</div>';
+    if(!arr.length){
+      h+='<div class="cc-empty">&#8212;</div><div class="cc-max">No data</div>';
+    }else{
+      var last=arr[arr.length-1];
+      var sev=c.sev(last.score);
+      h+='<div class="cc-score" style="color:'+sev.c+'">'+last.score+'</div>';
+      h+='<div class="cc-max">/ '+c.max+'</div>';
+      h+='<div class="cc-sev" style="background:rgba(99,102,241,.06);color:'+sev.c+'">'+sev.l+'</div>';
+      if(arr.length>=2){
+        var prev=arr[arr.length-2];
+        var diff=last.score-prev.score;
+        var arrow=diff<0?'&#9660; '+Math.abs(diff):diff>0?'&#9650; '+diff:'&#8594; 0';
+        var ac=diff<0?'var(--grn)':diff>0?'var(--red)':'var(--dim)';
+        h+='<div class="cc-arrow" style="color:'+ac+'">'+arrow+'</div>';
+      }
+    }
+    h+='<a class="cc-link" href="clinical-report.html">DETAIL &#8594;</a>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── DECK PROGRESS ──
+  h+='<div class="sec"><div class="sec-label">DECK PROGRESS</div>';
+  h+='<div class="deck-prog">';
+  h+='<div class="dp-header"><div><div class="dp-count" style="color:var(--red)">'+d.done+'</div><div class="dp-of">of 108 missions complete</div></div>';
+  h+='<div class="dp-rank"><div class="dp-rank-icon">'+rank.icon+'</div><div class="dp-rank-name">'+rank.name+'</div></div></div>';
+  var pct=Math.round((d.done/108)*100);
+  h+='<div class="dp-bar-wrap"><div class="dp-bar" style="width:'+pct+'%"></div></div>';
+
+  // Suit breakdown from playlist
+  var suitCounts={};
+  Object.keys(SUITS).forEach(function(k){suitCounts[k]=0});
+  d.playlist.forEach(function(cardId){
+    // Card IDs encode suit — detect from prefix or position
+    // Simplified: count by checking which suit key appears
+    if(typeof cardId==='string'){
+      Object.keys(SUITS).forEach(function(sk){
+        if(cardId.indexOf(sk)===0||cardId.indexOf(sk.charAt(0))===0)suitCounts[sk]++;
+      });
+    }
+  });
+  // If playlist doesn't encode suits cleanly, show total only
+  var hasSuitData=Object.values(suitCounts).some(function(v){return v>0});
+  if(hasSuitData){
+    Object.keys(SUITS).forEach(function(sk){
+      var s=SUITS[sk];var ct=suitCounts[sk];
+      var sp=Math.round((ct/s.total)*100);
+      h+='<div class="suit-row"><div class="suit-icon" style="color:'+s.color+'">'+s.icon+'</div>';
+      h+='<div class="suit-name">'+s.name+'</div>';
+      h+='<div class="suit-bar-w"><div class="suit-bar-f" style="width:'+sp+'%;background:'+s.color+'"></div></div>';
+      h+='<div class="suit-count">'+ct+'/'+s.total+'</div></div>';
+    });
+  }
+  h+='</div></div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── 30-DAY ACTIVITY CHART ──
+  h+='<div class="sec"><div class="activity-chart">';
+  h+='<div class="ac-title">30-DAY ACTIVITY</div>';
+  h+='<div class="ac-bars">';
+  var now=new Date();var todayKey=now.toISOString().split('T')[0];
+  var dayCounts={};
+  // Count all timestamped entries per day
+  allArrays.forEach(function(arr){
+    if(!Array.isArray(arr))return;
+    arr.forEach(function(e){
+      var t=e.ts||e.timestamp;if(!t)return;
+      var dk=new Date(t).toISOString().split('T')[0];
+      dayCounts[dk]=(dayCounts[dk]||0)+1;
+    });
+  });
+  d.log.forEach(function(e){if(e.ts){var dk=new Date(e.ts).toISOString().split('T')[0];dayCounts[dk]=(dayCounts[dk]||0)+1}});
+
+  var maxDay=1;
+  for(var i=0;i<30;i++){
+    var dd=new Date(now);dd.setDate(dd.getDate()-29+i);
+    var dk=dd.toISOString().split('T')[0];
+    if((dayCounts[dk]||0)>maxDay)maxDay=dayCounts[dk];
+  }
+  for(var i2=0;i2<30;i2++){
+    var dd2=new Date(now);dd2.setDate(dd2.getDate()-29+i2);
+    var dk2=dd2.toISOString().split('T')[0];
+    var ct2=dayCounts[dk2]||0;
+    var barPct=ct2>0?Math.max(Math.round((ct2/maxDay)*100),5):3;
+    var barColor=ct2>0?'var(--red)':'var(--bg4)';
+    var isToday=dk2===todayKey;
+    var tipDate=dd2.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+    h+='<div class="ac-bar'+(isToday?' today':'')+'" style="height:'+barPct+'%;background:'+barColor+'" data-tip="'+tipDate+': '+ct2+'"></div>';
+  }
+  h+='</div>';
+  h+='<div class="ac-labels"><span>30 DAYS AGO</span><span>TODAY</span></div>';
+  h+='</div></div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── PROTOCOL USAGE RANKING ──
+  h+='<div class="sec"><div class="sec-label">PROTOCOL USAGE</div><div class="sec-title">Most Used Tools</div>';
+  var protocols=[
+    {name:'What\'s Going On',icon:'&#129504;',count:d.wgo.length},
+    {name:'ACT Drill',icon:'&#129517;',count:d.act.length},
+    {name:'DEAR MAN',icon:'&#128225;',count:d.dm.length},
+    {name:'Stuck Points',icon:'&#129504;',count:d.stuckPts.length},
+    {name:'Chain Analysis',icon:'&#128279;',count:d.chain.length},
+    {name:'Opposite Action',icon:'&#9889;',count:d.opposite.length},
+    {name:'RSD Shield',icon:'&#128737;',count:d.rsd.length},
+    {name:'TIPP',icon:'&#9889;',count:d.tipp.length},
+    {name:'IMPROVE',icon:'&#128200;',count:d.improve.length},
+    {name:'Mindfulness',icon:'&#129496;',count:d.mindfulness.length},
+    {name:'Meditation',icon:'&#129496;',count:d.meditation.length},
+    {name:'CBT Drill',icon:'&#128221;',count:d.cbt.length},
+    {name:'Values Drill',icon:'&#129517;',count:d.values.length},
+    {name:'Candlebox',icon:'&#128367;',count:d.candlebox.length},
+    {name:'Thought Interceptor',icon:'&#127919;',count:d.intercepts.length},
+    {name:'Journal Ops',icon:'&#128211;',count:d.journal.length},
+    {name:'Routine Completions',icon:'&#128279;',count:d.routineLog.length},
+    {name:'After-Action Review',icon:'&#128221;',count:d.aar.length},
+    {name:'Grove Ops',icon:'&#127795;',count:d.grove.length},
+    {name:'Body Double',icon:'&#128101;',count:d.bd.length}
+  ];
+  protocols.sort(function(a,b){return b.count-a.count});
+  var topProtos=protocols.filter(function(p){return p.count>0});
+  if(!topProtos.length){
+    h+='<div style="text-align:center;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;padding:20px">No protocol data yet. Use any drill to start tracking.</div>';
+  }else{
+    var maxProto=topProtos[0].count;
+    topProtos.slice(0,12).forEach(function(p,i){
+      var ppct=Math.round((p.count/maxProto)*100);
+      h+='<div class="proto-row"><div class="proto-rank">'+(i+1)+'</div>';
+      h+='<div class="proto-icon">'+p.icon+'</div>';
+      h+='<div class="proto-name">'+esc(p.name)+'</div>';
+      h+='<div class="proto-bar-w"><div class="proto-bar-f" style="width:'+ppct+'%"></div></div>';
+      h+='<div class="proto-count">'+p.count+'</div></div>';
+    });
+  }
+  h+='</div>';
+
+  h+='<hr class="sec-divider">';
+
+  // ── RECENT ACTIVITY FEED ──
+  h+='<div class="sec"><div class="sec-label">ACTIVITY FEED</div><div class="sec-title">Recent Actions</div>';
+  var feed=[];
+  function addFeed(arr,type,icon){
+    if(!Array.isArray(arr))return;
+    arr.forEach(function(e){
+      var t=e.ts||e.timestamp;if(!t)return;
+      var text='';
+      if(e.name)text=e.name;
+      else if(e.situation)text=e.situation;
+      else if(e.thought)text=e.thought;
+      else if(e.text)text=e.text;
+      else if(e.prompt)text=e.prompt;
+      else if(e.committed)text=e.committed;
+      else if(e.score!==undefined&&e.test)text=e.test.toUpperCase()+': '+e.score;
+      else text=type;
+      feed.push({ts:t,type:type,icon:icon,text:String(text).substring(0,80)});
+    });
+  }
+  addFeed(d.wgo,'WGO','&#129504;');addFeed(d.act,'ACT','&#129517;');addFeed(d.dm,'DEAR MAN','&#128225;');
+  addFeed(d.journal,'JOURNAL','&#128211;');addFeed(d.clinical,'ASSESSMENT','&#128202;');
+  addFeed(d.routineLog,'ROUTINE','&#128279;');addFeed(d.aar,'AAR','&#128221;');
+  addFeed(d.tipp,'TIPP','&#9889;');addFeed(d.cbt,'CBT','&#128221;');
+  addFeed(d.meditation,'MEDITATION','&#129496;');addFeed(d.grove,'GROVE','&#127795;');
+  addFeed(d.intercepts,'INTERCEPT','&#127919;');addFeed(d.candlebox,'CANDLEBOX','&#128367;');
+  addFeed(d.evidence,'EVIDENCE','&#128196;');addFeed(d.improve,'IMPROVE','&#128200;');
+
+  feed.sort(function(a,b){return b.ts-a.ts});
+  if(!feed.length){
+    h+='<div style="text-align:center;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;padding:20px">No activity yet. Draw a card, run a drill, or journal to populate the feed.</div>';
+  }else{
+    feed.slice(0,15).forEach(function(f){
+      var date=new Date(f.ts);
+      var ago=Math.round((Date.now()-f.ts)/60000);
+      var timeStr=ago<60?ago+'m':ago<1440?Math.round(ago/60)+'h':Math.round(ago/1440)+'d';
+      h+='<div class="feed-item"><div class="fi-time">'+timeStr+' ago</div>';
+      h+='<div class="fi-icon">'+f.icon+'</div>';
+      h+='<div class="fi-body"><div class="fi-type">'+esc(f.type)+'</div>';
+      h+='<div class="fi-text">'+esc(f.text)+'</div></div></div>';
+    });
+  }
+  h+='</div>';
+
+  el.innerHTML=h;
+}
+
+render();
+</script>
+</body>
+</html>

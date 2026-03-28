@@ -755,6 +755,7 @@ body::after {
 
 <script>
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function ldk(d){var y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dy=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dy}
 // ─── BREATHING (4-7-8) ───
 let breathActive = false;
 let breathInterval = null;
@@ -834,7 +835,7 @@ let floorState = [false, false, false, false, false];
 
 // Load saved state for today
 (function loadFloor() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = ldk(new Date());
   const saved = localStorage.getItem('od_redprotocol_floor');
   if (saved) {
     try {
@@ -855,7 +856,7 @@ function toggleFloor(el, idx) {
   el.classList.toggle('done');
   updateFloorCount();
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = ldk(new Date());
   localStorage.setItem('od_redprotocol_floor', JSON.stringify({
     date: today,
     items: floorState
@@ -883,7 +884,7 @@ let todayLogged = false;
 (function checkTodayLog() {
   let logs = [];
   try{logs = JSON.parse(localStorage.getItem('od_redprotocol_log') || '[]');}catch(e){}
-  const today = new Date().toISOString().split('T')[0];
+  const today = ldk(new Date());
   if (logs.length && logs[0].date === today) {
     todayLogged = true;
     const btn = document.getElementById('logBtn');
@@ -898,7 +899,7 @@ function logActivation() {
 
   const now = new Date();
   const entry = {
-    date: now.toISOString().split('T')[0],
+    date: ldk(now),
     time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     floor: floorState.filter(Boolean).length
   };

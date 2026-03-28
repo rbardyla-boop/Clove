@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="EXPOSURE HIERARCHY • OPERATOR'S DECK">
+<meta property="og:description" content="Build your fear ladder. Rate distress. Log exposures. Watch anxiety habituate. The evidence says this works.">
+<link rel="canonical" href="https://clovelearn.io/exposure-hierarchy.html">
+<title>EXPOSURE HIERARCHY • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--amber:#f59e0b;--fire:#ef4444}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:520px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--amber);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--amber);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.disc-strip{display:flex;gap:10px;align-items:flex-start;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.12);border-radius:10px;padding:12px 14px;margin:12px 16px 0}
+.ds-icon{font-size:14px;flex-shrink:0;color:var(--amber)}
+.ds-text{font-size:8px;color:#bbb;font-family:Georgia,serif;line-height:1.7}
+.ds-text strong{color:#ddd}
+.sec{padding:16px}
+.sec-label{color:var(--amber);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+/* FORM */
+.field{margin-bottom:12px}
+.field-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:4px;display:flex;justify-content:space-between}
+textarea,input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;color:#fff;padding:10px 12px;font-size:10px;font-family:Georgia,serif;line-height:1.7;resize:vertical;min-height:60px;outline:none}
+textarea:focus,input:focus{border-color:var(--amber);box-shadow:0 0 0 2px rgba(245,158,11,.1)}
+input[type=text]{min-height:auto;resize:none;font-family:monospace}
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slider-label{font-size:8px;font-family:monospace;letter-spacing:1px;color:var(--dim);min-width:90px}
+.slider-wrap{flex:1}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:var(--bg3);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--amber);cursor:pointer;border:2px solid var(--bg)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--amber);cursor:pointer;border:2px solid var(--bg)}
+.slider-val{font-size:14px;font-weight:900;font-family:monospace;color:var(--amber);min-width:32px;text-align:right}
+.btn-row{display:flex;gap:10px;margin-top:8px}
+.btn-primary{flex:1;background:linear-gradient(135deg,var(--amber),#b45309);color:#000;border:none;border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{flex:1;background:var(--bg3);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer}
+.btn-secondary:active{color:#fff;border-color:#666}
+.btn-sm{padding:8px 12px;font-size:8px;border-radius:6px;letter-spacing:1px}
+/* LADDER */
+.ladder-item{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px;margin-bottom:8px;position:relative;cursor:pointer;transition:all .2s}
+.ladder-item:active{background:var(--bg3)}
+.ladder-item.expanded{border-color:var(--amber)}
+.li-top{display:flex;align-items:center;gap:10px}
+.li-suds{font-size:22px;font-weight:900;font-family:monospace;min-width:40px;text-align:center}
+.li-body{flex:1;min-width:0}
+.li-fear{font-size:10px;font-weight:800;font-family:monospace;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li-meta{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-top:2px}
+.li-bar-wrap{width:60px;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;flex-shrink:0}
+.li-bar{height:100%;border-radius:4px;transition:width .5s}
+.li-delete{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--dim3);font-size:12px;cursor:pointer;padding:4px}
+.li-delete:hover{color:var(--red)}
+/* EXPANDED DETAIL */
+.li-detail{margin-top:12px;padding-top:12px;border-top:1px solid var(--dim3)}
+.li-detail-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--amber);margin-bottom:8px}
+.exposure-entry{background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:6px;font-size:9px;font-family:monospace}
+.ee-date{font-size:6px;color:var(--dim2);letter-spacing:1px;margin-bottom:4px}
+.ee-meters{display:flex;gap:10px;flex-wrap:wrap}
+.ee-m{text-align:center}
+.ee-m-val{font-size:12px;font-weight:900}
+.ee-m-lbl{font-size:5px;letter-spacing:1px;color:var(--dim)}
+.ee-notes{font-size:8px;font-family:Georgia,serif;color:var(--dim);margin-top:6px;font-style:italic;line-height:1.6}
+/* SUDS GUIDE */
+.suds-guide{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.sg-item{background:var(--bg3);border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:8px}
+.sg-num{font-size:12px;font-weight:900;font-family:monospace;min-width:24px;text-align:center}
+.sg-text{font-size:7px;font-family:monospace;color:var(--dim);letter-spacing:.5px}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.stat-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px 8px;text-align:center}
+.stat-val{font-size:20px;font-weight:900;font-family:monospace;line-height:1}
+.stat-lbl{font-size:6px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-top:4px}
+/* DECK LINK / NEXT */
+.deck-link{margin:20px 16px;padding:14px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3);text-align:center}
+.deck-link .dl-tag{color:var(--amber);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--amber)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Exposure Hierarchy navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">&#9666; BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">ANXIETY / PTSD COUNTERMEASURE</div>
+    <div class="nav-name">EXPOSURE HIERARCHY</div>
+  </div>
+</nav>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>Exposure therapy is the gold standard for anxiety and PTSD.</strong>
+    Build your fear ladder: rank situations by distress (SUDS 0&#8211;100), face them gradually, log each
+    exposure. Anxiety habituates &#8212; it literally cannot stay at peak forever. The data proves it.
+    Work with your clinician to determine pacing. (Foa &amp; Kozak 1986; Powers et al. 2010)
+  </div>
+</div>
+
+<div id="content"></div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">&#9674; DECK LINK</div>
+  <div class="dl-text">Exposure data pairs with your GAD-7 and PCL-5 scores. Track anxiety reduction over time.</div>
+  <a href="clinical-assessments.html" rel="noopener">CHECK YOUR GAD-7 / PCL-5 &#8594;</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="behavioral-activation.html">&#9674; BEHAVIORAL ACTIVATION &#8212; Schedule mood-boosting activities</a>
+  <a class="next-link" href="relapse-prevention.html">&#9674; RELAPSE PREVENTION &#8212; Build your defense plan</a>
+  <a class="next-link" href="clinical-report.html">&#9674; CLINICAL REPORT &#8212; Print for your therapist</a>
+  <a class="next-link" href="toolshed.html">&#9674; TOOL SHED &#8212; All recovery tools</a>
+</nav>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var KEY='od_exposure_hierarchy';
+var expanded=-1;
+var logIdx=-1;// which item we're logging an exposure for
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function save(arr){try{localStorage.setItem(KEY,JSON.stringify(arr))}catch(e){}}
+
+function sudsColor(s){
+  if(s<=20)return'var(--grn)';
+  if(s<=40)return'var(--gld)';
+  if(s<=60)return'var(--amber)';
+  if(s<=80)return'#e67e22';
+  return'var(--red)';
+}
+
+function render(){
+  var items=load();
+  var el=document.getElementById('content');
+  var h='';
+
+  // Stats
+  var totalExposures=0;
+  items.forEach(function(it){totalExposures+=(it.exposures||[]).length});
+
+  if(items.length){
+    h+='<div class="sec"><div class="stats-grid">';
+    h+='<div class="stat-card"><div class="stat-val" style="color:var(--amber)">'+items.length+'</div><div class="stat-lbl">FEARS LISTED</div></div>';
+    h+='<div class="stat-card"><div class="stat-val" style="color:var(--grn)">'+totalExposures+'</div><div class="stat-lbl">EXPOSURES</div></div>';
+    var avgSuds=0;items.forEach(function(it){avgSuds+=it.suds});avgSuds=items.length?Math.round(avgSuds/items.length):0;
+    h+='<div class="stat-card"><div class="stat-val" style="color:'+sudsColor(avgSuds)+'">'+avgSuds+'</div><div class="stat-lbl">AVG SUDS</div></div>';
+    h+='</div></div>';
+  }
+
+  // Add new fear
+  h+='<div class="sec"><div class="sec-label">ADD TO LADDER</div><div class="sec-title">Name a Fear</div>';
+  h+='<div class="sec-desc">Describe a feared situation. Rate initial distress on the SUDS scale (0 = calm, 100 = worst imaginable).</div>';
+
+  h+='<div class="field"><div class="field-label"><span>FEARED SITUATION</span></div>';
+  h+='<input type="text" id="fFear" placeholder="e.g., Making a phone call to a stranger" maxlength="200"></div>';
+
+  h+='<div class="slider-row"><div class="slider-label">SUDS (0&#8211;100)</div><div class="slider-wrap"><input type="range" id="sSuds" min="0" max="100" value="50" step="5" oninput="document.getElementById(\'vSuds\').textContent=this.value;document.getElementById(\'vSuds\').style.color=sudsColor(+this.value)"></div><div class="slider-val" id="vSuds" style="color:var(--amber)">50</div></div>';
+
+  h+='<div class="suds-guide">';
+  h+='<div class="sg-item"><div class="sg-num" style="color:var(--grn)">0</div><div class="sg-text">No distress</div></div>';
+  h+='<div class="sg-item"><div class="sg-num" style="color:var(--gld)">25</div><div class="sg-text">Mild unease</div></div>';
+  h+='<div class="sg-item"><div class="sg-num" style="color:var(--amber)">50</div><div class="sg-text">Moderate anxiety</div></div>';
+  h+='<div class="sg-item"><div class="sg-num" style="color:#e67e22">75</div><div class="sg-text">Severe distress</div></div>';
+  h+='<div class="sg-item"><div class="sg-num" style="color:var(--red)">100</div><div class="sg-text">Worst imaginable</div></div>';
+  h+='<div class="sg-item"><div class="sg-num" style="color:var(--dim)">&#8987;</div><div class="sg-text">It always comes down</div></div>';
+  h+='</div>';
+
+  h+='<div class="btn-row"><button class="btn-primary" onclick="addFear()">ADD TO LADDER</button></div>';
+  h+='</div>';
+
+  // Ladder
+  if(items.length){
+    // Sort by SUDS descending (hardest at top)
+    var sorted=items.map(function(it,i){return{it:it,idx:i}}).sort(function(a,b){return b.it.suds-a.it.suds});
+
+    h+='<div class="sec"><div class="sec-label">YOUR LADDER</div><div class="sec-title">Fear Hierarchy (Hardest &#8594; Easiest)</div>';
+    h+='<div class="sec-desc">Tap to expand. Log exposures to track habituation.</div>';
+
+    sorted.forEach(function(s){
+      var it=s.it;var idx=s.idx;
+      var isExp=expanded===idx;
+      var isLog=logIdx===idx;
+      var exps=it.exposures||[];
+      var currentSuds=exps.length?exps[exps.length-1].sudsPeak:it.suds;
+      var habPct=it.suds>0?Math.round((1-currentSuds/it.suds)*100):0;
+      if(habPct<0)habPct=0;
+      var barColor=sudsColor(currentSuds);
+
+      h+='<div class="ladder-item'+(isExp?' expanded':'')+'" onclick="toggleExpand('+idx+')">';
+      h+='<button class="li-delete" onclick="event.stopPropagation();deleteFear('+idx+')" aria-label="Delete fear" title="Delete">&#10005;</button>';
+      h+='<div class="li-top">';
+      h+='<div class="li-suds" style="color:'+sudsColor(it.suds)+'">'+it.suds+'</div>';
+      h+='<div class="li-body"><div class="li-fear">'+esc(it.fear)+'</div>';
+      h+='<div class="li-meta">'+exps.length+' exposure'+(exps.length!==1?'s':'')+' &#8226; Current SUDS: '+currentSuds+'</div></div>';
+      h+='<div class="li-bar-wrap"><div class="li-bar" style="width:'+habPct+'%;background:'+barColor+'"></div></div>';
+      h+='</div>';
+
+      if(isExp){
+        h+='<div class="li-detail">';
+
+        // Log exposure form
+        if(isLog){
+          h+='<div class="li-detail-label">LOG EXPOSURE</div>';
+          h+='<div class="slider-row"><div class="slider-label" style="min-width:80px">SUDS BEFORE</div><div class="slider-wrap"><input type="range" id="esBefore" min="0" max="100" value="'+Math.round(currentSuds)+'" step="5" oninput="document.getElementById(\'evBefore\').textContent=this.value" onclick="event.stopPropagation()"></div><div class="slider-val" id="evBefore" style="color:var(--amber)">'+Math.round(currentSuds)+'</div></div>';
+          h+='<div class="slider-row"><div class="slider-label" style="min-width:80px">SUDS PEAK</div><div class="slider-wrap"><input type="range" id="esPeak" min="0" max="100" value="'+Math.round(currentSuds)+'" step="5" oninput="document.getElementById(\'evPeak\').textContent=this.value" onclick="event.stopPropagation()"></div><div class="slider-val" id="evPeak" style="color:var(--amber)">'+Math.round(currentSuds)+'</div></div>';
+          h+='<div class="slider-row"><div class="slider-label" style="min-width:80px">SUDS AFTER</div><div class="slider-wrap"><input type="range" id="esAfter" min="0" max="100" value="'+Math.max(0,Math.round(currentSuds-10))+'" step="5" oninput="document.getElementById(\'evAfter\').textContent=this.value" onclick="event.stopPropagation()"></div><div class="slider-val" id="evAfter" style="color:var(--amber)">'+Math.max(0,Math.round(currentSuds-10))+'</div></div>';
+          h+='<div class="field" onclick="event.stopPropagation()"><div class="field-label"><span>NOTES (optional)</span></div><textarea id="eNotes" rows="2" placeholder="What happened? What did you notice?" maxlength="500" style="min-height:50px" onclick="event.stopPropagation()"></textarea></div>';
+          h+='<div class="btn-row" onclick="event.stopPropagation()"><button class="btn-secondary btn-sm" onclick="event.stopPropagation();logIdx=-1;render()">CANCEL</button><button class="btn-primary btn-sm" onclick="event.stopPropagation();saveExposure('+idx+')">SAVE EXPOSURE</button></div>';
+        }else{
+          h+='<div class="btn-row" style="margin-bottom:12px" onclick="event.stopPropagation()"><button class="btn-primary btn-sm" onclick="event.stopPropagation();logIdx='+idx+';render()">LOG EXPOSURE</button></div>';
+
+          if(exps.length){
+            h+='<div class="li-detail-label">EXPOSURE LOG ('+exps.length+')</div>';
+            exps.slice().reverse().forEach(function(e){
+              h+='<div class="exposure-entry"><div class="ee-date">'+esc(e.date)+'</div>';
+              h+='<div class="ee-meters">';
+              h+='<div class="ee-m"><div class="ee-m-val" style="color:'+sudsColor(e.sudsBefore)+'">'+e.sudsBefore+'</div><div class="ee-m-lbl">BEFORE</div></div>';
+              h+='<div class="ee-m"><div class="ee-m-val" style="color:'+sudsColor(e.sudsPeak)+'">'+e.sudsPeak+'</div><div class="ee-m-lbl">PEAK</div></div>';
+              h+='<div class="ee-m"><div class="ee-m-val" style="color:'+sudsColor(e.sudsAfter)+'">'+e.sudsAfter+'</div><div class="ee-m-lbl">AFTER</div></div>';
+              h+='</div>';
+              if(e.notes)h+='<div class="ee-notes">'+esc(e.notes)+'</div>';
+              h+='</div>';
+            });
+          }else{
+            h+='<div style="font-size:9px;color:var(--dim2);font-family:Georgia,serif;font-style:italic;padding:8px 0">No exposures logged yet. Face it when ready.</div>';
+          }
+        }
+        h+='</div>';
+      }
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+
+  el.innerHTML=h;
+}
+
+function addFear(){
+  var fear=(document.getElementById('fFear').value||'').trim();
+  if(!fear){showToast('DESCRIBE THE FEARED SITUATION');return}
+  var suds=+document.getElementById('sSuds').value;
+  var items=load();
+  items.push({fear:fear,suds:suds,exposures:[],created:Date.now()});
+  if(items.length>50)items.splice(0,items.length-50);
+  save(items);
+  showToast('ADDED TO LADDER');
+  render();
+}
+
+function toggleExpand(idx){
+  if(logIdx===idx)return;// don't collapse while logging
+  expanded=expanded===idx?-1:idx;
+  logIdx=-1;
+  render();
+}
+
+function deleteFear(idx){
+  if(!confirm('Delete this fear and all its exposure data?'))return;
+  var items=load();items.splice(idx,1);save(items);
+  expanded=-1;logIdx=-1;
+  showToast('DELETED');render();
+}
+
+function saveExposure(idx){
+  var items=load();
+  if(!items[idx])return;
+  var exp={
+    sudsBefore:+document.getElementById('esBefore').value,
+    sudsPeak:+document.getElementById('esPeak').value,
+    sudsAfter:+document.getElementById('esAfter').value,
+    notes:(document.getElementById('eNotes').value||'').trim(),
+    date:new Date().toLocaleDateString(),
+    ts:Date.now()
+  };
+  if(!items[idx].exposures)items[idx].exposures=[];
+  items[idx].exposures.push(exp);
+  if(items[idx].exposures.length>100)items[idx].exposures.splice(0,items[idx].exposures.length-100);
+  save(items);
+  logIdx=-1;
+  showToast('EXPOSURE LOGGED');
+  render();
+}
+
+// Make sudsColor available globally for inline oninput
+window.sudsColor=sudsColor;
+render();
+</script>
+</body>
+</html>

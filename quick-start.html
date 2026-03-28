@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="QUICK START • OPERATOR'S DECK">
+<meta property="og:description" content="Operator's briefing. Everything you need to know in 90 seconds. No fluff. No signup. Just the field manual.">
+<link rel="canonical" href="https://clovelearn.io/quick-start.html">
+<title>QUICK START • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:520px;margin:0 auto}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--gld);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--gld);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.nav-time{font-size:8px;font-family:monospace;color:var(--dim2);letter-spacing:1px}
+
+/* HERO */
+.hero{text-align:center;padding:32px 24px 20px;border-bottom:1px solid rgba(255,255,255,.03)}
+.hero-icon{font-size:36px;margin-bottom:12px;opacity:.8}
+.hero-title{font-size:20px;font-weight:900;letter-spacing:1px;margin-bottom:8px}
+.hero-sub{font-size:9px;font-family:Georgia,serif;color:var(--dim);line-height:1.8;max-width:340px;margin:0 auto}
+
+/* STEP CARDS */
+.step{margin:0 16px 2px;background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;overflow:hidden;transition:border-color .3s}
+.step.open{border-color:rgba(212,168,67,.2)}
+.step:first-of-type{margin-top:16px}
+.step-header{display:flex;align-items:center;gap:12px;padding:16px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.step-num{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;font-family:monospace;flex-shrink:0;transition:all .3s}
+.step-num.default{background:rgba(212,168,67,.08);color:var(--gld);border:1px solid rgba(212,168,67,.15)}
+.step-num.active{background:var(--gld);color:#000;border:1px solid var(--gld)}
+.step-info{flex:1}
+.step-title{font-size:11px;font-weight:800;font-family:monospace;letter-spacing:1px}
+.step-brief{font-size:8px;font-family:Georgia,serif;color:var(--dim);margin-top:2px;line-height:1.5}
+.step-arrow{font-size:10px;color:var(--dim3);transition:transform .3s;flex-shrink:0}
+.step.open .step-arrow{transform:rotate(90deg);color:var(--gld)}
+
+.step-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.step.open .step-body{max-height:600px}
+.step-content{padding:0 16px 16px}
+.step-content p{font-size:10px;font-family:Georgia,serif;color:#bbb;line-height:1.8;margin-bottom:10px}
+.step-content strong{color:#ddd;font-weight:800}
+
+/* DETAIL BLOCKS */
+.detail-box{background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:8px;border-left:3px solid var(--gld)}
+.db-label{font-size:6px;font-family:monospace;letter-spacing:2px;color:var(--gld);margin-bottom:4px}
+.db-text{font-size:9px;font-family:Georgia,serif;color:#999;line-height:1.7}
+
+/* ZONE TABLE */
+.zone-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.zone-cell{padding:8px;border-radius:6px;text-align:center}
+.zone-cell .zc-name{font-size:8px;font-weight:800;font-family:monospace;letter-spacing:1px}
+.zone-cell .zc-desc{font-size:7px;font-family:Georgia,serif;color:#999;margin-top:2px}
+
+/* SUIT PREVIEW */
+.suit-strip{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.suit-chip{font-size:7px;font-family:monospace;letter-spacing:1px;padding:4px 8px;border-radius:4px;background:var(--bg4);border:1px solid var(--dim3)}
+
+/* CTA */
+.cta-wrap{text-align:center;padding:24px 16px 16px}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--red),#991b1b);color:#fff;border:none;border-radius:12px;padding:16px 40px;font-size:12px;font-weight:900;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s;text-decoration:none}
+.cta-btn:active{transform:scale(.97)}
+.cta-sub{font-size:8px;font-family:monospace;color:var(--dim);letter-spacing:1.5px;margin-top:10px}
+
+/* PROGRESS DOTS */
+.progress-dots{display:flex;justify-content:center;gap:6px;padding:16px}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--dim3);transition:all .3s;cursor:pointer}
+.pdot.read{background:var(--gld)}
+.pdot.current{background:var(--gld);box-shadow:0 0 8px rgba(212,168,67,.4)}
+
+/* DISCLAIMER */
+.disc-strip{display:flex;gap:10px;align-items:flex-start;background:rgba(212,168,67,.04);border:1px solid rgba(212,168,67,.1);border-radius:10px;padding:12px 14px;margin:16px 16px 0}
+.ds-icon{font-size:14px;flex-shrink:0;color:var(--gld)}
+.ds-text{font-size:8px;color:#999;font-family:Georgia,serif;line-height:1.7}
+
+/* DECK LINK / NEXT */
+.deck-link{margin:20px 16px;padding:14px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3);text-align:center}
+.deck-link .dl-tag{color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--gld)}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Quick Start navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">&#9666; BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">FIELD ORIENTATION</div>
+    <div class="nav-name">QUICK START</div>
+  </div>
+  <div class="nav-time">~90 SEC READ</div>
+</nav>
+
+<div class="hero">
+  <div class="hero-icon" aria-hidden="true">&#9827;</div>
+  <div class="hero-title">OPERATOR'S BRIEFING</div>
+  <div class="hero-sub">Everything you need to know before your first draw. No account. No cloud. No tracking. Your data lives in your browser and nowhere else.</div>
+</div>
+
+<div class="progress-dots" id="dots"></div>
+
+<div id="steps"></div>
+
+<div class="cta-wrap">
+  <a class="cta-btn" href="./?tab=home">&#9889; ENTER THE DECK</a>
+  <div class="cta-sub">NO LOGIN &#8226; NO ACCOUNT &#8226; FREE FOREVER</div>
+</div>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    This is a self-help tool built by a veteran, not a replacement for professional care.
+    Every clinical drill cites its source. If you're in crisis, use the Red Protocol or call 988.
+  </div>
+</div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">&#9674; DECK LINK</div>
+  <div class="dl-text">Already know your way around? Jump straight to the tools.</div>
+  <a href="toolshed.html" rel="noopener">OPEN TOOL SHED &#8594;</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="about-clovelearn.html">&#9674; ABOUT &#8212; Full feature breakdown</a>
+  <a class="next-link" href="progress-dashboard.html">&#9674; SITREP &#8212; Your unified dashboard</a>
+  <a class="next-link" href="field-manual.html">&#9674; FIELD MANUAL &#8212; Science behind every drill</a>
+</nav>
+
+</div>
+
+<script>
+var STEPS=[
+  {
+    num:'01',title:'THE DAILY CHECK-IN',brief:'Field Protocol &#8212; 90 seconds, 6 domains',
+    body:'<p>Before you draw a card, you check in. <strong>Field Protocol</strong> scans 6 domains: Mood, Attitude, Sleep, Physical Health, Activity, and Substance Use.</p>'
+    +'<div class="zone-grid">'
+    +'<div class="zone-cell" style="background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.15)"><div class="zc-name" style="color:#27ae60">HEALTHY</div><div class="zc-desc">Baseline. Functioning.</div></div>'
+    +'<div class="zone-cell" style="background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.15)"><div class="zc-name" style="color:#d4a843">REACTING</div><div class="zc-desc">Stressed but managing.</div></div>'
+    +'<div class="zone-cell" style="background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.15)"><div class="zc-name" style="color:#e67e22">INJURED</div><div class="zc-desc">Struggling. Needs attention.</div></div>'
+    +'<div class="zone-cell" style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.15)"><div class="zc-name" style="color:#c0392b">ILL</div><div class="zc-desc">Crisis territory. Get help.</div></div>'
+    +'</div>'
+    +'<p>Your zones determine your overall state: <strong>Strong</strong>, <strong>Standing</strong>, or <strong>Crawling</strong>. The card you draw adjusts to where you actually are.</p>'
+  },
+  {
+    num:'02',title:'DRAW YOUR CARD',brief:'108 cards. 8 suits. One mission per day.',
+    body:'<p>The deck has <strong>108 cards</strong> across 8 suits, each targeting a different domain of recovery:</p>'
+    +'<div class="suit-strip">'
+    +'<div class="suit-chip" style="color:#aaa">&#9824; THE DIG</div>'
+    +'<div class="suit-chip" style="color:#e74c3c">&#9829; THE PATCH-UP</div>'
+    +'<div class="suit-chip" style="color:#27ae60">&#9827; THE BREACH</div>'
+    +'<div class="suit-chip" style="color:#3498db">&#9830; THE PROTOCOL</div>'
+    +'<div class="suit-chip" style="color:#e67e22">&#9674; THE TRAP</div>'
+    +'<div class="suit-chip" style="color:#9b59b6">&#9678; THE WATCH</div>'
+    +'<div class="suit-chip" style="color:#f1c40f">&#9673; THE FOUNDATION</div>'
+    +'<div class="suit-chip" style="color:#1abc9c">&#8734; THE CREW</div>'
+    +'</div>'
+    +'<p>Each card delivers an <strong>uncomfortable truth</strong> and a <strong>24-hour mission</strong>. Not an affirmation. Not a quote. A specific action.</p>'
+    +'<div class="detail-box"><div class="db-label">SOUNDTRACK</div><div class="db-text">Every card is paired with a song matched to your genre preference. The music sets the emotional frame before the card lands.</div></div>'
+  },
+  {
+    num:'03',title:'LOG YOUR EVIDENCE',brief:'What actually happened. Not what you planned.',
+    body:'<p>After completing a mission, you log evidence. This is the most important habit in the deck.</p>'
+    +'<p>The <strong>Evidence tab</strong> builds a private record of 108 missions worth of real data about who you\'re becoming. Not theory. Not intentions. What you actually did.</p>'
+    +'<div class="detail-box"><div class="db-label">ACCOUNTABILITY MIRROR</div><div class="db-text">Each week, a hard question appears on your home screen. Log your honest answer. No flinching. It builds a record of confrontations with yourself.</div></div>'
+  },
+  {
+    num:'04',title:'THE TOOL SHED',brief:'14+ clinical drills. Evidence-based. All local.',
+    body:'<p>Beyond the cards, you have a full <strong>recovery toolkit</strong>:</p>'
+    +'<div class="detail-box"><div class="db-label">CLINICAL DRILLS</div><div class="db-text">ACT (values + defusion), DEAR MAN (interpersonal scripts), Stuck Points (CPT cognitive processing), Chain Analysis (behavioral forensics), TIPP (physiological crisis intervention), and more. Every drill cites its clinical source.</div></div>'
+    +'<div class="detail-box"><div class="db-label">ADHD OPS</div><div class="db-text">10 tools: Dopamine Depot, Grove Ops (Pomodoro), Grind Ops (RPG gamification), Body Double, Micro Ops (task breakdown), Visual Planner, and more.</div></div>'
+    +'<div class="detail-box"><div class="db-label">ANALYTICS</div><div class="db-text">Pattern Intelligence, Clinical Assessments (PHQ-9, GAD-7, PCL-5), Mood Trends, Routine Heatmap, SITREP dashboard. Your data tells you what\'s working.</div></div>'
+  },
+  {
+    num:'05',title:'CRISIS MODE',brief:'One button. Immediate. No judgment.',
+    body:'<p><strong>"I\'M NOT OKAY"</strong> is on the home screen. One tap activates:</p>'
+    +'<div class="detail-box"><div class="db-label">BREATHING PROTOCOL</div><div class="db-text">Guided 4-7-8 breathing with visual ring. Three rounds. No words needed.</div></div>'
+    +'<div class="detail-box"><div class="db-label">RED PROTOCOL</div><div class="db-text">Full crisis toolkit: TIPP (temperature, intense exercise, paced breathing), Safety Plan (Stanley-Brown), de-escalation text, and direct link to the Therapist Finder.</div></div>'
+    +'<p>The home screen is the crisis path by design. Someone at a 9/10 can\'t navigate menus.</p>'
+  },
+  {
+    num:'06',title:'YOUR DATA IS YOURS',brief:'Zero cloud. Zero tracking. Zero exceptions.',
+    body:'<p>Everything lives in your browser\'s <strong>localStorage</strong>. Nothing is ever transmitted. No analytics. No cookies. No login. No account.</p>'
+    +'<div class="detail-box"><div class="db-label">THE TRADEOFF</div><div class="db-text">Clear your browser storage and your data is gone. Use the Tool Shed export to back up periodically. This is by design &#8212; your reflections never leave your device.</div></div>'
+    +'<div class="detail-box"><div class="db-label">SYSTEM CHECK</div><div class="db-text">The System Check page audits all your localStorage keys, checks for corruption, and shows storage capacity. Full transparency on what\'s stored and where.</div></div>'
+    +'<p>BetterHelp shared therapy data with Meta. That will never happen here because there is no server to share from.</p>'
+  }
+];
+
+var openIdx=0;
+var readSet={};
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function toggle(i){
+  if(openIdx===i){openIdx=-1}else{openIdx=i;readSet[i]=true}
+  renderSteps();
+}
+
+function renderDots(){
+  var el=document.getElementById('dots');
+  var h='';
+  STEPS.forEach(function(s,i){
+    var cls='pdot';
+    if(readSet[i])cls+=' read';
+    if(openIdx===i)cls+=' current';
+    h+='<div class="'+cls+'" onclick="toggle('+i+')"></div>';
+  });
+  el.innerHTML=h;
+}
+
+function renderSteps(){
+  var el=document.getElementById('steps');
+  var h='';
+  STEPS.forEach(function(s,i){
+    var isOpen=openIdx===i;
+    h+='<div class="step'+(isOpen?' open':'')+'">';
+    h+='<div class="step-header" onclick="toggle('+i+')">';
+    h+='<div class="step-num '+(isOpen||readSet[i]?'active':'default')+'">'+s.num+'</div>';
+    h+='<div class="step-info"><div class="step-title">'+s.title+'</div><div class="step-brief">'+s.brief+'</div></div>';
+    h+='<div class="step-arrow">&#9656;</div>';
+    h+='</div>';
+    h+='<div class="step-body"><div class="step-content">'+s.body+'</div></div>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+  renderDots();
+}
+
+readSet[0]=true;
+renderSteps();
+</script>
+</body>
+</html>

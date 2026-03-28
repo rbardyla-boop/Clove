@@ -409,12 +409,10 @@ render();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
-// Re-render after annotation plugin loads to activate severity zones
+// Re-render now that annotation plugin is registered (script load is synchronous/blocking)
 if(typeof Chart!=='undefined'&&Chart.registry){
-  setTimeout(function(){
-    Chart.helpers.each(Chart.instances,function(c){c.destroy()});
-    render();
-  },100);
+  Object.keys(Chart.instances).forEach(function(k){Chart.instances[k].destroy()});
+  render();
 }
 </script>
 </body>

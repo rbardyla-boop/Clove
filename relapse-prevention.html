@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="RELAPSE PREVENTION • OPERATOR'S DECK">
+<meta property="og:description" content="Build your defense plan while your head is clear. Triggers, warning signs, coping strategies, emergency actions. Ready before the storm hits.">
+<link rel="canonical" href="https://clovelearn.io/relapse-prevention.html">
+<title>RELAPSE PREVENTION • OPERATOR'S DECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777777;--dim3:#333;--fire:#ef4444;--purple:#8b5cf6}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:520px;margin:0 auto}
+.nav-bar{background:#000;border-bottom:3px solid var(--purple);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--purple);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+.disc-strip{display:flex;gap:10px;align-items:flex-start;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.12);border-radius:10px;padding:12px 14px;margin:12px 16px 0}
+.ds-icon{font-size:14px;flex-shrink:0;color:var(--purple)}
+.ds-text{font-size:8px;color:#bbb;font-family:Georgia,serif;line-height:1.7}
+.ds-text strong{color:#ddd}
+.sec{padding:16px}
+.sec-label{color:var(--purple);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.sec-title{font-size:15px;font-weight:900;letter-spacing:.5px;margin-bottom:4px}
+.sec-desc{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:12px}
+/* PLAN SECTIONS */
+.plan-section{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:16px;margin-bottom:12px}
+.ps-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ps-title{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1.5px}
+.ps-count{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px}
+.ps-icon{font-size:16px;flex-shrink:0;margin-right:8px}
+/* LIST ITEMS */
+.plan-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.plan-item:last-child{border-bottom:none}
+.pi-num{font-size:8px;font-family:monospace;color:var(--dim3);min-width:18px;padding-top:2px;text-align:right}
+.pi-text{font-size:10px;font-family:Georgia,serif;color:#ccc;line-height:1.7;flex:1;word-break:break-word}
+.pi-del{background:none;border:none;color:var(--dim3);font-size:10px;cursor:pointer;padding:2px 6px;flex-shrink:0}
+.pi-del:hover{color:var(--red)}
+/* ADD ROW */
+.add-row{display:flex;gap:8px;margin-top:10px}
+.add-input{flex:1;background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;color:#fff;padding:10px 12px;font-size:10px;font-family:Georgia,serif;outline:none;min-height:auto;resize:none}
+.add-input:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(139,92,246,.1)}
+.add-btn{background:var(--purple);color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:1px;cursor:pointer;flex-shrink:0;transition:all .2s}
+.add-btn:active{transform:scale(.95)}
+/* COMMITMENT */
+.commit-area{width:100%;background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;color:#fff;padding:12px;font-size:10px;font-family:Georgia,serif;line-height:1.8;resize:vertical;min-height:100px;outline:none}
+.commit-area:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(139,92,246,.1)}
+/* EMERGENCY CARD */
+.emergency-card{background:linear-gradient(135deg,rgba(192,57,43,.08),rgba(192,57,43,.02));border:1.5px solid rgba(192,57,43,.25);border-radius:12px;padding:16px;margin-bottom:12px}
+.ec-title{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px;color:var(--red);margin-bottom:10px}
+/* PROGRESS */
+.progress-bar{background:var(--bg3);border-radius:6px;height:8px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;border-radius:6px;transition:width .5s}
+.progress-text{font-size:7px;font-family:monospace;color:var(--dim);letter-spacing:1px;text-align:center}
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;margin-top:12px}
+.btn-primary{flex:1;background:linear-gradient(135deg,var(--purple),#6d28d9);color:#fff;border:none;border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{flex:1;background:var(--bg3);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:14px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer}
+.btn-secondary:active{color:#fff;border-color:#666}
+/* DECK LINK / NEXT */
+.deck-link{margin:20px 16px;padding:14px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3);text-align:center}
+.deck-link .dl-tag{color:var(--purple);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:6px}
+.deck-link .dl-text{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:10px}
+.deck-link a{color:var(--red);font-size:9px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:8px 16px;display:inline-block;transition:all .2s}
+.deck-link a:active{background:rgba(192,57,43,.06)}
+.next-block{margin:12px 16px 40px;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid var(--dim3)}
+.next-block .nb-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:10px}
+.next-link{display:block;color:#bbb;font-size:10px;font-family:monospace;letter-spacing:1px;text-decoration:none;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:color .2s}
+.next-link:last-child{border-bottom:none}
+.next-link:active{color:var(--purple)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;display:none}
+.toast.show{display:block;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Relapse Prevention navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back to More tab">&#9666; BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">DEFENSE ARCHITECTURE</div>
+    <div class="nav-name">RELAPSE PREVENTION</div>
+  </div>
+</nav>
+
+<div class="disc-strip">
+  <div class="ds-icon" aria-hidden="true">&#9432;</div>
+  <div class="ds-text">
+    <strong>Build this plan when your head is clear. It's here for when it's not.</strong>
+    Relapse prevention maps your triggers, warning signs, and coping strategies into a structured
+    defense plan. The research is unambiguous: having a written plan reduces relapse rates significantly.
+    This is not willpower &#8212; this is architecture. (Marlatt &amp; Donovan 2005; Hendershot et al. 2011)
+  </div>
+</div>
+
+<div id="content"></div>
+
+<div class="deck-link">
+  <div class="dl-tag" aria-hidden="true">&#9674; DECK LINK</div>
+  <div class="dl-text">Your prevention plan pairs with the Safety Plan and Chain Analysis. Different angles, same defense.</div>
+  <a href="safety-plan-drill.html" rel="noopener">OPEN SAFETY PLAN &#8594;</a>
+</div>
+
+<nav class="next-block" role="navigation" aria-label="Related tools">
+  <div class="nb-tag">NEXT STEP</div>
+  <a class="next-link" href="chain-analysis-drill.html">&#9674; CHAIN ANALYSIS &#8212; Map the behavioral sequence</a>
+  <a class="next-link" href="behavioral-activation.html">&#9674; BEHAVIORAL ACTIVATION &#8212; Replace the gap</a>
+  <a class="next-link" href="exposure-hierarchy.html">&#9674; EXPOSURE HIERARCHY &#8212; Face avoidance patterns</a>
+  <a class="next-link" href="toolshed.html">&#9674; TOOL SHED &#8212; All recovery tools</a>
+</nav>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var KEY='od_relapse_plan';
+var SECTIONS=[
+  {id:'triggers',title:'MY TRIGGERS',icon:'&#9889;',color:'var(--red)',desc:'People, places, emotions, times, situations that pull you toward the behavior.',placeholder:'e.g., Feeling isolated on Friday nights'},
+  {id:'warnings',title:'WARNING SIGNS',icon:'&#9888;',color:'var(--amber,#f59e0b)',desc:'Early signals that you\'re drifting. The tells before the fall.',placeholder:'e.g., Withdrawing from friends, skipping routines'},
+  {id:'high_risk',title:'HIGH-RISK SITUATIONS',icon:'&#128680;',color:'#e67e22',desc:'Specific scenarios where relapse probability spikes. Name them now.',placeholder:'e.g., Being alone at home after a bad day at work'},
+  {id:'coping',title:'COPING STRATEGIES',icon:'&#128737;',color:'var(--grn)',desc:'What you will do instead. Concrete, specific, actionable.',placeholder:'e.g., Call my sponsor, go for a 20-minute walk, open TIPP drill'},
+  {id:'emergency',title:'EMERGENCY ACTIONS',icon:'&#128680;',color:'var(--red)',desc:'If you\'re at the edge. No thinking required &#8212; just execute.',placeholder:'e.g., Call 988, text crisis buddy, drive to meeting, open Red Protocol'}
+];
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+function loadPlan(){
+  try{
+    var p=JSON.parse(localStorage.getItem(KEY));
+    if(p&&typeof p==='object')return p;
+  }catch(e){}
+  return{triggers:[],warnings:[],high_risk:[],coping:[],emergency:[],commitment:'',lastUpdated:null};
+}
+function savePlan(p){
+  p.lastUpdated=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(p))}catch(e){}
+}
+
+function render(){
+  var plan=loadPlan();
+  var el=document.getElementById('content');
+  var h='';
+
+  // Progress
+  var filled=0;var total=SECTIONS.length+1;// +1 for commitment
+  SECTIONS.forEach(function(s){if(plan[s.id]&&plan[s.id].length)filled++});
+  if(plan.commitment&&plan.commitment.trim())filled++;
+  var pct=Math.round(filled/total*100);
+  var pctColor=pct>=80?'var(--grn)':pct>=40?'var(--gld)':'var(--red)';
+
+  h+='<div class="sec">';
+  h+='<div class="sec-label">PLAN COMPLETENESS</div>';
+  h+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+pctColor+'"></div></div>';
+  h+='<div class="progress-text">'+pct+'% COMPLETE &#8212; '+filled+' of '+total+' sections filled</div>';
+  if(plan.lastUpdated){
+    h+='<div style="text-align:center;font-size:7px;font-family:monospace;color:var(--dim3);margin-top:6px;letter-spacing:1px">Last updated: '+new Date(plan.lastUpdated).toLocaleDateString()+'</div>';
+  }
+  h+='</div>';
+
+  // Each section
+  SECTIONS.forEach(function(sec){
+    var items=plan[sec.id]||[];
+    var isEmergency=sec.id==='emergency';
+
+    h+='<div class="'+(isEmergency?'emergency-card':'plan-section')+'">';
+    h+='<div class="ps-hdr"><div style="display:flex;align-items:center">';
+    h+='<span class="ps-icon" aria-hidden="true">'+sec.icon+'</span>';
+    h+='<span class="ps-title" style="color:'+sec.color+'">'+sec.title+'</span></div>';
+    h+='<span class="ps-count">'+items.length+' ITEM'+(items.length!==1?'S':'')+'</span></div>';
+    h+='<div style="font-size:8px;font-family:Georgia,serif;color:var(--dim);line-height:1.7;margin-bottom:10px;font-style:italic">'+sec.desc+'</div>';
+
+    if(items.length){
+      items.forEach(function(item,i){
+        h+='<div class="plan-item"><div class="pi-num">'+(i+1)+'</div>';
+        h+='<div class="pi-text">'+esc(item)+'</div>';
+        h+='<button class="pi-del" onclick="removeItem(\''+sec.id+'\','+i+')" aria-label="Remove item" title="Remove">&#10005;</button></div>';
+      });
+    }
+
+    h+='<div class="add-row">';
+    h+='<input type="text" class="add-input" id="add_'+sec.id+'" placeholder="'+esc(sec.placeholder)+'" maxlength="300" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addItem(\''+sec.id+'\')}">';
+    h+='<button class="add-btn" onclick="addItem(\''+sec.id+'\')">+</button>';
+    h+='</div>';
+    h+='</div>';
+  });
+
+  // Commitment statement
+  h+='<div class="plan-section">';
+  h+='<div class="ps-hdr"><div style="display:flex;align-items:center">';
+  h+='<span class="ps-icon" aria-hidden="true">&#9997;</span>';
+  h+='<span class="ps-title" style="color:var(--purple)">COMMITMENT STATEMENT</span></div></div>';
+  h+='<div style="font-size:8px;font-family:Georgia,serif;color:var(--dim);line-height:1.7;margin-bottom:10px;font-style:italic">Write it in your own words. Why you\'re doing this. What you\'re protecting. Read it when the urge hits.</div>';
+  h+='<textarea class="commit-area" id="fCommit" placeholder="I commit to this plan because..." onblur="saveCommitment()">'+esc(plan.commitment||'')+'</textarea>';
+  h+='</div>';
+
+  // Actions
+  h+='<div class="sec">';
+  h+='<div class="btn-row">';
+  h+='<button class="btn-primary" onclick="exportPlan()">EXPORT PLAN (.TXT)</button>';
+  h+='<button class="btn-secondary" onclick="resetPlan()">RESET</button>';
+  h+='</div></div>';
+
+  el.innerHTML=h;
+}
+
+function addItem(secId){
+  var input=document.getElementById('add_'+secId);
+  var val=(input.value||'').trim();
+  if(!val){showToast('ENTER AN ITEM');return}
+  var plan=loadPlan();
+  if(!plan[secId])plan[secId]=[];
+  plan[secId].push(val);
+  if(plan[secId].length>30)plan[secId].splice(0,plan[secId].length-30);
+  savePlan(plan);
+  showToast('ADDED');
+  render();
+}
+
+function removeItem(secId,idx){
+  var plan=loadPlan();
+  if(!plan[secId])return;
+  plan[secId].splice(idx,1);
+  savePlan(plan);
+  render();
+}
+
+function saveCommitment(){
+  var plan=loadPlan();
+  plan.commitment=(document.getElementById('fCommit').value||'').trim();
+  savePlan(plan);
+}
+
+function resetPlan(){
+  if(!confirm('RESET YOUR ENTIRE RELAPSE PREVENTION PLAN?\n\nThis deletes all triggers, warning signs, coping strategies, and your commitment statement.\n\nThis cannot be undone.'))return;
+  try{localStorage.removeItem(KEY)}catch(e){}
+  showToast('PLAN RESET');
+  render();
+}
+
+function exportPlan(){
+  var plan=loadPlan();
+  var hasContent=false;
+  SECTIONS.forEach(function(s){if(plan[s.id]&&plan[s.id].length)hasContent=true});
+  if(plan.commitment&&plan.commitment.trim())hasContent=true;
+  if(!hasContent){showToast('PLAN IS EMPTY');return}
+
+  var txt='RELAPSE PREVENTION PLAN\n';
+  txt+='Generated: '+new Date().toLocaleString()+'\n';
+  txt+='Source: Operator\'s Deck (clovelearn.io)\n';
+  txt+=('\u2550').repeat(50)+'\n\n';
+
+  SECTIONS.forEach(function(sec){
+    var items=plan[sec.id]||[];
+    txt+=sec.title+'\n'+('-').repeat(30)+'\n';
+    if(!items.length){txt+='(none entered)\n\n';return}
+    items.forEach(function(item,i){txt+=(i+1)+'. '+item+'\n'});
+    txt+='\n';
+  });
+
+  if(plan.commitment&&plan.commitment.trim()){
+    txt+='COMMITMENT STATEMENT\n'+('-').repeat(30)+'\n';
+    txt+=plan.commitment+'\n\n';
+  }
+
+  txt+=('\u2550').repeat(50)+'\n';
+  txt+='Framework: Marlatt & Donovan (2005). Relapse Prevention.\n';
+  txt+='This is a self-help planning tool, not a clinical document.\n';
+
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='relapse-prevention-plan-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  showToast('PLAN EXPORTED');
+}
+
+render();
+</script>
+</body>
+</html>
