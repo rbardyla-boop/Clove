@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<title>SMOKE TEST • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;
+  --dim:#8a8a8a;--dim2:#777;--dim3:#333;--dim4:#222;
+  --text:#e0e0e0;
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Mono',monospace;
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+  padding-bottom:80px;
+}
+.app{max-width:560px;margin:0 auto}
+
+/* NAV */
+.nav-bar{
+  background:#000;border-bottom:3px solid var(--red);
+  padding:14px 16px;display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:20;
+}
+.nav-back{
+  background:none;border:1px solid var(--dim3);color:var(--dim2);
+  border-radius:8px;padding:10px 14px;font-size:9px;
+  font-family:'DM Mono',monospace;letter-spacing:1.5px;cursor:pointer;
+  transition:all .2s;flex-shrink:0;min-height:44px;
+}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--red);font-size:6.5px;font-family:'DM Mono',monospace;letter-spacing:3px}
+.nav-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.nav-version{font-size:7px;color:var(--dim2);font-family:'DM Mono',monospace;letter-spacing:1.5px}
+
+/* HEADER BLOCK */
+.hdr-block{padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
+.hdr-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:var(--red);line-height:1}
+.hdr-sub{font-size:8px;color:var(--dim);letter-spacing:2px;margin-top:4px}
+
+/* DEVICE FIELD */
+.device-row{padding:12px 16px;display:flex;gap:10px;align-items:center;border-bottom:1px solid rgba(255,255,255,.03)}
+.device-label{font-size:7px;letter-spacing:2px;color:var(--dim);white-space:nowrap;flex-shrink:0}
+.device-input{
+  flex:1;background:var(--bg3);border:1px solid var(--dim3);border-radius:6px;
+  color:#fff;padding:10px 12px;font-size:11px;font-family:'DM Mono',monospace;
+  outline:none;min-height:44px;
+}
+.device-input:focus{border-color:var(--red);box-shadow:0 0 0 2px rgba(192,57,43,.1)}
+
+/* PROGRESS */
+.progress-wrap{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.03)}
+.progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.progress-count{font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--gld)}
+.progress-pct{font-size:9px;color:var(--dim);letter-spacing:1px}
+.progress-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--grn),#2ecc71);border-radius:4px;transition:width .4s ease}
+.last-run{font-size:7px;color:var(--dim3);letter-spacing:1px;margin-top:6px}
+
+/* ACTION BUTTONS */
+.action-row{padding:12px 16px;display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,.03)}
+.btn-copy{
+  flex:1;background:var(--bg3);border:1px solid var(--dim3);border-radius:8px;
+  color:var(--dim);padding:11px 12px;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;cursor:pointer;transition:all .2s;min-height:44px;
+}
+.btn-copy:active,.btn-copy:hover{color:#fff;border-color:#666}
+.btn-reset{
+  background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);border-radius:8px;
+  color:var(--red);padding:11px 16px;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;cursor:pointer;transition:all .2s;min-height:44px;
+  white-space:nowrap;flex-shrink:0;
+}
+.btn-reset:active,.btn-reset:hover{background:rgba(192,57,43,.15)}
+
+/* SECTIONS */
+.sec{margin:0;border-bottom:1px solid rgba(255,255,255,.03)}
+.sec-hdr{
+  display:flex;align-items:center;gap:10px;padding:14px 16px;
+  cursor:pointer;user-select:none;-webkit-user-select:none;
+  transition:background .2s;min-height:44px;
+}
+.sec-hdr:active{background:rgba(255,255,255,.02)}
+.sec-arrow{font-size:9px;color:var(--dim3);transition:transform .25s;flex-shrink:0}
+.sec.open .sec-arrow{transform:rotate(90deg);color:var(--red)}
+.sec-label{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;flex:1}
+.sec-badge{
+  font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;
+  padding:3px 8px;border-radius:4px;background:var(--bg4);color:var(--dim2);
+  white-space:nowrap;flex-shrink:0;
+}
+.sec-badge.done{background:rgba(39,174,96,.12);color:var(--grn)}
+.sec-badge.partial{background:rgba(212,168,67,.1);color:var(--gld)}
+
+.sec-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.sec.open .sec-body{max-height:9999px}
+
+.item-list{padding:0 16px 12px}
+.item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.025);
+  cursor:pointer;transition:background .15s;border-radius:4px;
+  min-height:44px;
+}
+.item:last-child{border-bottom:none}
+.item:active{background:rgba(255,255,255,.02)}
+
+.item-check{
+  width:20px;height:20px;border:1.5px solid var(--dim3);border-radius:4px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  margin-top:1px;transition:all .2s;
+}
+.item.checked .item-check{
+  background:var(--grn);border-color:var(--grn);
+}
+.item-check-inner{
+  font-size:11px;color:#fff;opacity:0;transition:opacity .15s;line-height:1;
+}
+.item.checked .item-check-inner{opacity:1}
+
+.item-text{
+  font-size:10px;font-family:'DM Mono',monospace;color:var(--dim);
+  line-height:1.6;flex:1;transition:color .2s;
+  padding-top:1px;
+}
+.item.checked .item-text{color:var(--grn)}
+
+/* P0 BADGE */
+.p0-badge{
+  font-size:6px;font-family:'DM Mono',monospace;letter-spacing:1px;
+  background:rgba(192,57,43,.12);color:var(--red);border:1px solid rgba(192,57,43,.2);
+  border-radius:3px;padding:2px 5px;flex-shrink:0;margin-top:2px;
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+  background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;
+  font-size:10px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:1.5px;
+  z-index:100;display:none;white-space:nowrap;
+}
+.toast.show{display:block;animation:tin .25s ease-out,tout .3s ease-in 1.8s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+
+/* FOOTER NOTE */
+.footer-note{padding:20px 16px;text-align:center;font-size:7px;color:var(--dim3);font-family:'DM Mono',monospace;letter-spacing:1px;line-height:1.8}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="nav-bar" role="navigation" aria-label="Smoke test navigation">
+  <button class="nav-back" onclick="location.href='./?tab=more'" aria-label="Back">&#9666; BACK</button>
+  <div class="nav-info">
+    <div class="nav-tag">DEVELOPER TOOL</div>
+    <div class="nav-name">SMOKE TEST</div>
+  </div>
+  <div class="nav-version" id="swVer">SW V—</div>
+</nav>
+
+<!-- DEVICE / BROWSER -->
+<div class="device-row">
+  <div class="device-label">DEVICE / BROWSER</div>
+  <input
+    class="device-input"
+    id="deviceInput"
+    type="text"
+    placeholder="e.g. iPhone 15 Pro · Safari 17"
+    maxlength="120"
+    aria-label="Device and browser description"
+    oninput="saveDevice()"
+  >
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-meta">
+    <div class="progress-count"><span id="checkedCount">0</span> / <span id="totalCount">0</span> CHECKS PASSING</div>
+    <div class="progress-pct" id="progressPct">0%</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="last-run" id="lastRun">LAST RUN: —</div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="action-row">
+  <button class="btn-copy" onclick="copyResults()" aria-label="Copy markdown results to clipboard">&#9112; COPY RESULTS AS MARKDOWN</button>
+  <button class="btn-reset" onclick="resetAll()" aria-label="Reset all checkboxes">&#9003; RESET ALL</button>
+</div>
+
+<!-- SECTIONS rendered by JS -->
+<div id="sections"></div>
+
+<div class="footer-note">
+  SMOKE TEST v1.0 · DEVELOPER TOOL · NOT USER-FACING<br>
+  All state saved to localStorage under <code>od_smoke_</code> prefix.<br>
+  Data never leaves this device.
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────
+var SECTIONS=[
+  {
+    id:'s1',
+    label:'01 — CORE NAVIGATION',
+    color:'#c0392b',
+    items:[
+      {text:'Home screen loads, all three tabs (Draw, Tools, More) switch correctly'},
+      {text:'Card draw works — tap draw, card appears with full content'},
+      {text:'Tool Shed opens and all tool links work'},
+      {text:'More tab shows all links, each navigates correctly'},
+      {text:'Back buttons on all sub-pages return to correct location'}
+    ]
+  },
+  {
+    id:'s2',
+    label:'02 — CRISIS PATH',
+    color:'#c0392b',
+    p0:true,
+    items:[
+      {text:'"What\'s Going On?" accessible from home screen',p0:true},
+      {text:'Red Protocol accessible from home screen — daily checklist renders',p0:true},
+      {text:'Red Protocol date tracking works (today\'s date shows correctly)',p0:true},
+      {text:'Safety Plan loads and displays saved content',p0:true},
+      {text:'Crisis tools in Tool Shed all open'}
+    ]
+  },
+  {
+    id:'s3',
+    label:'03 — CLINICAL DRILLS',
+    color:'#8b5cf6',
+    items:[
+      {text:'Stuck Points Drill — full flow: add point → challenge → reframe → save'},
+      {text:'ACT Matrix Drill — all four quadrants interactive'},
+      {text:'DEAR MAN Drill — form fills and saves'},
+      {text:'RSD Shield — loads, form works'},
+      {text:'Chain Analysis — steps log correctly'},
+      {text:'Exposure Hierarchy — fear ladder adds + exposure logs'},
+      {text:'All drill pages show DECK LINK connector blocks'},
+      {text:'All drill pages show clinical disclaimers'}
+    ]
+  },
+  {
+    id:'s4',
+    label:'04 — PRODUCTIVITY TOOLS',
+    color:'#3498db',
+    items:[
+      {text:'Grind Ops — timer starts, stops, and saves session'},
+      {text:'Pattern Recon — chart renders without crash (Chart.js v4)'},
+      {text:'Quest Forge — loads, sound events display'},
+      {text:'Micro Ops — saves with correct od_ prefixed key'},
+      {text:'Field Manual — articles load and display correctly'}
+    ]
+  },
+  {
+    id:'s5',
+    label:'05 — OFFLINE & PWA',
+    color:'#27ae60',
+    items:[
+      {text:'Kill network → app still loads from SW cache'},
+      {text:'Kill network → card draw still works'},
+      {text:'Kill network → drill save still works (localStorage)'},
+      {text:'SW version in DevTools > Application matches expected v16'},
+      {text:'Install prompt appears on eligible browsers (Android Chrome)'}
+    ]
+  },
+  {
+    id:'s6',
+    label:'06 — DATA INTEGRITY',
+    color:'#d4a843',
+    items:[
+      {text:'System Check page loads and scans all keys'},
+      {text:'All registered localStorage keys show green (no corruption)'},
+      {text:'No orphaned or unexpected keys in storage'},
+      {text:'Clinical Report chart renders with severity zone annotations'},
+      {text:'Progress Report exports clean .txt file'}
+    ]
+  },
+  {
+    id:'s7',
+    label:'07 — MOBILE SPECIFIC',
+    color:'#f59e0b',
+    items:[
+      {text:'All buttons large enough to tap (44×44px minimum)'},
+      {text:'No horizontal scroll on any page (test at 375px viewport)'},
+      {text:'Body text readable without zooming (≥14px)'},
+      {text:'Input fields do NOT trigger iOS zoom (≥16px font)'},
+      {text:'Fixed navigation does not cover scrollable content'},
+      {text:'Scroll is smooth, no nested scroll traps'},
+      {text:'Cards and containers have adequate padding (not edge-to-edge)'}
+    ]
+  },
+  {
+    id:'s8',
+    label:'08 — CROSS-DEVICE',
+    color:'#22d3ee',
+    items:[
+      {text:'iPhone Safari — full test pass'},
+      {text:'Android Chrome — full test pass'},
+      {text:'Desktop Chrome — full test pass'},
+      {text:'Desktop Firefox — full test pass'},
+      {text:'Tablet (any) — layout not broken at mid widths'}
+    ]
+  }
+];
+
+// ── STORAGE ──────────────────────────────────────────────────────
+function sg(k,fb){try{var r=localStorage.getItem(k);if(r===null)return fb;return JSON.parse(r)}catch(e){return fb}}
+function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+function itemKey(secId,idx){return'od_smoke_'+secId+'_'+idx}
+var DEVICE_KEY='od_smoke_device';
+var LASTRUN_KEY='od_smoke_lastrun';
+var COLLAPSE_KEY='od_smoke_collapse';
+
+// ── STATE ─────────────────────────────────────────────────────────
+var collapseState=sg(COLLAPSE_KEY,{});
+// Default: s1+s2 open, rest closed
+SECTIONS.forEach(function(s,i){
+  if(collapseState[s.id]===undefined)collapseState[s.id]=(i<2);
+});
+
+// ── RENDER ────────────────────────────────────────────────────────
+function render(){
+  var container=document.getElementById('sections');
+  var html='';
+
+  SECTIONS.forEach(function(sec){
+    var total=sec.items.length;
+    var checked=0;
+    sec.items.forEach(function(item,i){
+      if(sg(itemKey(sec.id,i),false))checked++;
+    });
+    var isOpen=collapseState[sec.id];
+    var badgeClass=checked===total?'done':checked>0?'partial':'';
+    var badgeText=checked+'/'+total;
+
+    html+='<div class="sec'+(isOpen?' open':'')+'" id="sec-'+sec.id+'">';
+    html+='<div class="sec-hdr" onclick="toggleSec(\''+sec.id+'\')" role="button" aria-expanded="'+(isOpen?'true':'false')+'">';
+    html+='<span class="sec-arrow">&#9656;</span>';
+    html+='<span class="sec-label" style="color:'+sec.color+'">'+sec.label+'</span>';
+    if(sec.p0)html+='<span class="p0-badge">P0</span>';
+    html+='<span class="sec-badge '+badgeClass+'">'+badgeText+'</span>';
+    html+='</div>';
+
+    html+='<div class="sec-body">';
+    html+='<div class="item-list">';
+    sec.items.forEach(function(item,i){
+      var isChecked=sg(itemKey(sec.id,i),false);
+      html+='<div class="item'+(isChecked?' checked':'')+'" onclick="toggleItem(\''+sec.id+'\','+i+')" role="checkbox" aria-checked="'+(isChecked?'true':'false')+'" tabindex="0" onkeydown="if(event.key===\' \'||event.key===\'Enter\'){event.preventDefault();toggleItem(\''+sec.id+'\','+i+')}">';
+      html+='<div class="item-check"><span class="item-check-inner">&#10003;</span></div>';
+      html+='<div class="item-text">'+escHtml(item.text)+(item.p0?'&nbsp;<span class="p0-badge">P0</span>':'')+'</div>';
+      html+='</div>';
+    });
+    html+='</div></div></div>';
+  });
+
+  container.innerHTML=html;
+  updateProgress();
+  loadDevice();
+  loadLastRun();
+  loadSWVersion();
+}
+
+function escHtml(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────
+function toggleSec(id){
+  collapseState[id]=!collapseState[id];
+  ss(COLLAPSE_KEY,collapseState);
+  var el=document.getElementById('sec-'+id);
+  if(collapseState[id]){el.classList.add('open')}
+  else{el.classList.remove('open')}
+  // Update arrow aria
+  el.querySelector('.sec-hdr').setAttribute('aria-expanded',collapseState[id]?'true':'false');
+}
+
+function toggleItem(secId,idx){
+  var key=itemKey(secId,idx);
+  var current=sg(key,false);
+  var next=!current;
+  ss(key,next);
+  // Update DOM
+  var items=document.getElementById('sec-'+secId).querySelectorAll('.item');
+  var el=items[idx];
+  if(next){el.classList.add('checked');el.setAttribute('aria-checked','true')}
+  else{el.classList.remove('checked');el.setAttribute('aria-checked','false')}
+  // Update section badge
+  updateSectionBadge(secId);
+  updateProgress();
+  // Update last run
+  var now=new Date().toLocaleString();
+  ss(LASTRUN_KEY,now);
+  document.getElementById('lastRun').textContent='LAST RUN: '+now;
+}
+
+function updateSectionBadge(secId){
+  var sec=SECTIONS.find(function(s){return s.id===secId});
+  if(!sec)return;
+  var total=sec.items.length;
+  var checked=0;
+  sec.items.forEach(function(item,i){if(sg(itemKey(secId,i),false))checked++});
+  var badge=document.querySelector('#sec-'+secId+' .sec-badge');
+  if(!badge)return;
+  badge.textContent=checked+'/'+total;
+  badge.className='sec-badge'+(checked===total?' done':checked>0?' partial':'');
+}
+
+function updateProgress(){
+  var total=0,checked=0;
+  SECTIONS.forEach(function(sec){
+    sec.items.forEach(function(item,i){
+      total++;
+      if(sg(itemKey(sec.id,i),false))checked++;
+    });
+  });
+  document.getElementById('checkedCount').textContent=checked;
+  document.getElementById('totalCount').textContent=total;
+  var pct=total>0?Math.round(checked/total*100):0;
+  document.getElementById('progressPct').textContent=pct+'%';
+  document.getElementById('progressFill').style.width=pct+'%';
+}
+
+function saveDevice(){
+  ss(DEVICE_KEY,document.getElementById('deviceInput').value);
+}
+
+function loadDevice(){
+  var saved=sg(DEVICE_KEY,'');
+  if(saved)document.getElementById('deviceInput').value=saved;
+}
+
+function loadLastRun(){
+  var saved=sg(LASTRUN_KEY,'');
+  document.getElementById('lastRun').textContent='LAST RUN: '+(saved||'—');
+}
+
+function loadSWVersion(){
+  // Try to read the cache name from SW if available
+  if('serviceWorker' in navigator&&navigator.serviceWorker.controller){
+    navigator.serviceWorker.controller.postMessage({type:'GET_VERSION'});
+  }
+  // Fallback: read known version from app
+  document.getElementById('swVer').textContent='SW V16';
+}
+
+// ── RESET ALL ─────────────────────────────────────────────────────
+function resetAll(){
+  if(!confirm('RESET ALL SMOKE TEST RESULTS?\n\nThis clears all checkboxes but keeps your device/browser field.\n\nThis cannot be undone.'))return;
+  SECTIONS.forEach(function(sec){
+    sec.items.forEach(function(item,i){
+      try{localStorage.removeItem(itemKey(sec.id,i))}catch(e){}
+    });
+  });
+  try{localStorage.removeItem(LASTRUN_KEY)}catch(e){}
+  showToast('RESULTS RESET');
+  render();
+}
+
+// ── COPY RESULTS ──────────────────────────────────────────────────
+function copyResults(){
+  var device=sg(DEVICE_KEY,'')||'(not specified)';
+  var lastRun=sg(LASTRUN_KEY,'')||'—';
+  var total=0,checked=0;
+  SECTIONS.forEach(function(sec){
+    sec.items.forEach(function(item,i){
+      total++;if(sg(itemKey(sec.id,i),false))checked++;
+    });
+  });
+  var pct=total>0?Math.round(checked/total*100):0;
+
+  var lines=[];
+  lines.push('# OPERATOR\'S DECK — SMOKE TEST RESULTS');
+  lines.push('');
+  lines.push('**Device:** '+device);
+  lines.push('**Run:** '+lastRun);
+  lines.push('**Score:** '+checked+'/'+total+' ('+pct+'%)');
+  lines.push('');
+
+  SECTIONS.forEach(function(sec){
+    var secTotal=sec.items.length,secChecked=0;
+    sec.items.forEach(function(item,i){if(sg(itemKey(sec.id,i),false))secChecked++});
+    lines.push('## '+sec.label+' ['+secChecked+'/'+secTotal+']');
+    sec.items.forEach(function(item,i){
+      var pass=sg(itemKey(sec.id,i),false);
+      lines.push((pass?'- [x] ':'- [ ] ')+item.text);
+    });
+    lines.push('');
+  });
+
+  lines.push('---');
+  lines.push('_Generated by smoke-test.html · clovelearn.io_');
+
+  var text=lines.join('\n');
+
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('COPIED TO CLIPBOARD');
+    }).catch(function(){
+      fallbackCopy(text);
+    });
+  }else{
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');showToast('COPIED TO CLIPBOARD')}
+  catch(e){showToast('COPY FAILED — USE MANUAL SELECT')}
+  document.body.removeChild(ta);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.remove('show');
+  void t.offsetWidth;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},2500);
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
