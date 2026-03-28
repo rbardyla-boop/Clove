@@ -47,4 +47,6 @@
   <url><loc>https://clovelearn.io/routine-builder.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://clovelearn.io/after-action-review.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://clovelearn.io/intelligence-ops.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://clovelearn.io/clinical-report.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://clovelearn.io/routine-heatmap.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>
