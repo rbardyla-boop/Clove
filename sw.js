@@ -1,4 +1,4 @@
-const CACHE_NAME = 'operators-deck-v14';
+const CACHE_NAME = 'operators-deck-v15';
 
 // Only cache true static assets — never HTML files.
 // Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)
@@ -7,6 +7,8 @@ const CACHE_NAME = 'operators-deck-v14';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/od-core.js',
+  '/intel-engine.js',
+  '/op-brain.js',
   '/clove-16.png',
   '/clove-32.png',
   '/clove-180.png',
