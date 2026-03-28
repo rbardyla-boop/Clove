@@ -188,11 +188,79 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
     <div class="ns-row">
       <div class="ns-info">
         <div class="ns-title">AUTO-ANALYSIS</div>
-        <div class="ns-sub">Refreshes brief on app open (6h throttle).<br>Background sync ships in Phase 2.</div>
-        <div class="ns-badge" id="nsStatus">PHASE 1 — FOREGROUND CATCH-UP</div>
+        <div class="ns-sub">Foreground: refreshes on app open (6h throttle).<br>Background: periodic sync when device is idle + charging.</div>
+        <div class="ns-badge" id="nsStatus">PHASE 2 — FOREGROUND + BACKGROUND SYNC</div>
       </div>
       <button class="toggle" id="nsToggle" onclick="toggleNightShift()" aria-label="Toggle auto-analysis" role="switch"></button>
     </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- EMBEDDING MEMORY (PHASE 3) -->
+<div class="sec">
+  <div class="sec-hdr">EMBEDDING MEMORY — PHASE 3</div>
+
+  <!-- Model Status -->
+  <div class="ns-card" id="modelStatusCard">
+    <div class="ns-row">
+      <div class="ns-info">
+        <div class="ns-title">LOCAL EMBEDDING MODEL</div>
+        <div class="ns-sub">all-MiniLM-L6-v2 (~23MB). Runs 100% in-browser via WebAssembly.<br>Downloads once, cached forever. Never phones home.</div>
+        <div class="ns-badge" id="modelBadge">NOT LOADED</div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <div id="modelProgress" style="display:none">
+        <div style="height:4px;background:var(--dim3);border-radius:2px;overflow:hidden;margin-bottom:6px">
+          <div id="modelProgressBar" style="height:100%;background:var(--gld);border-radius:2px;width:0%;transition:width .3s"></div>
+        </div>
+        <div id="modelProgressText" style="font-size:7px;font-family:monospace;color:var(--dim2);text-align:center">Downloading model...</div>
+      </div>
+      <div class="btn-row" id="modelActions">
+        <button class="btn-refresh" onclick="handleLoadModel()" id="btnLoadModel">DOWNLOAD &amp; ACTIVATE MODEL</button>
+        <button class="btn-purge" onclick="handlePurgeModel()" id="btnPurgeModel" style="display:none">PURGE MODEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Stats -->
+  <div id="memoryStatsContainer" style="margin-top:8px">
+    <div class="stat-card full" style="background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="stat-val" style="color:var(--dim2)" id="memCountVal">0</div>
+          <div class="stat-lbl">CLINICAL SNAPSHOTS</div>
+        </div>
+        <div style="text-align:right">
+          <div id="memOldest" style="font-size:7px;font-family:monospace;color:var(--dim2)">—</div>
+          <div id="memNewest" style="font-size:7px;font-family:monospace;color:var(--dim2)">—</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn-refresh" onclick="handleSyncLogs()" id="btnSync" style="font-size:9px;padding:10px;display:none">SYNC NEW LOGS</button>
+        <button class="btn-purge" onclick="handlePurgeMemory()" id="btnPurgeMem" style="font-size:8px;padding:8px 12px;display:none">PURGE MEMORIES</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recall Demo -->
+  <div id="recallSection" style="margin-top:8px;display:none">
+    <div class="ns-card">
+      <div class="ns-info" style="margin-bottom:10px">
+        <div class="ns-title">RECALL — SEMANTIC SEARCH</div>
+        <div class="ns-sub">Describe a feeling or situation. The system finds your most similar past states.</div>
+      </div>
+      <textarea id="recallInput" placeholder="e.g. feeling overwhelmed about work deadlines" aria-label="Recall query" style="width:100%;background:var(--bg3);color:#ccc;border:1px solid var(--dim3);border-radius:8px;padding:10px;font-size:11px;font-family:Georgia,serif;line-height:1.6;min-height:50px;max-height:100px;resize:vertical;outline:none"></textarea>
+      <button class="btn-refresh" onclick="handleRecall()" style="margin-top:8px;width:100%;font-size:9px;padding:10px">SEARCH MEMORY</button>
+      <div id="recallResults" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- Privacy Notice -->
+  <div style="text-align:center;margin-top:10px;color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2px">
+    MODEL RUNS IN-BROWSER · VECTORS STORED ON-DEVICE · ZERO DATA LEAVES
   </div>
 </div>
 
@@ -385,6 +453,12 @@ function toggleNightShift(){
   config.nightShift = !config.nightShift;
   try{localStorage.setItem('od_intel_config',JSON.stringify(config));}catch(e){}
   renderNightShift();
+  // Register/unregister PeriodicBackgroundSync via SW
+  if('serviceWorker' in navigator && navigator.serviceWorker.controller){
+    navigator.serviceWorker.controller.postMessage({
+      type: config.nightShift ? 'NIGHT_SHIFT_REGISTER' : 'NIGHT_SHIFT_UNREGISTER'
+    });
+  }
   showToast(config.nightShift?'AUTO-ANALYSIS ON':'AUTO-ANALYSIS OFF');
 }
 
@@ -432,6 +506,196 @@ if(config.nightShift!==false){
 }
 
 renderAll();
+
+// ── EMBEDDING MEMORY PHASE 3 ─────────────────────────────────────────────────
+
+function renderMemoryUI(){
+  if(typeof OpBrain==='undefined') return;
+
+  var btnLoad=document.getElementById('btnLoadModel');
+  var btnPurge=document.getElementById('btnPurgeModel');
+  var btnSync=document.getElementById('btnSync');
+  var btnPurgeMem=document.getElementById('btnPurgeMem');
+  var badge=document.getElementById('modelBadge');
+  var recallSec=document.getElementById('recallSection');
+
+  if(OpBrain.isModelReady()){
+    badge.textContent='ACTIVE — IN MEMORY';
+    badge.style.background='rgba(39,174,96,.15)';
+    badge.style.color='var(--grn)';
+    btnLoad.style.display='none';
+    btnPurge.style.display='block';
+    btnSync.style.display='block';
+    btnPurgeMem.style.display='block';
+    recallSec.style.display='block';
+  } else if(OpBrain.isLoading()){
+    badge.textContent='DOWNLOADING...';
+    badge.style.background='rgba(212,168,67,.15)';
+    badge.style.color='var(--gld)';
+    btnLoad.disabled=true;
+    btnLoad.textContent='LOADING...';
+  } else {
+    badge.textContent='NOT LOADED';
+    badge.style.background='rgba(51,51,51,.8)';
+    badge.style.color='var(--dim2)';
+    btnLoad.style.display='block';
+    btnLoad.disabled=false;
+    btnLoad.textContent='DOWNLOAD & ACTIVATE MODEL';
+    btnPurge.style.display='none';
+    btnSync.style.display='none';
+    btnPurgeMem.style.display='none';
+    recallSec.style.display='none';
+  }
+
+  // Memory count
+  OpBrain.getMemoryStats().then(function(stats){
+    document.getElementById('memCountVal').textContent=stats.count;
+    document.getElementById('memCountVal').style.color=stats.count>0?'var(--gld)':'var(--dim2)';
+    document.getElementById('memOldest').textContent=stats.oldestTs?'Oldest: '+new Date(stats.oldestTs).toLocaleDateString():'—';
+    document.getElementById('memNewest').textContent=stats.newestTs?'Newest: '+new Date(stats.newestTs).toLocaleDateString():'—';
+  }).catch(function(){});
+}
+
+async function handleLoadModel(){
+  var progWrap=document.getElementById('modelProgress');
+  var progBar=document.getElementById('modelProgressBar');
+  var progText=document.getElementById('modelProgressText');
+  progWrap.style.display='block';
+
+  var ok=await OpBrain.loadModel(function(progress){
+    if(progress.status==='progress' && progress.total){
+      var pct=Math.round((progress.loaded/progress.total)*100);
+      progBar.style.width=pct+'%';
+      progText.textContent=progress.file?esc(progress.file)+' — '+pct+'%':'Downloading... '+pct+'%';
+    } else if(progress.status==='ready'){
+      progText.textContent='Model ready.';
+    }
+  });
+
+  progWrap.style.display='none';
+  renderMemoryUI();
+  showToast(ok?'MODEL LOADED — READY':'MODEL LOAD FAILED');
+}
+
+async function handlePurgeModel(){
+  if(!confirm('Purge embedding model?\n\nFrees ~23MB. Memories are preserved.\nYou can re-download anytime.')) return;
+  await OpBrain.purgeModel();
+  renderMemoryUI();
+  showToast('MODEL PURGED');
+}
+
+async function handleSyncLogs(){
+  if(!OpBrain.isModelReady()){showToast('LOAD MODEL FIRST');return;}
+  var btn=document.getElementById('btnSync');
+  btn.disabled=true;
+  btn.textContent='SYNCING...';
+  try{
+    var result=await OpBrain.syncNewLogs();
+    showToast('Synced: '+result.processed+' new, '+result.skipped+' skipped');
+  }catch(e){
+    showToast('SYNC FAILED');
+  }
+  btn.disabled=false;
+  btn.textContent='SYNC NEW LOGS';
+  renderMemoryUI();
+}
+
+async function handlePurgeMemory(){
+  if(!confirm('Delete all embedding memories?\n\nThis removes vector snapshots only.\nProtocol logs and clinical data are NOT affected.')) return;
+  await OpBrain.purgeMemory();
+  renderMemoryUI();
+  showToast('MEMORIES PURGED');
+}
+
+async function handleRecall(){
+  var input=document.getElementById('recallInput').value.trim();
+  if(!input){showToast('TYPE SOMETHING FIRST');return;}
+  if(!OpBrain.isModelReady()){showToast('LOAD MODEL FIRST');return;}
+
+  var el=document.getElementById('recallResults');
+  el.innerHTML='<div style="color:var(--dim);font-size:8px;font-family:monospace;text-align:center;padding:8px">Searching memory...</div>';
+
+  try{
+    var results=await OpBrain.recall(input,3);
+    if(!results.length){
+      el.innerHTML='<div style="color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;padding:8px">No memories found. Sync logs first.</div>';
+      return;
+    }
+    el.innerHTML=results.map(function(r){
+      var simPct=Math.round(r.similarity*100);
+      var simColor=simPct>70?'var(--grn)':simPct>40?'var(--gld)':'var(--dim)';
+      var dateStr=r.timestamp?new Date(r.timestamp).toLocaleDateString():'—';
+      return '<div class="alert-card" style="border-left-color:'+simColor+';background:var(--bg2);margin-top:6px">'+
+        '<div class="alert-pct" style="color:'+simColor+'">'+simPct+'%</div>'+
+        '<div style="font-size:9px;font-family:Georgia,serif;color:#bbb;line-height:1.6;margin-bottom:4px">'+esc(r.text)+'</div>'+
+        '<div class="alert-stat">'+dateStr+(r.distortions&&r.distortions.length?' · '+esc(r.distortions.join(', ')):'')+
+        (r.state?' · State: '+esc(r.state):'')+
+        (r.intensity?' · Intensity: '+r.intensity+'/10':'')+
+        '</div></div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="color:var(--red);font-size:8px;font-family:monospace;padding:8px">Recall failed: '+esc(e.message||'Unknown error')+'</div>';
+  }
+}
+
+// Load op-brain.js dynamically (only if present — graceful degradation)
+(function(){
+  var s=document.createElement('script');
+  s.src='op-brain.js';
+  s.onload=function(){ setTimeout(renderMemoryUI,100); };
+  s.onerror=function(){ /* op-brain.js not deployed yet — Phase 3 pending */ };
+  document.body.appendChild(s);
+})();
+
+// ── NIGHT SHIFT PHASE 2: SW MESSAGE BRIDGE ──────────────────────────────────
+
+// Listen for SW messages telling us to run analysis
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message',function(event){
+    if(event.data && event.data.type==='NIGHT_SHIFT_RUN'){
+      // Force run by clearing throttle
+      var cfg={};
+      try{cfg=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
+      cfg.lastAttempt=0;
+      try{localStorage.setItem('od_intel_config',JSON.stringify(cfg));}catch(e){}
+      IntelEngine.runNightShift();
+      renderAll();
+    }
+  });
+}
+
+// Check IndexedDB stale flag on page load (set by SW when no clients were open)
+function checkStaleFlag(){
+  try{
+    var req=indexedDB.open('clove_intel',1);
+    req.onupgradeneeded=function(e){
+      var db=e.target.result;
+      if(!db.objectStoreNames.contains('ops')) db.createObjectStore('ops',{keyPath:'key'});
+    };
+    req.onsuccess=function(){
+      var db=req.result;
+      try{
+        var tx=db.transaction('ops','readwrite');
+        var store=tx.objectStore('ops');
+        var get=store.get('stale');
+        get.onsuccess=function(){
+          if(get.result && get.result.value===true){
+            store.delete('stale');
+            // Force immediate analysis
+            var cfg={};
+            try{cfg=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
+            cfg.lastAttempt=0;
+            try{localStorage.setItem('od_intel_config',JSON.stringify(cfg));}catch(e){}
+            IntelEngine.runNightShift();
+            renderAll();
+          }
+        };
+        db.close();
+      }catch(e){db.close();}
+    };
+  }catch(e){}
+}
+checkStaleFlag();
 </script>
 </body>
 </html>
