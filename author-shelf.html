@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'">
+<meta property="og:title" content="AUTHOR'S SHELF • OPERATOR'S DECK">
+<meta property="og:description" content="The books behind the deck. 5 titles. Every suit mapped to its source.">
+<meta property="og:image" content="https://clovelearn.io/icons/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/author-shelf.html">
+<meta name="description" content="The books behind the Operator's Deck — mapped to every suit, card, and tool they connect to.">
+<meta name="referrer" content="no-referrer">
+<title>AUTHOR'S SHELF • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--red-bright:#e74c3c;--grn:#27ae60;--gld:#d4a843;--dim:#8a8a8a;--dim2:#777;--dim3:#1a1a22}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+html{height:100%}
+body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:hidden;min-height:100%;min-height:100dvh;-webkit-font-smoothing:antialiased;line-height:1.6}
+.app{max-width:480px;margin:0 auto;position:relative;min-height:100vh;min-height:100dvh;padding-bottom:40px}
+
+/* NAV */
+.top-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:2px solid var(--gld);display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.back-btn{background:none;border:1px solid var(--bg4);color:#aaa;font-size:9px;font-family:'Courier New',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s;text-decoration:none}
+.back-btn:active{color:#fff;border-color:#444}
+.top-title{color:var(--dim2);font-size:7px;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase}
+
+/* HERO */
+.hero{padding:36px 20px 24px;text-align:center;border-bottom:1px solid rgba(212,168,67,.12)}
+.hero-tag{font-size:8px;letter-spacing:5px;color:var(--gld);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px}
+.hero-tag::before,.hero-tag::after{content:'';width:20px;height:1px;background:var(--gld)}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;line-height:1;margin-bottom:14px;color:var(--gld)}
+.hero-sub{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.8;max-width:340px;margin:0 auto}
+
+/* AUTHOR BIO */
+.author-bio{margin:20px 16px;background:var(--bg2);border:1px solid rgba(212,168,67,.15);border-radius:12px;padding:16px 18px}
+.author-name{font-size:8px;letter-spacing:4px;color:var(--gld);margin-bottom:8px;text-transform:uppercase}
+.author-text{font-size:9px;color:var(--dim);font-family:Georgia,serif;line-height:1.8}
+.author-text strong{color:#ccc}
+.author-link{display:inline-block;margin-top:12px;background:linear-gradient(135deg,rgba(212,168,67,.15),rgba(212,168,67,.05));border:1px solid rgba(212,168,67,.3);color:var(--gld);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:2px;padding:8px 16px;border-radius:6px;text-decoration:none;text-transform:uppercase;transition:all .2s}
+.author-link:active{transform:scale(.97)}
+
+/* SECTION LABEL */
+.sec-label{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--gld);text-transform:uppercase;margin:20px 16px 12px;display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'';width:14px;height:1px;background:var(--gld)}
+
+/* BOOK CARD */
+.book-card{margin:0 16px 14px;background:var(--bg2);border-radius:14px;border:1px solid rgba(212,168,67,.1);overflow:hidden}
+.book-header{padding:16px 18px 0;display:flex;align-items:flex-start;gap:12px}
+.book-num{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--gld);opacity:.5;flex-shrink:0;padding-top:2px}
+.book-title{font-size:14px;font-weight:800;letter-spacing:.5px;line-height:1.2;color:#e8e8f0}
+.book-subtitle{font-size:8px;color:var(--dim2);letter-spacing:1px;font-family:'DM Mono',monospace;margin-top:3px}
+.book-desc{padding:10px 18px 0 46px;font-size:9px;color:var(--dim);font-family:Georgia,serif;line-height:1.8}
+.book-quote{margin:12px 18px 0 46px;background:var(--bg3);border-left:2px solid var(--gld);border-radius:0 8px 8px 0;padding:10px 14px}
+.book-quote-text{font-family:Georgia,serif;font-size:10px;color:#d0d0e8;line-height:1.7;font-style:italic;margin-bottom:4px}
+.book-quote-src{font-size:7px;letter-spacing:1.5px;color:var(--gld);opacity:.7;font-family:monospace;text-transform:uppercase}
+.book-suits{padding:12px 18px 0 46px;display:flex;flex-wrap:wrap;gap:6px}
+.suit-chip{font-size:7px;font-family:monospace;letter-spacing:1.5px;padding:4px 10px;border-radius:20px;border:1px solid;text-transform:uppercase}
+.book-tools{padding:8px 18px 0 46px;display:flex;flex-wrap:wrap;gap:6px}
+.tool-chip{font-size:7px;font-family:monospace;letter-spacing:1px;padding:4px 10px;border-radius:6px;background:var(--bg3);border:1px solid rgba(255,255,255,.08);color:#999;text-decoration:none;transition:all .2s}
+.tool-chip:active{color:#fff;border-color:#444}
+.book-footer{padding:12px 18px 14px;display:flex;justify-content:flex-end}
+.amz-btn{background:linear-gradient(135deg,rgba(212,168,67,.15),rgba(212,168,67,.05));border:1px solid rgba(212,168,67,.3);color:var(--gld);font-size:7px;font-family:monospace;letter-spacing:2px;padding:7px 14px;border-radius:6px;text-decoration:none;text-transform:uppercase;transition:all .2s}
+.amz-btn:active{transform:scale(.97)}
+
+/* QUOTE BLOCK */
+.quote-block{background:var(--bg3);border-left:3px solid var(--gld);border-radius:0 10px 10px 0;padding:16px 18px;margin:14px 16px}
+.quote-text{font-family:Georgia,serif;font-size:11px;color:#d8d8f0;line-height:1.8;font-style:italic;margin-bottom:8px}
+.quote-src{font-size:7px;letter-spacing:2px;color:var(--gld);font-family:monospace;text-transform:uppercase}
+
+/* FOOTER */
+.footer{text-align:center;padding:28px 16px;margin-top:10px;border-top:1px solid rgba(212,168,67,.06)}
+.f-ver{font-size:7px;letter-spacing:3px;color:var(--dim2);margin-bottom:6px}
+.f-copy{font-size:7px;color:var(--dim3);letter-spacing:1px;line-height:2}
+.f-link{display:inline-block;color:var(--dim2);font-size:7px;letter-spacing:2px;text-decoration:none;margin-top:8px;font-family:monospace}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+<!-- NAV -->
+<div class="top-bar">
+  <a href="./?tab=more" class="back-btn">← DECK</a>
+  <div class="top-title">AUTHOR'S SHELF</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">FIELD INTELLIGENCE SOURCE</div>
+  <h1>AUTHOR'S<br>SHELF</h1>
+  <div class="hero-sub">The books behind the deck.<br>Every suit, card, and tool mapped to its source material.</div>
+</div>
+
+<!-- AUTHOR BIO -->
+<div class="author-bio">
+  <div class="author-name">Ryan Bardyla</div>
+  <div class="author-text"><strong>13 years Canadian Army. Communications specialist. CSOR support.</strong><br>Not a door kicker — the guy who made sure the door kickers could talk to each other. Father of two. Two years sober. These books exist because the ones he needed didn't.</div>
+  <a class="author-link" href="https://www.amazon.com/stores/Ryan-Bardyla/author/B0GHKZQ1SS" target="_blank" rel="noopener noreferrer">ALL BOOKS ON AMAZON →</a>
+</div>
+
+<div class="sec-label">5 books · the source material</div>
+
+<!-- ═══ BOOK 1: DANCING WITH THE DEVIL ═══ -->
+<div class="book-card">
+  <div class="book-header">
+    <div class="book-num">01</div>
+    <div>
+      <div class="book-title">Dancing With The Devil</div>
+      <div class="book-subtitle">NON-FICTION · ADDICTION · RECLAMATION</div>
+    </div>
+  </div>
+  <div class="book-desc">The internet rewired billions of minds. This is the account of what it did to one, and how the same machine that built the trap became the tool that dismantled it. A first-person investigation into dopamine, digital addiction, and the slow work of reclamation — told without clinical distance, by someone who lost years to the loop and built his way out of it.</div>
+  <div class="book-quote">
+    <div class="book-quote-text">"You don't have to be evil to dance with the devil. You just have to not notice you're dancing."</div>
+    <div class="book-quote-src">Dancing With The Devil · Ryan Bardyla</div>
+  </div>
+  <div class="book-suits">
+    <span class="suit-chip" style="color:#9333ea;border-color:rgba(147,51,234,.3);background:rgba(147,51,234,.08)">◈ THE TRAP</span>
+    <span class="suit-chip" style="color:#4a6fa5;border-color:rgba(74,111,165,.3);background:rgba(74,111,165,.08)">♠ THE DIG</span>
+    <span class="suit-chip" style="color:#0d9488;border-color:rgba(13,148,136,.3);background:rgba(13,148,136,.08)">◉ THE FOUNDATION</span>
+  </div>
+  <div class="book-tools">
+    <a class="tool-chip" href="relapse-prevention.html">RELAPSE PREVENTION</a>
+    <a class="tool-chip" href="dopamine-depot.html">DOPAMINE DEPOT</a>
+    <a class="tool-chip" href="chain-analysis-drill.html">CHAIN ANALYSIS</a>
+    <a class="tool-chip" href="field-manual.html">FIELD MANUAL → DOPAMINE TRAP</a>
+  </div>
+  <div class="book-footer">
+    <a class="amz-btn" href="https://www.amazon.com/stores/Ryan-Bardyla/author/B0GHKZQ1SS" target="_blank" rel="noopener noreferrer">READ ON AMAZON →</a>
+  </div>
+</div>
+
+<!-- ═══ BOOK 2: MATHEMATICS OF THE HEART ═══ -->
+<div class="book-card">
+  <div class="book-header">
+    <div class="book-num">02</div>
+    <div>
+      <div class="book-title">Mathematics of the Heart</div>
+      <div class="book-subtitle">NON-FICTION · RELATIONSHIPS · CONNECTION</div>
+    </div>
+  </div>
+  <div class="book-desc">A forensic examination of what kills relationships slowly and invisibly — hedonic adaptation, bid decline, front-stage performance, and the accumulated cost of armor. Not a therapy book. A field manual for men who realize they are present in body and absent everywhere else, and want to do something about it before it's too late.</div>
+  <div class="book-quote">
+    <div class="book-quote-text">"Every time your kid says 'Dad, watch this' — that's a bid. A small request for connection. You get maybe 10,000 in a lifetime. Every grunt or 'not now' is a declined bid."</div>
+    <div class="book-quote-src">Mathematics of the Heart · Ryan Bardyla</div>
+  </div>
+  <div class="book-suits">
+    <span class="suit-chip" style="color:#c0392b;border-color:rgba(192,57,43,.3);background:rgba(192,57,43,.08)">♥ THE PATCH-UP</span>
+  </div>
+  <div class="book-tools">
+    <a class="tool-chip" href="dear-man-drill.html">DEAR MAN DRILL</a>
+    <a class="tool-chip" href="field-manual.html">FIELD MANUAL → HEDONIC ADAPTATION</a>
+    <a class="tool-chip" href="./?tab=home">CARDS: THE BID · THE WATCH ON YOUR WRIST</a>
+  </div>
+  <div class="book-footer">
+    <a class="amz-btn" href="https://www.amazon.com/stores/Ryan-Bardyla/author/B0GHKZQ1SS" target="_blank" rel="noopener noreferrer">READ ON AMAZON →</a>
+  </div>
+</div>
+
+<!-- ═══ BOOK 3: THE BIOLOGICAL BRUISE ═══ -->
+<div class="book-card">
+  <div class="book-header">
+    <div class="book-num">03</div>
+    <div>
+      <div class="book-title">The Biological Bruise</div>
+      <div class="book-subtitle">NON-FICTION · ADHD · RSD · NEURODIVERGENCE</div>
+    </div>
+  </div>
+  <div class="book-desc">Forty-four years without a name for what was running in his nervous system. This is the account of a late ADHD diagnosis and the realization that the coping strategies that got him through — military service, hyper-productivity, social masking — were prosthetics for a brain that wasn't broken, just different. A manual for men who suspect the same thing about themselves.</div>
+  <div class="book-quote">
+    <div class="book-quote-text">"I am a man who spent forty-four years without a name for what was running in his nervous system. The name didn't fix anything. But it stopped me from blaming myself for the hardware."</div>
+    <div class="book-quote-src">The Biological Bruise · Ryan Bardyla</div>
+  </div>
+  <div class="book-suits">
+    <span class="suit-chip" style="color:#c2410c;border-color:rgba(194,65,12,.3);background:rgba(194,65,12,.08)">◎ THE WATCH</span>
+  </div>
+  <div class="book-tools">
+    <a class="tool-chip" href="rsd-shield-drill.html">RSD SHIELD DRILL</a>
+    <a class="tool-chip" href="dopamine-depot.html">DOPAMINE DEPOT</a>
+    <a class="tool-chip" href="body-double-ops.html">BODY DOUBLE</a>
+    <a class="tool-chip" href="micro-ops.html">MICRO OPS</a>
+    <a class="tool-chip" href="field-manual.html">FIELD MANUAL → RSD DEEP DIVE</a>
+  </div>
+  <div class="book-footer">
+    <a class="amz-btn" href="https://www.amazon.com/stores/Ryan-Bardyla/author/B0GHKZQ1SS" target="_blank" rel="noopener noreferrer">READ ON AMAZON →</a>
+  </div>
+</div>
+
+<!-- ═══ BOOK 4: THE PENDULUM SWINGS ═══ -->
+<div class="book-card">
+  <div class="book-header">
+    <div class="book-num">04</div>
+    <div>
+      <div class="book-title">The Pendulum Swings</div>
+      <div class="book-subtitle">NON-FICTION · INSTITUTIONS · SYSTEMS · SOCIETY</div>
+    </div>
+  </div>
+  <div class="book-desc">An analysis of how institutions — media, politics, social platforms, educational systems — use behavioral conditioning at scale. The same manipulation mechanics that operate on individuals operate on populations. Understanding the architecture is the first defense against it. For men who sense something is wrong with the larger picture but haven't been able to name the system.</div>
+  <div class="book-quote">
+    <div class="book-quote-text">"The pendulum doesn't swing on its own. Someone is always pushing it. The question is whether you know who, and whether you're one of the ones getting hit."</div>
+    <div class="book-quote-src">The Pendulum Swings · Ryan Bardyla</div>
+  </div>
+  <div class="book-suits">
+    <span class="suit-chip" style="color:#27ae60;border-color:rgba(39,174,96,.3);background:rgba(39,174,96,.08)">♣ THE BREACH</span>
+    <span class="suit-chip" style="color:#d4a843;border-color:rgba(212,168,67,.3);background:rgba(212,168,67,.08)">♦ THE PROTOCOL</span>
+  </div>
+  <div class="book-tools">
+    <a class="tool-chip" href="pattern-intelligence.html">PATTERN INTELLIGENCE</a>
+    <a class="tool-chip" href="field-manual.html">FIELD MANUAL → ATTENTION ECONOMY</a>
+  </div>
+  <div class="book-footer">
+    <a class="amz-btn" href="https://www.amazon.com/stores/Ryan-Bardyla/author/B0GHKZQ1SS" target="_blank" rel="noopener noreferrer">READ ON AMAZON →</a>
+  </div>
+</div>
+
+<!-- ═══ BOOK 5: THE GRIND: RETARDMAXXING ═══ -->
+<div class="book-card">
+  <div class="book-header">
+    <div class="book-num">05</div>
+    <div>
+      <div class="book-title">The Grind: Retardmaxxing</div>
+      <div class="book-subtitle">NON-FICTION · DISCIPLINE · IDENTITY · RADICALIZATION</div>
+    </div>
+  </div>
+  <div class="book-desc">How algorithmic platforms weaponize the same behavioral conditioning methods used to build armies — and funnel men without identity anchors into ready-made ones. The book examines discipline culture, identity fusion, and the pipeline from self-improvement to radicalization. Not an argument against working hard. An argument for working on the right things, with eyes open about who benefits from your obedience.</div>
+  <div class="book-quote">
+    <div class="book-quote-text">"Building an organic personality is harder than downloading an ersatz one. It takes longer. It requires tolerating the very uncertainty that drove you to the ideology in the first place."</div>
+    <div class="book-quote-src">The Grind: Retardmaxxing · Ryan Bardyla</div>
+  </div>
+  <div class="book-suits">
+    <span class="suit-chip" style="color:#d4a843;border-color:rgba(212,168,67,.3);background:rgba(212,168,67,.08)">♦ THE PROTOCOL</span>
+    <span class="suit-chip" style="color:#4a6fa5;border-color:rgba(74,111,165,.3);background:rgba(74,111,165,.08)">♠ THE DIG</span>
+  </div>
+  <div class="book-tools">
+    <a class="tool-chip" href="stuck-points-drill.html">STUCK POINTS DRILL</a>
+    <a class="tool-chip" href="values-drill.html">VALUES DRILL</a>
+    <a class="tool-chip" href="field-manual.html">FIELD MANUAL → IDENTITY FUSION</a>
+    <a class="tool-chip" href="./?tab=home">CARDS: THE FORTRESS · THE ERSATZ</a>
+  </div>
+  <div class="book-footer">
+    <a class="amz-btn" href="https://www.amazon.com/stores/Ryan-Bardyla/author/B0GHKZQ1SS" target="_blank" rel="noopener noreferrer">READ ON AMAZON →</a>
+  </div>
+</div>
+
+<!-- CLOSING QUOTE -->
+<div class="quote-block">
+  <div class="quote-text">"I wore a mask for forty years that kept me from being rejected and kept me from being known. The deck is the mask coming off — one card at a time."</div>
+  <div class="quote-src">— Ryan Bardyla</div>
+</div>
+
+<!-- CTA -->
+<div style="padding:16px;text-align:center">
+  <a href="./" style="display:block;width:100%;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;border:none;border-radius:10px;padding:16px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase;text-decoration:none;transition:all .2s">⚡ ENTER THE DECK — FREE</a>
+  <div style="font-size:7px;letter-spacing:2px;color:var(--dim2);margin-top:10px;text-transform:uppercase">No login · No account · Browser only · Free forever</div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="f-ver">THE OPERATOR'S DECK · 2026</div>
+  <div class="f-copy">Created by Ryan Bardyla<br>All books available at the Amazon author page<br>No affiliation with any clinical program</div>
+  <a href="./feedback.html" class="f-link">BUG REPORT / FEEDBACK →</a>
+</div>
+
+</div><!-- .app -->
+</body>
+</html>
