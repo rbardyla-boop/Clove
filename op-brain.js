@@ -110,7 +110,8 @@
           });
         });
       })
-      .catch(function () {
+      .catch(function (err) {
+        console.error('[OpBrain] Model load failed:', err);
         _loading    = false;
         _modelReady = false;
         _pipeline   = null;
