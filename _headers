@@ -9,11 +9,20 @@
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(self), geolocation=(), payment=(), usb=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=()
+  Permissions-Policy: camera=(), microphone=(self), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co https://xethub.hf.co https://cas-bridge.xethub.hf.co https://cdn.jsdelivr.net blob:; worker-src 'self' blob: https://cdn.jsdelivr.net; media-src 'self' blob:
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co https://xethub.hf.co https://cas-bridge.xethub.hf.co https://cdn.jsdelivr.net blob:; worker-src 'self' blob: https://cdn.jsdelivr.net; media-src 'self' blob:
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
+
+## ── INTELLIGENCE OPS: COEP OVERRIDE ──────────────────────────
+## transformers.js WASM backend creates blob: URLs for its worker
+## and then dynamically imports them. COEP: credentialless causes
+## Chrome to treat blob: URLs as null-origin in isolated contexts,
+## killing the import. Override to unsafe-none for this page only.
+## COOP stays intact (same-origin) — only COEP is relaxed.
+/intelligence-ops.html
+  Cross-Origin-Embedder-Policy: unsafe-none
 
 ## ── STATIC ASSETS: LONG CACHE ─────────────────────────────────
 ## Icons, JS, manifest — cache aggressively (1 year)
