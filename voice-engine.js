@@ -51,29 +51,42 @@
     if (isLoading) return;
     isLoading = true;
 
-    try {
-      worker = new Worker('stt-worker.js?v=6', { type: 'module' });
-    } catch(e) {
-      isLoading = false;
-      if (errorFn) errorFn('Cannot start voice engine: ' + e.message);
-      return;
-    }
+    // Fetch worker as blob so it inherits the page's CSP (wasm-unsafe-eval)
+    // rather than running under its own cached response headers.
+    fetch('stt-worker.js?v=7')
+      .then(function(r) { return r.blob(); })
+      .then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        try {
+          worker = new Worker(url, { type: 'module' });
+        } catch(e) {
+          URL.revokeObjectURL(url);
+          isLoading = false;
+          if (errorFn) errorFn('Cannot start voice engine: ' + e.message);
+          return;
+        }
+        URL.revokeObjectURL(url);
 
-    worker.onmessage = function(e) {
-      var m = e.data;
-      if (m.type === 'progress' && progressFn) progressFn(m.data.pct, m.data.file);
-      if (m.type === 'ready') { console.log('[VOICE] Engine ready'); isReady = true; isLoading = false; if (readyFn) readyFn(); }
-      if (m.type === 'status') { console.log('[VOICE] Worker status:', m.data); }
-      if (m.type === 'error') { console.error('[VOICE] Worker error:', m.data); isLoading = false; isProcessing = false; if (errorFn) errorFn(m.data); if (currentCb) { currentCb(m.data, null); currentCb = null; } }
-      if (m.type === 'result') { console.log('[VOICE] Whisper result:', JSON.stringify(m.data)); isProcessing = false; if (currentCb) { currentCb(null, m.data); currentCb = null; } }
-    };
+        worker.onmessage = function(e) {
+          var m = e.data;
+          if (m.type === 'progress' && progressFn) progressFn(m.data.pct, m.data.file);
+          if (m.type === 'ready') { console.log('[VOICE] Engine ready'); isReady = true; isLoading = false; if (readyFn) readyFn(); }
+          if (m.type === 'status') { console.log('[VOICE] Worker status:', m.data); }
+          if (m.type === 'error') { console.error('[VOICE] Worker error:', m.data); isLoading = false; isProcessing = false; if (errorFn) errorFn(m.data); if (currentCb) { currentCb(m.data, null); currentCb = null; } }
+          if (m.type === 'result') { console.log('[VOICE] Whisper result:', JSON.stringify(m.data)); isProcessing = false; if (currentCb) { currentCb(null, m.data); currentCb = null; } }
+        };
 
-    worker.onerror = function(e) {
-      isLoading = false;
-      if (errorFn) errorFn('Worker crashed: ' + (e.message||'unknown'));
-    };
+        worker.onerror = function(e) {
+          isLoading = false;
+          if (errorFn) errorFn('Worker crashed: ' + (e.message||'unknown'));
+        };
 
-    worker.postMessage({ type: 'init' });
+        worker.postMessage({ type: 'init' });
+      })
+      .catch(function(e) {
+        isLoading = false;
+        if (errorFn) errorFn('Cannot start voice engine: ' + e.message);
+      });
   };
 
   // ── Record audio and transcribe ──
