@@ -578,8 +578,28 @@ function toggleLesson(lid){openLessons[lid]=!openLessons[lid];render();}
 function toggleDeep(lid){openDeep[lid]=!openDeep[lid];render();}
 function setFilter(f){activeDomain=f;render();}
 
+var SYMPTOM_MAP={
+  'panic':['amygdala','tipp','fight or flight','nervous system','window of tolerance','crisis'],
+  'shame':['self-compassion','inner critic','cognitive distortion','parts','exiles','stuck'],
+  'stuck':['stuck point','cognitive distortion','defusion','psychological flexibility','reframing','values'],
+  'rage':['emotional brain','amygdala','tipp','regulation','opposite action','window of tolerance'],
+  'numb':['hypoarousal','window of tolerance','dissociation','emotional brain','avoidance','parts'],
+  'sleep':['sleep','physical','hyperarousal','nervous system','routine','regulation'],
+  'anxious':['fight or flight','amygdala','window of tolerance','defusion','tipp','exposure'],
+  'relapse':['relapse','urge surfing','chain','trigger','substance','craving'],
+  'lonely':['brotherhood','connection','bid','isolation','crew','attachment'],
+  'overwhelm':['tipp','window of tolerance','nervous system','crisis','regulation','grounding'],
+  'trauma':['ptsd','stuck point','processing','van der kolk','trauma','body keeps'],
+  'adhd':['adhd','executive function','dopamine','time blind','body double','working memory'],
+  'focus':['adhd','executive function','dopamine','body double','attention','working memory'],
+  'craving':['urge surfing','relapse','trigger','substance','chain','opposite action'],
+  'worthless':['self-compassion','inner critic','cognitive distortion','shame','stuck point','values'],
+  '2am':['crisis','red protocol','tipp','nervous system','sleep','window of tolerance']
+};
 function setSearch(v){
-  searchQuery=String(v).toLowerCase().substring(0,200);
+  var raw=String(v).toLowerCase().substring(0,200);
+  var aliases=SYMPTOM_MAP[raw.trim()];
+  searchQuery=aliases?aliases.join(' '):raw;
   if(_searchTimer)clearTimeout(_searchTimer);
   _searchTimer=setTimeout(function(){_searchTimer=null;render();},150);
 }
@@ -627,8 +647,28 @@ function render(){
   }
   h+='</div></div>';
 
+  // Daily Featured Lesson
+  var _allLessons=[];
+  for(var _di=0;_di<DOMAINS.length;_di++){
+    for(var _li=0;_li<DOMAINS[_di].lessons.length;_li++){
+      _allLessons.push({lesson:DOMAINS[_di].lessons[_li],domain:DOMAINS[_di]});
+    }
+  }
+  var _today=new Date();
+  var _dkey=_today.getFullYear()+'-'+(_today.getMonth()+1)+'-'+_today.getDate();
+  var _dhash=0;for(var _ci=0;_ci<_dkey.length;_ci++){_dhash=((_dhash<<5)-_dhash)+_dkey.charCodeAt(_ci);_dhash|=0;}
+  _dhash=Math.abs(_dhash);
+  var _feat=_allLessons[_dhash%_allLessons.length];
+  var _isRead=!!state.read[_feat.lesson.id];
+  h+='<div style="margin:0 16px 14px;background:linear-gradient(135deg,'+(_isRead?'#0a120a':'#12101a')+',var(--bg2));border:1px solid '+(_isRead?'rgba(39,174,96,.2)':'rgba(212,168,67,.2)')+';border-radius:12px;padding:14px 16px;cursor:pointer" onclick="openDomains[\''+escAttr(_feat.domain.id)+'\']=true;openLessons[\''+escAttr(_feat.lesson.id)+'\']=true;searchQuery=\'\';activeDomain=\''+escAttr(_feat.domain.id)+'\';render();setTimeout(function(){var el=document.getElementById(\''+escAttr(_feat.lesson.id)+'\');if(el)el.scrollIntoView({behavior:\'smooth\',block:\'center\'})},200)">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:8px;font-family:monospace;letter-spacing:2px;color:'+escAttr(_feat.domain.color)+'">'+esc(_feat.domain.icon)+' TODAY\u2019S LESSON</span>'+(_isRead?'<span style="font-size:7px;font-family:monospace;color:var(--grn);letter-spacing:1px">\u2713 READ</span>':'')+'</div>';
+  h+='<div style="font-size:12px;font-weight:800;font-family:monospace;letter-spacing:.5px;margin-bottom:4px;color:#ddd">'+esc(_feat.lesson.name)+'</div>';
+  h+='<div style="font-size:9px;color:#888;font-family:Georgia,serif;font-style:italic;line-height:1.6">'+esc(_feat.lesson.one)+'</div>';
+  h+='</div>';
+
   // Search
   h+='<div class="search-wrap"><span class="search-icon" aria-hidden="true">\uD83D\uDD0D</span><input type="text" id="fmSearch" placeholder="Search lessons..." value="'+escAttr(searchQuery)+'" oninput="setSearch(this.value)" aria-label="Search lessons"></div>';
+  h+='<div style="text-align:center;margin:-10px 16px 10px;font-size:8px;font-family:monospace;color:#555;letter-spacing:1px">TRY: <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'panic\';setSearch(\'panic\')">panic</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'shame\';setSearch(\'shame\')">shame</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'stuck\';setSearch(\'stuck\')">stuck</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'rage\';setSearch(\'rage\')">rage</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'numb\';setSearch(\'numb\')">numb</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'sleep\';setSearch(\'sleep\')">sleep</span></div>';
 
   // Domain filters
   h+='<div class="filters" role="tablist" aria-label="Filter by domain">';
@@ -678,7 +718,7 @@ function render(){
       var isRead=!!state.read[l.id];
       var isLOpen=!!openLessons[l.id];
 
-      h+='<div class="lesson'+(isRead?' read':'')+'">';
+      h+='<div class="lesson'+(isRead?' read':'')+'" id="'+escAttr(l.id)+'">';
       h+='<div class="lesson-top" onclick="toggleLesson(\''+escAttr(l.id)+'\')" role="button" aria-expanded="'+isLOpen+'" tabindex="0">';
       h+='<div class="ls-check" aria-hidden="true">'+(isRead?'\u2713':'')+'</div>';
       h+='<div class="ls-info"><div class="ls-name">'+esc(l.name)+'</div><div class="ls-one">'+esc(l.one)+'</div></div>';

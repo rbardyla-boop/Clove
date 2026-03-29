@@ -874,8 +874,10 @@ if(discModal){
 if(!onboarded){
   if(obStep===0){
     h+=`<div class="lp">
+      <div onclick="window.location.href='red-protocol.html'" style="background:var(--red);color:#fff;padding:12px 20px;text-align:center;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-bottom:2px solid rgba(0,0,0,.3)" role="button" tabindex="0" aria-label="Crisis help — tap for immediate support">\u26A0 I NEED HELP NOW \u2192</div>
       <nav class="lp-nav">
         <div class="lp-logo"><div class="lp-logo-mark">\u2663</div><span>CLOVELEARN</span></div>
+        <button onclick="completeOnboard(true)" style="background:none;border:1px solid #444;color:#6868a0;padding:9px 14px;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:2px;cursor:pointer;text-transform:uppercase">SKIP</button>
         <button class="lp-nav-cta" onclick="obStep=1;R()">\u26a1 Start Now</button>
       </nav>
 
@@ -1065,6 +1067,7 @@ if(tab==="home"){
   const ph=getPhase();
   h+=`<div style="text-align:center;margin:4px 0 2px"><div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid ${ph.color}25;border-radius:16px;padding:4px 14px"><span style="font-size:10px;color:${ph.color}">${ph.icon}</span><span style="font-size:7px;font-family:monospace;letter-spacing:2px;font-weight:800;color:${ph.color}">PHASE ${ph.phase} \u2022 ${ph.name}</span></div></div>`;
   h+=`<div style="display:flex;gap:3px;justify-content:center;margin:4px 16px 2px">${['volume','depth','consistency','engagement'].map(function(k,i){var v=ph.axes[k];var labels=['VOL','DPT','STR','ENG'];var colors=['var(--red)','var(--blu)','var(--gld)','var(--grn)'];return'<div style="flex:1;text-align:center"><div style="background:var(--bg4);border-radius:2px;height:3px;overflow:hidden"><div style="width:'+Math.round(v*100)+'%;height:100%;background:'+colors[i]+';border-radius:2px"></div></div><div style="font-size:5px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-top:2px">'+labels[i]+'</div></div>'}).join('')}</div>`;
+  if(sessionCount>1&&log.length>0&&!card&&!busy&&!evMode&&!aarMode){const _lc=log[0];const _ls=S[_lc.s]||S.joker;h+=`<div style="margin:6px 16px 2px;background:var(--bg2);border:1px solid ${_ls.bd};border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px"><span style="font-size:14px;color:${_ls.c}">${_ls.y}</span><div style="flex:1"><div style="font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2)">LAST DRAWN</div><div style="font-size:10px;font-weight:800;font-family:monospace;letter-spacing:.5px;color:${_ls.c}">${esc(_lc.t||'')}</div></div>${_lc.ok?'<span style="font-size:7px;font-family:monospace;color:var(--grn);letter-spacing:1px">\u2713 DONE</span>':'<span style="font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1px">SKIPPED</span>'}</div>`;}
   if(!todayDrew&&!card&&!busy) h+=`<div style="text-align:center"><div class="daily-badge"><span class="dot"></span>TODAY\u2019S CARD IS READY</div></div>`;
   h+=`<div class="sts"><div class="st"><div class="v" style="color:var(--gld)">${streak}</div><div class="l">Streak</div>${grace?'<div class="grace">GRACE ACTIVE</div>':''}</div><div class="st"><div class="v" style="color:var(--red)">${total}</div><div class="l">Draws</div></div><div class="st"><div class="v" style="color:var(--grn)">${done}</div><div class="l">Missions</div></div></div>`;
   // COMBO STREAK — consecutive same-suit completions
@@ -1571,6 +1574,8 @@ window.toggleGoal=(i)=>{if(!goals[i])return;goals[i].status=goals[i].status==='c
 window.deleteGoal=(i)=>{if(!confirm('Delete this goal?'))return;goals.splice(i,1);saveGoals();R()};
 // ── MA CUE WORDS ──
 window.saveCueWords=()=>{const words=[];for(let i=0;i<5;i++){const el=document.getElementById('cw'+i);if(el){const v=el.value.trim().substring(0,30).replace(/<[^>]*>/g,'').toUpperCase();if(v)words.push(v)}}if(!words.length){showToast('SET AT LEAST ONE WORD');return}cueWords=words;save();showToast('CUE WORDS LOCKED');R()};
+// ── Boot Phase Check (one-time phase nudge on session start) ──
+(function(){try{if(onboarded&&lastPhase>0){var bp=getPhase().phase;if(bp>lastPhase){var _oP=PHASES[lastPhase-1],_nP=PHASES[bp-1];lastPhase=bp;save();setTimeout(function(){var ov=document.createElement('div');ov.className='phase-advance';ov.innerHTML='<div class="pa-line"></div><div class="pa-tag">PHASE ADVANCE</div><div class="pa-title">'+_oP.name+' \u2192 '+_nP.name+'</div><div class="pa-sub">'+_nP.desc+'</div>';document.body.appendChild(ov);setTimeout(function(){ov.style.opacity='0';ov.style.transition='opacity .5s';setTimeout(function(){ov.remove()},500)},2800)},800)}}}catch(e){}})();
 // ── Restore tab from URL param (drills link back with ?tab=more) ──
 (function(){try{const p=new URLSearchParams(location.search).get('tab');if(p&&['home','browse','playlist','evidence','more'].includes(p)){tab=p;}if(location.protocol!=='about:')history.replaceState(null,'',location.pathname);}catch(e){}}());
 R();
