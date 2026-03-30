@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#08080f">
+<meta property="og:title" content="PARTS MAPPING • OPERATOR'S DECK">
+<meta property="og:description" content="IFS-inspired drill. Identify the activated part, understand its job, find what it protects, write from Self.">
+<meta property="og:image" content="https://clovelearn.io/ogimage.jpg">
+<link rel="canonical" href="https://clovelearn.io/parts-mapping-drill.html">
+  <title>PARTS MAPPING • OPERATOR'S DECK</title>
+  <style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--pur:#9333ea;--pur2:#a855f7;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+.app{max-width:480px;margin:0 auto}
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--pur);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--pur);font-size:6.5px;font-family:monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim3);position:sticky;top:53px;z-index:19}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pur),var(--gld));transition:width .4s ease}
+.step-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2)}
+.step-counter span{color:var(--pur)}
+/* DISCLAIMER */
+.disc-strip{background:#0a0510;border-bottom:1px solid rgba(147,51,234,.2);padding:10px 16px;display:flex;gap:8px;align-items:flex-start}
+.disc-strip .ds-icon{color:var(--pur);font-size:11px;flex-shrink:0;margin-top:1px}
+.disc-strip .ds-text{color:#6a4488;font-size:7.5px;font-family:monospace;letter-spacing:.5px;line-height:1.7}
+.disc-strip .ds-text strong{color:#9966cc}
+/* STEPS */
+.step{display:none;padding:16px}
+.step.active{display:block}
+.step-label{color:var(--pur);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px}
+.step-title{font-size:17px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;line-height:1.3}
+.step-desc{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.75;margin-bottom:14px}
+.step-example{background:var(--bg3);border-left:3px solid var(--dim3);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:14px;color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.65}
+.step-example strong{color:var(--dim);font-style:normal}
+/* INPUTS */
+textarea,input[type=text]{width:100%;background:var(--bg2);color:#ccc;border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;font-size:11.5px;font-family:Georgia,serif;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus,input[type=text]:focus{border-color:rgba(147,51,234,.4)}
+textarea::placeholder,input::placeholder{color:#2a2a2a;font-style:italic}
+textarea{min-height:90px}
+input[type=text]{min-height:44px}
+.char-hint{color:var(--dim3);font-size:7px;font-family:monospace;text-align:right;margin-top:4px;letter-spacing:.5px}
+/* PART TYPE GRID */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.type-card{background:var(--bg3);border:1.5px solid var(--dim3);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center}
+.type-card.sel{border-color:var(--pur);background:rgba(147,51,234,.09)}
+.type-card:active{transform:scale(.96)}
+.tc-icon{font-size:18px;margin-bottom:4px}
+.tc-name{font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px;margin-bottom:3px;color:#bbb}
+.type-card.sel .tc-name{color:#fff}
+.tc-desc{color:#555;font-size:7.5px;font-family:Georgia,serif;line-height:1.4}
+.tc-check{font-size:10px;color:var(--pur);opacity:0;margin-top:4px;transition:opacity .15s}
+.type-card.sel .tc-check{opacity:1}
+/* IFS CONCEPT CARD */
+.ifs-card{background:rgba(147,51,234,.06);border:1px solid rgba(147,51,234,.15);border-radius:10px;padding:14px;margin-bottom:14px}
+.ifs-card .ic-tag{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--pur);margin-bottom:6px}
+.ifs-card .ic-title{font-size:11px;font-weight:800;font-family:monospace;letter-spacing:.5px;margin-bottom:8px}
+.ifs-card .ic-body{font-size:9.5px;font-family:Georgia,serif;color:var(--dim);line-height:1.7}
+/* SUMMARY */
+.summary-header{text-align:center;margin-bottom:20px}
+.summary-header .sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+.summary-header p{color:var(--dim2);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2.5px;margin-bottom:8px}
+.sb-content{color:#ccc;font-size:11px;font-family:Georgia,serif;line-height:1.65}
+.self-msg{color:var(--pur2);font-size:12px;font-family:Georgia,serif;line-height:1.7;padding:12px;background:rgba(147,51,234,.06);border-radius:8px;border-left:3px solid var(--pur)}
+/* BUTTONS */
+.step-acts{display:flex;gap:10px;margin-top:18px}
+.btn-next{flex:1;background:linear-gradient(135deg,var(--pur),#6b21a8);color:#fff;border:none;border-radius:10px;padding:15px;font-size:10px;font-weight:900;cursor:pointer;font-family:monospace;letter-spacing:2px;transition:all .2s}
+.btn-next:active{transform:scale(.96)}
+.btn-next:disabled{opacity:.3;cursor:default;transform:none}
+.btn-back-step{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:10px;padding:15px 18px;font-size:9px;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;flex-shrink:0}
+.btn-back-step:active{color:#888;border-color:#555}
+.btn-save{background:linear-gradient(135deg,var(--grn),#1a7a3c) !important}
+.btn-new{background:var(--bg3);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:13px 18px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;transition:all .2s}
+.btn-new:active{transform:scale(.96);color:#aaa}
+.btn-print{width:100%;background:var(--bg3);color:var(--pur);border:1px solid rgba(147,51,234,.25);border-radius:10px;padding:13px;font-size:9px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1.5px;margin-top:10px;transition:all .2s}
+.btn-print:active{transform:scale(.96)}
+/* PAST ENTRIES */
+.past-section{max-width:480px;margin:0 auto;padding:0 16px}
+.past-title{font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--dim2);text-align:center;margin:24px 0 12px;padding-top:20px;border-top:1px solid var(--dim3)}
+.past-entry{background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:8px;border-left:3px solid var(--pur)}
+.pe-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.pe-date{font-size:7px;font-family:monospace;color:var(--dim2);letter-spacing:1.5px}
+.pe-type{font-size:7px;font-family:monospace;color:var(--pur);letter-spacing:1px}
+.pe-name{color:#ccc;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:.5px;margin-bottom:4px}
+.pe-msg{color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.pe-expand{background:none;border:none;color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2px;cursor:pointer;padding:6px 0;transition:color .2s}
+.pe-expand:active{color:var(--pur)}
+.pe-detail{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.pe-detail.open{max-height:600px}
+.pd-label{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2px;margin:10px 0 4px}
+.pd-text{color:#999;font-size:9px;font-family:Georgia,serif;line-height:1.65}
+/* TOAST */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+textarea:focus-visible,input:focus-visible{outline:2px solid var(--gld);outline-offset:0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="nav-bar">
+  <button class="nav-back" onclick="goBack()" aria-label="Back to deck">&larr; DECK</button>
+  <div class="nav-info">
+    <div class="nav-tag">INTERNAL FAMILY SYSTEMS TOOL</div>
+    <div class="nav-name">&#x1F5FA; PARTS MAPPING</div>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div class="disc-strip">
+  <div class="ds-icon">&#x26A0;</div>
+  <div class="ds-text"><strong>SELF-HELP TOOL ONLY.</strong> Not therapy. Not clinical IFS. Parts work can surface intense emotions. If you are in crisis: call <strong>988</strong> or text HOME to <strong>686868</strong>. Use this to prepare for sessions with a licensed professional.</div>
+</div>
+
+<!-- STEP 1: IDENTIFY THE PART -->
+<div class="step active" id="step1">
+  <div class="step-counter">STEP <span>1</span> OF 5</div>
+  <div class="step-label">IDENTIFY THE PART</div>
+  <div class="step-title">Who just showed up?</div>
+  <div class="step-desc">Something is activated right now. A protector, a pattern, a voice that takes over. You don't need the clinical term. You need the name that fits. What do you call this part of yourself when it's running the show?</div>
+  <div class="step-example"><strong>Examples:</strong><br>"The Perfectionist" &mdash; the one who won't let me ship anything imperfect.<br>"The Rage" &mdash; the one who goes from 0 to 100 before I can think.<br>"The Ghost" &mdash; the one who checks out and goes numb.<br>"The Court Jester" &mdash; the one who makes everything a joke so nobody gets close.</div>
+  <input type="text" id="f_name" maxlength="100" placeholder="Name this part..." oninput="charUpdate(this,'ch1');btn('btn1',this.value.trim())" aria-label="Name of the activated part">
+  <div class="char-hint" id="ch1">0 / 100</div>
+
+  <div style="margin-top:14px">
+    <div style="color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">WHAT TYPE OF PART IS THIS?</div>
+    <div class="type-grid" id="typeGrid"></div>
+  </div>
+
+  <div class="step-acts">
+    <button class="btn-next" id="btn1" onclick="goStep(2)" disabled>NEXT &rarr;</button>
+  </div>
+</div>
+
+<!-- STEP 2: DESCRIBE THE BEHAVIOR -->
+<div class="step" id="step2">
+  <div class="step-counter">STEP <span>2</span> OF 5</div>
+  <div class="step-label">MAP THE PATTERN</div>
+  <div class="step-title">What does this part actually do?</div>
+  <div class="step-desc">Not what it says &mdash; what it does. The observable behavior. When this part takes over, what happens to your voice, your body, your decisions? Be specific. This is reconnaissance, not judgment.</div>
+  <div class="step-example"><strong>Examples:</strong><br>"It makes me rehearse conversations for hours and rewrite emails six times before sending."<br>"It makes me go completely silent and leave the room. My wife calls it 'the shutdown.'"<br>"It scrolls until 3 AM so I don't have to feel whatever I'm avoiding."</div>
+  <textarea id="f_behavior" maxlength="600" placeholder="When this part is in control, I..." oninput="charUpdate(this,'ch2');btn('btn2',this.value.trim())" aria-label="Behavior description"></textarea>
+  <div class="char-hint" id="ch2">0 / 600</div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(1)">&larr; BACK</button>
+    <button class="btn-next" id="btn2" onclick="goStep(3)" disabled>NEXT &rarr;</button>
+  </div>
+</div>
+
+<!-- STEP 3: UNDERSTAND ITS JOB -->
+<div class="step" id="step3">
+  <div class="step-counter">STEP <span>3</span> OF 5</div>
+  <div class="step-label">UNDERSTAND THE JOB</div>
+  <div class="step-title">What is this part protecting you from?</div>
+  <div class="step-desc">Every part has a job. Even the destructive ones. Especially the destructive ones. The Perfectionist protects you from criticism. The Rage protects you from vulnerability. The Ghost protects you from pain you couldn't handle at the time. What does this part believe will happen if it stops?</div>
+
+  <div class="ifs-card">
+    <div class="ic-tag">IFS PRINCIPLE</div>
+    <div class="ic-title">There are no bad parts.</div>
+    <div class="ic-body">Every part started as a solution to a real problem. It may be outdated. It may be causing damage now. But it was never malicious. Understanding its original job is the first step toward asking it to step back &mdash; not by force, but by trust.</div>
+  </div>
+
+  <textarea id="f_job" maxlength="600" placeholder="This part believes it must... because if it stopped..." oninput="charUpdate(this,'ch3');btn('btn3',this.value.trim())" aria-label="Part's protective job"></textarea>
+  <div class="char-hint" id="ch3">0 / 600</div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(2)">&larr; BACK</button>
+    <button class="btn-next" id="btn3" onclick="goStep(4)" disabled>NEXT &rarr;</button>
+  </div>
+</div>
+
+<!-- STEP 4: FIND THE EXILE -->
+<div class="step" id="step4">
+  <div class="step-counter">STEP <span>4</span> OF 5</div>
+  <div class="step-label">FIND THE EXILE</div>
+  <div class="step-title">What is underneath?</div>
+  <div class="step-desc">Behind every protector is an Exile &mdash; a younger, vulnerable part carrying the original pain. The Perfectionist guards a child who was told he wasn't good enough. The Rage guards a boy who learned that showing hurt got him hit. You don't need to go deep into the memory. Just name what's down there.</div>
+  <div class="step-example"><strong>Examples:</strong><br>"Underneath the anger is a kid who was terrified of his father and learned that being loud was safer than being small."<br>"Underneath the numbness is a version of me that was too overwhelmed to process what happened, so he just... left."<br>"Underneath the perfectionism is a boy who got love when he performed and silence when he didn't."</div>
+  <textarea id="f_exile" maxlength="600" placeholder="Underneath this part, there is..." oninput="charUpdate(this,'ch4');btn('btn4',this.value.trim())" aria-label="The exile underneath"></textarea>
+  <div class="char-hint" id="ch4">0 / 600</div>
+
+  <div class="ifs-card" style="margin-top:14px;border-color:rgba(192,57,43,.15);background:rgba(192,57,43,.04)">
+    <div class="ic-tag" style="color:var(--red)">CAUTION</div>
+    <div class="ic-title" style="color:#ddd">Don't force the door.</div>
+    <div class="ic-body">If the Exile's pain feels too big for right now, that's your system telling you something. Write what you can. This is not an endurance test. You can come back. The Exile isn't going anywhere &mdash; it's been waiting this long.</div>
+  </div>
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(3)">&larr; BACK</button>
+    <button class="btn-next" id="btn4" onclick="goStep(5)" disabled>NEXT &rarr;</button>
+  </div>
+</div>
+
+<!-- STEP 5: MESSAGE FROM SELF -->
+<div class="step" id="step5">
+  <div class="step-counter">STEP <span>5</span> OF 5</div>
+  <div class="step-label">MESSAGE FROM SELF</div>
+  <div class="step-title">Write to this part.</div>
+  <div class="step-desc">Not from your head. From Self &mdash; the calm, clear center underneath all the parts. Not judgment. Not instructions. Not "you need to stop." Understanding. What would you say to this part if you could speak to it directly, with no agenda except compassion?</div>
+
+  <div class="ifs-card">
+    <div class="ic-tag">THE SELF IN IFS</div>
+    <div class="ic-title">Calm. Curious. Compassionate. Connected.</div>
+    <div class="ic-body">In IFS, Self is not a part. It is the core of who you are underneath every protector and every exile. You access it by asking: "Am I feeling curious toward this part, or critical?" If critical &mdash; that is another part. Step back until the curiosity arrives.</div>
+  </div>
+
+  <textarea id="f_message" maxlength="800" placeholder="I see you. I know what you've been carrying..." oninput="charUpdate(this,'ch5');btn('btn5',this.value.trim())" aria-label="Message from Self to this part"></textarea>
+  <div class="char-hint" id="ch5">0 / 800</div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(4)">&larr; BACK</button>
+    <button class="btn-next btn-save" id="btn5" onclick="saveEntry()" disabled>SAVE &amp; COMPLETE &#x2713;</button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="step" id="step6">
+  <div class="step-counter" style="color:var(--pur)">PARTS MAP COMPLETE</div>
+  <div class="summary-header">
+    <div class="sh-icon">&#x1F5FA;</div>
+    <h2>PART MAPPED</h2>
+    <p>You named it. You understood its job. You found what it was guarding. And you spoke to it from Self. That is not small. That is the entire mechanism of IFS in five steps.</p>
+  </div>
+
+  <div class="summary-block">
+    <div class="sb-label">THE PART</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sb-content" id="sum_name" style="font-size:14px;font-weight:800;font-family:monospace;color:var(--pur)"></div>
+      <div class="sb-content" id="sum_type" style="font-size:8px;font-family:monospace;color:var(--dim2);letter-spacing:1px"></div>
+    </div>
+  </div>
+
+  <div class="summary-block">
+    <div class="sb-label">BEHAVIOR PATTERN</div>
+    <div class="sb-content" id="sum_behavior" style="color:#aaa;font-style:italic"></div>
+  </div>
+
+  <div class="summary-block">
+    <div class="sb-label">ITS JOB (WHAT IT PROTECTS)</div>
+    <div class="sb-content" id="sum_job" style="color:#aaa;font-style:italic"></div>
+  </div>
+
+  <div class="summary-block">
+    <div class="sb-label">THE EXILE UNDERNEATH</div>
+    <div class="sb-content" id="sum_exile" style="color:#aaa;font-style:italic"></div>
+  </div>
+
+  <div class="summary-block">
+    <div class="sb-label">MESSAGE FROM SELF</div>
+    <div class="self-msg" id="sum_message"></div>
+  </div>
+
+  <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid var(--gld);border-radius:0 10px 10px 0">
+    <div style="color:var(--gld);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
+    <a href="stuck-points-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">STUCK POINTS &#x2192;</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Beliefs locked by trauma? Examine the evidence</span></a>
+    <a href="thought-interceptor.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">THOUGHT INTERCEPTOR &#x2192;</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Catch the distortions this part is generating</span></a>
+    <a href="act-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">ACT DRILL &#x2192;</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Defuse from the part. Reconnect to values</span></a>
+  </div>
+
+  <button class="btn-print" onclick="printSheet()">&#x1F5A8; PRINT PARTS MAP FOR YOUR NEXT SESSION</button>
+  <div class="step-acts" style="margin-top:10px">
+    <button class="btn-new" onclick="startNew()">NEW PARTS MAP</button>
+  </div>
+</div>
+
+<!-- PAST ENTRIES -->
+<div class="past-section" id="pastSection"></div>
+
+</div>
+
+<script>
+var PART_TYPES=[
+  {k:'manager',icon:'\uD83D\uDCCB',name:'MANAGER',desc:'Controls, plans, prevents. Proactive protection.'},
+  {k:'firefighter',icon:'\uD83D\uDD25',name:'FIREFIGHTER',desc:'Numbs, binges, rages. Reactive emergency response.'},
+  {k:'exile',icon:'\uD83D\uDE36',name:'EXILE',desc:'Carries the original pain. Young, vulnerable, hidden.'},
+  {k:'unknown',icon:'\u2753',name:'NOT SURE',desc:'You feel it but can\'t classify it yet. That\'s fine.'}
+];
+var selectedType='';
+
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function san(s){return typeof s==='string'?s.substring(0,5000).replace(/<[^>]*>/g,''):''}
+function showToast(msg){var e=document.querySelector('.toast');if(e)e.remove();var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},2500)}
+function hap(arr){if(navigator.vibrate)navigator.vibrate(arr)}
+function charUpdate(el,id){var d=document.getElementById(id);if(d)d.textContent=el.value.length+' / '+el.maxLength}
+function btn(id,enabled){var b=document.getElementById(id);if(b)b.disabled=!enabled}
+function loadEntries(){try{return JSON.parse(localStorage.getItem('od_partsmap_v1'))||[]}catch(e){return[]}}
+function saveEntries(arr){try{localStorage.setItem('od_partsmap_v1',JSON.stringify(arr.slice(0,200)))}catch(e){}}
+function goBack(){window.location.href='./?tab=more'}
+
+function setProgress(n){document.getElementById('progressFill').style.width=Math.min((n-1)/6*100,100)+'%'}
+
+function goStep(n){
+  document.querySelectorAll('.step').forEach(function(s){s.classList.remove('active')});
+  var el=document.getElementById(n===6?'step6':'step'+n);
+  if(el){el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+  setProgress(n);
+}
+
+// STEP 1: PART TYPE GRID
+function buildTypes(){
+  var g=document.getElementById('typeGrid');
+  g.innerHTML='';
+  PART_TYPES.forEach(function(t){
+    var card=document.createElement('div');
+    card.className='type-card';
+    card.innerHTML='<div class="tc-icon">'+t.icon+'</div><div class="tc-name">'+t.name+'</div><div class="tc-desc">'+t.desc+'</div><div class="tc-check">\u2713</div>';
+    card.onclick=function(){
+      document.querySelectorAll('.type-card').forEach(function(c){c.classList.remove('sel')});
+      card.classList.add('sel');
+      selectedType=t.k;
+    };
+    g.appendChild(card);
+  });
+}
+
+// SAVE
+function saveEntry(){
+  var message=san(document.getElementById('f_message').value);
+  if(!message.trim()){showToast('WRITE YOUR MESSAGE FROM SELF');return}
+  var entry={
+    name:san(document.getElementById('f_name').value),
+    type:selectedType||'unknown',
+    typeLabel:(PART_TYPES.find(function(t){return t.k===selectedType})||{name:'UNKNOWN'}).name,
+    behavior:san(document.getElementById('f_behavior').value),
+    job:san(document.getElementById('f_job').value),
+    exile:san(document.getElementById('f_exile').value),
+    message:message,
+    date:new Date().toLocaleDateString(),
+    ts:Date.now()
+  };
+  var arr=loadEntries();
+  arr.push(entry);
+  saveEntries(arr);
+  hap([15,30,15]);
+  showToast('PARTS MAP SAVED \u2713');
+  buildSummary(entry);
+  goStep(6);
+  renderPast();
+}
+
+function buildSummary(e){
+  document.getElementById('sum_name').textContent=e.name||'(unnamed)';
+  document.getElementById('sum_type').textContent=e.typeLabel||'';
+  document.getElementById('sum_behavior').textContent=e.behavior||'(not filled)';
+  document.getElementById('sum_job').textContent=e.job||'(not filled)';
+  document.getElementById('sum_exile').textContent=e.exile||'(not filled)';
+  document.getElementById('sum_message').textContent=e.message||'(not filled)';
+}
+
+// PRINT
+function printSheet(){
+  var arr=loadEntries();
+  var last=arr[arr.length-1];
+  if(!last){showToast('SAVE FIRST');return}
+  var pw=window.open('','_blank');
+  pw.document.write('<!DOCTYPE html><html><head><title>Parts Map \u2014 '+esc(last.date)+'</title>'
+    +'<style>*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;padding:36px;max-width:700px;margin:0 auto;color:#111;line-height:1.65;font-size:12px}'
+    +'h1{font-size:20px;font-weight:900;letter-spacing:1px;margin-bottom:2px}.sub{color:#666;font-size:11px}.meta{color:#999;font-size:10px;margin-bottom:20px}'
+    +'.disc{background:#f5f0ff;border:1px solid #c4b5fd;border-radius:6px;padding:10px 14px;font-size:10px;color:#5b21b6;margin-bottom:20px;line-height:1.6}'
+    +'.disc strong{font-size:11px;display:block;margin-bottom:3px}'
+    +'.section{margin-bottom:20px}.lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:5px;border-bottom:1px solid #eee;padding-bottom:4px}'
+    +'.box{border:1px solid #ddd;border-radius:5px;padding:12px;min-height:60px;white-space:pre-wrap;font-size:11px;line-height:1.65;color:#222}'
+    +'.msg-box{border:2px solid #9333ea;border-radius:6px;padding:14px;background:#faf5ff;font-size:12px;color:#5b21b6;line-height:1.7}'
+    +'.footer{margin-top:36px;padding-top:12px;border-top:1px solid #eee;font-size:9px;color:#aaa;text-align:center}'
+    +'@media print{body{padding:20px}}</style></head><body>'
+    +'<h1>PARTS MAP</h1>'
+    +'<div class="sub">Internal Family Systems \u2014 Parts Mapping Drill</div>'
+    +'<div class="meta">'+esc(last.date)+'</div>'
+    +'<div class="disc"><strong>\u26A0 SELF-HELP TOOL \u2014 NOT CLINICAL IFS</strong>Bring this to your next session with a licensed therapist. Parts work can surface intense emotions and is best done with professional support.</div>'
+    +'<div class="section"><div class="lbl">The Part</div><div class="box"><strong>'+esc(last.name)+'</strong> ('+esc(last.typeLabel||'')+')</div></div>'
+    +'<div class="section"><div class="lbl">Behavior Pattern</div><div class="box">'+esc(last.behavior)+'</div></div>'
+    +'<div class="section"><div class="lbl">Its Job (What It Protects)</div><div class="box">'+esc(last.job)+'</div></div>'
+    +'<div class="section"><div class="lbl">The Exile Underneath</div><div class="box">'+esc(last.exile)+'</div></div>'
+    +'<div class="section"><div class="lbl">Message From Self</div><div class="msg-box">'+esc(last.message)+'</div></div>'
+    +'<div class="footer">Operator\u2019s Deck \u2022 Parts Mapping Drill \u2022 '+esc(last.date)+'</div>'
+    +'</body></html>');
+  pw.document.close();
+  setTimeout(function(){pw.print()},400);
+}
+
+// NEW / RESET
+function startNew(){
+  selectedType='';
+  ['f_name','f_behavior','f_job','f_exile','f_message'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.value='';
+  });
+  buildTypes();
+  ['btn1','btn2','btn3','btn4','btn5'].forEach(function(id){btn(id,false)});
+  goStep(1);
+}
+
+// PAST ENTRIES
+function renderPast(){
+  var arr=loadEntries().slice().reverse();
+  var el=document.getElementById('pastSection');
+  if(!arr.length){el.innerHTML='';return}
+  var h='<div class="past-title">PREVIOUS PARTS MAPS ('+arr.length+')</div>';
+  arr.forEach(function(e){
+    h+='<div class="past-entry">'
+      +'<div class="pe-header"><div class="pe-date">'+esc(e.date)+'</div><div class="pe-type">'+esc(e.typeLabel||'')+'</div></div>'
+      +'<div class="pe-name">'+esc(e.name||'(unnamed)')+'</div>'
+      +'<div class="pe-msg">\u201C'+esc((e.message||'').substring(0,100))+(e.message&&e.message.length>100?'\u2026':'')+'\u201D</div>'
+      +'<button class="pe-expand" onclick="this.nextElementSibling.classList.toggle(\'open\');this.textContent=this.nextElementSibling.classList.contains(\'open\')?\'LESS \u2191\':\'MORE \u2193\'">MORE \u2193</button>'
+      +'<div class="pe-detail">'
+      +'<div class="pd-label">BEHAVIOR PATTERN</div><div class="pd-text">'+esc(e.behavior||'(not filled)')+'</div>'
+      +'<div class="pd-label">ITS JOB</div><div class="pd-text">'+esc(e.job||'(not filled)')+'</div>'
+      +'<div class="pd-label">THE EXILE</div><div class="pd-text">'+esc(e.exile||'(not filled)')+'</div>'
+      +'<div class="pd-label">MESSAGE FROM SELF</div><div class="pd-text" style="color:var(--pur);font-style:italic">'+esc(e.message||'(not filled)')+'</div>'
+      +'</div></div>';
+  });
+  el.innerHTML=h;
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',function(){
+  buildTypes();
+  renderPast();
+});
+</script>
+
+<div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from Internal Family Systems (Schwartz, 1995). Not a substitute for professional IFS therapy.</div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:#111118;border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD &#x2192;</span></a></div>
+</body>
+</html>
