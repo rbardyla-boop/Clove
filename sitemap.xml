@@ -52,4 +52,12 @@
   <url><loc>https://clovelearn.io/exposure-hierarchy.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://clovelearn.io/behavioral-activation.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://clovelearn.io/relapse-prevention.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://clovelearn.io/index.html</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://clovelearn.io/field-manual.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://clovelearn.io/quick-start.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://clovelearn.io/author-shelf.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://clovelearn.io/changelog.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://clovelearn.io/parts-mapping-drill.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://clovelearn.io/progress-dashboard.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://clovelearn.io/progress-report.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>

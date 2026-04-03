@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#08080f">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://i.scdn.co; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://accounts.spotify.com https://api.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
 <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
 <meta name="description" content="115 tactical cards with a soundtrack. Draw. Flip. Listen. Execute. No bullshit.">
 <meta name="referrer" content="no-referrer">
@@ -583,6 +583,8 @@ function getDailyCard(mood){
   if(mood==='crawling'){const gentle=C.filter(c=>c.s==='spades'||c.s==='hearts'||c.s==='addiction'||c.s==='ptsd'||c.s==='rebuild'||c.s==='brotherhood');return gentle[hashS(dStr(new Date())+'crawl')%gentle.length]}
   return base;
 }
+// Spotify OAuth callback — forward to handler page
+(function(){var _p=new URLSearchParams(location.search);if(_p.has('code')&&_p.get('state')==='od-spotify'){location.replace('./music-ops.html?'+location.search.slice(1));}})();
 let tab="home",subTab=null,card=null,flip=false,busy=false,msn=false,evMode=false,aarMode=false,notOkMode=false,filt="all",bFlips={};
 var drawerOpen=false,drawerSec={crisis:true,body:true,mind:true,adhd:false,intel:false,settings:false,meta:false};
 let streak=0,total=0,done=0,log=[],playlist=[],darkUnlocked={},evidence=[],mirrors=[],stuckPoints=[],goals=[],evView="suit",evOpen={};
@@ -865,6 +867,18 @@ function spotLinkVariant(songData){
 }
 
 function musicBar(c){
+  // Check for FIELD FREQUENCY personal match first
+  try{
+    var _sm=JSON.parse(localStorage.getItem('od_spotify_matches')||'{}');
+    var _st=JSON.parse(localStorage.getItem('od_spotify_token')||'null');
+    if(_st&&_sm[c.s]&&_sm[c.s][0]){
+      var _mt=_sm[c.s][0];
+      var _uri='https://open.spotify.com/track/'+_mt.id;
+      var _isHit=resonance.find(function(r){return r.k===_mt.id});
+      return`<div class="mbar" title="Matched from your Spotify library"><div class="mic">\uD83C\uDFB5</div><div class="inf"><div class="sng" style="color:var(--spot)">${esc(_mt.name)}</div><div class="art">${esc(_mt.artist)} <span style="color:var(--spot);font-size:6px;font-family:monospace;letter-spacing:1.5px;opacity:.8">\u00B7 YOUR MATCH</span></div></div><button class="plb" onclick="event.stopPropagation();window.open('${_uri}','_blank')">PLAY \u25B6</button></div>`+
+      `<div style="display:flex;gap:6px;margin:6px 16px 0"><button onclick="event.stopPropagation();markRes('${_mt.id.replace(/'/g,"\\'")}',true)" style="flex:1;background:${_isHit?'rgba(192,57,43,.12)':'var(--bg3)'};border:1px solid ${_isHit?'var(--red)':'var(--bg4)'};color:${_isHit?'var(--red)':'var(--dim)'};border-radius:8px;padding:7px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .2s">${_isHit?'\u2764 THIS HIT':'\u2661 THIS HIT'}</button><a href="./music-ops.html" style="flex:1;background:var(--bg3);border:1px solid var(--bg4);color:var(--dim2);border-radius:8px;padding:7px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center">FIELD FREQ \u2192</a></div>`;
+    }
+  }catch(e){}
   const sd=getSongForCard(c);
   const sl=spotLinkVariant(sd);
   const songKey=sd.artist+'|'+sd.song;
@@ -1091,7 +1105,8 @@ if(!onboarded){
     });
     h+=`<div style="margin-top:4px;text-align:center"><span onclick="musicPref=['pop','alt','old','cty'];R()" style="color:#888;font-size:8px;font-family:monospace;cursor:pointer;letter-spacing:1px;text-decoration:underline">SELECT ALL</span></div>
     </div>
-    <button class="ob-btn" style="margin-top:20px;max-width:320px;${hasSel?'':'opacity:.35;pointer-events:none'}" onclick="completeOnboard()">\u26a1 ENTER THE DECK</button>
+    <div style="text-align:center;margin-top:14px;min-height:20px"><span style="font-size:8px;font-family:monospace;letter-spacing:1.5px;color:${hasSel?'var(--grn)':'var(--dim2)'}">${hasSel?'\u2713 '+musicPref.length+' GENRE'+(musicPref.length>1?'S':'')+' SELECTED \u2014 READY':'SELECT AT LEAST ONE GENRE TO CONTINUE'}</span></div>
+    <button class="ob-btn" style="margin-top:10px;max-width:320px;${hasSel?'':'opacity:.28;pointer-events:none'}" onclick="completeOnboard()">\u26a1 ENTER THE DECK</button>
     <button class="ob-skip" onclick="obStep=0;R()">\u2190 BACK</button>
     </div>`;
   }
@@ -1470,6 +1485,7 @@ if(drawerOpen&&!dEl){
     {id:'settings',label:'SETTINGS',c:'var(--dim)',items:[
       {icon:'\u25C8',name:'CUE WORDS',c:'var(--gld)',sub:'cuewords'},
       {icon:'\uD83C\uDFB5',name:'MUSIC PREFS',c:'var(--gld)',sub:'musicpref'},
+      {icon:'\uD83C\uDF9B',name:'FIELD FREQUENCY',c:'var(--spot)',href:'music-ops.html'},
       {icon:'\u25C9',name:'VOICE LOG',c:voiceOn?'var(--grn)':'var(--dim)',fn:'toggleVoice'},
       {icon:'\uD83D\uDCCB',name:'WEEKLY DEBRIEF',c:'var(--dim)',sub:'debrief'},
       {icon:rank.icon,name:'RANK / PHASE',c:'var(--dim)',sub:'ranks'},

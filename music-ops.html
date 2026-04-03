@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08080f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://i.scdn.co; script-src 'self' 'unsafe-inline'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com https://open.spotify.com">
+<title>FIELD FREQUENCY · OPERATOR'S DECK</title>
+<link rel="icon" href="./clove32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+:root{--bg:#08080f;--bg2:#111118;--bg3:#0d0d14;--bg4:#1a1a22;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#5a84be;--dim:#8a8a8a;--dim2:#555;--dim3:#1a1a22;--spot:#1db954;--acc:#e67e22}
+.app{max-width:480px;margin:0 auto;padding:0 0 60px}
+.back-link{display:flex;align-items:center;gap:6px;color:#888;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;cursor:pointer;padding:18px 20px 0;transition:color .2s;text-decoration:none}
+.back-link:active{color:#fff}
+.hdr{padding:20px 20px 0;text-align:center}
+.hdr .tag{font-size:8px;letter-spacing:4px;color:var(--spot);font-family:'DM Mono',monospace;margin-bottom:6px}
+.hdr h1{font-family:'Bebas Neue',monospace;font-size:36px;letter-spacing:4px;color:#fff;line-height:1}
+.hdr .sub{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;margin:8px 0 0;line-height:1.6}
+
+/* STATUS PILL */
+.status-pill{display:inline-flex;align-items:center;gap:7px;border-radius:20px;padding:6px 16px;margin:16px auto 0;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1.5px}
+.status-pill.disconnected{background:var(--bg3);border:1px solid var(--dim3);color:var(--dim)}
+.status-pill.connected{background:rgba(29,185,84,.08);border:1px solid rgba(29,185,84,.25);color:var(--spot)}
+.status-pill.syncing{background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.2);color:var(--gld)}
+.status-dot{width:7px;height:7px;border-radius:50%}
+.status-pill.disconnected .status-dot{background:var(--dim2)}
+.status-pill.connected .status-dot{background:var(--spot);animation:pulse 2s infinite}
+.status-pill.syncing .status-dot{background:var(--gld);animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* CONNECT PANEL */
+.connect-panel{margin:24px 16px 0;background:linear-gradient(155deg,#0d1a0d,var(--bg3));border:1px solid rgba(29,185,84,.15);border-radius:16px;padding:28px 24px;text-align:center}
+.connect-panel .cp-icon{font-size:36px;margin-bottom:14px}
+.connect-panel .cp-title{font-size:16px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:2px;margin-bottom:10px}
+.connect-panel .cp-body{color:#999;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.8;margin-bottom:22px;max-width:280px;margin-left:auto;margin-right:auto}
+.connect-btn{background:var(--spot);color:#000;border:none;border-radius:12px;padding:16px 0;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:2px;font-family:'DM Mono',monospace;width:100%;max-width:280px;display:block;margin:0 auto;transition:all .2s}
+.connect-btn:active{transform:scale(.97);background:#1ed760}
+.connect-note{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:14px;line-height:1.8}
+
+/* SYNC PROGRESS */
+.sync-panel{margin:24px 16px 0;background:var(--bg2);border:1px solid rgba(212,168,67,.12);border-radius:16px;padding:28px 24px;text-align:center}
+.sync-tag{color:var(--gld);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:16px}
+.sync-bar{height:3px;background:var(--bg4);border-radius:2px;margin:0 auto 10px;max-width:240px;overflow:hidden}
+.sync-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--spot),var(--grn));transition:width .4s ease}
+.sync-status{color:#999;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1px;min-height:20px}
+
+/* CONNECTED / LIBRARY STATS */
+.stats-row{display:flex;gap:8px;margin:20px 16px 0}
+.stat-box{flex:1;background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center;border:1px solid var(--dim3)}
+.stat-box .sv{font-size:22px;font-weight:900;font-family:'DM Mono',monospace;color:var(--spot)}
+.stat-box .sl{color:var(--dim);font-size:6px;font-family:'DM Mono',monospace;letter-spacing:1.5px;margin-top:4px;text-transform:uppercase}
+
+/* SECTION HEADERS */
+.sec-hdr{padding:24px 20px 10px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr .sh-label{color:var(--dim);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px}
+.sec-hdr .sh-note{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px}
+
+/* SUIT MATCH CARDS */
+.match-card{margin:0 16px 8px;background:var(--bg2);border-radius:14px;padding:16px;border:1px solid var(--dim3);transition:border-color .2s}
+.match-card.has-match{border-color:rgba(29,185,84,.15)}
+.match-card .mc-suit{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.match-card .mc-sym{font-size:16px;flex-shrink:0}
+.match-card .mc-name{font-size:9px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:2px}
+.match-card .mc-desc{color:var(--dim);font-size:8px;font-family:Georgia,serif;margin-top:1px}
+.match-card .mc-track{display:flex;align-items:center;gap:12px;background:var(--bg3);border-radius:10px;padding:10px 12px}
+.match-card .mc-art{width:40px;height:40px;border-radius:6px;background:var(--bg4);flex-shrink:0;object-fit:cover}
+.match-card .mc-art-ph{width:40px;height:40px;border-radius:6px;background:var(--bg4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px}
+.match-card .mc-info{flex:1;min-width:0}
+.match-card .mc-song{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-card .mc-artist{color:#999;font-size:8px;font-family:Georgia,serif;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-card .mc-score{font-size:6px;font-family:'DM Mono',monospace;color:var(--spot);letter-spacing:1px;margin-top:3px}
+.match-card .mc-play{background:var(--spot);color:#000;border:none;border-radius:20px;padding:8px 14px;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;flex-shrink:0;transition:all .2s}
+.match-card .mc-play:active{transform:scale(.95);background:#1ed760}
+.match-card .mc-empty{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;text-align:center;padding:8px 0}
+
+/* RESONANCE */
+.res-card{margin:0 16px 6px;background:var(--bg2);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;border-left:3px solid var(--red)}
+.res-card .rc-info{flex:1;min-width:0}
+.res-card .rc-song{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res-card .rc-artist{color:#999;font-size:8px;font-family:Georgia,serif;margin-top:2px}
+.res-card .rc-suit{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:3px}
+.res-card .rc-play{background:none;border:1px solid rgba(29,185,84,.3);color:var(--spot);border-radius:16px;padding:5px 10px;font-size:7px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;flex-shrink:0}
+.res-card .rc-play:active{background:rgba(29,185,84,.1)}
+
+/* ACTION BUTTONS */
+.action-row{display:flex;gap:8px;margin:20px 16px 0}
+.act-btn{flex:1;padding:13px 8px;border-radius:10px;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1.5px;border:none;transition:all .2s}
+.act-btn:active{transform:scale(.97)}
+.act-resync{background:rgba(29,185,84,.08);color:var(--spot);border:1px solid rgba(29,185,84,.2)!important}
+.act-disconnect{background:var(--bg2);color:var(--dim);border:1px solid var(--dim3)!important}
+
+/* EXPLAINER */
+.explainer{margin:24px 16px 0;background:var(--bg3);border-radius:14px;padding:18px 20px;border:1px solid var(--dim3)}
+.explainer .ex-tag{color:var(--dim);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:10px}
+.explainer .ex-row{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start}
+.explainer .ex-num{color:var(--spot);font-size:9px;font-family:'DM Mono',monospace;font-weight:800;flex-shrink:0;width:16px}
+.explainer .ex-text{color:#999;font-size:9px;font-family:Georgia,serif;line-height:1.7}
+
+/* PRIVACY NOTE */
+.priv-note{margin:16px 16px 0;background:rgba(192,57,43,.04);border:1px solid rgba(192,57,43,.1);border-radius:10px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start}
+.priv-note .pn-icon{font-size:12px;flex-shrink:0;margin-top:1px}
+.priv-note .pn-text{color:var(--dim);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:.5px;line-height:1.7}
+
+/* ERROR */
+.error-panel{margin:24px 16px 0;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.2);border-radius:14px;padding:22px;text-align:center}
+.error-panel .ep-tag{color:var(--red);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:8px}
+.error-panel .ep-msg{color:#999;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:16px}
+.retry-btn{background:var(--bg2);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:11px 24px;font-size:9px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:2px}
+.retry-btn:active{color:#fff;border-color:#444}
+
+/* FEATURE BADGES */
+.feature-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.feature-badge{font-size:6px;font-family:'DM Mono',monospace;letter-spacing:1px;padding:3px 7px;border-radius:4px;background:var(--bg4);color:var(--dim)}
+.feature-badge.val{background:rgba(29,185,84,.08);color:var(--spot)}
+.feature-badge.eng{background:rgba(192,57,43,.08);color:var(--red)}
+.feature-badge.tem{background:rgba(212,168,67,.08);color:var(--gld)}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards;pointer-events:none}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--dim3);margin:6px 16px 0}
+
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <a class="back-link" href="./?tab=more">← MORE</a>
+  <div class="hdr">
+    <div class="tag">OPERATOR'S DECK · INTEL LAYER</div>
+    <h1>FIELD FREQUENCY</h1>
+    <div class="sub">Your music. Your recovery. Matched by audio science<br>from your actual Spotify library — stored only on device.</div>
+  </div>
+  <div id="root"></div>
+</div>
+<script>
+'use strict';
+
+// ─── CONFIG ────────────────────────────────────────────────────────────────
+const CLIENT_ID   = '3321668935554fd79da9afd500aecfe2';
+const REDIRECT_URI = 'https://clovelearn.io/';
+const SCOPES      = 'user-top-read user-library-read';
+
+// ─── localStorage KEYS (od_ prefix) ────────────────────────────────────────
+const KEY_TOKEN    = 'od_spotify_token';
+const KEY_TRACKS   = 'od_spotify_tracks';
+const KEY_MATCHES  = 'od_spotify_matches';
+const KEY_RESONANCE= 'od_spotify_resonance';
+const KEY_SYNCED   = 'od_spotify_synced';
+const KEY_CV       = 'od_spotify_cv';
+const KEY_STATE    = 'od_spotify_state';
+
+// ─── SUIT AUDIO PROFILES ───────────────────────────────────────────────────
+// Each suit maps to a target audio fingerprint drawn from Spotify's feature set.
+// Weights control how much each dimension matters for that suit's vibe.
+const SUITS = [
+  {
+    key:'spades', sym:'♠', name:'THE DIG', color:'#4a6fa5',
+    desc:'Cognitive processing · Reflection · Going deeper',
+    // Introspective, mid-tempo, acoustic leaning, wordful
+    targets:{energy:.32,valence:.42,acousticness:.52,instrumentalness:.18,tempo:.48,danceability:.36},
+    weights:{energy:1.5,valence:1.1,acousticness:1.3,instrumentalness:.9,tempo:.5,danceability:.8}
+  },
+  {
+    key:'hearts', sym:'♥', name:'THE PATCH-UP', color:'#c0392b',
+    desc:'Emotional healing · Vulnerability · Processing pain',
+    // Raw, lyric-heavy, medium energy, not too bleak
+    targets:{energy:.44,valence:.40,acousticness:.42,instrumentalness:.06,tempo:.46,danceability:.44},
+    weights:{energy:1.2,valence:1.8,acousticness:1.0,instrumentalness:2.0,tempo:.4,danceability:.7}
+  },
+  {
+    key:'clubs', sym:'♣', name:'THE BREACH', color:'#27ae60',
+    desc:'Behavioral activation · Action · Breaking through',
+    // High energy, positive, driving tempo, gets you moving
+    targets:{energy:.84,valence:.68,acousticness:.08,instrumentalness:.06,tempo:.66,danceability:.70},
+    weights:{energy:2.2,valence:1.3,acousticness:.7,instrumentalness:.6,tempo:1.1,danceability:1.5}
+  },
+  {
+    key:'diamonds', sym:'♦', name:'THE PROTOCOL', color:'#d4a843',
+    desc:'Structure · Discipline · Skills under pressure',
+    // Focused, steady pulse, moderate everything, slight instrumental lean
+    targets:{energy:.58,valence:.55,acousticness:.22,instrumentalness:.32,tempo:.56,danceability:.60},
+    weights:{energy:1.3,valence:.9,acousticness:.8,instrumentalness:1.4,tempo:1.1,danceability:1.4}
+  },
+  {
+    key:'addiction', sym:'◈', name:'THE TRAP', color:'#9333ea',
+    desc:'Addiction recovery · Raw honesty · The real cost',
+    // Lyric-driven (low instrumental), honest tone (low-mid valence), real weight
+    targets:{energy:.50,valence:.32,acousticness:.38,instrumentalness:.04,tempo:.46,danceability:.46},
+    weights:{energy:1.0,valence:1.6,acousticness:.9,instrumentalness:2.5,tempo:.4,danceability:.7}
+  },
+  {
+    key:'ptsd', sym:'◎', name:'THE WATCH', color:'#c2410c',
+    desc:'Trauma processing · Hypervigilance · Holding the line',
+    // Intense but controlled, dark valence, mid-high energy, not acoustic
+    targets:{energy:.64,valence:.26,acousticness:.18,instrumentalness:.14,tempo:.53,danceability:.42},
+    weights:{energy:1.7,valence:2.0,acousticness:.7,instrumentalness:.9,tempo:.6,danceability:.8}
+  },
+  {
+    key:'rebuild', sym:'◉', name:'THE FOUNDATION', color:'#0d9488',
+    desc:'Rebuilding · Forward motion · Earned hope',
+    // Hopeful but grounded (not saccharine), purposeful energy
+    targets:{energy:.56,valence:.72,acousticness:.28,instrumentalness:.09,tempo:.54,danceability:.62},
+    weights:{energy:1.1,valence:2.2,acousticness:.8,instrumentalness:1.0,tempo:.5,danceability:1.1}
+  },
+  {
+    key:'brotherhood', sym:'∞', name:'THE CREW', color:'#1e40af',
+    desc:'Connection · Showing up · Trust between men',
+    // Warm, communal, acoustic lean, vocal-forward, positive
+    targets:{energy:.46,valence:.70,acousticness:.46,instrumentalness:.06,tempo:.48,danceability:.54},
+    weights:{energy:1.0,valence:1.9,acousticness:1.5,instrumentalness:1.5,tempo:.4,danceability:.9}
+  }
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let state = 'idle'; // idle | syncing | connected | error
+let errorMsg = '';
+let syncProgress = 0;
+let syncStatusText = '';
+let tokenData = null;
+let tracks = [];
+let matches = {};
+let resonanceData = {};
+
+// ─── UTILS ─────────────────────────────────────────────────────────────────
+function esc(s){const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML}
+function toast(msg,color='var(--grn)'){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;t.style.background=color;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
+}
+function jGet(key){try{return JSON.parse(localStorage.getItem(key))}catch(e){return null}}
+function jSet(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){}}
+
+// ─── TOKEN MANAGEMENT ──────────────────────────────────────────────────────
+function loadToken(){
+  const t=jGet(KEY_TOKEN);
+  if(!t||!t.access_token)return null;
+  return t;
+}
+async function refreshToken(t){
+  try{
+    const res=await fetch('https://accounts.spotify.com/api/token',{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({grant_type:'refresh_token',refresh_token:t.refresh_token,client_id:CLIENT_ID})
+    });
+    const data=await res.json();
+    if(data.access_token){
+      const newToken={access_token:data.access_token,refresh_token:data.refresh_token||t.refresh_token,expires_at:Date.now()+(data.expires_in||3600)*1000};
+      jSet(KEY_TOKEN,newToken);return newToken;
+    }
+  }catch(e){}
+  return null;
+}
+async function getValidToken(){
+  let t=loadToken();
+  if(!t)return null;
+  if(Date.now()>t.expires_at-60000){t=await refreshToken(t);}
+  return t;
+}
+
+// ─── PKCE HELPERS ──────────────────────────────────────────────────────────
+function b64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'')}
+async function genVerifier(){const a=new Uint8Array(64);crypto.getRandomValues(a);return b64url(a.buffer)}
+async function genChallenge(v){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return b64url(d)}
+function genState(){const a=new Uint8Array(16);crypto.getRandomValues(a);return b64url(a.buffer)}
+
+// ─── AUTH FLOW ─────────────────────────────────────────────────────────────
+async function startAuth(){
+  const verifier=await genVerifier();
+  const challenge=await genChallenge(verifier);
+  const st=genState();
+  jSet(KEY_CV,verifier);
+  jSet(KEY_STATE,st);
+  const params=new URLSearchParams({client_id:CLIENT_ID,response_type:'code',redirect_uri:REDIRECT_URI,code_challenge_method:'S256',code_challenge:challenge,state:'od-spotify',scope:SCOPES});
+  window.location.href='https://accounts.spotify.com/authorize?'+params;
+}
+
+async function handleCallback(code){
+  state='syncing';syncProgress=5;syncStatusText='EXCHANGING CREDENTIALS';render();
+  const verifier=jGet(KEY_CV);
+  if(!verifier){state='error';errorMsg='Session expired. Try connecting again.';render();return;}
+  try{
+    const res=await fetch('https://accounts.spotify.com/api/token',{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,client_id:CLIENT_ID,code_verifier:verifier})
+    });
+    const data=await res.json();
+    if(!data.access_token){throw new Error(data.error_description||'Auth failed');}
+    tokenData={access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+(data.expires_in||3600)*1000};
+    jSet(KEY_TOKEN,tokenData);
+    localStorage.removeItem(KEY_CV);
+    localStorage.removeItem(KEY_STATE);
+    history.replaceState({},'','./music-ops.html');
+    await syncLibrary();
+  }catch(e){
+    state='error';errorMsg='Connection failed: '+e.message+'. Check your internet and try again.';render();
+  }
+}
+
+// ─── API CALLS ─────────────────────────────────────────────────────────────
+async function apiGet(token,endpoint){
+  const res=await fetch('https://api.spotify.com/v1'+endpoint,{headers:{Authorization:'Bearer '+token.access_token}});
+  if(res.status===401){throw new Error('Token expired');}
+  if(!res.ok){throw new Error('API error '+res.status);}
+  return res.json();
+}
+
+async function syncLibrary(){
+  state='syncing';syncProgress=10;syncStatusText='PULLING YOUR TOP TRACKS';render();
+  const token=await getValidToken();
+  if(!token){state='error';errorMsg='Session lost. Please reconnect.';render();return;}
+  try{
+    // Fetch medium-term top tracks (6 months)
+    const top1=await apiGet(token,'/me/top/tracks?limit=50&time_range=medium_term');
+    syncProgress=30;syncStatusText='PULLING RECENT FAVORITES';render();
+    // Fetch short-term top tracks (4 weeks)
+    const top2=await apiGet(token,'/me/top/tracks?limit=50&time_range=short_term');
+    syncProgress=50;syncStatusText='PULLING SAVED LIBRARY';render();
+    // Fetch saved tracks
+    const saved=await apiGet(token,'/me/tracks?limit=50');
+    syncProgress=65;syncStatusText='ANALYZING AUDIO SIGNATURES';render();
+    // Deduplicate
+    const seen=new Set();const allTracks=[];
+    const addT=t=>{if(t&&t.id&&!seen.has(t.id)){seen.add(t.id);allTracks.push({id:t.id,name:t.name,artist:t.artists?.[0]?.name||'',uri:t.uri,image:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||''});}};
+    (top1.items||[]).forEach(addT);
+    (top2.items||[]).forEach(addT);
+    (saved.items||[]).map(i=>i.track).forEach(addT);
+    syncProgress=72;syncStatusText='FETCHING AUDIO FEATURES ('+allTracks.length+' TRACKS)';render();
+    // Batch audio features (max 100 per call)
+    const chunks=[];
+    for(let i=0;i<allTracks.length;i+=100)chunks.push(allTracks.slice(i,i+100));
+    let featureMap={};
+    for(let ci=0;ci<chunks.length;ci++){
+      const ids=chunks[ci].map(t=>t.id).join(',');
+      const feat=await apiGet(token,'/audio-features?ids='+ids);
+      (feat.audio_features||[]).forEach(f=>{if(f&&f.id)featureMap[f.id]=f;});
+      syncProgress=72+Math.round((ci+1)/chunks.length*18);render();
+    }
+    // Attach features
+    const tracksWithFeats=allTracks.map(t=>({...t,features:featureMap[t.id]||null})).filter(t=>t.features);
+    syncProgress=90;syncStatusText='MATCHING TRACKS TO SUITS';render();
+    // Run matching
+    const newMatches={};
+    SUITS.forEach(s=>{newMatches[s.key]=matchTracks(tracksWithFeats,s).slice(0,5);});
+    // Save
+    jSet(KEY_TRACKS,tracksWithFeats);
+    jSet(KEY_MATCHES,newMatches);
+    jSet(KEY_SYNCED,Date.now());
+    tracks=tracksWithFeats;
+    matches=newMatches;
+    syncProgress=100;
+    state='connected';
+    render();
+    toast('SYNC COMPLETE — '+tracksWithFeats.length+' TRACKS ANALYZED');
+  }catch(e){
+    state='error';errorMsg='Sync failed: '+e.message+'. Try re-syncing.';render();
+  }
+}
+
+// ─── MATCHING ALGORITHM ────────────────────────────────────────────────────
+// Normalized Euclidean distance with per-suit dimensional weights.
+// Tempo is normalized from BPM to 0–1 (capped at 200 BPM).
+function matchTracks(trackList,suit){
+  const T=suit.targets;const W=suit.weights;
+  const scores=trackList.map(t=>{
+    const f=t.features;if(!f)return{track:t,score:999};
+    const tn=Math.min((f.tempo||100)/200,1);const tt=T.tempo;
+    const dims={
+      energy:[f.energy,T.energy,W.energy],
+      valence:[f.valence,T.valence,W.valence],
+      acousticness:[f.acousticness,T.acousticness,W.acousticness],
+      instrumentalness:[Math.min((f.instrumentalness||0)*2.5,1),Math.min(T.instrumentalness*2.5,1),W.instrumentalness],
+      tempo:[tn,tt,W.tempo],
+      danceability:[f.danceability,T.danceability,W.danceability]
+    };
+    let dist=0;
+    Object.values(dims).forEach(([v,tgt,w])=>{dist+=w*Math.pow(v-tgt,2);});
+    return{track:t,score:dist};
+  });
+  return scores.sort((a,b)=>a.score-b.score).map(s=>s.track);
+}
+
+function matchLabel(track,suitKey){
+  // Generate a short human-readable explanation of why this track matched
+  const f=track.features;if(!f)return'';
+  const tags=[];
+  if(f.energy>0.7)tags.push('HIGH ENERGY');else if(f.energy<0.35)tags.push('LOW ENERGY');else tags.push('MID ENERGY');
+  if(f.valence>0.65)tags.push('UPBEAT');else if(f.valence<0.35)tags.push('HEAVY');else tags.push('GROUNDED');
+  if(f.acousticness>0.55)tags.push('ACOUSTIC');
+  if(f.instrumentalness>0.4)tags.push('INSTRUMENTAL');
+  if(f.tempo>130)tags.push((Math.round(f.tempo))+' BPM');
+  return tags.slice(0,3).join(' · ');
+}
+
+// ─── RESONANCE ─────────────────────────────────────────────────────────────
+function loadResonance(){return jGet(KEY_RESONANCE)||{};}
+function markResonance(trackId,up){
+  const r=loadResonance();
+  if(!r[trackId])r[trackId]={up:0,down:0};
+  if(up)r[trackId].up++;else r[trackId].down++;
+  jSet(KEY_RESONANCE,r);
+  resonanceData=r;
+  render();
+  toast(up?'♥ RESONANCE LOGGED':'SKIPPED');
+}
+
+// ─── DISCONNECT ────────────────────────────────────────────────────────────
+function disconnect(){
+  if(!confirm('Disconnect Spotify? Your matches and resonance data will be cleared.'))return;
+  [KEY_TOKEN,KEY_TRACKS,KEY_MATCHES,KEY_RESONANCE,KEY_SYNCED,KEY_CV,KEY_STATE].forEach(k=>localStorage.removeItem(k));
+  tokenData=null;tracks=[];matches={};resonanceData={};
+  state='idle';render();
+  toast('DISCONNECTED','var(--dim)');
+}
+
+// ─── RENDER ────────────────────────────────────────────────────────────────
+function render(){
+  const root=document.getElementById('root');
+  if(!root)return;
+  root.innerHTML=buildUI();
+}
+
+function buildUI(){
+  let h='';
+
+  if(state==='idle'){
+    h+=statusPill('disconnected','● NOT CONNECTED');
+    h+=`<div class="connect-panel">
+      <div class="cp-icon">🎵</div>
+      <div class="cp-title">CONNECT YOUR LIBRARY</div>
+      <div class="cp-body">Link your Spotify once. We analyze your saved tracks and listening history, then match real songs from <em>your</em> library to each card suit's emotional profile.</div>
+      <button class="connect-btn" onclick="startAuth()">CONNECT SPOTIFY →</button>
+      <div class="connect-note">Read-only access · No playlist changes · 1-hour token · Revoke anytime<br>at spotify.com/account/apps</div>
+    </div>`;
+    h+=explainer();
+    h+=privacyNote();
+  }
+
+  else if(state==='syncing'){
+    h+=statusPill('syncing','◉ SYNCING');
+    h+=`<div class="sync-panel">
+      <div class="sync-tag">ANALYZING YOUR LIBRARY</div>
+      <div class="sync-bar"><div class="sync-fill" style="width:${syncProgress}%"></div></div>
+      <div class="sync-status">${esc(syncStatusText)}</div>
+      <div style="color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:12px">This runs once · Results stored on device only</div>
+    </div>`;
+    h+=privacyNote();
+  }
+
+  else if(state==='error'){
+    h+=statusPill('disconnected','⚠ ERROR');
+    h+=`<div class="error-panel">
+      <div class="ep-tag">SYNC FAILED</div>
+      <div class="ep-msg">${esc(errorMsg)}</div>
+      <button class="retry-btn" onclick="startAuth()">RECONNECT →</button>
+    </div>`;
+  }
+
+  else if(state==='connected'){
+    const syncedAt=jGet(KEY_SYNCED);
+    const syncDate=syncedAt?new Date(syncedAt).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    const numTracks=tracks.length;
+    // Count how many suits have a match
+    const numMatched=SUITS.filter(s=>matches[s.key]&&matches[s.key][0]).length;
+    const topRes=Object.entries(resonanceData).filter(([,v])=>v.up>0).sort((a,b)=>b[1].up-a[1].up).slice(0,5);
+
+    h+=statusPill('connected','● CONNECTED · '+numTracks+' TRACKS');
+
+    // Stats
+    h+=`<div class="stats-row">
+      <div class="stat-box"><div class="sv">${numTracks}</div><div class="sl">TRACKS ANALYZED</div></div>
+      <div class="stat-box"><div class="sv">${numMatched}</div><div class="sl">SUITS MATCHED</div></div>
+      <div class="stat-box"><div class="sv">${topRes.length}</div><div class="sl">RESONANCE HITS</div></div>
+    </div>`;
+
+    // Suit matches
+    h+=`<div class="sec-hdr"><span class="sh-label">SUIT MATCHES</span><span class="sh-note">FROM YOUR LIBRARY</span></div>`;
+    SUITS.forEach(s=>{
+      const best=matches[s.key]&&matches[s.key][0];
+      const res=best&&resonanceData[best.id];
+      const isHit=res&&res.up>0;
+      h+=`<div class="match-card ${best?'has-match':''}">
+        <div class="mc-suit">
+          <div class="mc-sym" style="color:${s.color}">${s.sym}</div>
+          <div><div class="mc-name" style="color:${s.color}">${s.name}</div><div class="mc-desc">${s.desc}</div></div>
+        </div>`;
+      if(best){
+        const img=best.image;
+        const uri='https://open.spotify.com/track/'+best.id;
+        const label=matchLabel(best,s.key);
+        h+=`<div class="mc-track">
+          ${img?`<img class="mc-art" src="${esc(img)}" alt="" loading="lazy">`:`<div class="mc-art-ph">♫</div>`}
+          <div class="mc-info">
+            <div class="mc-song">${esc(best.name)}</div>
+            <div class="mc-artist">${esc(best.artist)}</div>
+            ${label?`<div class="mc-score">${esc(label)}</div>`:''}
+          </div>
+          <button class="mc-play" onclick="window.open('${esc(uri)}','_blank')">▶</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="markResonance('${esc(best.id)}',true)" style="flex:1;background:${isHit?'rgba(192,57,43,.12)':'var(--bg4)'};border:1px solid ${isHit?'var(--red)':'var(--dim3)'};color:${isHit?'var(--red)':'var(--dim)'};border-radius:8px;padding:7px;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer;transition:all .2s">${isHit?'♥ THIS HIT':'♡ THIS HIT'}</button>
+          <button onclick="swapMatch('${s.key}')" style="flex:1;background:var(--bg4);border:1px solid var(--dim3);color:var(--dim);border-radius:8px;padding:7px;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer">NEXT MATCH ↻</button>
+        </div>`;
+      } else {
+        h+=`<div class="mc-empty">No match found for this suit in your library.<br><span style="font-size:8px">Try re-syncing or save more tracks in this mood.</span></div>`;
+      }
+      h+=`</div>`;
+    });
+
+    // Resonance hits
+    if(topRes.length>0){
+      h+=`<div class="sec-hdr"><span class="sh-label">YOUR RESONANCE</span><span class="sh-note">TRACKS THAT HIT</span></div>`;
+      topRes.forEach(([id,votes])=>{
+        const t=tracks.find(tr=>tr.id===id);if(!t)return;
+        // Find which suit this was matched from
+        const suit=SUITS.find(s=>matches[s.key]&&matches[s.key][0]&&matches[s.key][0].id===id);
+        const uri='https://open.spotify.com/track/'+id;
+        h+=`<div class="res-card">
+          <div class="rc-info">
+            <div class="rc-song">${esc(t.name)}</div>
+            <div class="rc-artist">${esc(t.artist)}</div>
+            <div class="rc-suit">${suit?suit.sym+' '+suit.name:''} · ${votes.up} HIT${votes.up!==1?'S':''}</div>
+          </div>
+          <button class="rc-play" onclick="window.open('${esc(uri)}','_blank')">▶ PLAY</button>
+        </div>`;
+      });
+      h+=`<div class="divider"></div>`;
+    }
+
+    // Actions
+    h+=`<div class="action-row">
+      <button class="act-btn act-resync" onclick="confirmResync()">⟳ RE-SYNC LIBRARY</button>
+      <button class="act-btn act-disconnect" onclick="disconnect()">DISCONNECT</button>
+    </div>`;
+    if(syncDate)h+=`<div style="text-align:center;margin:10px 0;color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px">LAST SYNCED ${syncDate}</div>`;
+    h+=privacyNote();
+  }
+
+  return h;
+}
+
+function statusPill(cls,label){
+  return`<div style="text-align:center;margin-top:16px"><span class="status-pill ${cls}"><span class="status-dot"></span>${esc(label)}</span></div>`;
+}
+
+function explainer(){
+  return`<div class="explainer">
+    <div class="ex-tag">HOW FIELD FREQUENCY WORKS</div>
+    <div class="ex-row"><div class="ex-num">01</div><div class="ex-text">We connect read-only to your Spotify and pull your top tracks and saved songs — nothing you haven't already listened to.</div></div>
+    <div class="ex-row"><div class="ex-num">02</div><div class="ex-text">Spotify's audio analysis gives us six dimensions per track: energy, valence (mood), acousticness, instrumentalness, tempo, and danceability.</div></div>
+    <div class="ex-row"><div class="ex-num">03</div><div class="ex-text">Each card suit has a target emotional profile. We score every track in your library against each suit and surface the closest match.</div></div>
+    <div class="ex-row" style="margin-bottom:0"><div class="ex-num">04</div><div class="ex-text">When you draw a card, the music bar shows YOUR matched track with a direct Spotify link — not a search. One tap, it plays.</div></div>
+  </div>`;
+}
+
+function privacyNote(){
+  return`<div class="priv-note">
+    <div class="pn-icon">🔒</div>
+    <div class="pn-text">Your Spotify token and all track data are stored only in this device's localStorage. Nothing is transmitted to Operator's Deck servers (there are none). Token expires in 1 hour and can be revoked at spotify.com/account/apps.</div>
+  </div>`;
+}
+
+// Swap to the next best match for a suit
+let suitOffsets={};
+function swapMatch(suitKey){
+  if(!suitOffsets[suitKey])suitOffsets[suitKey]=0;
+  const pool=matches[suitKey]||[];
+  suitOffsets[suitKey]=(suitOffsets[suitKey]+1)%(pool.length||1);
+  const newBest=[pool[suitOffsets[suitKey]],...pool.slice(0,suitOffsets[suitKey]),...pool.slice(suitOffsets[suitKey]+1)];
+  matches[suitKey]=newBest;
+  jSet(KEY_MATCHES,matches);
+  render();
+  toast('NEXT MATCH LOADED');
+}
+
+function confirmResync(){
+  if(confirm('Re-sync your Spotify library? This fetches fresh tracks and recalculates all matches.'))syncLibrary();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+async function init(){
+  const params=new URLSearchParams(location.search);
+  if(params.has('code')&&params.get('state')==='od-spotify'){
+    await handleCallback(params.get('code'));
+    return;
+  }
+  tokenData=loadToken();
+  resonanceData=loadResonance();
+  if(tokenData){
+    tracks=jGet(KEY_TRACKS)||[];
+    matches=jGet(KEY_MATCHES)||{};
+    state='connected';
+  } else {
+    state='idle';
+  }
+  render();
+}
+
+// Expose for inline onclick
+window.startAuth=startAuth;
+window.markResonance=markResonance;
+window.swapMatch=swapMatch;
+window.confirmResync=confirmResync;
+window.disconnect=disconnect;
+
+init();
+</script>
+</body>
+</html>
