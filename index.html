@@ -871,8 +871,8 @@ function musicBar(c){
   try{
     var _sm=JSON.parse(localStorage.getItem('od_spotify_matches')||'{}');
     var _st=JSON.parse(localStorage.getItem('od_spotify_token')||'null');
-    if(_st&&_sm[c.s]&&_sm[c.s][0]){
-      var _mt=_sm[c.s][0];
+    if(_st&&_sm[c.s+c.n]){
+      var _mt=_sm[c.s+c.n];
       var _uri='https://open.spotify.com/track/'+_mt.id;
       var _isHit=resonance.find(function(r){return r.k===_mt.id});
       return`<div class="mbar" title="Matched from your Spotify library"><div class="mic">\uD83C\uDFB5</div><div class="inf"><div class="sng" style="color:var(--spot)">${esc(_mt.name)}</div><div class="art">${esc(_mt.artist)} <span style="color:var(--spot);font-size:6px;font-family:monospace;letter-spacing:1.5px;opacity:.8">\u00B7 YOUR MATCH</span></div></div><button class="plb" onclick="event.stopPropagation();window.open('${_uri}','_blank')">PLAY \u25B6</button></div>`+

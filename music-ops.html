@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08080f">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://i.scdn.co; script-src 'self' 'unsafe-inline'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com https://open.spotify.com">
 <title>FIELD FREQUENCY · OPERATOR'S DECK</title>
 <link rel="icon" href="./clove32.png">
@@ -13,605 +13,337 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-:root{--bg:#08080f;--bg2:#111118;--bg3:#0d0d14;--bg4:#1a1a22;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#5a84be;--dim:#8a8a8a;--dim2:#555;--dim3:#1a1a22;--spot:#1db954;--acc:#e67e22}
-.app{max-width:480px;margin:0 auto;padding:0 0 60px}
-.back-link{display:flex;align-items:center;gap:6px;color:#888;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;cursor:pointer;padding:18px 20px 0;transition:color .2s;text-decoration:none}
-.back-link:active{color:#fff}
-.hdr{padding:20px 20px 0;text-align:center}
-.hdr .tag{font-size:8px;letter-spacing:4px;color:var(--spot);font-family:'DM Mono',monospace;margin-bottom:6px}
-.hdr h1{font-family:'Bebas Neue',monospace;font-size:36px;letter-spacing:4px;color:#fff;line-height:1}
-.hdr .sub{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;margin:8px 0 0;line-height:1.6}
-
-/* STATUS PILL */
-.status-pill{display:inline-flex;align-items:center;gap:7px;border-radius:20px;padding:6px 16px;margin:16px auto 0;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1.5px}
-.status-pill.disconnected{background:var(--bg3);border:1px solid var(--dim3);color:var(--dim)}
-.status-pill.connected{background:rgba(29,185,84,.08);border:1px solid rgba(29,185,84,.25);color:var(--spot)}
-.status-pill.syncing{background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.2);color:var(--gld)}
-.status-dot{width:7px;height:7px;border-radius:50%}
-.status-pill.disconnected .status-dot{background:var(--dim2)}
-.status-pill.connected .status-dot{background:var(--spot);animation:pulse 2s infinite}
-.status-pill.syncing .status-dot{background:var(--gld);animation:pulse .8s infinite}
-@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
-
-/* CONNECT PANEL */
-.connect-panel{margin:24px 16px 0;background:linear-gradient(155deg,#0d1a0d,var(--bg3));border:1px solid rgba(29,185,84,.15);border-radius:16px;padding:28px 24px;text-align:center}
-.connect-panel .cp-icon{font-size:36px;margin-bottom:14px}
-.connect-panel .cp-title{font-size:16px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:2px;margin-bottom:10px}
-.connect-panel .cp-body{color:#999;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.8;margin-bottom:22px;max-width:280px;margin-left:auto;margin-right:auto}
-.connect-btn{background:var(--spot);color:#000;border:none;border-radius:12px;padding:16px 0;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:2px;font-family:'DM Mono',monospace;width:100%;max-width:280px;display:block;margin:0 auto;transition:all .2s}
-.connect-btn:active{transform:scale(.97);background:#1ed760}
-.connect-note{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:14px;line-height:1.8}
-
-/* SYNC PROGRESS */
-.sync-panel{margin:24px 16px 0;background:var(--bg2);border:1px solid rgba(212,168,67,.12);border-radius:16px;padding:28px 24px;text-align:center}
-.sync-tag{color:var(--gld);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:16px}
-.sync-bar{height:3px;background:var(--bg4);border-radius:2px;margin:0 auto 10px;max-width:240px;overflow:hidden}
-.sync-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--spot),var(--grn));transition:width .4s ease}
-.sync-status{color:#999;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1px;min-height:20px}
-
-/* CONNECTED / LIBRARY STATS */
-.stats-row{display:flex;gap:8px;margin:20px 16px 0}
-.stat-box{flex:1;background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center;border:1px solid var(--dim3)}
-.stat-box .sv{font-size:22px;font-weight:900;font-family:'DM Mono',monospace;color:var(--spot)}
-.stat-box .sl{color:var(--dim);font-size:6px;font-family:'DM Mono',monospace;letter-spacing:1.5px;margin-top:4px;text-transform:uppercase}
-
-/* SECTION HEADERS */
-.sec-hdr{padding:24px 20px 10px;display:flex;align-items:center;justify-content:space-between}
-.sec-hdr .sh-label{color:var(--dim);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px}
-.sec-hdr .sh-note{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px}
-
-/* SUIT MATCH CARDS */
-.match-card{margin:0 16px 8px;background:var(--bg2);border-radius:14px;padding:16px;border:1px solid var(--dim3);transition:border-color .2s}
-.match-card.has-match{border-color:rgba(29,185,84,.15)}
-.match-card .mc-suit{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.match-card .mc-sym{font-size:16px;flex-shrink:0}
-.match-card .mc-name{font-size:9px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:2px}
-.match-card .mc-desc{color:var(--dim);font-size:8px;font-family:Georgia,serif;margin-top:1px}
-.match-card .mc-track{display:flex;align-items:center;gap:12px;background:var(--bg3);border-radius:10px;padding:10px 12px}
-.match-card .mc-art{width:40px;height:40px;border-radius:6px;background:var(--bg4);flex-shrink:0;object-fit:cover}
-.match-card .mc-art-ph{width:40px;height:40px;border-radius:6px;background:var(--bg4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px}
-.match-card .mc-info{flex:1;min-width:0}
-.match-card .mc-song{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.match-card .mc-artist{color:#999;font-size:8px;font-family:Georgia,serif;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.match-card .mc-score{font-size:6px;font-family:'DM Mono',monospace;color:var(--spot);letter-spacing:1px;margin-top:3px}
-.match-card .mc-play{background:var(--spot);color:#000;border:none;border-radius:20px;padding:8px 14px;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;flex-shrink:0;transition:all .2s}
-.match-card .mc-play:active{transform:scale(.95);background:#1ed760}
-.match-card .mc-empty{color:var(--dim2);font-size:9px;font-family:Georgia,serif;font-style:italic;text-align:center;padding:8px 0}
-
-/* RESONANCE */
-.res-card{margin:0 16px 6px;background:var(--bg2);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;border-left:3px solid var(--red)}
-.res-card .rc-info{flex:1;min-width:0}
-.res-card .rc-song{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.res-card .rc-artist{color:#999;font-size:8px;font-family:Georgia,serif;margin-top:2px}
-.res-card .rc-suit{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:3px}
-.res-card .rc-play{background:none;border:1px solid rgba(29,185,84,.3);color:var(--spot);border-radius:16px;padding:5px 10px;font-size:7px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;flex-shrink:0}
-.res-card .rc-play:active{background:rgba(29,185,84,.1)}
-
-/* ACTION BUTTONS */
-.action-row{display:flex;gap:8px;margin:20px 16px 0}
-.act-btn{flex:1;padding:13px 8px;border-radius:10px;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1.5px;border:none;transition:all .2s}
-.act-btn:active{transform:scale(.97)}
-.act-resync{background:rgba(29,185,84,.08);color:var(--spot);border:1px solid rgba(29,185,84,.2)!important}
-.act-disconnect{background:var(--bg2);color:var(--dim);border:1px solid var(--dim3)!important}
-
-/* EXPLAINER */
-.explainer{margin:24px 16px 0;background:var(--bg3);border-radius:14px;padding:18px 20px;border:1px solid var(--dim3)}
-.explainer .ex-tag{color:var(--dim);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:10px}
-.explainer .ex-row{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start}
-.explainer .ex-num{color:var(--spot);font-size:9px;font-family:'DM Mono',monospace;font-weight:800;flex-shrink:0;width:16px}
-.explainer .ex-text{color:#999;font-size:9px;font-family:Georgia,serif;line-height:1.7}
-
-/* PRIVACY NOTE */
-.priv-note{margin:16px 16px 0;background:rgba(192,57,43,.04);border:1px solid rgba(192,57,43,.1);border-radius:10px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start}
-.priv-note .pn-icon{font-size:12px;flex-shrink:0;margin-top:1px}
-.priv-note .pn-text{color:var(--dim);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:.5px;line-height:1.7}
-
-/* ERROR */
-.error-panel{margin:24px 16px 0;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.2);border-radius:14px;padding:22px;text-align:center}
-.error-panel .ep-tag{color:var(--red);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:8px}
-.error-panel .ep-msg{color:#999;font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:16px}
-.retry-btn{background:var(--bg2);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:11px 24px;font-size:9px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:2px}
-.retry-btn:active{color:#fff;border-color:#444}
-
-/* FEATURE BADGES */
-.feature-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.feature-badge{font-size:6px;font-family:'DM Mono',monospace;letter-spacing:1px;padding:3px 7px;border-radius:4px;background:var(--bg4);color:var(--dim)}
-.feature-badge.val{background:rgba(29,185,84,.08);color:var(--spot)}
-.feature-badge.eng{background:rgba(192,57,43,.08);color:var(--red)}
-.feature-badge.tem{background:rgba(212,168,67,.08);color:var(--gld)}
-
-/* TOAST */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 24px;border-radius:10px;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards;pointer-events:none}
-@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+:root{--bg:#08080f;--bg2:#111118;--bg3:#0d0d14;--bg4:#1a1a22;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#5a84be;--dim:#8a8a8a;--dim2:#555;--dim3:#1a1a22;--spot:#1db954}
+.app{max-width:480px;margin:0 auto;padding:0 0 80px}
+a.back{display:flex;align-items:center;gap:6px;color:#888;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;padding:18px 20px 0;text-decoration:none;transition:color .2s}
+a.back:active{color:#fff}
+.hdr{padding:14px 20px 0;text-align:center}
+.hdr .tag{font-size:8px;letter-spacing:4px;color:var(--spot);font-family:'DM Mono',monospace;margin-bottom:4px}
+.hdr h1{font-family:'Bebas Neue',monospace;font-size:34px;letter-spacing:4px;line-height:1}
+.hdr .sub{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;margin:6px 0 0;line-height:1.6}
+.spill{display:inline-flex;align-items:center;gap:7px;border-radius:20px;padding:5px 14px;font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px;margin:10px auto 0}
+.spill.off{background:var(--bg3);border:1px solid var(--dim3);color:var(--dim)}
+.spill.on{background:rgba(29,185,84,.08);border:1px solid rgba(29,185,84,.2);color:var(--spot)}
+.spill.busy{background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.18);color:var(--gld)}
+.sdot{width:6px;height:6px;border-radius:50%}
+.on .sdot{background:var(--spot);animation:pulse 2s infinite}
+.busy .sdot{background:var(--gld);animation:pulse .7s infinite}
+.off .sdot{background:var(--dim2)}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+.cp{margin:18px 16px 0;background:linear-gradient(155deg,#0a180a,var(--bg3));border:1px solid rgba(29,185,84,.14);border-radius:16px;padding:26px 22px;text-align:center}
+.cp h2{font-size:13px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:2px;margin-bottom:8px}
+.cp p{color:#999;font-size:9.5px;font-family:Georgia,serif;font-style:italic;line-height:1.8;margin-bottom:18px}
+.cbtn{background:var(--spot);color:#000;border:none;border-radius:12px;padding:14px 0;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:2px;font-family:'DM Mono',monospace;width:100%;max-width:260px;transition:all .2s}
+.cbtn:active{transform:scale(.97);background:#1ed760}
+.cnote{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:.8px;margin-top:10px;line-height:1.9}
+.syncp{margin:18px 16px 0;background:var(--bg2);border:1px solid rgba(212,168,67,.1);border-radius:16px;padding:24px 22px;text-align:center}
+.stag{color:var(--gld);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:12px}
+.sphases{display:flex;gap:4px;justify-content:center;margin-bottom:14px}
+.sph{flex:1;max-width:80px;text-align:center}
+.sph .d{width:8px;height:8px;border-radius:50%;margin:0 auto 4px;background:var(--bg4);transition:background .4s}
+.sph .d.done{background:var(--spot)}
+.sph .d.act{background:var(--gld);animation:pulse .7s infinite}
+.sph .l{font-size:6px;font-family:'DM Mono',monospace;letter-spacing:.8px;color:var(--dim2)}
+.sbar{height:3px;background:var(--bg4);border-radius:2px;margin:0 auto 10px;overflow:hidden}
+.sfill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--spot),var(--grn));transition:width .5s}
+.smsg{color:#999;font-size:8.5px;font-family:'DM Mono',monospace;letter-spacing:.8px;min-height:18px}
+.snote{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:.8px;margin-top:10px}
+.stats{display:flex;gap:6px;margin:14px 16px 0}
+.stb{flex:1;background:var(--bg2);border-radius:10px;padding:10px 6px;text-align:center;border:1px solid var(--dim3)}
+.stb .v{font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:var(--spot)}
+.stb .l{color:var(--dim);font-size:6px;font-family:'DM Mono',monospace;letter-spacing:1.2px;margin-top:3px}
+.acts{display:flex;gap:6px;margin:12px 16px 0}
+.abtn{flex:1;padding:12px 6px;border-radius:10px;font-size:7.5px;font-weight:800;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1.2px;border:none;transition:all .2s}
+.abtn:active{transform:scale(.97)}
+.adl{background:rgba(212,168,67,.08);color:var(--gld);border:1px solid rgba(212,168,67,.2)!important}
+.ars{background:rgba(29,185,84,.06);color:var(--spot);border:1px solid rgba(29,185,84,.18)!important}
+.adc{background:var(--bg2);color:var(--dim);border:1px solid var(--dim3)!important}
+.filters{display:flex;gap:4px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.ftab{background:var(--bg3);border:1px solid var(--dim3);color:var(--dim);border-radius:6px;padding:5px 10px;font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.ftab.on{color:#fff;border-color:var(--spot);background:rgba(29,185,84,.08)}
+.ftab:active{transform:scale(.96)}
+.secrow{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px}
+.secrow .sl{color:var(--dim);font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:2.5px}
+.secrow .sr{color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:.8px}
+.cm{margin:0 16px 6px;background:var(--bg2);border-radius:12px;border:1px solid var(--dim3);overflow:hidden}
+.cm.hit{border-color:rgba(29,185,84,.18)}
+.cmh{display:flex;align-items:center;gap:10px;padding:10px 12px 8px;border-bottom:1px solid var(--dim3)}
+.cmh .sym{font-size:14px;flex-shrink:0}
+.cmh .cid{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1.5px;color:var(--dim);margin-bottom:2px}
+.cmh .ttl{font-size:9px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:1px;line-height:1.2}
+.cmh .ref{font-size:7px;font-family:Georgia,serif;font-style:italic;color:var(--dim2);margin-left:auto;text-align:right;flex-shrink:0;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmb{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.cmb .art{width:36px;height:36px;border-radius:5px;background:var(--bg4);flex-shrink:0;object-fit:cover}
+.cmb .artph{width:36px;height:36px;border-radius:5px;background:var(--bg4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--dim2)}
+.cmb .inf{flex:1;min-width:0}
+.cmb .sng{font-size:9.5px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmb .art2{color:#999;font-size:8px;font-family:Georgia,serif;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gtags{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px}
+.gtag{font-size:6px;font-family:'DM Mono',monospace;letter-spacing:.8px;padding:2px 5px;border-radius:3px;background:var(--bg3);color:var(--dim)}
+.gtag.match{background:rgba(29,185,84,.1);color:var(--spot)}
+.play{background:var(--spot);color:#000;border:none;border-radius:16px;padding:7px 12px;font-size:7.5px;font-weight:800;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;flex-shrink:0;transition:all .2s}
+.play:active{transform:scale(.95);background:#1ed760}
+.cm .empty{padding:10px 12px;color:var(--dim2);font-size:8px;font-family:Georgia,serif;font-style:italic}
+.ep{margin:18px 16px 0;background:rgba(192,57,43,.05);border:1px solid rgba(192,57,43,.18);border-radius:14px;padding:22px;text-align:center}
+.ep .etag{color:var(--red);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:8px}
+.ep .emsg{color:#999;font-size:9.5px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin-bottom:14px}
+.rbtn{background:var(--bg2);color:var(--dim);border:1px solid var(--dim3);border-radius:10px;padding:11px 22px;font-size:9px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:2px}
+.rbtn:active{color:#fff;border-color:#444}
+.priv{margin:12px 16px 0;border:1px solid rgba(192,57,43,.08);border-radius:10px;padding:10px 14px}
+.priv .pt{color:var(--dim);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:.5px;line-height:1.8}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--grn);color:#fff;padding:10px 22px;border-radius:10px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:1.5px;z-index:100;animation:tin .3s ease-out,tout .3s ease-in 1.7s forwards;pointer-events:none;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes tout{from{opacity:1}to{opacity:0}}
-
-/* DIVIDER */
-.divider{height:1px;background:var(--dim3);margin:6px 16px 0}
-
 *:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <a class="back-link" href="./?tab=more">← MORE</a>
+<div class="app">
+  <a class="back" href="./?tab=more">← MORE</a>
   <div class="hdr">
     <div class="tag">OPERATOR'S DECK · INTEL LAYER</div>
     <h1>FIELD FREQUENCY</h1>
-    <div class="sub">Your music. Your recovery. Matched by audio science<br>from your actual Spotify library — stored only on device.</div>
+    <div class="sub">Each of your 115 cards matched to a real track<br>from your Spotify library — by genre, automatically.</div>
   </div>
+  <div style="text-align:center" id="sw"></div>
   <div id="root"></div>
 </div>
 <script>
 'use strict';
+const CLIENT_ID='3321668935554fd79da9afd500aecfe2';
+const REDIRECT_URI='https://clovelearn.io/';
+const SCOPES='user-top-read user-library-read';
+const KT='od_spotify_token',KTR='od_spotify_tracks',KM='od_spotify_matches',KR='od_spotify_refs',KS='od_spotify_synced',KCV='od_spotify_cv';
 
-// ─── CONFIG ────────────────────────────────────────────────────────────────
-const CLIENT_ID   = '3321668935554fd79da9afd500aecfe2';
-const REDIRECT_URI = 'https://clovelearn.io/';
-const SCOPES      = 'user-top-read user-library-read';
+const SUIT_META={
+  spades:{sym:'\u2660',name:'THE DIG',color:'#4a6fa5'},
+  hearts:{sym:'\u2665',name:'THE PATCH-UP',color:'#c0392b'},
+  clubs:{sym:'\u2663',name:'THE BREACH',color:'#27ae60'},
+  diamonds:{sym:'\u2666',name:'THE PROTOCOL',color:'#d4a843'},
+  addiction:{sym:'\u25c8',name:'THE TRAP',color:'#9333ea'},
+  ptsd:{sym:'\u25ce',name:'THE WATCH',color:'#c2410c'},
+  rebuild:{sym:'\u25c9',name:'THE FOUNDATION',color:'#0d9488'},
+  brotherhood:{sym:'\u267e',name:'THE CREW',color:'#1e40af'},
+  joker:{sym:'\u2605',name:'WILD CARD',color:'#d4a843'}
+};
 
-// ─── localStorage KEYS (od_ prefix) ────────────────────────────────────────
-const KEY_TOKEN    = 'od_spotify_token';
-const KEY_TRACKS   = 'od_spotify_tracks';
-const KEY_MATCHES  = 'od_spotify_matches';
-const KEY_RESONANCE= 'od_spotify_resonance';
-const KEY_SYNCED   = 'od_spotify_synced';
-const KEY_CV       = 'od_spotify_cv';
-const KEY_STATE    = 'od_spotify_state';
+// Suit-level genre fallback profiles (used when reference lookup fails)
+const SUIT_GENRES={
+  spades:['alternative metal','nu metal','post-grunge','hard rock','alternative rock'],
+  hearts:['alternative rock','pop rock','soft rock','acoustic pop','singer-songwriter'],
+  clubs:['hip hop','rap','heavy metal','punk','hardcore','trap'],
+  diamonds:['hip hop','rap','trap','drill','motivational'],
+  addiction:['alternative metal','grunge','punk rock','post-grunge','nu metal'],
+  ptsd:['heavy metal','thrash metal','nu metal','hard rock','alternative metal'],
+  rebuild:['acoustic','indie pop','folk rock','soft rock','singer-songwriter'],
+  brotherhood:['classic rock','folk rock','soul','acoustic','americana'],
+  joker:['alternative rock','hard rock','indie rock']
+};
 
-// ─── SUIT AUDIO PROFILES ───────────────────────────────────────────────────
-// Each suit maps to a target audio fingerprint drawn from Spotify's feature set.
-// Weights control how much each dimension matters for that suit's vibe.
-const SUITS = [
-  {
-    key:'spades', sym:'♠', name:'THE DIG', color:'#4a6fa5',
-    desc:'Cognitive processing · Reflection · Going deeper',
-    // Introspective, mid-tempo, acoustic leaning, wordful
-    targets:{energy:.32,valence:.42,acousticness:.52,instrumentalness:.18,tempo:.48,danceability:.36},
-    weights:{energy:1.5,valence:1.1,acousticness:1.3,instrumentalness:.9,tempo:.5,danceability:.8}
-  },
-  {
-    key:'hearts', sym:'♥', name:'THE PATCH-UP', color:'#c0392b',
-    desc:'Emotional healing · Vulnerability · Processing pain',
-    // Raw, lyric-heavy, medium energy, not too bleak
-    targets:{energy:.44,valence:.40,acousticness:.42,instrumentalness:.06,tempo:.46,danceability:.44},
-    weights:{energy:1.2,valence:1.8,acousticness:1.0,instrumentalness:2.0,tempo:.4,danceability:.7}
-  },
-  {
-    key:'clubs', sym:'♣', name:'THE BREACH', color:'#27ae60',
-    desc:'Behavioral activation · Action · Breaking through',
-    // High energy, positive, driving tempo, gets you moving
-    targets:{energy:.84,valence:.68,acousticness:.08,instrumentalness:.06,tempo:.66,danceability:.70},
-    weights:{energy:2.2,valence:1.3,acousticness:.7,instrumentalness:.6,tempo:1.1,danceability:1.5}
-  },
-  {
-    key:'diamonds', sym:'♦', name:'THE PROTOCOL', color:'#d4a843',
-    desc:'Structure · Discipline · Skills under pressure',
-    // Focused, steady pulse, moderate everything, slight instrumental lean
-    targets:{energy:.58,valence:.55,acousticness:.22,instrumentalness:.32,tempo:.56,danceability:.60},
-    weights:{energy:1.3,valence:.9,acousticness:.8,instrumentalness:1.4,tempo:1.1,danceability:1.4}
-  },
-  {
-    key:'addiction', sym:'◈', name:'THE TRAP', color:'#9333ea',
-    desc:'Addiction recovery · Raw honesty · The real cost',
-    // Lyric-driven (low instrumental), honest tone (low-mid valence), real weight
-    targets:{energy:.50,valence:.32,acousticness:.38,instrumentalness:.04,tempo:.46,danceability:.46},
-    weights:{energy:1.0,valence:1.6,acousticness:.9,instrumentalness:2.5,tempo:.4,danceability:.7}
-  },
-  {
-    key:'ptsd', sym:'◎', name:'THE WATCH', color:'#c2410c',
-    desc:'Trauma processing · Hypervigilance · Holding the line',
-    // Intense but controlled, dark valence, mid-high energy, not acoustic
-    targets:{energy:.64,valence:.26,acousticness:.18,instrumentalness:.14,tempo:.53,danceability:.42},
-    weights:{energy:1.7,valence:2.0,acousticness:.7,instrumentalness:.9,tempo:.6,danceability:.8}
-  },
-  {
-    key:'rebuild', sym:'◉', name:'THE FOUNDATION', color:'#0d9488',
-    desc:'Rebuilding · Forward motion · Earned hope',
-    // Hopeful but grounded (not saccharine), purposeful energy
-    targets:{energy:.56,valence:.72,acousticness:.28,instrumentalness:.09,tempo:.54,danceability:.62},
-    weights:{energy:1.1,valence:2.2,acousticness:.8,instrumentalness:1.0,tempo:.5,danceability:1.1}
-  },
-  {
-    key:'brotherhood', sym:'∞', name:'THE CREW', color:'#1e40af',
-    desc:'Connection · Showing up · Trust between men',
-    // Warm, communal, acoustic lean, vocal-forward, positive
-    targets:{energy:.46,valence:.70,acousticness:.46,instrumentalness:.06,tempo:.48,danceability:.54},
-    weights:{energy:1.0,valence:1.9,acousticness:1.5,instrumentalness:1.5,tempo:.4,danceability:.9}
-  }
-];
+const SEEDS={"spadesA":{"song":"Hurt","artist":"Nine Inch Nails","t":"ROCK BOTTOM IS A FOUNDATION","s":"spades","n":"A"},"spades2":{"song":"Heavy","artist":"Linkin Park","t":"THE FIRST HONEST SENTENCE","s":"spades","n":"2"},"spades3":{"song":"The Unforgiven","artist":"Metallica","t":"YOU ARE NOT YOUR WORST MOMENT","s":"spades","n":"3"},"spades4":{"song":"Institutionalized","artist":"Suicidal Tendencies","t":"THE LIE ABOUT WILLPOWER","s":"spades","n":"4"},"spades5":{"song":"The Red","artist":"Chevelle","t":"STUPID TENACITY","s":"spades","n":"5"},"spades6":{"song":"Remedy","artist":"Seether","t":"THE REPLACEMENT PROTOCOL","s":"spades","n":"6"},"spades7":{"song":"Snuff","artist":"Slipknot","t":"PERMISSION TO BE BROKEN","s":"spades","n":"7"},"spades8":{"song":"Numb","artist":"Linkin Park","t":"THE FOG IS COMFORTABLE","s":"spades","n":"8"},"spades9":{"song":"Sober","artist":"Tool","t":"SOBRIETY ISN\u2019T THE FINISH LINE","s":"spades","n":"9"},"spades10":{"song":"Stinkfist","artist":"Tool","t":"THE 60-SECOND RULE","s":"spades","n":"10"},"spadesJ":{"song":"Duality","artist":"Slipknot","t":"THE GHOST IN THE MACHINE","s":"spades","n":"J"},"spadesQ":{"song":"Pain","artist":"Three Days Grace","t":"PAIN IS DATA","s":"spades","n":"Q"},"spadesK":{"song":"Last Resort","artist":"Papa Roach","t":"THE CRAWL","s":"spades","n":"K"},"spades14":{"song":"Comfortably Numb","artist":"Pink Floyd","t":"THE FORTRESS","s":"spades","n":"14"},"heartsA":{"song":"Vermilion Pt. 2","artist":"Slipknot","t":"YOU WERE A GHOST","s":"hearts","n":"A"},"hearts2":{"song":"The Sound of Silence","artist":"Disturbed","t":"THE COST OF ARMOR","s":"hearts","n":"2"},"hearts3":{"song":"Dear Father","artist":"Sum 41","t":"YOUR SONS ARE WATCHING","s":"hearts","n":"3"},"hearts4":{"song":"Waiting for the End","artist":"Linkin Park","t":"THE APOLOGY PROTOCOL","s":"hearts","n":"4"},"hearts5":{"song":"Cleaning Out My Closet","artist":"Eminem","t":"SHE\u2019S NOT YOUR THERAPIST","s":"hearts","n":"5"},"hearts6":{"song":"Schism","artist":"Tool","t":"DIVORCE ISN\u2019T FAILURE","s":"hearts","n":"6"},"hearts7":{"song":"Simple Man","artist":"Shinedown","t":"THE BID","s":"hearts","n":"7"},"hearts8":{"song":"Given Up","artist":"Linkin Park","t":"PRESENCE IS THE MISSION","s":"hearts","n":"8"},"hearts9":{"song":"A New Level","artist":"Pantera","t":"THE PENDULUM IN YOUR HOUSE","s":"hearts","n":"9"},"hearts10":{"song":"Cinderella Man","artist":"Eminem","t":"VULNERABILITY ISN\u2019T WEAKNESS","s":"hearts","n":"10"},"heartsJ":{"song":"Lateralus","artist":"Tool","t":"THE FIVE-MINUTE RULE","s":"hearts","n":"J"},"heartsQ":{"song":"The Diary","artist":"Scarface","t":"THE OH LORD","s":"hearts","n":"Q"},"heartsK":{"song":"Eye of the Tiger","artist":"Survivor","t":"THE LONG GAME","s":"hearts","n":"K"},"hearts14":{"song":"Cat\u2019s in the Cradle","artist":"Harry Chapin","t":"THE WATCH ON YOUR WRIST","s":"hearts","n":"14"},"clubsA":{"song":"Master of Puppets","artist":"Metallica","t":"THE MACHINE LIED","s":"clubs","n":"A"},"clubs2":{"song":"C.R.E.A.M.","artist":"Wu-Tang Clan","t":"INCENTIVE AUTOPSY","s":"clubs","n":"2"},"clubs3":{"song":"The Truth","artist":"Beanie Sigel","t":"THE PRESS RELEASE ISN\u2019T REALITY","s":"clubs","n":"3"},"clubs4":{"song":"Walk","artist":"Pantera","t":"SUNK COST LOOP","s":"clubs","n":"4"},"clubs5":{"song":"Hail to the King","artist":"Avenged Sevenfold","t":"THE PRESTIGE TRAP","s":"clubs","n":"5"},"clubs6":{"song":"I'm Back","artist":"Eminem","t":"PERMISSION TO WALK AWAY","s":"clubs","n":"6"},"clubs7":{"song":"For the Love of Money","artist":"Bone Thugs-N-Harmony","t":"FOLLOW THE MONEY","s":"clubs","n":"7"},"clubs8":{"song":"Straight Outta Compton","artist":"N.W.A","t":"REGIME SHIFT RECOGNITION","s":"clubs","n":"8"},"clubs9":{"song":"Renegade","artist":"JAY-Z ft. Eminem","t":"SHOW ME THE DATA","s":"clubs","n":"9"},"clubs10":{"song":"Killing in the Name","artist":"Rage Against The Machine","t":"THE PENDULUM","s":"clubs","n":"10"},"clubsJ":{"song":"Bulls on Parade","artist":"Rage Against The Machine","t":"UN-INSTITUTIONALIZABLE","s":"clubs","n":"J"},"clubsQ":{"song":"Down with the Sickness","artist":"Disturbed","t":"THEY WANT YOU SMALLER","s":"clubs","n":"Q"},"clubsK":{"song":"Pulse of the Maggots","artist":"Slipknot","t":"THE COUNTER-REVOLUTION","s":"clubs","n":"K"},"diamondsA":{"song":"Ambitionz Az a Ridah","artist":"2Pac","t":"ALARM GOES OFF. GET UP.","s":"diamonds","n":"A"},"diamonds2":{"song":"Hustlin'","artist":"Rick Ross","t":"CONSUME LESS. BUILD MORE.","s":"diamonds","n":"2"},"diamonds3":{"song":"The Art of Peer Pressure","artist":"Kendrick Lamar","t":"THE ACTIVE/PASSIVE AUDIT","s":"diamonds","n":"3"},"diamonds4":{"song":"Forty Six & 2","artist":"Tool","t":"SUBTRACT BEFORE YOU ADD","s":"diamonds","n":"4"},"diamonds5":{"song":"War","artist":"Pop Smoke","t":"90-DAY CAMPAIGNS","s":"diamonds","n":"5"},"diamonds6":{"song":"Till I Collapse","artist":"Eminem","t":"THE MIDDLE","s":"diamonds","n":"6"},"diamonds7":{"song":"Indestructible","artist":"Disturbed","t":"STRATEGIC PERSISTENCE","s":"diamonds","n":"7"},"diamonds8":{"song":"Rough Ryders' Anthem","artist":"DMX","t":"ENVIRONMENT BEATS WILLPOWER","s":"diamonds","n":"8"},"diamonds9":{"song":"Vicarious","artist":"Tool","t":"THE BODY KNOWS FIRST","s":"diamonds","n":"9"},"diamonds10":{"song":"Phenomenal","artist":"Eminem","t":"SHIP UGLY","s":"diamonds","n":"10"},"diamondsJ":{"song":"Many Men (Wish Death)","artist":"50 Cent","t":"THE DEBRIEF","s":"diamonds","n":"J"},"diamondsQ":{"song":"I Am","artist":"Yo Gotti","t":"IDENTITY PRECEDES ACTION","s":"diamonds","n":"Q"},"diamondsK":{"song":"Welcome to the Jungle","artist":"Guns N' Roses","t":"THE SECOND PATH","s":"diamonds","n":"K"},"addictionA":{"song":"Under the Bridge","artist":"Red Hot Chili Peppers","t":"THE LOOP","s":"addiction","n":"A"},"addiction2":{"song":"It\u2019s Been Awhile","artist":"Staind","t":"ONE MORE WON\u2019T HURT","s":"addiction","n":"2"},"addiction3":{"song":"Breaking the Habit","artist":"Linkin Park","t":"THE SCREEN AT MIDNIGHT","s":"addiction","n":"3"},"addiction4":{"song":"What I\u2019ve Done","artist":"Linkin Park","t":"SHAME IS THE ACCELERANT","s":"addiction","n":"4"},"addiction5":{"song":"Headstrong","artist":"Trapt","t":"THE TRIGGER MAP","s":"addiction","n":"5"},"addiction6":{"song":"Blind","artist":"Korn","t":"RAGE IS THE BOTTLE","s":"addiction","n":"6"},"addiction7":{"song":"Beautiful","artist":"Eminem","t":"THE MORNING AFTER","s":"addiction","n":"7"},"addiction8":{"song":"Running","artist":"Everclear","t":"THE SUBSTITUTE TRAP","s":"addiction","n":"8"},"addiction9":{"song":"Prison Song","artist":"System of a Down","t":"THE GAMBLING MATH","s":"addiction","n":"9"},"addiction10":{"song":"Wake Up","artist":"Rage Against the Machine","t":"THE BODY COUNT","s":"addiction","n":"10"},"addictionJ":{"song":"Wait and Bleed","artist":"Slipknot","t":"THE 90-SECOND WINDOW","s":"addiction","n":"J"},"addictionQ":{"song":"Failure","artist":"Breaking Benjamin","t":"RELAPSE IS DATA","s":"addiction","n":"Q"},"addictionK":{"song":"Not Afraid","artist":"Eminem","t":"THE SIGNAL","s":"addiction","n":"K"},"addiction14":{"song":"Under the Bridge","artist":"Red Hot Chili Peppers","t":"THE UNMET NEED","s":"addiction","n":"14"},"ptsdA":{"song":"Soldier","artist":"Eminem","t":"THE PERIMETER","s":"ptsd","n":"A"},"ptsd2":{"song":"Bullet with Butterfly Wings","artist":"Smashing Pumpkins","t":"THE STARTLE","s":"ptsd","n":"2"},"ptsd3":{"song":"Bodies","artist":"Drowning Pool","t":"THE KILL HOUSE","s":"ptsd","n":"3"},"ptsd4":{"song":"Ten Thousand Fists","artist":"Disturbed","t":"THE COST OF ALWAYS BEING RIGHT","s":"ptsd","n":"4"},"ptsd5":{"song":"Enter Sandman","artist":"Metallica","t":"THE NIGHT WATCH","s":"ptsd","n":"5"},"ptsd6":{"song":"Break Stuff","artist":"Limp Bizkit","t":"THE SWITCH","s":"ptsd","n":"6"},"ptsd7":{"song":"Disposable Heroes","artist":"Metallica","t":"DISPOSABLE","s":"ptsd","n":"7"},"ptsd8":{"song":"When I\u2019m Gone","artist":"Eminem","t":"BLAST RADIUS","s":"ptsd","n":"8"},"ptsd9":{"song":"Mad World","artist":"Tears for Fears","t":"SEEING WHAT OTHERS CAN\u2019T","s":"ptsd","n":"9"},"ptsd10":{"song":"Down in a Hole","artist":"Alice in Chains","t":"THE JAW","s":"ptsd","n":"10"},"ptsdJ":{"song":"Comfortably Numb","artist":"Pink Floyd","t":"THE STAND DOWN ORDER","s":"ptsd","n":"J"},"ptsdQ":{"song":"Cochise","artist":"Audioslave","t":"CONTROLLED AGGRESSION","s":"ptsd","n":"Q"},"ptsdK":{"song":"War Pigs","artist":"Black Sabbath","t":"CALIBRATED","s":"ptsd","n":"K"},"ptsd14":{"song":"Fake It","artist":"Seether","t":"THE HIDDEN 100","s":"ptsd","n":"14"},"ptsd15":{"song":"The Pretender","artist":"Foo Fighters","t":"THE PROSTHETIC","s":"ptsd","n":"15"},"rebuildA":{"song":"Cat\u2019s in the Cradle","artist":"Harry Chapin","t":"THE TUESDAY MORNING","s":"rebuild","n":"A"},"rebuild2":{"song":"The Scientist","artist":"Coldplay","t":"THE QUIET SHAME","s":"rebuild","n":"2"},"rebuild3":{"song":"Better Man","artist":"Pearl Jam","t":"THE INVENTORY","s":"rebuild","n":"3"},"rebuild4":{"song":"Learning to Breathe","artist":"Switchfoot","t":"THE FIRST MORNING","s":"rebuild","n":"4"},"rebuild5":{"song":"Starting Over","artist":"Chris Stapleton","t":"THE EMBARRASSMENT OF TRYING AGAIN","s":"rebuild","n":"5"},"rebuild6":{"song":"Ordinary World","artist":"Duran Duran","t":"NOBODY\u2019S WATCHING","s":"rebuild","n":"6"},"rebuild7":{"song":"Fix You","artist":"Coldplay","t":"THE DEBT THAT DOESN\u2019T CLEAR","s":"rebuild","n":"7"},"rebuild8":{"song":"Losing My Religion","artist":"R.E.M.","t":"THE IDENTITY GAP","s":"rebuild","n":"8"},"rebuild9":{"song":"Rock Bottom","artist":"Eminem","t":"THE SMALLER VERSION","s":"rebuild","n":"9"},"rebuild10":{"song":"Prove It All Night","artist":"Bruce Springsteen","t":"THE CHANGED MAN PROBLEM","s":"rebuild","n":"10"},"rebuildJ":{"song":"Patience","artist":"Guns N\u2019 Roses","t":"THE QUIET WORK","s":"rebuild","n":"J"},"rebuildQ":{"song":"Serenity","artist":"Godsmack","t":"THE FORGIVENESS YOU WON\u2019T GET","s":"rebuild","n":"Q"},"rebuildK":{"song":"Rise","artist":"Eddie Vedder","t":"THE REAL REBUILD","s":"rebuild","n":"K"},"rebuild14":{"song":"Everybody\u2019s Fool","artist":"Evanescence","t":"THE ERSATZ","s":"rebuild","n":"14"},"rebuild15":{"song":"Learning to Fly","artist":"Tom Petty","t":"THE WINDSHIELD WIPER","s":"rebuild","n":"15"},"brotherhoodA":{"song":"With a Little Help from My Friends","artist":"Joe Cocker","t":"THE 2:47 AM GARAGE","s":"brotherhood","n":"A"},"brotherhood2":{"song":"Mad World","artist":"Gary Jules","t":"THE PERFORMANCE","s":"brotherhood","n":"2"},"brotherhood3":{"song":"Brothers in Arms","artist":"Dire Straits","t":"THE COST LEDGER","s":"brotherhood","n":"3"},"brotherhood4":{"song":"Another Brick in the Wall Pt. 2","artist":"Pink Floyd","t":"THE WALL","s":"brotherhood","n":"4"},"brotherhood5":{"song":"Lean on Me","artist":"Bill Withers","t":"THE SIT-DOWN","s":"brotherhood","n":"5"},"brotherhood6":{"song":"I'll Stand by You","artist":"The Pretenders","t":"THE SENTENCE","s":"brotherhood","n":"6"},"brotherhood7":{"song":"Hero of the Day","artist":"Metallica","t":"THE WRONG KIND OF STRONG","s":"brotherhood","n":"7"},"brotherhood8":{"song":"Come as You Are","artist":"Nirvana","t":"REAL ACCOUNTABILITY","s":"brotherhood","n":"8"},"brotherhood9":{"song":"Reach Out I'll Be There","artist":"Four Tops","t":"THE FIRST CALL","s":"brotherhood","n":"9"},"brotherhood10":{"song":"True Colors","artist":"Cyndi Lauper","t":"THE WRONG CREW","s":"brotherhood","n":"10"},"brotherhoodJ":{"song":"Creep","artist":"Radiohead","t":"THE WITNESS","s":"brotherhood","n":"J"},"brotherhoodQ":{"song":"Thank You","artist":"Led Zeppelin","t":"THE DEBT PAID FORWARD","s":"brotherhood","n":"Q"},"brotherhoodK":{"song":"Into the Fire","artist":"Bruce Springsteen","t":"THE KING","s":"brotherhood","n":"K"}};
 
-// ─── STATE ─────────────────────────────────────────────────────────────────
-let state = 'idle'; // idle | syncing | connected | error
-let errorMsg = '';
-let syncProgress = 0;
-let syncStatusText = '';
-let tokenData = null;
-let tracks = [];
-let matches = {};
-let resonanceData = {};
+const KEYS=Object.keys(SEEDS);
+let ST='idle',SP=0,SH=0,SM='',EM='',LIB=[],MATCHES={},REFS={},SUIT='all';
 
-// ─── UTILS ─────────────────────────────────────────────────────────────────
 function esc(s){const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML}
-function toast(msg,color='var(--grn)'){
-  document.querySelectorAll('.toast').forEach(t=>t.remove());
-  const t=document.createElement('div');t.className='toast';t.textContent=msg;t.style.background=color;
-  document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
-}
-function jGet(key){try{return JSON.parse(localStorage.getItem(key))}catch(e){return null}}
-function jSet(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){}}
+function toast(m,c='var(--grn)'){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;t.style.background=c;document.body.appendChild(t);setTimeout(()=>t.remove(),2400)}
+function jg(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function js(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-// ─── TOKEN MANAGEMENT ──────────────────────────────────────────────────────
-function loadToken(){
-  const t=jGet(KEY_TOKEN);
-  if(!t||!t.access_token)return null;
-  return t;
-}
-async function refreshToken(t){
-  try{
-    const res=await fetch('https://accounts.spotify.com/api/token',{
-      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'refresh_token',refresh_token:t.refresh_token,client_id:CLIENT_ID})
-    });
-    const data=await res.json();
-    if(data.access_token){
-      const newToken={access_token:data.access_token,refresh_token:data.refresh_token||t.refresh_token,expires_at:Date.now()+(data.expires_in||3600)*1000};
-      jSet(KEY_TOKEN,newToken);return newToken;
-    }
-  }catch(e){}
-  return null;
-}
-async function getValidToken(){
-  let t=loadToken();
-  if(!t)return null;
-  if(Date.now()>t.expires_at-60000){t=await refreshToken(t);}
-  return t;
+function loadTok(){const t=jg(KT);return(t&&t.access_token)?t:null}
+async function refreshTok(t){try{const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:t.refresh_token,client_id:CLIENT_ID})});const d=await r.json();if(d.access_token){const n={access_token:d.access_token,refresh_token:d.refresh_token||t.refresh_token,expires_at:Date.now()+(d.expires_in||3600)*1000};js(KT,n);return n}}catch(e){}return null}
+async function getTok(){let t=loadTok();if(!t)return null;if(Date.now()>t.expires_at-60000)t=await refreshTok(t);return t}
+
+function b64u(b){return btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'')}
+async function startAuth(){const v=b64u(crypto.getRandomValues(new Uint8Array(64)).buffer);const ch=b64u(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)));js(KCV,v);window.location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({client_id:CLIENT_ID,response_type:'code',redirect_uri:REDIRECT_URI,code_challenge_method:'S256',code_challenge:ch,state:'od-spotify',scope:SCOPES})}
+async function handleCB(code){sync(1,5,'EXCHANGING CREDENTIALS');const v=jg(KCV);if(!v){err('Session expired \u2014 reconnect.');return}try{const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,client_id:CLIENT_ID,code_verifier:v})});const d=await r.json();if(!d.access_token)throw new Error(d.error_description||'Auth failed');js(KT,{access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+(d.expires_in||3600)*1000});localStorage.removeItem(KCV);history.replaceState({},'','./music-ops.html');await runSync()}catch(e){err('Auth failed: '+e.message)}}
+
+async function api(tok,ep){const r=await fetch('https://api.spotify.com/v1'+ep,{headers:{Authorization:'Bearer '+tok.access_token}});if(r.status===401)throw new Error('Token expired');if(r.status===429){await sleep((parseInt(r.headers.get('Retry-After')||'3'))*1000);return api(tok,ep)}if(!r.ok)throw new Error('API '+r.status+' on '+ep);return r.json()}
+
+// ── GENRE MATCHING ENGINE ────────────────────────────────────────────────
+// Score: count of genre tokens that overlap between user artist and reference artist.
+// Partial match counts (e.g. "metal" matches "heavy metal", "thrash metal", etc.)
+function genreScore(userG,refG){
+  if(!userG||!userG.length||!refG||!refG.length)return 0;
+  let hits=0;
+  userG.forEach(ug=>{refG.forEach(rg=>{if(ug===rg||ug.includes(rg)||rg.includes(ug))hits++})});
+  return hits;
 }
 
-// ─── PKCE HELPERS ──────────────────────────────────────────────────────────
-function b64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'')}
-async function genVerifier(){const a=new Uint8Array(64);crypto.getRandomValues(a);return b64url(a.buffer)}
-async function genChallenge(v){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return b64url(d)}
-function genState(){const a=new Uint8Array(16);crypto.getRandomValues(a);return b64url(a.buffer)}
-
-// ─── AUTH FLOW ─────────────────────────────────────────────────────────────
-async function startAuth(){
-  const verifier=await genVerifier();
-  const challenge=await genChallenge(verifier);
-  const st=genState();
-  jSet(KEY_CV,verifier);
-  jSet(KEY_STATE,st);
-  const params=new URLSearchParams({client_id:CLIENT_ID,response_type:'code',redirect_uri:REDIRECT_URI,code_challenge_method:'S256',code_challenge:challenge,state:'od-spotify',scope:SCOPES});
-  window.location.href='https://accounts.spotify.com/authorize?'+params;
-}
-
-async function handleCallback(code){
-  state='syncing';syncProgress=5;syncStatusText='EXCHANGING CREDENTIALS';render();
-  const verifier=jGet(KEY_CV);
-  if(!verifier){state='error';errorMsg='Session expired. Try connecting again.';render();return;}
-  try{
-    const res=await fetch('https://accounts.spotify.com/api/token',{
-      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,client_id:CLIENT_ID,code_verifier:verifier})
-    });
-    const data=await res.json();
-    if(!data.access_token){throw new Error(data.error_description||'Auth failed');}
-    tokenData={access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+(data.expires_in||3600)*1000};
-    jSet(KEY_TOKEN,tokenData);
-    localStorage.removeItem(KEY_CV);
-    localStorage.removeItem(KEY_STATE);
-    history.replaceState({},'','./music-ops.html');
-    await syncLibrary();
-  }catch(e){
-    state='error';errorMsg='Connection failed: '+e.message+'. Check your internet and try again.';render();
-  }
-}
-
-// ─── API CALLS ─────────────────────────────────────────────────────────────
-async function apiGet(token,endpoint){
-  const res=await fetch('https://api.spotify.com/v1'+endpoint,{headers:{Authorization:'Bearer '+token.access_token}});
-  if(res.status===401){throw new Error('Token expired');}
-  if(!res.ok){throw new Error('API error '+res.status);}
-  return res.json();
-}
-
-async function syncLibrary(){
-  state='syncing';syncProgress=10;syncStatusText='PULLING YOUR TOP TRACKS';render();
-  const token=await getValidToken();
-  if(!token){state='error';errorMsg='Session lost. Please reconnect.';render();return;}
-  try{
-    // Fetch medium-term top tracks (6 months)
-    const top1=await apiGet(token,'/me/top/tracks?limit=50&time_range=medium_term');
-    syncProgress=30;syncStatusText='PULLING RECENT FAVORITES';render();
-    // Fetch short-term top tracks (4 weeks)
-    const top2=await apiGet(token,'/me/top/tracks?limit=50&time_range=short_term');
-    syncProgress=50;syncStatusText='PULLING SAVED LIBRARY';render();
-    // Fetch saved tracks
-    const saved=await apiGet(token,'/me/tracks?limit=50');
-    syncProgress=65;syncStatusText='ANALYZING AUDIO SIGNATURES';render();
-    // Deduplicate
-    const seen=new Set();const allTracks=[];
-    const addT=t=>{if(t&&t.id&&!seen.has(t.id)){seen.add(t.id);allTracks.push({id:t.id,name:t.name,artist:t.artists?.[0]?.name||'',uri:t.uri,image:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||''});}};
-    (top1.items||[]).forEach(addT);
-    (top2.items||[]).forEach(addT);
-    (saved.items||[]).map(i=>i.track).forEach(addT);
-    syncProgress=72;syncStatusText='FETCHING AUDIO FEATURES ('+allTracks.length+' TRACKS)';render();
-    // Batch audio features (max 100 per call)
-    const chunks=[];
-    for(let i=0;i<allTracks.length;i+=100)chunks.push(allTracks.slice(i,i+100));
-    let featureMap={};
-    for(let ci=0;ci<chunks.length;ci++){
-      const ids=chunks[ci].map(t=>t.id).join(',');
-      const feat=await apiGet(token,'/audio-features?ids='+ids);
-      (feat.audio_features||[]).forEach(f=>{if(f&&f.id)featureMap[f.id]=f;});
-      syncProgress=72+Math.round((ci+1)/chunks.length*18);render();
-    }
-    // Attach features
-    const tracksWithFeats=allTracks.map(t=>({...t,features:featureMap[t.id]||null})).filter(t=>t.features);
-    syncProgress=90;syncStatusText='MATCHING TRACKS TO SUITS';render();
-    // Run matching
-    const newMatches={};
-    SUITS.forEach(s=>{newMatches[s.key]=matchTracks(tracksWithFeats,s).slice(0,5);});
-    // Save
-    jSet(KEY_TRACKS,tracksWithFeats);
-    jSet(KEY_MATCHES,newMatches);
-    jSet(KEY_SYNCED,Date.now());
-    tracks=tracksWithFeats;
-    matches=newMatches;
-    syncProgress=100;
-    state='connected';
-    render();
-    toast('SYNC COMPLETE — '+tracksWithFeats.length+' TRACKS ANALYZED');
-  }catch(e){
-    state='error';errorMsg='Sync failed: '+e.message+'. Try re-syncing.';render();
-  }
-}
-
-// ─── MATCHING ALGORITHM ────────────────────────────────────────────────────
-// Normalized Euclidean distance with per-suit dimensional weights.
-// Tempo is normalized from BPM to 0–1 (capped at 200 BPM).
-function matchTracks(trackList,suit){
-  const T=suit.targets;const W=suit.weights;
-  const scores=trackList.map(t=>{
-    const f=t.features;if(!f)return{track:t,score:999};
-    const tn=Math.min((f.tempo||100)/200,1);const tt=T.tempo;
-    const dims={
-      energy:[f.energy,T.energy,W.energy],
-      valence:[f.valence,T.valence,W.valence],
-      acousticness:[f.acousticness,T.acousticness,W.acousticness],
-      instrumentalness:[Math.min((f.instrumentalness||0)*2.5,1),Math.min(T.instrumentalness*2.5,1),W.instrumentalness],
-      tempo:[tn,tt,W.tempo],
-      danceability:[f.danceability,T.danceability,W.danceability]
-    };
-    let dist=0;
-    Object.values(dims).forEach(([v,tgt,w])=>{dist+=w*Math.pow(v-tgt,2);});
-    return{track:t,score:dist};
+function bestGenreMatch(refGenres,library){
+  let best=null,bestScore=-1;
+  library.forEach(t=>{
+    const s=genreScore(t.genres||[],refGenres);
+    if(s>bestScore){bestScore=s;best=t}
   });
-  return scores.sort((a,b)=>a.score-b.score).map(s=>s.track);
-}
-
-function matchLabel(track,suitKey){
-  // Generate a short human-readable explanation of why this track matched
-  const f=track.features;if(!f)return'';
-  const tags=[];
-  if(f.energy>0.7)tags.push('HIGH ENERGY');else if(f.energy<0.35)tags.push('LOW ENERGY');else tags.push('MID ENERGY');
-  if(f.valence>0.65)tags.push('UPBEAT');else if(f.valence<0.35)tags.push('HEAVY');else tags.push('GROUNDED');
-  if(f.acousticness>0.55)tags.push('ACOUSTIC');
-  if(f.instrumentalness>0.4)tags.push('INSTRUMENTAL');
-  if(f.tempo>130)tags.push((Math.round(f.tempo))+' BPM');
-  return tags.slice(0,3).join(' · ');
-}
-
-// ─── RESONANCE ─────────────────────────────────────────────────────────────
-function loadResonance(){return jGet(KEY_RESONANCE)||{};}
-function markResonance(trackId,up){
-  const r=loadResonance();
-  if(!r[trackId])r[trackId]={up:0,down:0};
-  if(up)r[trackId].up++;else r[trackId].down++;
-  jSet(KEY_RESONANCE,r);
-  resonanceData=r;
-  render();
-  toast(up?'♥ RESONANCE LOGGED':'SKIPPED');
-}
-
-// ─── DISCONNECT ────────────────────────────────────────────────────────────
-function disconnect(){
-  if(!confirm('Disconnect Spotify? Your matches and resonance data will be cleared.'))return;
-  [KEY_TOKEN,KEY_TRACKS,KEY_MATCHES,KEY_RESONANCE,KEY_SYNCED,KEY_CV,KEY_STATE].forEach(k=>localStorage.removeItem(k));
-  tokenData=null;tracks=[];matches={};resonanceData={};
-  state='idle';render();
-  toast('DISCONNECTED','var(--dim)');
-}
-
-// ─── RENDER ────────────────────────────────────────────────────────────────
-function render(){
-  const root=document.getElementById('root');
-  if(!root)return;
-  root.innerHTML=buildUI();
-}
-
-function buildUI(){
-  let h='';
-
-  if(state==='idle'){
-    h+=statusPill('disconnected','● NOT CONNECTED');
-    h+=`<div class="connect-panel">
-      <div class="cp-icon">🎵</div>
-      <div class="cp-title">CONNECT YOUR LIBRARY</div>
-      <div class="cp-body">Link your Spotify once. We analyze your saved tracks and listening history, then match real songs from <em>your</em> library to each card suit's emotional profile.</div>
-      <button class="connect-btn" onclick="startAuth()">CONNECT SPOTIFY →</button>
-      <div class="connect-note">Read-only access · No playlist changes · 1-hour token · Revoke anytime<br>at spotify.com/account/apps</div>
-    </div>`;
-    h+=explainer();
-    h+=privacyNote();
+  // If no genre overlap found, fall back to most popular track
+  if(bestScore===0){
+    let maxPop=0;
+    library.forEach(t=>{if((t.popularity||0)>maxPop){maxPop=t.popularity||0;best=t}});
   }
+  return best?{...best,genreScore:bestScore,sharedGenres:(best.genres||[]).filter(ug=>refGenres.some(rg=>ug===rg||ug.includes(rg)||rg.includes(ug)))}:null;
+}
 
-  else if(state==='syncing'){
-    h+=statusPill('syncing','◉ SYNCING');
-    h+=`<div class="sync-panel">
-      <div class="sync-tag">ANALYZING YOUR LIBRARY</div>
-      <div class="sync-bar"><div class="sync-fill" style="width:${syncProgress}%"></div></div>
-      <div class="sync-status">${esc(syncStatusText)}</div>
-      <div style="color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:12px">This runs once · Results stored on device only</div>
-    </div>`;
-    h+=privacyNote();
-  }
+async function runSync(){
+  const tok=await getTok();
+  if(!tok){err('Session lost \u2014 reconnect.');return}
+  try{
+    // PHASE 1 — User Library
+    sync(1,10,'PULLING YOUR TOP TRACKS');
+    const[t1,t2,sv]=await Promise.all([
+      api(tok,'/me/top/tracks?limit=50&time_range=medium_term'),
+      api(tok,'/me/top/tracks?limit=50&time_range=short_term'),
+      api(tok,'/me/tracks?limit=50')
+    ]);
+    const seen=new Set(),all=[];
+    const add=t=>{if(t&&t.id&&!seen.has(t.id)){seen.add(t.id);all.push({id:t.id,name:t.name,artist:t.artists?.[0]?.name||'',artistId:t.artists?.[0]?.id||'',uri:t.uri,image:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'',popularity:t.popularity||0})}};
+    (t1.items||[]).forEach(add);(t2.items||[]).forEach(add);(sv.items||[]).map(i=>i.track).filter(Boolean).forEach(add);
 
-  else if(state==='error'){
-    h+=statusPill('disconnected','⚠ ERROR');
-    h+=`<div class="error-panel">
-      <div class="ep-tag">SYNC FAILED</div>
-      <div class="ep-msg">${esc(errorMsg)}</div>
-      <button class="retry-btn" onclick="startAuth()">RECONNECT →</button>
-    </div>`;
-  }
-
-  else if(state==='connected'){
-    const syncedAt=jGet(KEY_SYNCED);
-    const syncDate=syncedAt?new Date(syncedAt).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
-    const numTracks=tracks.length;
-    // Count how many suits have a match
-    const numMatched=SUITS.filter(s=>matches[s.key]&&matches[s.key][0]).length;
-    const topRes=Object.entries(resonanceData).filter(([,v])=>v.up>0).sort((a,b)=>b[1].up-a[1].up).slice(0,5);
-
-    h+=statusPill('connected','● CONNECTED · '+numTracks+' TRACKS');
-
-    // Stats
-    h+=`<div class="stats-row">
-      <div class="stat-box"><div class="sv">${numTracks}</div><div class="sl">TRACKS ANALYZED</div></div>
-      <div class="stat-box"><div class="sv">${numMatched}</div><div class="sl">SUITS MATCHED</div></div>
-      <div class="stat-box"><div class="sv">${topRes.length}</div><div class="sl">RESONANCE HITS</div></div>
-    </div>`;
-
-    // Suit matches
-    h+=`<div class="sec-hdr"><span class="sh-label">SUIT MATCHES</span><span class="sh-note">FROM YOUR LIBRARY</span></div>`;
-    SUITS.forEach(s=>{
-      const best=matches[s.key]&&matches[s.key][0];
-      const res=best&&resonanceData[best.id];
-      const isHit=res&&res.up>0;
-      h+=`<div class="match-card ${best?'has-match':''}">
-        <div class="mc-suit">
-          <div class="mc-sym" style="color:${s.color}">${s.sym}</div>
-          <div><div class="mc-name" style="color:${s.color}">${s.name}</div><div class="mc-desc">${s.desc}</div></div>
-        </div>`;
-      if(best){
-        const img=best.image;
-        const uri='https://open.spotify.com/track/'+best.id;
-        const label=matchLabel(best,s.key);
-        h+=`<div class="mc-track">
-          ${img?`<img class="mc-art" src="${esc(img)}" alt="" loading="lazy">`:`<div class="mc-art-ph">♫</div>`}
-          <div class="mc-info">
-            <div class="mc-song">${esc(best.name)}</div>
-            <div class="mc-artist">${esc(best.artist)}</div>
-            ${label?`<div class="mc-score">${esc(label)}</div>`:''}
-          </div>
-          <button class="mc-play" onclick="window.open('${esc(uri)}','_blank')">▶</button>
-        </div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button onclick="markResonance('${esc(best.id)}',true)" style="flex:1;background:${isHit?'rgba(192,57,43,.12)':'var(--bg4)'};border:1px solid ${isHit?'var(--red)':'var(--dim3)'};color:${isHit?'var(--red)':'var(--dim)'};border-radius:8px;padding:7px;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer;transition:all .2s">${isHit?'♥ THIS HIT':'♡ THIS HIT'}</button>
-          <button onclick="swapMatch('${s.key}')" style="flex:1;background:var(--bg4);border:1px solid var(--dim3);color:var(--dim);border-radius:8px;padding:7px;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer">NEXT MATCH ↻</button>
-        </div>`;
-      } else {
-        h+=`<div class="mc-empty">No match found for this suit in your library.<br><span style="font-size:8px">Try re-syncing or save more tracks in this mood.</span></div>`;
-      }
-      h+=`</div>`;
-    });
-
-    // Resonance hits
-    if(topRes.length>0){
-      h+=`<div class="sec-hdr"><span class="sh-label">YOUR RESONANCE</span><span class="sh-note">TRACKS THAT HIT</span></div>`;
-      topRes.forEach(([id,votes])=>{
-        const t=tracks.find(tr=>tr.id===id);if(!t)return;
-        // Find which suit this was matched from
-        const suit=SUITS.find(s=>matches[s.key]&&matches[s.key][0]&&matches[s.key][0].id===id);
-        const uri='https://open.spotify.com/track/'+id;
-        h+=`<div class="res-card">
-          <div class="rc-info">
-            <div class="rc-song">${esc(t.name)}</div>
-            <div class="rc-artist">${esc(t.artist)}</div>
-            <div class="rc-suit">${suit?suit.sym+' '+suit.name:''} · ${votes.up} HIT${votes.up!==1?'S':''}</div>
-          </div>
-          <button class="rc-play" onclick="window.open('${esc(uri)}','_blank')">▶ PLAY</button>
-        </div>`;
-      });
-      h+=`<div class="divider"></div>`;
+    // Get artist genres for user library
+    sync(1,22,'FETCHING ARTIST GENRE DATA');
+    const uniqueArtistIds=[...new Set(all.map(t=>t.artistId).filter(Boolean))];
+    const artistGenreMap={};
+    for(let i=0;i<uniqueArtistIds.length;i+=50){
+      const ids=uniqueArtistIds.slice(i,i+50).join(',');
+      try{const ar=await api(tok,'/artists?ids='+ids);(ar.artists||[]).forEach(a=>{if(a&&a.id)artistGenreMap[a.id]=a.genres||[]})}catch(e){}
+      await sleep(80);
     }
+    const library=all.map(t=>({...t,genres:artistGenreMap[t.artistId]||[]}));
+    js(KTR,library);LIB=library;
 
-    // Actions
-    h+=`<div class="action-row">
-      <button class="act-btn act-resync" onclick="confirmResync()">⟳ RE-SYNC LIBRARY</button>
-      <button class="act-btn act-disconnect" onclick="disconnect()">DISCONNECT</button>
-    </div>`;
-    if(syncDate)h+=`<div style="text-align:center;margin:10px 0;color:var(--dim2);font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px">LAST SYNCED ${syncDate}</div>`;
-    h+=privacyNote();
+    // PHASE 2 — Reference artist genres via search
+    sync(2,32,'LOOKING UP 115 REFERENCE ARTISTS');
+    const refs={};
+    const B=8;
+    for(let i=0;i<KEYS.length;i+=B){
+      const batch=KEYS.slice(i,i+B);
+      sync(2,32+Math.round((i/KEYS.length)*35),'REFERENCE LOOKUP '+i+'/'+KEYS.length);
+      await Promise.all(batch.map(async k=>{
+        const sd=SEEDS[k];
+        try{
+          const q=encodeURIComponent('artist:'+sd.artist+' track:'+sd.song);
+          const res=await api(tok,'/search?q='+q+'&type=track&limit=1');
+          const tr=res?.tracks?.items?.[0];
+          if(tr&&tr.artists?.[0]?.id){
+            const artRes=await api(tok,'/artists/'+tr.artists[0].id);
+            refs[k]=artRes.genres||SUIT_GENRES[sd.s]||[];
+          } else {
+            refs[k]=SUIT_GENRES[sd.s]||[];
+          }
+        }catch(e){refs[k]=SUIT_GENRES[sd.s]||[]}
+      }));
+      if(i+B<KEYS.length)await sleep(120);
+    }
+    js(KR,refs);REFS=refs;
+
+    // PHASE 3 — Greedy no-dupe assignment
+    // Build every card×track score pair, sort best-first, assign once per track.
+    sync(3,75,'MATCHING 115 CARDS \u2014 NO DUPLICATES');
+    const M={};
+    const triples=[];
+    KEYS.forEach(k=>{
+      const refG=refs[k]||SUIT_GENRES[SEEDS[k].s]||[];
+      library.forEach(t=>{
+        const s=genreScore(t.genres||[],refG);
+        triples.push({k,t,s});
+      });
+    });
+    triples.sort((a,b)=>b.s-a.s);
+    const doneCards=new Set(),usedTracks=new Set();
+    for(const {k,t,s} of triples){
+      if(!doneCards.has(k)&&!usedTracks.has(t.id)){
+        const refG=refs[k]||SUIT_GENRES[SEEDS[k].s]||[];
+        M[k]={...t,genreScore:s,sharedGenres:(t.genres||[]).filter(ug=>refG.some(rg=>ug===rg||ug.includes(rg)||rg.includes(ug))),dupe:false};
+        doneCards.add(k);usedTracks.add(t.id);
+      }
+      if(doneCards.size===KEYS.length)break;
+    }
+    // Fallback for cards still unmatched (library smaller than card count)
+    KEYS.forEach(k=>{
+      if(!M[k]){
+        const refG=refs[k]||SUIT_GENRES[SEEDS[k].s]||[];
+        const m=bestGenreMatch(refG,library);
+        if(m)M[k]={...m,dupe:true};
+      }
+    });
+    js(KM,M);js(KS,Date.now());MATCHES=M;
+    const mc=Object.keys(M).length;
+    ST='connected';render();
+    toast('SYNC COMPLETE \u2014 '+mc+'/115 CARDS MATCHED');
+  }catch(e){err('Sync failed: '+e.message+'. Try re-syncing.')}
+}
+
+function sync(ph,pr,msg){SH=ph;SP=pr;SM=msg;ST='syncing';render()}
+function err(msg){EM=msg;ST='error';render()}
+
+function downloadCSV(){
+  const rows=[['Card Key','Suit','Number','Card Title','Reference Song','Reference Artist','Reference Genres','Your Matched Track','Your Artist','Your Track Genres','Shared Genres','Genre Match Score','Fallback Dupe','Spotify URI']];
+  KEYS.forEach(k=>{
+    const sd=SEEDS[k],m=MATCHES[k],rg=(REFS[k]||[]).join('; ');
+    rows.push([k,sd.s,sd.n,sd.t,sd.song,sd.artist,rg,m?.name||'',m?.artist||'',(m?.genres||[]).join('; '),(m?.sharedGenres||[]).join('; '),m?.genreScore||0,m?.dupe?'YES':'NO',m?'https://open.spotify.com/track/'+m.id:'']);
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='operators-deck-field-frequency.csv';a.click();URL.revokeObjectURL(a.href);toast('CSV DOWNLOADED');
+}
+
+function disconnect(){if(!confirm('Disconnect? All match data will be cleared.'))return;[KT,KTR,KM,KR,KS,KCV].forEach(k=>localStorage.removeItem(k));LIB=[];MATCHES={};REFS={};ST='idle';render();toast('DISCONNECTED','var(--dim)')}
+function setSuit(s){SUIT=s;render()}
+
+function setStatus(cls,lbl){const w=document.getElementById('sw');if(w)w.innerHTML='<span class="spill '+cls+'"><span class="sdot"></span>'+esc(lbl)+'</span>'}
+
+function render(){
+  const root=document.getElementById('root');if(!root)return;
+  if(ST==='idle'){
+    setStatus('off','\u25cf NOT CONNECTED');
+    root.innerHTML='<div class="cp"><h2>CONNECT YOUR LIBRARY</h2><p>Each of your 115 cards gets matched to a track from your Spotify library by genre fingerprint. The deck\u2019s curated songs identify each card\u2019s sonic territory \u2014 your library fills the slot.</p><button class="cbtn" onclick="startAuth()">CONNECT SPOTIFY \u2192</button><div class="cnote">Read-only \u00b7 No playlist changes \u00b7 Token expires 1 hr<br>Revoke anytime at spotify.com/account/apps</div></div><div class="priv"><div class="pt">\uD83D\uDD12 Token and all track data stored only on this device. Nothing leaves it.</div></div>';return;
   }
-
-  return h;
+  if(ST==='syncing'){
+    setStatus('busy','\u25ce SYNCING');
+    root.innerHTML='<div class="syncp"><div class="stag">BUILDING YOUR SOUNDTRACK</div><div class="sphases">'+['LIBRARY','REFERENCES','MATCHING'].map((l,i)=>'<div class="sph"><div class="d '+(i+1<SH?'done':i+1===SH?'act':'')+'"></div><div class="l">'+l+'</div></div>').join('')+'</div><div class="sbar"><div class="sfill" style="width:'+SP+'%"></div></div><div class="smsg">'+esc(SM)+'</div><div class="snote">Runs once \u00b7 Stored locally \u00b7 ~40 seconds</div></div><div class="priv"><div class="pt">\uD83D\uDD12 Track data stays on device only.</div></div>';return;
+  }
+  if(ST==='error'){
+    setStatus('off','\u26a0 ERROR');
+    root.innerHTML='<div class="ep"><div class="etag">SYNC FAILED</div><div class="emsg">'+esc(EM)+'</div><button class="rbtn" onclick="startAuth()">RECONNECT \u2192</button></div>';return;
+  }
+  // CONNECTED
+  const sd=jg(KS)?new Date(jg(KS)).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+  const mc=Object.keys(MATCHES).length,uniq=new Set(Object.values(MATCHES).map(m=>m.id)).size;
+  const fkeys=SUIT==='all'?KEYS:KEYS.filter(k=>SEEDS[k].s===SUIT);
+  const suits=['all',...Object.keys(SUIT_META)];
+  setStatus('on','\u25cf CONNECTED \u00b7 '+mc+'/115 MATCHED');
+  let h='<div class="stats"><div class="stb"><div class="v">'+mc+'</div><div class="l">MATCHED</div></div><div class="stb"><div class="v">'+LIB.length+'</div><div class="l">YOUR TRACKS</div></div><div class="stb"><div class="v">'+uniq+'</div><div class="l">UNIQUE SONGS</div></div></div>';
+  h+='<div class="acts"><button class="abtn adl" onclick="downloadCSV()">\u2193 EXPORT CSV</button><button class="abtn ars" onclick="runSync()">\u27f3 RE-SYNC</button><button class="abtn adc" onclick="disconnect()">\u2715</button></div>';
+  if(sd)h+='<div style="text-align:center;margin:6px 0 0;color:var(--dim2);font-size:6.5px;font-family:\'DM Mono\',monospace;letter-spacing:1px">LAST SYNCED '+sd+'</div>';
+  h+='<div class="filters">'+suits.map(s=>{const meta=SUIT_META[s];const lbl=s==='all'?'ALL SUITS':(meta.sym+' '+meta.name);return'<div class="ftab'+(SUIT===s?' on':'')+'" onclick="setSuit(\''+s+'\')">'+esc(lbl)+'</div>'}).join('')+'</div>';
+  h+='<div class="secrow"><span class="sl">CARD ASSIGNMENTS</span><span class="sr">'+fkeys.length+' CARDS</span></div>';
+  fkeys.forEach(k=>{
+    const seed=SEEDS[k],m=MATCHES[k],meta=SUIT_META[seed.s]||SUIT_META.joker;
+    const uri=m?'https://open.spotify.com/track/'+m.id:'';
+    const shared=m?.sharedGenres||[];
+    const allTags=(m?.genres||[]).slice(0,4);
+    h+='<div class="cm'+(m?' hit':'')+'"><div class="cmh"><div class="sym" style="color:'+meta.color+'">'+meta.sym+'</div><div><div class="cid" style="color:'+meta.color+'">'+esc(meta.name)+' \u00b7 '+esc(seed.n)+'</div><div class="ttl">'+esc(seed.t)+'</div></div><div class="ref">'+esc(seed.song)+'</div></div>';
+    if(m){
+      const img=m.image;
+      h+='<div class="cmb">'+(img?'<img class="art" src="'+esc(img)+'" alt="" loading="lazy">':`<div class="artph">&#9835;</div>`)+'<div class="inf"><div class="sng">'+esc(m.name)+'</div><div class="art2">'+esc(m.artist)+'</div><div class="gtags">'+allTags.map(g=>'<span class="gtag'+(shared.includes(g)?' match':'')+'">' +esc(g)+'</span>').join('')+(m.genreScore===0?'<span class="gtag">popularity match</span>':'')+(m.dupe?'<span class="gtag" style="color:var(--gld);border-color:rgba(212,168,67,.2)">\u2605 fallback</span>':'')+'</div></div><button class="play" onclick="window.open(\''+esc(uri)+'\',\'_blank\')">\u25b6</button></div>';
+    } else {
+      h+='<div class="empty">No match found.</div>';
+    }
+    h+='</div>';
+  });
+  root.innerHTML=h;
 }
 
-function statusPill(cls,label){
-  return`<div style="text-align:center;margin-top:16px"><span class="status-pill ${cls}"><span class="status-dot"></span>${esc(label)}</span></div>`;
-}
-
-function explainer(){
-  return`<div class="explainer">
-    <div class="ex-tag">HOW FIELD FREQUENCY WORKS</div>
-    <div class="ex-row"><div class="ex-num">01</div><div class="ex-text">We connect read-only to your Spotify and pull your top tracks and saved songs — nothing you haven't already listened to.</div></div>
-    <div class="ex-row"><div class="ex-num">02</div><div class="ex-text">Spotify's audio analysis gives us six dimensions per track: energy, valence (mood), acousticness, instrumentalness, tempo, and danceability.</div></div>
-    <div class="ex-row"><div class="ex-num">03</div><div class="ex-text">Each card suit has a target emotional profile. We score every track in your library against each suit and surface the closest match.</div></div>
-    <div class="ex-row" style="margin-bottom:0"><div class="ex-num">04</div><div class="ex-text">When you draw a card, the music bar shows YOUR matched track with a direct Spotify link — not a search. One tap, it plays.</div></div>
-  </div>`;
-}
-
-function privacyNote(){
-  return`<div class="priv-note">
-    <div class="pn-icon">🔒</div>
-    <div class="pn-text">Your Spotify token and all track data are stored only in this device's localStorage. Nothing is transmitted to Operator's Deck servers (there are none). Token expires in 1 hour and can be revoked at spotify.com/account/apps.</div>
-  </div>`;
-}
-
-// Swap to the next best match for a suit
-let suitOffsets={};
-function swapMatch(suitKey){
-  if(!suitOffsets[suitKey])suitOffsets[suitKey]=0;
-  const pool=matches[suitKey]||[];
-  suitOffsets[suitKey]=(suitOffsets[suitKey]+1)%(pool.length||1);
-  const newBest=[pool[suitOffsets[suitKey]],...pool.slice(0,suitOffsets[suitKey]),...pool.slice(suitOffsets[suitKey]+1)];
-  matches[suitKey]=newBest;
-  jSet(KEY_MATCHES,matches);
-  render();
-  toast('NEXT MATCH LOADED');
-}
-
-function confirmResync(){
-  if(confirm('Re-sync your Spotify library? This fetches fresh tracks and recalculates all matches.'))syncLibrary();
-}
-
-// ─── INIT ──────────────────────────────────────────────────────────────────
 async function init(){
-  const params=new URLSearchParams(location.search);
-  if(params.has('code')&&params.get('state')==='od-spotify'){
-    await handleCallback(params.get('code'));
-    return;
-  }
-  tokenData=loadToken();
-  resonanceData=loadResonance();
-  if(tokenData){
-    tracks=jGet(KEY_TRACKS)||[];
-    matches=jGet(KEY_MATCHES)||{};
-    state='connected';
-  } else {
-    state='idle';
-  }
+  const p=new URLSearchParams(location.search);
+  if(p.has('code')&&p.get('state')==='od-spotify'){await handleCB(p.get('code'));return}
+  const t=loadTok();
+  if(t){LIB=jg(KTR)||[];MATCHES=jg(KM)||{};REFS=jg(KR)||{};ST='connected'}else{ST='idle'}
   render();
 }
 
-// Expose for inline onclick
-window.startAuth=startAuth;
-window.markResonance=markResonance;
-window.swapMatch=swapMatch;
-window.confirmResync=confirmResync;
-window.disconnect=disconnect;
-
+window.startAuth=startAuth;window.runSync=runSync;window.setSuit=setSuit;window.downloadCSV=downloadCSV;window.disconnect=disconnect;
 init();
 </script>
 </body>
