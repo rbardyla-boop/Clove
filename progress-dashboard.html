@@ -216,7 +216,7 @@ var RANKS=[
   {min:55,name:'CAPTAIN',icon:'&#9830;&#9830;'},
   {min:70,name:'MAJOR',icon:'&#9830;&#9830;&#9830;'},
   {min:90,name:'COLONEL',icon:'&#9827;'},
-  {min:108,name:'UNBREAKABLE',icon:'&#9827;&#9827;&#9827;'}
+  {min:115,name:'UNBREAKABLE',icon:'&#9827;&#9827;&#9827;'}
 ];
 function getRank(done){
   var r=RANKS[0];
@@ -353,7 +353,7 @@ function render(){
   h+='<div class="stat-card"><div class="stat-val" style="color:var(--gld)">'+totalEntries+'</div><div class="stat-lbl">TOTAL ENTRIES</div></div>';
   h+='<div class="stat-card"><div class="stat-val" style="color:var(--teal)">'+activeDays+'</div><div class="stat-lbl">ACTIVE DAYS</div></div>';
   h+='<div class="stat-card"><div class="stat-val" style="color:'+(d.streak>0?'var(--grn)':'var(--dim3)')+'">'+d.streak+'</div><div class="stat-lbl">STREAK</div></div>';
-  h+='<div class="stat-card"><div class="stat-val" style="color:var(--red)">'+d.done+'<span style="font-size:10px;color:var(--dim3)">/108</span></div><div class="stat-lbl">MISSIONS</div></div>';
+  h+='<div class="stat-card"><div class="stat-val" style="color:var(--red)">'+d.done+'<span style="font-size:10px;color:var(--dim3)">/115</span></div><div class="stat-lbl">MISSIONS</div></div>';
   h+='</div></div>';
 
   h+='<hr class="sec-divider">';
@@ -391,9 +391,9 @@ function render(){
   // ── DECK PROGRESS ──
   h+='<div class="sec"><div class="sec-label">DECK PROGRESS</div>';
   h+='<div class="deck-prog">';
-  h+='<div class="dp-header"><div><div class="dp-count" style="color:var(--red)">'+d.done+'</div><div class="dp-of">of 108 missions complete</div></div>';
+  h+='<div class="dp-header"><div><div class="dp-count" style="color:var(--red)">'+d.done+'</div><div class="dp-of">of 115 missions complete</div></div>';
   h+='<div class="dp-rank"><div class="dp-rank-icon">'+rank.icon+'</div><div class="dp-rank-name">'+rank.name+'</div></div></div>';
-  var pct=Math.round((d.done/108)*100);
+  var pct=Math.round((d.done/115)*100);
   h+='<div class="dp-bar-wrap"><div class="dp-bar" style="width:'+pct+'%"></div></div>';
 
   // Suit breakdown from playlist

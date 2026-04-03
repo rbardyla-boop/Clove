@@ -1,8 +1,8 @@
 THE OPERATOR'S DECK
-108 tactical cards. A soundtrack for every one.
+115 tactical cards. A soundtrack for every one.
 No login. No data collection. No therapy speak.
 Just the work.
-108
+115
 CARDS
 8
 SUITS
@@ -33,13 +33,13 @@ DRAW
 Your home screen. Field Protocol check-in, daily card draw, flip to mission, music player, and the I'M NOT OKAY emergency button. This is where you start every session. Complete the check-in to unlock your draw for the day. If you've already drawn, you'll see your active card and mission status.
 🃏
 DECK
-Browse all 108 cards by suit. Filter by any of the 8 suits to explore. Tap a card to read the truth and its mission. Cards you've already completed show visual wear — a sign of work done. Great for targeting specific areas or when you want to choose your own challenge instead of random draw.
+Browse all 115 cards by suit. Filter by any of the 8 suits to explore. Tap a card to read the truth and its mission. Cards you've already completed show visual wear — a sign of work done. Great for targeting specific areas or when you want to choose your own challenge instead of random draw.
 🎵
 PLAYLIST
 Every card you've completed adds its song to your playlist. This is your soundtrack of the work — a growing Spotify-linked collection that maps to your recovery journey. Tap any song to open it in Spotify. Set your genre preferences (Pop, Alt/Indie, Classic, Country) in More → Music Preferences.
 📋
 EVIDENCE
-Your mission log. After completing a card's mission, write what actually happened. Three views: Missions (evidence by card), Mirror (weekly accountability responses), and Stuck Points (CPT drill entries). This is the most important tab — 108 missions of real data about who you're becoming. Filter by suit. Export anytime.
+Your mission log. After completing a card's mission, write what actually happened. Three views: Missions (evidence by card), Mirror (weekly accountability responses), and Stuck Points (CPT drill entries). This is the most important tab — 115 missions of real data about who you're becoming. Filter by suit. Export anytime.
 ⚙️
 MORE
 Your command center. Access the Tool Shed (all recovery drills), Red Protocol (crisis mode), Pattern Recon (data analytics), individual recovery tools (ACT, DEAR MAN, Stuck Points, Chain Analysis, Opposite Action), Therapist Finder, Music Preferences, Weekly Debrief, The Vault (unlocked at 54 missions), and Rank Progression.
@@ -77,10 +77,10 @@ FIELD PROTOCOL
 6-domain daily check-in before you draw: Mood, Attitude, Sleep, Physical Health, Activity, Substance Use. Four zones each (Healthy → Ill). Routes your card to where you actually are, not where you wish you were.
 02
 SOUNDTRACK MATCHING
-Every card is paired with a song. Set your genre preference at onboarding — Pop, Alt/Indie, Classic/Old School, or Country. The music sets the emotional frame before the card's truth lands. All 108 cards have a track.
+Every card is paired with a song. Set your genre preference at onboarding — Pop, Alt/Indie, Classic/Old School, or Country. The music sets the emotional frame before the card's truth lands. All 115 cards have a track.
 03
 EVIDENCE LOG
-After completing a mission, log what actually happened. Not what you planned. Not what you wish. The evidence file builds over time — 108 missions of real data about who you're becoming.
+After completing a mission, log what actually happened. Not what you planned. Not what you wish. The evidence file builds over time — 115 missions of real data about who you're becoming.
 04
 ACCOUNTABILITY MIRROR
 Weekly hard question on the home screen. No flinching. Log your honest answer. Builds a private record of confrontations with yourself over time.
@@ -89,7 +89,7 @@ I'M NOT OKAY MODE
 One button on the home screen. Immediately activates breathing protocol, de-escalation text, and links to Red Protocol and the Therapist Finder. No judgment. No preamble.
 06
 RANK PROGRESSION
-10 ranks from Recruit to Unbreakable. Streak tracking, suit completion progress, and milestones. Complete all 108 missions to reach the top. The Vault unlocks at 54.
+10 ranks from Recruit to Unbreakable. Streak tracking, suit completion progress, and milestones. Complete all 115 missions to reach the top. The Vault unlocks at 57.
 TOOL SHED
 Recovery Tools
 Evidence-based therapeutic drills accessible from the More tab or the Tool Shed. Each is a standalone guided exercise you can use anytime. All data stays in your browser.

@@ -169,7 +169,7 @@ var RANKS=[
   {min:0,name:'RECRUIT'},{min:5,name:'PRIVATE'},{min:15,name:'CORPORAL'},
   {min:25,name:'SERGEANT'},{min:35,name:'WARRANT'},{min:45,name:'LIEUTENANT'},
   {min:55,name:'CAPTAIN'},{min:70,name:'MAJOR'},{min:90,name:'COLONEL'},
-  {min:108,name:'UNBREAKABLE'}
+  {min:115,name:'UNBREAKABLE'}
 ];
 function getRank(n){var r=RANKS[0];for(var i=RANKS.length-1;i>=0;i--){if(n>=RANKS[i].min){r=RANKS[i];break}}return r}
 
@@ -264,7 +264,7 @@ function render(){
   h+='<div class="rpt-card"><div class="rc-header"><div class="rc-title">OPERATIONAL SUMMARY</div>';
   h+='<div class="rc-badge" style="background:rgba(192,57,43,.1);color:var(--red)">'+rank.name+'</div></div>';
   h+='<div class="sr"><div class="sr-label">Cards drawn (total)</div><div class="sr-val">'+total+'</div></div>';
-  h+='<div class="sr"><div class="sr-label">Missions completed</div><div class="sr-val" style="color:var(--grn)">'+done+' / 108</div></div>';
+  h+='<div class="sr"><div class="sr-label">Missions completed</div><div class="sr-val" style="color:var(--grn)">'+done+' / 115</div></div>';
   h+='<div class="sr"><div class="sr-label">Evidence entries logged</div><div class="sr-val">'+evidence.length+'</div></div>';
   h+='<div class="sr"><div class="sr-label">Mirror responses</div><div class="sr-val">'+mirrors.length+'</div></div>';
   h+='<div class="sr"><div class="sr-label">Stuck points processed</div><div class="sr-val">'+stuckPts.length+'</div></div>';
@@ -342,7 +342,7 @@ function render(){
   if(done>=10)milestones.push({icon:'&#9733;',title:'10 Missions',condition:true});
   if(done>=25)milestones.push({icon:'&#9733;&#9733;',title:'25 Missions &#8212; Sergeant',condition:true});
   if(done>=54)milestones.push({icon:'&#128275;',title:'The Vault Unlocked (54)',condition:true});
-  if(done>=108)milestones.push({icon:'&#9827;&#9827;&#9827;',title:'UNBREAKABLE &#8212; All 108 Complete',condition:true});
+  if(done>=115)milestones.push({icon:'&#9827;&#9827;&#9827;',title:'UNBREAKABLE &#8212; All 115 Complete',condition:true});
   if(evidence.length>=10)milestones.push({icon:'&#128196;',title:'10 Evidence Entries Logged',condition:true});
   if(clinical.length>=1)milestones.push({icon:'&#128202;',title:'First Clinical Assessment',condition:true});
   if(journal.length>=7)milestones.push({icon:'&#128211;',title:'7+ Journal Entries',condition:true});
@@ -390,7 +390,7 @@ function exportText(){
   txt+='DECK OVERVIEW\n'+('-').repeat(40)+'\n';
   txt+='Rank: '+rank.name+'\n';
   txt+='Cards drawn: '+total+'\n';
-  txt+='Missions completed: '+done+' / 108\n';
+  txt+='Missions completed: '+done+' / 115\n';
   txt+='Evidence entries: '+evidence.length+'\n';
   txt+='Mirror responses: '+mirrors.length+'\n';
   txt+='Stuck points: '+stuckPts.length+'\n';
