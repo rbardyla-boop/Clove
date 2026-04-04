@@ -4,6 +4,7 @@
   <url><loc>https://clovelearn.io/about-clovelearn.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://clovelearn.io/review.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://clovelearn.io/toolshed.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://clovelearn.io/field-ops.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://clovelearn.io/red-protocol.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://clovelearn.io/pattern-recon.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://clovelearn.io/stuck-points-drill.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>

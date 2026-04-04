@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(sed '1d;$d')",
+      "Bash(node --check /tmp/fo_script.js)",
+      "Bash(python3 -c ':*)",
+      "Bash(node --check /tmp/fo_script2.js)"
     ]
   }
 }

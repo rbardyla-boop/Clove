@@ -585,6 +585,9 @@ function getDailyCard(mood){
 }
 // Spotify OAuth callback — forward to handler page
 (function(){var _p=new URLSearchParams(location.search);if(_p.has('code')&&_p.get('state')==='od-spotify'){location.replace('./music-ops.html?'+location.search.slice(1));}})();
+// Field Frequency entry redirect — root sends new/returning users to field-ops
+// Skips when: ?tab= (coming back from field-ops deck button), or OAuth params present
+(function(){var s=location.search;if(s.indexOf('tab=')>-1||s.indexOf('code=')>-1)return;location.replace('./field-ops.html');})();
 let tab="home",subTab=null,card=null,flip=false,busy=false,msn=false,evMode=false,aarMode=false,notOkMode=false,filt="all",bFlips={};
 var drawerOpen=false,drawerSec={crisis:true,body:true,mind:true,adhd:false,intel:false,settings:false,meta:false};
 let streak=0,total=0,done=0,log=[],playlist=[],darkUnlocked={},evidence=[],mirrors=[],stuckPoints=[],goals=[],evView="suit",evOpen={};
@@ -876,7 +879,7 @@ function musicBar(c){
       var _uri='https://open.spotify.com/track/'+_mt.id;
       var _isHit=resonance.find(function(r){return r.k===_mt.id});
       return`<div class="mbar" title="Matched from your Spotify library"><div class="mic">\uD83C\uDFB5</div><div class="inf"><div class="sng" style="color:var(--spot)">${esc(_mt.name)}</div><div class="art">${esc(_mt.artist)} <span style="color:var(--spot);font-size:6px;font-family:monospace;letter-spacing:1.5px;opacity:.8">\u00B7 YOUR MATCH</span></div></div><button class="plb" onclick="event.stopPropagation();window.open('${_uri}','_blank')">PLAY \u25B6</button></div>`+
-      `<div style="display:flex;gap:6px;margin:6px 16px 0"><button onclick="event.stopPropagation();markRes('${_mt.id.replace(/'/g,"\\'")}',true)" style="flex:1;background:${_isHit?'rgba(192,57,43,.12)':'var(--bg3)'};border:1px solid ${_isHit?'var(--red)':'var(--bg4)'};color:${_isHit?'var(--red)':'var(--dim)'};border-radius:8px;padding:7px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .2s">${_isHit?'\u2764 THIS HIT':'\u2661 THIS HIT'}</button><a href="./music-ops.html" style="flex:1;background:var(--bg3);border:1px solid var(--bg4);color:var(--dim2);border-radius:8px;padding:7px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center">FIELD FREQ \u2192</a></div>`;
+      `<div style="display:flex;gap:6px;margin:6px 16px 0"><button onclick="event.stopPropagation();markRes('${_mt.id.replace(/'/g,"\\'")}',true)" style="flex:1;background:${_isHit?'rgba(192,57,43,.12)':'var(--bg3)'};border:1px solid ${_isHit?'var(--red)':'var(--bg4)'};color:${_isHit?'var(--red)':'var(--dim)'};border-radius:8px;padding:7px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;transition:all .2s">${_isHit?'\u2764 THIS HIT':'\u2661 THIS HIT'}</button><a href="./music-ops.html" style="flex:1;background:var(--bg3);border:1px solid var(--bg4);color:var(--dim2);border-radius:8px;padding:7px;font-size:8px;font-family:monospace;letter-spacing:1px;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center">SPOTIFY MATCH \u2192</a></div>`;
     }
   }catch(e){}
   const sd=getSongForCard(c);
@@ -1485,7 +1488,8 @@ if(drawerOpen&&!dEl){
     {id:'settings',label:'SETTINGS',c:'var(--dim)',items:[
       {icon:'\u25C8',name:'CUE WORDS',c:'var(--gld)',sub:'cuewords'},
       {icon:'\uD83C\uDFB5',name:'MUSIC PREFS',c:'var(--gld)',sub:'musicpref'},
-      {icon:'\uD83C\uDF9B',name:'FIELD FREQUENCY',c:'var(--spot)',href:'music-ops.html'},
+      {icon:'⚡',name:'FIELD FREQUENCY',c:'var(--red)',href:'field-ops.html'},
+      {icon:'\uD83C\uDF9B',name:'SPOTIFY SYNC',c:'var(--spot)',href:'music-ops.html'},
       {icon:'\u25C9',name:'VOICE LOG',c:voiceOn?'var(--grn)':'var(--dim)',fn:'toggleVoice'},
       {icon:'\uD83D\uDCCB',name:'WEEKLY DEBRIEF',c:'var(--dim)',sub:'debrief'},
       {icon:rank.icon,name:'RANK / PHASE',c:'var(--dim)',sub:'ranks'},

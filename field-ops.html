@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08080f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'">
+<title>FIELD FREQUENCY · OPERATOR'S DECK</title>
+<link rel="icon" href="./clove32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET ──────────────────────────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#08080f;color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased}
+:root{
+  --bg:#08080f;--bg2:#111118;--bg3:#0d0d14;--bg4:#1a1a22;
+  --red:#c0392b;--grn:#27ae60;--gld:#d4a843;
+  --dim:#8a8a8a;--dim2:#444;--dim3:#1c1c24;--spot:#1db954;
+}
+
+/* ─── SCREENS ────────────────────────────────────────────────────────────── */
+/* Each screen = full viewport height. Scroll only when content overflows.   */
+.app{max-width:480px;margin:0 auto}
+.scr{display:none;min-height:100dvh;flex-direction:column}
+.scr.on{display:flex}
+
+/* ─── NAV BAR ────────────────────────────────────────────────────────────── */
+.nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:max(env(safe-area-inset-top),14px) 20px 0;
+  min-height:44px;flex-shrink:0;
+}
+.nav-l,.nav-r{
+  background:none;border:none;
+  color:var(--dim2);font-size:9px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;cursor:pointer;text-decoration:none;
+  display:flex;align-items:center;gap:5px;padding:4px 0;
+  min-height:44px;transition:color .15s;
+}
+.nav-l:active,.nav-r:active{color:#fff}
+
+/* ══════════════════════════════════════════════ SCREEN 1 — ENTRY ══════════ */
+/* 0–3 seconds. One hook. One decision.                                      */
+#s-entry{justify-content:space-between;
+  padding-bottom:max(env(safe-area-inset-bottom),24px)}
+
+.e-top{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 26px}
+.e-eye{font-size:8px;letter-spacing:4px;color:var(--red);
+  font-family:'DM Mono',monospace;margin-bottom:18px}
+.e-h1{font-family:'Bebas Neue',monospace;font-size:46px;
+  letter-spacing:.5px;line-height:1.05;margin-bottom:10px}
+.e-h1 em{font-style:normal;color:var(--red)}
+.e-sub{color:var(--dim);font-size:9px;font-family:'DM Mono',monospace;
+  letter-spacing:2.5px;margin-bottom:28px}
+
+/* 6-state grid */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.sb{
+  background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;
+  padding:15px 13px;text-align:left;cursor:pointer;
+  display:flex;flex-direction:column;gap:3px;
+  transition:border-color .15s,transform .1s;
+}
+.sb:active{transform:scale(.97);background:var(--bg3)}
+.sb-ico{font-size:17px;line-height:1;margin-bottom:2px}
+.sb-lbl{font-family:'DM Mono',monospace;font-size:9px;font-weight:800;
+  letter-spacing:2px;color:#fff}
+.sb-hint{font-family:Georgia,serif;font-size:8px;font-style:italic;
+  color:var(--dim);line-height:1.3}
+
+/* Secondary row */
+.e-sec{display:flex;gap:8px;padding:0 26px}
+.bg{
+  flex:1;background:none;border:1px solid var(--dim3);border-radius:9px;
+  padding:12px 0;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:1.8px;color:var(--dim2);cursor:pointer;
+  transition:color .15s,border-color .15s;
+}
+.bg:active{color:#fff;border-color:var(--dim)}
+/* Serial-skip lockout — replaces RANDOM when consecutive_skips >= 2 */
+.random-locked{
+  flex:1;padding:12px 0;
+  font-size:8.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px;
+  text-align:center;line-height:1.7;color:var(--red);
+  border:1px solid rgba(192,57,43,.22);border-radius:9px;
+}
+.e-foot{padding:14px 26px 0;font-size:7px;font-family:'DM Mono',monospace;
+  letter-spacing:.8px;color:var(--dim2);text-align:center;line-height:1.8}
+
+/* ─── STATUS BAR (return visits only) ───────────────────────────────────── */
+#status-bar{
+  display:none;flex-direction:row;align-items:center;
+  padding:8px 26px 0;gap:8px;
+  font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1.5px;
+}
+.sb-level{font-weight:800;letter-spacing:2.5px}
+.sb-sep{color:var(--dim3);font-size:10px;line-height:1}
+.sb-val{color:var(--dim2)}
+.sb-rate{margin-left:auto}  /* pushes exec rate to right edge */
+
+/* ─── CHECKPOINT VIEW (return visits only) ───────────────────────────────── */
+#checkpoint-view{
+  flex:1;display:none;flex-direction:column;justify-content:center;
+  padding:0 26px;
+}
+.chk-tag{font-size:8px;letter-spacing:4px;color:var(--dim2);
+  font-family:'DM Mono',monospace;margin-bottom:14px}
+.chk-state{font-family:'Bebas Neue',monospace;font-size:52px;
+  letter-spacing:.5px;line-height:1;margin-bottom:8px}
+.chk-meta{font-size:9px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--dim);margin-bottom:28px}
+.btn-continue{
+  width:100%;background:var(--red);color:#fff;border:none;
+  border-radius:12px;padding:18px 0;font-size:14px;font-weight:900;
+  font-family:'DM Mono',monospace;letter-spacing:4px;cursor:pointer;
+  margin-bottom:10px;transition:background .15s,transform .12s;
+}
+.btn-continue:active{transform:scale(.98);background:#a93226}
+.btn-switch{
+  width:100%;background:none;border:1px solid var(--dim3);border-radius:10px;
+  padding:13px 0;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:2px;color:var(--dim2);cursor:pointer;margin-bottom:14px;
+  transition:color .15s,border-color .15s;
+}
+.btn-switch:active{color:#fff;border-color:var(--dim)}
+/* Drawer — collapsed by default, opened by toggleStateDrawer() */
+#state-drawer{display:none;padding-top:4px}
+#state-drawer.open{display:block}
+
+/* ─── INTERVENTION PANEL (state screen — fires at consecutive_same_state >= 3) */
+#iv-panel{margin-bottom:20px}  /* spacing above callout when populated */
+.iv-wrap{
+  padding:16px 18px;
+  border:1px solid rgba(192,57,43,.3);border-radius:11px;
+  background:rgba(192,57,43,.04);
+}
+.iv-tag{
+  font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:4px;
+  color:var(--red);margin-bottom:8px;
+}
+.iv-count{
+  font-family:'Bebas Neue',monospace;font-size:22px;letter-spacing:.5px;
+  line-height:1.1;margin-bottom:8px;
+}
+.iv-msg{
+  font-family:Georgia,serif;font-size:11px;font-style:italic;
+  color:var(--dim);line-height:1.75;margin-bottom:16px;
+}
+.iv-btns{display:flex;flex-direction:column;gap:8px}
+.btn-iv-yes{
+  width:100%;background:var(--red);color:#fff;border:none;
+  border-radius:9px;padding:13px 0;font-size:9px;font-weight:900;
+  font-family:'DM Mono',monospace;letter-spacing:2px;cursor:pointer;
+  transition:background .15s,transform .12s;
+}
+.btn-iv-yes:active{transform:scale(.98);background:#a93226}
+.btn-iv-no{
+  width:100%;background:none;color:var(--dim2);
+  border:1px solid var(--dim3);border-radius:9px;
+  padding:11px 0;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;cursor:pointer;transition:color .15s;
+}
+.btn-iv-no:active{color:var(--dim)}
+
+/* ══════════════════════════════════════════════ SCREEN 2 — STATE ══════════ */
+/* Full-viewport identity confrontation. One button.                         */
+#s-state{justify-content:space-between;
+  padding-bottom:max(env(safe-area-inset-bottom),32px)}
+
+.st-body{flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:0 26px}
+/* State memory banner — shown on RETURN, hidden on fresh entry */
+.mem-banner{
+  display:none;padding:10px 14px;border-radius:9px;
+  border:1px solid var(--dim3);background:var(--bg2);
+  margin-bottom:28px;
+}
+.mem-banner.on{display:block}
+.mem-tag{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;
+  color:var(--dim2);margin-bottom:4px}
+.mem-val{font-size:10px;font-family:'DM Mono',monospace;font-weight:700;
+  letter-spacing:1.5px;color:#fff}
+.mem-sub{font-size:8px;font-family:Georgia,serif;font-style:italic;
+  color:var(--dim);margin-top:3px}
+
+.st-tag{font-size:8px;letter-spacing:4px;color:var(--red);
+  font-family:'DM Mono',monospace;margin-bottom:26px}
+.st-call{font-family:'Bebas Neue',monospace;font-size:40px;
+  letter-spacing:.5px;line-height:1.1;margin-bottom:12px;white-space:pre-line}
+.st-truth{font-family:Georgia,serif;font-size:11.5px;font-style:italic;
+  color:var(--dim);line-height:1.85}
+
+.st-cta{padding:0 26px}
+.btn-run{
+  width:100%;background:var(--red);color:#fff;border:none;border-radius:12px;
+  padding:20px 0;font-size:14px;font-weight:900;
+  font-family:'DM Mono',monospace;letter-spacing:4px;cursor:pointer;
+  transition:background .15s,transform .12s;
+}
+.btn-run:active{transform:scale(.98);background:#a93226}
+
+/* ══════════════════════════════════════════════ SCREEN 3 — OUTPUT ═════════ */
+/* One card. Escalating pressure. 3-card session, then DEBRIEF.             */
+#s-output{padding-bottom:max(env(safe-area-inset-bottom),20px)}
+
+/* Progress rail — 3 pips */
+.prog-rail{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 26px 0;flex-shrink:0;
+}
+.pip{
+  height:3px;flex:1;border-radius:2px;
+  background:var(--dim3);transition:background .25s;
+}
+.pip.done{background:var(--red)}
+.pip.now{background:rgba(192,57,43,.45)}
+.prog-label{font-size:7.5px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--dim2);white-space:nowrap;flex-shrink:0}
+
+.out-body{flex:1;padding:10px 16px 0}
+
+/* Card */
+.card{border-radius:13px;overflow:hidden;border:1px solid var(--dim3);
+  background:var(--bg2);margin-bottom:10px}
+.card-bar{height:3px}
+.card-in{padding:20px 18px 18px}
+.card-meta{display:flex;align-items:center;gap:6px;
+  font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:2.5px;
+  margin-bottom:9px}
+.card-n{color:var(--dim2);font-size:7px}
+.card-title{font-family:'Bebas Neue',monospace;font-size:34px;
+  letter-spacing:1.5px;line-height:1;margin-bottom:14px}
+.div{height:1px;background:var(--dim3);margin-bottom:13px}
+.dir-lbl{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;
+  color:var(--dim2);margin-bottom:6px}
+.dir-txt{font-family:Georgia,serif;font-size:12.5px;font-style:italic;
+  line-height:1.75;color:#ddd;margin-bottom:14px}
+.act-row{background:rgba(192,57,43,.04);border:1px solid rgba(192,57,43,.1);
+  border-radius:8px;padding:10px 12px;margin-bottom:16px}
+.act-lbl{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;
+  color:rgba(192,57,43,.7);margin-bottom:4px}
+.act-txt{font-family:'DM Mono',monospace;font-size:9.5px;
+  font-weight:700;letter-spacing:.5px;color:#fff;line-height:1.5}
+
+/* Track row */
+.track{display:flex;align-items:center;gap:9px;
+  padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:16px}
+.tr-ico{font-size:13px;color:var(--dim2);flex-shrink:0}
+.tr-info{flex:1;min-width:0}
+.tr-name{font-size:9px;font-weight:700;font-family:'DM Mono',monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-art{font-size:8px;font-family:Georgia,serif;color:var(--dim);margin-top:1px}
+.btn-play{background:none;border:1px solid var(--dim3);color:var(--dim);
+  border-radius:7px;padding:7px 10px;font-size:8px;font-family:'DM Mono',monospace;
+  cursor:pointer;flex-shrink:0;transition:color .15s,border-color .15s}
+.btn-play:active{color:#fff;border-color:var(--dim)}
+
+/* Primary action pair */
+.act-btns{display:flex;gap:8px;margin-bottom:8px}
+/* DID IT — primary, tracked */
+.btn-did{
+  flex:1;background:var(--red);color:#fff;border:none;
+  border-radius:10px;padding:16px 0;
+  font-size:11px;font-weight:900;
+  font-family:'DM Mono',monospace;letter-spacing:2px;
+  cursor:pointer;transition:background .15s,transform .12s;
+}
+.btn-did:active{transform:scale(.97);background:#a93226}
+/* SKIP — no credit */
+.btn-skip{
+  background:var(--bg3);color:var(--dim2);
+  border:1px solid var(--dim3);border-radius:10px;
+  padding:16px 14px;font-size:9px;
+  font-family:'DM Mono',monospace;letter-spacing:1.5px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-skip:active{color:var(--dim);border-color:var(--dim2)}
+/* Save — ghost, minimal */
+.btn-save{
+  width:100%;background:none;border:none;
+  color:var(--dim2);font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:2px;cursor:pointer;padding:8px 0;
+  transition:color .15s;
+}
+.btn-save:active{color:var(--dim)}
+.btn-save.on{color:var(--gld)}
+
+/* Spotify upgrade (after 2 sessions) */
+.upgrade{
+  margin:0 16px 10px;padding:16px 18px;
+  border:1px solid rgba(29,185,84,.1);border-radius:11px;text-align:center;
+}
+.up-tag{font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:3px;
+  color:var(--spot);margin-bottom:6px}
+.up-msg{color:#888;font-size:9px;font-family:Georgia,serif;
+  font-style:italic;line-height:1.7;margin-bottom:12px}
+.up-row{display:flex;gap:8px;justify-content:center}
+.btn-uyes{background:var(--spot);color:#000;border:none;border-radius:8px;
+  padding:9px 14px;font-size:8px;font-weight:900;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;cursor:pointer}
+.btn-uyes:active{background:#1ed760}
+.btn-uno{background:none;color:var(--dim2);border:1px solid var(--dim3);
+  border-radius:8px;padding:9px 11px;font-size:8px;
+  font-family:'DM Mono',monospace;letter-spacing:1px;cursor:pointer}
+.btn-uno:active{color:var(--dim)}
+
+/* ══════════════════════════════════════════════ SCREEN 4 — DEBRIEF ═════════ */
+/* Judgment. Confrontation. Reset or continue.                               */
+#s-debrief{justify-content:space-between;
+  padding-bottom:max(env(safe-area-inset-bottom),32px)}
+
+.db-body{flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:0 26px}
+.db-eye{font-size:8px;letter-spacing:4px;color:var(--dim2);
+  font-family:'DM Mono',monospace;margin-bottom:24px}
+/* Stats strip */
+.db-stats{display:flex;gap:6px;margin-bottom:28px}
+.db-stat{flex:1;text-align:center;padding:12px 8px;
+  background:var(--bg2);border-radius:9px;border:1px solid var(--dim3)}
+.db-sv{font-size:26px;font-weight:900;font-family:'DM Mono',monospace}
+.db-sl{font-size:6.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px;
+  color:var(--dim);margin-top:3px}
+/* Verdict — punchy, Bebas */
+.db-verdict{font-family:'Bebas Neue',monospace;font-size:38px;
+  letter-spacing:.5px;line-height:1.1;margin-bottom:12px;white-space:pre-line}
+.db-sub{font-family:Georgia,serif;font-size:11.5px;font-style:italic;
+  color:var(--dim);line-height:1.85}
+
+.db-cta{padding:0 26px;display:flex;flex-direction:column;gap:8px}
+.btn-again{
+  width:100%;background:var(--red);color:#fff;border:none;border-radius:12px;
+  padding:18px 0;font-size:13px;font-weight:900;
+  font-family:'DM Mono',monospace;letter-spacing:3px;cursor:pointer;
+  transition:background .15s,transform .12s;
+}
+.btn-again:active{transform:scale(.98);background:#a93226}
+.db-ghosts{display:flex;gap:8px}
+.btn-dg{flex:1;background:none;border:1px solid var(--dim3);border-radius:10px;
+  padding:13px 0;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--dim2);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.btn-dg:active{color:#fff;border-color:var(--dim)}
+
+/* ─── TOAST ──────────────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+  background:var(--grn);color:#fff;padding:9px 20px;border-radius:9px;
+  font-size:9px;font-weight:700;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;z-index:200;pointer-events:none;white-space:nowrap;
+  animation:tin .25s ease-out,tout .25s ease-in 1.75s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(10px)}
+               to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{to{opacity:0}}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══════════════════════════════════════ SCREEN 1: ENTRY ═══════════════ -->
+<!-- 0-3s. Hook on first visit. Checkpoint on return.                       -->
+<div class="scr on" id="s-entry">
+  <nav class="nav">
+    <a class="nav-l" href="./index.html?tab=more">← DECK</a>
+    <span class="nav-r" style="font-size:8px;letter-spacing:2px">FIELD FREQUENCY</span>
+  </nav>
+
+  <!-- Status bar — shown on return visits, injected by renderStatusBar() -->
+  <div id="status-bar"></div>
+
+  <!-- Checkpoint view — shown on return visits, injected by renderCheckpoint() -->
+  <div id="checkpoint-view"></div>
+
+  <!-- Hook view — shown on first visit only -->
+  <div class="e-top" id="hook-view">
+    <div class="e-eye">OPERATOR'S DECK</div>
+    <h1 class="e-h1">YOU'RE NOT STUCK.<br>YOU'RE <em>AVOIDING</em><br>SOMETHING.</h1>
+    <p class="e-sub">PICK WHERE IT'S BREAKING:</p>
+    <div class="sg" id="state-grid"></div>
+  </div>
+
+  <!-- Secondary row — hook mode only. Injected by renderHook(). -->
+  <div class="e-sec" id="hook-secondary"></div>
+  <p class="e-foot">🔒 Nothing leaves this device. No accounts. No tracking.</p>
+  <p class="e-foot" style="margin-top:4px"><a href="./music-ops.html" style="color:var(--dim2);text-decoration:none;letter-spacing:2px">ADVANCED: SPOTIFY SYNC →</a></p>
+</div>
+
+<!-- ═══════════════════════════════════════ SCREEN 2: STATE ═══════════════ -->
+<!-- Identity callout. Memory banner if returning. One CTA.                 -->
+<div class="scr" id="s-state">
+  <nav class="nav">
+    <button class="nav-l" onclick="show('entry')">← BACK</button>
+  </nav>
+  <div class="st-body">
+    <!-- Memory banner — shown on RETURN path -->
+    <div class="mem-banner" id="mem-banner">
+      <div class="mem-tag">LAST SESSION</div>
+      <div class="mem-val" id="mem-val"></div>
+      <div class="mem-sub" id="mem-sub"></div>
+    </div>
+    <!-- Intervention panel — injected by maybeShowIntervention() -->
+    <div id="iv-panel"></div>
+    <div class="st-tag" id="st-tag"></div>
+    <div class="st-call" id="st-call"></div>
+    <p class="st-truth" id="st-truth"></p>
+  </div>
+  <div class="st-cta">
+    <button class="btn-run" onclick="runIt()">RUN IT →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SCREEN 3: OUTPUT ══════════════ -->
+<!-- Single card. DID IT / SKIP. Progress rail. 3-card session then debrief.-->
+<div class="scr" id="s-output">
+  <nav class="nav">
+    <button class="nav-l" onclick="backToState()">← BACK</button>
+    <span class="nav-r" id="out-state-lbl"></span>
+  </nav>
+  <!-- 3-pip progress rail -->
+  <div class="prog-rail" id="prog-rail">
+    <div class="pip" id="pip0"></div>
+    <div class="pip" id="pip1"></div>
+    <div class="pip" id="pip2"></div>
+    <span class="prog-label" id="prog-lbl"></span>
+  </div>
+  <div class="out-body" id="card-root"></div>
+  <div id="upgrade-root"></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SCREEN 4: DEBRIEF ════════════ -->
+<!-- Post-session judgment. Stats. Confrontational verdict. Reset options.  -->
+<div class="scr" id="s-debrief">
+  <nav class="nav">
+    <button class="nav-l" onclick="show('entry')">← HOME</button>
+  </nav>
+  <div class="db-body">
+    <div class="db-eye">SESSION DEBRIEF</div>
+    <div class="db-stats">
+      <div class="db-stat">
+        <div class="db-sv" id="db-seen" style="color:var(--dim)">0</div>
+        <div class="db-sl">DIRECTIVES<br>SEEN</div>
+      </div>
+      <div class="db-stat">
+        <div class="db-sv" id="db-did" style="color:var(--red)">0</div>
+        <div class="db-sl">EXECUTED</div>
+      </div>
+      <div class="db-stat">
+        <div class="db-sv" id="db-skip" style="color:var(--dim2)">0</div>
+        <div class="db-sl">SKIPPED</div>
+      </div>
+    </div>
+    <!-- Exec rate — hidden until ≥1 session complete -->
+    <div class="db-stat" id="db-rate" style="display:none;flex-direction:column;align-items:center;padding:10px 8px;background:var(--bg2);border-radius:9px;border:1px solid var(--dim3);margin-bottom:20px;text-align:center">
+      <div class="db-sv" id="db-rv" style="font-size:22px">--%</div>
+      <div class="db-sl">LIFETIME EXEC<br>RATE</div>
+    </div>
+    <div class="db-verdict" id="db-verdict"></div>
+    <p class="db-sub" id="db-sub"></p>
+  </div>
+  <div class="db-cta">
+    <button class="btn-again" id="btn-again" onclick="runAgain()">RUN IT AGAIN →</button>
+    <div class="db-ghosts">
+      <button class="btn-dg" onclick="show('entry')">SWITCH STATE</button>
+      <button class="btn-dg" onclick="window.location.href='./music-ops.html'">ADVANCED MODE</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+<script>
+'use strict';
+
+/* ─── STORAGE KEYS (od_ prefix — stays on device) ────────────────────────── */
+const K_SAVE = 'od_ff_saved';              // saved card keys (unchanged)
+const K_UPDI = 'od_ff_upgrade_dismissed';  // upgrade prompt dismissed
+
+/* ─── SYSTEM CORE ─────────────────────────────────────────────────────────── */
+const PROFILE_KEY = 'od_operator_profile';
+
+function getProfile(){
+  try{
+    const p=JSON.parse(localStorage.getItem(PROFILE_KEY));
+    if(p) return p;
+  }catch(e){}
+  // Fresh profile — written immediately on first read
+  const fresh={
+    last_state:null,
+    last_session:{did_it:0,cards_seen:0,started_at:null,pool_offset:0},
+    total_sessions:0,
+    total_executed:0,
+    total_skipped:0,
+    consecutive_skips:0,
+    streak:0,
+    last_seen:null,
+    level:'unstable',
+    state_history:{},              // { stateName: lifetimeRunCount }
+    consecutive_same_state:0,      // resets to 1 on any state change
+    intervention_dismissals:0      // STAY HERE clicks (escalates copy)
+  };
+  localStorage.setItem(PROFILE_KEY,JSON.stringify(fresh));
+  return fresh;
+}
+
+function saveProfile(p){
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(p))}catch(e){}
+}
+
+function updateLevel(p){
+  const total=p.total_executed+p.total_skipped;
+  const rate=total>0?p.total_executed/total:0;
+  if(p.total_sessions>=15&&rate>=0.75)       p.level='operator';
+  else if(p.total_sessions>=8&&rate>=0.6)    p.level='reliable';
+  else if(p.total_sessions>=3&&rate>=0.3)    p.level='engaged';
+  else                                        p.level='unstable';
+}
+
+/* ─── SESSION SHAPE ───────────────────────────────────────────────────────── */
+// sess lives in memory only. Profile persists to localStorage at debrief close.
+const SESSION_MAX = 3; // cards per run before DEBRIEF
+
+/* ─── STATE DEFINITIONS ───────────────────────────────────────────────────── */
+const STATES = {
+  discipline:{
+    ico:'⚡', lbl:'DISCIPLINE', hint:'Avoiding the thing.',
+    callout:'YOU ALREADY KNOW\nWHAT TO DO.\nYOU\'RE CHOOSING NOT TO.',
+    truth:'That\'s not a motivation problem. That\'s a decision you haven\'t made yet.',
+    col:'#d4a843',
+  },
+  focus:{
+    ico:'🎯', lbl:'FOCUS', hint:'Can\'t lock in.',
+    callout:'YOU\'RE NOT\nOVERWHELMED.\nYOU\'RE AVOIDING THE ONE THING.',
+    truth:'Distraction is a choice. So is locking in.',
+    col:'#5a84be',
+  },
+  anger:{
+    ico:'🔥', lbl:'ANGER', hint:'Too wired to think.',
+    callout:'YOU\'RE NOT\nWRONG TO BE ANGRY.\nYOU\'RE WRONG ABOUT\nWHERE TO AIM IT.',
+    truth:'Energy without direction is just damage. Find the target.',
+    col:'#c0392b',
+  },
+  numb:{
+    ico:'🪨', lbl:'NUMB', hint:'Can\'t feel anything.',
+    callout:'YOU\'RE NOT BROKEN.\nYOU\'RE PROTECTING\nYOURSELF FROM SOMETHING.',
+    truth:'The armor worked. Now it\'s in the way. One small move is enough.',
+    col:'#5a84be',
+  },
+  direction:{
+    ico:'🧭', lbl:'DIRECTION', hint:'Don\'t know the move.',
+    callout:'YOU\'RE NOT CONFUSED.\nYOU\'RE AFRAID TO COMMIT\nTO THE WRONG ANSWER.',
+    truth:'Staying uncommitted is still a choice. It just feels safer.',
+    col:'#27ae60',
+  },
+  relationships:{
+    ico:'🔗', lbl:'RELATIONSHIPS', hint:'Something\'s off.',
+    callout:'YOU\'RE NOT\nDISCONNECTED.\nYOU\'RE WAITING FOR\nTHEM TO GO FIRST.',
+    truth:'Whoever goes first loses nothing. Whoever waits loses more.',
+    col:'#d4a843',
+  },
+};
+
+/* ─── SUIT META ───────────────────────────────────────────────────────────── */
+const SUIT = {
+  spades   :{sym:'♠',name:'THE DIG',          col:'#4a6fa5'},
+  hearts   :{sym:'♥',name:'THE PATCH-UP',      col:'#c0392b'},
+  clubs    :{sym:'♣',name:'THE BREACH',        col:'#27ae60'},
+  diamonds :{sym:'♦',name:'THE PROTOCOL',      col:'#d4a843'},
+  addiction:{sym:'◈',name:'THE TRAP',          col:'#9333ea'},
+  ptsd     :{sym:'◎',name:'THE WATCH',         col:'#c2410c'},
+  rebuild  :{sym:'◉',name:'THE FOUNDATION',    col:'#0d9488'},
+  brotherhood:{sym:'♾',name:'THE CREW',        col:'#1e40af'},
+};
+
+/* ─── CARD POOLS ──────────────────────────────────────────────────────────── */
+// Cards are ordered ESCALATING — card[0] softest, card[5] hardest.
+// Each run shows 3 cards starting at pool_offset.
+// Second run in same state shows cards [3,4,5] — harder by design.
+const POOLS = {
+
+  discipline:[
+    // Level 1 — redirect
+    {key:'diamonds2', song:"Hustlin'", artist:'Rick Ross',
+     suit:'diamonds', n:'2', title:'CONSUME LESS. BUILD MORE.',
+     dir:'One hour of output is worth more than three hours of input.',
+     action:'Close the feed. Open the work. Not a tab — the actual work.'},
+    // Level 2 — planning frame
+    {key:'diamonds5', song:'War', artist:'Pop Smoke',
+     suit:'diamonds', n:'5', title:'90-DAY CAMPAIGNS',
+     dir:'Pick one target. Run it for 90 days. Everything else is noise until it\'s done.',
+     action:'Write the one campaign you\'re running this month. Nothing else counts.'},
+    // Level 3 — confronting past
+    {key:'clubs4', song:'Walk', artist:'Pantera',
+     suit:'clubs', n:'4', title:'SUNK COST LOOP',
+     dir:'You\'re not committed — you\'re trapped. Stop paying for a bad bet twice.',
+     action:'Name what you\'re holding onto that has already cost you more than it\'s worth.'},
+    // Level 4 — identity directive
+    {key:'diamondsA', song:'Ambitionz Az a Ridah', artist:'2Pac',
+     suit:'diamonds', n:'A', title:'ALARM GOES OFF. GET UP.',
+     dir:'You don\'t negotiate with it. The deal was made last night when you set the alarm.',
+     action:'Stand up before you count to 3. No conditions. The deal is the deal.'},
+    // Level 5 — no excuses
+    {key:'spades5', song:'The Red', artist:'Chevelle',
+     suit:'spades', n:'5', title:'STUPID TENACITY',
+     dir:'Not because it feels right. Not because you\'re motivated. Because the decision was made and you haven\'t reversed it.',
+     action:'Do the next thing on the list. Not all of them. Just the next one. Now.'},
+    // Level 6 — terminal (hardest)
+    {key:'spadesK', song:'Last Resort', artist:'Papa Roach',
+     suit:'spades', n:'K', title:'THE CRAWL',
+     dir:'No philosophy. No inspiration. Just the next thing on the list, done without feeling.',
+     action:'Name it. Do 5 minutes of it before you put this down.'},
+  ],
+
+  focus:[
+    // Level 1 — reframe (you're not failing)
+    {key:'diamonds7', song:'Indestructible', artist:'Disturbed',
+     suit:'diamonds', n:'7', title:'STRATEGIC PERSISTENCE',
+     dir:'Showing up after distraction is the whole skill. You\'ve already done the hard part by noticing.',
+     action:'Reset. One thing open. Work it for 20 minutes without switching.'},
+    // Level 2 — normalize
+    {key:'diamonds6', song:'Till I Collapse', artist:'Eminem',
+     suit:'diamonds', n:'6', title:'THE MIDDLE',
+     dir:'The middle of anything looks like failure. You\'re not failing — you\'re just not finished.',
+     action:'Keep the line for 25 minutes. One tab. Timer on. Nothing else.'},
+    // Level 3 — system tweak
+    {key:'diamonds4', song:'Forty Six & 2', artist:'Tool',
+     suit:'diamonds', n:'4', title:'SUBTRACT BEFORE YOU ADD',
+     dir:'The problem isn\'t the list. The problem is its length. Cut something real today.',
+     action:'Remove one item from today\'s list that you\'ve been lying to yourself about.'},
+    // Level 4 — confront your story
+    {key:'clubs9', song:'Renegade', artist:'JAY-Z ft. Eminem',
+     suit:'clubs', n:'9', title:'SHOW ME THE DATA',
+     dir:'Stop theorizing the problem. What does the actual evidence say is happening?',
+     action:'Write what you know is true — not what you feel. Two columns. Compare them.'},
+    // Level 5 — environment blame-removal
+    {key:'diamonds8', song:"Rough Ryders' Anthem", artist:'DMX',
+     suit:'diamonds', n:'8', title:'ENVIRONMENT BEATS WILLPOWER',
+     dir:'Your environment is making decisions for you. You haven\'t made one yet.',
+     action:'Change one physical thing in the space right now. Then open the work.'},
+    // Level 6 — ship it, no mercy
+    {key:'diamonds10', song:'Phenomenal', artist:'Eminem',
+     suit:'diamonds', n:'10', title:'SHIP UGLY',
+     dir:'The polished version is the excuse. Perfection is procrastination with better branding.',
+     action:'Send the thing you\'ve been waiting to finish. Not tomorrow. Right now.'},
+  ],
+
+  anger:[
+    // Level 1 — frame the skill
+    {key:'ptsd9', song:'Mad World', artist:'Tears for Fears',
+     suit:'ptsd', n:'9', title:"SEEING WHAT OTHERS CAN'T",
+     dir:'That read on the room is accurate. The question is whether you deploy it or detonate it.',
+     action:'Use what you see to inform — not to punish. One piece of information. Use it cleanly.'},
+    // Level 2 — redirect
+    {key:'ptsdK', song:'War Pigs', artist:'Black Sabbath',
+     suit:'ptsd', n:'K', title:'CALIBRATED',
+     dir:'Precision beats force. Slow the reaction by 3 seconds. Then move with intent.',
+     action:'Count to 3 before your next word or decision. Not as delay — as aim.'},
+    // Level 3 — reframe cost
+    {key:'ptsd4', song:'Ten Thousand Fists', artist:'Disturbed',
+     suit:'ptsd', n:'4', title:'THE COST OF ALWAYS BEING RIGHT',
+     dir:'Being right costs more than being effective. Decide which one you\'re actually after.',
+     action:'Ask yourself: what outcome do I actually want from this situation?'},
+    // Level 4 — name the real target
+    {key:'ptsdQ', song:'Cochise', artist:'Audioslave',
+     suit:'ptsd', n:'Q', title:'CONTROLLED AGGRESSION',
+     dir:'Aggression without direction burns the wrong targets. Identify the actual source.',
+     action:'Name the real cause — not the nearest person. Write it.'},
+    // Level 5 — acknowledge and redirect
+    {key:'clubs10', song:'Killing in the Name', artist:'Rage Against The Machine',
+     suit:'clubs', n:'10', title:'THE PENDULUM',
+     dir:'The swing is real. But where you aim it now determines the next swing. Not after it lands.',
+     action:'Breathe out fully. Then decide — don\'t react. Decide.'},
+    // Level 6 — physical action required
+    {key:'ptsd6', song:'Break Stuff', artist:'Limp Bizkit',
+     suit:'ptsd', n:'6', title:'THE SWITCH',
+     dir:'You\'re charged. Don\'t discharge into the wrong target. Move physically right now.',
+     action:'20 push-ups or a walk before you engage with anyone about this. Non-negotiable.'},
+  ],
+
+  numb:[
+    // Level 1 — permission (softest)
+    {key:'rebuild5', song:'Starting Over', artist:'Chris Stapleton',
+     suit:'rebuild', n:'5', title:'THE EMBARRASSMENT OF TRYING AGAIN',
+     dir:'Starting over feels like an admission of failure. Nobody\'s watching. Do it anyway.',
+     action:'Identify the one thing you stopped doing. Do 5 minutes of it right now.'},
+    // Level 2 — counter-evidence
+    {key:'spades3', song:'The Unforgiven', artist:'Metallica',
+     suit:'spades', n:'3', title:'YOU ARE NOT YOUR WORST MOMENT',
+     dir:'The worst moment is not the whole record. You\'re still here. That is the counter-evidence.',
+     action:'Write the last time you got through something you thought you couldn\'t.'},
+    // Level 3 — name the state
+    {key:'spades8', song:'Numb', artist:'Linkin Park',
+     suit:'spades', n:'8', title:'THE FOG IS COMFORTABLE',
+     dir:'The flatness feels safe because nothing can get worse inside it. That\'s not safety — that\'s stasis.',
+     action:'Write one sentence that is factually true about your life right now. Just one.'},
+    // Level 4 — smallest action
+    {key:'rebuild4', song:'Learning to Breathe', artist:'Switchfoot',
+     suit:'rebuild', n:'4', title:'THE FIRST MORNING',
+     dir:'You don\'t need momentum to start. Momentum comes after the start.',
+     action:'One thing: shower, water, or stand up. That\'s the entire mission.'},
+    // Level 5 — survival evidence
+    {key:'rebuild9', song:'Rock Bottom', artist:'Eminem',
+     suit:'rebuild', n:'9', title:'THE SMALLER VERSION',
+     dir:'You\'ve been a smaller version of yourself before and clawed back. That is evidence, not history.',
+     action:'List 3 things you\'ve already survived. Read them. They happened.'},
+    // Level 6 — terminal permission
+    {key:'spades7', song:'Snuff', artist:'Slipknot',
+     suit:'spades', n:'7', title:'PERMISSION TO BE BROKEN',
+     dir:'You don\'t have to fix it right now. You don\'t have to perform. Sit with it for 60 seconds.',
+     action:'Sit. No phone. No fixing. 60 seconds of just existing. That\'s the whole task.'},
+  ],
+
+  direction:[
+    // Level 1 — audit (low commitment)
+    {key:'rebuild3', song:'Better Man', artist:'Pearl Jam',
+     suit:'rebuild', n:'3', title:'THE INVENTORY',
+     dir:'What you actually have vs. what you\'ve been telling yourself. The gap is where to start.',
+     action:'List 3 real assets — skills, people, resources — you have access to right now.'},
+    // Level 2 — tiny start
+    {key:'heartsJ', song:'Lateralus', artist:'Tool',
+     suit:'hearts', n:'J', title:'THE FIVE-MINUTE RULE',
+     dir:'Five minutes only. Stop if you need to. The only rule is you start the five minutes.',
+     action:'Set a 5-minute timer. Start the thing. Stop means stop — but start means start.'},
+    // Level 3 — confront the wait
+    {key:'spades4', song:'Institutionalized', artist:'Suicidal Tendencies',
+     suit:'spades', n:'4', title:'THE LIE ABOUT WILLPOWER',
+     dir:'You\'re not waiting for motivation. You\'re waiting to feel safe. That feeling won\'t come first.',
+     action:'Name the decision you\'ve been delaying. Write it. Commit to one direction.'},
+    // Level 4 — identity frame
+    {key:'diamondsQ', song:'I Am', artist:'Yo Gotti',
+     suit:'diamonds', n:'Q', title:'IDENTITY PRECEDES ACTION',
+     dir:'The action you take is the answer to who you are. The question is already being answered.',
+     action:'Finish this sentence: "I am the kind of person who _____." Mean it.'},
+    // Level 5 — decision required
+    {key:'diamondsK', song:"Welcome to the Jungle", artist:"Guns N' Roses",
+     suit:'diamonds', n:'K', title:'THE SECOND PATH',
+     dir:'You already know which choice you\'d respect yourself for. You\'re just not ready to own the cost.',
+     action:'Write both options. Circle the one that requires more courage. That\'s the answer.'},
+    // Level 6 — decide now (terminal)
+    {key:'spades10', song:'Stinkfist', artist:'Tool',
+     suit:'spades', n:'10', title:'THE 60-SECOND RULE',
+     dir:'You have 60 seconds to decide. After that you act on what you have. The clock started.',
+     action:'Write the decision. Right now. Not later. The 60 seconds started when you read this.'},
+  ],
+
+  relationships:[
+    // Level 1 — reach out (softest)
+    {key:'brotherhood5', song:'Lean on Me', artist:'Bill Withers',
+     suit:'brotherhood', n:'5', title:'THE SIT-DOWN',
+     dir:'You don\'t have to explain it. Text someone two words: "Bad day." That\'s the whole message.',
+     action:'Send the message before you put this down. Two words. No explanation required.'},
+    // Level 2 — presence
+    {key:'hearts8', song:'Given Up', artist:'Linkin Park',
+     suit:'hearts', n:'8', title:'PRESENCE IS THE MISSION',
+     dir:'You\'re physically there. Where\'s the rest of you? They notice more than you think.',
+     action:'Put the phone down. Look at them. Ask one real question and wait for the answer.'},
+    // Level 3 — what you owe
+    {key:'brotherhood8', song:'Come as You Are', artist:'Nirvana',
+     suit:'brotherhood', n:'8', title:'REAL ACCOUNTABILITY',
+     dir:'What you owe vs. what you\'re willing to give. Be honest about the distance between them.',
+     action:'Write what you actually owe someone you\'ve been avoiding. No excuses — just the fact.'},
+    // Level 4 — exposure
+    {key:'hearts10', song:'Vulnerability Isn\'t Weakness', artist:'Eminem',
+     suit:'hearts', n:'10', title:"VULNERABILITY ISN'T WEAKNESS",
+     dir:'Saying the true thing out loud is harder than staying silent. That\'s exactly the point.',
+     action:'Say the thing you\'ve been circling. To yourself first. Then to the person.'},
+    // Level 5 — action required
+    {key:'hearts4', song:'Waiting for the End', artist:'Linkin Park',
+     suit:'hearts', n:'4', title:'THE APOLOGY PROTOCOL',
+     dir:'An apology without behavioral change is just noise. It might feel better — it does nothing.',
+     action:'If you owe one: say it without explanation. Then change the one specific thing.'},
+    // Level 6 — confrontation (hardest)
+    {key:'hearts5', song:'Cleaning Out My Closet', artist:'Eminem',
+     suit:'hearts', n:'5', title:"SHE'S NOT YOUR THERAPIST",
+     dir:'That\'s not her job. You can\'t outsource what you haven\'t identified in yourself.',
+     action:'Name the actual need you\'ve been offloading onto someone else. Own it yourself.'},
+  ],
+};
+
+/* ─── DEBRIEF COPY (verdict based on execution ratio) ────────────────────── */
+function debriefCopy(didIt, total){
+  if(didIt===total) return{
+    verdict:"THAT'S NOT IMPRESSIVE.\nTHAT'S BASELINE.",
+    sub:"You did what you were supposed to do. The work doesn't care that you showed up."
+  };
+  if(didIt===total-1) return{
+    verdict:"ALMOST ISN'T THERE.",
+    sub:"The one you skipped is the one that mattered. You already know which one."
+  };
+  if(didIt===1) return{
+    verdict:"ONE OUT OF THREE.",
+    sub:"That gap between knowing and doing — that's the actual problem. Not motivation. Not circumstance."
+  };
+  return{
+    verdict:"YOU SAW THE DIRECTIVES.\nYOU DIDN'T MOVE.",
+    sub:"Don't explain why. Just run it again."
+  };
+}
+
+/* ─── APP STATE ───────────────────────────────────────────────────────────── */
+let currentState = null;  // active state key
+let sess = null;          // current session object
+let fromReturn = false;   // used to control memory banner
+
+/* ─── UTILS ───────────────────────────────────────────────────────────────── */
+function esc(s){const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML}
+function jg(k){try{return JSON.parse(localStorage.getItem(k))}catch{return null}}
+function js(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+function toast(m,bg='var(--grn)'){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=m;t.style.background=bg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2300);
+}
+
+/* ─── SCREEN MACHINE ──────────────────────────────────────────────────────── */
+function show(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  window.scrollTo(0,0);
+}
+
+/* ─── ENTRY SCREEN ────────────────────────────────────────────────────────── */
+// Shared state grid builder — used by both hook and checkpoint drawer
+function buildStateGrid(containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML=Object.entries(STATES).map(([k,s])=>
+    `<button class="sb" data-s="${k}" onclick="enterState('${k}')">
+      <span class="sb-ico">${s.ico}</span>
+      <span class="sb-lbl">${s.lbl}</span>
+      <span class="sb-hint">${esc(s.hint)}</span>
+    </button>`
+  ).join('');
+}
+
+function buildEntry(){
+  const prof=getProfile();
+  if(prof.total_sessions>0){
+    renderCheckpoint(prof);
+  } else {
+    renderHook();
+  }
+}
+
+// HOOK — first visit, no profile data yet
+function renderHook(){
+  const prof=getProfile();
+  document.getElementById('hook-view').style.display='flex';
+  document.getElementById('hook-secondary').style.display='flex';
+  document.getElementById('checkpoint-view').style.display='none';
+  document.getElementById('status-bar').style.display='none';
+  buildStateGrid('state-grid');
+  document.getElementById('hook-secondary').innerHTML=randomButtonHTML(prof);
+}
+
+// CHECKPOINT — return visit, profile populated
+function renderCheckpoint(prof){
+  document.getElementById('hook-view').style.display='none';
+  document.getElementById('hook-secondary').style.display='none';
+
+  // Status bar
+  renderStatusBar(prof);
+
+  // Checkpoint body
+  const st=STATES[prof.last_state]||Object.values(STATES)[0];
+  const total=prof.total_executed+prof.total_skipped;
+  const rate=total>0?Math.round((prof.total_executed/total)*100):0;
+  const sessions=prof.total_sessions;
+
+  document.getElementById('checkpoint-view').style.display='flex';
+  document.getElementById('checkpoint-view').innerHTML=`
+    <div class="chk-tag">YOU LEFT OFF</div>
+    <div class="chk-state">${esc(st.lbl)}</div>
+    <div class="chk-meta">${sessions} SESSION${sessions!==1?'S':''} · ${rate}% EXECUTED</div>
+    <button class="btn-continue" onclick="continueSession()">CONTINUE →</button>
+    <button class="btn-switch" id="btn-switch-state" onclick="toggleStateDrawer()">↓ SWITCH STATE</button>
+    <div id="state-drawer">
+      <div class="sg" id="state-grid-chk"></div>
+      <div class="e-sec" style="padding:0;margin-top:8px">${randomButtonHTML(prof)}</div>
+    </div>`;
+
+  buildStateGrid('state-grid-chk');
+}
+
+// Returns RANDOM button HTML or locked state message based on consecutive_skips
+function randomButtonHTML(prof){
+  if(prof.consecutive_skips>=2){
+    return `<div class="random-locked">RANDOM DISABLED<br>YOU'RE AVOIDING</div>`;
+  }
+  return `<button class="bg" onclick="enterRandom()">⚄ RANDOM</button>`;
+}
+
+// STATUS BAR — level, optional streak, exec rate
+function renderStatusBar(prof){
+  const bar=document.getElementById('status-bar');
+  const total=prof.total_executed+prof.total_skipped;
+  const rate=total>0?Math.round((prof.total_executed/total)*100):0;
+
+  const LC={unstable:'var(--red)',engaged:'var(--dim)',reliable:'var(--gld)',operator:'var(--grn)'};
+  const lcol=LC[prof.level]||'var(--dim)';
+  const RC=rate>=75?'var(--grn)':rate>=50?'var(--gld)':'var(--red)';
+
+  const streakHTML=prof.streak>1
+    ?`<span class="sb-sep">·</span><span class="sb-val">STREAK ${prof.streak}</span>`
+    :'';
+
+  bar.style.display='flex';
+  bar.innerHTML=`
+    <span class="sb-level" style="color:${lcol}">${prof.level.toUpperCase()}</span>
+    ${streakHTML}
+    <span class="sb-rate sb-val" style="color:${RC};margin-left:auto">${rate}% EXEC</span>`;
+}
+
+/* ─── ENTRY PATHS ─────────────────────────────────────────────────────────── */
+// Path A: choose state → STATE screen
+function enterState(s){
+  currentState=s;
+  fromReturn=false;
+  hideMem();
+  loadStateScreen(s);
+  show('state');
+}
+
+// Path B: RANDOM → skip state screen, go straight to output
+function enterRandom(){
+  const keys=Object.keys(STATES);
+  currentState=keys[Math.floor(Math.random()*keys.length)];
+  startSession(currentState,0);
+  renderCard();
+  show('output');
+}
+
+// Path C: RETURN → show state screen with memory banner
+function enterReturn(){
+  const prof=getProfile();
+  if(!prof.last_state||!STATES[prof.last_state]) return enterRandom();
+  currentState=prof.last_state;
+  fromReturn=true;
+  loadStateScreen(currentState);
+  showMem(prof);
+  show('state');
+}
+
+// Path D: CONTINUE from checkpoint → same as enterReturn (state screen + memory)
+function continueSession(){
+  enterReturn();
+}
+
+// Toggle state drawer in checkpoint view
+function toggleStateDrawer(){
+  const d=document.getElementById('state-drawer');
+  const b=document.getElementById('btn-switch-state');
+  if(!d) return;
+  const open=d.classList.toggle('open');
+  if(b) b.textContent=open?'↑ HIDE STATES':'↓ SWITCH STATE';
+}
+
+/* ─── STATE SCREEN ────────────────────────────────────────────────────────── */
+function loadStateScreen(s){
+  const st=STATES[s];
+  document.getElementById('st-tag').textContent=st.lbl;
+  document.getElementById('st-call').textContent=st.callout;
+  document.getElementById('st-truth').textContent=st.truth;
+  // Always clear first — redirectState re-calls this with a new state
+  const iv=document.getElementById('iv-panel');
+  if(iv) iv.innerHTML='';
+  maybeShowIntervention(s);
+}
+
+/* ─── INTERVENTION SYSTEM ─────────────────────────────────────────────────── */
+// Psychology-informed: each redirect collapses the hiding pattern into its root
+const REDIRECT_MAP={
+  numb:          'anger',        // numbness masks suppressed anger
+  anger:         'discipline',   // redirect destructive energy into output
+  discipline:    'direction',    // execution without purpose loops endlessly
+  focus:         'direction',    // can't lock in because the target is unclear
+  direction:     'discipline',   // stop planning, start doing
+  relationships: 'numb',         // externalization surfaces what's underneath
+};
+
+function maybeShowIntervention(state){
+  const prof=getProfile();
+  if((prof.consecutive_same_state||0)<3) return;  // threshold not hit
+  const redirectTo=REDIRECT_MAP[state];
+  if(!redirectTo||!STATES[redirectTo]) return;
+
+  const count=prof.consecutive_same_state;
+  const dismissals=prof.intervention_dismissals||0;
+  const target=STATES[redirectTo];
+
+  // Escalated copy after ≥2 dismissals
+  const msgLine=dismissals>=2
+    ? `You've ignored this ${dismissals} times.<br>You're not stuck.<br>You're choosing this.`
+    : `That's not a state — it's a habit.`;
+
+  const panel=document.getElementById('iv-panel');
+  if(!panel) return;
+  panel.innerHTML=`
+    <div class="iv-wrap">
+      <div class="iv-tag">PATTERN DETECTED</div>
+      <div class="iv-count">You've chosen ${esc(STATES[state].lbl)} ${count} times in a row.</div>
+      <div class="iv-msg">${msgLine}</div>
+      <div class="iv-btns">
+        <button class="btn-iv-yes" onclick="redirectState('${esc(redirectTo)}')">→ RUN ${esc(target.lbl)} INSTEAD</button>
+        <button class="btn-iv-no" onclick="dismissIntervention()">STAY HERE</button>
+      </div>
+    </div>`;
+}
+
+// Swap to redirected state — clears panel naturally via loadStateScreen
+function redirectState(newState){
+  if(!STATES[newState]) return;
+  currentState=newState;
+  fromReturn=false;
+  hideMem();
+  loadStateScreen(newState);
+}
+
+// STAY HERE — increments dismissal count, escalates copy on next intervention
+function dismissIntervention(){
+  const prof=getProfile();
+  prof.intervention_dismissals=(prof.intervention_dismissals||0)+1;
+  saveProfile(prof);
+  const panel=document.getElementById('iv-panel');
+  if(panel) panel.innerHTML='';
+}
+
+function showMem(prof){
+  const banner=document.getElementById('mem-banner');
+  const st=STATES[prof.last_state];
+  if(!st){hideMem();return;}
+  const ls=prof.last_session||{};
+  document.getElementById('mem-val').textContent=
+    st.lbl+' · '+(ls.did_it||0)+'/'+SESSION_MAX+' EXECUTED';
+  const ago=ls.started_at?timeAgo(ls.started_at):'previous session';
+  document.getElementById('mem-sub').textContent=ago;
+  banner.classList.add('on');
+}
+
+function hideMem(){
+  document.getElementById('mem-banner').classList.remove('on');
+}
+
+function timeAgo(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+' min ago';
+  if(s<86400) return Math.floor(s/3600)+' hr ago';
+  return Math.floor(s/86400)+' day'+(Math.floor(s/86400)>1?'s':'')+' ago';
+}
+
+// RUN IT button
+function runIt(){
+  const prof=getProfile();
+  let offset=0;
+  if(fromReturn && prof.last_state===currentState){
+    const ls=prof.last_session||{};
+    offset=((ls.pool_offset||0)+SESSION_MAX)%POOLS[currentState].length;
+  }
+  startSession(currentState, offset);
+  renderCard();
+  show('output');
+}
+
+/* ─── SESSION MANAGEMENT ──────────────────────────────────────────────────── */
+function startSession(state, poolOffset){
+  // sess lives in memory for the duration of the run.
+  // Profile (persistent) is only updated when the debrief closes.
+  sess={state, pool_offset:poolOffset, cards_seen:0, did_it:0, skipped:0, started_at:Date.now()};
+}
+
+function updateSess(){/* sess is in-memory — no write needed between cards */}
+
+/* ─── OUTPUT SCREEN ───────────────────────────────────────────────────────── */
+function renderCard(){
+  if(!sess) return;
+  const pool=POOLS[sess.state];
+  const idx=(sess.pool_offset+sess.cards_seen)%pool.length;
+  const card=pool[idx];
+  const meta=SUIT[card.suit]||SUIT.spades;
+  const saved=(jg(K_SAVE)||[]).includes(card.key);
+
+  // State label in nav
+  const stEl=document.getElementById('out-state-lbl');
+  if(stEl) stEl.textContent=STATES[sess.state]?.lbl||'';
+
+  // Progress rail (3 pips)
+  for(let i=0;i<SESSION_MAX;i++){
+    const pip=document.getElementById('pip'+i);
+    if(!pip) continue;
+    pip.className='pip';
+    if(i<sess.cards_seen) pip.classList.add('done');
+    else if(i===sess.cards_seen) pip.classList.add('now');
+  }
+  const lbl=document.getElementById('prog-lbl');
+  if(lbl) lbl.textContent=(sess.cards_seen+1)+' OF '+SESSION_MAX;
+
+  // YouTube fallback
+  const ytURL='https://www.youtube.com/results?search_query='+encodeURIComponent(card.song+' '+card.artist);
+
+  document.getElementById('card-root').innerHTML=`
+    <div class="card">
+      <div class="card-bar" style="background:${esc(meta.col)}"></div>
+      <div class="card-in">
+        <div class="card-meta" style="color:${esc(meta.col)}">
+          ${esc(meta.sym)} ${esc(meta.name)}<span class="card-n"> · ${esc(card.n)}</span>
+        </div>
+        <div class="card-title">${esc(card.title)}</div>
+        <div class="div"></div>
+        <div class="dir-lbl">DIRECTIVE</div>
+        <div class="dir-txt">${esc(card.dir)}</div>
+        <div class="act-row">
+          <div class="act-lbl">DO THIS NOW</div>
+          <div class="act-txt">${esc(card.action)}</div>
+        </div>
+        <div class="track">
+          <span class="tr-ico">♪</span>
+          <div class="tr-info">
+            <div class="tr-name">${esc(card.song)}</div>
+            <div class="tr-art">${esc(card.artist)}</div>
+          </div>
+          <button class="btn-play" onclick="window.open('${esc(ytURL)}','_blank','noopener')">▶ PLAY</button>
+        </div>
+        <div class="act-btns">
+          <button class="btn-did" onclick="didIt()">DID IT →</button>
+          <button class="btn-skip" onclick="skipCard()">SKIP</button>
+        </div>
+        <button class="btn-save${saved?' on':''}" id="btn-save" onclick="toggleSave('${esc(card.key)}')">${saved?'✓ SAVED':'SAVE CARD'}</button>
+      </div>
+    </div>`;
+
+  renderUpgrade();
+}
+
+// DID IT — tracks execution, advances
+function didIt(){
+  sess.did_it++;
+  advanceCard();
+}
+
+// SKIP — no credit, just advances
+function skipCard(){
+  sess.skipped++;
+  advanceCard();
+}
+
+function advanceCard(){
+  sess.cards_seen++;
+  // Note: profile totals update at showDebrief(), not per-card
+  if(sess.cards_seen>=SESSION_MAX){
+    showDebrief();
+  } else {
+    renderCard();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+
+function backToState(){
+  if(currentState){
+    fromReturn=true;
+    const prof=getProfile();
+    if(prof.last_state) showMem(prof);
+    loadStateScreen(currentState);
+    show('state');
+  } else {
+    show('entry');
+  }
+}
+
+function toggleSave(key){
+  const saved=jg(K_SAVE)||[];
+  const i=saved.indexOf(key);
+  if(i===-1){saved.push(key);toast('CARD SAVED');}
+  else{saved.splice(i,1);toast('REMOVED','#333');}
+  js(K_SAVE,saved);
+  const btn=document.getElementById('btn-save');
+  if(btn){
+    const on=saved.includes(key);
+    btn.className='btn-save'+(on?' on':'');
+    btn.textContent=on?'✓ SAVED':'SAVE CARD';
+  }
+}
+
+/* ─── UPGRADE PROMPT ──────────────────────────────────────────────────────── */
+function renderUpgrade(){
+  const el=document.getElementById('upgrade-root');
+  if(!el) return;
+  const prof=getProfile();
+  if(prof.total_executed>=5&&!jg(K_UPDI)){
+    el.innerHTML=`
+      <div class="upgrade">
+        <div class="up-tag">SIGNAL UPGRADE UNLOCKED</div>
+        <div class="up-msg">You've proven execution. Now match every card to a real track from your Spotify library — by genre fingerprint. Runs once. Stays local.</div>
+        <div class="up-row">
+          <button class="btn-uyes" onclick="window.location.href='./music-ops.html'">CONNECT SPOTIFY →</button>
+          <button class="btn-uno" onclick="dismissUpgrade()">NOT NOW</button>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML='';
+  }
+}
+
+function dismissUpgrade(){js(K_UPDI,true);document.getElementById('upgrade-root').innerHTML=''}
+
+/* ─── DEBRIEF SCREEN ──────────────────────────────────────────────────────── */
+function showDebrief(){
+  if(!sess) return;
+
+  /* ── 1. UPDATE PROFILE (single write point for all session data) ── */
+  const prof=getProfile();
+  const prevLastSeen=prof.last_seen;     // capture before overwrite for streak calc
+  const prevLastState=prof.last_state;   // capture before overwrite for same-state tracking
+
+  prof.total_sessions  += 1;
+  prof.total_executed  += sess.did_it;
+  prof.total_skipped   += sess.skipped;
+
+  // Same-state consecutive tracking (compare BEFORE updating last_state)
+  if(prevLastState === sess.state){
+    prof.consecutive_same_state = (prof.consecutive_same_state||0) + 1;
+  } else {
+    prof.consecutive_same_state = 1; // session 1 of a new state
+  }
+
+  // Per-state lifetime run count
+  prof.state_history = prof.state_history || {};
+  prof.state_history[sess.state] = (prof.state_history[sess.state]||0) + 1;
+
+  prof.last_state       = sess.state;
+  prof.last_session     = {
+    did_it:      sess.did_it,
+    cards_seen:  sess.cards_seen,
+    started_at:  sess.started_at,
+    pool_offset: sess.pool_offset
+  };
+
+  // Consecutive skip tracking (resets on any DID IT this session)
+  if(sess.did_it===0) prof.consecutive_skips++;
+  else                prof.consecutive_skips=0;
+
+  // Streak (daily — checks previous last_seen before updating)
+  if(prevLastSeen){
+    const diffDays=Math.floor((Date.now()-prevLastSeen)/(1000*60*60*24));
+    if(diffDays===1&&sess.did_it>0)      prof.streak++;
+    else if(diffDays>1)                  prof.streak=sess.did_it>0?1:0;
+    // same-day re-run: streak unchanged
+  } else if(sess.did_it>0){
+    prof.streak=1; // first ever session with execution
+  }
+
+  prof.last_seen=Date.now();
+  updateLevel(prof);
+  saveProfile(prof);
+
+  /* ── 2. COMPUTE DISPLAY VALUES ── */
+  const lifeTotal=prof.total_executed+prof.total_skipped;
+  const execRate=lifeTotal>0?Math.round((prof.total_executed/lifeTotal)*100):null;
+
+  const {verdict,sub}=debriefCopy(sess.did_it,SESSION_MAX);
+
+  /* ── 3. RENDER STATS ── */
+  document.getElementById('db-seen').textContent=sess.cards_seen;
+  document.getElementById('db-did').textContent=sess.did_it;
+  document.getElementById('db-skip').textContent=sess.skipped;
+
+  // Colour executed stat by ratio
+  const ratio=sess.did_it/SESSION_MAX;
+  document.getElementById('db-did').style.color=
+    ratio===1?'var(--grn)':ratio>=0.66?'var(--gld)':'var(--red)';
+
+  // Exec rate — show after first session (lifeTotal > 0)
+  const rateEl=document.getElementById('db-rate');
+  if(rateEl){
+    if(execRate!==null){
+      rateEl.style.display='flex';
+      document.getElementById('db-rv').textContent=execRate+'%';
+      document.getElementById('db-rv').style.color=
+        execRate>=75?'var(--grn)':execRate>=50?'var(--gld)':'var(--red)';
+    } else {
+      rateEl.style.display='none';
+    }
+  }
+
+  document.getElementById('db-verdict').textContent=verdict;
+  document.getElementById('db-sub').textContent=sub;
+
+  // Button label — escalation vs retry
+  document.getElementById('btn-again').textContent=
+    sess.did_it===SESSION_MAX?'NEXT LEVEL →':'RUN IT AGAIN →';
+
+  show('debrief');
+}
+
+function runAgain(){
+  if(!sess||!currentState) return;
+  // Advance pool_offset by SESSION_MAX for next run (escalation)
+  const pool=POOLS[currentState];
+  const nextOffset=(sess.pool_offset+SESSION_MAX)%pool.length;
+  startSession(currentState, nextOffset);
+  renderCard();
+  show('output');
+}
+
+/* ─── INIT ────────────────────────────────────────────────────────────────── */
+function init(){
+  buildEntry();
+
+  // ?state= deep link support
+  const p=new URLSearchParams(location.search);
+  const pre=p.get('state');
+  if(pre&&POOLS[pre]){
+    currentState=pre;
+    hideMem();
+    loadStateScreen(pre);
+    show('state');
+    return;
+  }
+  show('entry');
+}
+
+// Expose all onclick handlers (strict mode safe)
+Object.assign(window,{
+  show,enterState,enterRandom,enterReturn,continueSession,toggleStateDrawer,
+  runIt,didIt,skipCard,backToState,toggleSave,
+  runAgain,dismissUpgrade,
+  redirectState,dismissIntervention,
+});
+
+init();
+</script>
+</body>
+</html>
