@@ -5,7 +5,17 @@
       "Bash(sed '1d;$d')",
       "Bash(node --check /tmp/fo_script.js)",
       "Bash(python3 -c ':*)",
-      "Bash(node --check /tmp/fo_script2.js)"
+      "Bash(node --check /tmp/fo_script2.js)",
+      "Bash(sort echo:*)",
+      "Bash(grep -rn \"og-image\" *.html)",
+      "Bash(grep -rn \"chart.js@\" *.html)",
+      "Bash(awk 'NR==590' index.html)",
+      "Bash(awk 'NR==1661' index.html)",
+      "Bash(awk 'NR==1662' index.html)",
+      "Bash(find . -name \"*.html\" -exec sed -i 's|https://clovelearn.io/icons/og-image.jpg|https://clovelearn.io/og-image.jpg|g' {} \\\\;)",
+      "Bash(grep -r \"chart.js@\" *.html)",
+      "Bash(node --check /tmp/fo_final.js)",
+      "Read(//home/thebackhand/Downloads/clovelearn_v3_final_deploy echo === Main script block \\(ends at first </script>\\) === awk /^<script>$/{p=1;next} /^<\\\\/script>$/{if\\(p\\){p=0;exit}} p field-ops.html node --check /tmp/**)"
     ]
   }
 }
