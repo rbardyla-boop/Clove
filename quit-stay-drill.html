@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta property="og:title" content="QUIT/STAY PROTOCOL • OPERATOR'S DECK">
+<meta property="og:description" content="Decision framework for the question everyone avoids: should I stay or should I go?">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/quit-stay-drill.html">
+<meta name="description" content="A 5-step decision framework for the question everyone avoids. From Stubborn Bastard by Ryan Bardyla.">
+<meta name="referrer" content="no-referrer">
+<title>QUIT / STAY PROTOCOL • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;
+  --dim:#8a8a8a;--dim2:#777;--dim3:#333
+}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+html{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding-bottom:60px}
+
+/* ── NAV ──────────────────────────────────────────────────────────────────── */
+.nav-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:3px solid var(--blu);display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.back-btn{background:none;border:1px solid var(--bg4);color:#aaa;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s}
+.back-btn:active{color:#fff;border-color:#444}
+.nav-right{text-align:right}
+.nav-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;text-transform:uppercase}
+.nav-name{color:var(--blu);font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px}
+
+/* ── PROGRESS ─────────────────────────────────────────────────────────────── */
+.prog-wrap{height:3px;background:var(--bg3)}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blu),var(--gld));transition:width .4s ease;width:0%}
+
+/* ── DISCLAIMER ───────────────────────────────────────────────────────────── */
+.disclaimer{text-align:center;padding:8px 16px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);border-bottom:1px solid var(--bg3);text-transform:uppercase}
+
+/* ── STEPS ────────────────────────────────────────────────────────────────── */
+.step{display:none;padding:24px 20px 20px}
+.step.active{display:block}
+.step-counter{text-align:center;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim);padding-bottom:4px}
+.step-counter span{color:var(--blu)}
+.step-label{color:var(--blu);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px;text-transform:uppercase}
+.step-title{font-family:'Bebas Neue',monospace;font-size:30px;letter-spacing:1px;color:#fff;margin-bottom:8px;line-height:1.1}
+.step-desc{font-family:Georgia,serif;font-style:italic;color:#666;font-size:10px;line-height:1.7;margin-bottom:18px}
+
+/* ── EXAMPLE BOX ──────────────────────────────────────────────────────────── */
+.example-box{background:var(--bg3);border-left:2px solid var(--blu);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:9px;font-family:Georgia,serif;color:#555;line-height:1.6}
+.ex-tag{font-size:6.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);display:block;margin-bottom:4px}
+
+/* ── INPUTS ───────────────────────────────────────────────────────────────── */
+textarea{width:100%;background:var(--bg2);border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;color:#ddd;font-family:Georgia,serif;font-size:11px;line-height:1.7;resize:vertical;min-height:80px;transition:border-color .15s}
+textarea:focus{outline:none;border-color:var(--gld)}
+textarea::placeholder{color:#444;font-style:italic}
+.char-hint{font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--dim2);text-align:right;margin-top:4px;margin-bottom:14px}
+
+/* ── CHOICE CARDS (building / breaking) ───────────────────────────────────── */
+.choice-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.choice-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s;display:block}
+.choice-card input[type="radio"]{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+.choice-card:active{transform:scale(.99)}
+.choice-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:5px;text-transform:uppercase}
+.choice-title{font-size:13px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.5px;color:#e8e8f0;margin-bottom:5px}
+.choice-desc{font-size:9px;font-family:Georgia,serif;color:var(--dim);line-height:1.6;font-style:italic}
+/* Building */
+.card-building .choice-tag{color:var(--grn)}
+.card-building.selected{border-color:var(--grn);background:rgba(39,174,96,.05)}
+/* Breaking */
+.card-breaking .choice-tag{color:var(--red)}
+.card-breaking.selected{border-color:var(--red);background:rgba(192,57,43,.05)}
+
+/* ── FOLLOW-UP PROMPT ─────────────────────────────────────────────────────── */
+.follow-prompt{font-size:8px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:8px}
+
+/* ── VERDICT CARDS ────────────────────────────────────────────────────────── */
+.verdict-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.verdict-card{background:var(--bg2);border:2px solid var(--dim3);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s;display:block}
+.verdict-card input[type="radio"]{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+.verdict-card:active{transform:scale(.99)}
+.verdict-title{font-size:13px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.5px;color:#e8e8f0;margin-bottom:5px}
+.verdict-desc{font-size:9px;font-family:Georgia,serif;color:var(--dim);line-height:1.6;font-style:italic}
+.verdict-card.sel-persistence{border-color:var(--gld);background:rgba(212,168,67,.05)}
+.verdict-card.sel-exit{border-color:var(--grn);background:rgba(39,174,96,.05)}
+.verdict-card.sel-survival{border-color:var(--blu);background:rgba(74,111,165,.05)}
+
+/* ── SLIDER COLUMNS ───────────────────────────────────────────────────────── */
+.slider-cols{display:flex;gap:12px;margin-bottom:18px}
+.slider-col{flex:1;min-width:0}
+.col-header{font-size:7px;font-family:monospace;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;padding:7px 6px;margin-bottom:12px;text-align:center;border-radius:6px;line-height:1.5}
+.col-header.stay{color:var(--red);background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2)}
+.col-header.leave{color:var(--grn);background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.2)}
+.slider-row{margin-bottom:12px}
+.slider-lbl{font-size:6.5px;font-family:monospace;letter-spacing:.8px;color:var(--dim2);text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:4px}
+.slider-val{color:#ddd;font-weight:700;flex-shrink:0;min-width:12px;text-align:right}
+input[type="range"]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--dim3);outline:none;cursor:pointer;display:block}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gld);cursor:pointer}
+input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--gld);cursor:pointer;border:none}
+.col-total{font-family:monospace;letter-spacing:1px;text-align:center;padding:8px 6px;background:var(--bg3);border-radius:6px;margin-top:10px}
+.col-total .tv{font-size:20px;font-weight:900;display:block;margin-bottom:1px}
+.col-total.stay-tot .tv{color:var(--red)}
+.col-total.leave-tot .tv{color:var(--grn)}
+.col-total .tl{color:var(--dim2);font-size:6px;letter-spacing:1px}
+
+/* ── COMPARISON BAR ───────────────────────────────────────────────────────── */
+.cmp-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:8px;text-align:center;text-transform:uppercase}
+.cmp-numbers{display:flex;justify-content:space-between;font-size:7px;font-family:monospace;letter-spacing:1px;margin-bottom:4px}
+.cmp-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;margin-bottom:6px}
+.cmp-stay-fill{height:100%;background:var(--red);border-radius:4px 0 0 4px}
+.cmp-leave-fill{height:100%;background:var(--grn);border-radius:0 4px 4px 0;position:absolute;right:0;top:0}
+.cmp-note{font-size:7.5px;font-family:Georgia,serif;font-style:italic;color:var(--dim2);text-align:center;line-height:1.5}
+
+/* ── STEP ACTIONS ─────────────────────────────────────────────────────────── */
+.step-acts{display:flex;gap:10px;margin-top:20px}
+.btn-next{flex:1;background:var(--bg2);border:1px solid var(--blu);color:var(--blu);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;padding:14px 12px;border-radius:10px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-next:active{background:var(--blu);color:#fff}
+.btn-next:disabled{opacity:.3;cursor:not-allowed}
+.btn-back-step{background:none;border:1px solid var(--dim3);color:var(--dim2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;padding:14px 14px;border-radius:10px;cursor:pointer;transition:all .2s}
+.btn-back-step:active{border-color:var(--dim);color:var(--dim)}
+.btn-save{background:linear-gradient(135deg,var(--grn),#1a6b3a);border-color:var(--grn);color:#fff;box-shadow:0 4px 16px rgba(39,174,96,.2)}
+.btn-save:not(:disabled):active{transform:scale(.97)}
+
+/* ── SUMMARY ──────────────────────────────────────────────────────────────── */
+.summary-header{text-align:center;margin-bottom:20px}
+.sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-family:'Bebas Neue',monospace;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:6px}
+.summary-header p{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-transform:uppercase;margin-bottom:8px}
+.sb-content{font-size:10px;color:#aaa;font-family:Georgia,serif;line-height:1.7}
+.verdict-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.badge-persistence{background:rgba(212,168,67,.15);color:var(--gld);border:1px solid rgba(212,168,67,.3)}
+.badge-exit{background:rgba(39,174,96,.15);color:var(--grn);border:1px solid rgba(39,174,96,.3)}
+.badge-survival{background:rgba(74,111,165,.15);color:var(--blu);border:1px solid rgba(74,111,165,.3)}
+.cost-row{display:flex;gap:10px;margin-bottom:10px}
+.cost-chip{flex:1;text-align:center;background:var(--bg2);border-radius:8px;padding:10px 8px}
+.cc-val{font-size:22px;font-weight:900;font-family:monospace;display:block;margin-bottom:2px}
+.cc-lbl{font-size:6.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase}
+.stay-chip .cc-val{color:var(--red)}
+.leave-chip .cc-val{color:var(--grn)}
+.date-stamp{font-size:7.5px;font-family:monospace;letter-spacing:2px;color:var(--dim2);text-align:center;margin-bottom:16px}
+
+/* ── PRINT BUTTON ─────────────────────────────────────────────────────────── */
+.btn-print{width:100%;background:var(--bg3);border:1px solid var(--dim3);color:var(--dim2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;padding:12px;border-radius:10px;cursor:pointer;margin-top:10px;transition:all .2s}
+.btn-print:active{color:#fff;border-color:var(--dim)}
+
+/* ── PAST ENTRIES ─────────────────────────────────────────────────────────── */
+.past-section{max-width:480px;margin:0 auto;padding:0 0 40px}
+.past-divider{border:none;border-top:1px solid var(--bg3);margin:0 16px 20px}
+.past-title{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--dim2);padding:0 20px;margin-bottom:14px;text-transform:uppercase}
+.past-item{margin:0 16px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;overflow:hidden}
+.past-header{padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:background .15s}
+.past-header:active{background:var(--bg3)}
+.past-meta{flex:1;min-width:0}
+.past-date{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);margin-bottom:4px}
+.past-snip{font-size:9px;color:#aaa;font-family:Georgia,serif;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.past-badge{flex-shrink:0;font-size:6.5px;font-family:monospace;letter-spacing:1px;padding:4px 8px;border-radius:12px;text-transform:uppercase}
+.past-detail{display:none;padding:0 16px 14px;border-top:1px solid var(--bg3)}
+.past-item.open .past-detail{display:block}
+.past-detail-row{margin-top:10px}
+.pd-label{font-size:6.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:4px}
+.pd-val{font-size:9px;font-family:Georgia,serif;color:#aaa;line-height:1.6}
+
+/* ── PATTERN INSIGHT ──────────────────────────────────────────────────────── */
+.pattern-insight{margin:0 16px 14px;background:rgba(74,111,165,.08);border:1px solid rgba(74,111,165,.2);border-radius:10px;padding:14px 16px}
+.pi-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-transform:uppercase;margin-bottom:6px}
+.pi-text{font-size:9px;font-family:Georgia,serif;color:#aaa;line-height:1.6;font-style:italic}
+
+/* ── TOAST ────────────────────────────────────────────────────────────────── */
+.qs-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2a;border:1px solid var(--dim3);color:#ddd;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1.5px;padding:10px 20px;border-radius:8px;z-index:999;pointer-events:none;white-space:nowrap}
+
+@media print{
+  .nav-bar,.prog-wrap,.disclaimer,.step-acts,.btn-print,.past-section{display:none!important}
+  body{background:#fff;color:#000}
+  .step.active{display:block}
+  .summary-block{border:1px solid #ddd;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav-bar">
+  <button class="back-btn" onclick="window.location.href='./?tab=more'">← DECK</button>
+  <div class="nav-right">
+    <div class="nav-tag">DECISION FRAMEWORK</div>
+    <div class="nav-name">QUIT / STAY</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">DECISION SUPPORT TOOL — Not therapy. Not a command. Your call.</div>
+
+<div class="app" role="main">
+
+<!-- ═══════════════════════════════════════════════
+     STEP 1: NAME THE SITUATION
+═══════════════════════════════════════════════ -->
+<div class="step active" id="step1">
+  <div class="step-counter">STEP <span>1</span> OF 5</div>
+  <div class="step-label">Step 1 — Name It</div>
+  <div class="step-title">What are you<br>grinding on?</div>
+  <div class="step-desc">Be specific. A job, a relationship, a belief, a commitment. Not "my life" — name the actual thing.</div>
+  <div class="example-box">
+    <span class="ex-tag">EXAMPLE</span>
+    I've been at this company for 6 years. The culture is toxic but the pay is good.
+  </div>
+  <textarea id="f_situation" maxlength="500" rows="4" placeholder="I'm stuck in..."
+    oninput="charUpdate(this,'ch1');btn('btnNext1',this.value.trim().length>0)"></textarea>
+  <div class="char-hint" id="ch1">0 / 500</div>
+  <div class="step-acts">
+    <button class="btn-next" id="btnNext1" onclick="goStep(2)" disabled>NEXT — THE REAL QUESTION →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 2: BUILDING OR BREAKING?
+═══════════════════════════════════════════════ -->
+<div class="step" id="step2">
+  <div class="step-counter">STEP <span>2</span> OF 5</div>
+  <div class="step-label">Step 2 — The Real Question</div>
+  <div class="step-title">Is this building you<br>or breaking you?</div>
+  <div class="step-desc">Don't ask if it's hard. Hard is fine. Ask about the outcome.</div>
+
+  <div class="choice-grid">
+    <label class="choice-card card-building" id="card-building">
+      <input type="radio" name="build_break" value="building" onchange="selectChoice('building')">
+      <div class="choice-tag">BUILDING</div>
+      <div class="choice-title">Building Me Up</div>
+      <div class="choice-desc">I'm gaining skills, perspective, or capacity. The hardness is making me more.</div>
+    </label>
+    <label class="choice-card card-breaking" id="card-breaking">
+      <input type="radio" name="build_break" value="breaking" onchange="selectChoice('breaking')">
+      <div class="choice-tag">BREAKING</div>
+      <div class="choice-title">Breaking Me Down</div>
+      <div class="choice-desc">I'm losing sleep, health, self-respect, or joy. The hardness is depleting me.</div>
+    </label>
+  </div>
+
+  <div class="follow-prompt">If you stay 6 more months, will you be a better version of yourself — or just a more tired one?</div>
+  <textarea id="f_sixmonths" maxlength="400" rows="3" placeholder="In 6 months I will be..."
+    oninput="charUpdate(this,'ch2')"></textarea>
+  <div class="char-hint" id="ch2">0 / 400</div>
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+    <button class="btn-next" id="btnNext2" onclick="goStep(3)" disabled>NEXT — SUNK COST AUDIT →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 3: SUNK COST CHECK
+═══════════════════════════════════════════════ -->
+<div class="step" id="step3">
+  <div class="step-counter">STEP <span>3</span> OF 5</div>
+  <div class="step-label">Step 3 — Sunk Cost Audit</div>
+  <div class="step-title">Would you start<br>this today?</div>
+  <div class="step-desc">Forget what you've already invested. Time, money, blood — it's gone whether you stay or go.</div>
+
+  <div class="follow-prompt">If you woke up tomorrow with a blank slate but all your current knowledge, would you sign up for this?</div>
+  <textarea id="f_blankslate" maxlength="400" rows="3" placeholder="Knowing what I know now..."
+    oninput="charUpdate(this,'ch3');btn('btnNext3',this.value.trim().length>0)"></textarea>
+  <div class="char-hint" id="ch3">0 / 400</div>
+
+  <div class="follow-prompt" style="margin-top:4px">Who benefits from your persistence? You — or the institution extracting value from you?</div>
+  <textarea id="f_beneficiary" maxlength="300" rows="3" placeholder="The person who benefits most is..."
+    oninput="charUpdate(this,'ch4')"></textarea>
+  <div class="char-hint" id="ch4">0 / 300</div>
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+    <button class="btn-next" id="btnNext3" onclick="goStep(4)" disabled>NEXT — THE MATH →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 4: COST COMPARISON SLIDERS
+═══════════════════════════════════════════════ -->
+<div class="step" id="step4">
+  <div class="step-counter">STEP <span>4</span> OF 5</div>
+  <div class="step-label">Step 4 — The Math</div>
+  <div class="step-title">Cost of staying<br>vs cost of leaving</div>
+  <div class="step-desc">Rate each factor 1 (low cost) to 10 (high cost). Gut first — don't overthink it.</div>
+
+  <div class="slider-cols">
+
+    <!-- LEFT: Cost of Staying -->
+    <div class="slider-col">
+      <div class="col-header stay">COST OF<br>STAYING</div>
+
+      <div class="slider-row">
+        <div class="slider-lbl">MENTAL HLTH <span class="slider-val" id="sv_mh">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_mh"
+          oninput="document.getElementById('sv_mh').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">PHYSICAL HLTH <span class="slider-val" id="sv_ph">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_ph"
+          oninput="document.getElementById('sv_ph').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">RELATIONSHIPS <span class="slider-val" id="sv_rel">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_rel"
+          oninput="document.getElementById('sv_rel').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">SELF-RESPECT <span class="slider-val" id="sv_sr">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_sr"
+          oninput="document.getElementById('sv_sr').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">MISSED OPPS <span class="slider-val" id="sv_mo">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_mo"
+          oninput="document.getElementById('sv_mo').textContent=this.value;updateTotals()">
+      </div>
+
+      <div class="col-total stay-tot">
+        <span class="tv" id="stay_total">25</span>
+        <span class="tl">STAY COST / 50</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: Cost of Leaving -->
+    <div class="slider-col">
+      <div class="col-header leave">COST OF<br>LEAVING</div>
+
+      <div class="slider-row">
+        <div class="slider-lbl">UNCERTAINTY <span class="slider-val" id="sv_unc">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_unc"
+          oninput="document.getElementById('sv_unc').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">SOC. JUDGMENT <span class="slider-val" id="sv_sj">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_sj"
+          oninput="document.getElementById('sv_sj').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">FINANCIAL HIT <span class="slider-val" id="sv_fin">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_fin"
+          oninput="document.getElementById('sv_fin').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">IDENTITY SHIFT <span class="slider-val" id="sv_id">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_id"
+          oninput="document.getElementById('sv_id').textContent=this.value;updateTotals()">
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">FEAR/UNKNOWN <span class="slider-val" id="sv_fu">5</span></div>
+        <input type="range" min="1" max="10" value="5" id="sl_fu"
+          oninput="document.getElementById('sv_fu').textContent=this.value;updateTotals()">
+      </div>
+
+      <div class="col-total leave-tot">
+        <span class="tv" id="leave_total">25</span>
+        <span class="tl">LEAVE COST / 50</span>
+      </div>
+    </div>
+
+  </div><!-- .slider-cols -->
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+    <button class="btn-next" onclick="goStep(5)">NEXT — THE CALL →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 5: THE VERDICT
+═══════════════════════════════════════════════ -->
+<div class="step" id="step5">
+  <div class="step-counter">STEP <span>5</span> OF 5</div>
+  <div class="step-label">Step 5 — The Call</div>
+  <div class="step-title">What does<br>the data say?</div>
+  <div class="step-desc">The numbers are one input. You're the operator. Make the call.</div>
+
+  <!-- Auto-populated cost comparison -->
+  <div id="step5comparison" style="margin-bottom:20px"></div>
+
+  <div class="verdict-grid">
+    <label class="verdict-card" id="vc-persistence">
+      <input type="radio" name="verdict" value="persistence" onchange="selectVerdict('persistence')">
+      <div class="verdict-title">STRATEGIC PERSISTENCE ⚔️</div>
+      <div class="verdict-desc">It's hard, but I'm growing and I want the destination. Stay and fight.</div>
+    </label>
+    <label class="verdict-card" id="vc-exit">
+      <input type="radio" name="verdict" value="exit" onchange="selectVerdict('exit')">
+      <div class="verdict-title">STRATEGIC EXIT 🚪</div>
+      <div class="verdict-desc">I'm staying for the past, the prestige, or out of fear. Time to plan the exit.</div>
+    </label>
+    <label class="verdict-card" id="vc-survival">
+      <input type="radio" name="verdict" value="survival" onchange="selectVerdict('survival')">
+      <div class="verdict-title">SURVIVAL MODE 🫁</div>
+      <div class="verdict-desc">I can't decide right now. Hold the line. Revisit in 30 days.</div>
+    </label>
+  </div>
+
+  <div class="follow-prompt">What's the one thing you're taking from this?</div>
+  <textarea id="f_notes" maxlength="400" rows="3" placeholder="The thing I'm taking from this is..."
+    oninput="charUpdate(this,'ch5')"></textarea>
+  <div class="char-hint" id="ch5">0 / 400</div>
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(4)">← BACK</button>
+    <button class="btn-next btn-save" id="btnSave" onclick="saveEntry()" disabled>SAVE TO LOG ✓</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SUMMARY SCREEN
+═══════════════════════════════════════════════ -->
+<div class="step" id="stepSummary">
+  <div class="summary-header">
+    <div class="sh-icon">🎯</div>
+    <h2>CALL LOGGED</h2>
+    <p>The framework has done its job.<br>Now the hard part — acting on what you just admitted.</p>
+  </div>
+  <div id="summaryContent"></div>
+  <button class="btn-print" onclick="printEntry()">⊞ PRINT / COPY AS TEXT</button>
+  <div class="step-acts" style="margin-top:14px">
+    <button class="btn-next" onclick="startNew()">NEW PROTOCOL</button>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<!-- PAST ENTRIES (outside .app so it bleeds full width on narrow viewports) -->
+<div class="past-section" id="pastSection" style="display:none">
+  <hr class="past-divider">
+  <div class="past-title">PAST PROTOCOLS</div>
+  <div id="pastList"></div>
+</div>
+
+<script>
+'use strict';
+
+const STORE_KEY = 'od_quitstay_v1';
+
+// ── SECURITY ───────────────────────────────────────────────────────────────────
+function esc(s){
+  if(typeof s!=='string')return'';
+  const d=document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function charUpdate(el,id){
+  const d=document.getElementById(id);
+  if(d)d.textContent=el.value.length+' / '+el.maxLength;
+}
+
+function btn(id,enabled){
+  const b=document.getElementById(id);
+  if(b)b.disabled=!enabled;
+}
+
+function showToast(msg){
+  document.querySelectorAll('.qs-toast').forEach(t=>t.remove());
+  const t=document.createElement('div');
+  t.className='qs-toast';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2400);
+}
+
+function loadEntries(){
+  try{return JSON.parse(localStorage.getItem(STORE_KEY))||[];}
+  catch(e){return[];}
+}
+
+function saveEntries(arr){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(arr.slice(0,200)));}
+  catch(e){}
+}
+
+function fmtDate(ts){
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let buildBreakChoice = null;
+let verdictChoice    = null;
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────────
+function goStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  const id=(n==='summary')?'stepSummary':'step'+n;
+  const el=document.getElementById(id);
+  if(el)el.classList.add('active');
+  const pct=(typeof n==='number')?((n-1)/5*100):100;
+  const pf=document.getElementById('progFill');
+  if(pf)pf.style.width=pct+'%';
+  if(n===5)renderStep5Comparison();
+  window.scrollTo(0,0);
+}
+
+// ── CHOICE CARDS ───────────────────────────────────────────────────────────────
+function selectChoice(val){
+  buildBreakChoice=val;
+  const cb=document.getElementById('card-building');
+  const cr=document.getElementById('card-breaking');
+  if(cb)cb.classList.toggle('selected',val==='building');
+  if(cr)cr.classList.toggle('selected',val==='breaking');
+  btn('btnNext2',true);
+}
+
+// ── VERDICT CARDS ──────────────────────────────────────────────────────────────
+function selectVerdict(val){
+  verdictChoice=val;
+  ['persistence','exit','survival'].forEach(function(v){
+    const c=document.getElementById('vc-'+v);
+    if(!c)return;
+    c.classList.remove('sel-persistence','sel-exit','sel-survival');
+    if(v===val)c.classList.add('sel-'+v);
+  });
+  btn('btnSave',true);
+}
+
+// ── SLIDER MATH ────────────────────────────────────────────────────────────────
+function getStayTotal(){
+  return ['sl_mh','sl_ph','sl_rel','sl_sr','sl_mo']
+    .reduce(function(a,id){return a+parseInt(document.getElementById(id).value||'5',10);},0);
+}
+
+function getLeaveTotal(){
+  return ['sl_unc','sl_sj','sl_fin','sl_id','sl_fu']
+    .reduce(function(a,id){return a+parseInt(document.getElementById(id).value||'5',10);},0);
+}
+
+function updateTotals(){
+  const s=getStayTotal(),l=getLeaveTotal();
+  const st=document.getElementById('stay_total');
+  const lt=document.getElementById('leave_total');
+  if(st)st.textContent=s;
+  if(lt)lt.textContent=l;
+}
+
+// ── COMPARISON HTML ────────────────────────────────────────────────────────────
+function buildComparisonHTML(stay,leave){
+  const total=(stay+leave)||1;
+  const sp=Math.round(stay/total*100);
+  const lp=100-sp;
+  let note;
+  if(stay>leave){
+    note='Cost of staying is '+(stay-leave)+' points higher. The math leans toward exit.';
+  } else if(leave>stay){
+    note='Cost of leaving is '+(leave-stay)+' points higher. The math leans toward staying.';
+  } else {
+    note='Dead even at '+stay+' each. This is entirely a judgment call.';
+  }
+  return '<div class="cmp-label">COST COMPARISON</div>'+
+    '<div class="cmp-numbers">'+
+      '<span style="color:var(--red)">STAY: '+stay+'/50</span>'+
+      '<span style="color:var(--grn)">LEAVE: '+leave+'/50</span>'+
+    '</div>'+
+    '<div class="cmp-track">'+
+      '<div class="cmp-stay-fill" style="width:'+sp+'%"></div>'+
+      '<div class="cmp-leave-fill" style="width:'+lp+'%"></div>'+
+    '</div>'+
+    '<div class="cmp-note">'+esc(note)+'</div>';
+}
+
+function renderStep5Comparison(){
+  const el=document.getElementById('step5comparison');
+  if(el)el.innerHTML=buildComparisonHTML(getStayTotal(),getLeaveTotal());
+}
+
+// ── SAVE ENTRY ─────────────────────────────────────────────────────────────────
+function saveEntry(){
+  if(!verdictChoice)return;
+
+  const situation   = document.getElementById('f_situation').value.trim();
+  const sixMonths   = document.getElementById('f_sixmonths').value.trim();
+  const blankSlate  = document.getElementById('f_blankslate').value.trim();
+  const beneficiary = document.getElementById('f_beneficiary').value.trim();
+  const notes       = document.getElementById('f_notes').value.trim();
+
+  const staySliders={
+    mentalHealth:   +document.getElementById('sl_mh').value,
+    physicalHealth: +document.getElementById('sl_ph').value,
+    relationships:  +document.getElementById('sl_rel').value,
+    selfRespect:    +document.getElementById('sl_sr').value,
+    missedOpps:     +document.getElementById('sl_mo').value
+  };
+  const leaveSliders={
+    uncertainty:    +document.getElementById('sl_unc').value,
+    socialJudgment: +document.getElementById('sl_sj').value,
+    financialHit:   +document.getElementById('sl_fin').value,
+    identityShift:  +document.getElementById('sl_id').value,
+    fearUnknown:    +document.getElementById('sl_fu').value
+  };
+
+  const entry={
+    id:          Date.now(),
+    date:        fmtDate(Date.now()),
+    situation,
+    buildBreak:  buildBreakChoice,
+    sixMonths,
+    blankSlate,
+    beneficiary,
+    staySliders,
+    leaveSliders,
+    stayCost:    getStayTotal(),
+    leaveCost:   getLeaveTotal(),
+    verdict:     verdictChoice,
+    notes
+  };
+
+  const entries=loadEntries();
+  entries.unshift(entry);
+  saveEntries(entries);
+
+  renderSummary(entry);
+  goStep('summary');
+  renderPastEntries();
+  showToast('PROTOCOL LOGGED');
+}
+
+// ── SUMMARY RENDER ─────────────────────────────────────────────────────────────
+function renderSummary(entry){
+  const VL={
+    persistence: 'STRATEGIC PERSISTENCE ⚔️',
+    exit:        'STRATEGIC EXIT 🚪',
+    survival:    'SURVIVAL MODE 🫁'
+  };
+  const BC={
+    persistence: 'badge-persistence',
+    exit:        'badge-exit',
+    survival:    'badge-survival'
+  };
+
+  const total=(entry.stayCost+entry.leaveCost)||1;
+  const sp=Math.round(entry.stayCost/total*100);
+  const lp=100-sp;
+
+  let h='';
+  h+='<div class="date-stamp">'+esc(entry.date)+'</div>';
+
+  // Situation
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">THE SITUATION</div>';
+  h+='<div class="sb-content">'+esc(entry.situation)+'</div>';
+  h+='</div>';
+
+  // Build / Break + 6-month projection
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">BUILDING OR BREAKING</div>';
+  const bbColor=(entry.buildBreak==='building')?'var(--grn)':'var(--red)';
+  h+='<div style="font-family:monospace;font-size:11px;font-weight:700;color:'+bbColor+';text-transform:uppercase;margin-bottom:'+(entry.sixMonths?'10':'0')+'px">'+esc(entry.buildBreak||'—')+'</div>';
+  if(entry.sixMonths)h+='<div class="sb-content">'+esc(entry.sixMonths)+'</div>';
+  h+='</div>';
+
+  // Sunk cost answers (only if filled in)
+  if(entry.blankSlate||entry.beneficiary){
+    h+='<div class="summary-block">';
+    h+='<div class="sb-label">SUNK COST AUDIT</div>';
+    if(entry.blankSlate)h+='<div class="sb-content">'+esc(entry.blankSlate)+'</div>';
+    if(entry.beneficiary)h+='<div class="sb-content" style="margin-top:8px;color:var(--dim2)">'+esc(entry.beneficiary)+'</div>';
+    h+='</div>';
+  }
+
+  // Cost comparison visual
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">COST COMPARISON</div>';
+  h+='<div class="cost-row">';
+  h+='<div class="cost-chip stay-chip"><span class="cc-val">'+esc(String(entry.stayCost))+'</span><span class="cc-lbl">Stay / 50</span></div>';
+  h+='<div class="cost-chip leave-chip"><span class="cc-val">'+esc(String(entry.leaveCost))+'</span><span class="cc-lbl">Leave / 50</span></div>';
+  h+='</div>';
+  h+='<div class="cmp-track">';
+  h+='<div class="cmp-stay-fill" style="width:'+sp+'%"></div>';
+  h+='<div class="cmp-leave-fill" style="width:'+lp+'%"></div>';
+  h+='</div>';
+  h+='</div>';
+
+  // Verdict + final note
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">THE CALL</div>';
+  h+='<span class="verdict-badge '+esc(BC[entry.verdict]||'')+'">'+esc(VL[entry.verdict]||entry.verdict||'')+'</span>';
+  if(entry.notes)h+='<div class="sb-content" style="margin-top:10px;font-style:italic">\u201C'+esc(entry.notes)+'\u201D</div>';
+  h+='</div>';
+
+  // Byline
+  h+='<div style="text-align:center;padding:20px 0 6px;font-size:7.5px;font-family:\'DM Mono\',monospace;letter-spacing:1.5px">'+
+     '<a href="author-shelf.html?ref=debrief" style="color:#555;text-decoration:none">Built by Ryan Bardyla \u2192</a></div>';
+
+  document.getElementById('summaryContent').innerHTML=h;
+}
+
+// ── PAST ENTRIES ───────────────────────────────────────────────────────────────
+function renderPastEntries(){
+  const entries=loadEntries();
+  const section=document.getElementById('pastSection');
+  const list=document.getElementById('pastList');
+  if(!section||!list)return;
+  if(!entries.length){section.style.display='none';return;}
+  section.style.display='block';
+
+  // Short verdict labels for badges
+  const VS={persistence:'PERSIST',exit:'EXIT',survival:'HOLD'};
+  // Full labels for detail rows
+  const VL={persistence:'STRATEGIC PERSISTENCE ⚔️',exit:'STRATEGIC EXIT 🚪',survival:'SURVIVAL MODE 🫁'};
+  // Badge inline styles (fixed, not user data)
+  const BS={
+    persistence: 'background:rgba(212,168,67,.15);color:var(--gld);border:1px solid rgba(212,168,67,.3)',
+    exit:        'background:rgba(39,174,96,.15);color:var(--grn);border:1px solid rgba(39,174,96,.3)',
+    survival:    'background:rgba(74,111,165,.15);color:var(--blu);border:1px solid rgba(74,111,165,.3)'
+  };
+
+  // Pattern insight when 3+ entries
+  let patternHtml='';
+  if(entries.length>=3){
+    const counts={persistence:0,exit:0,survival:0};
+    entries.forEach(function(e){if(e.verdict&&Object.prototype.hasOwnProperty.call(counts,e.verdict))counts[e.verdict]++;});
+    const top=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];})[0];
+    if(counts[top]>=3){
+      const msgs={
+        persistence: 'You\'ve chosen Strategic Persistence '+counts[top]+' times. You know how to stay in the fight. The question is whether every fight is worth winning.',
+        exit:        'You\'ve chosen Strategic Exit '+counts[top]+' times. You recognize when to cut losses. The pattern says you trust your own read.',
+        survival:    'You\'ve chosen Survival Mode '+counts[top]+' times. Holding the line is honest. At some point, holding the line becomes the decision.'
+      };
+      patternHtml='<div class="pattern-insight">'+
+        '<div class="pi-tag">PATTERN DETECTED \u2014 '+entries.length+' PROTOCOLS LOGGED</div>'+
+        '<div class="pi-text">'+esc(msgs[top]||'')+'</div>'+
+        '</div>';
+    }
+  }
+
+  let h=patternHtml;
+  entries.forEach(function(e,i){
+    const snip=(e.situation||'').substring(0,120);
+    const bStyle=BS[e.verdict]||'color:var(--dim2)';
+    const bLbl=VS[e.verdict]||'—';
+    const bbC=(e.buildBreak==='building')?'var(--grn)':'var(--red)';
+
+    h+='<div class="past-item" id="pi_'+i+'">';
+    // Header row (clickable)
+    h+='<div class="past-header" onclick="togglePast('+i+')"'+
+       ' role="button" tabindex="0" aria-expanded="false"'+
+       ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();togglePast('+i+')}">';
+    h+='<div class="past-meta">';
+    h+='<div class="past-date">'+esc(e.date||'')+'</div>';
+    h+='<div class="past-snip">'+esc(snip)+'</div>';
+    h+='</div>';
+    h+='<span class="past-badge" style="'+bStyle+'">'+esc(bLbl)+'</span>';
+    h+='</div>';
+    // Detail body (hidden until toggled)
+    h+='<div class="past-detail">';
+    h+='<div class="past-detail-row"><div class="pd-label">SITUATION</div>'+
+       '<div class="pd-val">'+esc(e.situation||'—')+'</div></div>';
+    h+='<div class="past-detail-row"><div class="pd-label">BUILDING / BREAKING</div>'+
+       '<div class="pd-val" style="font-family:monospace;text-transform:uppercase;color:'+bbC+'">'+esc(e.buildBreak||'—')+'</div></div>';
+    h+='<div class="past-detail-row"><div class="pd-label">STAY vs LEAVE COST</div>'+
+       '<div class="pd-val" style="font-family:monospace">'+
+       '<span style="color:var(--red)">'+(e.stayCost||0)+'</span>'+
+       ' vs <span style="color:var(--grn)">'+(e.leaveCost||0)+'</span>'+
+       '<span style="color:var(--dim2)"> / 50 each</span></div></div>';
+    h+='<div class="past-detail-row"><div class="pd-label">THE CALL</div>'+
+       '<div class="pd-val" style="font-family:monospace">'+esc(VL[e.verdict]||e.verdict||'—')+'</div></div>';
+    if(e.notes){
+      h+='<div class="past-detail-row"><div class="pd-label">FINAL NOTE</div>'+
+         '<div class="pd-val" style="font-style:italic">'+esc(e.notes)+'</div></div>';
+    }
+    h+='</div>';// .past-detail
+    h+='</div>';// .past-item
+  });
+
+  list.innerHTML=h;
+}
+
+function togglePast(i){
+  const el=document.getElementById('pi_'+i);
+  if(!el)return;
+  const isOpen=el.classList.toggle('open');
+  const header=el.querySelector('.past-header');
+  if(header)header.setAttribute('aria-expanded',isOpen?'true':'false');
+}
+
+// ── PRINT / COPY ───────────────────────────────────────────────────────────────
+function printEntry(){
+  const entries=loadEntries();
+  if(!entries.length)return;
+  const e=entries[0];
+  const VL={persistence:'STRATEGIC PERSISTENCE',exit:'STRATEGIC EXIT',survival:'SURVIVAL MODE'};
+
+  let text='=== QUIT/STAY PROTOCOL — OPERATOR\'S DECK ===\n';
+  text+='Date: '+(e.date||'')+'\n\n';
+  text+='1. SITUATION\n'+(e.situation||'')+'\n\n';
+  text+='2. BUILDING OR BREAKING: '+((e.buildBreak||'').toUpperCase())+'\n';
+  if(e.sixMonths)text+='   6-Month Projection: '+e.sixMonths+'\n';
+  text+='\n3. SUNK COST AUDIT\n';
+  if(e.blankSlate)text+='   Blank Slate: '+e.blankSlate+'\n';
+  if(e.beneficiary)text+='   Who Benefits: '+e.beneficiary+'\n';
+  text+='\n4. COST COMPARISON\n';
+  text+='   Cost of Staying: '+(e.stayCost||0)+'/50\n';
+  text+='   Cost of Leaving: '+(e.leaveCost||0)+'/50\n';
+  text+='\n5. THE CALL\n   '+(VL[e.verdict]||'')+'\n';
+  if(e.notes)text+='   Final Note: '+e.notes+'\n';
+  text+='\nBuilt by Ryan Bardyla — Operator\'s Deck\n';
+
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(function(){showToast('COPIED TO CLIPBOARD');})
+      .catch(function(){window.print();});
+  } else {
+    window.print();
+  }
+}
+
+// ── RESET ──────────────────────────────────────────────────────────────────────
+function startNew(){
+  // Clear text fields
+  ['f_situation','f_sixmonths','f_blankslate','f_beneficiary','f_notes'].forEach(function(id){
+    const el=document.getElementById(id);
+    if(el)el.value='';
+  });
+  // Reset char counters
+  [{id:'ch1',max:500},{id:'ch2',max:400},{id:'ch3',max:400},{id:'ch4',max:300},{id:'ch5',max:400}].forEach(function(o){
+    const el=document.getElementById(o.id);
+    if(el)el.textContent='0 / '+o.max;
+  });
+  // Reset sliders
+  ['sl_mh','sl_ph','sl_rel','sl_sr','sl_mo','sl_unc','sl_sj','sl_fin','sl_id','sl_fu'].forEach(function(id){
+    const el=document.getElementById(id);
+    if(el)el.value=5;
+  });
+  // Reset slider value displays
+  ['sv_mh','sv_ph','sv_rel','sv_sr','sv_mo','sv_unc','sv_sj','sv_fin','sv_id','sv_fu'].forEach(function(id){
+    const el=document.getElementById(id);
+    if(el)el.textContent='5';
+  });
+  // Reset choice state
+  buildBreakChoice=null;
+  verdictChoice=null;
+  const cb=document.getElementById('card-building');
+  const cr=document.getElementById('card-breaking');
+  if(cb)cb.classList.remove('selected');
+  if(cr)cr.classList.remove('selected');
+  ['persistence','exit','survival'].forEach(function(v){
+    const c=document.getElementById('vc-'+v);
+    if(c)c.classList.remove('sel-persistence','sel-exit','sel-survival');
+  });
+  document.querySelectorAll('input[name="build_break"]').forEach(function(r){r.checked=false;});
+  document.querySelectorAll('input[name="verdict"]').forEach(function(r){r.checked=false;});
+  // Re-disable gated buttons
+  btn('btnNext1',false);
+  btn('btnNext2',false);
+  btn('btnNext3',false);
+  btn('btnSave',false);
+  updateTotals();
+  goStep(1);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+updateTotals();
+renderPastEntries();
+</script>
+</body>
+</html>
