@@ -1,4 +1,4 @@
-const CACHE_NAME = 'operators-deck-v30';
+const CACHE_NAME = 'operators-deck-v31';
 
 // Only cache true static assets — never HTML files.
 // Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)

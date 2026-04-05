@@ -72,6 +72,20 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
 .quote-text{font-family:Georgia,serif;font-size:11px;color:#d8d8f0;line-height:1.8;font-style:italic;margin-bottom:8px}
 .quote-src{font-size:7px;letter-spacing:2px;color:var(--gld);font-family:monospace;text-transform:uppercase}
 
+/* FIELD NOTES */
+.fn-card{margin:0 16px 10px;background:var(--bg2);border:1px solid rgba(212,168,67,.1);border-radius:14px;overflow:hidden}
+.fn-header{padding:14px 18px;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;transition:background .15s;-webkit-tap-highlight-color:transparent}
+.fn-header:active{background:var(--bg3)}
+.fn-meta{flex:1;min-width:0}
+.fn-title{font-size:13px;font-weight:800;letter-spacing:.5px;color:#e8e8f0;line-height:1.2}
+.fn-date{font-size:7.5px;font-family:monospace;letter-spacing:2px;color:var(--gld);opacity:.7;margin-top:4px;text-transform:uppercase}
+.fn-reads{font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--dim2);margin-top:3px;min-height:11px}
+.fn-chevron{color:var(--dim2);font-size:12px;flex-shrink:0;transition:transform .25s;margin-top:3px;line-height:1}
+.fn-card.fn-open .fn-chevron{transform:rotate(180deg)}
+.fn-body{display:none;padding:0 18px 16px 18px;border-top:1px solid rgba(212,168,67,.08)}
+.fn-card.fn-open .fn-body{display:block}
+.fn-text{font-size:9.5px;color:var(--dim);font-family:Georgia,serif;line-height:1.85;margin-top:14px}
+
 /* FOOTER */
 .footer{text-align:center;padding:28px 16px;margin-top:10px;border-top:1px solid rgba(212,168,67,.06)}
 .f-ver{font-size:7px;letter-spacing:3px;color:var(--dim2);margin-bottom:6px}
@@ -252,6 +266,79 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
   <div class="quote-src">— Ryan Bardyla</div>
 </div>
 
+<!-- FIELD NOTES -->
+<div class="sec-label">Field Notes</div>
+
+<div class="fn-card" id="fn-1">
+  <div class="fn-header" onclick="fnToggle('fn-1','fn_reads_1')" role="button" tabindex="0" aria-expanded="false" aria-controls="fn-body-1" onkeydown="if(event.key==='Enter'||event.key===' ')fnToggle('fn-1','fn_reads_1')">
+    <div class="fn-meta">
+      <div class="fn-title">The 90-Second Rule Is Real — But Nobody Told Me What Comes After</div>
+      <div class="fn-date">March 2026</div>
+      <div class="fn-reads" id="fn_reads_1"></div>
+    </div>
+    <div class="fn-chevron" aria-hidden="true">▾</div>
+  </div>
+  <div class="fn-body" id="fn-body-1">
+    <div class="fn-text">Jill Bolte Taylor's 90-second rule says that the physiological life span of an emotion — the actual chemical cascade — is 90 seconds. After that, if you're still feeling it, you're choosing to re-trigger it. You're running the loop again.<br><br>I've quoted this at myself a hundred times. It didn't help once.<br><br>The part nobody explains is what to do during the 90 seconds. You can't think your way out. The prefrontal cortex is offline — that's the whole problem. Logic is a tool that requires a functioning operator, and the operator is currently drowning.<br><br>What actually works, and what I've watched work across the tools in this deck, is the body. Not the mind. Temperature. Breath. Posture. Movement. These are the only levers you have when the limbic system is running the show.<br><br>TIPP works because it targets the autonomic nervous system directly — cold water lowers heart rate faster than any thought. Paced breathing (4 in, 6 out) activates the vagus nerve. These aren't metaphors. They're mechanically reliable interventions.<br><br>The 90-second rule is true. But the instruction that should follow it is: do something physical. Not something cognitive. You don't think your way through 90 seconds. You survive your way through it.<br><br>After 90 seconds, the prefrontal cortex comes back online. That's when the thinking tools — Opposite Action, Chain Analysis, Thought Interceptor — become available. The sequence matters: body first, mind second.<br><br>I got this backwards for most of my life. I tried to argue with the emotion while it was still happening. That's like trying to navigate while you're in a car accident. Wait for the car to stop.</div>
+  </div>
+</div>
+
+<div class="fn-card" id="fn-2">
+  <div class="fn-header" onclick="fnToggle('fn-2','fn_reads_2')" role="button" tabindex="0" aria-expanded="false" aria-controls="fn-body-2" onkeydown="if(event.key==='Enter'||event.key===' ')fnToggle('fn-2','fn_reads_2')">
+    <div class="fn-meta">
+      <div class="fn-title">On Writing The Books I Needed And Didn't Have</div>
+      <div class="fn-date">February 2026</div>
+      <div class="fn-reads" id="fn_reads_2"></div>
+    </div>
+    <div class="fn-chevron" aria-hidden="true">▾</div>
+  </div>
+  <div class="fn-body" id="fn-body-2">
+    <div class="fn-text">I got sober and started looking for books that talked to men like me. Not clinical handbooks. Not spiritual memoirs written by people who'd had a single bad year. I wanted field reports. First-person accounts from someone who'd been in the actual mess — not observing it from outside, not writing it up in retrospect from a place of resolution, but writing from inside the work while it was still happening.<br><br>They didn't exist. Or they existed and were buried under a mountain of content designed to comfort rather than confront.<br><br>So I wrote them.<br><br>Dancing With The Devil started as a document I was keeping for myself. Notes on the mechanism. How the dopamine loop worked. What the internet had actually done to my nervous system over twenty years. At some point it became a book because I kept meeting men who were living the same thing and had no language for it.<br><br>Mathematics of the Heart came from watching myself be physically present and emotionally absent from my kids for years. The bid research — Gottman's work on emotional connection — hit me like a diagnosis. I wasn't a bad father. I was an unresponsive one. The difference matters, because one is character and one is behavior, and behavior can change.<br><br>The Biological Bruise was the ADHD diagnosis at 44. The disorientation of realizing that everything I'd built — the Army career, the hyper-productivity, the systems — were compensatory structures. The brain wasn't broken. It was different. That reframe took longer than the diagnosis.<br><br>All three books share the same premise: you can't fix what you can't name. The deck is the naming. The books are the context behind the names.</div>
+  </div>
+</div>
+
+<div class="fn-card" id="fn-3">
+  <div class="fn-header" onclick="fnToggle('fn-3','fn_reads_3')" role="button" tabindex="0" aria-expanded="false" aria-controls="fn-body-3" onkeydown="if(event.key==='Enter'||event.key===' ')fnToggle('fn-3','fn_reads_3')">
+    <div class="fn-meta">
+      <div class="fn-title">The Pendulum Always Has A Pusher</div>
+      <div class="fn-date">January 2026</div>
+      <div class="fn-reads" id="fn_reads_3"></div>
+    </div>
+    <div class="fn-chevron" aria-hidden="true">▾</div>
+  </div>
+  <div class="fn-body" id="fn-body-3">
+    <div class="fn-text">The question that drove The Pendulum Swings was simple: why do men without stable identities become the most loyal followers of whoever offers them one?<br><br>It's not stupidity. It's not weakness. It's the mechanically predictable result of an identity vacuum meeting a prefabricated identity on offer. The algorithm finds men in identity flux — post-divorce, post-military, post-whatever-the-anchor-was — and serves them content that flatters their grievances and offers a tribe. The conversion from "guy who feels lost" to "guy with a cause" can happen in six months of consistent media exposure.<br><br>I watched it happen to people I served with. Men I trusted. The military gives you an identity that is real and earned and legible — I am a soldier, I belong to this unit, my value is measurable by what I can carry and how far I can move. When that ends, the identity ends with it. Most transition programs address the practical gap. None of them address the identity gap.<br><br>The deck's values work — the ACT Drill, the Values Drill — is an attempt to do identity construction from the inside out. Not "here is an identity to download" but "what actually matters to you, specifically, in your actual life." It's slower. It requires tolerating uncertainty. But it builds something that can't be hacked.<br><br>The pendulum always has a pusher. The first defensive move is knowing that. The second is having a values anchor strong enough that the push doesn't move you. That's the work. It doesn't end.</div>
+  </div>
+</div>
+
+<div class="fn-card" id="fn-4">
+  <div class="fn-header" onclick="fnToggle('fn-4','fn_reads_4')" role="button" tabindex="0" aria-expanded="false" aria-controls="fn-body-4" onkeydown="if(event.key==='Enter'||event.key===' ')fnToggle('fn-4','fn_reads_4')">
+    <div class="fn-meta">
+      <div class="fn-title">Why The Deck Doesn't Gamify</div>
+      <div class="fn-date">December 2025</div>
+      <div class="fn-reads" id="fn_reads_4"></div>
+    </div>
+    <div class="fn-chevron" aria-hidden="true">▾</div>
+  </div>
+  <div class="fn-body" id="fn-body-4">
+    <div class="fn-text">Every behavioral health app on the market uses streaks, points, badges, and leaderboards. I understand why. They work in the short term. They drive retention. They are also, for a specific population, actively harmful.<br><br>For men in recovery from addiction, gamification is a dopamine delivery system wearing a wellness costume. The streak IS the addiction. The app becomes the thing you're addicted to managing. You've substituted one loop for another, with a health brand on it.<br><br>The Grind: Retardmaxxing is a book about this exact mechanism applied at scale — how discipline culture uses the same psychological architecture as the platforms it claims to resist. The hard work becomes the identity. The identity becomes the cage. The cage feels like freedom because it has a flag on it.<br><br>The deck doesn't have streaks because streaks are a retention mechanic, not a recovery mechanic. It doesn't have points because your sobriety is not a score. It has a rank system that tracks missions completed — not to reward you, but to give you a legible record of the work you've done. The difference is subtle and, I think, real.<br><br>What the deck does have is a commitment mechanism: the Directive Anchor. You pick one directive from your session and you schedule it as a 15-minute calendar block. Not because of a streak. Not for points. Because implementation intentions — the research is clear — dramatically increase follow-through. The calendar block is a when-where plan. It's the mechanism. It just doesn't have a badge attached to it.</div>
+  </div>
+</div>
+
+<div class="fn-card" id="fn-5">
+  <div class="fn-header" onclick="fnToggle('fn-5','fn_reads_5')" role="button" tabindex="0" aria-expanded="false" aria-controls="fn-body-5" onkeydown="if(event.key==='Enter'||event.key===' ')fnToggle('fn-5','fn_reads_5')">
+    <div class="fn-meta">
+      <div class="fn-title">RSD Is Not A Feeling. It's A Nervous System Event.</div>
+      <div class="fn-date">November 2025</div>
+      <div class="fn-reads" id="fn_reads_5"></div>
+    </div>
+    <div class="fn-chevron" aria-hidden="true">▾</div>
+  </div>
+  <div class="fn-body" id="fn-body-5">
+    <div class="fn-text">Rejection Sensitive Dysphoria is the ADHD symptom nobody told me about. The dopamine dysregulation that makes ADHD difficult for executive function also makes emotional regulation unreliable in a specific way: the emotional response to perceived rejection is not proportional to the stimulus. It's not "feeling bad" about criticism. It's a full nervous system event — cortisol spike, threat response, the works — triggered by a look, a tone, a pause in a text chain.<br><br>I spent forty-four years thinking I was too sensitive. Too reactive. Too easily derailed by what other people thought. It turns out I had a neurological condition that was producing this as a symptom, and nobody had told me.<br><br>The Biological Bruise is the book I wrote after the diagnosis. The RSD Shield Drill in the deck is the practical tool that came out of the research I did for that book — specifically, the work of William Dodson, who has probably done more clinical work on RSD than anyone.<br><br>The core insight is that you cannot cognitive-therapy your way out of a nervous system event while it's happening. You can, however, identify it. Name it. Create just enough distance to ask: is this information, or is this RSD? Is what I'm interpreting as rejection actually rejection, or is it my nervous system pattern-matching on ambiguous data?<br><br>That one question — "is this RSD?" — has probably saved me more relationships than anything else I've learned. Not because it makes the pain less. Because it makes the pain legible. And legible pain is something you can work with.</div>
+  </div>
+</div>
+
 <!-- CTA -->
 <div style="padding:16px;text-align:center">
   <a href="./" style="display:block;width:100%;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;border:none;border-radius:10px;padding:16px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase;text-decoration:none;transition:all .2s">⚡ ENTER THE DECK — FREE</a>
@@ -266,5 +353,71 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
 </div>
 
 </div><!-- .app -->
+
+<script>
+(function(){
+  'use strict';
+
+  // ── FIELD NOTES: read counter + accordion ─────────────────────────────
+  var NOTES = ['fn-1','fn-2','fn-3','fn-4','fn-5'];
+
+  // Render read counts from localStorage
+  function renderCounts(){
+    NOTES.forEach(function(id){
+      var key = 'od_fieldnote_views_' + id;
+      var n = 0;
+      try { n = parseInt(localStorage.getItem(key) || '0', 10) || 0; } catch(e){}
+      var el = document.getElementById('fn_reads_' + id.split('-')[1]);
+      if(el) el.textContent = n > 0 ? (n === 1 ? '1 read' : n + ' reads') : '';
+    });
+  }
+
+  // Increment read count when a note is opened
+  function incrementCount(id){
+    var key = 'od_fieldnote_views_' + id;
+    try {
+      var n = parseInt(localStorage.getItem(key) || '0', 10) || 0;
+      localStorage.setItem(key, String(n + 1));
+    } catch(e){}
+  }
+
+  // Toggle accordion open/close
+  window.fnToggle = function(cardId, _legacy){
+    var card = document.getElementById(cardId);
+    if(!card) return;
+    var isOpen = card.classList.contains('fn-open');
+    // Close all
+    NOTES.forEach(function(id){
+      var c = document.getElementById(id);
+      if(c){
+        c.classList.remove('fn-open');
+        var h = c.querySelector('.fn-header');
+        if(h) h.setAttribute('aria-expanded','false');
+      }
+    });
+    // Open clicked if it was closed
+    if(!isOpen){
+      card.classList.add('fn-open');
+      var header = card.querySelector('.fn-header');
+      if(header) header.setAttribute('aria-expanded','true');
+      incrementCount(cardId);
+      renderCounts();
+    }
+  };
+
+  // Read ?ref= parameter — no ?tab= interference, query-string only
+  (function trackRef(){
+    try {
+      var ref = new URLSearchParams(window.location.search).get('ref');
+      if(ref) {
+        var n = parseInt(localStorage.getItem('od_shelf_ref_' + ref) || '0', 10) || 0;
+        localStorage.setItem('od_shelf_ref_' + ref, String(n + 1));
+      }
+    } catch(e){}
+  }());
+
+  renderCounts();
+}());
+</script>
 </body>
 </html>
