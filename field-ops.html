@@ -1332,6 +1332,16 @@ Object.assign(window,{
 
 init();
 </script>
+
+<!-- ═══ DIRECTIVE ANCHOR — load order is mandatory ══════════════════════ -->
+<script src="anchor/entropy.js"></script>
+<script src="anchor/ics.js"></script>
+<script src="anchor/db.js"></script>
+<script src="anchor/tension-meter.js"></script>
+<script src="anchor/anchor-step.js"></script>
+<script src="anchor/anchor-ratio.js"></script>
+<!-- ════════════════════════════════════════════════════════════════════ -->
+
 <script>if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}</script>
 </body>
 </html>

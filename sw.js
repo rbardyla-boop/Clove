@@ -1,4 +1,4 @@
-const CACHE_NAME = 'operators-deck-v28';
+const CACHE_NAME = 'operators-deck-v30';
 
 // Only cache true static assets — never HTML files.
 // Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)
@@ -15,7 +15,13 @@ const STATIC_ASSETS = [
   '/clove-192.png',
   '/clove-512.png',
   '/favicon.ico',
-  '/og-image.jpg'
+  '/og-image.jpg',
+  '/anchor/entropy.js',
+  '/anchor/ics.js',
+  '/anchor/db.js',
+  '/anchor/tension-meter.js',
+  '/anchor/anchor-step.js',
+  '/anchor/anchor-ratio.js'
 ];
 
 self.addEventListener('install', (event) => {

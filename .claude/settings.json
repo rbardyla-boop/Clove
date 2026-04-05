@@ -15,7 +15,14 @@
       "Bash(find . -name \"*.html\" -exec sed -i 's|https://clovelearn.io/icons/og-image.jpg|https://clovelearn.io/og-image.jpg|g' {} \\\\;)",
       "Bash(grep -r \"chart.js@\" *.html)",
       "Bash(node --check /tmp/fo_final.js)",
-      "Read(//home/thebackhand/Downloads/clovelearn_v3_final_deploy echo === Main script block \\(ends at first </script>\\) === awk /^<script>$/{p=1;next} /^<\\\\/script>$/{if\\(p\\){p=0;exit}} p field-ops.html node --check /tmp/**)"
+      "Read(//home/thebackhand/Downloads/clovelearn_v3_final_deploy echo === Main script block \\(ends at first </script>\\) === awk /^<script>$/{p=1;next} /^<\\\\/script>$/{if\\(p\\){p=0;exit}} p field-ops.html node --check /tmp/**)",
+      "Bash(wc -l /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.md)",
+      "Bash(grep -n \"getCurrentCategory\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
+      "Bash(grep -n \"currentSessionDirectives\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
+      "Bash(grep -h \"g\\\\.\\\\\\(oda[A-Za-z]*\\\\\\) =\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
+      "Bash(grep -hP 'g\\\\.oda[A-Za-z]+ =' /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
+      "Bash(grep -h \"g\\\\.oda[A-Za-z]* =\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
+      "Bash(wc -l /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)"
     ]
   }
 }
