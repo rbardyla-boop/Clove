@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta property="og:title" content="FAILURE AUTOPSY • OPERATOR'S DECK">
+<meta property="og:description" content="Post-failure forensic debrief. Extract the lesson. Leave the shame.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/failure-autopsy-drill.html">
+<meta name="description" content="A 4-step forensic debrief for when things go wrong. Extract the lesson, identify the pattern, leave the shame. From Stubborn Bastard by Ryan Bardyla.">
+<meta name="referrer" content="no-referrer">
+<title>FAILURE AUTOPSY • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;
+  --dim:#8a8a8a;--dim2:#777;--dim3:#333
+}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+html{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding-bottom:60px}
+
+/* ── NAV ──────────────────────────────────────────────────────────────────── */
+.nav-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:3px solid var(--blu);display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.back-btn{background:none;border:1px solid var(--bg4);color:#aaa;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s}
+.back-btn:active{color:#fff;border-color:#444}
+.nav-right{text-align:right}
+.nav-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;text-transform:uppercase}
+.nav-name{color:var(--blu);font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px}
+
+/* ── PROGRESS ─────────────────────────────────────────────────────────────── */
+.prog-wrap{height:3px;background:var(--bg3)}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blu),var(--gld));transition:width .4s ease;width:0%}
+
+/* ── DISCLAIMER ───────────────────────────────────────────────────────────── */
+.disclaimer{text-align:center;padding:8px 16px;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);border-bottom:1px solid var(--bg3);text-transform:uppercase}
+
+/* ── STEPS ────────────────────────────────────────────────────────────────── */
+.step{display:none;padding:24px 20px 20px}
+.step.active{display:block}
+.step-counter{text-align:center;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim);padding-bottom:4px}
+.step-counter span{color:var(--blu)}
+.step-label{color:var(--blu);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px;text-transform:uppercase}
+.step-title{font-family:'Bebas Neue',monospace;font-size:30px;letter-spacing:1px;color:#fff;margin-bottom:8px;line-height:1.1}
+.step-desc{font-family:Georgia,serif;font-style:italic;color:#666;font-size:10px;line-height:1.7;margin-bottom:18px}
+
+/* ── INPUTS ───────────────────────────────────────────────────────────────── */
+textarea{width:100%;background:var(--bg2);border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;color:#ddd;font-family:Georgia,serif;font-size:11px;line-height:1.7;resize:vertical;min-height:80px;transition:border-color .15s}
+textarea:focus{outline:none;border-color:var(--gld)}
+textarea::placeholder{color:#444;font-style:italic}
+.char-hint{font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--dim2);text-align:right;margin-top:4px;margin-bottom:14px}
+.sub-prompt{font-size:8px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:8px;margin-top:4px}
+
+/* ── CHOICE CARDS (single-select) ─────────────────────────────────────────── */
+.choice-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.choice-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s;display:block}
+.choice-card input[type="radio"]{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+.choice-card:active{transform:scale(.99)}
+.choice-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:5px;text-transform:uppercase}
+.choice-title{font-size:13px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.5px;color:#e8e8f0;margin-bottom:5px}
+.choice-desc{font-size:9px;font-family:Georgia,serif;color:var(--dim);line-height:1.6;font-style:italic}
+
+/* Pattern card accent states */
+.card-first .choice-tag{color:var(--blu)}
+.card-first.selected{border-color:var(--blu);background:rgba(74,111,165,.05)}
+.card-repeat .choice-tag{color:var(--gld)}
+.card-repeat.selected{border-color:var(--gld);background:rgba(212,168,67,.05)}
+.card-habit .choice-tag{color:var(--red)}
+.card-habit.selected{border-color:var(--red);background:rgba(192,57,43,.05)}
+
+/* ── RESOURCE GRID (multi-select) ─────────────────────────────────────────── */
+.resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.resource-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.resource-card:active{transform:scale(.98)}
+.resource-card.checked{border-color:var(--grn);background:rgba(39,174,96,.06)}
+.rc-state{font-size:7.5px;font-family:monospace;letter-spacing:1px;text-align:right;margin-bottom:5px;height:11px}
+.resource-card.checked .rc-state{color:var(--grn)}
+.resource-card:not(.checked) .rc-state{color:var(--dim3)}
+.rc-lbl{font-size:8.5px;font-family:'DM Mono',monospace;letter-spacing:.3px;color:var(--dim);line-height:1.4}
+.resource-card.checked .rc-lbl{color:#ddd}
+
+/* ── PATTERN ALERT (auto-detection) ──────────────────────────────────────── */
+.pattern-alert{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);border-radius:10px;padding:14px;margin-bottom:16px}
+.pa-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--red);text-transform:uppercase;margin-bottom:6px}
+.pa-text{font-size:9px;font-family:Georgia,serif;color:#aaa;line-height:1.6;font-style:italic}
+
+/* ── MENTOR BLOCK ─────────────────────────────────────────────────────────── */
+.mentor-block{background:rgba(74,111,165,.06);border-left:3px solid var(--blu);border-radius:0 10px 10px 0;padding:16px;margin-top:18px}
+.mb-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-transform:uppercase;margin-bottom:8px}
+.mb-text{font-size:9px;font-family:Georgia,serif;color:var(--dim);line-height:1.85;font-style:italic}
+
+/* ── STEP ACTIONS ─────────────────────────────────────────────────────────── */
+.step-acts{display:flex;gap:10px;margin-top:20px}
+.btn-next{flex:1;background:var(--bg2);border:1px solid var(--blu);color:var(--blu);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;padding:14px 12px;border-radius:10px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-next:active{background:var(--blu);color:#fff}
+.btn-next:disabled{opacity:.3;cursor:not-allowed}
+.btn-back-step{background:none;border:1px solid var(--dim3);color:var(--dim2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;padding:14px 14px;border-radius:10px;cursor:pointer;transition:all .2s}
+.btn-back-step:active{border-color:var(--dim);color:var(--dim)}
+.btn-save{background:linear-gradient(135deg,var(--grn),#1a6b3a);border-color:var(--grn);color:#fff;box-shadow:0 4px 16px rgba(39,174,96,.2)}
+.btn-save:not(:disabled):active{transform:scale(.97)}
+
+/* ── SUMMARY ──────────────────────────────────────────────────────────────── */
+.summary-header{text-align:center;margin-bottom:20px}
+.sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-family:'Bebas Neue',monospace;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:6px}
+.summary-header p{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-transform:uppercase;margin-bottom:8px}
+.sb-content{font-size:10px;color:#aaa;font-family:Georgia,serif;line-height:1.7}
+.date-stamp{font-size:7.5px;font-family:monospace;letter-spacing:2px;color:var(--dim2);text-align:center;margin-bottom:16px}
+
+/* Resource chips */
+.chip-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font-size:7px;font-family:monospace;letter-spacing:1px;padding:4px 10px;border-radius:20px;text-transform:uppercase}
+.chip-gap{background:rgba(192,57,43,.1);color:var(--red);border:1px solid rgba(192,57,43,.25)}
+.chip-have{background:rgba(39,174,96,.08);color:var(--grn);border:1px solid rgba(39,174,96,.2)}
+
+/* Pattern badge */
+.pattern-badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:7.5px;font-family:monospace;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-top:6px}
+.pb-first{background:rgba(74,111,165,.15);color:var(--blu);border:1px solid rgba(74,111,165,.3)}
+.pb-repeat{background:rgba(212,168,67,.15);color:var(--gld);border:1px solid rgba(212,168,67,.3)}
+.pb-habit{background:rgba(192,57,43,.15);color:var(--red);border:1px solid rgba(192,57,43,.3)}
+
+/* Extraction highlight */
+.extraction-highlight{background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:16px;margin-top:10px}
+.eh-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--gld);text-transform:uppercase;margin-bottom:8px}
+.eh-text{font-size:12px;font-family:Georgia,serif;color:#e0e0e0;line-height:1.7;font-style:italic}
+
+/* ── PRINT BUTTON ─────────────────────────────────────────────────────────── */
+.btn-print{width:100%;background:var(--bg3);border:1px solid var(--dim3);color:var(--dim2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;padding:12px;border-radius:10px;cursor:pointer;margin-top:10px;transition:all .2s}
+.btn-print:active{color:#fff;border-color:var(--dim)}
+
+/* ── PAST ENTRIES ─────────────────────────────────────────────────────────── */
+.past-section{max-width:480px;margin:0 auto;padding:0 0 40px}
+.past-divider{border:none;border-top:1px solid var(--bg3);margin:0 16px 20px}
+.past-title{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--dim2);padding:0 20px;margin-bottom:14px;text-transform:uppercase}
+.past-item{margin:0 16px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;overflow:hidden}
+.past-header{padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:background .15s}
+.past-header:active{background:var(--bg3)}
+.past-meta{flex:1;min-width:0}
+.past-date{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);margin-bottom:4px}
+.past-snip{font-size:9px;color:#aaa;font-family:Georgia,serif;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.past-badge{flex-shrink:0;font-size:6.5px;font-family:monospace;letter-spacing:1px;padding:4px 8px;border-radius:12px;text-transform:uppercase}
+.past-detail{display:none;padding:0 16px 14px;border-top:1px solid var(--bg3)}
+.past-item.open .past-detail{display:block}
+.past-detail-row{margin-top:10px}
+.pd-label{font-size:6.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:4px}
+.pd-val{font-size:9px;font-family:Georgia,serif;color:#aaa;line-height:1.6}
+
+/* ── HEATMAP ──────────────────────────────────────────────────────────────── */
+.heatmap-section{margin:0 16px 16px;background:var(--bg2);border:1px solid var(--bg3);border-radius:12px;padding:16px}
+.hm-title{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:4px}
+.hm-sub{font-size:8px;font-family:Georgia,serif;color:var(--dim2);font-style:italic;margin-bottom:14px;line-height:1.5}
+.hm-row{margin-bottom:10px}
+.hm-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.hm-lbl{font-size:7.5px;font-family:monospace;letter-spacing:.8px;color:var(--dim2);text-transform:uppercase}
+.hm-count{font-size:7px;font-family:monospace;color:var(--red);letter-spacing:1px}
+.hm-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.hm-fill{height:100%;background:linear-gradient(90deg,var(--red),rgba(192,57,43,.3));border-radius:3px}
+
+/* ── PATTERN INSIGHT ──────────────────────────────────────────────────────── */
+.pattern-insight{margin:0 16px 14px;background:rgba(74,111,165,.08);border:1px solid rgba(74,111,165,.2);border-radius:10px;padding:14px 16px}
+.pi-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-transform:uppercase;margin-bottom:6px}
+.pi-text{font-size:9px;font-family:Georgia,serif;color:#aaa;line-height:1.6;font-style:italic}
+
+/* ── TOAST ────────────────────────────────────────────────────────────────── */
+.fa-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2a;border:1px solid var(--dim3);color:#ddd;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1.5px;padding:10px 20px;border-radius:8px;z-index:999;pointer-events:none;white-space:nowrap}
+
+@media print{
+  .nav-bar,.prog-wrap,.disclaimer,.step-acts,.btn-print,.past-section{display:none!important}
+  body{background:#fff;color:#000}
+  .step.active{display:block}
+  .summary-block,.extraction-highlight{border:1px solid #ddd;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav-bar">
+  <button class="back-btn" onclick="window.location.href='./?tab=more'">← DECK</button>
+  <div class="nav-right">
+    <div class="nav-tag">POST-MORTEM TOOL</div>
+    <div class="nav-name">FAILURE AUTOPSY</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">DEBRIEF TOOL — Not a judgment. Not a sentence. An extraction.</div>
+
+<div class="app" role="main">
+
+<!-- ═══════════════════════════════════════════════
+     STEP 1: THE HONEST RECORD
+═══════════════════════════════════════════════ -->
+<div class="step active" id="step1">
+  <div class="step-counter">STEP <span>1</span> OF 4</div>
+  <div class="step-label">Step 1 — What Happened</div>
+  <div class="step-title">Write what actually<br>happened</div>
+  <div class="step-desc">The facts. Not the story you tell at bars. Not the version where you're the hero or the victim. What happened.</div>
+
+  <textarea id="f_record" maxlength="600" rows="5" placeholder="What actually happened was..."
+    oninput="charUpdate(this,'ch1');btn('btnNext1',this.value.trim().length>0)"></textarea>
+  <div class="char-hint" id="ch1">0 / 600</div>
+
+  <div class="sub-prompt">What was outside your control?</div>
+  <textarea id="f_outside" maxlength="400" rows="3"
+    placeholder="The market, a pandemic, someone else's decision, a disability, bad luck..."
+    oninput="charUpdate(this,'ch2')"></textarea>
+  <div class="char-hint" id="ch2">0 / 400</div>
+
+  <div class="sub-prompt">What was inside your control?</div>
+  <textarea id="f_inside" maxlength="400" rows="3"
+    placeholder="My ego, my lack of sleep, my refusal to ask for help, my impatience..."
+    oninput="charUpdate(this,'ch3')"></textarea>
+  <div class="char-hint" id="ch3">0 / 400</div>
+
+  <div class="step-acts">
+    <button class="btn-next" id="btnNext1" onclick="goStep(2)" disabled>NEXT — RESOURCE AUDIT →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 2: THE RESOURCE CHECK
+═══════════════════════════════════════════════ -->
+<div class="step" id="step2">
+  <div class="step-counter">STEP <span>2</span> OF 4</div>
+  <div class="step-label">Step 2 — Resource Audit</div>
+  <div class="step-title">Did you have what<br>you needed?</div>
+  <div class="step-desc">If Dyson needed a house to mortgage and you didn't have one, your failure isn't a "lack of grit." It's a lack of capital. Stop comparing your outcomes to people with different inputs.</div>
+
+  <div style="font-size:8px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:10px">Tap the resources you actually had ↓</div>
+  <div class="resource-grid" id="resourceGrid"></div>
+
+  <div class="sub-prompt">What resource gap hurt you most?</div>
+  <textarea id="f_resource_note" maxlength="400" rows="3"
+    placeholder="The thing I was actually missing was..."
+    oninput="charUpdate(this,'ch4')"></textarea>
+  <div class="char-hint" id="ch4">0 / 400</div>
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(1)">← BACK</button>
+    <button class="btn-next" onclick="goStep(3)">NEXT — PATTERN SCAN →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 3: THE PATTERN SCAN
+═══════════════════════════════════════════════ -->
+<div class="step" id="step3">
+  <div class="step-counter">STEP <span>3</span> OF 4</div>
+  <div class="step-label">Step 3 — Pattern Detection</div>
+  <div class="step-title">Have you failed<br>this way before?</div>
+  <div class="step-desc">Once is data. Twice is a pattern. Three times is a habit.</div>
+
+  <!-- Auto-detection alert injected here -->
+  <div id="patternAlertBox" style="display:none"></div>
+
+  <div class="choice-grid">
+    <label class="choice-card card-first" id="pc-first">
+      <input type="radio" name="fa_pattern" value="first" onchange="selectPattern('first')">
+      <div class="choice-tag">FIRST TIME</div>
+      <div class="choice-title">First Time 📊</div>
+      <div class="choice-desc">This is new data. No pattern yet.</div>
+    </label>
+    <label class="choice-card card-repeat" id="pc-repeat">
+      <input type="radio" name="fa_pattern" value="repeat" onchange="selectPattern('repeat')">
+      <div class="choice-tag">SEEN THIS BEFORE</div>
+      <div class="choice-title">Seen This Before 🔄</div>
+      <div class="choice-desc">This feels familiar. There might be a loop.</div>
+    </label>
+    <label class="choice-card card-habit" id="pc-habit">
+      <input type="radio" name="fa_pattern" value="habit" onchange="selectPattern('habit')">
+      <div class="choice-tag">THIS IS A HABIT</div>
+      <div class="choice-title">This Is A Habit ⚠️</div>
+      <div class="choice-desc">I've done this exact thing multiple times.</div>
+    </label>
+  </div>
+
+  <div id="patternThread" style="display:none">
+    <div class="sub-prompt">What's the common thread?</div>
+    <textarea id="f_thread" maxlength="400" rows="3"
+      placeholder="Every time this happens, I..."
+      oninput="charUpdate(this,'ch5')"></textarea>
+    <div class="char-hint" id="ch5">0 / 400</div>
+  </div>
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(2)">← BACK</button>
+    <button class="btn-next" id="btnNext3" onclick="goStep(4)" disabled>NEXT — EXTRACT THE LESSON →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 4: THE EXTRACTION
+═══════════════════════════════════════════════ -->
+<div class="step" id="step4">
+  <div class="step-counter">STEP <span>4</span> OF 4</div>
+  <div class="step-label">Step 4 — Extract The Lesson</div>
+  <div class="step-title">One thing.<br>Different next time.</div>
+  <div class="step-desc">Extract the lesson. Leave the shame. Shame is not data.</div>
+
+  <div class="sub-prompt">What is one specific thing you will do differently?</div>
+  <textarea id="f_extraction" maxlength="400" rows="4"
+    placeholder="Next time I will..."
+    oninput="charUpdate(this,'ch6');btn('btnSave',this.value.trim().length>0)"></textarea>
+  <div class="char-hint" id="ch6">0 / 400</div>
+
+  <div class="mentor-block">
+    <div class="mb-tag">For Fathers &amp; Mentors</div>
+    <div class="mb-text">Tell a young man about your biggest, messiest failure today. Don't add the "and then I learned a valuable lesson" part yet. Just tell him how much it sucked and how scared you were. Let him see a strong man who failed.</div>
+  </div>
+
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goStep(3)">← BACK</button>
+    <button class="btn-next btn-save" id="btnSave" onclick="saveEntry()" disabled>SAVE TO LOG ✓</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SUMMARY SCREEN
+═══════════════════════════════════════════════ -->
+<div class="step" id="stepSummary">
+  <div class="summary-header">
+    <div class="sh-icon">🔬</div>
+    <h2>AUTOPSY COMPLETE</h2>
+    <p>The forensic work is done.<br>The lesson is extracted. The shame stays here.</p>
+  </div>
+  <div id="summaryContent"></div>
+  <button class="btn-print" onclick="printEntry()">⊞ PRINT / COPY AS TEXT</button>
+  <div class="step-acts" style="margin-top:14px">
+    <button class="btn-next" onclick="startNew()">NEW AUTOPSY</button>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<!-- PAST ENTRIES (outside .app) -->
+<div class="past-section" id="pastSection" style="display:none">
+  <hr class="past-divider">
+  <div class="past-title">PAST AUTOPSIES</div>
+  <div id="heatmapContainer" style="display:none"></div>
+  <div id="pastPatternInsight" style="display:none"></div>
+  <div id="pastList"></div>
+</div>
+
+<script>
+'use strict';
+
+const STORE_KEY = 'od_autopsy_v1';
+
+const RESOURCES = [
+  {k:'money',        lbl:'Had enough money'},
+  {k:'time',         lbl:'Had enough time'},
+  {k:'skills',       lbl:'Had the right skills'},
+  {k:'people',       lbl:'Had the right people'},
+  {k:'info',         lbl:'Had the right information'},
+  {k:'institutional',lbl:'Had institutional support'},
+  {k:'health',       lbl:'Had physical/mental health'},
+  {k:'safetyNet',    lbl:'Had a safety net'}
+];
+
+// ── SECURITY ───────────────────────────────────────────────────────────────────
+function esc(s){
+  if(typeof s!=='string')return'';
+  const d=document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function charUpdate(el,id){
+  const d=document.getElementById(id);
+  if(d)d.textContent=el.value.length+' / '+el.maxLength;
+}
+function btn(id,enabled){
+  const b=document.getElementById(id);
+  if(b)b.disabled=!enabled;
+}
+function showToast(msg){
+  document.querySelectorAll('.fa-toast').forEach(t=>t.remove());
+  const t=document.createElement('div');
+  t.className='fa-toast';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2400);
+}
+function loadEntries(){
+  try{return JSON.parse(localStorage.getItem(STORE_KEY))||[];}
+  catch(e){return[];}
+}
+function saveEntries(arr){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(arr.slice(0,200)));}
+  catch(e){}
+}
+function fmtDate(ts){
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ── GAP ANALYSIS ───────────────────────────────────────────────────────────────
+// Returns {k: count} where count = number of entries that LACKED this resource
+function getGapCounts(entries){
+  const counts={};
+  RESOURCES.forEach(r=>{counts[r.k]=0;});
+  entries.forEach(function(e){
+    if(!e.resources)return;
+    RESOURCES.forEach(function(r){
+      if(!e.resources[r.k])counts[r.k]++;
+    });
+  });
+  return counts;
+}
+
+// ── DRILL STATE ────────────────────────────────────────────────────────────────
+let selectedResources={
+  money:false,time:false,skills:false,people:false,
+  info:false,institutional:false,health:false,safetyNet:false
+};
+let patternChoice=null;
+
+// ── RESOURCE GRID ──────────────────────────────────────────────────────────────
+function renderResourceGrid(){
+  const grid=document.getElementById('resourceGrid');
+  if(!grid)return;
+  let h='';
+  RESOURCES.forEach(function(r){
+    const isChecked=!!selectedResources[r.k];
+    h+='<div class="resource-card'+(isChecked?' checked':'')+'"'+
+      ' data-key="'+r.k+'"'+
+      ' role="checkbox"'+
+      ' tabindex="0"'+
+      ' aria-checked="'+(isChecked?'true':'false')+'"'+
+      ' onclick="toggleResource(\''+r.k+'\')"'+
+      ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleResource(\''+r.k+'\')}">';
+    h+='<div class="rc-state">'+(isChecked?'✓ HAD IT':'— MISSING')+'</div>';
+    h+='<div class="rc-lbl">'+esc(r.lbl)+'</div>';
+    h+='</div>';
+  });
+  grid.innerHTML=h;
+}
+
+function toggleResource(k){
+  if(Object.prototype.hasOwnProperty.call(selectedResources,k)){
+    selectedResources[k]=!selectedResources[k];
+    renderResourceGrid();
+  }
+}
+
+// ── PATTERN SELECTION ──────────────────────────────────────────────────────────
+function selectPattern(val){
+  patternChoice=val;
+  ['first','repeat','habit'].forEach(function(v){
+    const c=document.getElementById('pc-'+v);
+    if(c)c.classList.toggle('selected',v===val);
+  });
+  const threadDiv=document.getElementById('patternThread');
+  if(threadDiv)threadDiv.style.display=(val==='repeat'||val==='habit')?'block':'none';
+  btn('btnNext3',true);
+}
+
+// ── AUTO-PATTERN DETECTION ─────────────────────────────────────────────────────
+// Fires when step 3 becomes active. Shows alert if 3+ past entries share a top gap.
+function renderPatternAlert(){
+  const el=document.getElementById('patternAlertBox');
+  if(!el)return;
+  const entries=loadEntries();
+  if(entries.length<3){el.style.display='none';return;}
+  const gapCounts=getGapCounts(entries);
+  const sorted=RESOURCES.slice().sort(function(a,b){return gapCounts[b.k]-gapCounts[a.k];});
+  const top=sorted[0];
+  if(!top||gapCounts[top.k]<2){el.style.display='none';return;}
+  const cnt=gapCounts[top.k];
+  const total=entries.length;
+  el.style.display='';
+  el.innerHTML=
+    '<div class="pattern-alert">'+
+    '<div class="pa-tag">Pattern Alert \u2014 '+esc(String(total))+' entries analyzed</div>'+
+    '<div class="pa-text">You\u2019ve flagged \u201C'+esc(top.lbl)+'\u201D as missing in '+
+    esc(String(cnt))+' of '+esc(String(total))+' entries. '+
+    'This isn\u2019t a character flaw\u2014it\u2019s a structural gap. Name it.</div>'+
+    '</div>';
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────────
+function goStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  const id=(n==='summary')?'stepSummary':'step'+n;
+  const el=document.getElementById(id);
+  if(el)el.classList.add('active');
+  const pct=(typeof n==='number')?((n-1)/4*100):100;
+  const pf=document.getElementById('progFill');
+  if(pf)pf.style.width=pct+'%';
+  if(n===3)renderPatternAlert();
+  window.scrollTo(0,0);
+}
+
+// ── SAVE ENTRY ─────────────────────────────────────────────────────────────────
+function saveEntry(){
+  if(!patternChoice)return;
+  const extraction=document.getElementById('f_extraction').value.trim();
+  if(!extraction)return;
+
+  const entry={
+    id:           Date.now(),
+    date:         fmtDate(Date.now()),
+    record:       document.getElementById('f_record').value.trim(),
+    outside:      document.getElementById('f_outside').value.trim(),
+    inside:       document.getElementById('f_inside').value.trim(),
+    resources:    Object.assign({},selectedResources),
+    resourceNote: document.getElementById('f_resource_note').value.trim(),
+    pattern:      patternChoice,
+    thread:       document.getElementById('f_thread').value.trim(),
+    extraction
+  };
+
+  const entries=loadEntries();
+  entries.unshift(entry);
+  saveEntries(entries);
+
+  renderSummary(entry);
+  goStep('summary');
+  renderPastEntries();
+  showToast('AUTOPSY LOGGED');
+}
+
+// ── SUMMARY RENDER ─────────────────────────────────────────────────────────────
+function renderSummary(entry){
+  const PL={first:'First Time 📊',repeat:'Seen Before 🔄',habit:'This Is A Habit ⚠️'};
+  const PC={first:'pb-first',repeat:'pb-repeat',habit:'pb-habit'};
+  const gaps=RESOURCES.filter(r=>!entry.resources||!entry.resources[r.k]);
+  const have=RESOURCES.filter(r=>entry.resources&&!!entry.resources[r.k]);
+
+  // Strip "Had " prefix for compact chip labels (CSS text-transform:uppercase handles display)
+  function chipLbl(r){return esc(r.lbl.replace(/^Had /,''));}
+
+  let h='';
+  h+='<div class="date-stamp">'+esc(entry.date)+'</div>';
+
+  // What happened
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">What Actually Happened</div>';
+  h+='<div class="sb-content">'+esc(entry.record)+'</div>';
+  if(entry.outside){
+    h+='<div class="sb-content" style="margin-top:10px">'+
+       '<span style="font-family:monospace;font-size:7px;letter-spacing:1px;color:var(--dim2);display:block;margin-bottom:4px;text-transform:uppercase">Outside my control</span>'+
+       esc(entry.outside)+'</div>';
+  }
+  if(entry.inside){
+    h+='<div class="sb-content" style="margin-top:10px">'+
+       '<span style="font-family:monospace;font-size:7px;letter-spacing:1px;color:var(--dim2);display:block;margin-bottom:4px;text-transform:uppercase">Inside my control</span>'+
+       esc(entry.inside)+'</div>';
+  }
+  h+='</div>';
+
+  // Resource audit
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">Resource Audit</div>';
+  if(gaps.length){
+    h+='<div style="font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--red);text-transform:uppercase;margin-bottom:5px">Gaps \u2014 didn\'t have</div>';
+    h+='<div class="chip-grid">';
+    gaps.forEach(function(r){h+='<span class="chip chip-gap">'+chipLbl(r)+'</span>';});
+    h+='</div>';
+  }
+  if(have.length){
+    h+='<div style="font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--grn);text-transform:uppercase;margin-bottom:5px;'+(gaps.length?'margin-top:10px':'')+'">Had it</div>';
+    h+='<div class="chip-grid">';
+    have.forEach(function(r){h+='<span class="chip chip-have">'+chipLbl(r)+'</span>';});
+    h+='</div>';
+  }
+  if(entry.resourceNote){
+    h+='<div class="sb-content" style="margin-top:10px;font-style:italic">'+esc(entry.resourceNote)+'</div>';
+  }
+  h+='</div>';
+
+  // Pattern
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">Pattern</div>';
+  h+='<span class="pattern-badge '+esc(PC[entry.pattern]||'')+'">'+esc(PL[entry.pattern]||entry.pattern||'')+'</span>';
+  if(entry.thread){
+    h+='<div class="sb-content" style="margin-top:10px">'+esc(entry.thread)+'</div>';
+  }
+  h+='</div>';
+
+  // Extraction — prominent display
+  h+='<div class="summary-block">';
+  h+='<div class="sb-label">The Extraction</div>';
+  h+='<div class="extraction-highlight">';
+  h+='<div class="eh-tag">One thing. Different next time.</div>';
+  h+='<div class="eh-text">\u201C'+esc(entry.extraction)+'\u201D</div>';
+  h+='</div>';
+  h+='</div>';
+
+  // Byline
+  h+='<div style="text-align:center;padding:20px 0 6px;font-size:7.5px;font-family:\'DM Mono\',monospace;letter-spacing:1.5px">'+
+     '<a href="author-shelf.html?ref=debrief" style="color:#555;text-decoration:none">Built by Ryan Bardyla \u2192</a></div>';
+
+  document.getElementById('summaryContent').innerHTML=h;
+}
+
+// ── HEATMAP ────────────────────────────────────────────────────────────────────
+function renderHeatmap(entries,container){
+  const gapCounts=getGapCounts(entries);
+  const total=entries.length;
+  const withGaps=RESOURCES.filter(r=>gapCounts[r.k]>0)
+    .slice()
+    .sort(function(a,b){return gapCounts[b.k]-gapCounts[a.k];});
+
+  if(!withGaps.length){container.style.display='none';return;}
+
+  const maxCount=gapCounts[withGaps[0].k];
+  container.style.display='';
+
+  let h='<div class="heatmap-section">';
+  h+='<div class="hm-title">Resource Gap Heatmap</div>';
+  h+='<div class="hm-sub">Which resources were most frequently missing across '+
+     esc(String(total))+' '+
+     (total===1?'entry':'entries')+
+     '. Bars show relative frequency. Your structural weakness pattern.</div>';
+
+  withGaps.forEach(function(r){
+    const cnt=gapCounts[r.k];
+    const barPct=Math.round((cnt/maxCount)*100);
+    const pctOfTotal=Math.round((cnt/total)*100);
+    h+='<div class="hm-row">';
+    h+='<div class="hm-meta">';
+    h+='<span class="hm-lbl">'+esc(r.lbl)+'</span>';
+    h+='<span class="hm-count">'+esc(String(cnt))+'/'+esc(String(total))+
+       ' ('+esc(String(pctOfTotal))+'%)</span>';
+    h+='</div>';
+    h+='<div class="hm-track">'+
+       '<div class="hm-fill" style="width:'+barPct+'%"></div>'+
+       '</div>';
+    h+='</div>';
+  });
+
+  h+='</div>';
+  container.innerHTML=h;
+}
+
+// ── PAST ENTRIES ───────────────────────────────────────────────────────────────
+function renderPastEntries(){
+  const entries=loadEntries();
+  const section=document.getElementById('pastSection');
+  const list=document.getElementById('pastList');
+  const heatmapContainer=document.getElementById('heatmapContainer');
+  const insightContainer=document.getElementById('pastPatternInsight');
+  if(!section||!list)return;
+
+  if(!entries.length){section.style.display='none';return;}
+  section.style.display='block';
+
+  // Heatmap: show when 3+ entries exist
+  if(heatmapContainer){
+    if(entries.length>=3){
+      renderHeatmap(entries,heatmapContainer);
+    } else {
+      heatmapContainer.style.display='none';
+    }
+  }
+
+  // Pattern frequency insight
+  if(insightContainer){
+    if(entries.length>=3){
+      const pc={first:0,repeat:0,habit:0};
+      entries.forEach(function(e){
+        if(e.pattern&&Object.prototype.hasOwnProperty.call(pc,e.pattern))pc[e.pattern]++;
+      });
+      const topKey=Object.keys(pc).sort(function(a,b){return pc[b]-pc[a];})[0];
+      const msgs={
+        first:'Mostly first-time failures so far. You\'re building diverse data — no pattern has locked in yet.',
+        repeat:'You\'ve flagged "Seen This Before" '+esc(String(pc.repeat))+' times. Something is looping. The resource heatmap above may name what\'s actually driving it.',
+        habit:'You\'ve named "This Is A Habit" '+esc(String(pc.habit))+' times. The pattern is named. Which resource gap in the heatmap is enabling it?'
+      };
+      if(pc[topKey]>=2){
+        insightContainer.style.display='';
+        insightContainer.innerHTML=
+          '<div class="pattern-insight">'+
+          '<div class="pi-tag">Pattern Detected \u2014 '+esc(String(entries.length))+' autopsies logged</div>'+
+          '<div class="pi-text">'+msgs[topKey]+'</div>'+
+          '</div>';
+      } else {
+        insightContainer.style.display='none';
+      }
+    } else {
+      insightContainer.style.display='none';
+    }
+  }
+
+  // Badge display data (fixed strings — safe to use directly as style values)
+  const PBadge={
+    first: {lbl:'FIRST', style:'background:rgba(74,111,165,.15);color:var(--blu);border:1px solid rgba(74,111,165,.3)'},
+    repeat:{lbl:'REPEAT',style:'background:rgba(212,168,67,.15);color:var(--gld);border:1px solid rgba(212,168,67,.3)'},
+    habit: {lbl:'HABIT', style:'background:rgba(192,57,43,.15);color:var(--red);border:1px solid rgba(192,57,43,.3)'}
+  };
+  const PLong={first:'First Time 📊',repeat:'Seen Before 🔄',habit:'This Is A Habit ⚠️'};
+
+  let h='';
+  entries.forEach(function(e,i){
+    const snip=(e.record||'').substring(0,100);
+    const badge=PBadge[e.pattern]||{lbl:'—',style:'color:var(--dim2)'};
+    const entryGaps=RESOURCES.filter(r=>e.resources&&!e.resources[r.k]);
+
+    h+='<div class="past-item" id="fai_'+i+'">';
+    // Clickable header row
+    h+='<div class="past-header"'+
+       ' onclick="togglePast('+i+')"'+
+       ' role="button" tabindex="0" aria-expanded="false"'+
+       ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();togglePast('+i+')}">';
+    h+='<div class="past-meta">';
+    h+='<div class="past-date">'+esc(e.date||'')+'</div>';
+    h+='<div class="past-snip">'+esc(snip)+'</div>';
+    h+='</div>';
+    h+='<span class="past-badge" style="'+badge.style+'">'+esc(badge.lbl)+'</span>';
+    h+='</div>';
+    // Expandable detail
+    h+='<div class="past-detail">';
+    h+='<div class="past-detail-row">'+
+       '<div class="pd-label">What Happened</div>'+
+       '<div class="pd-val">'+esc(e.record||'\u2014')+'</div></div>';
+    if(entryGaps.length){
+      h+='<div class="past-detail-row">'+
+         '<div class="pd-label">Resource Gaps</div>'+
+         '<div class="pd-val">'+entryGaps.map(r=>esc(r.lbl)).join(', ')+'</div></div>';
+    }
+    h+='<div class="past-detail-row">'+
+       '<div class="pd-label">Pattern</div>'+
+       '<div class="pd-val" style="font-family:monospace">'+esc(PLong[e.pattern]||e.pattern||'\u2014')+'</div></div>';
+    h+='<div class="past-detail-row">'+
+       '<div class="pd-label">The Extraction</div>'+
+       '<div class="pd-val" style="font-style:italic;color:#ccc">'+esc(e.extraction||'\u2014')+'</div></div>';
+    h+='</div>';// .past-detail
+    h+='</div>';// .past-item
+  });
+  list.innerHTML=h;
+}
+
+function togglePast(i){
+  const el=document.getElementById('fai_'+i);
+  if(!el)return;
+  const isOpen=el.classList.toggle('open');
+  const header=el.querySelector('.past-header');
+  if(header)header.setAttribute('aria-expanded',isOpen?'true':'false');
+}
+
+// ── PRINT / COPY ───────────────────────────────────────────────────────────────
+function printEntry(){
+  const entries=loadEntries();
+  if(!entries.length)return;
+  const e=entries[0];
+  const PL={first:'FIRST TIME',repeat:'SEEN THIS BEFORE',habit:'THIS IS A HABIT'};
+  const gapLabels=RESOURCES.filter(r=>e.resources&&!e.resources[r.k]).map(r=>r.lbl);
+  const haveLabels=RESOURCES.filter(r=>e.resources&&!!e.resources[r.k]).map(r=>r.lbl);
+
+  let t='=== FAILURE AUTOPSY \u2014 OPERATOR\'S DECK ===\n';
+  t+='Date: '+(e.date||'')+'\n\n';
+  t+='1. WHAT HAPPENED\n'+(e.record||'')+'\n';
+  if(e.outside)t+='\nOutside my control: '+e.outside+'\n';
+  if(e.inside)t+='\nInside my control: '+e.inside+'\n';
+  t+='\n2. RESOURCE AUDIT\n';
+  if(haveLabels.length)t+='Had: '+haveLabels.join(', ')+'\n';
+  if(gapLabels.length)t+='Missing: '+gapLabels.join(', ')+'\n';
+  if(e.resourceNote)t+='Gap note: '+e.resourceNote+'\n';
+  t+='\n3. PATTERN: '+(PL[e.pattern]||e.pattern||'')+'\n';
+  if(e.thread)t+='Common thread: '+e.thread+'\n';
+  t+='\n4. THE EXTRACTION\n'+(e.extraction||'')+'\n';
+  t+='\nBuilt by Ryan Bardyla \u2014 Operator\'s Deck\n';
+
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t)
+      .then(function(){showToast('COPIED TO CLIPBOARD');})
+      .catch(function(){window.print();});
+  } else {
+    window.print();
+  }
+}
+
+// ── RESET ──────────────────────────────────────────────────────────────────────
+function startNew(){
+  // Clear all text inputs
+  ['f_record','f_outside','f_inside','f_resource_note','f_thread','f_extraction']
+    .forEach(function(id){const el=document.getElementById(id);if(el)el.value='';});
+
+  // Reset char counters
+  [{id:'ch1',max:600},{id:'ch2',max:400},{id:'ch3',max:400},
+   {id:'ch4',max:400},{id:'ch5',max:400},{id:'ch6',max:400}]
+    .forEach(function(o){const el=document.getElementById(o.id);if(el)el.textContent='0 / '+o.max;});
+
+  // Reset resource state
+  RESOURCES.forEach(function(r){selectedResources[r.k]=false;});
+
+  // Reset pattern state
+  patternChoice=null;
+  ['first','repeat','habit'].forEach(function(v){
+    const c=document.getElementById('pc-'+v);
+    if(c)c.classList.remove('selected');
+  });
+  document.querySelectorAll('input[name="fa_pattern"]').forEach(function(r){r.checked=false;});
+  const threadDiv=document.getElementById('patternThread');
+  if(threadDiv)threadDiv.style.display='none';
+  const alertBox=document.getElementById('patternAlertBox');
+  if(alertBox){alertBox.style.display='none';alertBox.innerHTML='';}
+
+  // Re-disable gated buttons
+  btn('btnNext1',false);
+  btn('btnNext3',false);
+  btn('btnSave',false);
+
+  // Re-render resource grid
+  renderResourceGrid();
+  goStep(1);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+renderResourceGrid();
+renderPastEntries();
+</script>
+</body>
+</html>

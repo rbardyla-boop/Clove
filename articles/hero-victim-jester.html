@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="theme-color" content="#08080f">
+<meta name="description" content="You rotate between Hero, Victim, and Jester without knowing it. Each mask regulates you temporarily then crashes. Here's how to catch the rotation.">
+<meta property="og:title" content="Hero, Victim, or Jester: Which Mask Are You Wearing Right Now?">
+<meta property="og:description" content="You rotate between Hero, Victim, and Jester without knowing it. Each mask regulates you temporarily then crashes. Here's how to catch the rotation.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/articles/hero-victim-jester.html">
+<meta name="referrer" content="no-referrer">
+<title>Hero, Victim, or Jester: Which Mask Are You Wearing Right Now? · Operator's Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Hero, Victim, or Jester: Which Mask Are You Wearing Right Now?",
+  "description": "You rotate between Hero, Victim, and Jester without knowing it. Each mask regulates you temporarily then crashes. Here's how to catch the rotation.",
+  "author": {
+    "@type": "Person",
+    "name": "Ryan Bardyla"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Operator's Deck"
+  },
+  "datePublished": "2026-04-05",
+  "mainEntityOfPage": "https://clovelearn.io/articles/hero-victim-jester.html"
+}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+html{height:100%;scroll-behavior:smooth}
+body{background:var(--bg);color:#ccc;font-family:Georgia,serif;min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.85}
+.nav-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:3px solid var(--red);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.back-link{color:#aaa;text-decoration:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;border:1px solid #222;padding:6px 12px;border-radius:6px;transition:color .2s}
+.back-link:hover{color:#fff}
+.nav-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase}
+.article-wrap{max-width:720px;margin:0 auto;padding:48px 24px 80px}
+.article-subtitle{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--red);text-transform:uppercase;margin-bottom:16px}
+.article-title{font-size:36px;font-weight:900;color:#fff;letter-spacing:.5px;line-height:1.15;margin-bottom:16px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif}
+.article-byline{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid var(--dim3)}
+p{font-size:15px;line-height:1.85;color:#bbb;margin-bottom:20px}
+h2{font-size:20px;font-weight:800;color:#ddd;margin:40px 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;letter-spacing:.3px}
+.pull-quote{border-left:3px solid var(--red);padding:12px 20px;font-style:italic;color:#888;font-size:16px;line-height:1.75;margin:28px 0;background:rgba(192,57,43,.04);border-radius:0 8px 8px 0}
+.mask-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:28px 0}
+.mask-card{background:var(--bg2);border-radius:10px;padding:18px;border-top:3px solid}
+.mask-hero{border-top-color:var(--blu)}
+.mask-victim{border-top-color:var(--red)}
+.mask-jester{border-top-color:var(--gld)}
+.mask-name{font-family:'Bebas Neue',monospace;font-size:22px;letter-spacing:2px;margin-bottom:6px}
+.mask-hero .mask-name{color:var(--blu)}
+.mask-victim .mask-name{color:var(--red)}
+.mask-jester .mask-name{color:var(--gld)}
+.mask-trigger{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.5px;color:var(--dim2);margin-bottom:10px}
+.mask-desc{font-size:11px;color:var(--dim);line-height:1.65;font-style:italic}
+.rotation-block{background:var(--bg2);border:1px solid #1a1a2a;border-radius:10px;padding:22px;margin:28px 0}
+.rb-title{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;margin-bottom:14px}
+.rotation-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:13px;color:var(--dim);line-height:1.65}
+.rot-arrow{color:var(--dim3);flex-shrink:0;margin-top:2px;font-size:14px}
+.indicator-block{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.ind-item{padding:14px 16px;background:var(--bg2);border-radius:8px;border-left:3px solid var(--dim3)}
+.ind-item-hero{border-left-color:var(--blu)}
+.ind-item-victim{border-left-color:var(--red)}
+.ind-item-jester{border-left-color:var(--gld)}
+.ind-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.ind-item-hero .ind-label{color:var(--blu)}
+.ind-item-victim .ind-label{color:var(--red)}
+.ind-item-jester .ind-label{color:var(--gld)}
+.ind-text{font-size:13px;color:var(--dim);line-height:1.65;font-style:italic}
+.cta-box{background:var(--bg2);border:1px solid rgba(192,57,43,.3);border-radius:12px;padding:32px;text-align:center;margin-top:48px}
+.cta-tag{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--dim2);text-transform:uppercase;margin-bottom:10px}
+.cta-title{font-size:20px;font-weight:800;color:#fff;margin-bottom:8px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif}
+.cta-desc{font-size:12px;color:var(--dim);font-style:italic;margin-bottom:20px;line-height:1.6}
+.cta-btn{display:inline-block;background:var(--bg3);border:1px solid var(--red);color:var(--red);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;padding:14px 24px;border-radius:10px;text-decoration:none;text-transform:uppercase;transition:all .2s;margin:4px}
+.cta-btn:hover{background:var(--red);color:#fff}
+footer{text-align:center;padding:32px 20px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim3);text-transform:uppercase;border-top:1px solid var(--dim3);margin-top:48px}
+@media(max-width:600px){.article-title{font-size:26px}.article-wrap{padding:32px 18px 60px}.mask-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="nav-bar">
+  <a class="back-link" href="/">← Operator's Deck</a>
+  <span class="nav-label">The Role-Rotation Detector</span>
+</nav>
+
+<article class="article-wrap">
+  <div class="article-subtitle">The Role-Rotation Detector</div>
+  <h1 class="article-title">Hero, Victim, or Jester: Which Mask Are You Wearing Right Now?</h1>
+  <div class="article-byline">By Ryan Bardyla · Canadian Army Veteran · From <em>Weightless Hunter</em></div>
+
+  <h2>The Three Masks</h2>
+
+  <p>You don't decide to put on the mask. The alarm deploys it. One moment you're operating without a role, and then a situation triggers something — a social threat, a drop in status, a moment of dysregulation — and before you've consciously processed what's happening, you're already in the role. The mask went on automatically. The audience is already responding to it.</p>
+
+  <div class="mask-grid">
+    <div class="mask-card mask-hero">
+      <div class="mask-name">HERO</div>
+      <div class="mask-trigger">Triggered by: unresolved crisis</div>
+      <div class="mask-desc">You're solving something nobody asked you to solve. You feel most regulated when your competence is visible and your output is actively helping. The Hero mask produces dopamine through impact — each problem solved is a hit. The crash arrives when the crisis resolves and the mass decays.</div>
+    </div>
+    <div class="mask-card mask-victim">
+      <div class="mask-name">VICTIM</div>
+      <div class="mask-trigger">Triggered by: unacknowledged pain</div>
+      <div class="mask-desc">The wound is real. But the audience has become load-bearing. Without the audience — without someone bearing witness to the pain — the regulation it produces dissolves. The Victim mask produces dopamine through sympathy and validation. Recovery produces anxiety because getting better threatens the fuel source.</div>
+    </div>
+    <div class="mask-card mask-jester">
+      <div class="mask-name">JESTER</div>
+      <div class="mask-trigger">Triggered by: social threat</div>
+      <div class="mask-desc">The joke arrives before you've assessed whether humor is needed. You're first to name your own failure, your own absurdity, your own flaw — because naming it first removes the power of someone else naming it. The Jester mask produces dopamine through laughter and social smoothing. It runs dry when the performance exhausts itself.</div>
+    </div>
+  </div>
+
+  <p>These masks are not character flaws. They are compensatory strategies — ways a dopamine-deficient ADHD nervous system learned to self-regulate in environments that didn't offer reliable regulation any other way. The Hero learned that solving visible problems produced reward. The Victim learned that pain, when expressed to the right audience, produced connection and dopamine. The Jester learned that being funny first prevented being hurt first.</p>
+
+  <p>They worked. That's why they're still running.</p>
+
+  <h2>The Rotation</h2>
+
+  <p>The masks don't operate in isolation. They rotate. And the rotation is automatic — you don't consciously choose to move from one to another. The system cycles when the current mask stops producing regulation.</p>
+
+  <div class="rotation-block">
+    <div class="rb-title">The Rotation Pattern</div>
+    <div class="rotation-row">
+      <span class="rot-arrow">→</span>
+      <span><strong style="color:var(--blu)">Hero</strong> — crisis resolves, dopamine mass decays, the visible contribution ends. Crash arrives. No problem to solve = no regulation. System reaches for Victim (exhaustion becomes the wound) or Jester (self-deprecating humor about the toll it took).</span>
+    </div>
+    <div class="rotation-row">
+      <span class="rot-arrow">→</span>
+      <span><strong style="color:var(--red)">Victim</strong> — the wound narrative generates sympathy and connection. But sustained sympathy shifts into expectation: <em>why aren't you getting better?</em> The audience begins to withdraw or express frustration. This triggers anxiety, which the system reads as threat, which deploys Hero (sudden burst of competence to prove you're not broken) or Jester (jokes about how bad things are to deflect the expectation).</span>
+    </div>
+    <div class="rotation-row">
+      <span class="rot-arrow">→</span>
+      <span><strong style="color:var(--gld)">Jester</strong> — humor produces short-decay dopamine. The performance runs dry. Silence follows. In the silence, the dysregulation that the Jester was managing reasserts. System reaches for Hero (pivot to visible productivity) or Victim (jokes stop being funny, the real pain surfaces).</span>
+    </div>
+  </div>
+
+  <div class="pull-quote">"You're not choosing the mask. The alarm is choosing it. By the time you've noticed you're in a role, you've been in it long enough that the audience has already adjusted to it — which means leaving the role requires a disruption that feels like its own threat."</div>
+
+  <h2>Spotting Your Default</h2>
+
+  <p>Everyone has a primary mask — the one the system reaches for first, the one that produces the most reliable regulation hit. Learning to identify which one is running in real time is the entire practice. Not stopping it. Not judging it. Identifying it.</p>
+
+  <div class="indicator-block">
+    <div class="ind-item ind-item-hero">
+      <div class="ind-label">Hero Indicators</div>
+      <div class="ind-text">You're solving. You're visible. You feel most regulated right now and you have a clear contribution to point to. The crash hasn't arrived yet but it will when the problem closes. Watch for: an upcoming void when the task completes, the compulsive reach for the next problem before the current one is finished, the discomfort of doing nothing when nothing needs to be done.</div>
+    </div>
+    <div class="ind-item ind-item-victim">
+      <div class="ind-label">Victim Indicators</div>
+      <div class="ind-text">The wound without the audience doesn't produce the same regulation. If you find yourself returning to the same story and the need for it to land differently — to be understood more completely, more fully, with more weight — you're running the mask. The tell is: if you were alone with the pain, with no one to tell it to, does the regulation still come? If no, the audience is load-bearing.</div>
+    </div>
+    <div class="ind-item ind-item-jester">
+      <div class="ind-label">Jester Indicators</div>
+      <div class="ind-text">The timing is slightly too fast. The joke arrives a beat ahead of genuine humor — before the room has confirmed that humor is the appropriate register. The tell is: you're being funny about something that is actually causing you pain, and the joke is functioning as a pre-emptive strike. If someone asked you "are you actually okay about that?" the honest answer would be no.</div>
+    </div>
+  </div>
+
+  <h2>The Dopamine-Validation Loop</h2>
+
+  <p>All three masks are running the same underlying operation: extracting dopamine from social validation in a system that can't reliably produce it internally. The ADHD nervous system's dopamine deficit means external validation provides a regulation hit that internal systems don't. The masks are the delivery mechanism.</p>
+
+  <p>The loop runs faster than conscious awareness. By the time you notice you've reached for the mask, the reach has already happened and the audience has already responded. You're not catching the reach — you're catching the aftermath. That's not failure. That's the latency of self-awareness relative to automatic behavior. The goal is to shorten that latency over time, not to eliminate the reach.</p>
+
+  <p>The redirect protocol is not "stop wearing the mask." It's: name it, don't fight the reach, and point the regulation impulse at the longest-decay source available. Hero energy directed at a project that matters produces sustained regulation. Victim energy directed at genuine processing (therapy, honest conversation, journaling) produces integration rather than loop. Jester energy directed at writing, performing, or genuine humor produces creation rather than deflection.</p>
+
+  <p>The mask is not the enemy. The mask is information. It tells you what the nervous system needs. The question is whether the way you're currently delivering it is producing something or just running the loop.</p>
+
+  <p>Which one are you wearing right now?</p>
+
+  <div class="cta-box">
+    <div class="cta-tag">Operator's Deck</div>
+    <div class="cta-title">Explore the Full Toolkit</div>
+    <div class="cta-desc">51 tools for mental performance and recovery. CBT, ACT, DBT, ADHD-specific drills. No account. No tracking. Everything stays on your device.</div>
+    <a class="cta-btn" href="/">Open Operator's Deck →</a>
+  </div>
+</article>
+
+<footer>By Ryan Bardyla · Canadian Army Veteran · Builder of Operator's Deck · clovelearn.io</footer>
+
+</body>
+</html>

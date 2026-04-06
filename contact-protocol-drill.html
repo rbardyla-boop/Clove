@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta property="og:title" content="CONTACT PROTOCOL • OPERATOR'S DECK">
+<meta property="og:description" content="30-second RSD first-response drill. Name it. Breathe. Locate. Stay in contact.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/contact-protocol-drill.html">
+<meta name="description" content="A 30-second timed RSD first-response protocol and post-episode debrief. Name the feeling, breathe, locate it in the body. From Stubborn Bastard by Ryan Bardyla.">
+<meta name="referrer" content="no-referrer">
+<title>CONTACT PROTOCOL • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;
+  --dim:#8a8a8a;--dim2:#777;--dim3:#333
+}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+html{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding-bottom:60px}
+
+/* ── NAV ──────────────────────────────────────────────────────────────────── */
+.nav-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:3px solid var(--red);display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.back-btn{background:none;border:1px solid var(--bg4);color:#aaa;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s}
+.back-btn:active{color:#fff;border-color:#444}
+.nav-right{text-align:right}
+.nav-tag{color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:3px;text-transform:uppercase}
+.nav-name{color:var(--red);font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px}
+
+/* ── PROGRESS ─────────────────────────────────────────────────────────────── */
+.prog-wrap{height:3px;background:var(--bg3)}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gld));transition:width .3s ease;width:0%}
+
+/* ── DISCLAIMER ───────────────────────────────────────────────────────────── */
+.disclaimer{text-align:center;padding:8px 16px;font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--red);border-bottom:1px solid rgba(192,57,43,.2);text-transform:uppercase;background:rgba(192,57,43,.04)}
+
+/* ── SCREENS ─────────────────────────────────────────────────────────────── */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── STEP wrapper ────────────────────────────────────────────────────────── */
+.step{padding:24px 20px 20px}
+.step-counter{text-align:center;font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim);padding-bottom:4px}
+.step-counter span{color:var(--blu)}
+.step-label{color:var(--red);font-size:7px;font-family:monospace;letter-spacing:3px;margin-bottom:4px;text-transform:uppercase}
+.step-title{font-family:'Bebas Neue',monospace;font-size:30px;letter-spacing:1px;color:#fff;margin-bottom:8px;line-height:1.1}
+.step-desc{font-family:Georgia,serif;font-style:italic;color:#666;font-size:10px;line-height:1.7;margin-bottom:18px}
+
+/* ── MODE SELECT ─────────────────────────────────────────────────────────── */
+.mode-grid{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.mode-card{background:var(--bg2);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;text-align:left;width:100%;border:none}
+.mode-card:active{transform:scale(.99)}
+.mode-card-a{border:2px solid rgba(192,57,43,.4)}
+.mode-card-a:active{border-color:var(--red)}
+.mode-card-b{border:2px solid rgba(74,111,165,.4)}
+.mode-card-b:active{border-color:var(--blu)}
+.mc-tag{font-size:7px;font-family:monospace;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:6px}
+.mode-card-a .mc-tag{color:var(--red)}
+.mode-card-b .mc-tag{color:var(--blu)}
+.mc-name{font-family:'Bebas Neue',monospace;font-size:26px;letter-spacing:1px;color:#fff;margin-bottom:6px}
+.mc-desc{font-size:9px;font-family:Georgia,serif;color:var(--dim);font-style:italic;line-height:1.6;margin-bottom:12px}
+.mc-cta{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:2px;padding:10px 16px;border-radius:8px;text-transform:uppercase;display:inline-block}
+.mode-card-a .mc-cta{background:rgba(192,57,43,.15);color:var(--red);border:1px solid rgba(192,57,43,.3)}
+.mode-card-b .mc-cta{background:rgba(74,111,165,.12);color:var(--blu);border:1px solid rgba(74,111,165,.25)}
+
+/* ── PHASE HEADER ────────────────────────────────────────────────────────── */
+.phase-header{background:var(--bg2);padding:16px 20px 10px;border-bottom:1px solid var(--bg3)}
+.phase-tag{font-size:7px;font-family:monospace;letter-spacing:2.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:4px}
+.phase-name{font-family:'Bebas Neue',monospace;font-size:42px;letter-spacing:2px;color:#fff;line-height:1}
+.phase-time{font-family:'DM Mono',monospace;font-size:14px;letter-spacing:2px;color:var(--gld);margin-top:4px}
+
+/* ── TIMER BAR ───────────────────────────────────────────────────────────── */
+.timer-bar-wrap{height:5px;background:var(--bg3)}
+.timer-bar{height:100%;background:linear-gradient(90deg,var(--blu),var(--gld));width:0%;transition:width .1s linear}
+
+/* ── PHASE BODY ──────────────────────────────────────────────────────────── */
+.phase-body{padding:24px 20px}
+.phase-instruction{font-family:'Bebas Neue',monospace;font-size:28px;letter-spacing:1px;color:#fff;margin-bottom:6px}
+.phase-sub{font-size:9px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:20px}
+
+/* ── EMOTION CHIPS ───────────────────────────────────────────────────────── */
+.emotion-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.emotion-chip{background:var(--bg2);border:1px solid var(--dim3);color:var(--dim);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;padding:10px 14px;border-radius:8px;cursor:pointer;transition:all .15s;min-height:44px;display:flex;align-items:center}
+.emotion-chip:active{transform:scale(.97)}
+.emotion-chip.selected{border-color:var(--gld);color:var(--gld);background:rgba(212,168,67,.08)}
+.emotion-divider{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim3);text-transform:uppercase;margin-bottom:8px}
+.emotion-input{width:100%;background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px 14px;color:#ddd;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:1px;transition:border-color .15s}
+.emotion-input:focus{outline:none;border-color:var(--gld)}
+.emotion-input::placeholder{color:#444}
+
+/* ── BREATHE SCREEN ──────────────────────────────────────────────────────── */
+.breathe-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 20px 40px}
+.breathe-ring-wrap{position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center;margin:0 auto 28px}
+@keyframes pulse-expand{
+  0%,100%{transform:scale(1);opacity:.5}
+  50%{transform:scale(1.28);opacity:.9}
+}
+@keyframes breath-in-anim{
+  0%,5%{opacity:0}
+  15%,40%{opacity:1}
+  50%,100%{opacity:0}
+}
+@keyframes breath-out-anim{
+  0%,50%{opacity:0}
+  60%,85%{opacity:1}
+  95%,100%{opacity:0}
+}
+.breathe-circle{position:absolute;inset:12px;border-radius:50%;background:radial-gradient(circle,rgba(74,111,165,.28) 0%,rgba(74,111,165,.04) 100%);border:2px solid var(--blu);animation:pulse-expand 4s ease-in-out infinite}
+.breath-labels{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.breath-word{position:absolute;font-family:'Bebas Neue',monospace;font-size:22px;letter-spacing:4px}
+.breath-in-word{color:var(--blu);animation:breath-in-anim 4s ease-in-out infinite}
+.breath-out-word{color:var(--dim2);animation:breath-out-anim 4s ease-in-out infinite}
+.breathe-sub{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;text-align:center}
+
+/* ── LOCATE GRID ─────────────────────────────────────────────────────────── */
+.locate-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.locate-card{background:var(--bg2);border:2px solid var(--bg3);border-radius:14px;padding:16px;cursor:pointer;transition:all .15s;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;width:100%}
+.locate-card:active{transform:scale(.97)}
+.locate-card.active{border-color:var(--gld);background:rgba(212,168,67,.07)}
+.loc-region{font-family:'Bebas Neue',monospace;font-size:24px;letter-spacing:2px;color:#ccc}
+.locate-card.active .loc-region{color:var(--gld)}
+.loc-sub{font-size:7.5px;font-family:monospace;letter-spacing:1px;color:var(--dim3);text-transform:uppercase}
+.locate-card.active .loc-sub{color:rgba(212,168,67,.5)}
+
+/* ── MODE A COMPLETE ─────────────────────────────────────────────────────── */
+.ac-header{text-align:center;padding:30px 20px 20px}
+.ac-icon{font-size:36px;margin-bottom:10px;color:var(--grn)}
+.ac-title{font-family:'Bebas Neue',monospace;font-size:32px;letter-spacing:2px;color:#fff;margin-bottom:6px}
+.ac-sub{font-size:9px;font-family:Georgia,serif;color:var(--dim);font-style:italic}
+.ac-recap{padding:0 20px;margin-bottom:4px}
+.ac-data-block{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.ac-data-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;margin-bottom:6px}
+.ac-data-val{font-family:'DM Mono',monospace;font-size:14px;letter-spacing:1px;color:var(--gld);text-transform:uppercase}
+
+/* ── MODE B INPUTS ───────────────────────────────────────────────────────── */
+textarea{width:100%;background:var(--bg2);border:1px solid var(--dim2);border-radius:10px;padding:12px 14px;color:#ddd;font-family:Georgia,serif;font-size:11px;line-height:1.7;resize:vertical;min-height:80px;transition:border-color .15s}
+textarea:focus{outline:none;border-color:var(--gld)}
+textarea::placeholder{color:#444;font-style:italic}
+.char-hint{font-size:7px;font-family:monospace;letter-spacing:1px;color:var(--dim2);text-align:right;margin-top:4px;margin-bottom:14px}
+.sub-prompt{font-size:8px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:8px;margin-top:4px}
+
+/* ── HANDOFF BANNER ──────────────────────────────────────────────────────── */
+.handoff-banner{background:rgba(212,168,67,.07);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 14px;margin-bottom:18px}
+.hb-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--gld);text-transform:uppercase;margin-bottom:5px}
+.hb-val{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.5px;color:#ddd}
+
+/* ── RESOURCE GRID (trigger cats) ────────────────────────────────────────── */
+.resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.resource-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.resource-card:active{transform:scale(.98)}
+.resource-card.checked{border-color:var(--red);background:rgba(192,57,43,.06)}
+.rc-state{font-size:7.5px;font-family:monospace;letter-spacing:1px;text-align:right;margin-bottom:5px;height:11px}
+.resource-card.checked .rc-state{color:var(--red)}
+.resource-card:not(.checked) .rc-state{color:var(--dim3)}
+.rc-lbl{font-size:8.5px;font-family:'DM Mono',monospace;letter-spacing:.3px;color:var(--dim);line-height:1.4}
+.resource-card.checked .rc-lbl{color:#ddd}
+
+/* ── SLIDERS ─────────────────────────────────────────────────────────────── */
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.slider-label-end{font-size:8px;font-family:monospace;color:var(--dim2);flex-shrink:0}
+.intensity-slider{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:4px;background:var(--bg3);outline:none;cursor:pointer}
+.intensity-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--gld);cursor:pointer}
+.intensity-slider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--gld);cursor:pointer;border:none}
+.slider-val-display{font-family:'Bebas Neue',monospace;font-size:34px;text-align:center;color:var(--gld);letter-spacing:2px;margin-bottom:4px}
+
+/* ── CHOICE CARDS ────────────────────────────────────────────────────────── */
+.choice-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.choice-card{background:var(--bg2);border:1px solid var(--dim3);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s;display:block;text-align:left;width:100%}
+.choice-card:active{transform:scale(.99)}
+.choice-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--dim2);margin-bottom:5px;text-transform:uppercase}
+.choice-title{font-size:13px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.5px;color:#e8e8f0;margin-bottom:5px}
+.choice-desc{font-size:9px;font-family:Georgia,serif;color:var(--dim);line-height:1.6;font-style:italic}
+#resp-held.selected{border-color:var(--grn);background:rgba(39,174,96,.05)}
+#resp-held.selected .choice-tag{color:var(--grn)}
+#resp-reacted.selected{border-color:var(--gld);background:rgba(212,168,67,.05)}
+#resp-reacted.selected .choice-tag{color:var(--gld)}
+
+/* ── MENTOR BLOCK ────────────────────────────────────────────────────────── */
+.mentor-block{background:rgba(74,111,165,.06);border-left:3px solid var(--blu);border-radius:0 10px 10px 0;padding:16px;margin-top:18px}
+.mb-tag{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-transform:uppercase;margin-bottom:8px}
+.mb-text{font-size:9px;font-family:Georgia,serif;color:var(--dim);line-height:1.85;font-style:italic}
+
+/* ── STEP ACTIONS ────────────────────────────────────────────────────────── */
+.step-acts{display:flex;gap:10px;margin-top:20px}
+.btn-next{flex:1;background:var(--bg2);border:1px solid var(--blu);color:var(--blu);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;padding:14px 12px;border-radius:10px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-next:active{background:var(--blu);color:#fff}
+.btn-next:disabled{opacity:.3;cursor:not-allowed}
+.btn-back-step{background:none;border:1px solid var(--dim3);color:var(--dim2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;padding:14px 14px;border-radius:10px;cursor:pointer;transition:all .2s}
+.btn-back-step:active{border-color:var(--dim);color:var(--dim)}
+.btn-save{background:linear-gradient(135deg,var(--grn),#1a6b3a);border-color:var(--grn);color:#fff;box-shadow:0 4px 16px rgba(39,174,96,.2)}
+.btn-save:not(:disabled):active{transform:scale(.97)}
+
+/* ── SUMMARY ─────────────────────────────────────────────────────────────── */
+.summary-header{text-align:center;margin-bottom:20px;padding-top:10px}
+.sh-icon{font-size:36px;margin-bottom:8px}
+.summary-header h2{font-family:'Bebas Neue',monospace;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:6px}
+.summary-header p{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6}
+.summary-block{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px}
+.sb-label{font-size:7px;font-family:monospace;letter-spacing:2px;color:var(--blu);text-transform:uppercase;margin-bottom:8px}
+.sb-content{font-size:10px;color:#aaa;font-family:Georgia,serif;line-height:1.7}
+.date-stamp{font-size:7.5px;font-family:monospace;letter-spacing:2px;color:var(--dim2);text-align:center;margin-bottom:16px}
+.chip-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font-size:7px;font-family:monospace;letter-spacing:1px;padding:4px 10px;border-radius:20px;text-transform:uppercase}
+
+/* ── INTENSITY COMPARE ───────────────────────────────────────────────────── */
+.intensity-compare{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0}
+.ic-item{text-align:center}
+.ic-val{font-family:'Bebas Neue',monospace;font-size:28px;letter-spacing:2px}
+.ic-label{font-size:6.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-top:2px}
+.ic-arrow{font-size:16px;color:var(--dim3);margin-top:-8px}
+
+/* ── RESPONSE BAR ────────────────────────────────────────────────────────── */
+.response-bar-wrap{display:flex;height:32px;border-radius:8px;overflow:hidden;margin-top:8px;background:var(--bg3)}
+.rb-held{background:rgba(39,174,96,.3);display:flex;align-items:center;justify-content:center;transition:width .5s ease;overflow:hidden}
+.rb-reacted{background:rgba(212,168,67,.3);display:flex;align-items:center;justify-content:center;transition:width .5s ease;overflow:hidden}
+.rb-held span,.rb-reacted span{font-size:7px;font-family:monospace;letter-spacing:1px;color:#ddd;text-transform:uppercase;white-space:nowrap}
+
+/* ── PATTERN BLOCKS ──────────────────────────────────────────────────────── */
+.pattern-block{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px}
+.pattern-placeholder{text-align:center;padding:30px 20px}
+.pp-icon{font-size:32px;color:var(--dim3);margin-bottom:12px}
+.pp-title{font-family:'Bebas Neue',monospace;font-size:22px;letter-spacing:2px;color:var(--dim);margin-bottom:8px}
+.pp-sub{font-size:9px;font-family:Georgia,serif;color:var(--dim2);font-style:italic;line-height:1.6}
+
+/* ── HEAT ROWS ───────────────────────────────────────────────────────────── */
+.heat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.heat-lbl{font-size:8px;font-family:'DM Mono',monospace;letter-spacing:.3px;color:var(--dim);flex:0 0 110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.heat-bar-wrap{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.heat-bar{height:100%;background:linear-gradient(90deg,var(--red),var(--gld));border-radius:4px;transition:width .5s ease}
+.heat-count{font-size:8px;font-family:monospace;color:var(--dim2);flex:0 0 22px;text-align:right}
+
+/* ── PRINT BUTTON ────────────────────────────────────────────────────────── */
+.btn-print{width:100%;background:var(--bg3);border:1px solid var(--dim3);color:var(--dim2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;padding:12px;border-radius:10px;cursor:pointer;margin-top:10px;transition:all .2s}
+.btn-print:active{color:#fff;border-color:var(--dim)}
+
+/* ── PAST ENTRIES ────────────────────────────────────────────────────────── */
+.past-section{max-width:480px;margin:0 auto;padding:0 0 40px}
+.past-divider{border:none;border-top:1px solid var(--bg3);margin:0 16px 20px}
+.past-title{font-size:7px;font-family:monospace;letter-spacing:3px;color:var(--dim2);padding:0 20px;margin-bottom:14px;text-transform:uppercase}
+.past-item{margin:0 16px 10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;overflow:hidden}
+.past-header{padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:background .15s}
+.past-header:active{background:var(--bg3)}
+.past-meta{flex:1;min-width:0}
+.past-date{font-size:7px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);margin-bottom:4px}
+.past-snip{font-size:9px;color:#aaa;font-family:Georgia,serif;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.past-badge{flex-shrink:0;font-size:6.5px;font-family:monospace;letter-spacing:1px;padding:4px 8px;border-radius:12px;text-transform:uppercase}
+.past-chevron{color:var(--dim3);font-size:16px;flex-shrink:0;transition:transform .2s}
+.past-item.open .past-chevron{transform:rotate(90deg)}
+.past-detail{display:none;padding:0 16px 14px;border-top:1px solid var(--bg3)}
+.past-item.open .past-detail{display:block}
+.past-detail-row{margin-top:10px}
+.pd-label{font-size:6.5px;font-family:monospace;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;margin-bottom:4px}
+.pd-val{font-size:9px;font-family:Georgia,serif;color:#aaa;line-height:1.6}
+
+/* ── HEATMAP SECTION ─────────────────────────────────────────────────────── */
+.heatmap-section{margin:0 16px 16px;background:var(--bg2);border:1px solid var(--bg3);border-radius:12px;padding:16px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAV -->
+<nav class="nav-bar">
+  <button class="back-btn" onclick="navBack()">← BACK</button>
+  <div class="nav-right">
+    <div class="nav-tag">RSD FIRST-RESPONSE</div>
+    <div class="nav-name">CONTACT PROTOCOL</div>
+  </div>
+</nav>
+
+<!-- PROGRESS -->
+<div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">CRISIS REGULATION TOOL — Not therapy. Field-expedient response for the first 30 seconds of an RSD episode.</div>
+
+<!-- ══ MODE SELECT ══════════════════════════════════════════════════════════ -->
+<div class="screen active" id="scr-mode">
+<div class="step">
+  <div class="step-label">SELECT MODE</div>
+  <div class="step-title">CONTACT PROTOCOL</div>
+  <div class="step-desc">Two modes: live 30-second intervention or post-episode debrief. Use the timed protocol during the episode. Use the debrief after it settles.</div>
+  <div class="mode-grid">
+    <button class="mode-card mode-card-a" onclick="startModeA()">
+      <div class="mc-tag">MODE A — LIVE</div>
+      <div class="mc-name">TIMED PROTOCOL</div>
+      <div class="mc-desc">30 seconds. Name it, breathe, locate it in your body. Field-expedient first-response for the moment of contact.</div>
+      <div class="mc-cta">◉ START NOW →</div>
+    </button>
+    <button class="mode-card mode-card-b" onclick="startModeB(false)">
+      <div class="mc-tag">MODE B — DEBRIEF</div>
+      <div class="mc-name">POST-EPISODE</div>
+      <div class="mc-desc">4-step reflective worksheet. Trigger, severity, calibrated read, pattern map. Use after the episode settles.</div>
+      <div class="mc-cta">◎ OPEN WORKSHEET →</div>
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODE A: PHASE 1 — NAME IT ═══════════════════════════════════════════ -->
+<div class="screen" id="scr-a1">
+<div class="phase-header">
+  <div class="phase-tag">PHASE 1 OF 3 · 10 SECONDS</div>
+  <div class="phase-name">NAME IT</div>
+  <div class="phase-time" id="a1-time">10</div>
+</div>
+<div class="timer-bar-wrap"><div class="timer-bar" id="a1-bar"></div></div>
+<div class="phase-body">
+  <div class="phase-instruction">What is this feeling?</div>
+  <div class="phase-sub">No editing. First word.</div>
+  <div class="emotion-chips" id="emotion-opts"></div>
+  <div class="emotion-divider">OR TYPE IT</div>
+  <input type="text" id="emotion-input" class="emotion-input" placeholder="rejected · ashamed · furious · panicked..." maxlength="40" autocomplete="off" oninput="onEmotionType()">
+</div>
+</div>
+
+<!-- ══ MODE A: PHASE 2 — BREATHE ════════════════════════════════════════════ -->
+<div class="screen" id="scr-a2">
+<div class="phase-header">
+  <div class="phase-tag">PHASE 2 OF 3 · 10 SECONDS</div>
+  <div class="phase-name">BREATHE</div>
+  <div class="phase-time" id="a2-time">10</div>
+</div>
+<div class="timer-bar-wrap"><div class="timer-bar" id="a2-bar"></div></div>
+<div class="breathe-center">
+  <div class="breathe-ring-wrap">
+    <div class="breathe-circle"></div>
+    <div class="breath-labels">
+      <span class="breath-word breath-in-word">IN</span>
+      <span class="breath-word breath-out-word">OUT</span>
+    </div>
+  </div>
+  <div class="breathe-sub">Follow the pulse. Nothing else.</div>
+</div>
+</div>
+
+<!-- ══ MODE A: PHASE 3 — LOCATE ═════════════════════════════════════════════ -->
+<div class="screen" id="scr-a3">
+<div class="phase-header">
+  <div class="phase-tag">PHASE 3 OF 3 · 10 SECONDS</div>
+  <div class="phase-name">LOCATE</div>
+  <div class="phase-time" id="a3-time">10</div>
+</div>
+<div class="timer-bar-wrap"><div class="timer-bar" id="a3-bar"></div></div>
+<div class="phase-body">
+  <div class="phase-instruction">Where do you feel it?</div>
+  <div class="phase-sub">Tap all that apply.</div>
+  <div class="locate-grid">
+    <button class="locate-card" id="loc-head" onclick="toggleLocate('head',this)">
+      <div class="loc-region">HEAD</div>
+      <div class="loc-sub">face · jaw · eyes</div>
+    </button>
+    <button class="locate-card" id="loc-throat" onclick="toggleLocate('throat',this)">
+      <div class="loc-region">THROAT</div>
+      <div class="loc-sub">neck · voice</div>
+    </button>
+    <button class="locate-card" id="loc-chest" onclick="toggleLocate('chest',this)">
+      <div class="loc-region">CHEST</div>
+      <div class="loc-sub">heart · lungs</div>
+    </button>
+    <button class="locate-card" id="loc-gut" onclick="toggleLocate('gut',this)">
+      <div class="loc-region">GUT</div>
+      <div class="loc-sub">stomach · core</div>
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODE A: COMPLETE ══════════════════════════════════════════════════════ -->
+<div class="screen" id="scr-acomplete">
+<div class="step">
+  <div class="ac-header">
+    <div class="ac-icon">◉</div>
+    <div class="ac-title">PROTOCOL COMPLETE</div>
+    <div class="ac-sub">30 seconds. You stayed in contact.</div>
+  </div>
+  <div class="ac-recap" id="ac-recap"></div>
+  <div class="step-acts" style="flex-direction:column;gap:10px">
+    <button class="btn-next" onclick="goToDebriefFromA()">DEBRIEF THIS EPISODE →</button>
+    <button class="btn-next" style="border-color:var(--dim3);color:var(--dim2);background:none" onclick="goMode()">DONE — BACK TO MENU</button>
+  </div>
+  <div style="text-align:center;padding:20px 0 6px;font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px"><a href="author-shelf.html?ref=debrief" style="color:#555;text-decoration:none">Built by Ryan Bardyla →</a></div>
+</div>
+</div>
+
+<!-- ══ MODE B: STEP 1 — TRIGGER ═════════════════════════════════════════════ -->
+<div class="screen" id="scr-b1">
+<div class="step">
+  <div class="step-counter">STEP <span>1</span> OF 4</div>
+  <div class="step-label">DEBRIEF</div>
+  <div class="step-title">WHAT HIT YOU</div>
+  <div class="step-desc">What was the trigger event? Describe it plainly, then mark the categories that apply.</div>
+  <div id="b1-handoff" style="display:none" class="handoff-banner">
+    <div class="hb-tag">CONTINUING FROM MODE A</div>
+    <div class="hb-val" id="b1-handoff-text"></div>
+  </div>
+  <div class="sub-prompt">DESCRIBE THE TRIGGER</div>
+  <textarea id="b-trigger" rows="3" placeholder="Someone didn't respond to my message. Meeting ran cold. Got excluded from the loop..." maxlength="600"></textarea>
+  <div class="char-hint">JUST FACTS — WHAT HAPPENED</div>
+  <div class="sub-prompt">TRIGGER CATEGORIES</div>
+  <div class="resource-grid" id="trigger-cat-grid"></div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goMode()">MODE SELECT</button>
+    <button class="btn-next" onclick="goB(2)">NEXT →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODE B: STEP 2 — SEVERITY ════════════════════════════════════════════ -->
+<div class="screen" id="scr-b2">
+<div class="step">
+  <div class="step-counter">STEP <span>2</span> OF 4</div>
+  <div class="step-label">DEBRIEF</div>
+  <div class="step-title">INTENSITY READ</div>
+  <div class="step-desc">How hard did it hit at first contact, and where are you now?</div>
+  <div class="sub-prompt">INTENSITY AT CONTACT (0 = nothing · 100 = overwhelmed)</div>
+  <div class="slider-row">
+    <span class="slider-label-end">0</span>
+    <input type="range" id="b-intensity-before" class="intensity-slider" min="0" max="100" value="50" oninput="updateSliderDisplay('b-intensity-before','ib-val')">
+    <span class="slider-label-end">100</span>
+  </div>
+  <div class="slider-val-display" id="ib-val">50</div>
+  <div class="sub-prompt" style="margin-top:18px">CURRENT INTENSITY (right now)</div>
+  <div class="slider-row">
+    <span class="slider-label-end">0</span>
+    <input type="range" id="b-intensity-after" class="intensity-slider" min="0" max="100" value="30" oninput="updateSliderDisplay('b-intensity-after','ia-val')">
+    <span class="slider-label-end">100</span>
+  </div>
+  <div class="slider-val-display" id="ia-val">30</div>
+  <div class="sub-prompt" style="margin-top:20px">HOW DID YOU RESPOND?</div>
+  <div class="choice-grid">
+    <button class="choice-card" id="resp-held" onclick="setResponse('held')">
+      <div class="choice-tag">OPTION A</div>
+      <div class="choice-title">I HELD IT</div>
+      <div class="choice-desc">Felt it, didn't act on it. Used a protocol or waited it out.</div>
+    </button>
+    <button class="choice-card" id="resp-reacted" onclick="setResponse('reacted')">
+      <div class="choice-tag">OPTION B</div>
+      <div class="choice-title">I REACTED</div>
+      <div class="choice-desc">Acted on the feeling before it settled.</div>
+    </button>
+  </div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goB(1)">← BACK</button>
+    <button class="btn-next" id="b2-next" onclick="goB(3)" disabled>NEXT →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODE B: STEP 3 — CALIBRATED READ ════════════════════════════════════ -->
+<div class="screen" id="scr-b3">
+<div class="step">
+  <div class="step-counter">STEP <span>3</span> OF 4</div>
+  <div class="step-label">DEBRIEF</div>
+  <div class="step-title">CALIBRATED READ</div>
+  <div class="step-desc">Separate the signal from the noise. What actually happened, versus what your nervous system told you?</div>
+  <div class="sub-prompt">THE OBJECTIVE REALITY</div>
+  <textarea id="b-calibrated" rows="4" placeholder="What actually happened? What did you confirm vs assume? What evidence do you have?" maxlength="800"></textarea>
+  <div class="char-hint">FACTS ONLY — NO INTERPRETATION</div>
+  <div class="mentor-block">
+    <div class="mb-tag">FIELD NOTE</div>
+    <div class="mb-text">"The first read is almost always wrong. RSD amplifies threat signals before you have the data to confirm them. The calibrated read is the discipline of asking: what do I actually know?"</div>
+  </div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goB(2)">← BACK</button>
+    <button class="btn-next" onclick="goB(4)">NEXT →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODE B: STEP 4 — PATTERN DASHBOARD ══════════════════════════════════ -->
+<div class="screen" id="scr-b4">
+<div class="step">
+  <div class="step-counter">STEP <span>4</span> OF 4</div>
+  <div class="step-label">DEBRIEF</div>
+  <div class="step-title">PATTERN READ</div>
+  <div class="step-desc">Your personal RSD contact map, built from every debrief you've logged.</div>
+  <div id="b4-pattern-content"></div>
+  <div class="step-acts">
+    <button class="btn-back-step" onclick="goB(3)">← BACK</button>
+    <button class="btn-next btn-save" onclick="saveSession()">SAVE DEBRIEF →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODE B: SUMMARY ══════════════════════════════════════════════════════ -->
+<div class="screen" id="scr-bsummary">
+<div class="step">
+  <div class="summary-header">
+    <div class="sh-icon">◎</div>
+    <h2>DEBRIEF SAVED</h2>
+    <p>Contact logged. Pattern updated.</p>
+  </div>
+  <div class="date-stamp" id="summary-date"></div>
+  <div id="summary-content"></div>
+  <button class="btn-print" onclick="copySession()">COPY TO CLIPBOARD</button>
+  <div class="step-acts" style="margin-top:16px">
+    <button class="btn-next" style="border-color:var(--dim3);color:var(--dim2);background:none" onclick="startNew()">NEW SESSION</button>
+    <button class="btn-next" onclick="goMode()">MENU</button>
+  </div>
+  <div style="text-align:center;padding:20px 0 6px;font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px"><a href="author-shelf.html?ref=debrief" style="color:#555;text-decoration:none">Built by Ryan Bardyla →</a></div>
+</div>
+</div>
+
+</div><!-- .app -->
+
+<!-- ══ PAST ENTRIES ══════════════════════════════════════════════════════════ -->
+<section class="past-section">
+  <hr class="past-divider">
+  <div class="past-title">PAST CONTACTS</div>
+  <div id="heatmap-container"></div>
+  <div id="past-list"></div>
+</section>
+
+<script>
+// ── UTILITIES ────────────────────────────────────────────────────────────────
+function esc(s){if(typeof s!=='string')return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+
+const STORAGE_KEY='od_contact_v1';
+function loadEntries(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch(e){return[]}}
+function saveEntries(arr){localStorage.setItem(STORAGE_KEY,JSON.stringify(arr.slice(0,200)))}
+function setProgress(pct){document.getElementById('prog').style.width=Math.min(100,pct)+'%'}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function activeScreenId(){const s=document.querySelector('.screen.active');return s?s.id:''}
+
+// ── NAV ──────────────────────────────────────────────────────────────────────
+function navBack(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null}
+  if(['scr-a1','scr-a2','scr-a3'].includes(activeScreenId())){goMode();return}
+  window.location.href='./?tab=more';
+}
+function goMode(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null}
+  showScreen('scr-mode');
+  setProgress(0);
+}
+
+// ── TIMER STATE ───────────────────────────────────────────────────────────────
+let timerInterval=null;
+let timerStart=null;
+let currentPhase=0;
+const PHASE_MS=10000;
+const TOTAL_MS=30000;
+
+// ── MODE A STATE ──────────────────────────────────────────────────────────────
+let modeAData={emotion:'',located:[]};
+
+// ── EMOTIONS ──────────────────────────────────────────────────────────────────
+const EMOTIONS=['REJECTED','ASHAMED','FURIOUS','INVISIBLE','PANICKED','WORTHLESS','BETRAYED','OVERWHELMED'];
+
+function renderEmotionChips(){
+  document.getElementById('emotion-opts').innerHTML=EMOTIONS.map(e=>
+    `<button class="emotion-chip" onclick="selectEmotion('${e}',this)">${e}</button>`
+  ).join('');
+}
+
+function selectEmotion(val,el){
+  document.querySelectorAll('.emotion-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  modeAData.emotion=val;
+  document.getElementById('emotion-input').value='';
+}
+
+function onEmotionType(){
+  const v=document.getElementById('emotion-input').value.trim();
+  if(v){
+    document.querySelectorAll('.emotion-chip').forEach(c=>c.classList.remove('selected'));
+    modeAData.emotion=v.slice(0,40);
+  }
+}
+
+// ── LOCATE ────────────────────────────────────────────────────────────────────
+function toggleLocate(region,el){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')){
+    if(!modeAData.located.includes(region))modeAData.located.push(region);
+  }else{
+    modeAData.located=modeAData.located.filter(r=>r!==region);
+  }
+}
+
+// ── MODE A: TIMER ─────────────────────────────────────────────────────────────
+function startModeA(){
+  modeAData={emotion:'',located:[]};
+  document.querySelectorAll('.emotion-chip').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('emotion-input').value='';
+  document.querySelectorAll('.locate-card').forEach(c=>c.classList.remove('active'));
+  ['a1-bar','a2-bar','a3-bar'].forEach(id=>{document.getElementById(id).style.width='0%'});
+  ['a1-time','a2-time','a3-time'].forEach(id=>{document.getElementById(id).textContent='10'});
+  showScreen('scr-a1');
+  setProgress(0);
+  timerStart=Date.now();
+  currentPhase=1;
+  timerInterval=setInterval(tickTimer,100);
+}
+
+function tickTimer(){
+  const elapsed=Date.now()-timerStart;
+  if(elapsed>=TOTAL_MS){
+    clearInterval(timerInterval);timerInterval=null;
+    captureEmotionInput();
+    showAComplete();
+    return;
+  }
+  const newPhase=Math.min(Math.floor(elapsed/PHASE_MS)+1,3);
+  if(newPhase!==currentPhase){
+    captureEmotionInput();
+    currentPhase=newPhase;
+    showScreen('scr-a'+currentPhase);
+  }
+  const phaseElapsed=elapsed-((currentPhase-1)*PHASE_MS);
+  const phasePct=Math.min(phaseElapsed/PHASE_MS*100,100);
+  const secsLeft=Math.max(0,Math.ceil((PHASE_MS-phaseElapsed)/1000));
+  const bar=document.getElementById('a'+currentPhase+'-bar');
+  const timeEl=document.getElementById('a'+currentPhase+'-time');
+  if(bar)bar.style.width=phasePct+'%';
+  if(timeEl)timeEl.textContent=secsLeft;
+  setProgress(elapsed/TOTAL_MS*100);
+}
+
+function captureEmotionInput(){
+  const v=document.getElementById('emotion-input').value.trim();
+  if(v&&!modeAData.emotion)modeAData.emotion=v.slice(0,40);
+}
+
+function showAComplete(){
+  document.getElementById('ac-recap').innerHTML=`
+    <div class="ac-data-block">
+      <div class="ac-data-label">EMOTION NAMED</div>
+      <div class="ac-data-val">${esc(modeAData.emotion||'(not named)')}</div>
+    </div>
+    <div class="ac-data-block">
+      <div class="ac-data-label">BODY LOCATION</div>
+      <div class="ac-data-val">${esc(modeAData.located.length?modeAData.located.join(' · '):'(none marked)')}</div>
+    </div>
+  `;
+  showScreen('scr-acomplete');
+  setProgress(100);
+}
+
+// ── MODE A → B HANDOFF ────────────────────────────────────────────────────────
+let handoffFromA=false;
+
+function goToDebriefFromA(){
+  handoffFromA=true;
+  startModeB(true);
+}
+
+// ── MODE B STATE ──────────────────────────────────────────────────────────────
+let modeBData={trigger:'',triggerCats:[],intensityBefore:50,intensityAfter:30,response:null,calibrated:''};
+let selectedCats={};
+
+// ── TRIGGER CATEGORIES ────────────────────────────────────────────────────────
+const TRIGGER_CATS=[
+  {k:'rejection',lbl:'Rejection / ignored'},
+  {k:'criticism',lbl:'Criticism / failure'},
+  {k:'exclusion',lbl:'Exclusion / left out'},
+  {k:'betrayal',lbl:'Betrayal / broken trust'},
+  {k:'conflict',lbl:'Conflict / confrontation'},
+  {k:'romantic',lbl:'Romantic / relationship'},
+  {k:'work',lbl:'Work / performance'},
+  {k:'social',lbl:'Social / group dynamics'}
+];
+
+function renderTriggerGrid(){
+  document.getElementById('trigger-cat-grid').innerHTML=TRIGGER_CATS.map(c=>`
+    <div class="resource-card ${selectedCats[c.k]?'checked':''}" onclick="toggleCat('${c.k}')">
+      <div class="rc-state">${selectedCats[c.k]?'● ON':'○'}</div>
+      <div class="rc-lbl">${esc(c.lbl)}</div>
+    </div>
+  `).join('');
+}
+
+function toggleCat(k){selectedCats[k]=!selectedCats[k];renderTriggerGrid()}
+
+// ── MODE B INIT ───────────────────────────────────────────────────────────────
+function startModeB(fromA){
+  handoffFromA=!!fromA;
+  modeBData={trigger:'',triggerCats:[],intensityBefore:50,intensityAfter:30,response:null,calibrated:''};
+  selectedCats={};
+  document.getElementById('b-trigger').value='';
+  document.getElementById('b-intensity-before').value=50;
+  document.getElementById('ib-val').textContent='50';
+  document.getElementById('b-intensity-after').value=30;
+  document.getElementById('ia-val').textContent='30';
+  document.getElementById('b-calibrated').value='';
+  document.getElementById('b2-next').disabled=true;
+  document.getElementById('resp-held').classList.remove('selected');
+  document.getElementById('resp-reacted').classList.remove('selected');
+  renderTriggerGrid();
+  goB(1);
+}
+
+function goB(step){
+  if(step===2){
+    modeBData.trigger=document.getElementById('b-trigger').value.trim();
+    modeBData.triggerCats=Object.keys(selectedCats).filter(k=>selectedCats[k]);
+  }
+  if(step===3){
+    modeBData.intensityBefore=parseInt(document.getElementById('b-intensity-before').value)||50;
+    modeBData.intensityAfter=parseInt(document.getElementById('b-intensity-after').value)||30;
+  }
+  if(step===4){
+    modeBData.calibrated=document.getElementById('b-calibrated').value.trim();
+    renderPatternDashboard();
+  }
+  if(step===1){
+    // Show handoff banner if coming from Mode A
+    const banner=document.getElementById('b1-handoff');
+    const bannerText=document.getElementById('b1-handoff-text');
+    if(handoffFromA&&(modeAData.emotion||modeAData.located.length)){
+      const parts=[];
+      if(modeAData.emotion)parts.push('Named: '+modeAData.emotion);
+      if(modeAData.located.length)parts.push('Located: '+modeAData.located.join(', '));
+      bannerText.textContent=parts.join(' · ');
+      banner.style.display='block';
+    }else{
+      banner.style.display='none';
+    }
+  }
+  setProgress(step*25);
+  showScreen('scr-b'+step);
+}
+
+function setResponse(val){
+  modeBData.response=val;
+  document.getElementById('resp-held').classList.toggle('selected',val==='held');
+  document.getElementById('resp-reacted').classList.toggle('selected',val==='reacted');
+  document.getElementById('b2-next').disabled=false;
+}
+
+function updateSliderDisplay(sliderId,displayId){
+  document.getElementById(displayId).textContent=document.getElementById(sliderId).value;
+}
+
+// ── PATTERN DASHBOARD ─────────────────────────────────────────────────────────
+function renderPatternDashboard(){
+  const entries=loadEntries();
+  const el=document.getElementById('b4-pattern-content');
+  if(entries.length<3){
+    el.innerHTML=`
+      <div class="pattern-placeholder">
+        <div class="pp-icon">◎</div>
+        <div class="pp-title">PATTERN PENDING</div>
+        <div class="pp-sub">Log ${Math.max(0,3-entries.length)} more episode${3-entries.length===1?'':'s'} to unlock your RSD contact map.</div>
+      </div>
+      <div class="mentor-block" style="margin-top:18px">
+        <div class="mb-tag">FIELD NOTE</div>
+        <div class="mb-text">"Patterns don't reveal themselves in single contacts. The map becomes readable after three. Keep logging."</div>
+      </div>
+    `;
+    return;
+  }
+  const catCounts={};TRIGGER_CATS.forEach(c=>{catCounts[c.k]=0});
+  let held=0,reacted=0,totalBefore=0,totalAfter=0,intensN=0;
+  const locCounts={head:0,throat:0,chest:0,gut:0};
+  entries.forEach(e=>{
+    (e.triggerCats||[]).forEach(k=>{if(catCounts[k]!==undefined)catCounts[k]++});
+    if(e.response==='held')held++;
+    if(e.response==='reacted')reacted++;
+    if(typeof e.intensityBefore==='number'){totalBefore+=e.intensityBefore;intensN++}
+    if(typeof e.intensityAfter==='number')totalAfter+=e.intensityAfter;
+    (e.located||[]).forEach(l=>{if(locCounts[l]!==undefined)locCounts[l]++});
+  });
+  const sortedCats=TRIGGER_CATS.map(c=>({...c,count:catCounts[c.k]})).filter(c=>c.count>0).sort((a,b)=>b.count-a.count);
+  const maxCat=sortedCats[0]?.count||1;
+  const avgBefore=intensN?Math.round(totalBefore/intensN):0;
+  const avgAfter=intensN?Math.round(totalAfter/intensN):0;
+  const drop=avgBefore-avgAfter;
+  const totalResp=held+reacted;
+  const heldPct=totalResp?Math.round(held/totalResp*100):0;
+  const sortedLoc=Object.entries(locCounts).sort((a,b)=>b[1]-a[1]).filter(([,v])=>v>0);
+  const maxLoc=sortedLoc[0]?.[1]||1;
+  el.innerHTML=`
+    ${sortedCats.length?`
+    <div class="pattern-block">
+      <div class="sb-label">TRIGGER FREQUENCY (${entries.length} episodes)</div>
+      ${sortedCats.map(c=>`
+        <div class="heat-row">
+          <div class="heat-lbl">${esc(c.lbl)}</div>
+          <div class="heat-bar-wrap"><div class="heat-bar" style="width:${Math.round(c.count/maxCat*100)}%"></div></div>
+          <div class="heat-count">${c.count}</div>
+        </div>`).join('')}
+    </div>`:''}
+    <div class="pattern-block">
+      <div class="sb-label">INTENSITY TREND (avg across ${entries.length} episodes)</div>
+      <div class="intensity-compare">
+        <div class="ic-item"><div class="ic-val" style="color:var(--red)">${avgBefore}</div><div class="ic-label">AT CONTACT</div></div>
+        <div class="ic-arrow">→</div>
+        <div class="ic-item"><div class="ic-val" style="color:var(--grn)">${avgAfter}</div><div class="ic-label">AFTER</div></div>
+        <div class="ic-item"><div class="ic-val" style="color:var(--gld)">-${drop}</div><div class="ic-label">AVG DROP</div></div>
+      </div>
+    </div>
+    ${totalResp>0?`
+    <div class="pattern-block">
+      <div class="sb-label">RESPONSE PATTERN</div>
+      <div class="response-bar-wrap">
+        <div class="rb-held" style="width:${heldPct}%">${heldPct>=20?`<span>HELD ${heldPct}%</span>`:''}</div>
+        <div class="rb-reacted" style="width:${100-heldPct}%">${(100-heldPct)>=20?`<span>REACTED ${100-heldPct}%</span>`:''}</div>
+      </div>
+    </div>`:''}
+    ${sortedLoc.length?`
+    <div class="pattern-block">
+      <div class="sb-label">WHERE YOU FEEL IT</div>
+      ${sortedLoc.map(([r,cnt])=>`
+        <div class="heat-row">
+          <div class="heat-lbl">${r.toUpperCase()}</div>
+          <div class="heat-bar-wrap"><div class="heat-bar" style="width:${Math.round(cnt/maxLoc*100)}%;background:linear-gradient(90deg,var(--blu),var(--gld))"></div></div>
+          <div class="heat-count">${cnt}</div>
+        </div>`).join('')}
+    </div>`:''}
+  `;
+}
+
+// ── SAVE SESSION ──────────────────────────────────────────────────────────────
+function saveSession(){
+  const entry={
+    ts:Date.now(),
+    trigger:modeBData.trigger,
+    triggerCats:modeBData.triggerCats||[],
+    intensityBefore:modeBData.intensityBefore,
+    intensityAfter:modeBData.intensityAfter,
+    response:modeBData.response,
+    calibrated:modeBData.calibrated,
+    fromModeA:handoffFromA,
+    modeAEmotion:handoffFromA?modeAData.emotion:'',
+    located:handoffFromA?[...modeAData.located]:[]
+  };
+  const entries=loadEntries();
+  entries.unshift(entry);
+  saveEntries(entries);
+  handoffFromA=false;
+  renderSummary(entry);
+  renderPastEntries();
+  showScreen('scr-bsummary');
+  setProgress(100);
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function renderSummary(entry){
+  document.getElementById('summary-date').textContent=new Date(entry.ts).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+  const cats=(entry.triggerCats||[]).map(k=>{const c=TRIGGER_CATS.find(x=>x.k===k);return c?c.lbl:k});
+  const drop=entry.intensityBefore-entry.intensityAfter;
+  const dropColor=drop>0?'var(--grn)':drop<0?'var(--red)':'var(--dim)';
+  document.getElementById('summary-content').innerHTML=`
+    ${entry.fromModeA&&entry.modeAEmotion?`
+    <div class="summary-block">
+      <div class="sb-label">NAMED IN PROTOCOL</div>
+      <div class="sb-content" style="color:var(--gld);font-family:'DM Mono',monospace;font-size:16px;letter-spacing:1px">${esc(entry.modeAEmotion)}</div>
+    </div>`:''}
+    ${entry.fromModeA&&entry.located&&entry.located.length?`
+    <div class="summary-block">
+      <div class="sb-label">LOCATED IN BODY</div>
+      <div class="sb-content">${esc(entry.located.join(' · '))}</div>
+    </div>`:''}
+    ${entry.trigger?`
+    <div class="summary-block">
+      <div class="sb-label">TRIGGER</div>
+      <div class="sb-content">${esc(entry.trigger)}</div>
+    </div>`:''}
+    ${cats.length?`
+    <div class="summary-block">
+      <div class="sb-label">CATEGORIES</div>
+      <div class="chip-grid">${cats.map(c=>`<span class="chip" style="background:rgba(74,111,165,.1);color:var(--blu);border:1px solid rgba(74,111,165,.25)">${esc(c)}</span>`).join('')}</div>
+    </div>`:''}
+    <div class="summary-block">
+      <div class="sb-label">INTENSITY</div>
+      <div class="intensity-compare">
+        <div class="ic-item"><div class="ic-val" style="color:var(--red)">${entry.intensityBefore}</div><div class="ic-label">AT CONTACT</div></div>
+        <div class="ic-arrow">→</div>
+        <div class="ic-item"><div class="ic-val" style="color:var(--grn)">${entry.intensityAfter}</div><div class="ic-label">AFTER</div></div>
+        <div class="ic-item"><div class="ic-val" style="color:${dropColor}">${drop>=0?'-':'+'}${Math.abs(drop)}</div><div class="ic-label">DELTA</div></div>
+      </div>
+    </div>
+    ${entry.response?`
+    <div class="summary-block">
+      <div class="sb-label">RESPONSE</div>
+      <div class="sb-content" style="color:${entry.response==='held'?'var(--grn)':'var(--gld)'};font-weight:700">${entry.response==='held'?'HELD IT':'REACTED'}</div>
+    </div>`:''}
+    ${entry.calibrated?`
+    <div class="summary-block">
+      <div class="sb-label">CALIBRATED READ</div>
+      <div class="sb-content">${esc(entry.calibrated)}</div>
+    </div>`:''}
+  `;
+}
+
+function copySession(){
+  const entries=loadEntries();
+  const e=entries[0];if(!e)return;
+  let txt='CONTACT PROTOCOL — '+new Date(e.ts).toLocaleString()+'\n'+'─'.repeat(32)+'\n';
+  if(e.fromModeA&&e.modeAEmotion)txt+='NAMED: '+e.modeAEmotion+'\n';
+  if(e.fromModeA&&e.located&&e.located.length)txt+='LOCATED: '+e.located.join(', ')+'\n';
+  if(e.trigger)txt+='TRIGGER: '+e.trigger+'\n';
+  if(e.triggerCats&&e.triggerCats.length)txt+='CATEGORIES: '+e.triggerCats.join(', ')+'\n';
+  txt+='INTENSITY: '+e.intensityBefore+' → '+e.intensityAfter+' (delta: '+(e.intensityBefore-e.intensityAfter)+')\n';
+  if(e.response)txt+='RESPONSE: '+e.response.toUpperCase()+'\n';
+  if(e.calibrated)txt+='CALIBRATED READ: '+e.calibrated+'\n';
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).catch(()=>fbCopy(txt));
+  }else{fbCopy(txt)}
+}
+
+function fbCopy(txt){
+  const ta=document.createElement('textarea');
+  ta.value=txt;ta.style.cssText='position:fixed;opacity:0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy')}catch(e){}
+  document.body.removeChild(ta);
+}
+
+function startNew(){
+  modeBData={trigger:'',triggerCats:[],intensityBefore:50,intensityAfter:30,response:null,calibrated:''};
+  modeAData={emotion:'',located:[]};
+  selectedCats={};
+  handoffFromA=false;
+  goMode();
+}
+
+// ── PAST ENTRIES ──────────────────────────────────────────────────────────────
+function renderPastEntries(){
+  const entries=loadEntries();
+  const list=document.getElementById('past-list');
+  const heatWrap=document.getElementById('heatmap-container');
+  if(!entries.length){
+    list.innerHTML='<div style="padding:0 20px 20px;font-size:9px;color:var(--dim);font-style:italic;font-family:Georgia,serif">No contacts logged yet.</div>';
+    heatWrap.innerHTML='';
+    return;
+  }
+  if(entries.length>=3){
+    const catCounts={};TRIGGER_CATS.forEach(c=>{catCounts[c.k]=0});
+    entries.forEach(e=>(e.triggerCats||[]).forEach(k=>{if(catCounts[k]!==undefined)catCounts[k]++}));
+    const sorted=TRIGGER_CATS.map(c=>({...c,count:catCounts[c.k]})).filter(c=>c.count>0).sort((a,b)=>b.count-a.count);
+    const maxC=sorted[0]?.count||1;
+    heatWrap.innerHTML=sorted.length?`
+      <div class="heatmap-section">
+        <div class="sb-label" style="margin-bottom:12px">TRIGGER FREQUENCY MAP</div>
+        ${sorted.map(c=>`
+          <div class="heat-row">
+            <div class="heat-lbl">${esc(c.lbl)}</div>
+            <div class="heat-bar-wrap"><div class="heat-bar" style="width:${Math.round(c.count/maxC*100)}%"></div></div>
+            <div class="heat-count">${c.count}</div>
+          </div>`).join('')}
+      </div>`:'';
+  }else{heatWrap.innerHTML=''}
+  list.innerHTML=entries.map((e,i)=>{
+    const date=new Date(e.ts).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+    const snip=e.modeAEmotion||e.trigger||(e.triggerCats&&e.triggerCats[0])||'(logged)';
+    const bc=e.response==='held'?'var(--grn)':e.response==='reacted'?'var(--gld)':'var(--dim)';
+    const bt=e.response==='held'?'HELD':e.response==='reacted'?'REACTED':'LOGGED';
+    const cats=(e.triggerCats||[]).map(k=>{const c=TRIGGER_CATS.find(x=>x.k===k);return c?c.lbl:k});
+    return`<div class="past-item" id="pe-${i}">
+      <div class="past-header" onclick="togglePast(${i})">
+        <div class="past-meta">
+          <div class="past-date">${esc(date)}</div>
+          <div class="past-snip">${esc(snip)}</div>
+        </div>
+        <span class="past-badge" style="background:rgba(74,111,165,.08);color:${bc};border:1px solid ${bc}55">${bt}</span>
+        <span class="past-chevron">›</span>
+      </div>
+      <div class="past-detail">
+        ${e.fromModeA&&e.modeAEmotion?`<div class="past-detail-row"><div class="pd-label">NAMED</div><div class="pd-val">${esc(e.modeAEmotion)}</div></div>`:''}
+        ${e.located&&e.located.length?`<div class="past-detail-row"><div class="pd-label">LOCATED</div><div class="pd-val">${esc(e.located.join(', '))}</div></div>`:''}
+        ${e.trigger?`<div class="past-detail-row"><div class="pd-label">TRIGGER</div><div class="pd-val">${esc(e.trigger)}</div></div>`:''}
+        ${cats.length?`<div class="past-detail-row"><div class="pd-label">CATEGORIES</div><div class="pd-val">${esc(cats.join(' · '))}</div></div>`:''}
+        <div class="past-detail-row"><div class="pd-label">INTENSITY</div><div class="pd-val">${e.intensityBefore} → ${e.intensityAfter}</div></div>
+        ${e.calibrated?`<div class="past-detail-row"><div class="pd-label">CALIBRATED READ</div><div class="pd-val">${esc(e.calibrated)}</div></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePast(i){document.getElementById('pe-'+i).classList.toggle('open')}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderEmotionChips();
+renderPastEntries();
+</script>
+</body>
+</html>
