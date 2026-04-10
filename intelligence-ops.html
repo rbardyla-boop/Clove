@@ -312,7 +312,7 @@ function fmtAgo(ts){
 // ── STATUS GRID ────────────────────────────────────────────────────────────
 function renderStatus(){
   var freshness = IntelEngine.getDataFreshness();
-  var lastRun   = parseInt(localStorage.getItem('od_intel_last_run')||'0',10);
+  var lastRun   = (JSON.parse(localStorage.getItem('od_intel_last_run')||'0')||0);
 
   var cards = [
     { val: freshness.totalSessions || 0, lbl: 'SESSIONS LOGGED', sub: '' },
@@ -349,8 +349,8 @@ function renderStatus(){
 
 // ── BRIEF ──────────────────────────────────────────────────────────────────
 function renderBrief(){
-  var brief   = localStorage.getItem('od_intel_brief');
-  var lastRun = parseInt(localStorage.getItem('od_intel_last_run')||'0',10);
+  var brief   = (function(){try{return JSON.parse(localStorage.getItem('od_intel_brief')||'null');}catch(e){return null;}})();
+  var lastRun = (JSON.parse(localStorage.getItem('od_intel_last_run')||'0')||0);
   var el      = document.getElementById('briefContainer');
 
   if(!brief){

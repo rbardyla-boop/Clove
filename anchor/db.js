@@ -150,12 +150,12 @@
   // The philosopher's escape hatch: one click → meter gone permanently.
   // This is stored as a separate key so it survives anchor clears.
   g.odaMeterDismissed = function () {
-    try { return localStorage.getItem(K_NODIM) === 'true'; }
+    try { return JSON.parse(localStorage.getItem(K_NODIM) || 'false'); }
     catch (e) { return false; }
   };
 
   g.odaDismissMeter = function () {
-    try { localStorage.setItem(K_NODIM, 'true'); }
+    try { localStorage.setItem(K_NODIM, JSON.stringify(true)); }
     catch (e) {}
   };
 

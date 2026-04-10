@@ -62,7 +62,7 @@ See `field-ops.html.patch.md` for the exact strings.
 |---|---|---|
 | `od_anchor` | Active anchor record (directive, time, executed flag) | 30 days if unexecuted; kept if executed |
 | `od_anchor_meta` | `firstSessionAt`, `anchorCount`, `executedCount`, `skipStreak` | Permanent |
-| `od_anchor_nodim` | Permanent meter dismiss (`'true'`) | Permanent |
+| `od_anchor_nodim` | Permanent meter dismiss (`JSON.stringify(true)`) | Permanent |
 
 All three use the existing `od_` prefix. Ignored if anchor scripts are removed.
 

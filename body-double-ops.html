@@ -190,8 +190,8 @@ let currentDuration=25, timeLeft=25*60, timerInterval=null, isActive=false, budd
 // ── KEY MIGRATION (one-time) ──
 (function(){try{['bodydouble-history','bodydouble-streak','bodydouble-lastdate'].forEach(function(k){var v=localStorage.getItem(k);if(v!==null){var nk=k.replace('bodydouble-','od_bd_');localStorage.setItem(nk,v);localStorage.removeItem(k);}});}catch(e){}})();
 let history=[];try{history=JSON.parse(localStorage.getItem('od_bd_history')||'[]');}catch(e){}
-let streak=parseInt(localStorage.getItem('od_bd_streak')||'0');
-let lastDate=localStorage.getItem('od_bd_lastdate')||'';
+let streak=JSON.parse(localStorage.getItem('od_bd_streak')||'0');
+let lastDate=(function(){var r=localStorage.getItem('od_bd_lastdate');return r?(function(){try{return JSON.parse(r);}catch(e){return r;}})():'';})();
 
 const buddies=[
   {name:"SGT. REYES",emoji:"🪖",color:"#c0392b"},
@@ -241,8 +241,8 @@ function toggleSession(){
     if(today!==lastDate){streak++;lastDate=today;}
     history.unshift({date:new Date().toISOString(),minutes:currentDuration,buddy:buddy.name});
     localStorage.setItem('od_bd_history',JSON.stringify(history));
-    localStorage.setItem('od_bd_streak',String(streak));
-    localStorage.setItem('od_bd_lastdate',lastDate);
+    localStorage.setItem('od_bd_streak',JSON.stringify(streak));
+    localStorage.setItem('od_bd_lastdate',JSON.stringify(lastDate));
     addLog("MISSION COMPLETE. STAND DOWN.");
     setTimeout(()=>alert("SESSION LOCKED IN • +1 TO STREAK"),600);
   } else {

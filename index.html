@@ -1660,7 +1660,7 @@ if(onboarded)initOrb();
 // ── OFFLINE INDICATOR ──
 (function(){const b=document.getElementById('offlineBar');function u(){if(b)b.classList.toggle('show',!navigator.onLine)}window.addEventListener('online',u);window.addEventListener('offline',u);u()})();
 // ── EXPORT BACKUP NUDGE (every 10th mission, once per milestone) ──
-(function(){try{const nk='od3_backup_nudge';const last=parseInt(localStorage.getItem(nk)||'0',10);const tens=Math.floor(done/10)*10;if(done>=10&&tens>last){localStorage.setItem(nk,String(tens));setTimeout(()=>{const t=document.createElement('div');t.className='toast';t.style.background='var(--gld)';t.style.color='#000';t.textContent='BACK UP YOUR DATA → TOOL SHED → EXPORT';document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.parentNode.removeChild(t)},2500)},3000)}}catch(e){}})();
+(function(){try{const nk='od3_backup_nudge';const last=JSON.parse(localStorage.getItem(nk)||'0');const tens=Math.floor(done/10)*10;if(done>=10&&tens>last){localStorage.setItem(nk,JSON.stringify(tens));setTimeout(()=>{const t=document.createElement('div');t.className='toast';t.style.background='var(--gld)';t.style.color='#000';t.textContent='BACK UP YOUR DATA → TOOL SHED → EXPORT';document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.parentNode.removeChild(t)},2500)},3000)}}catch(e){}})();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>console.log('SW:',e))})}
 // ── CANVAS PARTICLE SYSTEM ──

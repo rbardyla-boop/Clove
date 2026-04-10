@@ -1297,7 +1297,7 @@ function triggerDelay(reason) {
   // Check for already-running persisted delay
   const stored = localStorage.getItem(DELAY_END_KEY);
   if (stored) {
-    const remaining = Math.ceil((parseInt(stored) - Date.now()) / 1000);
+    const remaining = Math.ceil((JSON.parse(stored) - Date.now()) / 1000);
     if (remaining > 0) {
       delayRemaining = remaining;
     } else {
@@ -1308,8 +1308,8 @@ function triggerDelay(reason) {
   }
 
   // Persist end time + reason
-  localStorage.setItem(DELAY_END_KEY, String(Date.now() + delayRemaining * 1000));
-  localStorage.setItem(DELAY_REASON_KEY, reasonText);
+  localStorage.setItem(DELAY_END_KEY, JSON.stringify(Date.now() + delayRemaining * 1000));
+  localStorage.setItem(DELAY_REASON_KEY, JSON.stringify(reasonText));
 
   // Show overlay
   const overlay = document.getElementById('delayOverlay');
@@ -1414,7 +1414,7 @@ function checkPendingDelay() {
   const stored = localStorage.getItem(DELAY_END_KEY);
   if (!stored) return;
 
-  const endTime = parseInt(stored);
+  const endTime = JSON.parse(stored);
   const remaining = Math.ceil((endTime - Date.now()) / 1000);
 
   if (remaining <= 0) {
@@ -1431,7 +1431,7 @@ function checkPendingDelay() {
   const overlay = document.getElementById('delayOverlay');
   overlay.classList.add('show');
 
-  const reason = localStorage.getItem(DELAY_REASON_KEY) || 'RESUMED — DELAY WAS ACTIVE';
+  const reason = (function(){var r=localStorage.getItem(DELAY_REASON_KEY);return r?(function(){try{return JSON.parse(r);}catch(e){return r;}})():'RESUMED — DELAY WAS ACTIVE';})();
   document.getElementById('delayReason').textContent = reason + '. Resumed after page reload. The urge peaks and drops. You chose to pause.';
 
   updateDelayDisplay();
@@ -1451,7 +1451,7 @@ document.addEventListener('visibilitychange', () => {
     // Tab came back — recalculate remaining from stored end time
     const stored = localStorage.getItem(DELAY_END_KEY);
     if (stored) {
-      const remaining = Math.ceil((parseInt(stored) - Date.now()) / 1000);
+      const remaining = Math.ceil((JSON.parse(stored) - Date.now()) / 1000);
       if (remaining > 0) {
         delayRemaining = remaining;
         updateDelayDisplay();

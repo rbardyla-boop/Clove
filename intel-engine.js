@@ -299,8 +299,8 @@
     try {
       var brief = generateBrief();
       if (brief) {
-        localStorage.setItem('od_intel_brief', brief);
-        localStorage.setItem('od_intel_last_run', String(now));
+        _save('od_intel_brief', brief);
+        _save('od_intel_last_run', now);
       }
       return true;
     } catch (e) {

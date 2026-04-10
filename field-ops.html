@@ -475,11 +475,11 @@ html,body{height:100%;background:#08080f;color:#fff;
 'use strict';
 
 /* ─── STORAGE KEYS (od_ prefix — stays on device) ────────────────────────── */
-const K_SAVE = 'od_ff_saved';              // saved card keys (unchanged)
-const K_UPDI = 'od_ff_upgrade_dismissed';  // upgrade prompt dismissed
+const PROFILE_KEY = 'od_operator_profile';
+const K_SAVE      = 'od_ff_saved';              // saved card keys
+const K_UPDI      = 'od_ff_upgrade_dismissed';  // upgrade prompt dismissed
 
 /* ─── SYSTEM CORE ─────────────────────────────────────────────────────────── */
-const PROFILE_KEY = 'od_operator_profile';
 
 function getProfile(){
   try{
@@ -1163,7 +1163,11 @@ function backToState(){
   if(currentState){
     fromReturn=true;
     const prof=getProfile();
-    if(prof.last_state) showMem(prof);
+    // Only show memory banner when returning to the same state as last session.
+    // RANDOM sessions set currentState to a random state — prof.last_state may
+    // differ, which would show stale data from the previous session.
+    if(prof.last_state&&prof.last_state===currentState) showMem(prof);
+    else hideMem();
     loadStateScreen(currentState);
     show('state');
   } else {
@@ -1308,6 +1312,8 @@ function runAgain(){
 
 /* ─── INIT ────────────────────────────────────────────────────────────────── */
 function init(){
+  localStorage.removeItem('od_ff_session');  // legacy flat key — safe no-op if absent
+
   buildEntry();
 
   // ?state= deep link support

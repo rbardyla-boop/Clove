@@ -151,15 +151,15 @@ const DEFAULTS=[
 (function(){try{['dd-activities','dd-log','dd-streak','dd-lastdate'].forEach(function(k){var v=localStorage.getItem(k);if(v!==null){localStorage.setItem('od_'+k.replace('-','_'),v);localStorage.removeItem(k);}});}catch(e){}})();
 let activities=[];try{activities=JSON.parse(localStorage.getItem('od_dd_activities')||'null')||[...DEFAULTS];}catch(e){}
 let log=[];try{log=JSON.parse(localStorage.getItem('od_dd_log')||'[]');}catch(e){}
-let streak=parseInt(localStorage.getItem('od_dd_streak')||'0');
-let lastDate=localStorage.getItem('od_dd_lastdate')||'';
+let streak=JSON.parse(localStorage.getItem('od_dd_streak')||'0');
+let lastDate=(function(){var r=localStorage.getItem('od_dd_lastdate');return r?(function(){try{return JSON.parse(r);}catch(e){return r;}})():'';})();
 const EMOJIS=['🍭','🎮','📱','🎵','🧘','🍪','📖','🎨','🏃','🧩'];
 
 function save(){
   localStorage.setItem('od_dd_activities',JSON.stringify(activities));
   localStorage.setItem('od_dd_log',JSON.stringify(log));
-  localStorage.setItem('od_dd_streak',streak);
-  localStorage.setItem('od_dd_lastdate',lastDate);
+  localStorage.setItem('od_dd_streak',JSON.stringify(streak));
+  localStorage.setItem('od_dd_lastdate',JSON.stringify(lastDate));
 }
 
 function go(n){

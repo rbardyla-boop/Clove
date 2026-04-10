@@ -870,12 +870,14 @@ function updateFloorCount() {
 
 // ─── PERSON INPUT (persist locally) ───
 (function loadPerson() {
-  const saved = localStorage.getItem('od_redprotocol_person');
+  const raw = localStorage.getItem('od_redprotocol_person');
+  if (!raw) return;
+  const saved = (function(){try{return JSON.parse(raw);}catch(e){return raw;}})();
   if (saved) document.getElementById('personInput').value = saved;
 })();
 
 document.getElementById('personInput').addEventListener('input', function() {
-  localStorage.setItem('od_redprotocol_person', this.value);
+  localStorage.setItem('od_redprotocol_person', JSON.stringify(this.value));
 });
 
 // ─── LOG ACTIVATION ───
