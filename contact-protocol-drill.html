@@ -527,7 +527,7 @@ function esc(s){if(typeof s!=='string')return'';const d=document.createElement('
 
 const STORAGE_KEY='od_contact_v1';
 function loadEntries(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch(e){return[]}}
-function saveEntries(arr){localStorage.setItem(STORAGE_KEY,JSON.stringify(arr.slice(0,200)))}
+function saveEntries(arr){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(arr.slice(0,200)))}catch(e){}}
 function setProgress(pct){document.getElementById('prog').style.width=Math.min(100,pct)+'%'}
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
