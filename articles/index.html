@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'">
+<meta name="theme-color" content="#08080f">
+<meta name="description" content="15 articles on how your brain actually works — and the tools to do something about it. Each article connects directly to a drill in the Operator's Deck.">
+<meta property="og:title" content="The Operator's Library · Operator's Deck">
+<meta property="og:description" content="15 articles on psychology, neuroscience, and trauma. Each one connects to a drill. Read the mechanism. Run the tool.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/articles/">
+<meta name="referrer" content="no-referrer">
+<title>The Operator's Library · Operator's Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "The Operator's Library",
+  "description": "15 articles on psychology, neuroscience, and trauma — each connected to a practical drill.",
+  "publisher": {"@type": "Organization", "name": "Operator's Deck"},
+  "url": "https://clovelearn.io/articles/"
+}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--blu:#4a6fa5;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+html{height:100%;scroll-behavior:smooth}
+body{background:var(--bg);color:#ccc;font-family:Georgia,serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.nav-bar{position:sticky;top:0;z-index:10;background:#000;border-bottom:3px solid var(--red);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.back-link{color:#aaa;text-decoration:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;border:1px solid #222;padding:6px 12px;border-radius:6px;transition:color .2s}
+.back-link:hover{color:#fff}
+.nav-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase}
+.page-wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px}
+.page-eyebrow{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--red);text-transform:uppercase;margin-bottom:10px}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:52px;color:#fff;line-height:1;margin-bottom:8px;letter-spacing:1px}
+.page-sub{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:8px;font-style:italic}
+.page-rule{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim3);text-transform:uppercase;margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--dim3)}
+.section-tag{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:4px;color:var(--dim2);text-transform:uppercase;margin:36px 0 14px;display:flex;align-items:center;gap:10px}
+.section-tag::after{content:'';flex:1;height:1px;background:var(--dim3)}
+.article-list{display:flex;flex-direction:column;gap:2px}
+.art-card{display:block;background:var(--bg2);border:1px solid #1a1a2a;border-radius:12px;padding:18px 20px;text-decoration:none;transition:border-color .15s,background .15s;margin-bottom:10px}
+.art-card:hover{border-color:#2a2a3a;background:#0f0f1e}
+.art-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.art-tag{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:2.5px;text-transform:uppercase}
+.art-arrow{font-size:16px;color:var(--dim3);transition:color .15s}
+.art-card:hover .art-arrow{color:var(--dim)}
+.art-title{font-size:14px;font-weight:700;color:#ddd;line-height:1.35;margin-bottom:6px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif}
+.art-desc{font-size:12px;color:var(--dim);line-height:1.6;font-style:italic;margin-bottom:12px}
+.art-drill{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim2);background:var(--bg3);border:1px solid var(--dim3);border-radius:6px;padding:5px 10px;transition:color .15s,border-color .15s}
+.art-card:hover .art-drill{color:#ddd;border-color:#444}
+.deck-cta{background:var(--bg2);border:1px solid rgba(192,57,43,.3);border-radius:12px;padding:28px 24px;text-align:center;margin-top:48px}
+.deck-cta-tag{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--dim2);text-transform:uppercase;margin-bottom:10px}
+.deck-cta-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif}
+.deck-cta-sub{font-size:11px;color:var(--dim);font-style:italic;margin-bottom:18px;line-height:1.6}
+.deck-btn{display:inline-block;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;padding:14px 28px;border-radius:10px;text-decoration:none;text-transform:uppercase;transition:opacity .2s}
+.deck-btn:hover{opacity:.85}
+footer{text-align:center;padding:32px 20px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim3);text-transform:uppercase;border-top:1px solid var(--dim3);margin-top:48px}
+@media(max-width:600px){.page-title{font-size:38px}.page-wrap{padding:28px 16px 60px}}
+</style>
+</head>
+<body>
+
+<nav class="nav-bar">
+  <a class="back-link" href="/">← Operator's Deck</a>
+  <span class="nav-label">The Library</span>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-eyebrow">Operator's Library</div>
+  <div class="page-title">Read the Mechanism.<br>Run the Tool.</div>
+  <p class="page-sub">Each article explains how something in your brain actually works. Each one ends with a direct link to the drill that applies the mechanism. You don't need to read all of them. Start with the one that sounds most like your current situation.</p>
+  <div class="page-rule">15 Articles · Free · No account required</div>
+
+  <!-- ── NEUROSCIENCE ─────────────────────────────────── -->
+  <div class="section-tag">Neuroscience</div>
+
+  <a class="art-card" href="amygdala-hijack.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--red)">Threat Response</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Your Brain Is Lying to You: The Amygdala Hijack Explained</div>
+    <div class="art-desc">Why the brain builds airtight cases against you at 3AM — and why the case is always wrong. The hijack mechanism and the four tools to debug it.</div>
+    <span class="art-drill">→ CBT Drill</span>
+  </a>
+
+  <a class="art-card" href="cognitive-distortions.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--gld)">Cognitive Science</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Cognitive Distortions: 10 Ways Your Brain Lies to You</div>
+    <div class="art-desc">The 10 documented prediction errors your brain runs automatically — named, explained, and tested. A diagnostic tool, not a therapy session.</div>
+    <span class="art-drill">→ Thought Interceptor</span>
+  </a>
+
+  <a class="art-card" href="intrusive-thoughts.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--gld)">Cognitive Science</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Intrusive Thoughts Are Not What You Think They Are</div>
+    <div class="art-desc">They're not confessions or predictions. They're noise from a pattern-matching system running without a target — and suppression makes it worse.</div>
+    <span class="art-drill">→ Thought Interceptor</span>
+  </a>
+
+  <a class="art-card" href="emotional-numbness.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--dim)">Shutdown Mechanism</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Why You Feel Nothing: The Emotional Shutdown Mechanism</div>
+    <div class="art-desc">The dial doesn't turn down selectively. Suppress pain long enough and everything flattens. The protection mechanism and four tools to find the signal again.</div>
+    <span class="art-drill">→ Behavioral Activation</span>
+  </a>
+
+  <!-- ── TRAUMA & NERVOUS SYSTEM ─────────────────────── -->
+  <div class="section-tag">Trauma &amp; Nervous System</div>
+
+  <a class="art-card" href="hypervigilance.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:#e67e22">Nervous System</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">What Hypervigilance Actually Is (And Why You Can't Just Relax)</div>
+    <div class="art-desc">Not a personality flaw. A nervous system recalibrated to a threat environment that no longer exists. The mechanism and the recalibration protocol.</div>
+    <span class="art-drill">→ What's Going On</span>
+  </a>
+
+  <a class="art-card" href="freeze-response.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:#e67e22">Nervous System</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">The Freeze Response: Why You Shut Down Instead of Taking Action</div>
+    <div class="art-desc">It looks identical to procrastination from the outside. From the inside it's a survival mode. The third response — and the physiological exit protocol.</div>
+    <span class="art-drill">→ TIPP Drill</span>
+  </a>
+
+  <a class="art-card" href="rejection-sensitivity.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--red)">RSD · ADHD</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Rejection Sensitive Dysphoria: The Alarm That Can't Tell the Difference</div>
+    <div class="art-desc">The ADHD symptom nobody explained — and why the emotional response to perceived rejection fires as a full nervous system event, not a feeling.</div>
+    <span class="art-drill">→ RSD Shield</span>
+  </a>
+
+  <a class="art-card" href="people-pleasing.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:#e67e22">Fawn Response</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Why You Can't Stop People Pleasing: The Fawn Response Explained</div>
+    <div class="art-desc">The fourth survival mode. A trauma adaptation that traded self-expression for safety — and the cost ledger it's been running since.</div>
+    <span class="art-drill">→ DEAR MAN Drill</span>
+  </a>
+
+  <!-- ── IDENTITY & PSYCHOLOGY ──────────────────────── -->
+  <div class="section-tag">Identity &amp; Psychology</div>
+
+  <a class="art-card" href="shame-spiral.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--red)">Identity</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">The Shame Spiral: Why Shame Isn't a Feeling, It's a System</div>
+    <div class="art-desc">Guilt says "I did something bad." Shame says "I am something bad." Four words. Different problem. Different tools. The spiral mechanism and how to exit it.</div>
+    <span class="art-drill">→ Stuck Points Drill</span>
+  </a>
+
+  <a class="art-card" href="why-do-i-self-sabotage.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--red)">Identity</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Why You Keep Blowing Up Good Things: The Self-Sabotage Mechanism</div>
+    <div class="art-desc">Identity protection and loss-prevention — the two programs running the sabotage. The thermostat model and the four-tool interruption protocol.</div>
+    <span class="art-drill">→ Chain Analysis</span>
+  </a>
+
+  <a class="art-card" href="imposter-syndrome.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--gld)">Performance Psychology</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Imposter Syndrome: Why Success Makes It Worse, Not Better</div>
+    <div class="art-desc">A calibration error, not a confidence problem. You have the full unedited feed. Everyone else shows you the highlight reel. The gap is the source.</div>
+    <span class="art-drill">→ After-Action Review</span>
+  </a>
+
+  <a class="art-card" href="hero-victim-jester.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--blu)">Masking · ADHD</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Hero, Victim, or Jester: Which Mask Are You Wearing Right Now?</div>
+    <div class="art-desc">The three social masks people deploy when their authentic self feels unsafe. Which one you're running — and what it's costing you.</div>
+    <span class="art-drill">→ Pattern Recon</span>
+  </a>
+
+  <!-- ── DECISION & COGNITIVE LOOPS ─────────────────── -->
+  <div class="section-tag">Decision &amp; Cognitive Loops</div>
+
+  <a class="art-card" href="should-i-quit.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--gld)">Decision Framework</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Should I Quit? The Protocol Nobody Gave You Permission to Use</div>
+    <div class="art-desc">Stupid Tenacity vs. Strategic Persistence. The four questions that make the decision visible — without telling you what to decide.</div>
+    <span class="art-drill">→ Quit / Stay Drill</span>
+  </a>
+
+  <a class="art-card" href="rumination.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--gld)">Cognitive Loops</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">Why You Can't Stop Overthinking: The Rumination Loop Explained</div>
+    <div class="art-desc">The loop runs because the problem-solving system has no exit condition. What the loop is trying to do — and the four ways to give it one.</div>
+    <span class="art-drill">→ What's Going On</span>
+  </a>
+
+  <a class="art-card" href="failure-recovery.html">
+    <div class="art-meta">
+      <span class="art-tag" style="color:var(--red)">Post-Failure</span>
+      <span class="art-arrow">›</span>
+    </div>
+    <div class="art-title">The Failure Autopsy: How to Extract the Lesson Without the Shame</div>
+    <div class="art-desc">Failure is data. Shame is noise. The forensic debrief protocol that separates the two and builds the pattern recognition that actually matters.</div>
+    <span class="art-drill">→ Failure Autopsy</span>
+  </a>
+
+  <!-- ── CTA ─────────────────────────────────────────── -->
+  <div class="deck-cta">
+    <div class="deck-cta-tag">The Operator's Deck</div>
+    <div class="deck-cta-title">48 Tools. Zero Login. Your Data Stays on Your Device.</div>
+    <div class="deck-cta-sub">Every drill referenced in these articles lives in the deck. Free, browser-based, no account. Your data never leaves your phone.</div>
+    <a class="deck-btn" href="/">Enter the Deck →</a>
+  </div>
+
+</div>
+
+<footer>By Ryan Bardyla · Canadian Army Veteran · Builder of Operator's Deck · clovelearn.io</footer>
+
+</body>
+</html>

@@ -66,6 +66,7 @@
   <url><loc>https://clovelearn.io/quit-stay-drill.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://clovelearn.io/failure-autopsy-drill.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://clovelearn.io/contact-protocol-drill.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://clovelearn.io/articles/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://clovelearn.io/articles/should-i-quit.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://clovelearn.io/articles/amygdala-hijack.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://clovelearn.io/articles/rejection-sensitivity.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
