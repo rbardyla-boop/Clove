@@ -25,7 +25,14 @@
       "Bash(wc -l /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
       "Bash(grep -v \"^\\\\.\\\\.$\")",
       "Bash(grep -v '/index.html$')",
-      "Bash(grep -l 'particle-bg.js' /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)"
+      "Bash(grep -l 'particle-bg.js' /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
+      "Bash(grep -L \"particle-bg\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
+      "Bash(grep -H \"particle-bg\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
+      "Bash(xargs basename:*)",
+      "Bash(grep -l \"particle-bg\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
     ]
   }
 }
