@@ -458,7 +458,9 @@ function printSheet(){
   ${last.patterns&&last.patterns.length?`<div class="section"><div class="lbl">5 — RSD Patterns Identified</div><div>${last.patterns.map(p=>`<span class="badge">${esc(p)}</span>`).join('')}</div></div>`:''}
   <div class="section"><div class="lbl">6 — Calibrated Read</div><div class="box bal-box">${esc((last.reframe||'(not filled)').replace(/\n/g,'<br>'))}</div></div>
   <div class="footer">Operator's Deck — clovelearn.io &nbsp;|&nbsp; Built by a communications specialist, not a clinician &nbsp;|&nbsp; Bring this to your therapist</div>
-  </body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/particle-bg.js?v=1"></script>
+</body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
 }
 
 // PAST ENTRIES
@@ -491,5 +493,7 @@ document.addEventListener('DOMContentLoaded',()=>{buildEmotions();buildPatterns(
 
 <div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">RSD concept primarily attributed to Dr. William Dodson (ADHD clinical practice). Not a DSM-5 diagnosis. Not a substitute for professional assessment or treatment.</div>
 <div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/particle-bg.js?v=1"></script>
 </body>
 </html>

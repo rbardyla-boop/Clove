@@ -22,7 +22,10 @@
       "Bash(grep -h \"g\\\\.\\\\\\(oda[A-Za-z]*\\\\\\) =\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
       "Bash(grep -hP 'g\\\\.oda[A-Za-z]+ =' /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
       "Bash(grep -h \"g\\\\.oda[A-Za-z]* =\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
-      "Bash(wc -l /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)"
+      "Bash(wc -l /home/thebackhand/Downloads/clovelearn_v3_final_deploy/anchor/*.js)",
+      "Bash(grep -v \"^\\\\.\\\\.$\")",
+      "Bash(grep -v '/index.html$')",
+      "Bash(grep -l 'particle-bg.js' /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)"
     ]
   }
 }

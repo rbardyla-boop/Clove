@@ -387,7 +387,9 @@ function printSheet(){
     +'<div class="section"><div class="lbl">The Exile Underneath</div><div class="box">'+esc(last.exile)+'</div></div>'
     +'<div class="section"><div class="lbl">Message From Self</div><div class="msg-box">'+esc(last.message)+'</div></div>'
     +'<div class="footer">Operator\u2019s Deck \u2022 Parts Mapping Drill \u2022 '+esc(last.date)+'</div>'
-    +'</body></html>');
+    +'<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/particle-bg.js?v=1"></script>
+</body></html>');
   pw.document.close();
   setTimeout(function(){pw.print()},400);
 }
@@ -434,5 +436,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 <div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from Internal Family Systems (Schwartz, 1995). Not a substitute for professional IFS therapy.</div>
 <div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:#111118;border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD &#x2192;</span></a></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/particle-bg.js?v=1"></script>
 </body>
 </html>

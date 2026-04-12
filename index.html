@@ -249,6 +249,7 @@ body.nightops .clove-wm{opacity:.09;filter:brightness(1.4) sepia(.3) hue-rotate(
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
 </head>
 <body>
 <div id="offlineBar" class="offline-bar">OFFLINE MODE — DATA SAVES LOCALLY</div>
@@ -1663,50 +1664,8 @@ if(onboarded)initOrb();
 (function(){try{const nk='od3_backup_nudge';const last=JSON.parse(localStorage.getItem(nk)||'0');const tens=Math.floor(done/10)*10;if(done>=10&&tens>last){localStorage.setItem(nk,JSON.stringify(tens));setTimeout(()=>{const t=document.createElement('div');t.className='toast';t.style.background='var(--gld)';t.style.color='#000';t.textContent='BACK UP YOUR DATA → TOOL SHED → EXPORT';document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.parentNode.removeChild(t)},2500)},3000)}}catch(e){}})();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>console.log('SW:',e))})}
-// ── CANVAS PARTICLE SYSTEM ──
-(function(){
-  const cv=document.getElementById('bgCanvas');
-  if(!cv)return;
-  const cx=cv.getContext('2d');
-  let W,H,ps=[],sY=0,vis=true;
-  const mob=window.matchMedia('(max-width:768px)').matches;
-  const N=mob?35:70;
-  function rsz(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight}
-  rsz();window.addEventListener('resize',rsz);
-  document.addEventListener('visibilitychange',()=>{vis=!document.hidden;if(vis)requestAnimationFrame(draw)});
-  window.addEventListener('scroll',()=>{sY=window.pageYOffset},{passive:true});
-  class P{
-    constructor(){this.reset(true)}
-    reset(init){
-      this.x=Math.random()*W;this.y=init?Math.random()*H:H+10;
-      this.sz=0.5+Math.random()*2;this.sp=0.15+Math.random()*0.4;
-      this.op=0.03+Math.random()*0.12;this.dr=(Math.random()-0.5)*0.3;
-      this.px=0.3+Math.random()*0.7;
-      const t=Math.random();
-      this.r=Math.floor(234*(1-t)+192*t);
-      this.g=Math.floor(179*(1-t)+57*t);
-      this.b=Math.floor(8*(1-t)+43*t);
-    }
-    update(){
-      this.y-=this.sp;this.x+=this.dr+Math.sin(this.y*0.005)*0.2;
-      if(this.y<-10)this.reset(false);
-      if(this.x<-10)this.x=W+10;if(this.x>W+10)this.x=-10;
-      return sY*this.px*0.02;
-    }
-    draw(off){
-      cx.beginPath();cx.arc(this.x,this.y+off,this.sz,0,Math.PI*2);
-      cx.fillStyle='rgba('+this.r+','+this.g+','+this.b+','+this.op+')';cx.fill();
-    }
-  }
-  for(let i=0;i<N;i++)ps.push(new P());
-  function draw(){
-    if(!vis)return;cx.clearRect(0,0,W,H);
-    for(const p of ps){const o=p.update();p.draw(o)}
-    requestAnimationFrame(draw);
-  }
-  draw();
-}());
 </script>
+<script src="/particle-bg.js?v=1"></script>
 <script src="voice-engine.js?v=7"></script>
 </body>
 </html>

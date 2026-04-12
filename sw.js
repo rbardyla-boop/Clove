@@ -1,10 +1,11 @@
-const CACHE_NAME = 'operators-deck-v33';
+const CACHE_NAME = 'operators-deck-v34';
 
 // Only cache true static assets — never HTML files.
 // Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)
 // and a redirected response passed to respondWith() crashes with:
 // "a redirected response was used for a request whose redirect mode is not 'follow'"
 const STATIC_ASSETS = [
+  '/particle-bg.js',
   '/manifest.json',
   '/od-core.js',
   '/intel-engine.js',
