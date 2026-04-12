@@ -1628,7 +1628,42 @@ function advanceCard(){
 }
 
 function showStopSignal(){
-  // Session is abandoned — profile does NOT update
+  // Write partial session to profile — stop counts as all-skipped remainder
+  if(sess){
+    const prof=getProfile();
+    const prevLastState=prof.last_state;
+
+    prof.total_sessions  +=1;
+    prof.total_executed  +=sess.did_it;
+    prof.total_skipped   +=(SESSION_MAX-sess.did_it);
+
+    if(sess.did_it===0) prof.consecutive_skips++;
+    else                prof.consecutive_skips=0;
+
+    if(prevLastState===sess.state){
+      prof.consecutive_same_state=(prof.consecutive_same_state||0)+1;
+    } else {
+      prof.consecutive_same_state=1;
+    }
+
+    prof.state_history=prof.state_history||{};
+    prof.state_history[sess.state]=(prof.state_history[sess.state]||0)+1;
+
+    prof.last_state=sess.state;
+    prof.last_session={
+      did_it:     sess.did_it,
+      cards_seen: sess.cards_seen,
+      started_at: sess.started_at,
+      pool_offset:sess.pool_offset
+    };
+
+    // stopped sessions do not extend streak — no streak++ here
+    prof.last_seen=Date.now();
+
+    updateLevel(prof);
+    saveProfile(prof);
+  }
+
   // Show stop overlay, hide normal debrief body + cta
   const body=document.querySelector('#s-debrief .db-body');
   const cta=document.querySelector('#s-debrief .db-cta');
