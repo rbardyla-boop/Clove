@@ -83,10 +83,38 @@ html,body{height:100%;background:#08080f;color:#fff;
 .bg:active{color:#fff;border-color:var(--dim)}
 /* Serial-skip lockout — replaces RANDOM when consecutive_skips >= 2 */
 .random-locked{
-  flex:1;padding:12px 0;
-  font-size:8.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px;
-  text-align:center;line-height:1.7;color:var(--red);
-  border:1px solid rgba(192,57,43,.22);border-radius:9px;
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:12px 0;border:1px solid rgba(192,57,43,.22);
+  border-radius:9px;text-align:center;
+}
+.rl-msg{
+  font-size:8.5px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;line-height:1.7;color:var(--red);
+}
+.rl-escape{
+  background:none;border:1px solid var(--dim3);border-radius:7px;
+  padding:7px 14px;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--dim);cursor:pointer;
+}
+.rl-escape:active{color:#fff;border-color:var(--dim)}
+/* Weekly mission strip */
+.weekly-strip{
+  margin:10px 0 0;padding:11px 14px;
+  border:1px solid rgba(212,168,67,.15);border-radius:9px;cursor:pointer;
+  display:flex;flex-direction:column;gap:3px;transition:border-color .15s;
+}
+.weekly-strip:active{border-color:var(--gld)}
+.wk-label{
+  font-size:7px;font-family:'DM Mono',monospace;
+  letter-spacing:2.5px;color:var(--gld);opacity:.7;
+}
+.wk-name{
+  font-size:11px;font-family:'DM Mono',monospace;
+  font-weight:800;letter-spacing:2px;color:#fff;
+}
+.wk-goal{
+  font-size:8.5px;font-family:'DM Mono',monospace;
+  color:var(--dim);letter-spacing:.8px;
 }
 .e-foot{padding:14px 26px 0;font-size:7px;font-family:'DM Mono',monospace;
   letter-spacing:.8px;color:var(--dim2);text-align:center;line-height:1.8}
@@ -202,6 +230,13 @@ html,body{height:100%;background:#08080f;color:#fff;
   transition:background .15s,transform .12s;
 }
 .btn-run:active{transform:scale(.98);background:#a93226}
+.btn-run.dimmed{opacity:0.55} /* visual only — button still tappable */
+.st-override{
+  margin:12px 0 0;padding:10px 14px;
+  font-size:8.5px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--dim);
+  border-top:1px solid var(--dim3);text-align:center;
+}
 
 /* ══════════════════════════════════════════════ SCREEN 3 — OUTPUT ═════════ */
 /* One card. Escalating pressure. 3-card session, then DEBRIEF.             */
@@ -345,6 +380,102 @@ html,body{height:100%;background:#08080f;color:#fff;
   transition:color .15s,border-color .15s}
 .btn-dg:active{color:#fff;border-color:var(--dim)}
 
+/* ─── SKIP FRICTION ──────────────────────────────────────────────────────── */
+.skip-friction{
+  margin:0 20px 10px;padding:10px 14px;
+  font-size:9px;font-family:'DM Mono',monospace;
+  letter-spacing:1.2px;line-height:1.7;
+  color:var(--red);border-left:2px solid var(--red);
+  background:rgba(192,57,43,.06);border-radius:0 6px 6px 0;
+}
+/* ─── FAILURE MEMORY ─────────────────────────────────────────────────────── */
+.failure-memory{
+  margin:0 20px 10px;padding:10px 14px;
+  font-size:9px;font-family:'DM Mono',monospace;
+  letter-spacing:1.2px;line-height:1.7;
+  color:var(--gld);border-left:2px solid var(--gld);
+  background:rgba(212,168,67,.05);border-radius:0 6px 6px 0;
+}
+/* ─── ENDGAME SIGNAL ─────────────────────────────────────────────────────── */
+.endgame-signal{
+  margin:16px 0 0;padding:14px 18px;
+  font-size:9.5px;font-family:'DM Mono',monospace;
+  letter-spacing:1.2px;line-height:1.9;
+  color:var(--dim);border:1px solid var(--dim3);
+  border-radius:9px;text-align:center;font-style:italic;
+}
+/* ─── STOP SIGNAL ────────────────────────────────────────────────────────── */
+.stop-signal{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:60vh;padding:40px 26px;
+  text-align:center;gap:24px;
+}
+.stop-headline{
+  font-family:'Bebas Neue',monospace;font-size:44px;
+  letter-spacing:2px;line-height:1.05;color:#fff;
+}
+.stop-sub{
+  font-family:Georgia,serif;font-size:11.5px;font-style:italic;
+  color:var(--dim);line-height:1.85;
+}
+.btn-stop-exit{
+  background:none;border:1px solid var(--dim3);border-radius:10px;
+  padding:14px 28px;font-size:9px;font-family:'DM Mono',monospace;
+  letter-spacing:2px;color:var(--dim2);cursor:pointer;
+}
+.btn-stop-exit:active{color:#fff;border-color:var(--dim)}
+/* ─── AWARENESS BANNERS (entry checkpoint) ──────────────────────────────── */
+.awareness-banner{
+  margin:0 0 12px;padding:13px 16px;
+  border:1px solid rgba(192,57,43,.2);border-radius:10px;text-align:center;
+}
+.awareness-banner.regression{border-color:rgba(212,168,67,.2)}
+.awareness-banner.bias{border-color:rgba(39,174,96,.2)}
+.aw-tag{
+  font-size:7px;font-family:'DM Mono',monospace;
+  letter-spacing:2.5px;color:var(--red);margin-bottom:6px;
+}
+.awareness-banner.regression .aw-tag{color:var(--gld)}
+.awareness-banner.bias .aw-tag{color:var(--grn)}
+.aw-msg{
+  font-size:10px;font-family:'DM Mono',monospace;
+  letter-spacing:1px;line-height:1.8;color:#fff;margin-bottom:10px;
+}
+.aw-dismiss{
+  background:none;border:1px solid var(--dim3);border-radius:7px;
+  padding:7px 16px;font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--dim);cursor:pointer;
+}
+.aw-dismiss:active{color:#fff}
+/* ─── CHALLENGE BANNER ───────────────────────────────────────────────────── */
+.challenge-banner{
+  margin:0 0 14px;padding:10px 14px;
+  border:1px solid rgba(39,174,96,.2);border-radius:9px;text-align:center;
+}
+.ch-label{
+  font-size:7.5px;font-family:'DM Mono',monospace;
+  letter-spacing:2.5px;color:var(--grn);margin-bottom:4px;
+}
+.ch-msg{
+  font-size:9.5px;font-family:'DM Mono',monospace;
+  letter-spacing:1px;color:var(--dim);
+}
+/* ─── OPERATOR TRANSMISSION ─────────────────────────────────────────────── */
+.tx-row{
+  display:flex;align-items:center;justify-content:center;
+  padding:8px 0 0;gap:12px;
+}
+.btn-tx{
+  background:none;border:1px solid var(--dim3);border-radius:8px;
+  padding:10px 20px;font-size:8.5px;font-family:'DM Mono',monospace;
+  letter-spacing:1.5px;color:var(--dim);cursor:pointer;
+  transition:color .15s,border-color .15s;
+}
+.btn-tx:active{color:var(--gld);border-color:rgba(212,168,67,.4)}
+.tx-sent{
+  font-size:8px;font-family:'DM Mono',monospace;
+  letter-spacing:2.5px;color:var(--grn);
+}
 /* ─── TOAST ──────────────────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
   background:var(--grn);color:#fff;padding:9px 20px;border-radius:9px;
@@ -406,6 +537,7 @@ html,body{height:100%;background:#08080f;color:#fff;
     <div class="st-tag" id="st-tag"></div>
     <div class="st-call" id="st-call"></div>
     <p class="st-truth" id="st-truth"></p>
+    <div id="st-override" class="st-override" style="display:none"></div>
   </div>
   <div class="st-cta">
     <button class="btn-run" onclick="runIt()">RUN IT →</button>
@@ -466,6 +598,19 @@ html,body{height:100%;background:#08080f;color:#fff;
       <button class="btn-dg" onclick="show('entry')">SWITCH STATE</button>
       <button class="btn-dg" onclick="window.location.href='./music-ops.html'">ADVANCED MODE</button>
     </div>
+    <div class="tx-row">
+      <button class="btn-tx" id="btn-tx" onclick="copyTransmission()">◈ COPY TRANSMISSION</button>
+      <div class="tx-sent" id="tx-sent" style="display:none">TRANSMITTED</div>
+    </div>
+    <div id="db-endgame" style="display:none" class="endgame-signal">
+      You built this.<br><br>This is what you do now.<br><br>When you stop, you'll feel it.
+    </div>
+  </div>
+  <!-- Stop signal overlay — hidden unless nonlinear break fires (~10%) -->
+  <div id="db-stop" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:40px 26px;text-align:center;gap:24px">
+    <div class="stop-headline">STOP.</div>
+    <div class="stop-sub">Don't continue.<br>Close this.<br>Come back later.</div>
+    <button class="btn-stop-exit" onclick="exitStopSignal()">EXIT</button>
   </div>
   <div style="text-align:center;padding:20px 0 6px;font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px"><a href="author-shelf.html?ref=debrief" style="color:#555;text-decoration:none">Built by Ryan Bardyla →</a></div>
 </div>
@@ -499,7 +644,16 @@ function getProfile(){
     level:'unstable',
     state_history:{},              // { stateName: lifetimeRunCount }
     consecutive_same_state:0,      // resets to 1 on any state change
-    intervention_dismissals:0      // STAY HERE clicks (escalates copy)
+    intervention_dismissals:0,     // STAY HERE clicks (escalates copy)
+    weekly_key:null,               // ISO week string e.g. '2026W15'
+    weekly_executed:0,             // directives executed this week
+    recent_sessions:[],            // last 5 sessions: [{did_it, cards_seen}]
+    ack_flags:{},                  // { 'low_exec': N, 'regression': N } — dismissal count
+    ack_session_mark:{},           // { 'low_exec': N, 'regression': N } — session# at last ack
+    recent_states:[],              // last 6 state keys (oldest first)
+    state_pressure:{},             // { state_key: pressure_count }
+    pressure_last_decay:0,         // prof.total_sessions at last decay tick
+    failure_points:{}              // { card_key: skip_count }
   };
   localStorage.setItem(PROFILE_KEY,JSON.stringify(fresh));
   return fresh;
@@ -783,7 +937,7 @@ const POOLS = {
 function debriefCopy(didIt, total){
   if(didIt===total) return{
     verdict:"THAT'S NOT IMPRESSIVE.\nTHAT'S BASELINE.",
-    sub:"You did what you were supposed to do. The work doesn't care that you showed up."
+    sub:"Good. Now do it again tomorrow. That's when it counts."
   };
   if(didIt===total-1) return{
     verdict:"ALMOST ISN'T THERE.",
@@ -794,8 +948,8 @@ function debriefCopy(didIt, total){
     sub:"That gap between knowing and doing — that's the actual problem. Not motivation. Not circumstance."
   };
   return{
-    verdict:"YOU SAW THE DIRECTIVES.\nYOU DIDN'T MOVE.",
-    sub:"Don't explain why. Just run it again."
+    verdict:"YOU WATCHED YOURSELF NOT DO IT.",
+    sub:"That's the gap. Not motivation. Not circumstance. You, not moving."
   };
 }
 
@@ -872,8 +1026,12 @@ function renderCheckpoint(prof){
   const sessions=prof.total_sessions;
 
   document.getElementById('checkpoint-view').style.display='flex';
-  document.getElementById('checkpoint-view').innerHTML=`
-    <div class="chk-tag">YOU LEFT OFF</div>
+  document.getElementById('checkpoint-view').innerHTML=
+    renderWeeklyMission(prof)+
+    stateBiasBannerHTML(prof)+
+    lowExecBannerHTML(prof)+
+    regressionBannerHTML(prof)+
+    `<div class="chk-tag">YOU LEFT OFF</div>
     <div class="chk-state">${esc(st.lbl)}</div>
     <div class="chk-meta">${sessions} SESSION${sessions!==1?'S':''} · ${rate}% EXECUTED</div>
     <button class="btn-continue" onclick="continueSession()">CONTINUE →</button>
@@ -886,12 +1044,162 @@ function renderCheckpoint(prof){
   buildStateGrid('state-grid-chk');
 }
 
-// Returns RANDOM button HTML or locked state message based on consecutive_skips
+// Returns RANDOM button HTML or locked state message based on consecutive_skips / dismissals
 function randomButtonHTML(prof){
   if(prof.consecutive_skips>=2){
-    return `<div class="random-locked">RANDOM DISABLED<br>YOU'RE AVOIDING</div>`;
+    return `
+      <div class="random-locked">
+        <div class="rl-msg">RANDOM DISABLED<br>YOU'RE AVOIDING</div>
+        <button class="rl-escape" onclick="escapeToLastState()">→ CONTINUE LAST STATE</button>
+      </div>`;
+  }
+  if((prof.intervention_dismissals||0)>=3){
+    return `
+      <div class="random-locked">
+        <div class="rl-msg">RANDOM UNAVAILABLE<br>CHOOSE YOUR STATE</div>
+      </div>`;
   }
   return `<button class="bg" onclick="enterRandom()">⚄ RANDOM</button>`;
+}
+
+function escapeToLastState(){
+  const prof=getProfile();
+  if(prof.last_state&&STATES[prof.last_state]){
+    currentState=prof.last_state;
+    fromReturn=true;
+    loadStateScreen(currentState);
+    showMem(prof);
+    show('state');
+  } else {
+    document.getElementById('hook-view').style.display='flex';
+    document.getElementById('hook-secondary').style.display='flex';
+    document.getElementById('checkpoint-view').style.display='none';
+    renderHook();
+  }
+}
+
+/* ─── WEEKLY MISSION ──────────────────────────────────────────────────────── */
+const WEEKLY_MISSIONS=[
+  {state:'discipline', label:'DISCIPLINE RUN',   goal:'Execute 5 directives this week.'},
+  {state:'focus',      label:'LOCK-IN WEEK',     goal:'3 full sessions, 0 skips.'},
+  {state:'anger',      label:'REROUTE PROTOCOL', goal:'3 ANGER sessions. Redirect every one.'},
+  {state:'numb',       label:'ONE MOVE WEEK',    goal:'5 directives. Even 1 counts.'},
+  {state:'direction',  label:'COMMIT WEEK',      goal:'Make 3 decisions you\'ve been avoiding.'},
+  {state:'relationships',label:'REAL CONTACT',  goal:'Send the message. Have the conversation.'},
+  {state:'discipline', label:'BASELINE WEEK',    goal:'Execute every directive you see.'},
+  {state:'focus',      label:'SIGNAL WEEK',      goal:'No RANDOM. Choose your state every run.'},
+];
+
+function getWeekNumber(){
+  const d=new Date();
+  const jan1=new Date(d.getFullYear(),0,1);
+  return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+}
+
+function getWeeklyMission(){
+  return WEEKLY_MISSIONS[getWeekNumber()%WEEKLY_MISSIONS.length];
+}
+
+function renderWeeklyMission(prof){
+  if((prof.total_sessions||0)===0) return '';
+  const m=getWeeklyMission();
+  return `
+    <div class="weekly-strip" onclick="enterState('${m.state}')">
+      <span class="wk-label">WEEK ${getWeekNumber()} MISSION</span>
+      <span class="wk-name">${m.label}</span>
+      <span class="wk-goal">${m.goal}</span>
+    </div>`;
+}
+
+function getWeekKey(){
+  const d=new Date();
+  return d.getFullYear()+'W'+String(getWeekNumber()).padStart(2,'0');
+}
+
+function updateWeeklyCadence(prof,didItCount){
+  const wk=getWeekKey();
+  if(prof.weekly_key!==wk){
+    prof.weekly_key=wk;
+    prof.weekly_executed=0;
+  }
+  prof.weekly_executed=(prof.weekly_executed||0)+didItCount;
+}
+
+function getRecentRate(prof){
+  const rs=prof.recent_sessions||[];
+  if(rs.length<2) return null;
+  const totalSeen=rs.reduce((a,s)=>a+s.cards_seen,0);
+  const totalDid=rs.reduce((a,s)=>a+s.did_it,0);
+  return totalSeen>0?Math.round((totalDid/totalSeen)*100):null;
+}
+
+/* ─── AWARENESS BANNER FUNCTIONS ─────────────────────────────────────────── */
+function _isBannerSuppressed(prof,flagKey){
+  const flags=prof.ack_flags||{};
+  const marks=prof.ack_session_mark||{};
+  const count=flags[flagKey]||0;
+  if(count<2) return false; // not dismissed twice yet
+  const sessionsSinceAck=prof.total_sessions-(marks[flagKey]||0);
+  return sessionsSinceAck<3; // suppressed for 3 sessions after 2nd dismissal
+}
+
+function lowExecBannerHTML(prof){
+  if((prof.total_sessions||0)<3) return '';
+  if(_isBannerSuppressed(prof,'low_exec')) return '';
+  const total=prof.total_executed+prof.total_skipped;
+  const rate=total>0?Math.round((prof.total_executed/total)*100):0;
+  if(rate>=40) return '';
+  return `
+    <div class="awareness-banner" id="low-exec-banner">
+      <div class="aw-tag">LOW EXECUTION DETECTED</div>
+      <div class="aw-msg">You're not stuck.<br>You're not confused.<br>You're not executing.</div>
+      <button class="aw-dismiss" onclick="dismissAwarenessBanner('low-exec-banner','low_exec')">GOT IT →</button>
+    </div>`;
+}
+
+function regressionBannerHTML(prof){
+  if(_isBannerSuppressed(prof,'regression')) return '';
+  const total=prof.total_executed+prof.total_skipped;
+  const lifetimeRate=total>0?Math.round((prof.total_executed/total)*100):0;
+  const recentRate=getRecentRate(prof);
+  if(recentRate===null) return '';
+  const drop=lifetimeRate-recentRate;
+  if(drop<10) return '';
+  return `
+    <div class="awareness-banner regression" id="regression-banner">
+      <div class="aw-tag">REGRESSION DETECTED</div>
+      <div class="aw-msg">−${drop}% EXECUTION<br>You're slipping.</div>
+      <button class="aw-dismiss" onclick="dismissAwarenessBanner('regression-banner','regression')">ACKNOWLEDGED</button>
+    </div>`;
+}
+
+function stateBiasBannerHTML(prof){
+  const rs=prof.recent_states||[];
+  if(rs.length<4) return '';
+  const counts={};
+  rs.forEach(s=>{counts[s]=(counts[s]||0)+1;});
+  const biasState=Object.keys(counts).find(k=>counts[k]>rs.length/2);
+  if(!biasState) return '';
+  const stLbl=STATES[biasState]?STATES[biasState].lbl:biasState.toUpperCase();
+  return `
+    <div class="awareness-banner bias" id="bias-banner">
+      <div class="aw-tag">STATE BIAS DETECTED</div>
+      <div class="aw-msg">You're looping ${stLbl}.<br>Break the pattern.</div>
+      <button class="aw-dismiss" onclick="dismissAwarenessBanner('bias-banner',null)">GOT IT →</button>
+    </div>`;
+}
+
+function dismissAwarenessBanner(id,flagKey){
+  const el=document.getElementById(id);
+  if(el) el.remove();
+  if(!flagKey) return;
+  const prof=getProfile();
+  prof.ack_flags=prof.ack_flags||{};
+  prof.ack_session_mark=prof.ack_session_mark||{};
+  const count=(prof.ack_flags[flagKey]||0)+1;
+  prof.ack_flags[flagKey]=count;
+  prof.ack_session_mark[flagKey]=prof.total_sessions;
+  saveProfile(prof);
 }
 
 // STATUS BAR — level, optional streak, exec rate
@@ -908,10 +1216,15 @@ function renderStatusBar(prof){
     ?`<span class="sb-sep">·</span><span class="sb-val">STREAK ${prof.streak}</span>`
     :'';
 
+  const wkEl=(prof.weekly_executed||0)>0
+    ?`<span class="sb-sep">·</span><span class="sb-val" style="color:var(--dim)">${prof.weekly_executed} THIS WK</span>`
+    :'';
+
   bar.style.display='flex';
   bar.innerHTML=`
     <span class="sb-level" style="color:${lcol}">${prof.level.toUpperCase()}</span>
     ${streakHTML}
+    ${wkEl}
     <span class="sb-rate sb-val" style="color:${RC};margin-left:auto">${rate}% EXEC</span>`;
 }
 
@@ -969,6 +1282,18 @@ function loadStateScreen(s){
   const iv=document.getElementById('iv-panel');
   if(iv) iv.innerHTML='';
   maybeShowIntervention(s);
+
+  // Override signal — surfaces resistance pattern when dismissals >= 3
+  const overrideEl=document.getElementById('st-override');
+  const runBtn=document.querySelector('.btn-run');
+  const oProf=getProfile();
+  if((oProf.intervention_dismissals||0)>=3){
+    if(overrideEl){overrideEl.textContent="You're overriding the system.";overrideEl.style.display='block';}
+    if(runBtn) runBtn.classList.add('dimmed');
+  } else {
+    if(overrideEl) overrideEl.style.display='none';
+    if(runBtn) runBtn.classList.remove('dimmed');
+  }
 }
 
 /* ─── INTERVENTION SYSTEM ─────────────────────────────────────────────────── */
@@ -984,7 +1309,8 @@ const REDIRECT_MAP={
 
 function maybeShowIntervention(state){
   const prof=getProfile();
-  if((prof.consecutive_same_state||0)<3) return;  // threshold not hit
+  const pressureThreshold=(prof.state_pressure||{})[state]>=4;
+  if((prof.consecutive_same_state||0)<3&&!pressureThreshold) return;  // threshold not hit
   const redirectTo=REDIRECT_MAP[state];
   if(!redirectTo||!STATES[redirectTo]) return;
 
@@ -1070,7 +1396,7 @@ function runIt(){
 function startSession(state, poolOffset){
   // sess lives in memory for the duration of the run.
   // Profile (persistent) is only updated when the debrief closes.
-  sess={state, pool_offset:poolOffset, cards_seen:0, did_it:0, skipped:0, started_at:Date.now()};
+  sess={state, pool_offset:poolOffset, cards_seen:0, did_it:0, skipped:0, started_at:Date.now(), last_action:null};
 }
 
 function updateSess(){/* sess is in-memory — no write needed between cards */}
@@ -1102,7 +1428,22 @@ function renderCard(){
   // YouTube fallback
   const ytURL='https://www.youtube.com/results?search_query='+encodeURIComponent(card.song+' '+card.artist);
 
-  document.getElementById('card-root').innerHTML=`
+  // Escalating skip friction banner (session-level)
+  let skipBanner='';
+  if(sess.last_action==='skipped'){
+    const skipCount=sess.skipped;
+    const msg=skipCount>=3?"You're avoiding the work.":skipCount===2?"You're skipping again.":"You skipped the last directive.";
+    skipBanner=`<div class="skip-friction">${msg}</div>`;
+  }
+
+  // Failure memory banner (cross-session — gold border)
+  const prof=getProfile();
+  const skipHistory=(prof.failure_points||{})[card.key]||0;
+  const failureBanner=skipHistory>=1
+    ?`<div class="failure-memory">You skipped this last time. You're seeing it again.</div>`
+    :'';
+
+  document.getElementById('card-root').innerHTML=failureBanner+skipBanner+`
     <div class="card">
       <div class="card-bar" style="background:${esc(meta.col)}"></div>
       <div class="card-in">
@@ -1139,12 +1480,22 @@ function renderCard(){
 // DID IT — tracks execution, advances
 function didIt(){
   sess.did_it++;
+  sess.last_action='did';
   advanceCard();
 }
 
 // SKIP — no credit, just advances
 function skipCard(){
   sess.skipped++;
+  sess.last_action='skipped';
+  // Track failure point per card key for cross-session memory
+  const pool=POOLS[sess.state];
+  const idx=(sess.pool_offset+sess.cards_seen)%pool.length;
+  const cardKey=pool[idx].key;
+  const fp=getProfile();
+  fp.failure_points=fp.failure_points||{};
+  fp.failure_points[cardKey]=(fp.failure_points[cardKey]||0)+1;
+  saveProfile(fp);
   advanceCard();
 }
 
@@ -1152,11 +1503,39 @@ function advanceCard(){
   sess.cards_seen++;
   // Note: profile totals update at showDebrief(), not per-card
   if(sess.cards_seen>=SESSION_MAX){
-    showDebrief();
+    // ~10% nonlinear break — system interrupts instead of debriefing
+    if(Math.random()<0.10){
+      showStopSignal();
+    } else {
+      showDebrief();
+    }
   } else {
     renderCard();
     window.scrollTo({top:0,behavior:'smooth'});
   }
+}
+
+function showStopSignal(){
+  // Session is abandoned — profile does NOT update
+  // Show stop overlay, hide normal debrief body + cta
+  const body=document.querySelector('#s-debrief .db-body');
+  const cta=document.querySelector('#s-debrief .db-cta');
+  const stopEl=document.getElementById('db-stop');
+  if(body) body.style.display='none';
+  if(cta) cta.style.display='none';
+  if(stopEl) stopEl.style.display='flex';
+  show('debrief');
+}
+
+function exitStopSignal(){
+  // Restore debrief screen to normal state before navigating away
+  const body=document.querySelector('#s-debrief .db-body');
+  const cta=document.querySelector('#s-debrief .db-cta');
+  const stopEl=document.getElementById('db-stop');
+  if(body) body.style.display='';
+  if(cta) cta.style.display='';
+  if(stopEl) stopEl.style.display='none';
+  show('entry');
 }
 
 function backToState(){
@@ -1211,6 +1590,47 @@ function renderUpgrade(){
 
 function dismissUpgrade(){js(K_UPDI,true);document.getElementById('upgrade-root').innerHTML=''}
 
+function copyTransmission(){
+  if(!sess) return;
+  const prof=getProfile();
+  const total=prof.total_executed+prof.total_skipped;
+  const rate=total>0?Math.round((prof.total_executed/total)*100):0;
+  const st=STATES[sess.state]||{lbl:'UNKNOWN'};
+  const wk=typeof getWeekNumber==='function'?getWeekNumber():'—';
+
+  const lines=[
+    '─────────────────────────────',
+    'OPERATOR TRANSMISSION',
+    'FIELD FREQUENCY · OPERATOR\'S DECK',
+    '─────────────────────────────',
+    'STATE     : '+st.lbl,
+    'EXECUTED  : '+sess.did_it+'/'+SESSION_MAX,
+    'LEVEL     : '+prof.level.toUpperCase(),
+    'EXEC RATE : '+rate+'%',
+    'SESSIONS  : '+prof.total_sessions,
+    'WEEK      : '+wk,
+    '─────────────────────────────',
+    'clovelearn.io · free · no login',
+  ];
+
+  const text=lines.join('\n');
+  const btnEl=document.getElementById('btn-tx');
+  const sentEl=document.getElementById('tx-sent');
+
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>{
+      if(btnEl) btnEl.style.display='none';
+      if(sentEl) sentEl.style.display='block';
+      setTimeout(()=>{
+        if(btnEl) btnEl.style.display='';
+        if(sentEl) sentEl.style.display='none';
+      },2500);
+    }).catch(()=>toast('COPY FAILED','var(--red)'));
+  } else {
+    prompt('Copy this transmission:',text);
+  }
+}
+
 /* ─── DEBRIEF SCREEN ──────────────────────────────────────────────────────── */
 function showDebrief(){
   if(!sess) return;
@@ -1259,6 +1679,30 @@ function showDebrief(){
 
   prof.last_seen=Date.now();
   updateLevel(prof);
+  updateWeeklyCadence(prof,sess.did_it);
+
+  // Rolling session window (last 5) — used for regression detection
+  prof.recent_sessions=prof.recent_sessions||[];
+  prof.recent_sessions.push({did_it:sess.did_it,cards_seen:sess.cards_seen});
+  if(prof.recent_sessions.length>5) prof.recent_sessions.shift();
+
+  // Recent state history (last 6) — used for state bias detection
+  prof.recent_states=prof.recent_states||[];
+  prof.recent_states.push(sess.state);
+  if(prof.recent_states.length>6) prof.recent_states.shift();
+
+  // Shadow pressure counter — accumulates even when user switches states to avoid threshold
+  prof.state_pressure=prof.state_pressure||{};
+  prof.state_pressure[sess.state]=(prof.state_pressure[sess.state]||0)+1;
+  // Decay all states by 1 every 2 sessions
+  const sessionsSinceDecay=prof.total_sessions-(prof.pressure_last_decay||0);
+  if(sessionsSinceDecay>=2){
+    Object.keys(prof.state_pressure).forEach(k=>{
+      prof.state_pressure[k]=Math.max(0,prof.state_pressure[k]-1);
+    });
+    prof.pressure_last_decay=prof.total_sessions;
+  }
+
   saveProfile(prof);
 
   /* ── 2. COMPUTE DISPLAY VALUES ── */
@@ -1297,6 +1741,13 @@ function showDebrief(){
   document.getElementById('btn-again').textContent=
     sess.did_it===SESSION_MAX?'NEXT LEVEL →':'RUN IT AGAIN →';
 
+  // Endgame identity signal — operator level + sustained streak
+  const endgameEl=document.getElementById('db-endgame');
+  if(endgameEl){
+    const ep=getProfile();
+    endgameEl.style.display=(ep.level==='operator'&&(ep.streak||0)>=5)?'block':'none';
+  }
+
   show('debrief');
 }
 
@@ -1326,6 +1777,25 @@ function init(){
     show('state');
     return;
   }
+
+  // ?challenge= community deep link — injects squad banner above state callout
+  const challenge=p.get('challenge');
+  if(challenge&&POOLS[challenge]){
+    currentState=challenge;
+    hideMem();
+    loadStateScreen(challenge);
+    const iv=document.getElementById('iv-panel');
+    if(iv){
+      iv.innerHTML=`
+        <div class="challenge-banner">
+          <div class="ch-label">SQUAD CHALLENGE ACTIVE</div>
+          <div class="ch-msg">You're not running this alone.</div>
+        </div>`;
+    }
+    show('state');
+    return;
+  }
+
   show('entry');
 }
 
@@ -1335,6 +1805,9 @@ Object.assign(window,{
   runIt,didIt,skipCard,backToState,toggleSave,
   runAgain,dismissUpgrade,
   redirectState,dismissIntervention,
+  escapeToLastState,copyTransmission,
+  showStopSignal,exitStopSignal,
+  dismissAwarenessBanner,
 });
 
 init();
