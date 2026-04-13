@@ -459,9 +459,7 @@ function printSheet(){
     <div class="section"><div class="lbl">Willingness Level</div><div class="box">${last.willingness} / 100</div></div>
     <div class="section"><div class="lbl">Committed Action (24 Hours)</div><div class="action-box">${esc(last.action)}</div></div>
     <div class="footer">Operator's Deck • ACT Drill • ${last.date}</div>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-<script src="/particle-bg.js?v=1"></script>
-</body></html>`);
+    </body></html>`);
     pw.document.close();
     setTimeout(()=>pw.print(),400);
 }

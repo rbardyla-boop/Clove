@@ -29,7 +29,16 @@
       "Bash(grep -L \"particle-bg\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
       "Bash(grep -H \"particle-bg\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
       "Bash(xargs basename:*)",
-      "Bash(grep -l \"particle-bg\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)"
+      "Bash(grep -l \"particle-bg\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
+      "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy show 9abf7c1 --stat)",
+      "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy diff HEAD~6 HEAD -- toolshed.html)",
+      "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy log --oneline --all)",
+      "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy status)",
+      "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy show 9c8b4d6 -- toolshed.html)",
+      "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy show 9c8b4d6 -- stuck-points-drill.html)",
+      "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy show 9c8b4d6 -- dear-man-drill.html)",
+      "Bash(grep -rn \"particle-bg\\\\|three@0.134\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
+      "Bash(awk -F: '{print $1}')"
     ],
     "additionalDirectories": [
       "/tmp"

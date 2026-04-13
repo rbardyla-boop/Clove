@@ -458,9 +458,7 @@ function printSheet(){
   ${last.patterns&&last.patterns.length?`<div class="section"><div class="lbl">5 — RSD Patterns Identified</div><div>${last.patterns.map(p=>`<span class="badge">${esc(p)}</span>`).join('')}</div></div>`:''}
   <div class="section"><div class="lbl">6 — Calibrated Read</div><div class="box bal-box">${esc((last.reframe||'(not filled)').replace(/\n/g,'<br>'))}</div></div>
   <div class="footer">Operator's Deck — clovelearn.io &nbsp;|&nbsp; Built by a communications specialist, not a clinician &nbsp;|&nbsp; Bring this to your therapist</div>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-<script src="/particle-bg.js?v=1"></script>
-</body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
+  </body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
 }
 
 // PAST ENTRIES
