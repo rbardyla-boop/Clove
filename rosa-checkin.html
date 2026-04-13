@@ -598,7 +598,7 @@ function finishSession(){
   if(hist.length > HISTORY_WINDOW + 2) hist = hist.slice(-(HISTORY_WINDOW + 2));
   saveHistory(hist);
 
-  // ── BACKWARD COMPAT: Write to od3.ciz ──
+  // ── BACKWARD COMPAT: Write to od3.ciz / od3.ci / od3.cid ──
   var od3 = {};
   try{od3 = JSON.parse(localStorage.getItem('od3'))||{};}catch(e){}
   if(!od3.ciz) od3.ciz = {};
@@ -607,6 +607,10 @@ function finishSession(){
   DOMAINS.forEach(function(d){
     od3.ciz[today][d] = domainResults[d].zone;
   });
+  var illC = DOMAINS.filter(function(d){return domainResults[d].zone==='l'}).length;
+  var injC = DOMAINS.filter(function(d){return domainResults[d].zone==='i'}).length;
+  od3.ci = illC>0?'crawling':injC>=2?'crawling':injC>=1?'standing':'strong';
+  od3.cid = today;
   localStorage.setItem('od3',JSON.stringify(od3));
 
   // ── RENDER RESULTS ──

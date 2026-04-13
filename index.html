@@ -684,7 +684,7 @@ function getOrbText(){
     if(aarMode)return"After-Action: Direct feedback from the field. No cheerleading. Read it, acknowledge it, move out.";
     if(card&&msn)return"Your mission. The card told you what\u2019s true. This is what to do about it. Do it before midnight.";
     if(card)return"Tap the card to flip it and see your mission. Hit Accept Mission when you\u2019re ready to commit.";
-    if(!checkedInToday())return"FIELD PROTOCOL CHECK-IN: Rate 6 domains \u2014 Mood, Sleep, Physical Health and more. Ill/Injured zones route today\u2019s card to recovery suits.";
+    if(!checkedInToday())return"STATUS CHECK: 7 indirect behavioral probes across 6 domains. Unlocks today\u2019s card. Tap to begin.";
     return"Home base. Check in, draw a card, complete the mission, log the evidence. That\u2019s the whole loop. Simple by design.";
   }
   if(tab==='browse')return"Browse all 54 cards by suit. \u2660 Spades = recovery. \u2665 Hearts = fatherhood. \u2663 Clubs = systems. \u2666 Diamonds = habits. Tap any card to flip it.";
@@ -1167,29 +1167,9 @@ if(grace)h+=`<div class="rescue-banner" onclick="tab='home';drawCard()"><div cla
   }
   // DRAW STATES
   if(!card&&!busy&&!evMode&&!aarMode){
-    // MORNING CHECK-IN (before daily card)
+    // STATUS CHECK gate (before daily card) — routes to ROSA
     if(!todayDrew&&!checkedInToday()){
-      const FP_DOMAINS=[{k:'mood',label:'MOOD'},{k:'attitude',label:'ATTITUDE / PERFORMANCE'},{k:'sleep',label:'SLEEP'},{k:'physical',label:'PHYSICAL HEALTH'},{k:'activity',label:'PHYSICAL / SOCIAL ACTIVITY'},{k:'substance',label:'SUBSTANCE USE'}];
-      const FP_ZONES=[{k:'h',label:'HEALTHY',cls:'sel-h'},{k:'r',label:'REACTING',cls:'sel-r'},{k:'i',label:'INJURED',cls:'sel-i'},{k:'l',label:'ILL',cls:'sel-l'}];
-      const todayZones=checkInZones[dStr(new Date())]||{};
-      const filled=FP_DOMAINS.filter(d=>todayZones[d.k]).length;
-      const allFilled=filled===FP_DOMAINS.length;
-      h+=`<div class="fp-panel"><div class="fp-hdr">\u26a1 FIELD PROTOCOL CHECK-IN \u2022 ${isNight()?'EVENING':'MORNING'}</div>`;
-      h+=`<div class="fp-progress"><div class="fp-progress-fill" style="width:${Math.round(filled/FP_DOMAINS.length*100)}%"></div></div>`;
-      FP_DOMAINS.forEach(dom=>{
-        const sel=todayZones[dom.k]||null;
-        h+=`<div class="fp-domain"><div class="fp-domain-name">${dom.label}</div><div class="fp-zones">`;
-        FP_ZONES.forEach(z=>{h+=`<div class="fp-zone${sel===z.k?' '+z.cls:''}" onclick="setDomain('${dom.k}','${z.k}')">${z.label}</div>`;});
-        h+=`</div></div>`;
-      });
-      if(allFilled){
-        const zc={h:0,r:0,i:0,l:0};Object.values(todayZones).forEach(v=>zc[v]++);
-        h+=`<div class="fp-summary">${zc.h?`<span style="color:#27ae60">\u25cf ${zc.h} HEALTHY</span> `:''}${zc.r?`<span style="color:#d4a843">\u25cf ${zc.r} REACTING</span> `:''}${zc.i?`<span style="color:#d46427">\u25cf ${zc.i} INJURED</span> `:''}${zc.l?`<span style="color:var(--red)">\u25cf ${zc.l} ILL</span>`:''}</div>`;
-        h+=`<div class="fp-draw-gate"><button class="dbtn" onclick="completeFieldProtocol()">\u26a1 TODAY\u2019S CARD</button></div>`;
-      } else {
-        h+=`<div class="fp-summary">SELECT ALL 6 DOMAINS TO UNLOCK TODAY\u2019S CARD \u2022 ${filled}/6</div>`;
-      }
-      h+=`</div>`;
+      h+=`<div class="fp-panel"><div class="fp-hdr">\u26a1 STATUS CHECK \u2022 ${isNight()?'EVENING':'MORNING'}</div><p style="color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.7;margin:10px 0 16px">7 indirect behavioral probes across 6 domains. Unlocks today\u2019s card.</p><div class="fp-draw-gate"><a class="dbtn" href="rosa-checkin.html" style="display:block;text-align:center;text-decoration:none">\u26a1 BEGIN STATUS CHECK \u2192</a></div></div>`;
     }
     if(!todayDrew&&checkedInToday()){
       const todayZ=checkInZones[dStr(new Date())]||{};
