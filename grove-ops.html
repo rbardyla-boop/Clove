@@ -144,7 +144,7 @@ let selSeed='🌱',selTime=25;
 (function(){try{['grove-trees','grove-log'].forEach(function(k){var v=localStorage.getItem(k);if(v!==null){localStorage.setItem('od_'+k.replace('-','_'),v);localStorage.removeItem(k);}});}catch(e){}})();
 let grove=[];try{grove=JSON.parse(localStorage.getItem('od_grove_trees')||'[]');}catch(e){}
 let log=[];try{log=JSON.parse(localStorage.getItem('od_grove_log')||'[]');}catch(e){}
-let timer=null,timeLeft=0;
+let timer=null,timeLeft=0,paused=false;
 
 function save(){grove=grove.slice(0,500);log=log.slice(0,200);localStorage.setItem('od_grove_trees',JSON.stringify(grove));localStorage.setItem('od_grove_log',JSON.stringify(log));}
 
@@ -176,7 +176,7 @@ function startPlant(){
     if(timeLeft<=0)complete();
   },1000);
 }
-document.addEventListener('visibilitychange',function(){if(document.hidden&&timer){clearInterval(timer);timer=null;}});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&timer){clearInterval(timer);timer=null;paused=true;}});
 
 function updateTimer(){
   const m=Math.floor(timeLeft/60),s=timeLeft%60;
