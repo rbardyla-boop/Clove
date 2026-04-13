@@ -282,29 +282,35 @@
     var targOffX = 0, targOffY = 0;
     var currOffX = 0, currOffY = 0;
 
-    window.addEventListener('mousemove', function (e) {
+    function onMouseMove(e) {
       // Map pointer position to ±MOUSE_STRENGTH radians offset
       targOffY = (e.clientX / window.innerWidth  - 0.5) * MOUSE_STRENGTH * 2;
       targOffX = (e.clientY / window.innerHeight - 0.5) * MOUSE_STRENGTH * 2;
-    }, { passive: true });
+    }
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
     // ── Resize ────────────────────────────────────────────────────────────
-    window.addEventListener('resize', function () {
+    function onResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-    }, { passive: true });
+    }
+    window.addEventListener('resize', onResize, { passive: true });
 
     // ── Animation loop ────────────────────────────────────────────────────
     var baseRotX = 0, baseRotY = 0;
-    var rafId    = null;
-    var active   = true;
+    var rafId         = null;
+    var active        = true;
+    var lastFrameTime = performance.now();
 
-    function frame() {
+    function frame(now) {
       rafId = requestAnimationFrame(frame);
+      if (!now) now = performance.now();
+      var delta = Math.min((now - lastFrameTime) / 1000, 0.1);
+      lastFrameTime = now;
 
       // Time-based uniform drives the per-particle pulse in the vert shader
-      mat.uniforms.uTime.value += 0.016;
+      mat.uniforms.uTime.value += delta;
 
       // Continuous slow rotation of the whole cloud
       baseRotX += SPEED_ROT_X;
@@ -337,7 +343,7 @@
     }
 
     // Pause the RAF loop while the tab is hidden — saves battery/GPU
-    document.addEventListener('visibilitychange', function () {
+    function onVisibility() {
       if (document.hidden) {
         active = false;
         if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
@@ -345,7 +351,8 @@
         active = true;
         frame();
       }
-    });
+    }
+    document.addEventListener('visibilitychange', onVisibility);
 
     frame();
 
@@ -359,6 +366,21 @@
       if (!shapeName) return Object.keys(shapes);
       morphTo(shapeName, duration || 3);
     };
+
+    // ── Cleanup API ───────────────────────────────────────────────────────
+    function destroy() {
+      if (!renderer) return;                          // guard: init never completed
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('resize', onResize);
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+      geo.dispose();
+      mat.dispose();
+      renderer.dispose();
+      scene  = null;
+      camera = null;
+    }
+    window.odDestroy = destroy;
   }
 
   // Boot after DOM is ready (Three.js CDN is loaded synchronously before us)
