@@ -1147,6 +1147,7 @@ function renderCheckpoint(prof){
     <div class="chk-state">${esc(st.lbl)}</div>
     <div class="chk-meta">${sessions} SESSION${sessions!==1?'S':''} · ${rate}% EXECUTED</div>
     <button class="btn-continue" onclick="continueSession()">CONTINUE →</button>
+    <a class="btn-switch" href="./rosa-checkin.html" style="display:block;text-align:center;text-decoration:none">STATUS CHECK →</a>
     <button class="btn-switch" id="btn-switch-state" onclick="toggleStateDrawer()">↓ SWITCH STATE</button>
     <div id="state-drawer">
       <div class="sg" id="state-grid-chk"></div>

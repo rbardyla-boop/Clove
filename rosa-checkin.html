@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08080f">
+<meta property="og:title" content="STATUS CHECK • OPERATOR'S DECK">
+<meta property="og:description" content="Randomized operational status assessment. Indirect behavioral probes. No rehearsed answers. 90 seconds.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/rosa-checkin.html">
+<title>STATUS CHECK • OPERATOR'S DECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --red:#c0392b;--gld:#d4a843;--grn:#27ae60;--orn:#d46427;
+  --dim:#8a8a8a;--dim2:#777;--dim3:#333;--dim4:#1c1c24;
+}
+body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+*:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
+
+/* NAV */
+.nav-bar{background:#000;border-bottom:3px solid var(--red);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20;flex-shrink:0}
+.nav-back{background:none;border:1px solid var(--dim3);color:var(--dim2);border-radius:8px;padding:8px 14px;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;cursor:pointer;transition:all .2s;flex-shrink:0;text-decoration:none}
+.nav-back:active{color:#fff;border-color:#666}
+.nav-info{flex:1}
+.nav-tag{color:var(--red);font-size:6.5px;font-family:'DM Mono',monospace;letter-spacing:3px}
+.nav-name{font-size:13px;font-weight:900;letter-spacing:.5px}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--dim3);position:sticky;top:53px;z-index:19;flex-shrink:0}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gld));transition:width .4s ease;border-radius:0 2px 2px 0}
+.q-counter{text-align:center;padding:10px 0 4px;font-size:7px;font-family:'DM Mono',monospace;letter-spacing:2px;color:var(--dim2)}
+.q-counter span{color:var(--red)}
+
+/* ── SCREENS ─────────────────────────────────── */
+.screen{display:none;flex:1;flex-direction:column}
+.screen.active{display:flex}
+
+/* ── INTRO SCREEN ────────────────────────────── */
+.intro-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 24px}
+.intro-eye{font-size:8px;letter-spacing:4px;color:var(--red);font-family:'DM Mono',monospace;margin-bottom:18px}
+.intro-h1{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:.5px;line-height:1.05;margin-bottom:14px;color:#fff}
+.intro-h1 em{font-style:normal;color:var(--red)}
+.intro-sub{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.85;margin-bottom:6px}
+.intro-stat{color:var(--dim2);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1.5px;margin-top:16px}
+.intro-cta{padding:20px 24px;padding-bottom:max(env(safe-area-inset-bottom),28px)}
+.btn-start{width:100%;background:var(--red);color:#fff;border:none;border-radius:12px;padding:18px 0;font-size:13px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:3px;cursor:pointer;transition:background .15s,transform .12s}
+.btn-start:active{transform:scale(.98);background:#a93226}
+.intro-skip{width:100%;background:none;border:1px solid var(--dim3);border-radius:10px;padding:13px 0;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:2px;color:var(--dim2);cursor:pointer;margin-top:8px;transition:color .15s,border-color .15s}
+.intro-skip:active{color:#fff;border-color:var(--dim)}
+.intro-last{margin-top:16px;padding:12px 14px;border:1px solid var(--dim4);border-radius:9px;display:none}
+.intro-last-tag{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:2.5px;color:var(--dim2);margin-bottom:4px}
+.intro-last-val{font-size:11px;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1.5px}
+
+/* ── QUESTION SCREEN ─────────────────────────── */
+.q-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 24px}
+.q-domain-tag{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;color:var(--dim2);margin-bottom:6px}
+.q-text{font-family:Georgia,serif;font-size:14.5px;font-style:italic;color:#ccc;line-height:1.8;margin-bottom:28px}
+
+/* Scale selector — 5 tappable boxes */
+.scale-wrap{margin-bottom:12px}
+.scale-labels{display:flex;justify-content:space-between;font-size:7px;font-family:'DM Mono',monospace;letter-spacing:1px;color:var(--dim2);margin-bottom:10px;padding:0 2px}
+.scale-row{display:flex;gap:6px}
+.scale-btn{
+  flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  background:var(--bg2);border:1px solid var(--dim3);border-radius:10px;
+  font-size:18px;font-weight:900;font-family:'DM Mono',monospace;color:var(--dim2);
+  cursor:pointer;transition:all .15s;min-height:56px;
+}
+.scale-btn:active{transform:scale(.95)}
+.scale-btn.sel{border-color:var(--red);color:#fff;background:rgba(192,57,43,.12)}
+.scale-btn.sel[data-v="1"]{border-color:var(--grn);background:rgba(39,174,96,.1);color:var(--grn)}
+.scale-btn.sel[data-v="2"]{border-color:#2ecc71;background:rgba(46,204,113,.08);color:#2ecc71}
+.scale-btn.sel[data-v="3"]{border-color:var(--gld);background:rgba(212,168,67,.1);color:var(--gld)}
+.scale-btn.sel[data-v="4"]{border-color:var(--orn);background:rgba(212,100,39,.1);color:var(--orn)}
+.scale-btn.sel[data-v="5"]{border-color:var(--red);background:rgba(192,57,43,.12);color:var(--red)}
+
+.q-anchor{font-size:8px;font-family:'DM Mono',monospace;color:var(--dim);letter-spacing:.5px;line-height:1.8;padding:8px 0;min-height:40px}
+
+.q-cta{padding:12px 24px;padding-bottom:max(env(safe-area-inset-bottom),20px)}
+.btn-next{width:100%;background:var(--red);color:#fff;border:none;border-radius:12px;padding:16px 0;font-size:12px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:3px;cursor:pointer;transition:all .15s}
+.btn-next:active{transform:scale(.98);background:#a93226}
+.btn-next:disabled{background:var(--dim3);color:var(--dim2);cursor:not-allowed;transform:none}
+
+/* ── RESULTS SCREEN ──────────────────────────── */
+.results-body{flex:1;display:flex;flex-direction:column;padding:20px 24px;overflow-y:auto;padding-bottom:max(env(safe-area-inset-bottom),80px)}
+
+.r-status-wrap{text-align:center;padding:20px 0 24px}
+.r-status-ring{
+  width:120px;height:120px;border-radius:50%;
+  border:3px solid var(--dim3);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  margin:0 auto 16px;transition:border-color .5s;
+}
+.r-status-label{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;color:var(--dim2)}
+.r-status-word{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;line-height:1}
+.r-status-score{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:2px}
+.r-timestamp{font-size:7.5px;font-family:'DM Mono',monospace;letter-spacing:1.5px;color:var(--dim2);text-align:center;margin-bottom:20px}
+
+/* Signal message — the "oh fuck" moment */
+.r-signal{padding:14px 16px;border-radius:10px;margin-bottom:20px;display:none}
+.r-signal.on{display:block}
+.r-signal-tag{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:6px}
+.r-signal-msg{font-family:Georgia,serif;font-size:11px;font-style:italic;line-height:1.85}
+
+/* Domain bars */
+.r-domains{margin-bottom:20px}
+.r-dom-label{font-size:7px;font-family:'DM Mono',monospace;letter-spacing:3px;color:var(--dim2);margin-bottom:12px}
+.r-dom{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--dim4)}
+.r-dom:last-child{border-bottom:none}
+.r-dom-name{font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1.5px;color:var(--dim);width:80px;flex-shrink:0}
+.r-dom-bar{flex:1;height:6px;background:var(--dim3);border-radius:3px;overflow:hidden}
+.r-dom-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.r-dom-zone{font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1px;width:28px;text-align:right;flex-shrink:0}
+
+/* CTA row */
+.r-cta{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:16px}
+.btn-done{width:100%;background:var(--red);color:#fff;border:none;border-radius:12px;padding:16px 0;font-size:12px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:3px;cursor:pointer;transition:all .15s}
+.btn-done:active{transform:scale(.98);background:#a93226}
+.btn-ghost{width:100%;background:none;border:1px solid var(--dim3);border-radius:10px;padding:12px 0;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:2px;color:var(--dim2);cursor:pointer;transition:color .15s,border-color .15s}
+.btn-ghost:active{color:#fff;border-color:var(--dim)}
+
+/* ── TOAST ───────────────────────────────────── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg3);color:#fff;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1px;padding:10px 18px;border-radius:8px;border:1px solid var(--dim3);opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+
+/* ── AWARENESS LINKS ─────────────────────────── */
+.awareness-row{margin-top:16px;padding:12px;border:1px solid rgba(192,57,43,.15);border-radius:10px;text-align:center}
+.awareness-row a{color:var(--dim);font-size:8px;font-family:'DM Mono',monospace;letter-spacing:1.5px;text-decoration:none;display:block;padding:6px 0;transition:color .15s}
+.awareness-row a:active{color:var(--red)}
+
+/* Animation */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .3s ease-out}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAV -->
+<nav class="nav-bar">
+  <a class="nav-back" href="./?tab=home">← DECK</a>
+  <div class="nav-info">
+    <div class="nav-tag">OPERATOR'S DECK</div>
+    <div class="nav-name">STATUS CHECK</div>
+  </div>
+</nav>
+
+<!-- PROGRESS -->
+<div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+<div class="q-counter" id="qCounter" style="display:none">QUESTION <span id="qNum">1</span> OF <span id="qTotal">7</span></div>
+
+<!-- ═══ SCREEN: INTRO ═══════════════════════════════════════════════════════ -->
+<div class="screen active" id="s-intro">
+  <div class="intro-body">
+    <div class="intro-eye">STATUS CHECK</div>
+    <h1 class="intro-h1">NOT A<br>FEELINGS <em>QUIZ.</em></h1>
+    <p class="intro-sub">Seven questions. Different every time. You won't see the same check-in twice. The system reads the signal — you just answer honestly.</p>
+    <p class="intro-sub">90 seconds. No labels. No rehearsal.</p>
+    <div class="intro-last" id="lastResult"></div>
+    <p class="intro-stat" id="introStat"></p>
+  </div>
+  <div class="intro-cta">
+    <button class="btn-start" onclick="startRosa()">BEGIN CHECK-IN →</button>
+    <button class="intro-skip" onclick="location.href='./?tab=home'">SKIP — GO TO DECK</button>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: QUESTION ════════════════════════════════════════════════════ -->
+<div class="screen" id="s-question">
+  <div class="q-body fade-up" id="qBody">
+    <div class="q-domain-tag" id="qDomainTag"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="scale-wrap">
+      <div class="scale-labels"><span id="scaleLoLabel">NEVER</span><span id="scaleHiLabel">CONSTANTLY</span></div>
+      <div class="scale-row" id="scaleRow">
+        <button class="scale-btn" data-v="1" onclick="selectScale(1)">1</button>
+        <button class="scale-btn" data-v="2" onclick="selectScale(2)">2</button>
+        <button class="scale-btn" data-v="3" onclick="selectScale(3)">3</button>
+        <button class="scale-btn" data-v="4" onclick="selectScale(4)">4</button>
+        <button class="scale-btn" data-v="5" onclick="selectScale(5)">5</button>
+      </div>
+    </div>
+    <div class="q-anchor" id="qAnchor"></div>
+  </div>
+  <div class="q-cta">
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()" disabled>NEXT →</button>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: RESULTS ═════════════════════════════════════════════════════ -->
+<div class="screen" id="s-results">
+  <div class="results-body">
+    <div class="r-status-wrap">
+      <div class="r-status-ring" id="statusRing">
+        <div class="r-status-label">STATUS</div>
+        <div class="r-status-word" id="statusWord"></div>
+        <div class="r-status-score" id="statusScore"></div>
+      </div>
+    </div>
+    <div class="r-timestamp" id="rTimestamp"></div>
+
+    <div class="r-signal" id="rSignal">
+      <div class="r-signal-tag" id="rSignalTag"></div>
+      <div class="r-signal-msg" id="rSignalMsg"></div>
+    </div>
+
+    <div class="r-domains">
+      <div class="r-dom-label">DOMAIN BREAKDOWN</div>
+      <div id="domainBars"></div>
+    </div>
+
+    <div class="awareness-row" id="awarenessRow" style="display:none">
+      <a href="red-protocol.html">RED PROTOCOL — CRISIS TOOLS →</a>
+      <a href="safety-plan-drill.html">SAFETY PLAN →</a>
+    </div>
+
+    <div class="r-cta">
+      <button class="btn-done" onclick="location.href='./?tab=home'">DRAW A CARD →</button>
+      <button class="btn-ghost" onclick="location.href='mood-trends.html'">VIEW TRENDS</button>
+      <button class="btn-ghost" onclick="startRosa()">RUN AGAIN</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROSA — RANDOMIZED OPERATIONAL STATUS ASSESSMENT
+   ═══════════════════════════════════════════════════════════════════════════
+   48 indirect behavioral questions across 6 domains.
+   7 selected per session. At least 1 per domain. No repeats within 3 sessions.
+   All scores: 1 = healthiest, 5 = most concerning.
+   Hidden scoring maps to Healthy / Reacting / Injured / Ill per domain.
+   Composite display: OPERATIONAL / MONITOR / FLAGGED / CRITICAL.
+   Backward-compatible write to od3.ciz for mood-trends.html.
+   ═══════════════════════════════════════════════════════════════════════════ */
+'use strict';
+
+/* ── SANITIZATION ──────────────────────────────────────────────────────────── */
+function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+/* ── CONSTANTS ─────────────────────────────────────────────────────────────── */
+var DOMAINS = ['mood','attitude','sleep','physical','activity','substance'];
+var DOMAIN_LABELS = {
+  mood:'MOOD', attitude:'ATTITUDE / PERFORMANCE', sleep:'SLEEP',
+  physical:'PHYSICAL HEALTH', activity:'ACTIVITY / CONNECTION', substance:'SUBSTANCE USE'
+};
+var QUESTIONS_PER_SESSION = 7;  // minimum 1 per domain + 1 extra from weakest
+var HISTORY_WINDOW = 3;         // sessions before a question can repeat
+
+/* ── QUESTION POOL ─────────────────────────────────────────────────────────── */
+/* Each question:
+   id        — unique, never changes (survives pool additions)
+   domain    — which of the 6 domains it maps to
+   text      — the indirect behavioral probe (never "rate your mood")
+   lo        — left anchor label (score 1)
+   hi        — right anchor label (score 5)
+   anchors   — optional per-score descriptions shown below scale
+*/
+var POOL = [
+  // ── MOOD ────────────────────────────────────────────────────────
+  {id:'m01',domain:'mood',text:'In the last 24 hours, how often did small things irritate you more than they should have?',lo:'NEVER',hi:'CONSTANTLY',anchors:{1:'Calm and patient',3:'A few flare-ups',5:'Everything set me off'}},
+  {id:'m02',domain:'mood',text:'If a friend watched your entire day yesterday, how would they describe your energy?',lo:'STRONG',hi:'FLAT',anchors:{1:'Engaged and present',3:'Going through the motions',5:'Checked out or shut down'}},
+  {id:'m03',domain:'mood',text:'How many times today did you catch yourself sighing, clenching your jaw, or feeling heavy for no clear reason?',lo:'ZERO',hi:'LOST COUNT',anchors:{1:'None — body feels fine',3:'A few times',5:'It\'s constant'}},
+  {id:'m04',domain:'mood',text:'When you woke up this morning, how quickly did negative or anxious thoughts arrive?',lo:'THEY DIDN\'T',hi:'INSTANT',anchors:{1:'Woke up neutral or okay',3:'Within an hour',5:'Before my eyes opened'}},
+  {id:'m05',domain:'mood',text:'How often yesterday did you want to withdraw from the people around you — even people you like?',lo:'NOT ONCE',hi:'ALL DAY',anchors:{1:'Wanted to be around people',3:'Pulled back a few times',5:'Avoided everyone I could'}},
+  {id:'m06',domain:'mood',text:'How much effort did it take to appear "normal" to others today?',lo:'ZERO EFFORT',hi:'EXHAUSTING',anchors:{1:'I was myself',3:'Some performance required',5:'Full-time acting job'}},
+  {id:'m07',domain:'mood',text:'How often did a wave of sadness, emptiness, or dread hit you out of nowhere yesterday?',lo:'NEVER',hi:'OFTEN',anchors:{1:'Emotionally stable day',3:'Once or twice',5:'Kept crashing over me'}},
+  {id:'m08',domain:'mood',text:'If someone asked "how are you" right now, how different would your honest answer be from what you\'d actually say?',lo:'SAME THING',hi:'OPPOSITE',anchors:{1:'I\'d tell the truth',3:'I\'d soften it',5:'I\'d lie completely'}},
+
+  // ── ATTITUDE / PERFORMANCE ──────────────────────────────────────
+  {id:'a01',domain:'attitude',text:'How many tasks did you start but not finish yesterday?',lo:'ZERO',hi:'MOST OF THEM',anchors:{1:'Completed what I started',3:'A couple fell off',5:'Started many, finished almost nothing'}},
+  {id:'a02',domain:'attitude',text:'Rate your ability to concentrate on a single task for 15 minutes straight today.',lo:'EASY',hi:'IMPOSSIBLE',anchors:{1:'Focus was solid',3:'Mind wandered but I pulled back',5:'Couldn\'t hold a thought'}},
+  {id:'a03',domain:'attitude',text:'How often did you think "what\'s the point" about something you normally care about?',lo:'NEVER',hi:'CONSTANTLY',anchors:{1:'Felt motivated',3:'Flickered a couple times',5:'Nothing felt worth doing'}},
+  {id:'a04',domain:'attitude',text:'If your supervisor reviewed your last 24 hours of output, how would they rate it?',lo:'STRONG',hi:'CONCERNED',anchors:{1:'Productive day',3:'Below average',5:'They\'d pull me aside'}},
+  {id:'a05',domain:'attitude',text:'How many decisions did you avoid or postpone yesterday — even small ones?',lo:'NONE',hi:'MOST OF THEM',anchors:{1:'Decided things easily',3:'Deferred a few',5:'Couldn\'t commit to anything'}},
+  {id:'a06',domain:'attitude',text:'How much pride or satisfaction did you feel in anything you did in the last 24 hours?',lo:'A LOT',hi:'NONE',anchors:{1:'Felt good about my work',3:'Mostly indifferent',5:'Nothing felt worth doing'}},
+  {id:'a07',domain:'attitude',text:'How often did you catch yourself staring at nothing, zoning out, or losing time yesterday?',lo:'NEVER',hi:'OFTEN',anchors:{1:'Stayed present',3:'A few blank spots',5:'Lost significant chunks'}},
+  {id:'a08',domain:'attitude',text:'If someone offered you a challenging new task right now, how would you respond?',lo:'BRING IT',hi:'CAN\'T',anchors:{1:'Ready and willing',3:'I\'d do it but grudgingly',5:'I\'d find a way out of it'}},
+
+  // ── SLEEP ───────────────────────────────────────────────────────
+  {id:'s01',domain:'sleep',text:'How many times did you wake up during the night — not counting to use the bathroom?',lo:'ZERO',hi:'4+',anchors:{1:'Slept through',3:'Once or twice',5:'Lost count'}},
+  {id:'s02',domain:'sleep',text:'Within 10 minutes of waking this morning, how rested did you feel?',lo:'FULLY CHARGED',hi:'WRECKED',anchors:{1:'Ready to go',3:'Groggy but functional',5:'Felt worse than before bed'}},
+  {id:'s03',domain:'sleep',text:'How long did it take you to fall asleep last night?',lo:'UNDER 15 MIN',hi:'OVER AN HOUR',anchors:{1:'Out quick',3:'30–45 minutes',5:'Couldn\'t sleep at all'}},
+  {id:'s04',domain:'sleep',text:'Did you have disturbing dreams, nightmares, or wake up in a sweat?',lo:'NO',hi:'SEVERE',anchors:{1:'Peaceful sleep',3:'Mildly uneasy dreams',5:'Woke up shaking or in distress'}},
+  {id:'s05',domain:'sleep',text:'How many hours of actual sleep did you get — not time in bed, actual sleep?',lo:'7-8 HOURS',hi:'UNDER 4',anchors:{1:'Full rest',3:'5–6 hours',5:'Barely slept'}},
+  {id:'s06',domain:'sleep',text:'How much did you rely on substances, screens, or rituals to fall asleep?',lo:'NONE',hi:'COULDN\'T WITHOUT',anchors:{1:'Fell asleep naturally',3:'Needed some help',5:'Completely dependent on something'}},
+  {id:'s07',domain:'sleep',text:'How many times did you hit snooze or resist getting out of bed this morning?',lo:'ZERO',hi:'MANY',anchors:{1:'Got up on first alarm',3:'A couple snoozes',5:'Stayed in bed as long as possible'}},
+  {id:'s08',domain:'sleep',text:'If someone watched you sleep last night, would they say you were restless or still?',lo:'STILL',hi:'RESTLESS',anchors:{1:'Sound and calm',3:'Some tossing',5:'Thrashing, grinding, or talking'}},
+
+  // ── PHYSICAL HEALTH ─────────────────────────────────────────────
+  {id:'p01',domain:'physical',text:'Rate your current pain level — headaches, muscle tension, stomach issues, anything.',lo:'ZERO PAIN',hi:'SIGNIFICANT',anchors:{1:'Body feels good',3:'Moderate discomfort',5:'Pain is affecting my ability to function'}},
+  {id:'p02',domain:'physical',text:'How many meals did you eat yesterday that you\'d honestly call "real food"?',lo:'ALL OF THEM',hi:'ZERO',anchors:{1:'Ate well all day',3:'One real meal',5:'Junk, skipped meals, or didn\'t eat'}},
+  {id:'p03',domain:'physical',text:'How much water did you drink yesterday compared to caffeine, sugar, or energy drinks?',lo:'MOSTLY WATER',hi:'ZERO WATER',anchors:{1:'Well hydrated',3:'Some of each',5:'Running on caffeine and sugar'}},
+  {id:'p04',domain:'physical',text:'How often did your body feel heavy, sluggish, or hard to move yesterday?',lo:'NEVER',hi:'ALL DAY',anchors:{1:'Felt light and capable',3:'Dragged a few times',5:'Everything was an effort'}},
+  {id:'p05',domain:'physical',text:'Did you experience any unexplained symptoms — racing heart, tight chest, nausea, trembling?',lo:'NONE',hi:'MULTIPLE',anchors:{1:'Body felt normal',3:'One or two episodes',5:'Recurring or constant'}},
+  {id:'p06',domain:'physical',text:'How was your appetite yesterday — were you eating for fuel or for something else?',lo:'NORMAL',hi:'DYSREGULATED',anchors:{1:'Ate when hungry, stopped when full',3:'Over or under ate slightly',5:'Binge, purge, or no appetite at all'}},
+  {id:'p07',domain:'physical',text:'How much did physical discomfort affect what you were able to do yesterday?',lo:'NOT AT ALL',hi:'SEVERELY',anchors:{1:'No limitations',3:'Slowed me down',5:'Couldn\'t do what I needed to'}},
+  {id:'p08',domain:'physical',text:'If a doctor examined you right now, how many concerns would you bring up?',lo:'ZERO',hi:'SEVERAL',anchors:{1:'Feeling healthy',3:'One or two things',5:'A list of issues I\'ve been ignoring'}},
+
+  // ── ACTIVITY / CONNECTION ───────────────────────────────────────
+  {id:'c01',domain:'activity',text:'How many minutes of intentional physical movement did you get yesterday — walking, exercise, anything?',lo:'30+ MINUTES',hi:'ZERO',anchors:{1:'Active day',3:'Some movement',5:'Completely sedentary'}},
+  {id:'c02',domain:'activity',text:'How many meaningful conversations did you have in the last 24 hours — not small talk?',lo:'SEVERAL',hi:'ZERO',anchors:{1:'Connected with people',3:'One or two brief ones',5:'Nobody — completely isolated'}},
+  {id:'c03',domain:'activity',text:'How much time did you spend alone versus with others yesterday?',lo:'GOOD BALANCE',hi:'ALL ALONE',anchors:{1:'Healthy mix',3:'More alone than usual',5:'Completely isolated'}},
+  {id:'c04',domain:'activity',text:'How many times did you leave your home or room for non-work reasons yesterday?',lo:'MULTIPLE',hi:'ZERO',anchors:{1:'Got out and did things',3:'Once maybe',5:'Didn\'t leave at all'}},
+  {id:'c05',domain:'activity',text:'If someone invited you to do something active right now, how would you honestly react?',lo:'I\'M IN',hi:'HARD NO',anchors:{1:'Ready and willing',3:'I\'d force myself',5:'I\'d make an excuse'}},
+  {id:'c06',domain:'activity',text:'How connected did you feel to at least one other human being yesterday?',lo:'VERY',hi:'NOT AT ALL',anchors:{1:'Felt seen and known',3:'Surface-level connection',5:'Completely alone — even around people'}},
+  {id:'c07',domain:'activity',text:'How did your screen time compare to face-to-face time yesterday?',lo:'MORE FACE TIME',hi:'ALL SCREENS',anchors:{1:'Mostly in-person',3:'About even',5:'Barely looked up from a screen'}},
+  {id:'c08',domain:'activity',text:'How many times did you turn down or avoid social interaction in the last 48 hours?',lo:'ZERO',hi:'EVERY TIME',anchors:{1:'Sought people out',3:'Declined once or twice',5:'Dodged everyone who reached out'}},
+
+  // ── SUBSTANCE USE ───────────────────────────────────────────────
+  {id:'u01',domain:'substance',text:'How many drinks, doses, or uses of any substance did you have in the last 24 hours? (Include alcohol, cannabis, nicotine, pills.)',lo:'ZERO',hi:'HEAVY USE',anchors:{1:'Nothing',3:'Moderate — within my limits',5:'More than I\'d admit to someone I respect'}},
+  {id:'u02',domain:'substance',text:'How strong was your urge to use a substance yesterday — even if you didn\'t act on it?',lo:'NO URGE',hi:'OVERWHELMING',anchors:{1:'Didn\'t cross my mind',3:'Thought about it',5:'Fought it all day'}},
+  {id:'u03',domain:'substance',text:'How often did you think about using a substance specifically to cope with how you felt?',lo:'NEVER',hi:'OFTEN',anchors:{1:'Didn\'t need to escape',3:'Crossed my mind once',5:'It was the only solution I could think of'}},
+  {id:'u04',domain:'substance',text:'Did you use more than you planned to in the last 24 hours?',lo:'STAYED IN BOUNDS',hi:'LOST CONTROL',anchors:{1:'Stuck to the plan or didn\'t use',3:'Slightly more',5:'Completely exceeded what I intended'}},
+  {id:'u05',domain:'substance',text:'How much did your substance use affect your performance, mood, or relationships yesterday?',lo:'NOT AT ALL',hi:'SIGNIFICANTLY',anchors:{1:'Clean slate',3:'Minor impact',5:'It damaged something'}},
+  {id:'u06',domain:'substance',text:'How soon after waking did you think about or reach for a substance?',lo:'DIDN\'T',hi:'IMMEDIATELY',anchors:{1:'Wasn\'t on my mind',3:'Mid-morning',5:'Before I got out of bed'}},
+  {id:'u07',domain:'substance',text:'If someone you deeply respect watched your consumption yesterday, would you be comfortable?',lo:'COMPLETELY',hi:'ASHAMED',anchors:{1:'Nothing to hide',3:'I\'d feel a little uneasy',5:'I\'d be embarrassed'}},
+  {id:'u08',domain:'substance',text:'How many times did you use a substance to change how you felt — not because you enjoyed it?',lo:'ZERO',hi:'EVERY TIME',anchors:{1:'Used for pleasure only or didn\'t use',3:'Once, to take the edge off',5:'Every use was self-medication'}}
+];
+
+/* ── SCORING MATRIX ────────────────────────────────────────────────────────── */
+/* All questions scored 1–5 where 1 = healthiest.
+   Domain average maps to zone:
+     1.0 – 1.5 → h (Healthy)
+     1.6 – 2.5 → r (Reacting)
+     2.6 – 3.5 → i (Injured)
+     3.6 – 5.0 → l (Ill)
+   Composite average across domains maps to status:
+     ≤ 1.5 → OPERATIONAL
+     ≤ 2.5 → MONITOR
+     ≤ 3.5 → FLAGGED
+     > 3.5 → CRITICAL
+*/
+function scoreToZone(avg){
+  if(avg <= 1.5) return 'h';
+  if(avg <= 2.5) return 'r';
+  if(avg <= 3.5) return 'i';
+  return 'l';
+}
+function compositeStatus(avg){
+  if(avg <= 1.5) return {word:'OPERATIONAL',color:'var(--grn)',level:0};
+  if(avg <= 2.5) return {word:'MONITOR',    color:'var(--gld)',level:1};
+  if(avg <= 3.5) return {word:'FLAGGED',    color:'var(--orn)',level:2};
+  return               {word:'CRITICAL',   color:'var(--red)',level:3};
+}
+var ZONE_NAMES = {h:'HEALTHY',r:'REACTING',i:'INJURED',l:'ILL'};
+var ZONE_COLORS = {h:'var(--grn)',r:'var(--gld)',i:'var(--orn)',l:'var(--red)'};
+
+/* ── LOCAL DATE KEY (avoids UTC midnight bug) ──────────────────────────────── */
+function ldk(){
+  var d=new Date();
+  return (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+}
+
+/* ── SESSION STATE ─────────────────────────────────────────────────────────── */
+var sessionQuestions = [];  // selected Question objects for this session
+var sessionAnswers = [];    // parallel array of 1–5 values (null = unanswered)
+var currentQ = 0;           // index into sessionQuestions
+
+/* ── RANDOMIZATION ENGINE ──────────────────────────────────────────────────── */
+function getHistory(){
+  try{return JSON.parse(localStorage.getItem('od_rosa_history'))||[];}catch(e){return[];}
+}
+function saveHistory(h){
+  localStorage.setItem('od_rosa_history',JSON.stringify(h));
+}
+
+function selectQuestions(){
+  var hist = getHistory();
+  // Flatten last HISTORY_WINDOW sessions into a Set of recently-used IDs
+  var recentIds = new Set();
+  var window = hist.slice(-HISTORY_WINDOW);
+  window.forEach(function(ids){ids.forEach(function(id){recentIds.add(id)})});
+
+  // Available pool (not recently used)
+  var available = POOL.filter(function(q){return !recentIds.has(q.id)});
+
+  // If pool is exhausted (edge case after many rapid sessions), allow all
+  if(available.length < QUESTIONS_PER_SESSION) available = POOL.slice();
+
+  // Bucket by domain
+  var buckets = {};
+  DOMAINS.forEach(function(d){buckets[d]=[]});
+  available.forEach(function(q){if(buckets[q.domain]) buckets[q.domain].push(q)});
+
+  // Shuffle each bucket
+  DOMAINS.forEach(function(d){shuffle(buckets[d])});
+
+  // Step 1: Pick 1 from each domain (6 questions guaranteed)
+  var selected = [];
+  var usedIds = new Set();
+  DOMAINS.forEach(function(d){
+    if(buckets[d].length){
+      var q = buckets[d].shift();
+      selected.push(q);
+      usedIds.add(q.id);
+    }
+  });
+
+  // Step 2: Pick 1 extra from the weakest domain (if we have profile data) or random
+  var extra = QUESTIONS_PER_SESSION - selected.length;
+  if(extra > 0){
+    // Check last session for weakest domain
+    var weakest = getWeakestDomain();
+    var extraPool = [];
+    if(weakest && buckets[weakest] && buckets[weakest].length){
+      extraPool = buckets[weakest];
+    } else {
+      // Flatten remaining
+      DOMAINS.forEach(function(d){
+        buckets[d].forEach(function(q){if(!usedIds.has(q.id)) extraPool.push(q)});
+      });
+      shuffle(extraPool);
+    }
+    for(var i=0;i<extra && i<extraPool.length;i++){
+      if(!usedIds.has(extraPool[i].id)){
+        selected.push(extraPool[i]);
+        usedIds.add(extraPool[i].id);
+      }
+    }
+  }
+
+  // Shuffle final selection order so user can't predict domain sequence
+  shuffle(selected);
+
+  return selected;
+}
+
+function getWeakestDomain(){
+  try{
+    var sessions = JSON.parse(localStorage.getItem('od_rosa_sessions'))||[];
+    if(!sessions.length) return null;
+    var last = sessions[sessions.length - 1];
+    if(!last || !last.domains) return null;
+    var worst = null;
+    var worstAvg = 0;
+    Object.keys(last.domains).forEach(function(d){
+      if(last.domains[d].avg > worstAvg){
+        worstAvg = last.domains[d].avg;
+        worst = d;
+      }
+    });
+    return worst;
+  }catch(e){return null}
+}
+
+function shuffle(arr){
+  for(var i=arr.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=arr[i];arr[i]=arr[j];arr[j]=t;
+  }
+  return arr;
+}
+
+/* ── UI LOGIC ──────────────────────────────────────────────────────────────── */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+  document.getElementById(id).classList.add('active');
+}
+
+function startRosa(){
+  sessionQuestions = selectQuestions();
+  sessionAnswers = new Array(sessionQuestions.length).fill(null);
+  currentQ = 0;
+  document.getElementById('qTotal').textContent = sessionQuestions.length;
+  document.getElementById('qCounter').style.display = 'block';
+  renderQuestion();
+  showScreen('s-question');
+}
+
+function renderQuestion(){
+  var q = sessionQuestions[currentQ];
+  if(!q) return;
+
+  document.getElementById('qNum').textContent = currentQ + 1;
+  document.getElementById('progFill').style.width = ((currentQ / sessionQuestions.length) * 100) + '%';
+
+  // Domain tag — intentionally vague labels
+  var vagueDomain = {
+    mood:'SIGNAL CHECK',attitude:'PERFORMANCE',sleep:'RECOVERY',
+    physical:'BODY',activity:'CONNECTION',substance:'CONSUMPTION'
+  };
+  document.getElementById('qDomainTag').textContent = vagueDomain[q.domain] || 'ASSESSMENT';
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('scaleLoLabel').textContent = q.lo;
+  document.getElementById('scaleHiLabel').textContent = q.hi;
+
+  // Show anchor for current selection or clear
+  var existing = sessionAnswers[currentQ];
+  document.querySelectorAll('.scale-btn').forEach(function(b){
+    b.classList.remove('sel');
+    if(existing && parseInt(b.getAttribute('data-v')) === existing){
+      b.classList.add('sel');
+    }
+  });
+  updateAnchor(existing);
+  document.getElementById('btnNext').disabled = !existing;
+  document.getElementById('btnNext').textContent =
+    (currentQ === sessionQuestions.length - 1) ? 'FINISH →' : 'NEXT →';
+
+  // Animate
+  var body = document.getElementById('qBody');
+  body.classList.remove('fade-up');
+  void body.offsetWidth;
+  body.classList.add('fade-up');
+}
+
+function selectScale(v){
+  sessionAnswers[currentQ] = v;
+  document.querySelectorAll('.scale-btn').forEach(function(b){
+    b.classList.remove('sel');
+    if(parseInt(b.getAttribute('data-v')) === v) b.classList.add('sel');
+  });
+  updateAnchor(v);
+  document.getElementById('btnNext').disabled = false;
+}
+
+function updateAnchor(v){
+  var el = document.getElementById('qAnchor');
+  if(!v){el.textContent='';return;}
+  var q = sessionQuestions[currentQ];
+  if(q && q.anchors && q.anchors[v]){
+    el.textContent = q.anchors[v];
+  } else {
+    el.textContent = '';
+  }
+}
+
+function nextQuestion(){
+  if(sessionAnswers[currentQ] === null) return;
+  if(currentQ < sessionQuestions.length - 1){
+    currentQ++;
+    renderQuestion();
+    window.scrollTo(0,0);
+  } else {
+    finishSession();
+  }
+}
+
+/* ── SCORING & RESULTS ─────────────────────────────────────────────────────── */
+function finishSession(){
+  // Compute per-domain averages
+  var domainSums = {};
+  var domainCounts = {};
+  DOMAINS.forEach(function(d){domainSums[d]=0;domainCounts[d]=0});
+
+  for(var i=0;i<sessionQuestions.length;i++){
+    var d = sessionQuestions[i].domain;
+    var v = sessionAnswers[i] || 3; // fallback to mid if somehow null
+    domainSums[d] += v;
+    domainCounts[d]++;
+  }
+
+  var domainResults = {};
+  var allAvgs = [];
+  DOMAINS.forEach(function(d){
+    var avg = domainCounts[d] > 0 ? domainSums[d] / domainCounts[d] : 2;
+    var zone = scoreToZone(avg);
+    domainResults[d] = {avg:Math.round(avg*100)/100, zone:zone};
+    allAvgs.push(avg);
+  });
+
+  var compositeAvg = allAvgs.reduce(function(a,b){return a+b},0) / allAvgs.length;
+  compositeAvg = Math.round(compositeAvg * 100) / 100;
+  var status = compositeStatus(compositeAvg);
+
+  // ── PERSIST: od_rosa_sessions ──
+  var sessions = [];
+  try{sessions = JSON.parse(localStorage.getItem('od_rosa_sessions'))||[];}catch(e){}
+  sessions.push({
+    timestamp: Date.now(),
+    date: ldk(),
+    composite: compositeAvg,
+    status: status.word,
+    domains: domainResults,
+    questionIds: sessionQuestions.map(function(q){return q.id}),
+    answers: sessionAnswers.slice()
+  });
+  // Keep last 90 sessions max
+  if(sessions.length > 90) sessions = sessions.slice(-90);
+  localStorage.setItem('od_rosa_sessions',JSON.stringify(sessions));
+
+  // ── PERSIST: Question history for non-repeat ──
+  var hist = getHistory();
+  hist.push(sessionQuestions.map(function(q){return q.id}));
+  if(hist.length > HISTORY_WINDOW + 2) hist = hist.slice(-(HISTORY_WINDOW + 2));
+  saveHistory(hist);
+
+  // ── BACKWARD COMPAT: Write to od3.ciz ──
+  var od3 = {};
+  try{od3 = JSON.parse(localStorage.getItem('od3'))||{};}catch(e){}
+  if(!od3.ciz) od3.ciz = {};
+  var today = ldk();
+  od3.ciz[today] = {};
+  DOMAINS.forEach(function(d){
+    od3.ciz[today][d] = domainResults[d].zone;
+  });
+  localStorage.setItem('od3',JSON.stringify(od3));
+
+  // ── RENDER RESULTS ──
+  renderResults(compositeAvg, status, domainResults);
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('qCounter').style.display = 'none';
+  showScreen('s-results');
+}
+
+function renderResults(compositeAvg, status, domainResults){
+  var ring = document.getElementById('statusRing');
+  ring.style.borderColor = status.color;
+  document.getElementById('statusWord').textContent = status.word;
+  document.getElementById('statusWord').style.color = status.color;
+  document.getElementById('statusScore').textContent = compositeAvg.toFixed(1) + ' / 5.0';
+  document.getElementById('statusScore').style.color = status.color;
+
+  // Timestamp
+  var now = new Date();
+  var h = now.getHours();
+  var period = h < 12 ? 'MORNING' : h < 17 ? 'AFTERNOON' : 'EVENING';
+  document.getElementById('rTimestamp').textContent =
+    period + ' CHECK-IN · ' + ldk() + ' · ' +
+    now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+  // Signal message — the "oh fuck" moment
+  var sig = document.getElementById('rSignal');
+  var sigTag = document.getElementById('rSignalTag');
+  var sigMsg = document.getElementById('rSignalMsg');
+  sig.classList.remove('on');
+  sig.style.background = '';
+  sig.style.border = '';
+
+  if(status.level >= 3){
+    // CRITICAL
+    sig.classList.add('on');
+    sig.style.background = 'rgba(192,57,43,.08)';
+    sig.style.borderLeft = '3px solid var(--red)';
+    sigTag.textContent = 'SIGNAL DETECTED';
+    sigTag.style.color = 'var(--red)';
+    sigMsg.textContent = 'Your responses indicate significant strain across multiple domains. This isn\'t a label — it\'s data. You don\'t have to fix it right now. But you should tell someone.';
+    sigMsg.style.color = '#aa6666';
+    document.getElementById('awarenessRow').style.display = 'block';
+  } else if(status.level >= 2){
+    // FLAGGED
+    sig.classList.add('on');
+    sig.style.background = 'rgba(212,100,39,.06)';
+    sig.style.borderLeft = '3px solid var(--orn)';
+    sigTag.textContent = 'ELEVATED SIGNAL';
+    sigTag.style.color = 'var(--orn)';
+    sigMsg.textContent = 'More than half your domains are showing strain. The system caught what you might have missed. Worth paying attention to — before it compounds.';
+    sigMsg.style.color = '#aa8855';
+    document.getElementById('awarenessRow').style.display = 'none';
+  } else {
+    document.getElementById('awarenessRow').style.display = 'none';
+  }
+
+  // Check for individual domains at Injured or Ill
+  var injuredDomains = [];
+  DOMAINS.forEach(function(d){
+    if(domainResults[d].zone === 'i' || domainResults[d].zone === 'l'){
+      injuredDomains.push(DOMAIN_LABELS[d]);
+    }
+  });
+
+  if(injuredDomains.length > 0 && status.level < 2){
+    sig.classList.add('on');
+    sig.style.background = 'rgba(212,168,67,.06)';
+    sig.style.borderLeft = '3px solid var(--gld)';
+    sigTag.textContent = 'DOMAIN ALERT';
+    sigTag.style.color = 'var(--gld)';
+    sigMsg.textContent = injuredDomains.join(', ') + (injuredDomains.length === 1 ? ' is' : ' are') + ' running hot. Your composite looks fine — but isolated strain compounds quietly. Watch ' + (injuredDomains.length === 1 ? 'this one.' : 'these.');
+    sigMsg.style.color = '#aa9955';
+  }
+
+  // Domain bars
+  var barsHTML = '';
+  DOMAINS.forEach(function(d){
+    var dr = domainResults[d];
+    var pct = Math.round((dr.avg / 5) * 100);
+    var zColor = ZONE_COLORS[dr.zone];
+    barsHTML +=
+      '<div class="r-dom">' +
+        '<div class="r-dom-name">' + esc(DOMAIN_LABELS[d].split('/')[0].trim()) + '</div>' +
+        '<div class="r-dom-bar"><div class="r-dom-fill" style="width:' + pct + '%;background:' + zColor + '"></div></div>' +
+        '<div class="r-dom-zone" style="color:' + zColor + '">' + esc(ZONE_NAMES[dr.zone]) + '</div>' +
+      '</div>';
+  });
+  document.getElementById('domainBars').innerHTML = barsHTML;
+}
+
+/* ── INTRO SCREEN INIT ─────────────────────────────────────────────────────── */
+function initIntro(){
+  // Show last result if exists
+  try{
+    var sessions = JSON.parse(localStorage.getItem('od_rosa_sessions'))||[];
+    if(sessions.length){
+      var last = sessions[sessions.length - 1];
+      var el = document.getElementById('lastResult');
+      el.style.display = 'block';
+      var st = compositeStatus(last.composite);
+      el.innerHTML =
+        '<div class="intro-last-tag">LAST CHECK-IN</div>' +
+        '<div class="intro-last-val" style="color:' + st.color + '">' +
+          esc(st.word) + ' · ' + esc(last.date || '') +
+        '</div>';
+      document.getElementById('introStat').textContent =
+        sessions.length + ' CHECK-IN' + (sessions.length===1?'':'S') + ' LOGGED';
+    }
+  }catch(e){}
+}
+
+/* ── INIT ──────────────────────────────────────────────────────────────────── */
+initIntro();
+
+/* Keyboard nav for scale buttons */
+document.addEventListener('keydown', function(e){
+  if(document.getElementById('s-question').classList.contains('active')){
+    var k = parseInt(e.key);
+    if(k >= 1 && k <= 5){selectScale(k);return}
+    if(e.key === 'Enter' || e.key === 'ArrowRight'){
+      if(sessionAnswers[currentQ] !== null) nextQuestion();
+    }
+    if(e.key === 'ArrowLeft' && currentQ > 0){
+      currentQ--;
+      renderQuestion();
+    }
+  }
+});
+</script>
+
+<script>if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}</script>
+</body>
+</html>
