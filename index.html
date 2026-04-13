@@ -618,11 +618,11 @@ secureLoad();
 // Track sessions for tooltip fade-out (tips show for first 3 sessions)
 if(onboarded){sessionCount=Math.min((sessionCount||0)+1,99);saveOb();}
 function save(){try{localStorage.setItem("od3",JSON.stringify({s:streak,t:total,d:done,l:log.slice(0,100),p:playlist.slice(0,60),ld:lastD,ld2:lastD2,dk:darkUnlocked,dd:dailyDrawn,ci:checkIn,cid:checkInDate,ms:milestoneSeen,ciz:checkInZones,mp:musicPref,cw:cueWords,ve:voiceOn,fd:firstDraw,lp:lastPhase}))}catch(e){}}
-function saveEv(){try{localStorage.setItem("od3ev",JSON.stringify(evidence.slice(0,500)))}catch(e){}}
-function saveMr(){try{localStorage.setItem("od3mr",JSON.stringify(mirrors.slice(0,100)))}catch(e){}}
-function saveSp(){try{localStorage.setItem("od3sp",JSON.stringify(stuckPoints.slice(0,200)))}catch(e){}}
-function saveGoals(){try{localStorage.setItem("od3_goals",JSON.stringify(goals.slice(0,50)))}catch(e){}}
-function saveRes(){try{localStorage.setItem("od3_resonance",JSON.stringify(resonance.slice(0,200)))}catch(e){}}
+function saveEv(){try{localStorage.setItem("od3ev",JSON.stringify(evidence.slice(0,500)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3ev",JSON.stringify(evidence.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
+function saveMr(){try{localStorage.setItem("od3mr",JSON.stringify(mirrors.slice(0,100)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3mr",JSON.stringify(mirrors.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
+function saveSp(){try{localStorage.setItem("od3sp",JSON.stringify(stuckPoints.slice(0,200)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3sp",JSON.stringify(stuckPoints.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
+function saveGoals(){try{localStorage.setItem("od3_goals",JSON.stringify(goals.slice(0,50)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3_goals",JSON.stringify(goals.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
+function saveRes(){try{localStorage.setItem("od3_resonance",JSON.stringify(resonance.slice(0,200)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3_resonance",JSON.stringify(resonance.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
 function saveNotes(){try{var clean={};Object.keys(songNotes).slice(0,200).forEach(function(k){if(typeof songNotes[k]==='string')clean[k]=songNotes[k].substring(0,200)});localStorage.setItem("od3_songnotes",JSON.stringify(clean))}catch(e){}}
 function saveLF(){try{localStorage.setItem("od3_listenfirst",JSON.stringify(listenFirst))}catch(e){}}
 function saveOb(){try{localStorage.setItem("od3ob",JSON.stringify({ob:onboarded,sc:sessionCount}))}catch(e){}}
@@ -1552,9 +1552,9 @@ doCheckIn=mood=>{checkIn=mood;checkInDate=dStr(new Date());hap([15]);save();R()}
 window.enterNotOk=()=>{notOkMode=true;hap([80]);startBreath();R()};
 window.exitNotOk=()=>{notOkMode=false;stopBreath();R()};
 window.dismissMilestone=n=>{milestoneSeen[n]=true;save();R()};
-window.drawDaily=()=>{busy=true;card=null;flip=false;msn=false;evMode=false;aarMode=false;isDaily=true;listenRevealed=false;hap([30]);R();setTimeout(()=>{card=getDailyCard(checkIn);busy=false;total++;if(!firstDraw){firstDraw=new Date().toISOString()}dailyDrawn=dStr(new Date());updateStreak();save();hap([15,30,15]);R()},700)};
-window.drawRandom=()=>{busy=true;card=null;flip=false;msn=false;evMode=false;aarMode=false;isDaily=false;listenRevealed=false;hap([30]);R();setTimeout(()=>{card=C[Math.floor(Math.random()*C.length)];busy=false;total++;if(!firstDraw){firstDraw=new Date().toISOString()}updateStreak();save();hap([15,30,15]);R()},700)};
-window.drawEmergency=()=>{busy=true;card=null;flip=false;msn=false;evMode=false;aarMode=false;isDaily=false;hap([50,30,50]);R();setTimeout(()=>{const idx=EMG_IDS[Math.floor(Math.random()*EMG_IDS.length)];card=C.find(c=>(c.s+c.n)===idx)||C[0];busy=false;total++;updateStreak();save();hap([15,30,15,30,15]);R()},700)};
+window.drawDaily=()=>{if(busy)return;busy=true;card=null;flip=false;msn=false;evMode=false;aarMode=false;isDaily=true;listenRevealed=false;hap([30]);R();setTimeout(()=>{card=getDailyCard(checkIn);busy=false;total++;if(!firstDraw){firstDraw=new Date().toISOString()}dailyDrawn=dStr(new Date());updateStreak();save();hap([15,30,15]);R()},700)};
+window.drawRandom=()=>{if(busy)return;busy=true;card=null;flip=false;msn=false;evMode=false;aarMode=false;isDaily=false;listenRevealed=false;hap([30]);R();setTimeout(()=>{card=C[Math.floor(Math.random()*C.length)];busy=false;total++;if(!firstDraw){firstDraw=new Date().toISOString()}updateStreak();save();hap([15,30,15]);R()},700)};
+window.drawEmergency=()=>{if(busy)return;busy=true;card=null;flip=false;msn=false;evMode=false;aarMode=false;isDaily=false;hap([50,30,50]);R();setTimeout(()=>{const idx=EMG_IDS[Math.floor(Math.random()*EMG_IDS.length)];card=C.find(c=>(c.s+c.n)===idx)||C[0];busy=false;total++;updateStreak();save();hap([15,30,15,30,15]);R()},700)};
 window.accept=()=>{msn=true;flip=true;hap([15,15]);R()};
 window.beginComplete=()=>{evMode=true;stopBreath();hap([30,50,30]);R();setTimeout(()=>{const el=document.getElementById('evInput');if(el)el.focus()},100)};
 window.updateEvCounter=()=>{const el=document.getElementById('evInput'),ct=document.getElementById('evCounter');if(el&&ct)ct.textContent=el.value.length+' / 5000'};
@@ -1650,6 +1650,7 @@ if(onboarded)initOrb();
 (function(){try{const nk='od3_backup_nudge';const last=JSON.parse(localStorage.getItem(nk)||'0');const tens=Math.floor(done/10)*10;if(done>=10&&tens>last){localStorage.setItem(nk,JSON.stringify(tens));setTimeout(()=>{const t=document.createElement('div');t.className='toast';t.style.background='var(--gld)';t.style.color='#000';t.textContent='BACK UP YOUR DATA → TOOL SHED → EXPORT';document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.parentNode.removeChild(t)},2500)},3000)}}catch(e){}})();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>console.log('SW:',e))})}
+navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='NIGHT_SHIFT_RUN')IntelEngine?.runNightShift();});
 </script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="voice-engine.js?v=7"></script>

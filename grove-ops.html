@@ -146,7 +146,7 @@ let grove=[];try{grove=JSON.parse(localStorage.getItem('od_grove_trees')||'[]');
 let log=[];try{log=JSON.parse(localStorage.getItem('od_grove_log')||'[]');}catch(e){}
 let timer=null,timeLeft=0;
 
-function save(){localStorage.setItem('od_grove_trees',JSON.stringify(grove));localStorage.setItem('od_grove_log',JSON.stringify(log));}
+function save(){grove=grove.slice(0,500);log=log.slice(0,200);localStorage.setItem('od_grove_trees',JSON.stringify(grove));localStorage.setItem('od_grove_log',JSON.stringify(log));}
 
 function go(n){
   document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
@@ -176,6 +176,7 @@ function startPlant(){
     if(timeLeft<=0)complete();
   },1000);
 }
+document.addEventListener('visibilitychange',function(){if(document.hidden&&timer){clearInterval(timer);timer=null;}});
 
 function updateTimer(){
   const m=Math.floor(timeLeft/60),s=timeLeft%60;
