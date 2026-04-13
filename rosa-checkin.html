@@ -359,9 +359,10 @@ var ZONE_NAMES = {h:'HEALTHY',r:'REACTING',i:'INJURED',l:'ILL'};
 var ZONE_COLORS = {h:'var(--grn)',r:'var(--gld)',i:'var(--orn)',l:'var(--red)'};
 
 /* ── LOCAL DATE KEY (avoids UTC midnight bug) ──────────────────────────────── */
+/* MUST match dStr() in index.html: YYYY-M-D (no zero-padding, hyphen separator) */
 function ldk(){
   var d=new Date();
-  return (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
 }
 
 /* ── SESSION STATE ─────────────────────────────────────────────────────────── */

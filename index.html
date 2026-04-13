@@ -1137,8 +1137,13 @@ h+=`<div class="nav" role="tablist"><button class="nb${tab==="home"?" on":""}" o
 // ══════ HOME ══════
 if(tab==="home"){
   const todayDrew=dailyDrawn===dStr(new Date()),grace=isOnGrace(),ms=checkMilestone();
+  const ciDone=checkedInToday();
+  const ciZ=ciDone?checkInZones[dStr(new Date())]||{}:{};
+  const CI_DORDER=['mood','attitude','sleep','physical','activity','substance'];
+  const ciAnyIll=ciDone&&CI_DORDER.some(k=>ciZ[k]==='l');
+  const ciColor=!ciDone?'':checkIn==='strong'?'#27ae60':checkIn==='standing'?'#d4a843':ciAnyIll?'var(--red)':'#e67e22';
   h+=`<div class="hdr"><div class="tg">FIELD INTELLIGENCE</div><h1>THE OPERATOR'S DECK</h1><p class="sub">115 tactical cards with a soundtrack. No bullshit.</p></div>`;
-  h+=`<div style="text-align:center"><div class="rank-badge" style="background:${rank.c}12;border:1px solid ${rank.c}30"><span class="rank-icon">${rank.icon}</span><span class="rank-name" style="color:${rank.c}">${rank.name}</span></div></div>`;
+  h+=`<div style="text-align:center;display:flex;align-items:center;justify-content:center;gap:8px"><div class="rank-badge" style="background:${rank.c}12;border:1px solid ${rank.c}30"><span class="rank-icon">${rank.icon}</span><span class="rank-name" style="color:${rank.c}">${rank.name}</span></div>${ciDone?`<a href="rosa-checkin.html" style="width:10px;height:10px;border-radius:50%;background:${ciColor};display:inline-block;box-shadow:0 0 8px ${ciColor};flex-shrink:0;opacity:.9" aria-label="Status: ${checkIn}"></a>`:''}</div>`;
   const ph=getPhase();
   h+=`<div style="text-align:center;margin:4px 0 2px"><div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid ${ph.color}25;border-radius:16px;padding:4px 14px"><span style="font-size:10px;color:${ph.color}">${ph.icon}</span><span style="font-size:7px;font-family:monospace;letter-spacing:2px;font-weight:800;color:${ph.color}">PHASE ${ph.phase} \u2022 ${ph.name}</span></div></div>`;
   h+=`<div style="display:flex;gap:3px;justify-content:center;margin:4px 16px 2px">${['volume','depth','consistency','engagement'].map(function(k,i){var v=ph.axes[k];var labels=['VOL','DPT','STR','ENG'];var colors=['var(--red)','var(--blu)','var(--gld)','var(--grn)'];return'<div style="flex:1;text-align:center"><div style="background:var(--bg4);border-radius:2px;height:3px;overflow:hidden"><div style="width:'+Math.round(v*100)+'%;height:100%;background:'+colors[i]+';border-radius:2px"></div></div><div style="font-size:5px;font-family:monospace;color:var(--dim2);letter-spacing:1px;margin-top:2px">'+labels[i]+'</div></div>'}).join('')}</div>`;
@@ -1168,20 +1173,32 @@ if(grace)h+=`<div class="rescue-banner" onclick="tab='home';drawCard()"><div cla
   // DRAW STATES
   if(!card&&!busy&&!evMode&&!aarMode){
     // STATUS CHECK gate (before daily card) — routes to ROSA
-    if(!todayDrew&&!checkedInToday()){
+    if(!todayDrew&&!ciDone){
       const period=typeof isNight==='function'&&isNight()?'EVENING':'MORNING';
-      h+=`<div class="fp-panel">`;
+      h+=`<div style="min-height:calc(100vh - 180px);display:flex;align-items:center;justify-content:center;padding:0 8px">`;
+      h+=`<div class="fp-panel" style="width:100%;max-width:380px">`;
       h+=`<div class="fp-hdr">\u26a1 STATUS CHECK \u2022 ${period}</div>`;
       h+=`<div class="fp-desc">7 questions. Different every time. The system reads the signal \u2014 you just answer honestly.</div>`;
       h+=`<a class="fp-link" href="rosa-checkin.html">BEGIN STATUS CHECK \u2192</a>`;
       h+=`</div>`;
+      h+=`</div>`;
+      a.innerHTML=h;return;
     }
-    if(!todayDrew&&checkedInToday()){
-      const todayZ=checkInZones[dStr(new Date())]||{};
-      const zc={h:0,r:0,i:0,l:0};Object.values(todayZ).forEach(v=>zc[v]++);
-      const moodBadge=checkIn==='strong'?'<span style="color:#27ae60">\u25cf STRONG</span>':checkIn==='standing'?'<span style="color:#d4a843">\u25cf STANDING</span>':'<span style="color:var(--red)">\u25cf CRAWLING</span>';
-      h+=`<div class="fp-panel" style="padding:10px 14px;margin:10px 16px 0"><div class="fp-hdr" style="margin-bottom:6px">\u2713 FIELD PROTOCOL COMPLETE \u2022 ${moodBadge}</div><div class="fp-summary">${zc.h?`<span style="color:#27ae60">\u25cf ${zc.h}H</span> `:''}${zc.r?`<span style="color:#d4a843">\u25cf ${zc.r}R</span> `:''}${zc.i?`<span style="color:#d46427">\u25cf ${zc.i}I</span> `:''}${zc.l?`<span style="color:var(--red)">\u25cf ${zc.l}L</span>`:''}</div></div>`;
-      h+=`<div class="dw"><button class="dbtn" onclick="drawDaily()">\u26A1 TODAY\u2019S CARD</button><button class="dbtn-sec" onclick="drawRandom()">OR DRAW RANDOM</button></div>`+showTip("Your daily card is tuned to your FIELD PROTOCOL. Crawling or Ill zones get you recovery cards.");
+    if(!todayDrew&&ciDone){
+      const DLABELS={mood:'mood',attitude:'performance',sleep:'recovery',physical:'physical',activity:'connection',substance:'substance'};
+      const nonH=CI_DORDER.filter(k=>ciZ[k]&&ciZ[k]!=='h');
+      const statusWord=checkIn==='strong'?'OPERATIONAL':checkIn==='standing'?'MONITOR':ciAnyIll?'CRITICAL':'FLAGGED';
+      let insight;
+      if(nonH.length===0){insight='all domains nominal';}
+      else if(ciAnyIll){const illDom=CI_DORDER.find(k=>ciZ[k]==='l');insight=`critical signal in ${DLABELS[illDom]} \u2014 consider support tools`;}
+      else if(nonH.length>=3){insight=`system detected strain across ${nonH.length} domains`;}
+      else{const worstDom=CI_DORDER.find(k=>ciZ[k]==='i')||CI_DORDER.find(k=>ciZ[k]==='r');insight=`${DLABELS[worstDom]} elevated`;}
+      h+=`<div class="fp-panel" style="padding:10px 14px;margin:10px 16px 0">`;
+      h+=`<div class="fp-hdr" style="margin-bottom:4px">\u2713 STATUS CHECK COMPLETE</div>`;
+      h+=`<div style="font-size:10px;font-family:monospace;font-weight:900;letter-spacing:2px;color:${ciColor};margin-bottom:4px">${statusWord}</div>`;
+      h+=`<div class="fp-status">${insight}</div>`;
+      h+=`</div>`;
+      h+=`<div class="dw"><button class="dbtn" onclick="drawDaily()">\u26A1 TODAY\u2019S CARD</button><button class="dbtn-sec" onclick="drawRandom()">OR DRAW RANDOM</button></div>`+showTip("Your daily card is tuned to your field status. FLAGGED or CRITICAL? Recovery cards deploy automatically.");
     }
     else if(todayDrew) h+=`<div class="dw"><button class="dbtn" onclick="drawRandom()">\u26A1 DRAW A CARD</button></div><div style="text-align:center;margin-top:8px"><span style="color:var(--dim3);font-size:8px;font-family:monospace;letter-spacing:2px">TODAY\u2019S CARD: DRAWN \u2713</span></div>`;
     if(isSunday()) h+=`<div style="text-align:center;margin-top:14px"><button class="dbtn-sec" onclick="go('more');subTab='debrief';R()" style="color:var(--gld);border-color:rgba(212,168,67,.2)">\uD83D\uDCCB WEEKLY DEBRIEF READY</button></div>`;
