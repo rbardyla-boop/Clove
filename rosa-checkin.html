@@ -598,7 +598,10 @@ function finishSession(){
   if(hist.length > HISTORY_WINDOW + 2) hist = hist.slice(-(HISTORY_WINDOW + 2));
   saveHistory(hist);
 
-  // ── BACKWARD COMPAT: Write to od3.ciz / od3.ci / od3.cid ──
+  // ── BACKWARD COMPAT: Write to od3 (ciz + ci + cid) ──
+  // ciz  = per-domain zone map (mood-trends.html, pattern-intelligence.html)
+  // ci   = composite mood string (progress-dashboard.html, checkedInToday gate)
+  // cid  = today's date key (checkedInToday gate)
   var od3 = {};
   try{od3 = JSON.parse(localStorage.getItem('od3'))||{};}catch(e){}
   if(!od3.ciz) od3.ciz = {};
@@ -607,10 +610,18 @@ function finishSession(){
   DOMAINS.forEach(function(d){
     od3.ciz[today][d] = domainResults[d].zone;
   });
-  var illC = DOMAINS.filter(function(d){return domainResults[d].zone==='l'}).length;
-  var injC = DOMAINS.filter(function(d){return domainResults[d].zone==='i'}).length;
-  od3.ci = illC>0?'crawling':injC>=2?'crawling':injC>=1?'standing':'strong';
+
+  // Derive composite mood matching completeFieldProtocol() logic:
+  // any Ill → crawling, 2+ Injured → crawling, 1+ Injured → standing, else strong
+  var illCount = 0;
+  var injCount = 0;
+  DOMAINS.forEach(function(d){
+    if(domainResults[d].zone === 'l') illCount++;
+    if(domainResults[d].zone === 'i') injCount++;
+  });
+  od3.ci = illCount > 0 ? 'crawling' : injCount >= 2 ? 'crawling' : injCount >= 1 ? 'standing' : 'strong';
   od3.cid = today;
+
   localStorage.setItem('od3',JSON.stringify(od3));
 
   // ── RENDER RESULTS ──
