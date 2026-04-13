@@ -38,7 +38,9 @@
       "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy show 9c8b4d6 -- stuck-points-drill.html)",
       "Bash(git -C /home/thebackhand/Downloads/clovelearn_v3_final_deploy show 9c8b4d6 -- dear-man-drill.html)",
       "Bash(grep -rn \"particle-bg\\\\|three@0.134\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
-      "Bash(awk -F: '{print $1}')"
+      "Bash(awk -F: '{print $1}')",
+      "Bash(grep -l \"setDomain\\\\|completeFieldProtocol\\\\|fp-panel\\\\|FP_DOMAINS\\\\|FP_ZONES\\\\|doCheckIn\" /home/thebackhand/Downloads/clovelearn_v3_final_deploy/*.html)",
+      "Bash(awk '/\\\\.fp-/{p=NR} p && NR-p<2 {print NR\": \"$0}' /home/thebackhand/Downloads/clovelearn_v3_final_deploy/index.html)"
     ],
     "additionalDirectories": [
       "/tmp"
