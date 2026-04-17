@@ -85,45 +85,203 @@
     };
   }
 
-  // ── SAFE LOCALSTORAGE ─────────────────────────────────────────
-  // Read a key from localStorage with safe JSON parsing.
-  // Returns fallback on missing key or corrupt data.
-  if (typeof g.odGet !== 'function') {
-    g.odGet = function(key, fallback) {
-      if (typeof fallback === 'undefined') fallback = null;
+  // ── VAULT (IndexedDB + Web Crypto) ───────────────────────────
+  var _vk = null;
+
+  var VAULT_DB    = 'clove_vault';
+  var VAULT_STORE = 'keys';
+  var VAULT_KEY_ID = 'main_key';
+
+  function openVaultDB() {
+    return new Promise(function(resolve, reject) {
+      var req = indexedDB.open(VAULT_DB, 1);
+      req.onupgradeneeded = function(e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(VAULT_STORE)) {
+          db.createObjectStore(VAULT_STORE);
+        }
+      };
+      req.onsuccess = function() { resolve(req.result); };
+      req.onerror   = function() { reject(req.error); };
+    });
+  }
+
+  function getStoredKey(db) {
+    return new Promise(function(resolve, reject) {
+      var tx    = db.transaction(VAULT_STORE, 'readonly');
+      var store = tx.objectStore(VAULT_STORE);
+      var req   = store.get(VAULT_KEY_ID);
+      req.onsuccess = function() { resolve(req.result || null); };
+      req.onerror   = function() { reject(req.error); };
+    });
+  }
+
+  function storeKey(db, jwk) {
+    return new Promise(function(resolve, reject) {
+      var tx    = db.transaction(VAULT_STORE, 'readwrite');
+      var store = tx.objectStore(VAULT_STORE);
+      var req   = store.put(jwk, VAULT_KEY_ID);
+      req.onsuccess = function() { resolve(); };
+      req.onerror   = function() { reject(req.error); };
+    });
+  }
+
+  function generateVaultKey() {
+    return crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  if (typeof g.initVault !== 'function') {
+    g.initVault = async function() {
+      if (_vk) return _vk;
+
+      var db  = await openVaultDB();
+      var jwk = await getStoredKey(db);
+
+      if (!jwk) {
+        var key = await generateVaultKey();
+        jwk = await crypto.subtle.exportKey('jwk', key);
+        await storeKey(db, jwk);
+        _vk = key;
+        return _vk;
+      }
+
+      _vk = await crypto.subtle.importKey(
+        'jwk',
+        jwk,
+        { name: 'AES-GCM' },
+        false,
+        ['encrypt', 'decrypt']
+      );
+
+      return _vk;
+    };
+  }
+
+  // ── ENCRYPT / DECRYPT ────────────────────────────────────────
+  function uint8ToBase64(u8) {
+    var binary = '';
+    for (var i = 0; i < u8.length; i++) binary += String.fromCharCode(u8[i]);
+    return btoa(binary);
+  }
+
+  function base64ToUint8(b64) {
+    var binary = atob(b64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  g.encryptValue = async function(value) {
+    if (!_vk) throw new Error('Vault not initialized');
+    var iv       = crypto.getRandomValues(new Uint8Array(12));
+    var encoded  = new TextEncoder().encode(JSON.stringify(value));
+    var cipher   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, _vk, encoded);
+    var combined = new Uint8Array(12 + cipher.byteLength);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(cipher), 12);
+    return uint8ToBase64(combined);
+  };
+
+  g.decryptValue = async function(stored) {
+    if (!_vk) throw new Error('Vault not initialized');
+    var combined  = base64ToUint8(stored);
+    var iv        = combined.slice(0, 12);
+    var data      = combined.slice(12);
+    var decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, _vk, data);
+    return JSON.parse(new TextDecoder().decode(decrypted));
+  };
+
+  // ── SAFE LOCALSTORAGE (encrypted) ────────────────────────────
+  // odGet / odSet / odDel are now async.
+  // odGet: tries decrypt first; falls back to plaintext + migrates silently.
+  // odSet: always encrypts before writing.
+  // Never throws — callers get fallback on any failure.
+
+  g.odGet = async function(key, fallback) {
+    if (typeof fallback === 'undefined') fallback = null;
+    try {
+      var raw = localStorage.getItem(key);
+      if (raw === null) return fallback;
+
+      // Try encrypted path first
+      try {
+        return await g.decryptValue(raw);
+      } catch (_e) {
+        // Legacy plaintext — migrate silently
+        try {
+          var parsed = JSON.parse(raw);
+          g.odSet(key, parsed); // fire-and-forget re-encrypt
+          return parsed;
+        } catch (_e2) {
+          return fallback;
+        }
+      }
+    } catch (err) {
+      console.error('odGet failed:', err);
+      return fallback;
+    }
+  };
+
+  g.odSet = async function(key, value) {
+    try {
+      var encrypted = await g.encryptValue(value);
+      localStorage.setItem(key, encrypted);
+    } catch (err) {
+      if (err && err.name === 'QuotaExceededError' && typeof g.showToast === 'function') {
+        g.showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');
+      }
+      console.error('odSet failed:', err);
+    }
+  };
+
+  g.odDel = function(key) {
+    try { localStorage.removeItem(key); } catch (err) { console.error('odDel failed:', err); }
+  };
+
+  // ── MIGRATION ─────────────────────────────────────────────────
+  var MIGRATION_FLAG = 'od_migrated_v1';
+
+  function isMigrated() {
+    return localStorage.getItem(MIGRATION_FLAG) === '1';
+  }
+
+  function setMigrated() {
+    localStorage.setItem(MIGRATION_FLAG, '1');
+  }
+
+  async function migrateLegacyKeys() {
+    if (!_vk) { console.warn('Vault not initialized — skipping migration'); return; }
+    var keys = Object.keys(localStorage);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      if (key === MIGRATION_FLAG) continue;
       try {
         var raw = localStorage.getItem(key);
-        if (raw === null) return fallback;
-        return JSON.parse(raw);
-      } catch (e) {
-        return fallback;
+        if (!raw) continue;
+        try { await g.decryptValue(raw); continue; } catch (_e) {} // already encrypted
+        try {
+          var parsed = JSON.parse(raw);
+          await g.odSet(key, parsed);
+        } catch (_e2) {} // not JSON — leave as-is
+      } catch (err) {
+        console.error('Migration error on key: ' + key, err);
       }
-    };
+    }
   }
 
-  // Write a value to localStorage as JSON. Returns true/false.
-  if (typeof g.odSet !== 'function') {
-    g.odSet = function(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch (e) {
-        return false;
-      }
-    };
-  }
-
-  // Remove a key. Returns true/false.
-  if (typeof g.odDel !== 'function') {
-    g.odDel = function(key) {
-      try {
-        localStorage.removeItem(key);
-        return true;
-      } catch (e) {
-        return false;
-      }
-    };
-  }
+  g.runMigrationOnce = async function() {
+    if (isMigrated()) return;
+    try {
+      await migrateLegacyKeys();
+      setMigrated();
+    } catch (err) {
+      console.error('Migration failed:', err);
+    }
+  };
 
   // List all OD-related keys (od_, od3, sp-plans, ops-, pd-).
   if (typeof g.odKeys !== 'function') {

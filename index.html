@@ -595,37 +595,39 @@ let streak=0,total=0,done=0,log=[],playlist=[],darkUnlocked={},evidence=[],mirro
 let lastD="",lastD2="",dailyDrawn="",isDaily=false,checkIn="",checkInDate="",checkInZones={},milestoneSeen={},lastMilestone=0,musicPref=["pop","alt","old","cty"],cueWords=[];
 let onboarded=false,orbOpen=false,sessionCount=0,discModal=false,discTarget='',obStep=0,voiceOn=false,firstDraw='',lastPhase=0;
 var resonance=[],songNotes={},listenFirst=false,listenRevealed=false;
-function secureLoad(){
-  try{const sv=JSON.parse(localStorage.getItem("od3"))||{};
+async function secureLoad(){
+  const sv=await odGet("od3",{});
   streak=vNum(sv.s,0);total=vNum(sv.t,0);done=vNum(sv.d,0);
   log=vArr(sv.l,100);playlist=vArr(sv.p,60);darkUnlocked=vObj(sv.dk);
   lastD=vStr(sv.ld,"",20);lastD2=vStr(sv.ld2,"",20);dailyDrawn=vStr(sv.dd,"",20);
-  checkIn=vStr(sv.ci,"",10);checkInDate=vStr(sv.cid,"",20);milestoneSeen=vObj(sv.ms);checkInZones=vObj(sv.ciz);if(Array.isArray(sv.mp)&&sv.mp.length)musicPref=sv.mp;
+  checkIn=vStr(sv.ci,"",10);checkInDate=vStr(sv.cid,"",20);milestoneSeen=vObj(sv.ms);checkInZones=vObj(sv.ciz);
+  if(Array.isArray(sv.mp)&&sv.mp.length)musicPref=sv.mp;
   if(Array.isArray(sv.cw))cueWords=sv.cw.filter(w=>typeof w==='string').slice(0,5);
-  voiceOn=!!sv.ve;
-  firstDraw=vStr(sv.fd,"",20);lastPhase=vNum(sv.lp,0);
-  }catch(e){streak=0;total=0;done=0;log=[];playlist=[];darkUnlocked={};checkInZones={}}
-  try{evidence=vArr(JSON.parse(localStorage.getItem("od3ev")),500)}catch(e){evidence=[]}
-  try{mirrors=vArr(JSON.parse(localStorage.getItem("od3mr")),100)}catch(e){mirrors=[]}
-  try{stuckPoints=vArr(JSON.parse(localStorage.getItem("od3sp")),200)}catch(e){stuckPoints=[]}
-  try{goals=vArr(JSON.parse(localStorage.getItem("od3_goals")),50)}catch(e){goals=[]}
-  try{resonance=vArr(JSON.parse(localStorage.getItem("od3_resonance")),200)}catch(e){resonance=[]}
-  try{var sn=JSON.parse(localStorage.getItem("od3_songnotes"));if(sn&&typeof sn==='object')songNotes=sn;else songNotes={}}catch(e){songNotes={}}
-  try{listenFirst=!!JSON.parse(localStorage.getItem("od3_listenfirst"))}catch(e){listenFirst=false}
-  try{const ob=JSON.parse(localStorage.getItem("od3ob"))||{};onboarded=!!ob.ob;sessionCount=vNum(ob.sc,0)}catch(e){onboarded=false;sessionCount=0}
+  voiceOn=!!sv.ve;firstDraw=vStr(sv.fd,"",20);lastPhase=vNum(sv.lp,0);
+  evidence=vArr(await odGet("od3ev",[]),500);
+  mirrors=vArr(await odGet("od3mr",[]),100);
+  stuckPoints=vArr(await odGet("od3sp",[]),200);
+  goals=vArr(await odGet("od3_goals",[]),50);
+  resonance=vArr(await odGet("od3_resonance",[]),200);
+  const sn=await odGet("od3_songnotes",{});songNotes=(sn&&typeof sn==='object')?sn:{};
+  listenFirst=!!(await odGet("od3_listenfirst",false));
+  const ob=await odGet("od3ob",{});onboarded=!!ob.ob;sessionCount=vNum(ob.sc,0);
 }
-secureLoad();
+(async function boot(){
+await initVault();
+await runMigrationOnce();
+await secureLoad();
 // Track sessions for tooltip fade-out (tips show for first 3 sessions)
 if(onboarded){sessionCount=Math.min((sessionCount||0)+1,99);saveOb();}
-function save(){try{localStorage.setItem("od3",JSON.stringify({s:streak,t:total,d:done,l:log.slice(0,100),p:playlist.slice(0,60),ld:lastD,ld2:lastD2,dk:darkUnlocked,dd:dailyDrawn,ci:checkIn,cid:checkInDate,ms:milestoneSeen,ciz:checkInZones,mp:musicPref,cw:cueWords,ve:voiceOn,fd:firstDraw,lp:lastPhase}))}catch(e){}}
-function saveEv(){try{localStorage.setItem("od3ev",JSON.stringify(evidence.slice(0,500)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3ev",JSON.stringify(evidence.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
-function saveMr(){try{localStorage.setItem("od3mr",JSON.stringify(mirrors.slice(0,100)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3mr",JSON.stringify(mirrors.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
-function saveSp(){try{localStorage.setItem("od3sp",JSON.stringify(stuckPoints.slice(0,200)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3sp",JSON.stringify(stuckPoints.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
-function saveGoals(){try{localStorage.setItem("od3_goals",JSON.stringify(goals.slice(0,50)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3_goals",JSON.stringify(goals.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
-function saveRes(){try{localStorage.setItem("od3_resonance",JSON.stringify(resonance.slice(0,200)))}catch(e){if(e.name==='QuotaExceededError'){showToast('STORAGE FULL \u2014 EXPORT YOUR DATA NOW');try{localStorage.setItem("od3_resonance",JSON.stringify(resonance.slice(0,200)))}catch(e2){showToast('WRITE FAILED \u2014 DATA NOT SAVED')}}else{throw e}}}
-function saveNotes(){try{var clean={};Object.keys(songNotes).slice(0,200).forEach(function(k){if(typeof songNotes[k]==='string')clean[k]=songNotes[k].substring(0,200)});localStorage.setItem("od3_songnotes",JSON.stringify(clean))}catch(e){}}
-function saveLF(){try{localStorage.setItem("od3_listenfirst",JSON.stringify(listenFirst))}catch(e){}}
-function saveOb(){try{localStorage.setItem("od3ob",JSON.stringify({ob:onboarded,sc:sessionCount}))}catch(e){}}
+function save(){odSet("od3",{s:streak,t:total,d:done,l:log.slice(0,100),p:playlist.slice(0,60),ld:lastD,ld2:lastD2,dk:darkUnlocked,dd:dailyDrawn,ci:checkIn,cid:checkInDate,ms:milestoneSeen,ciz:checkInZones,mp:musicPref,cw:cueWords,ve:voiceOn,fd:firstDraw,lp:lastPhase});}
+function saveEv(){odSet("od3ev",evidence.slice(0,500));}
+function saveMr(){odSet("od3mr",mirrors.slice(0,100));}
+function saveSp(){odSet("od3sp",stuckPoints.slice(0,200));}
+function saveGoals(){odSet("od3_goals",goals.slice(0,50));}
+function saveRes(){odSet("od3_resonance",resonance.slice(0,200));}
+function saveNotes(){var clean={};Object.keys(songNotes).slice(0,200).forEach(function(k){if(typeof songNotes[k]==='string')clean[k]=songNotes[k].substring(0,200)});odSet("od3_songnotes",clean);}
+function saveLF(){odSet("od3_listenfirst",listenFirst);}
+function saveOb(){odSet("od3ob",{ob:onboarded,sc:sessionCount});}
 // ── ONBOARDING ──
 window.window.togglePref=(g)=>{
   const i=musicPref.indexOf(g);
@@ -1644,6 +1646,7 @@ window.saveCueWords=()=>{const words=[];for(let i=0;i<5;i++){const el=document.g
 R();
 // Boot orb for returning users (first-timers get it via completeOnboard)
 if(onboarded)initOrb();
+})();
 // ── OFFLINE INDICATOR ──
 (function(){const b=document.getElementById('offlineBar');function u(){if(b)b.classList.toggle('show',!navigator.onLine)}window.addEventListener('online',u);window.addEventListener('offline',u);u()})();
 // ── EXPORT BACKUP NUDGE (every 10th mission, once per milestone) ──
