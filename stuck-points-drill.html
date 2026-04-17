@@ -523,7 +523,9 @@ function printSheet(){
   <div class="section"><div class="lbl">${last.errors?.length?6:5} — Balanced Alternative Thought</div><div class="box bal-box">${esc((last.newThought||'(not filled)').replace(/\n/g,'<br>'))}</div></div>
   ${eRows?`<div class="section"><div class="lbl">Emotion Shift (Before → After)</div><table><tr><th>Emotion</th><th>Before</th><th>After</th><th>Result</th></tr>${eRows}</table></div>`:''}
   <div class="footer">Operator's Deck — clovelearn.io &nbsp;|&nbsp; Built by a communications specialist, not a clinician &nbsp;|&nbsp; Bring this to your therapist</div>
-  </body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
+  <script src="od-core.js"></script>
+<script>injectHelpButton();</script>
+</body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
 }
 
 // PAST ENTRIES
@@ -558,5 +560,7 @@ document.addEventListener('DOMContentLoaded',()=>{buildEmotions();buildThemes();
 <div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
+<script src="od-core.js"></script>
+<script>injectHelpButton();</script>
 </body>
 </html>

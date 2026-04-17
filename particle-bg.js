@@ -390,3 +390,51 @@
     init();
   }
 }());
+
+// ── GLOBAL HELP BUTTON ────────────────────────────────────────
+// Injected on every page that loads particle-bg.js (all drill pages).
+// Skipped on red-protocol.html (already on the page).
+(function injectHelp() {
+  var SKIP = ['red-protocol.html'];
+  var path = window.location.pathname;
+  for (var i = 0; i < SKIP.length; i++) {
+    if (path.indexOf(SKIP[i]) > -1) return;
+  }
+
+  function inject() {
+    if (document.getElementById('od-help-btn')) return;
+    var btn = document.createElement('a');
+    btn.id = 'od-help-btn';
+    btn.href = '/red-protocol.html';
+    btn.textContent = 'HELP';
+    btn.setAttribute('aria-label', 'Crisis help');
+    var s = btn.style;
+    s.position = 'fixed';
+    s.bottom = '72px';
+    s.right = '16px';
+    s.zIndex = '9999';
+    s.minWidth = '44px';
+    s.minHeight = '44px';
+    s.padding = '0 10px';
+    s.display = 'flex';
+    s.alignItems = 'center';
+    s.justifyContent = 'center';
+    s.background = '#c0392b';
+    s.color = '#fff';
+    s.fontSize = '9px';
+    s.fontFamily = "'Courier New', monospace";
+    s.fontWeight = '900';
+    s.letterSpacing = '2px';
+    s.borderRadius = '6px';
+    s.textDecoration = 'none';
+    s.boxShadow = '0 2px 12px rgba(192,57,43,.5)';
+    s.webkitTapHighlightColor = 'transparent';
+    document.body.appendChild(btn);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject);
+  } else {
+    inject();
+  }
+}());

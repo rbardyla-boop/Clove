@@ -209,6 +209,29 @@
 .rb-title{color:#fff;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:.5px}
 .rb-sub{color:#888;font-size:8px;font-family:Georgia,serif;margin-top:2px;font-style:italic}
 .rb-xp{color:var(--gld);font-size:9px;font-weight:900;font-family:monospace;flex-shrink:0;background:rgba(212,168,67,.1);padding:6px 8px;border-radius:6px;letter-spacing:1px}
+.crisis-block{margin:16px 16px 0;padding:20px 16px;background:linear-gradient(135deg,#1a0000,#08080f);border:2px solid var(--red);border-radius:12px}
+.crisis-block-title{font-size:13px;font-family:'Courier New',monospace;font-weight:900;letter-spacing:2px;color:var(--red);margin-bottom:6px}
+.crisis-block-sub{font-size:10px;font-family:'Courier New',monospace;color:var(--dim);letter-spacing:1.5px;margin-bottom:16px}
+.crisis-block-btn{display:block;width:100%;margin-bottom:8px;padding:12px;background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.4);border-radius:8px;color:#fff;font-size:9px;font-family:'Courier New',monospace;font-weight:900;letter-spacing:2px;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.crisis-block-btn:active{background:rgba(192,57,43,.25)}
+.crisis-block-override{margin-top:14px;font-size:10px;font-family:'Courier New',monospace;color:var(--dim);text-align:center;cursor:pointer;letter-spacing:1px;-webkit-tap-highlight-color:transparent}
+.crisis-block-override:active{color:#aaa}
+.rosa-banner{margin:12px 16px 0;padding:10px 14px;background:var(--bg2);border:1px solid rgba(192,57,43,.2);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rosa-banner-txt{font-size:8px;font-family:'Courier New',monospace;font-weight:900;letter-spacing:2px;color:var(--red);flex-shrink:0}
+.rosa-banner-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.rosa-banner-btn{font-size:8px;font-family:'Courier New',monospace;font-weight:900;letter-spacing:1.5px;color:#fff;background:var(--red);border:none;border-radius:6px;padding:7px 12px;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.rosa-banner-yd{font-size:7px;font-family:'Courier New',monospace;letter-spacing:1px;color:var(--dim);background:none;border:1px solid var(--dim3);border-radius:6px;padding:7px 10px;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.rosa-banner-yd:active{color:#fff;border-color:#444}
+.prog-narrative{margin:16px 16px 0;padding:14px 16px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--dim3);border-radius:12px}
+.prog-stats{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.prog-stat-n{font-size:15px;font-weight:900;font-family:'Courier New',monospace}
+.prog-stat-l{font-size:7px;font-family:'Courier New',monospace;color:var(--dim);letter-spacing:1.5px}
+.prog-divider{color:var(--dim3);font-size:10px;margin:0 2px}
+.prog-phase-desc{color:var(--dim);font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.5}
+.prog-spark{margin:10px 16px 0;display:flex;align-items:center;gap:10px}
+.prog-spark-label{font-size:7px;font-family:'Courier New',monospace;letter-spacing:2px;color:var(--dim);white-space:nowrap}
+.prog-spark-bars{display:flex;gap:3px;align-items:flex-end}
+.spark-bar{width:20px;height:20px;border-radius:3px;opacity:.85}
 .crisis-btn{margin:12px 16px 0;background:linear-gradient(135deg,#3a0000,#1a0000);border:2px solid var(--red);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent}
 .crisis-btn:active{background:#4a0000;transform:scale(.98)}
 .crisis-icon{font-size:22px;flex-shrink:0}
@@ -580,8 +603,8 @@ function hashS(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(
 function getDailyCard(mood){
   const base=C[hashS(dStr(new Date()))%C.length];
   if(!mood||mood==='strong')return base;
-  // Crawling: prefer spades (recovery) and hearts (connection). Standing: use base.
-  if(mood==='crawling'){const gentle=C.filter(c=>c.s==='spades'||c.s==='hearts'||c.s==='addiction'||c.s==='ptsd'||c.s==='rebuild'||c.s==='brotherhood');return gentle[hashS(dStr(new Date())+'crawl')%gentle.length]}
+  // ill and crawling: prefer recovery/connection suits over random base
+  if(mood==='crawling'||mood==='ill'){const gentle=C.filter(c=>c.s==='spades'||c.s==='hearts'||c.s==='addiction'||c.s==='ptsd'||c.s==='rebuild'||c.s==='brotherhood');return gentle[hashS(dStr(new Date())+'crawl')%gentle.length]}
   return base;
 }
 // Spotify OAuth callback — forward to handler page
@@ -1135,7 +1158,7 @@ if(notOkMode){
   h+=`<div class="nok-exit" onclick="exitNotOk()">I\u2019M READY TO GO BACK</div></div>`;
   a.innerHTML=h;return;
 }
-h+=`<div class="nav" role="tablist"><button class="nb${tab==="home"?" on":""}" onclick="go('home')" role="tab" aria-selected="${tab==='home'}" style="border-radius:8px 0 0 8px">DRAW</button><button class="nb${tab==="browse"?" on":""}" onclick="go('browse')" role="tab" aria-selected="${tab==='browse'}">DECK</button><button class="nb${tab==="playlist"?" on":""}" onclick="go('playlist')" role="tab" aria-selected="${tab==='playlist'}" aria-label="Playlist">\uD83C\uDFB5</button><button class="nb${tab==="evidence"?" on":""}" onclick="go('evidence')" role="tab" aria-selected="${tab==='evidence'}" style="border-radius:0">EVIDENCE</button><button class="nb-ham${drawerOpen?' on':''}" onclick="toggleDrawer()" aria-label="Menu">\u2261</button></div>`;
+h+=`<div class="nav" role="tablist"><button class="nb${tab==="home"?" on":""}" onclick="go('home')" role="tab" aria-selected="${tab==='home'}" style="border-radius:8px 0 0 8px">DRAW</button><button class="nb${tab==="browse"?" on":""}" onclick="go('browse')" role="tab" aria-selected="${tab==='browse'}">DECK</button><button class="nb${tab==="playlist"?" on":""}" onclick="go('playlist')" role="tab" aria-selected="${tab==='playlist'}" aria-label="Playlist">\uD83C\uDFB5</button><button class="nb${tab==="evidence"?" on":""}" onclick="go('evidence')" role="tab" aria-selected="${tab==='evidence'}" style="border-radius:0">PROGRESS</button><button class="nb-ham${drawerOpen?' on':''}" onclick="toggleDrawer()" aria-label="Menu">\u2261</button></div>`;
 // ══════ HOME ══════
 if(tab==="home"){
   const todayDrew=dailyDrawn===dStr(new Date()),grace=isOnGrace(),ms=checkMilestone();
@@ -1174,17 +1197,11 @@ if(grace)h+=`<div class="rescue-banner" onclick="tab='home';drawCard()"><div cla
   }
   // DRAW STATES
   if(!card&&!busy&&!evMode&&!aarMode){
-    // STATUS CHECK gate (before daily card) — routes to ROSA
+    // STATUS CHECK banner — inline, no longer a hard gate
     if(!todayDrew&&!ciDone){
-      const period=typeof isNight==='function'&&isNight()?'EVENING':'MORNING';
-      h+=`<div style="min-height:calc(100vh - 180px);display:flex;align-items:center;justify-content:center;padding:0 8px">`;
-      h+=`<div class="fp-panel" style="width:100%;max-width:380px">`;
-      h+=`<div class="fp-hdr">\u26a1 STATUS CHECK \u2022 ${period}</div>`;
-      h+=`<div class="fp-desc">7 questions. Different every time. The system reads the signal \u2014 you just answer honestly.</div>`;
-      h+=`<a class="fp-link" href="rosa-checkin.html">BEGIN STATUS CHECK \u2192</a>`;
-      h+=`</div>`;
-      h+=`</div>`;
-      a.innerHTML=h;return;
+      const _yd=(()=>{const d=new Date();d.setDate(d.getDate()-1);return dStr(d)})();
+      const _hasYd=checkInZones[_yd]&&Object.keys(checkInZones[_yd]).length>=6;
+      h+=`<div class="rosa-banner"><div class="rosa-banner-txt">DAILY INTEL PENDING</div><div class="rosa-banner-acts"><a class="rosa-banner-btn" href="rosa-checkin.html">CHECK IN \u2192</a>${_hasYd?`<button class="rosa-banner-yd" onclick="copyYesterdayCheckIn()">SAME AS YESTERDAY</button>`:''}</div></div>`;
     }
     if(!todayDrew&&ciDone){
       const DLABELS={mood:'mood',attitude:'performance',sleep:'recovery',physical:'physical',activity:'connection',substance:'substance'};
@@ -1200,7 +1217,11 @@ if(grace)h+=`<div class="rescue-banner" onclick="tab='home';drawCard()"><div cla
       h+=`<div style="font-size:10px;font-family:monospace;font-weight:900;letter-spacing:2px;color:${ciColor};margin-bottom:4px">${statusWord}</div>`;
       h+=`<div class="fp-status">${insight}</div>`;
       h+=`</div>`;
-      h+=`<div class="dw"><button class="dbtn" onclick="drawDaily()">\u26A1 TODAY\u2019S CARD</button><button class="dbtn-sec" onclick="drawRandom()">OR DRAW RANDOM</button></div>`+showTip("Your daily card is tuned to your field status. FLAGGED or CRITICAL? Recovery cards deploy automatically.");
+      if(ciAnyIll){
+        h+=`<div class="crisis-block"><div class="crisis-block-title">YOUR SIGNALS ARE IN THE RED.</div><div class="crisis-block-sub">PROTOCOLS FIRST. DECK AFTER.</div><a class="crisis-block-btn" href="tipp-drill-full.html">\u26A1 TIPP RESET</a><a class="crisis-block-btn" href="safety-plan-drill.html">\uD83D\uDEE1 SAFETY PLAN</a><a class="crisis-block-btn" href="red-protocol.html">\uD83D\uDD34 RED PROTOCOL</a><div class="crisis-block-override" onclick="drawDaily()">I\u2019m stable enough for a card \u2192</div></div>`;
+      } else {
+        h+=`<div class="dw"><button class="dbtn" onclick="drawDaily()">\u26A1 TODAY\u2019S CARD</button><button class="dbtn-sec" onclick="drawRandom()">OR DRAW RANDOM</button></div>`+showTip("Your daily card is tuned to your field status. FLAGGED or CRITICAL? Recovery cards deploy automatically.");
+      }
     }
     else if(todayDrew) h+=`<div class="dw"><button class="dbtn" onclick="drawRandom()">\u26A1 DRAW A CARD</button></div><div style="text-align:center;margin-top:8px"><span style="color:var(--dim3);font-size:8px;font-family:monospace;letter-spacing:2px">TODAY\u2019S CARD: DRAWN \u2713</span></div>`;
     if(isSunday()) h+=`<div style="text-align:center;margin-top:14px"><button class="dbtn-sec" onclick="go('more');subTab='debrief';R()" style="color:var(--gld);border-color:rgba(212,168,67,.2)">\uD83D\uDCCB WEEKLY DEBRIEF READY</button></div>`;
@@ -1294,10 +1315,16 @@ if(tab==="playlist"){
   if(!playlist.length) h+=`<div class="empty">Empty playlist. Earn songs by completing missions.<br>The music doesn\u2019t come free. Neither did anything worth having.</div>`;
   h+=`</div>`;
 }
-// ══════ EVIDENCE ══════
+// ══════ PROGRESS (evidence) ══════
 if(tab==="evidence"){
   const withText=evidence.filter(e=>e.tx);const mirrorText=mirrors.filter(m=>m.tx);
-  h+=`<div class="ev-tab"><div class="ev-th"><div class="tg">EVIDENCE GATHERED</div><h2>YOUR WORKBOOK</h2><div class="ct">${withText.length} reports \u2022 ${mirrorText.length} mirrors \u2022 ${totalWords().toLocaleString()} words</div></div>`;
+  const _ph=getPhase();
+  // Narrative lead
+  h+=`<div class="prog-narrative"><div class="prog-stats"><span class="prog-stat-n">${done}</span><span class="prog-stat-l">MISSIONS</span><span class="prog-divider">·</span><span class="prog-stat-n">${streak}</span><span class="prog-stat-l">DAY STREAK</span><span class="prog-divider">·</span><span class="prog-stat-n" style="color:${_ph.color}">${_ph.name}</span></div><div class="prog-phase-desc">${_ph.desc}</div></div>`;
+  // 7-day mood sparkline
+  const _spark=(()=>{const bars=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=dStr(d);const z=checkInZones[k];if(!z){bars.push('<div class="spark-bar" style="background:var(--dim3)" title="no data"></div>');continue;}const CI=['mood','attitude','sleep','physical','activity','substance'];const hasL=CI.some(k2=>z[k2]==='l');const allH=CI.every(k2=>z[k2]==='h');const color=hasL?'var(--red)':allH?'var(--grn)':'var(--gld)';bars.push(`<div class="spark-bar" style="background:${color}" title="${k}"></div>`)}return bars.join('')})();
+  h+=`<div class="prog-spark"><div class="prog-spark-label">7-DAY STATUS</div><div class="prog-spark-bars">${_spark}</div></div>`;
+  h+=`<div class="ev-tab"><div class="ev-th"><div class="tg">YOUR WORKBOOK</div><div class="ct">${withText.length} reports \u2022 ${mirrorText.length} mirrors \u2022 ${totalWords().toLocaleString()} words</div></div>`;
   h+=`<div class="ev-stats"><div class="ev-stat"><div class="esv" style="color:var(--gld)">${evidence.length}</div><div class="esl">MISSIONS</div></div><div class="ev-stat"><div class="esv" style="color:var(--grn)">${withText.length}</div><div class="esl">REPORTS</div></div><div class="ev-stat"><div class="esv" style="color:var(--red)">${mirrorText.length}</div><div class="esl">MIRRORS</div></div><div class="ev-stat"><div class="esv" style="color:var(--blu)">${totalWords().toLocaleString()}</div><div class="esl">WORDS</div></div></div>`;
   h+=`<div class="ev-toggles"><button class="ev-tog${evView==='suit'?' on':''}" onclick="evView='suit';R()">BY SUIT</button><button class="ev-tog${evView==='highlights'?' on':''}" onclick="evView='highlights';R()" style="${evView==='highlights'?'border-color:var(--grn);color:var(--grn)':''}">⭐ HIGHLIGHTS</button><button class="ev-tog${evView==='goals'?' on':''}" onclick="evView='goals';R()" style="${evView==='goals'?'border-color:var(--blu);color:var(--blu)':''}">🎯 GOALS</button><button class="ev-tog${evView==='chrono'?' on':''}" onclick="evView='chrono';R()">CHRONOLOGICAL</button><button class="ev-tog${evView==='mirror'?' on':''}" onclick="evView='mirror';R()">MIRRORS</button><button class="ev-tog${evView==='stuck'?' on':''}" onclick="evView='stuck';R()">STUCK PTS</button></div>`;
   if(withText.length>0||mirrorText.length>0) h+=`<div class="ev-export"><button class="ev-export-btn" onclick="exportEvidence()">\u2B07 DOWNLOAD YOUR EVIDENCE</button></div>`;
@@ -1551,6 +1578,18 @@ window.go=t=>{drawerOpen=false;var el=document.getElementById('opsDrawer');if(el
 window.setF=f=>{filt=f;bFlips={};R()};
 window.doFlip=k=>{if(k==="main")flip=!flip;else bFlips[k]=!bFlips[k];R()};
 doCheckIn=mood=>{checkIn=mood;checkInDate=dStr(new Date());hap([15]);save();R()};
+window.copyYesterdayCheckIn=()=>{
+  const yd=(()=>{const d=new Date();d.setDate(d.getDate()-1);return dStr(d)})();
+  const zones=checkInZones[yd];if(!zones)return;
+  const today=dStr(new Date());
+  checkInZones[today]=Object.assign({},zones);
+  const CI=['mood','attitude','sleep','physical','activity','substance'];
+  const hasIll=CI.some(k=>zones[k]==='l');
+  const allH=CI.every(k=>zones[k]==='h');
+  const mood=hasIll?'ill':allH?'strong':CI.some(k=>zones[k]==='i'||zones[k]==='r')?'standing':'neutral';
+  doCheckIn(mood);
+  showToast('YESTERDAY\u2019S STATUS COPIED');
+};
 window.enterNotOk=()=>{notOkMode=true;hap([80]);startBreath();R()};
 window.exitNotOk=()=>{notOkMode=false;stopBreath();R()};
 window.dismissMilestone=n=>{milestoneSeen[n]=true;save();R()};
