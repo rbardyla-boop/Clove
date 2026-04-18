@@ -253,12 +253,20 @@
     localStorage.setItem(MIGRATION_FLAG, '1');
   }
 
+  // Keys read by IntelEngine via raw localStorage — must stay plaintext
+  var INTEL_KEYS = ['od_wgo_logs','od_tipp_full','od_improve_full','od_mindfulness_full',
+    'od_act_v1','od_cbt_records','od_dm_v1','od_chain_analysis','od_rsd',
+    'od_values_records','od_opposite_action','od_intercepts','od_redprotocol_log',
+    'od_clinical_scores','od_meditation','od_aar_entries','od_protocol_logs',
+    'od_protocol_hist','od_protocol_pending','od_intel_brief','od_intel_last_run','od_intel_config'];
+
   async function migrateLegacyKeys() {
     if (!_vk) { console.warn('Vault not initialized — skipping migration'); return; }
     var keys = Object.keys(localStorage);
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       if (key === MIGRATION_FLAG) continue;
+      if (INTEL_KEYS.indexOf(key) > -1) continue;
       try {
         var raw = localStorage.getItem(key);
         if (!raw) continue;
@@ -350,7 +358,7 @@
   // Canonical back-to-deck navigation.
   if (typeof g.odBack !== 'function') {
     g.odBack = function() {
-      window.location.href = './?tab=more';
+      window.location.href = './?tab=tools';
     };
   }
 
