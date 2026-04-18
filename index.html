@@ -301,6 +301,7 @@ body.nightops .clove-wm{opacity:.09;filter:brightness(1.4) sepia(.3) hue-rotate(
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/od-core.js"></script>
 </head>
 <body>
 <div id="offlineBar" class="offline-bar">OFFLINE MODE — DATA SAVES LOCALLY</div>
@@ -620,6 +621,10 @@ function getPhase(){
   if(phase===4){reqs.push("95 missions"+(done>=95?" \u2713":""));reqs.push("4 suits complete"+(suitsComplete>=4?" \u2713":""))}
   return{phase:phase,name:current.name,icon:current.icon,color:current.c,desc:current.desc,axes:axes,next:next,reqs:reqs,suitsStarted:suitsStarted,suitsComplete:suitsComplete,evRatio:Math.round(evRatio*100),bestStreak:bestStreak,daysActive:daysActive};
 }
+function suitDone(s){return C.filter(c=>c.s===s).filter(c=>playlist.find(p=>p.id===c.s+c.n)).length}
+function suitTotal(s){return C.filter(c=>c.s===s).length}
+function suitComp(s){return suitDone(s)===suitTotal(s)}
+function isComp(c){return!!playlist.find(p=>p.id===c.s+c.n)}
 const S={spades:{y:"\u2660",nm:"THE DIG",c:"#4a6fa5",bg:"linear-gradient(155deg,#0f1a2e,#08080f)",bd:"rgba(74,111,165,.2)"},hearts:{y:"\u2665",nm:"THE PATCH-UP",c:"#c0392b",bg:"linear-gradient(155deg,#2e0f0f,#08080f)",bd:"rgba(192,57,43,.2)"},clubs:{y:"\u2663",nm:"THE BREACH",c:"#27ae60",bg:"linear-gradient(155deg,#0f2e1a,#08080f)",bd:"rgba(39,174,96,.2)"},diamonds:{y:"\u2666",nm:"THE PROTOCOL",c:"#d4a843",bg:"linear-gradient(155deg,#2e2510,#08080f)",bd:"rgba(212,168,67,.2)"},addiction:{y:"\u25C8",nm:"THE TRAP",c:"#9333ea",bg:"linear-gradient(155deg,#1a0a2e,#08080f)",bd:"rgba(147,51,234,.2)"},ptsd:{y:"\u25CE",nm:"THE WATCH",c:"#c2410c",bg:"linear-gradient(155deg,#2e1205,#08080f)",bd:"rgba(194,65,12,.2)"},rebuild:{y:"\u25C9",nm:"THE FOUNDATION",c:"#0d9488",bg:"linear-gradient(155deg,#05231f,#08080f)",bd:"rgba(13,148,136,.2)"},brotherhood:{y:"\u267E",nm:"THE CREW",c:"#1e40af",bg:"linear-gradient(155deg,#0a1a2e,#08080f)",bd:"rgba(30,64,175,.2)"},joker:{y:"\u2605",nm:"WILD CARD",c:"#d4a843",bg:"linear-gradient(155deg,#1e1a0f,#08080f)",bd:"rgba(212,168,67,.2)",brotherhood:{t:"THE CREW HOLDS",x:"Thirteen cards about the thing men are trained to avoid asking for. You mapped the cost. You sat on the concrete. You stopped performing. You let one man see the full wreckage and he didn't flinch. That's not weakness. That's the hardest thing a soldier learns to do after combat: let someone in.",m:"Find the Brotherhood card that landed hardest. Send it to one man in your crew without explanation. Let the card do the talking.",song:"You've Got a Friend",artist:"James Taylor",book:{title:"The Body Keeps the Score",sub:"Understanding what isolation does to the body — and why brotherhood heals what willpower can't.",link:"https://www.amazon.ca/Body-Keeps-Score-Healing-Trauma/dp/0143127748",tag:"BROTHERHOOD • CONNECTION • THE CREW"}}}};
 const spotLink=c=>`https://open.spotify.com/search/${encodeURIComponent(c.artist+" "+c.song)}`;
 const AP="https://www.amazon.com/stores/Ryan-Bardyla/author/B0GHKZQ1SS";
@@ -762,10 +767,6 @@ function getOrbText(){
 }
 // ── TIP HELPER ──
 function showTip(s){if(sessionCount>=3)return'';return`<div class="tip-bar">${s}</div>`}
-function suitDone(s){return C.filter(c=>c.s===s).filter(c=>playlist.find(p=>p.id===c.s+c.n)).length}
-function suitTotal(s){return C.filter(c=>c.s===s).length}
-function suitComp(s){return suitDone(s)===suitTotal(s)}
-function isComp(c){return!!playlist.find(p=>p.id===c.s+c.n)}
 function cardCompCount(c){return evidence.filter(e=>e.cid===c.s+c.n).length}
 function totalWords(){return evidence.reduce((a,e)=>a+(e.tx?e.tx.split(/\s+/).filter(w=>w).length:0),0)+mirrors.reduce((a,e)=>a+(e.tx?e.tx.split(/\s+/).filter(w=>w).length:0),0)}
 function updateStreak(){const td=dStr(new Date());if(lastD===td)return;const y=new Date();y.setDate(y.getDate()-1);const db=new Date();db.setDate(db.getDate()-2);if(lastD===dStr(y))streak++;else if(lastD===dStr(db))streak=Math.max(streak,1);else if(lastD)streak=1;else streak=1;lastD2=lastD;lastD=td}
@@ -2120,7 +2121,6 @@ if(onboarded)initOrb();
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>console.log('SW:',e))})}
 navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='NIGHT_SHIFT_RUN')IntelEngine?.runNightShift();});
 </script>
-<script src="/od-core.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="voice-engine.js?v=7"></script>
 </body>
