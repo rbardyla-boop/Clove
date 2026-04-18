@@ -1120,6 +1120,7 @@ function shareBar(){return`<div class="share-bar"><button class="share-btn" oncl
 // ══════ RENDER ══════
 var _rPending=false;
 function R(){if(_rPending)return;_rPending=true;requestAnimationFrame(function(){_rPending=false;_R()});}
+window.R=R;
 function _R(){
 const a=document.getElementById("app");let h='';const rank=getRank(done),nextRank=getNextRank(done);
 // ONBOARDING — first-launch only
