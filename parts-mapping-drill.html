@@ -387,9 +387,7 @@ function printSheet(){
     +'<div class="section"><div class="lbl">The Exile Underneath</div><div class="box">'+esc(last.exile)+'</div></div>'
     +'<div class="section"><div class="lbl">Message From Self</div><div class="msg-box">'+esc(last.message)+'</div></div>'
     +'<div class="footer">Operator\u2019s Deck \u2022 Parts Mapping Drill \u2022 '+esc(last.date)+'</div>'
-    +'<script src="od-core.js"></script>
-<script>injectHelpButton();</script>
-</body></html>')
+    +'</body></html>')
   pw.document.close();
   setTimeout(function(){pw.print()},400);
 }
