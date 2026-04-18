@@ -686,8 +686,8 @@ await secureLoad();
 try{var _pend=JSON.parse(localStorage.getItem('od_protocol_pending')||'null');if(_pend&&activeProtocol&&activeProtocol.key===_pend.key&&activeProtocol.step===_pend.step){localStorage.removeItem('od_protocol_pending');activeProtocol.step+=1;var _pp2=PROTOCOLS[activeProtocol.key];if(!_pp2||activeProtocol.step>=_pp2.steps.length){activeProtocol=null;odDel('active_protocol');}else{odSet('active_protocol',activeProtocol);}}}catch(_pe){}
 // Track sessions for tooltip fade-out (tips show for first 3 sessions)
 if(onboarded){sessionCount=Math.min((sessionCount||0)+1,99);saveOb();}
-function save(){odSet("od3",{s:streak,t:total,d:done,l:log.slice(0,100),p:playlist.slice(0,60),ld:lastD,ld2:lastD2,dk:darkUnlocked,dd:dailyDrawn,ci:checkIn,cid:checkInDate,ms:milestoneSeen,ciz:checkInZones,mp:musicPref,cw:cueWords,ve:voiceOn,fd:firstDraw,lp:lastPhase});}
-function saveEv(){odSet("od3ev",evidence.slice(0,500));}
+function save(){odSet("od3",{s:streak,t:total,d:done,l:log.slice(0,100),p:playlist.slice(0,60),ld:lastD,ld2:lastD2,dk:darkUnlocked,dd:dailyDrawn,ci:checkIn,cid:checkInDate,ms:milestoneSeen,ciz:checkInZones,mp:musicPref,cw:cueWords,ve:voiceOn,fd:firstDraw,lp:lastPhase}).catch(function(){showToast('\u26a0 SAVE FAILED \u2014 STORAGE FULL?',{bg:'#2a0000',color:'var(--red)',duration:4000});});}
+function saveEv(){odSet("od3ev",evidence.slice(0,500)).catch(function(){showToast('\u26a0 EVIDENCE NOT SAVED \u2014 STORAGE FULL?',{bg:'#2a0000',color:'var(--red)',duration:4000});});}
 function saveMr(){odSet("od3mr",mirrors.slice(0,100));}
 function saveSp(){odSet("od3sp",stuckPoints.slice(0,200));}
 function saveGoals(){odSet("od3_goals",goals.slice(0,50));}
@@ -885,8 +885,7 @@ window.startProtocol=function(key){
   if(activeProtocol){showToast('Finish or abandon your current protocol first',{bg:'#2a1a00',color:'var(--gld)',duration:2500});return;}
   activeProtocol={key:key,step:0,startedAt:Date.now()};
   orientMode=false;orientQ1=null;
-  odSet('active_protocol',activeProtocol);
-  R();
+  odSet('active_protocol',activeProtocol).then(function(){R();});
 };
 
 window.abandonProtocol=function(){
@@ -1781,7 +1780,7 @@ if(tab==="evidence"){
     if(evidence.length){
       var _wGroups={};
       evidence.forEach(function(e){
-        var _ed=e.date?new Date(e.date):new Date();
+        var _ed=e.ts?new Date(e.ts):(e.date?new Date(e.date):new Date());
         var _dow=_ed.getDay();
         var _ws=new Date(_ed);_ws.setDate(_ed.getDate()-_dow);
         var _wk=_ws.toISOString().slice(0,10);
@@ -1985,7 +1984,7 @@ window.closeDrawer=function(){drawerOpen=false;var el=document.getElementById('o
 window.toggleDrawerSec=function(id){drawerSec[id]=!drawerSec[id];var el=document.getElementById('opsDrawer');if(el)el.remove();drawerOpen=true;R()};
 window.drawerSub=function(sub){closeDrawer();tab='more';subTab=sub;R()};
 window.drawerDisc=function(href){closeDrawer();if(sessionStorage.getItem('od_disc_ok')==='1'){window.location=href}else{discModal=true;discTarget=href;R()}};
-window.go=t=>{drawerOpen=false;var el=document.getElementById('opsDrawer');if(el)el.remove();tab=t;subTab=null;card=null;flip=false;busy=false;msn=false;evMode=false;aarMode=false;stopBreath();R()};
+window.go=t=>{drawerOpen=false;var el=document.getElementById('opsDrawer');if(el)el.remove();tab=t;subTab=null;orientMode=false;orientQ1=null;card=null;flip=false;busy=false;msn=false;evMode=false;aarMode=false;stopBreath();R()};
 window.setF=f=>{filt=f;bFlips={};R()};
 window.doFlip=k=>{if(k==="main")flip=!flip;else bFlips[k]=!bFlips[k];R()};
 doCheckIn=mood=>{checkIn=mood;checkInDate=dStr(new Date());hap([15]);save();R()};
