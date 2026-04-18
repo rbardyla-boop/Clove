@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#08080f">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://i.scdn.co; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://accounts.spotify.com https://api.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
+<!-- CSP enforced via _headers (Cloudflare Pages) — do not duplicate here -->
 <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
 <meta name="description" content="115 tactical cards with a soundtrack. Draw. Flip. Listen. Execute. No bullshit.">
 <meta name="referrer" content="no-referrer">
@@ -2120,6 +2120,7 @@ if(onboarded)initOrb();
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>console.log('SW:',e))})}
 navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='NIGHT_SHIFT_RUN')IntelEngine?.runNightShift();});
 </script>
+<script src="/od-core.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="voice-engine.js?v=7"></script>
 </body>
