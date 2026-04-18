@@ -137,6 +137,13 @@ body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSys
 .next-step a{display:inline-block;color:#ccc;font-size:9px;font-weight:700;font-family:monospace;letter-spacing:1px;text-decoration:none;border:1px solid rgba(192,57,43,.2);border-radius:8px;padding:10px 20px;margin:4px;transition:all .2s;min-height:40px;line-height:20px}
 .next-step a:active{background:rgba(192,57,43,.1);transform:scale(.97)}
 
+/* SYMPTOM FILTER CHIPS */
+.sym-filter{display:flex;gap:5px;overflow-x:auto;padding:0 16px 4px;margin-bottom:10px;scrollbar-width:none;-ms-overflow-style:none}
+.sym-filter::-webkit-scrollbar{display:none}
+.sym-btn{flex-shrink:0;background:var(--bg2);color:var(--dim);border:1px solid var(--dim3);border-radius:20px;padding:6px 12px;font-size:8px;font-weight:700;cursor:pointer;font-family:monospace;letter-spacing:1px;transition:all .2s;min-height:32px;white-space:nowrap}
+.sym-btn.on{color:#fff;border-color:var(--blu);background:rgba(74,111,165,.12)}
+.sym-btn:active{transform:scale(.96)}
+
 /* EMPTY STATE */
 .empty-search{text-align:center;padding:40px 20px;color:var(--dim2);font-size:11px;font-family:Georgia,serif;font-style:italic}
 
@@ -582,6 +589,7 @@ var openLessons={};
 var openDeep={};
 var searchQuery='';
 var activeDomain='all';
+var activeSymptom='all';
 var _searchTimer=null;
 var _toastEl=null;
 
@@ -634,14 +642,33 @@ var SYMPTOM_MAP={
   'focus':['adhd','executive function','dopamine','body double','attention','working memory'],
   'craving':['urge surfing','relapse','trigger','substance','chain','opposite action'],
   'worthless':['self-compassion','inner critic','cognitive distortion','shame','stuck point','values'],
-  '2am':['crisis','red protocol','tipp','nervous system','sleep','window of tolerance']
+  '2am':['crisis','red protocol','tipp','nervous system','sleep','window of tolerance'],
+  // Symptom filter chip aliases
+  'anxiety':['fight or flight','amygdala','window of tolerance','defusion','tipp','nervous system'],
+  'anger':['emotional brain','amygdala','tipp','regulation','opposite action','window of tolerance'],
+  'low mood':['hypoarousal','behavioral activation','avoidance','depression','rumination','values'],
+  'rumination':['stuck point','cognitive distortion','defusion','thought','loop','reframing'],
+  'avoidance':['avoidance','exposure','opposite action','behavioral','approach','defusion'],
+  'crisis':['crisis','red protocol','tipp','survival','emergency','self-harm','suicidal']
 };
 function setSearch(v){
   var raw=String(v).toLowerCase().substring(0,200);
   var aliases=SYMPTOM_MAP[raw.trim()];
   searchQuery=aliases?aliases.join(' '):raw;
+  if(!v)activeSymptom='all';
   if(_searchTimer)clearTimeout(_searchTimer);
   _searchTimer=setTimeout(function(){_searchTimer=null;render();},150);
+}
+function setSymptom(s){
+  activeSymptom=s;
+  if(s==='all'){
+    searchQuery='';
+  } else {
+    var aliases=SYMPTOM_MAP[s];
+    searchQuery=aliases?aliases.join(' '):s;
+  }
+  if(_searchTimer)clearTimeout(_searchTimer);
+  render();
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
@@ -708,7 +735,24 @@ function render(){
 
   // Search
   h+='<div class="search-wrap"><span class="search-icon" aria-hidden="true">\uD83D\uDD0D</span><input type="text" id="fmSearch" placeholder="Search lessons..." value="'+escAttr(searchQuery)+'" oninput="setSearch(this.value)" aria-label="Search lessons"></div>';
-  h+='<div style="text-align:center;margin:-10px 16px 10px;font-size:8px;font-family:monospace;color:#555;letter-spacing:1px">TRY: <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'panic\';setSearch(\'panic\')">panic</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'shame\';setSearch(\'shame\')">shame</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'stuck\';setSearch(\'stuck\')">stuck</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'rage\';setSearch(\'rage\')">rage</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'numb\';setSearch(\'numb\')">numb</span> \u00B7 <span style="cursor:pointer;color:#777" onclick="document.getElementById(\'fmSearch\').value=\'sleep\';setSearch(\'sleep\')">sleep</span></div>';
+  var _symChips=[
+    {k:'all',   label:'ALL'},
+    {k:'anxiety',label:'ANXIETY'},
+    {k:'low mood',label:'LOW MOOD'},
+    {k:'rumination',label:'RUMINATION'},
+    {k:'anger',  label:'ANGER'},
+    {k:'avoidance',label:'AVOIDANCE'},
+    {k:'focus',  label:'FOCUS'},
+    {k:'crisis', label:'CRISIS'},
+    {k:'trauma', label:'TRAUMA'},
+    {k:'relapse',label:'RELAPSE'},
+  ];
+  h+='<div class="sym-filter" role="group" aria-label="Filter by symptom">';
+  for(var _si=0;_si<_symChips.length;_si++){
+    var _sc=_symChips[_si];
+    h+='<button class="sym-btn'+(activeSymptom===_sc.k?' on':'')+'" onclick="setSymptom(\''+escAttr(_sc.k)+'\')" aria-pressed="'+(activeSymptom===_sc.k?'true':'false')+'">'+esc(_sc.label)+'</button>';
+  }
+  h+='</div>';
 
   // Domain filters
   h+='<div class="filters" role="tablist" aria-label="Filter by domain">';

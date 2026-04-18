@@ -413,38 +413,49 @@
   }
 
   // ── HELP BUTTON ───────────────────────────────────────────────
-  // Injects a persistent crisis shortcut on every tool page except red-protocol.
-  if (typeof g.injectHelpButton !== 'function') {
-    g.injectHelpButton = function() {
-      if (document.getElementById('od-help-btn')) return;
-      if (window.location.pathname.indexOf('red-protocol') > -1) return;
+  // Injects a persistent crisis shortcut on every page except red-protocol.
+  // Auto-runs on load; safe to call again (ID guard prevents duplicates).
+  var HELP_ID = 'clove-help-btn';
+
+  function injectHelpButton() {
+    try {
+      if (document.getElementById(HELP_ID)) return;
+      var path = (location.pathname || '').toLowerCase();
+      if (path.indexOf('red-protocol') > -1) return;
       var btn = document.createElement('button');
-      btn.id = 'od-help-btn';
+      btn.id = HELP_ID;
       btn.textContent = 'HELP';
       btn.setAttribute('aria-label', 'Crisis help — tap for immediate support');
-      btn.style.cssText = [
-        'position:fixed',
-        'bottom:72px',
-        'right:16px',
-        'min-width:44px',
-        'min-height:44px',
-        'background:#c0392b',
-        'color:#fff',
-        'border:none',
-        'border-radius:8px',
-        'font-family:"Courier New",monospace',
-        'font-size:10px',
-        'font-weight:800',
-        'letter-spacing:1.5px',
-        'cursor:pointer',
-        'z-index:90',
-        'padding:0 10px',
-        'box-shadow:0 2px 12px rgba(192,57,43,.4)',
-        '-webkit-tap-highlight-color:transparent'
-      ].join(';');
-      btn.onclick = function() { window.location.href = '/red-protocol.html'; };
+      btn.style.position = 'fixed';
+      btn.style.right = '16px';
+      btn.style.bottom = '72px';
+      btn.style.zIndex = '9999';
+      btn.style.minWidth = '44px';
+      btn.style.height = '44px';
+      btn.style.padding = '0 10px';
+      btn.style.border = 'none';
+      btn.style.borderRadius = '10px';
+      btn.style.background = 'var(--red, #c0392b)';
+      btn.style.color = '#fff';
+      btn.style.fontFamily = 'DM Mono, monospace';
+      btn.style.fontSize = '10px';
+      btn.style.letterSpacing = '0.08em';
+      btn.style.cursor = 'pointer';
+      btn.style.boxShadow = '0 6px 18px rgba(0,0,0,0.35)';
+      btn.style.webkitTapHighlightColor = 'transparent';
+      btn.onclick = function() { location.href = '/red-protocol.html'; };
       document.body.appendChild(btn);
-    };
+    } catch (err) {
+      console.error('HELP button injection failed:', err);
+    }
+  }
+
+  g.injectHelpButton = injectHelpButton;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectHelpButton, { once: true });
+  } else {
+    injectHelpButton();
   }
 
   // ── VERSION STAMP ─────────────────────────────────────────────
