@@ -128,11 +128,9 @@
     // ────────────────────────────────────────────────────────────────────────
 
     var homePos   = new Float32Array(posArr);           // snapshot of initial sphere
-    var targetPos = new Float32Array(N * 3);            // morph destination buffer
     var morphT    = 1;                                  // 0→1 progress (1 = idle)
     var morphDur  = 0;                                  // seconds
     var morphStart = 0;                                 // performance.now() stamp
-    var morphFrom = new Float32Array(N * 3);            // snapshot at morph start
 
     // ── Shape generators ──────────────────────────────────────────────────
     // Each fn(i, N, R) → [x, y, z] for particle i of N within radius R.
@@ -202,17 +200,26 @@
       var gen = shapes[shapeName];
       if (!gen) return;
 
-      // Snapshot current positions as morph origin
-      var curPos = geo.attributes.position.array;
-      morphFrom.set(curPos);
+      // Mid-morph interrupt: bake current interpolated state into position
+      if (morphT < 1 && morphT > 0) {
+        var snap    = geo.attributes.position.array;
+        var snapTgt = geo.attributes.aTarget.array;
+        var curT    = mat.uniforms.uMorphT.value;
+        for (var si = 0, slen = snap.length; si < slen; si++)
+          snap[si] = snap[si] + (snapTgt[si] - snap[si]) * curT;
+        geo.attributes.position.needsUpdate = true;
+        mat.uniforms.uMorphT.value = 0;
+      }
 
-      // Generate target positions
+      // Write target positions directly into the aTarget GPU attribute
+      var tgt = geo.attributes.aTarget.array;
       for (var i = 0; i < N; i++) {
         var p = gen(i, N, SPHERE_RADIUS);
-        targetPos[i * 3]     = p[0];
-        targetPos[i * 3 + 1] = p[1];
-        targetPos[i * 3 + 2] = p[2];
+        tgt[i * 3]     = p[0];
+        tgt[i * 3 + 1] = p[1];
+        tgt[i * 3 + 2] = p[2];
       }
+      geo.attributes.aTarget.needsUpdate = true;
 
       morphDur   = duration || 3;
       morphStart = performance.now();
@@ -225,21 +232,44 @@
     geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
     geo.setAttribute('aColor',   new THREE.BufferAttribute(colArr, 3));
 
+    var targetArr = new Float32Array(posArr);           // GPU morph target (starts at home)
+    geo.setAttribute('aTarget',  new THREE.BufferAttribute(targetArr, 3));
+
+    var velArr = new Float32Array(N * 3);
+    for (var vi = 0; vi < N; vi++) {
+      var vx = (Math.random() - 0.5) * 2;
+      var vy = (Math.random() - 0.5) * 2;
+      var vz = (Math.random() - 0.5) * 2;
+      var mag = 0.3 + Math.random() * 0.7;
+      var vlen = Math.sqrt(vx*vx + vy*vy + vz*vz) || 1;
+      velArr[vi*3]   = (vx/vlen) * mag;
+      velArr[vi*3+1] = (vy/vlen) * mag;
+      velArr[vi*3+2] = (vz/vlen) * mag;
+    }
+    geo.setAttribute('aVelocity', new THREE.BufferAttribute(velArr, 3));
+
     // ── Shaders ───────────────────────────────────────────────────────────
     // Vertex: perspective-correct point size + per-particle brightness pulse
     // Fragment: radial soft glow with bright core, additive blending
     var vertexShader = [
       'uniform float uTime;',
       'uniform float uSize;',
+      'uniform float uMorphT;',
       'attribute vec3 aColor;',
+      'attribute vec3 aTarget;',
+      'attribute vec3 aVelocity;',
       'varying vec3 vColor;',
       '',
       'void main() {',
-      '  // Animate brightness: slow sine keyed to position prevents lock-step flash',
-      '  float pulse = 0.8 + 0.2 * sin(uTime * 0.5 + position.x * 0.008 + position.z * 0.006);',
+      '  // GPU-interpolated morph position (zero cost when uMorphT = 0)',
+      '  vec3 morphed = mix(position, aTarget, uMorphT);',
+      '  // Velocity drift: organic micro-movement keyed per-particle via morphed.x',
+      '  morphed += aVelocity * sin(uTime * 0.3 + morphed.x * 0.01) * 8.0;',
+      '  // Animate brightness: slow sine keyed to morphed position prevents lock-step flash',
+      '  float pulse = 0.8 + 0.2 * sin(uTime * 0.5 + morphed.x * 0.008 + morphed.z * 0.006);',
       '  vColor = aColor * pulse;',
       '',
-      '  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
+      '  vec4 mvPosition = modelViewMatrix * vec4(morphed, 1.0);',
       '  // Perspective scale: particles farther away appear smaller',
       '  gl_PointSize = uSize * (800.0 / -mvPosition.z);',
       '  gl_Position  = projectionMatrix * mvPosition;',
@@ -257,6 +287,9 @@
       '',
       '  // Outer glow: smooth fade from edge to ~10% radius',
       '  float alpha = smoothstep(0.5, 0.05, d);',
+      '  // Depth fog: particles farther from camera fade out',
+      '  float depth = gl_FragCoord.z;',
+      '  alpha *= (1.0 - depth * 0.55);',
       '  // Inner spark: extra brightness in the core',
       '  float core  = smoothstep(0.2, 0.0, d) * 0.55;',
       '',
@@ -266,8 +299,9 @@
 
     var mat = new THREE.ShaderMaterial({
       uniforms: {
-        uTime: { value: 0.0 },
-        uSize: { value: SIZE * dpr }  // scale for device pixel ratio
+        uTime:   { value: 0.0 },
+        uSize:   { value: SIZE * dpr },  // scale for device pixel ratio
+        uMorphT: { value: 0.0 }          // 0 = at position, 1 = at aTarget
       },
       vertexShader:   vertexShader,
       fragmentShader: fragmentShader,
@@ -304,11 +338,33 @@
     var active        = true;
     var lastFrameTime = performance.now();
 
+    // ── FPS sampler — auto-reduce quality if sustained low FPS ───────────
+    var fpsSamples   = [];
+    var fpsSettled   = false;
+    var qualityReduced = false;
+    function reduceQuality() {
+      if (qualityReduced) return;
+      qualityReduced = true;
+      geo.setDrawRange(0, Math.floor(N / 2));
+      mat.uniforms.uSize.value *= 0.8;
+    }
+
     function frame(now) {
       rafId = requestAnimationFrame(frame);
       if (!now) now = performance.now();
       var delta = Math.min((now - lastFrameTime) / 1000, 0.1);
       lastFrameTime = now;
+
+      // FPS sampling: collect 120 frames then decide once
+      if (!fpsSettled && delta > 0) {
+        fpsSamples.push(1 / delta);
+        if (fpsSamples.length >= 120) {
+          fpsSettled = true;
+          var sum = 0;
+          for (var fi = 0; fi < fpsSamples.length; fi++) sum += fpsSamples[fi];
+          if (sum / fpsSamples.length < 40) reduceQuality();
+        }
+      }
 
       // Time-based uniform drives the per-particle pulse in the vert shader
       mat.uniforms.uTime.value += delta;
@@ -324,19 +380,23 @@
       points.rotation.x = baseRotX + currOffX;
       points.rotation.y = baseRotY + currOffY;
 
-      // ── Morph interpolation (no-op when morphT >= 1) ────────────────────
+      // ── Morph interpolation — GPU-driven via uMorphT uniform ───────────
       if (morphT < 1) {
         morphT = Math.min((performance.now() - morphStart) / (morphDur * 1000), 1);
-        // Ease-in-out cubic for organic feel
+        // Ease-in-out cubic: JS computes eased t, GPU does linear mix()
         var t = morphT < 0.5
           ? 4 * morphT * morphT * morphT
           : 1 - Math.pow(-2 * morphT + 2, 3) / 2;
-
-        var pos = geo.attributes.position.array;
-        for (var mi = 0, len = pos.length; mi < len; mi++) {
-          pos[mi] = morphFrom[mi] + (targetPos[mi] - morphFrom[mi]) * t;
-        }
+        mat.uniforms.uMorphT.value = t;
+      }
+      // Completion swap: bake aTarget into position so uMorphT resets to 0
+      // without a visual snap on the next morph call
+      if (morphT >= 1 && mat.uniforms.uMorphT.value > 0) {
+        var cpos = geo.attributes.position.array;
+        var ctgt = geo.attributes.aTarget.array;
+        for (var ci = 0, clen = cpos.length; ci < clen; ci++) cpos[ci] = ctgt[ci];
         geo.attributes.position.needsUpdate = true;
+        mat.uniforms.uMorphT.value = 0;
       }
       // ── End morph interpolation ─────────────────────────────────────────
 

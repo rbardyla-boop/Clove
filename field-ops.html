@@ -1110,6 +1110,7 @@ function buildEntry(){
   } else {
     renderHook();
   }
+  if(window.odMorph) window.odMorph('sphere',3);
 }
 
 // HOOK — first visit, no profile data yet
@@ -1343,12 +1344,14 @@ function renderStatusBar(prof){
 
 /* ─── ENTRY PATHS ─────────────────────────────────────────────────────────── */
 // Path A: choose state → STATE screen
+var STATE_SHAPE={discipline:'torus',focus:'helix',anger:'scatter',numb:'sphere',direction:'helix',relationships:'torus'};
 function enterState(s){
   currentState=s;
   fromReturn=false;
   hideMem();
   loadStateScreen(s);
   show('state');
+  if(window.odMorph&&STATE_SHAPE[s]) window.odMorph(STATE_SHAPE[s],2.5);
 }
 
 // Path B: RANDOM → skip state screen, go straight to output
@@ -1358,6 +1361,7 @@ function enterRandom(){
   startSession(currentState,0);
   renderCard();
   show('output');
+  if(window.odMorph&&STATE_SHAPE[currentState]) window.odMorph(STATE_SHAPE[currentState],2.5);
 }
 
 // Path C: RETURN → show state screen with memory banner
@@ -2009,6 +2013,7 @@ function showDebrief(){
   }
 
   show('debrief');
+  if(window.odMorph) window.odMorph('sphere',3);
 }
 
 function runAgain(){
