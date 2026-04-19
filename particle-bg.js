@@ -41,7 +41,7 @@
 
   function init() {
     if (typeof THREE === 'undefined') return;
-    try { if (localStorage.getItem('od_particles') === 'false') return; } catch(e) {}
+    try { if (localStorage.getItem('od_particles') !== 'true') return; } catch(e) {}
 
     var isMobile = window.matchMedia('(max-width: 768px)').matches;
     var N   = isMobile ? N_MOBILE : N_DESKTOP;
