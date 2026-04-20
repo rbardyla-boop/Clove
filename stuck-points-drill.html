@@ -523,8 +523,6 @@ function printSheet(){
   <div class="section"><div class="lbl">${last.errors?.length?6:5} — Balanced Alternative Thought</div><div class="box bal-box">${esc((last.newThought||'(not filled)').replace(/\n/g,'<br>'))}</div></div>
   ${eRows?`<div class="section"><div class="lbl">Emotion Shift (Before → After)</div><table><tr><th>Emotion</th><th>Before</th><th>After</th><th>Result</th></tr>${eRows}</table></div>`:''}
   <div class="footer">Operator's Deck — clovelearn.io &nbsp;|&nbsp; Built by a communications specialist, not a clinician &nbsp;|&nbsp; Bring this to your therapist</div>
-  <script src="od-core.js"></script>
-<script>injectHelpButton();</script>
 </body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
 }
 

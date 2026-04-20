@@ -458,8 +458,6 @@ function printSheet(){
   ${last.patterns&&last.patterns.length?`<div class="section"><div class="lbl">5 — RSD Patterns Identified</div><div>${last.patterns.map(p=>`<span class="badge">${esc(p)}</span>`).join('')}</div></div>`:''}
   <div class="section"><div class="lbl">6 — Calibrated Read</div><div class="box bal-box">${esc((last.reframe||'(not filled)').replace(/\n/g,'<br>'))}</div></div>
   <div class="footer">Operator's Deck — clovelearn.io &nbsp;|&nbsp; Built by a communications specialist, not a clinician &nbsp;|&nbsp; Bring this to your therapist</div>
-  <script src="od-core.js"></script>
-<script>injectHelpButton();</script>
 </body></html>`);pw.document.close();setTimeout(()=>pw.print(),400);
 }
 
