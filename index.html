@@ -1143,7 +1143,7 @@ if(rosaModal){
   var _rdFilled=Object.keys(rosaZones).length;
   h+=`<div class="ob" style="padding:0;justify-content:flex-start;overflow-y:auto">`;
   h+=`<div style="position:sticky;top:0;background:#000;padding:18px 20px 14px;width:100%;border-bottom:1px solid rgba(255,255,255,.05);z-index:1">`;
-  h+=`<div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--red);margin-bottom:3px">STATUS CHECK</div><div style="font-size:16px;font-weight:900;letter-spacing:.5px">DAILY INTEL</div></div><button onclick="rosaModal=false;R()" style="background:none;border:1px solid #333;color:#666;border-radius:8px;padding:6px 12px;font-size:9px;font-family:monospace;letter-spacing:1px;cursor:pointer">SKIP</button></div>`;
+  h+=`<div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--red);margin-bottom:3px">STATUS CHECK</div><div style="font-size:16px;font-weight:900;letter-spacing:.5px">DAILY INTEL</div></div></div>`;
   h+=`<div style="display:flex;gap:4px;margin-top:10px">${_rd.map(function(d){var f=!!rosaZones[d.k];return'<div style="flex:1;height:3px;border-radius:2px;background:'+(f?'var(--red)':'#222')+'"></div>';}).join('')}</div>`;
   h+=`</div>`;
   h+=`<div style="padding:16px 20px;width:100%">`;
@@ -2181,6 +2181,7 @@ window.odIntegrity=async function(){
 };
 // ── Restore tab from URL param (drills link back with ?tab=tools) ──
 (function(){try{const p=new URLSearchParams(location.search).get('tab');if(p&&['home','browse','playlist','evidence','tools'].includes(p)){tab=p;}if(location.protocol!=='about:')history.replaceState(null,'',location.pathname);}catch(e){}}());
+if(!checkedInToday())rosaModal=true;
 R();
 })();
 // ── OFFLINE INDICATOR ──
