@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Free VAC benefits navigator for Canadian veterans. Find your eligibility and draft your application — fully offline, no data leaves your device.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; img-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; worker-src blob:; connect-src 'none'; img-src 'none' blob: data:;">
 <title>VAC Navigator — Operator's Deck</title>
 <style>
   :root {
@@ -629,6 +629,321 @@
     font-size: 10px;
   }
 
+  /* ── ATIP BUILDER ── */
+  .atip-section {
+    margin-top: 28px;
+    border-top: 1px solid var(--dim);
+    padding-top: 20px;
+  }
+  .atip-section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .atip-section-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .atip-profile-form {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    border-left: 3px solid var(--gold);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .atip-profile-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .atip-profile-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-family: var(--mono);
+  }
+  .atip-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 520px) { .atip-profile-grid { grid-template-columns: 1fr; } }
+  .atip-field { display: flex; flex-direction: column; gap: 4px; }
+  .atip-field.full-width { grid-column: 1 / -1; }
+  .atip-field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .atip-field input,
+  .atip-field textarea {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .atip-field input:focus,
+  .atip-field textarea:focus { border-color: var(--gold); }
+  .atip-field textarea { resize: vertical; min-height: 60px; }
+  .atip-field input::placeholder,
+  .atip-field textarea::placeholder { color: var(--muted); }
+  .atip-save-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 10px;
+    letter-spacing: 0.05em;
+  }
+  .btn-atip {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 11px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-right: 8px;
+    margin-top: 8px;
+  }
+  .btn-atip:hover { background: var(--gold); color: #08080f; }
+  .btn-atip.copied { border-color: var(--green); color: var(--green); }
+  .atip-letter-preview {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    padding: 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    white-space: pre-wrap;
+    margin-top: 12px;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .atip-letter-preview.visible { display: block; }
+  .atip-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+  .atip-callout {
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-top: 14px;
+  }
+  .atip-callout strong {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── DOCUMENT READER ── */
+  .doc-reader-section {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    border-left: 3px solid var(--gold);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .doc-reader-header {
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+    border-bottom: 1px solid var(--dim);
+  }
+  .doc-reader-header:hover { background: var(--bg3); }
+  .doc-reader-header-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .doc-reader-header-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .doc-reader-body { padding: 16px; display: none; }
+  .doc-reader-section.open .doc-reader-body { display: block; }
+  .doc-drop-zone {
+    border: 2px dashed var(--dim);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .doc-drop-zone:hover,
+  .doc-drop-zone.drag-over { border-color: var(--gold); }
+  .doc-drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .doc-drop-icon  { font-size: 24px; margin-bottom: 8px; color: var(--muted); }
+  .doc-drop-label { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
+  .doc-drop-sublabel { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .doc-privacy-banner {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 12px;
+    font-family: var(--mono);
+  }
+  .doc-processing {
+    text-align: center;
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gold);
+    display: none;
+  }
+  .doc-analysis-card { margin-top: 16px; border: 1px solid var(--dim); }
+  .doc-analysis-header { background: var(--bg3); padding: 14px 16px; border-bottom: 1px solid var(--dim); }
+  .doc-analysis-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .doc-analysis-meta { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; font-family: var(--mono); }
+  .doc-strength-label { font-family: var(--mono); font-size: 12px; font-weight: bold; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .doc-strength-bar  { height: 4px; background: var(--dim); width: 100%; }
+  .doc-strength-fill { height: 100%; transition: width 0.4s; }
+  .doc-section { padding: 14px 16px; border-bottom: 1px solid var(--dim); }
+  .doc-section:last-child { border-bottom: none; }
+  .doc-section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .doc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .doc-tag { font-size: 11px; padding: 3px 9px; font-family: var(--mono); letter-spacing: 0.04em; text-transform: capitalize; }
+  .doc-tag-found   { background: rgba(39,174,96,0.15); border: 1px solid var(--green); color: var(--green); }
+  .doc-tag-missing { background: rgba(192,57,43,0.1); border: 1px solid var(--red-dim, rgba(231,76,60,.3)); color: var(--red); }
+  .doc-nexus-warning {
+    margin: 0 16px 14px;
+    padding: 14px;
+    background: rgba(192,57,43,0.08);
+    border: 1px solid var(--red-dim, rgba(231,76,60,.3));
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .doc-nexus-warning strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .doc-nexus-warning strong + strong { margin-top: 12px; }
+  .doc-reqs { display: flex; flex-direction: column; gap: 8px; }
+  .doc-req-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg3);
+  }
+  .doc-req-item.req-met     { border-left: 3px solid var(--green); }
+  .doc-req-item.req-missing { border-left: 3px solid var(--red); }
+  .doc-req-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; width: 16px; }
+  .req-met .doc-req-icon     { color: var(--green); }
+  .req-missing .doc-req-icon { color: var(--red); }
+  .doc-req-body  { flex: 1; min-width: 0; }
+  .doc-req-label { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .doc-req-fix   { font-size: 12px; color: var(--gold); line-height: 1.5; padding-left: 2px; }
+  .doc-req-critical {
+    font-family: var(--mono);
+    font-size: 9px;
+    background: var(--red);
+    color: #fff;
+    padding: 2px 6px;
+    flex-shrink: 0;
+    letter-spacing: 0.08em;
+    height: fit-content;
+  }
+  .doc-privacy-note {
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    border-top: 1px solid var(--dim);
+    background: var(--bg3);
+  }
+  .doc-clear-btn {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 7px 12px;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.15s;
+  }
+  .doc-clear-btn:hover { color: var(--red); border-color: var(--red); }
+  .atip-submit-targets {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 520px) { .atip-submit-targets { grid-template-columns: 1fr; } }
+  .atip-target {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    padding: 12px 14px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .atip-target strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text);
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
   .vac-link {
     display: inline-block;
     margin-top: 12px;
@@ -711,6 +1026,170 @@
     color: var(--text-dim);
   }
   .crisis-item strong { color: var(--text); font-family: var(--mono); font-size: 11px; }
+
+  /* ── DENIAL GATE ── */
+  .denial-gate {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .denial-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+  .denial-opt {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
+  .denial-opt:hover { color: var(--text); border-color: var(--muted); }
+  .denial-opt.active-never   { border-color: var(--green); color: var(--green); }
+  .denial-opt.active-pending { border-color: var(--gold);  color: var(--gold); }
+  .denial-opt.active-denied  { border-color: var(--red);   color: var(--red); }
+  .denial-extra {
+    margin-top: 14px;
+    border-top: 1px solid var(--dim);
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .denial-extra-row { display: flex; flex-direction: column; }
+  .denial-select {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 9px 12px;
+    outline: none;
+    cursor: pointer;
+  }
+  .denial-select:focus { border-color: var(--red-dim, rgba(231,76,60,.3)); }
+  .denial-date-input {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 9px 12px;
+    outline: none;
+    width: 200px;
+    color-scheme: dark;
+  }
+  .denial-date-input:focus { border-color: var(--red-dim, rgba(231,76,60,.3)); }
+  .denial-window-notice {
+    margin-top: 10px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.6;
+    letter-spacing: 0.03em;
+  }
+  .denial-window-notice.window-open   { border: 1px solid var(--gold); color: var(--gold); }
+  .denial-window-notice.window-closed { border: 1px solid var(--red);  color: var(--text-dim); }
+
+  /* ── APPEAL SECTION (renders on matched card) ── */
+  .appeal-section {
+    border-top: 1px solid var(--dim);
+    padding: 14px 16px;
+    background: var(--bg2);
+  }
+  .appeal-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .appeal-steps { display: flex; flex-direction: column; gap: 10px; }
+  .appeal-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+  }
+  .appeal-step.step-available   { border-left: 3px solid var(--green); }
+  .appeal-step.step-unavailable { border-left: 3px solid var(--dim); opacity: 0.55; }
+  .appeal-step-num {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--red);
+    flex-shrink: 0;
+    width: 24px;
+  }
+  .appeal-step-body { flex: 1; min-width: 0; }
+  .appeal-step-name   { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .appeal-step-detail { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .appeal-step-window { font-family: var(--mono); font-size: 10px; margin-top: 4px; }
+  .window-urgent { color: var(--red); }
+  .window-ok     { color: var(--green); }
+  .denial-reasons-section {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+  }
+  .denial-reasons-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .denial-reason-item {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--dim);
+  }
+  .denial-reason-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .denial-reason-label { font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+  .denial-reason-fix {
+    font-size: 12px;
+    color: var(--green);
+    padding-left: 12px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .denial-reason-fix::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-family: var(--mono);
+  }
+  .bpa-callout {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--green);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .bpa-callout strong {
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
 
   /* ── DISCLAIMER ── */
   .disclaimer {
@@ -919,6 +1398,16 @@ const BENEFITS = [
       "Was it during active service or training?",
       "Do you have a medical diagnosis document?"
     ],
+    appeal_path: [
+      { step:1, body:"Departmental Review",                     window:"90 days from decision letter", cost:"Free" },
+      { step:2, body:"Veterans Review and Appeal Board (VRAB)", window:"After Departmental Review",    cost:"Free. Bureau of Pensions Advocates (BPA) provides free legal representation for VRAB hearings.", note:"VRAB applies a 'benefit of the doubt' standard — ambiguous evidence is resolved in the veteran's favour. Always pursue VRAB if denied." },
+      { step:3, body:"Federal Court — Judicial Review",         window:"",                             cost:"Requires lawyer" }
+    ],
+    common_denial_reasons: [
+      { reason:"Service connection not established",                   fix:"Obtain a medical opinion letter explicitly linking the condition to specific service activities, training, or deployment." },
+      { reason:"Condition predates service or is a pre-existing condition", fix:"If CAF service aggravated a pre-existing condition, this still qualifies. Document the aggravation specifically." },
+      { reason:"Insufficient medical evidence",                        fix:"Get specialist assessment. VAC-contracted Medical Advisory Services can also assess — ask your case manager." }
+    ],
     concurrent_benefits: {
       stacks_with: [
         { id:"income-replacement",   type:"always",      gate_intake_id:null,           gate_answer:null,  note:"PSC does NOT reduce IRB. Apply for both simultaneously — this is the most commonly missed combination." },
@@ -967,6 +1456,17 @@ const BENEFITS = [
       "What was your approximate pre-release salary?",
       "What disability prevents you from working?",
       "Have you applied for Canada Pension Plan Disability (CPP-D)?"
+    ],
+    appeal_path: [
+      { step:1, body:"Departmental Review",                      window:"90 days from the date of the original decision letter", cost:"Free",                                                                                              note:"Submit any new medical evidence at this stage. Departmental Reviews are decided by a different adjudicator than the original." },
+      { step:2, body:"Veterans Review and Appeal Board (VRAB)",  window:"Apply after completing Departmental Review",            cost:"Free. Free representation available through Bureau of Pensions Advocates (BPA) or Royal Canadian Legion Service Officers", note:"VRAB is independent of VAC. DEC overturn rates at VRAB are significant. Always use a representative — success rates are higher with representation." },
+      { step:3, body:"Federal Court — Judicial Review",          window:"30 days from VRAB final decision",                      cost:"Requires legal counsel — not free",                                                                  note:"Only reviews errors of law or process, not the merits of the medical evidence. Rare recourse." }
+    ],
+    common_denial_reasons: [
+      { reason:"Condition not linked to CAF service",              fix:"Obtain a medical opinion letter that explicitly states the causal relationship between the condition and service activities, training, or deployment." },
+      { reason:"No documented barrier to re-establishment",        fix:"The application must articulate how the condition prevents the veteran from working at or near pre-release income level. Functional capacity assessments help." },
+      { reason:"Not enrolled in VAC Rehabilitation Program",       fix:"Apply for Rehab simultaneously with IRB. They are processed together. Without Rehab enrollment or DEC, IRB has no home." },
+      { reason:"DEC denied — veteran deemed capable of some employment", fix:"Appeal to VRAB. DEC appeals have historically high overturn rates. The standard ('suitable gainful employment') is frequently misapplied. Get VRAB representation." }
     ],
     concurrent_benefits: {
       stacks_with: [
@@ -1338,6 +1838,12 @@ function renderIntake() {
         '<button class="intake-btn" onclick="copyFilledDraft(this)" style="width:100%;margin-bottom:10px">COPY DRAFT TEXT</button>' +
         '<button class="intake-btn" onclick="closeIntake()" style="width:100%">← BACK TO RESULTS</button>' +
         buildConcurrentSection(benefit.id, answers) +
+        buildATIPSection(
+          benefit.id,
+          answers,
+          denialState === 'denied',
+          denialDate || ''
+        ) +
       '</div>';
   } else {
     const q = questions[step];
@@ -1535,6 +2041,229 @@ function downloadPackage(benefitId) {
   if (hist.length > 20) hist.pop();
   localStorage.setItem('od_vac_history', JSON.stringify(hist));
 }
+
+// ── PDF.js LAZY LOADER ────────────────────────────────
+const PDFJS_CDN    = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pdfJsLoaded = false;
+
+function loadPDFJS() {
+  return new Promise((resolve, reject) => {
+    if (pdfJsLoaded && window.pdfjsLib) { resolve(); return; }
+    const script = document.createElement('script');
+    script.src = PDFJS_CDN;
+    script.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+      pdfJsLoaded = true;
+      resolve();
+    };
+    script.onerror = () => reject(new Error('PDF.js failed to load'));
+    document.head.appendChild(script);
+  });
+}
+
+async function extractTextFromPDF(file) {
+  await loadPDFJS();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pages = [];
+  for (let i = 1; i <= Math.min(pdf.numPages, 30); i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    pages.push(content.items.map(item => item.str).join(' '));
+  }
+  return pages.join('\n');
+}
+
+// ── ATIP STATE ─────────────────────────────────────
+const ATIP_PROFILE_KEY = 'od_vac_atip_profile';
+
+function loadATIPProfile() {
+  try { return JSON.parse(localStorage.getItem(ATIP_PROFILE_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+
+function saveATIPProfile(profile) {
+  try { localStorage.setItem(ATIP_PROFILE_KEY, JSON.stringify(profile)); }
+  catch(e) {}
+}
+
+function readATIPProfileFromForm(prefix) {
+  const get = id => {
+    const el = document.getElementById(prefix + id);
+    return el ? el.value.trim() : '';
+  };
+  return {
+    full_name:  get('atip_name'),
+    dob:        get('atip_dob'),
+    vac_number: get('atip_vac'),
+    address:    get('atip_address')
+  };
+}
+
+function fillATIPProfileForm(profile, prefix) {
+  const set = (id, val) => {
+    const el = document.getElementById(prefix + id);
+    if (el && val) el.value = val;
+  };
+  set('atip_name',    profile.full_name  || '');
+  set('atip_dob',     profile.dob        || '');
+  set('atip_vac',     profile.vac_number || '');
+  set('atip_address', profile.address    || '');
+}
+
+function ph(val, label) {
+  return val ? val : '[' + label + ']';
+}
+
+// ── DENIAL STATE ──────────────────────────────────
+let denialState = 'never'; // 'never' | 'pending' | 'denied'
+let deniedBenefitId = null;
+let denialDate = null;
+
+function setDenialState(val, btn) {
+  denialState = val;
+  document.querySelectorAll('.denial-opt').forEach(b => {
+    b.classList.remove('active-never','active-pending','active-denied');
+  });
+  if (btn) btn.classList.add('active-' + val);
+  const extra = document.getElementById('denialExtra');
+  if (val === 'denied') {
+    extra.style.display = 'block';
+  } else {
+    extra.style.display = 'none';
+    document.getElementById('denialWindowNotice').style.display = 'none';
+  }
+}
+
+function calcDenialWindow(dateStr) {
+  if (!dateStr) return null;
+  const decision = new Date(dateStr);
+  const now = new Date();
+  const diffDays = Math.round((now - decision) / 86400000);
+  const deptDeadline = 90;
+  return { diffDays, deptOpen: diffDays <= deptDeadline };
+}
+
+function renderDenialWindowNotice() {
+  const dateVal = document.getElementById('denialDateInput').value;
+  const benefitVal = document.getElementById('deniedBenefitSelect').value;
+  denialDate = dateVal || null;
+  deniedBenefitId = benefitVal || null;
+  const notice = document.getElementById('denialWindowNotice');
+  if (!dateVal) { notice.style.display = 'none'; return; }
+  const w = calcDenialWindow(dateVal);
+  if (!w) { notice.style.display = 'none'; return; }
+  notice.style.display = 'block';
+  if (w.deptOpen) {
+    const remaining = 90 - w.diffDays;
+    notice.className = 'denial-window-notice window-open';
+    notice.innerHTML =
+      '⚡ DEPARTMENTAL REVIEW WINDOW OPEN — ' + remaining + ' day' + (remaining !== 1 ? 's' : '') + ' remaining.<br>' +
+      'Submit a written Departmental Review request to VAC immediately.<br>' +
+      'Include any new medical evidence not in the original application.';
+  } else {
+    notice.className = 'denial-window-notice window-closed';
+    notice.innerHTML =
+      '⚠ DEPARTMENTAL REVIEW WINDOW CLOSED (' + w.diffDays + ' days since decision).<br>' +
+      'Proceed directly to the Veterans Review and Appeal Board (VRAB).<br>' +
+      'Free representation: Bureau of Pensions Advocates — 1-877-228-2250';
+  }
+}
+
+// ── MEDICAL DOCUMENT ANALYSIS TAXONOMY ───────────────
+const MED_TAXONOMY = {
+  diagnoses: [
+    "ptsd","post-traumatic stress","post traumatic stress",
+    "major depressive","depression","anxiety","adjustment disorder",
+    "moral injury","operational stress","osi",
+    "tinnitus","hearing loss","sensorineural",
+    "lumbar","cervical","thoracic","herniation","disc",
+    "degenerative disc","spondylosis","radiculopathy",
+    "knee","meniscus","acl","mcl","patella",
+    "shoulder","rotator cuff","labrum","impingement",
+    "traumatic brain injury","tbi","concussion","mild tbi",
+    "chronic pain","fibromyalgia","myofascial",
+    "sleep disorder","insomnia","sleep apnea",
+    "substance use","alcohol use disorder","addiction",
+    "hypertension","cardiovascular","cardiac",
+    "diabetes","metabolic","obesity",
+    "irritable bowel","ibs","gastrointestinal",
+    "dermatitis","eczema","psoriasis",
+    "gulf war","medically unexplained","multi-symptom"
+  ],
+  nexus_present: [
+    "attributable to service","related to service",
+    "resulted from","caused by","arising from",
+    "in my opinion","it is my opinion","it is my view",
+    "more likely than not","on the balance",
+    "service connection","service-related",
+    "aggravated by service","worsened by service",
+    "exacerbated by","precipitated by",
+    "directly linked","directly related",
+    "consistent with","consistent history",
+    "deployment","operational","military service",
+    "while serving","during service","period of service",
+    "training injury","training accident",
+    "occupational exposure","noise-induced"
+  ],
+  date_indicators: [
+    "onset","first presented","first noted","first reported",
+    "date of injury","injury date","incident date",
+    "initially diagnosed","initial diagnosis",
+    "first symptoms","symptom onset",
+    "presented in","presented on","presented with",
+    "history of","chronic since","since approximately"
+  ],
+  opinion_strength: [
+    "in my opinion","it is my opinion","i believe",
+    "i conclude","i determine","my assessment is",
+    "based on my examination","based on my review",
+    "to a reasonable degree","medical certainty",
+    "more probable than not","on the balance of probabilities"
+  ],
+  vac_requirements: [
+    {
+      id: "diagnosis",
+      label: "Diagnosis documented",
+      keywords: [],
+      critical: true
+    },
+    {
+      id: "nexus",
+      label: "Service connection stated (nexus)",
+      keywords: [],
+      critical: true,
+      missing_fix: "Ask your physician to add a paragraph explicitly stating whether, in their medical opinion, the condition is related to, caused by, or aggravated by your military service. This is the single most common reason VAC denies claims."
+    },
+    {
+      id: "onset_date",
+      label: "Date of onset or first presentation documented",
+      keywords: [],
+      critical: true,
+      missing_fix: "Ask your physician to document when the condition first appeared or was first reported, ideally with a specific year or range."
+    },
+    {
+      id: "physician_opinion",
+      label: "Physician's professional opinion included",
+      keywords: [],
+      critical: false,
+      missing_fix: "A letter that states facts but contains no physician opinion is weak evidence. Ask your doctor to include their opinion on causation."
+    },
+    {
+      id: "functional_impact",
+      label: "Functional impact on work or daily life described",
+      keywords: [
+        "unable to","difficulty","impairs","limits","affects",
+        "cannot perform","interferes","reduces capacity",
+        "work capacity","daily activities","quality of life",
+        "functional limitation","disability","impairment"
+      ],
+      critical: false,
+      missing_fix: "Ask your physician to describe how the condition affects your ability to work and perform daily activities. This supports both PSC assessment and IRB barrier-to-re-establishment."
+    }
+  ]
+};
 
 const STOPWORDS = new Set([
   "i","me","my","we","our","you","your","he","she","it","they","am","is","are",
@@ -1746,6 +2475,13 @@ function renderBenefitCard(benefit, rank) {
           <br>
           <a class="vac-link" href="${esc(benefit.url)}" target="_blank" rel="noopener noreferrer">→ OFFICIAL VAC PAGE ↗</a>
         </div>
+        ${(denialState === 'denied' &&
+           (deniedBenefitId === benefit.id || !deniedBenefitId)) ?
+          buildAppealSection(
+            benefit.id,
+            denialDate,
+            denialDate ? calcDenialWindow(denialDate) : null
+          ) : ''}
       </div>
     </div>
   `;
@@ -1826,6 +2562,399 @@ function toggleCard(id) {
   const card = document.getElementById('card-' + id);
   if (!card) return;
   card.classList.toggle('open');
+}
+
+function buildATIPSection(benefitId, intakeAnswers, isDenial, denialDateStr) {
+  const profileFormId = 'atipProfile_' + (benefitId || 'main');
+  const profile = loadATIPProfile();
+
+  const denialContext = isDenial
+    ? '<div class="atip-section-desc">You were denied. VAC made that decision using records you have never seen. An ATIP request gets you your complete file — every adjudicator note, every medical opinion VAC obtained, every piece of paper they used. Read it before your appeal. This is free and is your legal right.</div>'
+    : '<div class="atip-section-desc">Before or after applying, you can request your complete CAF medical records from DND and your VAC client file. Veterans are regularly denied because records were missing — request them now so they are on file when VAC adjudicates.</div>';
+
+  return '<div class="atip-section">' +
+    '<div class="atip-section-title">' +
+      (isDenial ? '⚡ STEP 0 — GET YOUR VAC FILE (DO THIS FIRST)' : '// ATIP — REQUEST YOUR RECORDS') +
+    '</div>' +
+    denialContext +
+    '<div class="atip-profile-form">' +
+      '<div class="atip-profile-title">YOUR DETAILS — FOR THE REQUEST LETTERS</div>' +
+      '<div class="atip-profile-note">STORED LOCALLY ONLY. NEVER TRANSMITTED. Prefilled next visit.</div>' +
+      '<div class="atip-profile-grid">' +
+        '<div class="atip-field">' +
+          '<label>FULL LEGAL NAME *</label>' +
+          '<input type="text" id="' + esc(profileFormId) + '_atip_name"' +
+            ' placeholder="As it appears on your service records"' +
+            ' value="' + esc(profile.full_name || '') + '">' +
+        '</div>' +
+        '<div class="atip-field">' +
+          '<label>DATE OF BIRTH *</label>' +
+          '<input type="date" id="' + esc(profileFormId) + '_atip_dob"' +
+            ' value="' + esc(profile.dob || '') + '">' +
+        '</div>' +
+        '<div class="atip-field">' +
+          '<label>VAC CLIENT NUMBER (if known)</label>' +
+          '<input type="text" id="' + esc(profileFormId) + '_atip_vac"' +
+            ' placeholder="On any previous VAC letter"' +
+            ' value="' + esc(profile.vac_number || '') + '">' +
+        '</div>' +
+        '<div class="atip-field">' +
+          '<label>RETURN MAILING ADDRESS *</label>' +
+          '<input type="text" id="' + esc(profileFormId) + '_atip_address"' +
+            ' placeholder="VAC mails the response to this address"' +
+            ' value="' + esc(profile.address || '') + '">' +
+        '</div>' +
+      '</div>' +
+      '<div class="atip-save-note">* Required for complete letters. Incomplete fields appear as [PLACEHOLDERS] — fill them before submitting.</div>' +
+    '</div>' +
+    '<div class="atip-actions">' +
+      '<button class="btn-atip"' +
+        ' onclick="downloadATIPPackage(\'' + esc(profileFormId) + '\',' +
+          '\'' + esc(benefitId || '') + '\',' +
+          '\'' + esc(denialDateStr || '') + '\')">' +
+        '↓ DOWNLOAD BOTH ATIP LETTERS (.txt)' +
+      '</button>' +
+      '<button class="btn-atip"' +
+        ' onclick="previewATIP(\'' + esc(profileFormId) + '\',' +
+          '\'' + esc(benefitId || '') + '\',' +
+          '\'' + esc(denialDateStr || '') + '\',\'vac\')">' +
+        'PREVIEW VAC LETTER' +
+      '</button>' +
+      '<button class="btn-atip"' +
+        ' onclick="previewATIP(\'' + esc(profileFormId) + '\',' +
+          '\'' + esc(benefitId || '') + '\',' +
+          '\'' + esc(denialDateStr || '') + '\',\'dnd\')">' +
+        'PREVIEW DND LETTER' +
+      '</button>' +
+    '</div>' +
+    '<div class="atip-letter-preview" id="' + esc(profileFormId) + '_preview"></div>' +
+    '<div class="atip-submit-targets">' +
+      '<div class="atip-target">' +
+        '<strong>SUBMIT VAC ATIP TO:</strong>' +
+        'ATIP Coordinator<br>' +
+        'Veterans Affairs Canada<br>' +
+        '161 Grafton Street<br>' +
+        'Charlottetown, PE  C1A 8M9<br>' +
+        'atip-aiprp@vac-acc.gc.ca' +
+      '</div>' +
+      '<div class="atip-target">' +
+        '<strong>SUBMIT DND ATIP TO:</strong>' +
+        'ATIP Coordinator<br>' +
+        'National Defence and the CAF<br>' +
+        '1550 Carling Avenue<br>' +
+        'Ottawa, ON  K1A 0K2<br>' +
+        'atip-aiprp@forces.gc.ca' +
+      '</div>' +
+    '</div>' +
+    '<div class="atip-callout">' +
+      '<strong>TIMELINE</strong><br>' +
+      'VAC and DND must respond within 30 days under the Privacy Act. ' +
+      'In practice, complex files take longer — follow up at 35 days ' +
+      'if no acknowledgement received. Both requests can be submitted ' +
+      'simultaneously. Reference your request by the date submitted ' +
+      'in all follow-up correspondence.' +
+    '</div>' +
+  '</div>';
+}
+
+function buildAppealSection(benefitId, denialDateStr, windowResult) {
+  const benefit = BENEFITS.find(b => b.id === benefitId);
+  if (!benefit) return '';
+
+  const appealPath = benefit.appeal_path || [];
+  const denialReasons = benefit.common_denial_reasons || [];
+
+  const stepsHtml = appealPath.map((step, i) => {
+    let available = true;
+    let windowHtml = '';
+    if (i === 0 && windowResult) {
+      if (!windowResult.deptOpen) {
+        available = false;
+        windowHtml = '<div class="appeal-step-window window-urgent">WINDOW CLOSED — ' +
+          windowResult.diffDays + ' days since decision</div>';
+      } else {
+        const rem = 90 - windowResult.diffDays;
+        windowHtml = '<div class="appeal-step-window window-ok">WINDOW OPEN — ' +
+          rem + ' day' + (rem !== 1 ? 's' : '') + ' remaining</div>';
+      }
+    }
+    const stepClass = available ? 'step-available' : 'step-unavailable';
+    const noteHtml = step.note
+      ? '<div class="appeal-step-detail" style="margin-top:4px;color:var(--text-dim)">' +
+          esc(step.note) + '</div>'
+      : '';
+    return '<div class="appeal-step ' + stepClass + '">' +
+      '<div class="appeal-step-num">' + (step.step || i + 1) + '</div>' +
+      '<div class="appeal-step-body">' +
+        '<div class="appeal-step-name">' + esc(step.body || '') + '</div>' +
+        '<div class="appeal-step-detail">' + esc(step.window || '') +
+          (step.window && step.cost ? ' — ' : '') + esc(step.cost || '') + '</div>' +
+        windowHtml +
+        noteHtml +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  const reasonsHtml = denialReasons.length > 0
+    ? '<div class="denial-reasons-section">' +
+        '<div class="denial-reasons-title">// COMMON DENIAL REASONS + HOW TO FIX</div>' +
+        denialReasons.map(r =>
+          '<div class="denial-reason-item">' +
+            '<div class="denial-reason-label">' + esc(r.reason || '') + '</div>' +
+            '<div class="denial-reason-fix">' + esc(r.fix || '') + '</div>' +
+          '</div>'
+        ).join('') +
+      '</div>'
+    : '';
+
+  return '<div class="appeal-section">' +
+    buildATIPSection(benefitId, {}, true, denialDateStr || '') +
+    '<div class="appeal-section-title">⚠ YOU WERE DENIED — HERE IS YOUR EXACT PATH FORWARD</div>' +
+    '<div class="appeal-steps">' + stepsHtml + '</div>' +
+    reasonsHtml +
+    '<div class="bpa-callout">' +
+      '<strong>FREE LEGAL REPRESENTATION</strong><br>' +
+      'Bureau of Pensions Advocates (BPA) provides free representation ' +
+      'at VRAB hearings. This is a government-funded service — ' +
+      'there is no cost to you.<br>' +
+      'Call: <strong style="color:var(--text)">1-877-228-2250</strong>' +
+    '</div>' +
+  '</div>';
+}
+
+// ── DOCUMENT ANALYSIS ENGINE ──────────────────────────
+function analyzeDocumentText(rawText) {
+  const lower = rawText.toLowerCase();
+  const tokens = tokenize(rawText);
+  const bigrams = buildBigrams(tokens);
+
+  const diagnosesFound  = MED_TAXONOMY.diagnoses.filter(d => lower.includes(d));
+  const nexusFound      = MED_TAXONOMY.nexus_present.filter(n => lower.includes(n));
+  const datesFound      = MED_TAXONOMY.date_indicators.filter(d => lower.includes(d));
+  const opinionFound    = MED_TAXONOMY.opinion_strength.filter(o => lower.includes(o));
+
+  const reqResults = MED_TAXONOMY.vac_requirements.map(req => {
+    let present = false;
+    if (req.id === 'diagnosis')         present = diagnosesFound.length > 0;
+    if (req.id === 'nexus')             present = nexusFound.length > 0;
+    if (req.id === 'onset_date')        present = datesFound.length > 0;
+    if (req.id === 'physician_opinion') present = opinionFound.length > 0;
+    if (req.id === 'functional_impact') present = req.keywords.some(k => lower.includes(k));
+    return { ...req, present };
+  });
+
+  const criticalMet  = reqResults.filter(r => r.critical).every(r => r.present);
+  const totalMet     = reqResults.filter(r => r.present).length;
+  const strengthPct  = Math.round((totalMet / reqResults.length) * 100);
+
+  let strengthLabel, strengthColor;
+  if (criticalMet && strengthPct >= 80) {
+    strengthLabel = 'STRONG';                 strengthColor = 'var(--green)';
+  } else if (criticalMet && strengthPct >= 60) {
+    strengthLabel = 'ADEQUATE — GAPS PRESENT'; strengthColor = 'var(--gold)';
+  } else {
+    strengthLabel = 'WEAK — CRITICAL GAPS';   strengthColor = 'var(--red)';
+  }
+
+  return {
+    diagnosesFound, nexusFound, datesFound, opinionFound,
+    reqResults, criticalMet, strengthPct, strengthLabel, strengthColor,
+    wordCount: tokens.length,
+    pageEstimate: Math.max(1, Math.round(rawText.length / 2500))
+  };
+}
+
+function renderDocumentAnalysis(analysis, filename) {
+  const diagHtml = analysis.diagnosesFound.length > 0
+    ? analysis.diagnosesFound.map(d =>
+        '<span class="doc-tag doc-tag-found">' + esc(d) + '</span>').join('')
+    : '<span class="doc-tag doc-tag-missing">NO DIAGNOSES DETECTED</span>';
+
+  const nexusHtml = analysis.nexusFound.length > 0
+    ? analysis.nexusFound.map(n =>
+        '<span class="doc-tag doc-tag-found">' + esc(n) + '</span>').join('')
+    : '<span class="doc-tag doc-tag-missing">NO SERVICE CONNECTION LANGUAGE DETECTED</span>';
+
+  const nexusWarning = analysis.nexusFound.length === 0
+    ? '<div class="doc-nexus-warning">' +
+        '<strong>THE MOST COMMON REASON VAC DENIES CLAIMS:</strong>' +
+        'This document does not contain explicit language linking your condition to CAF service. ' +
+        'VAC adjudicators call this a "nexus statement." Without it, even a confirmed diagnosis ' +
+        'will be denied on entitlement.' +
+        '<strong>WHAT TO ASK YOUR DOCTOR TO ADD:</strong>' +
+        '"In my medical opinion, [PATIENT NAME]\'s [DIAGNOSIS] is [caused by / aggravated by / related to] ' +
+        'their service in the Canadian Armed Forces, specifically [training / deployment / occupational exposure]. ' +
+        'This opinion is based on [clinical history / examination / review of records]."' +
+      '</div>'
+    : '';
+
+  const reqsHtml = analysis.reqResults.map(req =>
+    '<div class="doc-req-item ' + (req.present ? 'req-met' : 'req-missing') + '">' +
+      '<span class="doc-req-icon">' + (req.present ? '✓' : '✗') + '</span>' +
+      '<div class="doc-req-body">' +
+        '<div class="doc-req-label">' + esc(req.label) + '</div>' +
+        (!req.present && req.missing_fix
+          ? '<div class="doc-req-fix">→ ' + esc(req.missing_fix) + '</div>'
+          : '') +
+      '</div>' +
+      (req.critical && !req.present
+        ? '<span class="doc-req-critical">CRITICAL</span>' : '') +
+    '</div>'
+  ).join('');
+
+  return '<div class="doc-analysis-card">' +
+    '<div class="doc-analysis-header">' +
+      '<div class="doc-analysis-title">// DOCUMENT ANALYSIS</div>' +
+      '<div class="doc-analysis-meta">' + esc(filename) + ' — ~' + analysis.pageEstimate + ' page(s)</div>' +
+      '<div class="doc-strength-label" style="color:' + analysis.strengthColor + '">' +
+        'DOCUMENT STRENGTH: ' + esc(analysis.strengthLabel) +
+      '</div>' +
+      '<div class="doc-strength-bar">' +
+        '<div class="doc-strength-fill" style="width:' + analysis.strengthPct + '%;background:' + analysis.strengthColor + '"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="doc-section">' +
+      '<div class="doc-section-label">// DIAGNOSES DETECTED</div>' +
+      '<div class="doc-tags">' + diagHtml + '</div>' +
+    '</div>' +
+    '<div class="doc-section">' +
+      '<div class="doc-section-label">// SERVICE CONNECTION LANGUAGE</div>' +
+      '<div class="doc-tags">' + nexusHtml + '</div>' +
+    '</div>' +
+    nexusWarning +
+    '<div class="doc-section">' +
+      '<div class="doc-section-label">// VAC REQUIREMENTS CHECKLIST</div>' +
+      '<div class="doc-reqs">' + reqsHtml + '</div>' +
+    '</div>' +
+    '<div class="doc-privacy-note">' +
+      '⚿ ZERO DATA TRANSMITTED — All analysis ran locally on your device. ' +
+      'This document never left your browser. Close or reload this page to clear all document data from memory.' +
+    '</div>' +
+  '</div>';
+}
+
+function buildVACATIPLetter(profile, benefitId, denialDateStr) {
+  const today   = new Date().toLocaleDateString('en-CA');
+  const name    = ph(profile.full_name,  'YOUR FULL LEGAL NAME');
+  const dob     = ph(profile.dob,        'YOUR DATE OF BIRTH YYYY-MM-DD');
+  const address = ph(profile.address,    'YOUR MAILING ADDRESS');
+  const vacNum  = profile.vac_number
+    ? 'VAC Client Number: ' + profile.vac_number
+    : 'VAC Client Number: [IF KNOWN — CHECK PREVIOUS VAC LETTERS]';
+
+  const benefit = BENEFITS.find(b => b.id === benefitId);
+  const benefitName = benefit ? benefit.name : '[BENEFIT NAME]';
+
+  const denialClause = (denialDateStr && benefitId)
+    ? '\n6. All records pertaining to my application for ' + benefitName + ',\n' +
+      '   including the decision dated ' + denialDateStr + ', all adjudication\n' +
+      '   notes, all medical opinions obtained, and all internal\n' +
+      '   correspondence related to that decision.\n'
+    : '';
+
+  return today + '\n\n' +
+'ATIP Coordinator\n' +
+'Veterans Affairs Canada\n' +
+'161 Grafton Street\n' +
+'Charlottetown, PE  C1A 8M9\n' +
+'Email: atip-aiprp@vac-acc.gc.ca\n\n' +
+'Re: Privacy Act Request — Access to Personal Information\n\n' +
+'To the ATIP Coordinator,\n\n' +
+'I, ' + name + ', born ' + dob + ', ' + vacNum + ',\n' +
+'hereby request, pursuant to the Privacy Act (R.S.C., 1985, c. P-21),\n' +
+'access to all records held by Veterans Affairs Canada pertaining\n' +
+'to my person, including but not limited to:\n\n' +
+'1. My complete VAC client file, including all case notes,\n' +
+'   assessments, and records created or received by VAC\n' +
+'   pertaining to me.\n\n' +
+'2. All adjudication notes and decisions related to any\n' +
+'   application I have made to VAC, including the reasons\n' +
+'   for any decisions made.\n\n' +
+'3. All medical opinions, desk reviews, or assessments\n' +
+'   obtained by VAC in connection with any of my claims,\n' +
+'   whether obtained internally or from contracted physicians.\n\n' +
+'4. All records pertaining to any application I have submitted\n' +
+'   to VAC, including dates of receipt, processing notes,\n' +
+'   and correspondence with me or on my behalf.\n\n' +
+'5. All internal correspondence, emails, or notes between\n' +
+'   VAC staff pertaining to my file or any claim I have made.\n' +
+denialClause + '\n' +
+'I request that this information be provided to me in paper\n' +
+'or electronic format at your earliest convenience.\n\n' +
+'Please respond to:\n' +
+name + '\n' +
+address + '\n\n' +
+'Sincerely,\n\n' +
+name + '\n' +
+'Date: ' + today + '\n\n' +
+'━━━━━━━━━━━━━━━━━━\n' +
+'GENERATED BY: Operator\'s Deck VAC Navigator (clovelearn.io)\n' +
+'This tool is not affiliated with Veterans Affairs Canada.\n' +
+'Content reproduced under Open Government Licence - Canada.\n' +
+'All processing occurred locally on your device.\n' +
+'No data was transmitted.\n' +
+'━━━━━━━━━━━━━━━━━━';
+}
+
+function buildDNDATIPLetter(profile, intakeAnswers) {
+  const today     = new Date().toLocaleDateString('en-CA');
+  const name      = ph(profile.full_name, 'YOUR FULL LEGAL NAME');
+  const dob       = ph(profile.dob,       'YOUR DATE OF BIRTH YYYY-MM-DD');
+  const address   = ph(profile.address,   'YOUR MAILING ADDRESS');
+  const rankTrade = (intakeAnswers && intakeAnswers.rank_trade)
+    ? intakeAnswers.rank_trade : '[YOUR RANK AND TRADE]';
+  const relDate   = (intakeAnswers && intakeAnswers.release_date)
+    ? intakeAnswers.release_date : '[YOUR RELEASE DATE]';
+
+  return today + '\n\n' +
+'ATIP Coordinator\n' +
+'National Defence and the Canadian Armed Forces\n' +
+'1550 Carling Avenue\n' +
+'Ottawa, ON  K1A 0K2\n' +
+'Email: atip-aiprp@forces.gc.ca\n\n' +
+'Re: Privacy Act Request — CAF Service and Medical Records\n\n' +
+'To the ATIP Coordinator,\n\n' +
+'I, ' + name + ', born ' + dob + ', served in the\n' +
+'Canadian Armed Forces at the rank/trade of ' + rankTrade + '\n' +
+'and was released on or around ' + relDate + '.\n\n' +
+'Pursuant to the Privacy Act (R.S.C., 1985, c. P-21), I hereby\n' +
+'request access to all records held by the Department of National\n' +
+'Defence and the Canadian Armed Forces pertaining to my person,\n' +
+'including but not limited to:\n\n' +
+'1. All medical records from my CAF service, including all\n' +
+'   entries in my CF 2985 (Canadian Armed Forces Health Services\n' +
+'   Record) from enrollment to release.\n\n' +
+'2. All injury reports and incident reports filed during my\n' +
+'   service, including those related to training accidents,\n' +
+'   operational incidents, and any injury requiring medical\n' +
+'   attention.\n\n' +
+'3. All occupational health and safety assessments, audiograms,\n' +
+'   fitness assessments, and medical category records from\n' +
+'   my service.\n\n' +
+'4. All personnel records and postings history relevant to\n' +
+'   my service, including records of units, deployments,\n' +
+'   and operational assignments.\n\n' +
+'5. All records related to my medical release or medical\n' +
+'   category changes, if applicable, including CF 2033\n' +
+'   and all supporting documentation.\n\n' +
+'6. All records related to any occupational stress injury\n' +
+'   screening, mental health assessments, or referrals\n' +
+'   during my service.\n\n' +
+'Note: These records may be required in support of a\n' +
+'Veterans Affairs Canada benefits application. Timely\n' +
+'provision of this information is respectfully requested.\n\n' +
+'Please respond to:\n' +
+name + '\n' +
+address + '\n\n' +
+'Sincerely,\n\n' +
+name + '\n' +
+'Date: ' + today + '\n\n' +
+'━━━━━━━━━━━━━━━━━━\n' +
+'GENERATED BY: Operator\'s Deck VAC Navigator (clovelearn.io)\n' +
+'This tool is not affiliated with the Department of National Defence.\n' +
+'All processing occurred locally on your device.\n' +
+'No data was transmitted.\n' +
+'━━━━━━━━━━━━━━━━━━';
 }
 
 function buildConcurrentSection(primaryBenefitId, intakeAnswers) {
@@ -1919,6 +3048,52 @@ function copyDraft(id) {
   });
 }
 
+function previewATIP(profileFormId, benefitId, denialDateStr, which) {
+  const rawProfile = readATIPProfileFromForm(profileFormId + '_');
+  saveATIPProfile(rawProfile);
+  const answers = intakeState ? (intakeState.answers || {}) : {};
+  const text = (which === 'dnd')
+    ? buildDNDATIPLetter(rawProfile, answers)
+    : buildVACATIPLetter(rawProfile, benefitId || null, denialDateStr || null);
+  const previewEl = document.getElementById(profileFormId + '_preview');
+  if (!previewEl) return;
+  previewEl.textContent = text;
+  previewEl.classList.add('visible');
+  previewEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function downloadATIPPackage(profileFormId, benefitId, denialDateStr) {
+  const rawProfile = readATIPProfileFromForm(profileFormId + '_');
+  saveATIPProfile(rawProfile);
+  const answers = intakeState ? (intakeState.answers || {}) : {};
+  const vacLetter = buildVACATIPLetter(rawProfile, benefitId || null, denialDateStr || null);
+  const dndLetter = buildDNDATIPLetter(rawProfile, answers);
+  const combined =
+    '═══════════════════════════════════════════════════\n' +
+    'LETTER 1 OF 2 — VAC ATIP REQUEST (Privacy Act)\n' +
+    'Submit to: atip-aiprp@vac-acc.gc.ca\n' +
+    '═══════════════════════════════════════════════════\n\n' +
+    vacLetter + '\n\n\n' +
+    '═══════════════════════════════════════════════════\n' +
+    'LETTER 2 OF 2 — DND/CAF ATIP REQUEST (Privacy Act)\n' +
+    'Submit to: atip-aiprp@forces.gc.ca\n' +
+    '═══════════════════════════════════════════════════\n\n' +
+    dndLetter;
+  const blob = new Blob([combined], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'VAC-ATIP-Request-' + new Date().toLocaleDateString('en-CA') + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  try {
+    const history = JSON.parse(localStorage.getItem('od_vac_history') || '[]');
+    history.unshift({ date: new Date().toISOString(), type: 'atip_download', benefit: benefitId || 'general' });
+    if (history.length > 20) history.pop();
+    localStorage.setItem('od_vac_history', JSON.stringify(history));
+  } catch(e) {}
+}
+
 function clearAll() {
   document.getElementById('situationInput').value = '';
   document.getElementById('charCount').textContent = '0 / 2000';
@@ -1955,6 +3130,25 @@ document.addEventListener('DOMContentLoaded', () => {
       input.focus();
     });
   });
+
+  // Populate denial benefit select
+  const deniedSelect = document.getElementById('deniedBenefitSelect');
+  if (deniedSelect) {
+    BENEFITS.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = b.name;
+      deniedSelect.appendChild(opt);
+    });
+    deniedSelect.addEventListener('change', () => {
+      deniedBenefitId = deniedSelect.value || null;
+      renderDenialWindowNotice();
+    });
+  }
+  const denialDateInput = document.getElementById('denialDateInput');
+  if (denialDateInput) {
+    denialDateInput.addEventListener('change', renderDenialWindowNotice);
+  }
 
   // Offline detection
   if (!navigator.onLine) {
