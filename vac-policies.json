@@ -1,0 +1,377 @@
+{
+  "_meta": {
+    "version": "2026-05-03",
+    "source": "veterans.gc.ca",
+    "maintainer": "Update quarterly. Edit keywords[], conditions[], and template strings.",
+    "update_procedure": "1. Check veterans.gc.ca for policy changes. 2. Edit relevant benefit entry. 3. Bump version date. 4. Re-deploy."
+  },
+
+  "benefits": [
+
+    {
+      "id": "pain-suffering",
+      "name": "Pain and Suffering Compensation",
+      "short": "Monthly tax-free payment for service-related disability",
+      "url": "https://www.veterans.gc.ca/en/financial-support/pain-and-suffering-compensation",
+      "keywords": [
+        "injury", "injured", "hurt", "wound", "wounded", "disability", "disabled",
+        "ptsd", "trauma", "traumatic", "chronic", "pain", "condition", "illness",
+        "sick", "mental", "health", "hearing", "loss", "back", "knee", "shoulder",
+        "depression", "anxiety", "tinnitus", "concussion", "tbi", "service-related",
+        "combat", "accident", "incident", "deployment", "operational"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "served",
+          "label": "Served in the CAF",
+          "keywords": ["served", "military", "army", "navy", "air force", "forces", "soldier", "veteran", "caf", "rcaf", "rcn", "jtf2", "csor", "ppcli", "rcd", "infantry", "signals", "engineer", "pilot"]
+        },
+        {
+          "id": "released",
+          "label": "Released from the CAF (honourably or with a medical release)",
+          "keywords": ["released", "retired", "discharged", "left", "out", "civilian", "no longer serving", "medical release", "3b"]
+        },
+        {
+          "id": "injury_service_related",
+          "label": "Injury or illness directly related to service",
+          "keywords": ["during service", "because of service", "training", "deployment", "on duty", "in theatre", "ied", "blast", "accident on base"]
+        }
+      ],
+      "form_questions": [
+        "What is the specific injury or diagnosis?",
+        "When did it occur or first appear?",
+        "Was it during service or training?",
+        "Do you have a medical diagnosis from a doctor?"
+      ],
+      "template": "The applicant is a released member of the Canadian Armed Forces who sustained [INJURY] which is attributable to service in the CAF. The condition was first identified [TIMEFRAME] and has resulted in [IMPACT]. The applicant is requesting Pain and Suffering Compensation under the Veterans Well-being Act.",
+      "entities": ["INJURY", "TIMEFRAME", "IMPACT"]
+    },
+
+    {
+      "id": "income-replacement",
+      "name": "Income Replacement Benefit",
+      "short": "90% of pre-release salary if disability prevents work",
+      "url": "https://www.veterans.gc.ca/en/financial-support/income-replacement-benefit",
+      "keywords": [
+        "work", "job", "employment", "income", "salary", "money", "financial",
+        "cant work", "cannot work", "unable to work", "unemployed", "unemployable",
+        "earning", "earnings", "support", "living", "bills", "afford", "struggling"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "served",
+          "label": "Served in the CAF",
+          "keywords": ["served", "military", "army", "navy", "air force", "forces", "soldier", "veteran", "caf"]
+        },
+        {
+          "id": "released",
+          "label": "Released from the CAF",
+          "keywords": ["released", "retired", "discharged", "left", "out", "civilian"]
+        },
+        {
+          "id": "cant_work",
+          "label": "Disability prevents you from working at pre-release income level",
+          "keywords": ["cant work", "cannot work", "unable", "disability stops", "condition prevents", "too sick", "pain prevents"]
+        }
+      ],
+      "form_questions": [
+        "What was your rank and trade at time of release?",
+        "What was your approximate salary at release?",
+        "What disability prevents you from working?",
+        "Have you applied for Canada Pension Plan Disability?"
+      ],
+      "template": "The applicant, a released CAF member with the rank of [RANK], is unable to maintain gainful employment at their pre-release income level due to [DISABILITY]. The applicant seeks the Income Replacement Benefit to maintain financial stability during rehabilitation and reintegration.",
+      "entities": ["RANK", "DISABILITY"]
+    },
+
+    {
+      "id": "caregiver-recognition",
+      "name": "Caregiver Recognition Benefit",
+      "short": "Monthly payment to the person caring for a disabled veteran",
+      "url": "https://www.veterans.gc.ca/en/health-support/care-at-home-or-in-a-facility/caregiver-recognition-benefit",
+      "keywords": [
+        "caregiver", "caring", "care", "spouse", "partner", "wife", "husband",
+        "family", "help", "assist", "support", "home", "daily", "activities",
+        "dependent", "full time care", "can't manage alone", "needs help",
+        "dressing", "bathing", "cooking", "driving", "appointments"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "veteran_is_eligible",
+          "label": "The veteran has a disability benefit approved by VAC",
+          "keywords": ["vac approved", "already receiving", "disability benefit", "pain suffering approved"]
+        },
+        {
+          "id": "has_caregiver",
+          "label": "Someone provides informal care at home",
+          "keywords": ["my spouse", "my partner", "my family", "someone helps", "carer", "caregiver"]
+        }
+      ],
+      "form_questions": [
+        "Who is the primary caregiver (relationship to veteran)?",
+        "Does the veteran already receive a VAC disability benefit?",
+        "What daily activities does the caregiver assist with?",
+        "Is the caregiver preventing institutionalization?"
+      ],
+      "template": "The applicant, [CAREGIVER_NAME], provides informal care to [VETERAN_NAME], a VAC client receiving [EXISTING_BENEFIT]. The caregiver assists with [CARE_TASKS] on a daily basis, enabling the veteran to remain in the community rather than requiring institutional care.",
+      "entities": ["CAREGIVER_NAME", "VETERAN_NAME", "EXISTING_BENEFIT", "CARE_TASKS"]
+    },
+
+    {
+      "id": "veterans-independence",
+      "name": "Veterans Independence Program (VIP)",
+      "short": "Funding for home care, housekeeping, yard maintenance",
+      "url": "https://www.veterans.gc.ca/en/health-support/care-at-home-or-in-a-facility/veterans-independence-program",
+      "keywords": [
+        "home", "house", "cleaning", "housekeeping", "yard", "lawn", "snow",
+        "shovelling", "groceries", "shopping", "cooking", "meal", "transport",
+        "independent", "independence", "stay home", "aging", "elderly",
+        "personal care", "hygiene", "bathing", "laundry", "ambulatory"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "served",
+          "label": "Served in the CAF or RCMP",
+          "keywords": ["served", "military", "army", "navy", "air force", "rcmp", "police"]
+        },
+        {
+          "id": "needs_home_support",
+          "label": "Needs support to stay independent at home",
+          "keywords": ["struggling", "difficulty", "cant manage", "need help at home", "too hard", "physical limitation"]
+        }
+      ],
+      "form_questions": [
+        "What specific home tasks are you unable to perform?",
+        "What is your current health condition limiting you?",
+        "Do you currently receive any other VAC benefits?",
+        "What is your living situation (own home, renting, with family)?"
+      ],
+      "template": "The applicant is a released CAF veteran whose [CONDITION] prevents them from independently managing [SPECIFIC_TASKS] in their home. VIP funding would allow the applicant to hire services for [SERVICES_NEEDED], enabling continued independence in the community.",
+      "entities": ["CONDITION", "SPECIFIC_TASKS", "SERVICES_NEEDED"]
+    },
+
+    {
+      "id": "disability-benefits",
+      "name": "Disability Benefits (Pension Act)",
+      "short": "For veterans who served before April 1, 2006",
+      "url": "https://www.veterans.gc.ca/en/financial-support/disability-benefits",
+      "keywords": [
+        "pension", "old", "traditional", "pre-2006", "wwii", "korea", "cold war",
+        "peacekeeping", "vietnam", "gulf war", "older veteran", "pensioner"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "served_pre_2006",
+          "label": "Service occurred before April 1, 2006",
+          "keywords": ["before 2006", "old pension", "wwii", "korea", "cold war", "gulf war 1990", "bosnia", "somalia"]
+        }
+      ],
+      "form_questions": [
+        "What years did you serve?",
+        "What operations or postings were you on?",
+        "What is the disability you are claiming?",
+        "Have you previously applied under the Veterans Well-being Act?"
+      ],
+      "template": "The applicant served in the Canadian Armed Forces during [SERVICE_PERIOD] on [OPERATIONS]. The applicant sustained [DISABILITY] attributable to that service and is applying for Disability Benefits under the Pension Act.",
+      "entities": ["SERVICE_PERIOD", "OPERATIONS", "DISABILITY"]
+    },
+
+    {
+      "id": "education-training",
+      "name": "Education and Training Benefit",
+      "short": "Up to $80,000 for post-secondary education or training",
+      "url": "https://www.veterans.gc.ca/en/education-and-jobs/education-and-training-benefit",
+      "keywords": [
+        "school", "college", "university", "education", "training", "course",
+        "program", "degree", "diploma", "certificate", "trade", "apprentice",
+        "retraining", "career change", "new job", "study", "learn", "tuition"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "served_6yrs",
+          "label": "Served at least 6 years in the CAF",
+          "keywords": ["6 years", "six years", "more than 6", "long service", "career soldier", "10 years", "20 years"]
+        },
+        {
+          "id": "released",
+          "label": "Released honourably from the CAF",
+          "keywords": ["released", "retired", "discharged", "honourable"]
+        }
+      ],
+      "form_questions": [
+        "How many years did you serve in total?",
+        "What program or school are you planning to attend?",
+        "What career field are you retraining for?",
+        "Have you already been accepted to the program?"
+      ],
+      "template": "The applicant served [YEARS] years in the Canadian Armed Forces and was honourably released. The applicant seeks to attend [PROGRAM] at [INSTITUTION] to train for a career in [CAREER_FIELD], and is requesting Education and Training Benefit funding to cover tuition and related costs.",
+      "entities": ["YEARS", "PROGRAM", "INSTITUTION", "CAREER_FIELD"]
+    },
+
+    {
+      "id": "rehabilitation",
+      "name": "Rehabilitation Program",
+      "short": "Free medical, psychosocial, and vocational rehab services",
+      "url": "https://www.veterans.gc.ca/en/education-and-jobs/rehabilitation-program",
+      "keywords": [
+        "rehabilitation", "rehab", "physiotherapy", "physio", "therapy", "psychologist",
+        "counselling", "mental health", "treatment", "recovery", "heal", "healing",
+        "occupational", "vocational", "job help", "back to work", "functional",
+        "reintegration", "transition", "civilian life"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "released",
+          "label": "Released from the CAF",
+          "keywords": ["released", "retired", "discharged", "civilian"]
+        },
+        {
+          "id": "needs_treatment",
+          "label": "Has a physical or mental health need related to service",
+          "keywords": ["need therapy", "need treatment", "struggling with", "mental health", "ptsd", "pain", "injury"]
+        }
+      ],
+      "form_questions": [
+        "What specific rehabilitation services do you need?",
+        "Is the condition related to your service?",
+        "Are you currently working? Is work affected?",
+        "Have you seen a doctor about this condition?"
+      ],
+      "template": "The applicant, a released CAF veteran, requires [SERVICES] related to [CONDITION] resulting from service. The rehabilitation program will assist the applicant in [GOAL], supporting successful reintegration into civilian life.",
+      "entities": ["SERVICES", "CONDITION", "GOAL"]
+    },
+
+    {
+      "id": "case-management",
+      "name": "Case Management Services",
+      "short": "Dedicated VAC case manager to coordinate your benefits",
+      "url": "https://www.veterans.gc.ca/en/health-support/mental-health-and-wellness/case-management",
+      "keywords": [
+        "help navigating", "confused", "overwhelmed", "dont know where to start",
+        "complex situation", "multiple benefits", "need guidance", "case manager",
+        "coordinator", "help me figure out", "too complicated", "stressed about paperwork",
+        "dont understand", "complicated file"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "released",
+          "label": "Released from the CAF",
+          "keywords": ["released", "retired", "veteran"]
+        }
+      ],
+      "form_questions": [
+        "What benefits are you currently receiving from VAC?",
+        "What is your primary challenge right now?",
+        "Have you previously worked with a VAC case manager?",
+        "What would you like help coordinating?"
+      ],
+      "template": "The applicant is a released CAF veteran with a complex needs profile that would benefit from coordinated case management. Current challenges include [CHALLENGES]. A dedicated case manager would help coordinate [SERVICES_NEEDED] and ensure the applicant accesses all entitled benefits.",
+      "entities": ["CHALLENGES", "SERVICES_NEEDED"]
+    },
+
+    {
+      "id": "long-term-care",
+      "name": "Long Term Care Program",
+      "short": "Funding for nursing home or residential care facility",
+      "url": "https://www.veterans.gc.ca/en/health-support/care-at-home-or-in-a-facility/long-term-care",
+      "keywords": [
+        "nursing home", "long term care", "facility", "institution", "care home",
+        "cant live alone", "full time care", "24 hour care", "severe disability",
+        "advanced age", "dementia", "alzheimers", "bed", "wheelchair",
+        "completely dependent", "cannot function independently"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "served",
+          "label": "Served in the CAF",
+          "keywords": ["served", "military", "veteran"]
+        },
+        {
+          "id": "needs_ltc",
+          "label": "Requires institutional-level care",
+          "keywords": ["nursing home", "care facility", "cant live alone", "full time care", "24 hours"]
+        }
+      ],
+      "form_questions": [
+        "What is the veteran's current health condition?",
+        "What level of care do they currently require?",
+        "Is the veteran currently in a care facility?",
+        "What is the veteran's service history and period?"
+      ],
+      "template": "The applicant is a veteran of the Canadian Armed Forces whose [CONDITION] requires [LEVEL_OF_CARE] in a long-term care facility. Current care requirements include [CARE_NEEDS]. The applicant is requesting VAC funding support for placement at [FACILITY_TYPE].",
+      "entities": ["CONDITION", "LEVEL_OF_CARE", "CARE_NEEDS", "FACILITY_TYPE"]
+    },
+
+    {
+      "id": "funeral-burial",
+      "name": "Funeral and Burial Program",
+      "short": "Covers funeral costs for eligible veterans",
+      "url": "https://www.veterans.gc.ca/en/financial-support/funeral-and-burial-program",
+      "keywords": [
+        "funeral", "burial", "death", "died", "passed away", "deceased",
+        "grave", "cemetery", "cremation", "ashes", "memorial", "cost of funeral",
+        "cant afford funeral", "funeral expenses"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "veteran_deceased",
+          "label": "The veteran has passed away",
+          "keywords": ["died", "passed", "deceased", "death", "funeral"]
+        },
+        {
+          "id": "served",
+          "label": "The deceased served in the CAF or qualified service",
+          "keywords": ["served", "veteran", "military", "rcmp"]
+        }
+      ],
+      "form_questions": [
+        "What was the veteran's full name and service number?",
+        "What dates did the veteran serve?",
+        "What is the approximate total cost of the funeral?",
+        "Was the veteran receiving any VAC benefits at time of death?"
+      ],
+      "template": "The applicant is applying on behalf of [VETERAN_NAME], a released CAF veteran who served from [SERVICE_DATES], who passed away on [DATE_OF_DEATH]. The family is requesting support through the Funeral and Burial Program to offset costs of [FUNERAL_COSTS].",
+      "entities": ["VETERAN_NAME", "SERVICE_DATES", "DATE_OF_DEATH", "FUNERAL_COSTS"]
+    }
+  ],
+
+  "stopwords": [
+    "i", "me", "my", "we", "our", "you", "your", "he", "she", "it", "they",
+    "am", "is", "are", "was", "were", "be", "been", "being", "have", "has",
+    "had", "do", "does", "did", "will", "would", "shall", "should", "may",
+    "might", "must", "can", "could", "a", "an", "the", "and", "but", "or",
+    "so", "for", "of", "in", "on", "at", "to", "by", "from", "with", "as",
+    "this", "that", "these", "those", "not", "no", "nor", "very", "just",
+    "also", "about", "up", "out", "into", "over", "after", "before", "some",
+    "get", "got", "like", "know", "think", "want", "need", "feel", "really",
+    "when", "what", "where", "who", "how", "why", "which", "then", "than",
+    "there", "here", "now", "still", "been", "since", "both", "each", "few",
+    "more", "most", "other", "such", "own", "same", "too", "any", "all"
+  ],
+
+  "clarifying_questions": {
+    "served": "Did you serve in the Canadian Armed Forces or RCMP?",
+    "released": "Have you been released or retired from service?",
+    "injury": "Did you sustain an injury or develop a health condition during your service?",
+    "cant_work": "Is your condition preventing you from working or significantly affecting your income?",
+    "caregiver": "Is a family member or partner providing unpaid care for you at home?"
+  },
+
+  "crisis_resources": {
+    "vac_assistance": "1-800-268-7708 (VAC 24/7 assistance line)",
+    "osiss": "1-800-883-6094 (Operational Stress Injury Social Support)",
+    "crisis_line": "1-800-273-8255 (Veterans Crisis Line)",
+    "text": "Text 838255 to reach Veterans Crisis Line",
+    "chat": "https://www.veteranscrisisline.net/get-help/chat"
+  }
+}

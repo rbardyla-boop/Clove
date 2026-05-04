@@ -1,0 +1,1018 @@
+{
+  "_meta": {
+    "version": "2026-05-03",
+    "effective_rates_date": "2026-01-01",
+    "licence": "Open Government Licence - Canada (OGL-CA). Government of Canada content, freely reproducible with attribution.",
+    "attribution": "Source: Veterans Affairs Canada (veterans.gc.ca). Content reproduced under OGL-CA.",
+    "maintainer_notes": [
+      "Update 'effective_rates_date' and all dollar figures every January (VAC indexes annually by CPI).",
+      "Check 'policy_source' URLs quarterly — VAC reorganized their URL tree in early 2026.",
+      "The 'NOT_offsets' arrays are the most critical policy facts — verify these on every annual update.",
+      "The '$20k employment exemption' in IRB resets every January 1 — confirm this is still in force annually.",
+      "When adding new benefits, use the IRB entry as the template. All 8 fields are required."
+    ],
+    "update_procedure": "1. Pull listed policy_source URLs. 2. Update dollar figures. 3. Verify NOT_offsets arrays. 4. Bump version date. 5. Redeploy."
+  },
+
+  "benefits": {
+
+    "income-replacement": {
+      "id": "income-replacement",
+      "name": "Income Replacement Benefit (IRB)",
+      "plain_name": "Income top-up while you can't work",
+      "legal_basis": "Veterans Well-being Act (SC 2005, c. 21), sections 19–26; Veterans Well-being Regulations, section 22",
+      "program_family": "Pension for Life (introduced April 1, 2019)",
+      "taxable": true,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "caf_member",
+            "label": "Served in the Canadian Armed Forces (Regular or Reserve Force)",
+            "notes": "Reserve Force members are eligible if they had Class B service > 180 days or Class C service. Part-time Reserve below this threshold may not qualify."
+          },
+          {
+            "id": "released",
+            "label": "Released from the CAF (honourably or with a medical release)",
+            "notes": "IRB is not payable until after release. A member who re-enrolls in CAF full-time loses IRB eligibility during that service."
+          },
+          {
+            "id": "barrier",
+            "label": "Has a barrier to re-establishment in civilian life",
+            "notes": "The barrier must result from a physical or mental health problem resulting primarily from service. This is the key legal test — 'can't work' alone is not sufficient. The condition must be service-attributable."
+          },
+          {
+            "id": "rehab_or_dec",
+            "label": "Enrolled in VAC Rehabilitation Program OR has a Diminished Earning Capacity (DEC) determination",
+            "notes": "DEC means the veteran is permanently incapacitated by a service-related condition from performing any suitable gainful employment. DEC extends IRB potentially for life. Without DEC, IRB continues only while enrolled in Rehab. Veterans should apply for DEC assessment proactively — VAC does not volunteer this."
+          }
+        ],
+        "also_eligible": [
+          "Survivor of a CAF member/Veteran who died before age 65 from a service-related illness or injury",
+          "Survivor of a Veteran who was in receipt of IRB at time of death (regardless of age)",
+          "Orphan of a qualifying deceased CAF member or Veteran"
+        ]
+      },
+
+      "amount": {
+        "formula": "90% of gross pre-release monthly military salary, OR the minimum floor — whichever is greater",
+        "minimum_floor_monthly": 5000.22,
+        "minimum_floor_annual": 60002.64,
+        "minimum_floor_confirmed": "2026-01-01",
+        "minimum_floor_source": "veterans.gc.ca/en/about-vac/resources/rates (effective Jan 1, 2026)",
+        "post_65_formula": "70% of the IRB amount that was payable before age 65 (after offsets). Applies only if veteran has a DEC determination.",
+        "career_progression_factor": {
+          "rate": "1% per year",
+          "applies_when": "Veteran has DEC determination and has not yet reached 20 years of service or age 60",
+          "purpose": "Compensates for lost career advancement opportunity due to service-related disability",
+          "calculation": "Applied to the Monthly Military Salary used in the IRB calculation",
+          "note": "VAC does not volunteer this calculation. Veterans must explicitly request it. High value over lifetime — ask for it."
+        },
+        "indexation": "Indexed annually every January 1 by the Consumer Price Index (CPI). CPI figure from October 31 of prior year, rounded up to nearest 0.10%."
+      },
+
+      "offsets": {
+        "note": "These income sources REDUCE your IRB payment dollar-for-dollar after the $20k exemption.",
+        "offset_sources": [
+          "Canadian Armed Forces Long Term Disability (CAF LTD / SISIP)",
+          "Military pension — Canadian Forces Superannuation Act (CFSA)",
+          "Canada Pension Plan Disability (CPP-D)",
+          "Quebec Pension Plan (QPP) — if applicable",
+          "Employment income above $20,000/year",
+          "Self-employment income above $20,000/year"
+        ]
+      },
+
+      "NOT_offsets": {
+        "critical_note": "These are the most misunderstood facts about IRB. Many veterans and even some advocates incorrectly believe these reduce IRB — they do NOT.",
+        "sources_that_do_NOT_reduce_irb": [
+          "Pain and Suffering Compensation (PSC)",
+          "Additional Pain and Suffering Compensation (APSC)",
+          "Disability Award (DA) — pre-2019 equivalent of PSC",
+          "Critical Injury Benefit",
+          "Clothing Allowance",
+          "Attendance Allowance",
+          "Exceptional Incapacity Allowance"
+        ]
+      },
+
+      "employment_exemption": {
+        "amount_annual": 20000,
+        "note": "Veterans can earn up to $20,000/year in employment or self-employment income without any reduction to IRB. Income above $20k is offset dollar-for-dollar.",
+        "reset": "The $20k exemption resets every January 1.",
+        "reporting_requirement": "Veterans must notify VAC of any employment earnings monthly. Failure to report can result in overpayment recovery."
+      },
+
+      "timeline": {
+        "apply_deadline": "No hard deadline, but apply as early as possible after release. Delays cost money — retroactive payment only goes back to application date in most cases.",
+        "payment_starts": "First day of the month in which the application is received (or first day of following month if released on last day of month).",
+        "processing_target_weeks": 16,
+        "processing_target_note": "VAC service standard as of 2026. Actual times vary — check the wait time tool at veterans.gc.ca/en/about-vac/our-values/addressing-wait-times-veterans/wait-time-tool"
+      },
+
+      "evidence_required": [
+        {
+          "document": "CF 1 — Record of Service",
+          "how_to_get": "Request through My VAC Account or by calling VAC at 1-866-522-2122",
+          "why": "Proves CAF membership and service period"
+        },
+        {
+          "document": "CF 2033 — Release Documentation",
+          "how_to_get": "Should be issued at release; request copy through Director Military Careers if missing",
+          "why": "Confirms honourable release and release date"
+        },
+        {
+          "document": "Medical documentation of the health condition creating the barrier",
+          "how_to_get": "From your family physician, specialist, or VAC-contracted clinician",
+          "why": "Must establish the condition AND its link to CAF service"
+        },
+        {
+          "document": "Pre-release salary documentation",
+          "how_to_get": "T4s from DND, or pay stubs from final 12 months of service",
+          "why": "Used to calculate the 90% IRB amount"
+        },
+        {
+          "document": "VAC Application Form 21-0237 (IRB Application)",
+          "how_to_get": "Download from veterans.gc.ca or complete guided version in My VAC Account",
+          "why": "The actual application"
+        },
+        {
+          "document": "TD1 Federal Tax Form (optional but recommended)",
+          "how_to_get": "CRA website or ask VAC",
+          "why": "Controls how much tax is withheld from IRB — IRB is taxable income"
+        }
+      ],
+
+      "common_denial_reasons": [
+        {
+          "reason": "Condition not linked to CAF service",
+          "fix": "Obtain a medical opinion letter that explicitly states the causal relationship between the condition and service activities, training, or deployment"
+        },
+        {
+          "reason": "No documented barrier to re-establishment",
+          "fix": "The application must articulate how the condition prevents the veteran from working at or near pre-release income level. Functional capacity assessments help."
+        },
+        {
+          "reason": "Not enrolled in VAC Rehabilitation Program",
+          "fix": "Apply for Rehab simultaneously with IRB. They are processed together. Without Rehab enrollment or DEC, IRB has no home."
+        },
+        {
+          "reason": "DEC denied — veteran deemed capable of some employment",
+          "fix": "Appeal to VRAB. DEC appeals have historically high overturn rates. The standard ('suitable gainful employment') is frequently misapplied. Get VRAB representation."
+        }
+      ],
+
+      "appeal_path": [
+        {
+          "step": 1,
+          "body": "Departmental Review",
+          "window": "90 days from the date of the original decision letter",
+          "how": "Written request to VAC via My VAC Account or mail",
+          "cost": "Free",
+          "note": "Submit any new medical evidence at this stage. Departmental Reviews are decided by a different adjudicator than the original."
+        },
+        {
+          "step": 2,
+          "body": "Veterans Review and Appeal Board (VRAB)",
+          "window": "Apply after completing Departmental Review",
+          "how": "Apply to VRAB directly at vrab-tacra.gc.ca",
+          "cost": "Free. Free representation available through Bureau of Pensions Advocates (BPA) or Royal Canadian Legion Service Officers",
+          "note": "VRAB is independent of VAC. DEC overturn rates at VRAB are significant. Always use a representative — success rates are higher with representation."
+        },
+        {
+          "step": 3,
+          "body": "Federal Court — Judicial Review",
+          "window": "30 days from VRAB final decision",
+          "how": "Requires a lawyer. File application for judicial review.",
+          "cost": "Requires legal counsel — not free",
+          "note": "Only reviews errors of law or process, not the merits of the medical evidence. Rare recourse."
+        }
+      ],
+
+      "pro_tips": [
+        "Apply for IRB and Pain and Suffering Compensation (PSC) simultaneously — they do not offset each other. Many veterans apply for PSC and assume IRB will reduce it. Wrong. They stack.",
+        "Request a DEC assessment explicitly and in writing. VAC will not initiate this automatically. The difference between a time-limited IRB and a lifelong IRB is this assessment.",
+        "The Career Progression Factor (1%/year) adds significant lifetime value for veterans released before 20 years of service or age 60. Request the calculation explicitly and in writing.",
+        "If working while on IRB, track employment earnings carefully. The $20k exemption resets January 1 — plan income timing around this threshold.",
+        "IRB is taxable. Unlike PSC (non-taxable), IRB counts as income for CRA purposes. File taxes accordingly and consider adjusting TD1 withholding.",
+        "Survivors and orphans have independent IRB eligibility — the benefit does not automatically extend. Survivors must apply separately within specific windows.",
+        "If VAC cancels IRB for failure to participate in Rehabilitation, appeal immediately. Cancellation for non-participation is frequently applied incorrectly."
+      ],
+
+      "concurrent_benefits": {
+        "_schema": "type: always=no gate | prerequisite=required, surface as warning | conditional=only suggest if gate_intake_id answer equals gate_answer",
+        "stacks_with": [
+          {
+            "benefit_id": "rehabilitation",
+            "label": "Rehabilitation Program",
+            "type": "prerequisite",
+            "gate_intake_id": "rehab",
+            "gate_answer": "no",
+            "note": "Rehabilitation enrollment is REQUIRED for IRB. Apply for both simultaneously — VAC processes them together. Without Rehab enrollment or a Diminished Earning Capacity (DEC) determination, IRB has no legal basis."
+          },
+          {
+            "benefit_id": "pain-suffering",
+            "label": "Pain and Suffering Compensation (PSC)",
+            "type": "always",
+            "gate_intake_id": null,
+            "gate_answer": null,
+            "note": "PSC does NOT reduce IRB. Apply for both simultaneously — this is the most commonly missed combination."
+          },
+          {
+            "benefit_id": "additional-psc",
+            "label": "Additional Pain and Suffering Compensation (APSC)",
+            "type": "always",
+            "gate_intake_id": null,
+            "gate_answer": null,
+            "note": "APSC does NOT reduce IRB. If you have approved PSC and severe functional limitations, request an APSC assessment — VAC does not initiate this automatically."
+          },
+          {
+            "benefit_id": "caregiver-recognition",
+            "label": "Caregiver Recognition Benefit",
+            "type": "conditional",
+            "gate_intake_id": "caregiver",
+            "gate_answer": "yes",
+            "note": "If someone provides regular unpaid care, they may qualify for $1,264.25/month (2026 rate). Paid to the caregiver, not the veteran. Requires an approved VAC disability benefit."
+          },
+          {
+            "benefit_id": "veterans-independence",
+            "label": "Veterans Independence Program (VIP)",
+            "type": "always",
+            "gate_intake_id": null,
+            "gate_answer": null,
+            "note": "VIP covers home care, housekeeping, and yard maintenance. Does not reduce IRB."
+          },
+          {
+            "benefit_id": "case-management",
+            "label": "Case Management Services",
+            "type": "always",
+            "gate_intake_id": null,
+            "gate_answer": null,
+            "note": "A case manager coordinates all your benefits at no cost. Request one explicitly — VAC does not automatically assign one."
+          },
+          {
+            "benefit_id": "education-training",
+            "label": "Education and Training Benefit (ETB)",
+            "type": "always",
+            "gate_intake_id": null,
+            "gate_answer": null,
+            "note": "ETB is the natural follow-on after IRB ends — up to $80,000 for post-secondary education or retraining."
+          }
+        ],
+        "conflicts_with": [
+          "Still-serving CAF members (full-time Regular Force) — must release first",
+          "Earnings Loss Benefit (pre-2019 equivalent — if already receiving, confirm conversion to IRB)"
+        ]
+      },
+
+      "rcmp_eligibility": "RCMP members are NOT eligible for IRB. RCMP members have separate RCMP-specific disability pension programs under different legislation.",
+
+      "policy_source": "https://www.veterans.gc.ca/en/financial-programs-and-services/income-support/income-replacement-benefit",
+      "policy_faq_source": "https://www.veterans.gc.ca/en/financial-programs-and-services/income-support/income-replacement-benefit/income-replacement-benefit-faqs",
+      "rates_source": "https://veterans.gc.ca/en/about-vac/resources/rates",
+      "last_verified": "2026-05-03"
+    },
+
+    "pain-suffering": {
+      "id": "pain-suffering",
+      "name": "Pain and Suffering Compensation (PSC)",
+      "plain_name": "Monthly or lump-sum payment for a service-related disability",
+      "legal_basis": "Veterans Well-being Act (SC 2005, c. 21), sections 45–60",
+      "program_family": "Pension for Life (replaced Disability Award on April 1, 2019)",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "caf_member",
+            "label": "Served in the CAF (Regular or Reserve Force) or RCMP",
+            "notes": "RCMP members apply under separate pension legislation but PSC is accessible."
+          },
+          {
+            "id": "service_related_condition",
+            "label": "Has a diagnosed physical or mental health condition",
+            "notes": "Condition must be related to CAF service — either caused by, or aggravated by, service activities."
+          },
+          {
+            "id": "entitlement",
+            "label": "Condition is at least partially attributable to service (entitlement decision)",
+            "notes": "VAC adjudicates entitlement as a percentage (e.g., 40% service-related). The benefit is paid in proportion to this percentage."
+          }
+        ]
+      },
+
+      "amount": {
+        "payment_options": "Monthly payment for life OR lump sum — veteran's choice at time of award",
+        "monthly_range_2026": "$67.77/month (minimum, 1% entitlement at 100% assessment) to $1,355.38/month (100% entitlement at 100% assessment)",
+        "lump_sum_range_2026": "$22,049.60 to $440,991.96",
+        "monthly_range_confirmed": "2024-04-01",
+        "monthly_range_source": "veterans.gc.ca evaluation report, rates indexed annually by CPI after this date",
+        "entitlement": "Percentage reflects how much of the condition is attributable to service (0–100%)",
+        "assessment": "Percentage reflects severity of the condition and its impact on quality of life (0–100%)",
+        "formula_note": "Final award = (entitlement % × assessment %) × maximum rate. Example: 60% entitlement, 70% assessment = 42% of maximum.",
+        "indexation": "Indexed annually January 1 by CPI"
+      },
+
+      "NOT_offsets": {
+        "critical_note": "PSC is tax-free and does NOT reduce IRB, Additional PSC, or most other VAC benefits.",
+        "sources_that_do_NOT_reduce_psc": [
+          "Income Replacement Benefit (IRB)",
+          "Additional Pain and Suffering Compensation (APSC)",
+          "Veterans Independence Program (VIP)",
+          "Canada Pension Plan Disability (CPP-D)",
+          "Employment income"
+        ]
+      },
+
+      "timeline": {
+        "apply_deadline": "No hard deadline. Apply as early as possible — award date is tied to application date in most cases, not condition onset.",
+        "processing_target_note": "Check current wait times at veterans.gc.ca wait time tool — processing times for disability benefits have been a known VAC issue. Temporary additional adjudicators funded through March 2026."
+      },
+
+      "evidence_required": [
+        {
+          "document": "VAC Application Form (21-0168 or guided form in My VAC Account)",
+          "why": "The application"
+        },
+        {
+          "document": "Medical diagnosis documentation",
+          "how_to_get": "From family physician or specialist",
+          "why": "Establishes the existence of the condition"
+        },
+        {
+          "document": "Service records linking condition to CAF service",
+          "how_to_get": "CF 1, incident reports, training logs, deployment records if available",
+          "why": "Establishes the service connection"
+        },
+        {
+          "document": "Buddy statements / witness statements (optional but powerful)",
+          "how_to_get": "Written statements from CAF colleagues who witnessed the incident or conditions",
+          "why": "Supplement when contemporaneous records are absent. VRAB weighs these heavily."
+        }
+      ],
+
+      "common_denial_reasons": [
+        {
+          "reason": "Service connection not established",
+          "fix": "Obtain a medical opinion letter explicitly linking the condition to specific service activities, training, or deployment."
+        },
+        {
+          "reason": "Condition predates service or is a pre-existing condition",
+          "fix": "If CAF service aggravated a pre-existing condition, this still qualifies. Document the aggravation specifically."
+        },
+        {
+          "reason": "Insufficient medical evidence",
+          "fix": "Get specialist assessment. VAC-contracted Medical Advisory Services can also assess — ask your case manager."
+        }
+      ],
+
+      "appeal_path": [
+        {
+          "step": 1,
+          "body": "Departmental Review",
+          "window": "90 days from decision letter",
+          "cost": "Free"
+        },
+        {
+          "step": 2,
+          "body": "Veterans Review and Appeal Board (VRAB)",
+          "window": "After Departmental Review",
+          "cost": "Free. Bureau of Pensions Advocates (BPA) provides free legal representation for VRAB hearings.",
+          "note": "VRAB applies a 'benefit of the doubt' standard — ambiguous evidence is resolved in the veteran's favour. This is significant. Always pursue VRAB if denied."
+        },
+        {
+          "step": 3,
+          "body": "Federal Court — Judicial Review",
+          "cost": "Requires lawyer"
+        }
+      ],
+
+      "pro_tips": [
+        "Apply for PSC AND IRB simultaneously if you have a barrier to work. One application does not preclude the other.",
+        "Choose monthly payment over lump sum unless you have specific financial reasons. Monthly is indexed annually; lump sum is a fixed amount with no indexation.",
+        "Gulf War Illness is now recognized as a valid VAC diagnosis (confirmed 2026). Veterans with Gulf War service and unexplained multi-system illness should apply.",
+        "If your condition has worsened since the original award, you can apply for a Reassessment to increase the assessment percentage.",
+        "VRAB applies 'benefit of the doubt' — any credible evidence in your favour must be weighed. This is a statutory obligation. Cite this explicitly in appeal submissions.",
+        "The Bureau of Pensions Advocates (BPA) is a government-funded legal service providing free representation for VRAB hearings. Use them. Their number: 1-877-228-2250."
+      ],
+
+      "concurrent_benefits": {
+        "_schema": "type: always=no gate | prerequisite=required, surface as warning | conditional=only suggest if gate_intake_id answer equals gate_answer",
+        "stacks_with": [
+          {
+            "benefit_id": "income-replacement",
+            "label": "Income Replacement Benefit (IRB)",
+            "type": "always",
+            "note": "PSC does NOT reduce IRB. Apply for both simultaneously if you have a barrier to re-establishment."
+          },
+          {
+            "benefit_id": "additional-psc",
+            "label": "Additional Pain and Suffering Compensation (APSC)",
+            "type": "prerequisite",
+            "gate_intake_id": "psc_approved",
+            "gate_answer": "yes",
+            "note": "APSC requires an approved PSC. If PSC is approved and you have permanent severe impairment, you are automatically eligible for APSC assessment. Request it explicitly."
+          },
+          {
+            "benefit_id": "caregiver-recognition",
+            "label": "Caregiver Recognition Benefit (CRB)",
+            "type": "prerequisite",
+            "gate_intake_id": "has_caregiver",
+            "gate_answer": "yes",
+            "note": "PSC approval is a prerequisite for CRB. If someone provides you with unpaid daily care, they may be eligible for CRB."
+          },
+          {
+            "benefit_id": "veterans-independence",
+            "label": "Veterans Independence Program (VIP)",
+            "type": "always",
+            "note": "VIP home-care services can be received concurrently with PSC."
+          },
+          {
+            "benefit_id": "rehabilitation",
+            "label": "Rehabilitation Program",
+            "type": "always",
+            "note": "Rehabilitation services are available concurrently with PSC and complement recovery."
+          }
+        ],
+        "conflicts_with": []
+      },
+
+      "policy_source": "https://veterans.gc.ca/en/financial-programs-and-services/compensation-illness-or-injury/disability-benefits",
+      "last_verified": "2026-05-03"
+    },
+
+    "additional-psc": {
+      "id": "additional-psc",
+      "name": "Additional Pain and Suffering Compensation (APSC)",
+      "plain_name": "Extra monthly payment if your disability severely limits daily life",
+      "legal_basis": "Veterans Well-being Act (SC 2005, c. 21), sections 56.6–56.8, Schedule 4",
+      "program_family": "Pension for Life (replaced Career Impact Allowance on April 1, 2019)",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "has_psc",
+            "label": "Has an approved Pain and Suffering Compensation (PSC), Disability Award, or Disability Pension",
+            "notes": "APSC cannot be applied for independently. PSC approval is a prerequisite."
+          },
+          {
+            "id": "permanent_severe_impairment",
+            "label": "Has a permanent and severe impairment",
+            "notes": "Assessed against specific criteria: mobility limitations, self-care limitations, need for supervision. Determined by VAC assessment."
+          },
+          {
+            "id": "barrier_post_service",
+            "label": "The impairment creates a barrier to life after service",
+            "notes": "Distinct from the IRB 'barrier to re-establishment' — APSC focuses on permanent impairment affecting post-service life broadly, not just employment."
+          }
+        ]
+      },
+
+      "amount": {
+        "grade_system": "Three grades based on severity of impairment",
+        "grade_1": "$1,691/month (most severe — approximate 2023 rate; indexed annually)",
+        "grade_2": "$1,127/month (intermediate — approximate 2023 rate; indexed annually)",
+        "grade_3": "$563/month (least severe — approximate 2023 rate; indexed annually)",
+        "rate_note": "These are 2023 base figures. Indexed annually by CPI. Verify current amounts at veterans.gc.ca/en/about-vac/resources/rates",
+        "current_rates_flag": "VERIFY_ON_UPDATE",
+        "grade_floor": "All approved applicants receive at least Grade 3. VAC cannot award zero if criteria are met.",
+        "taxable": false
+      },
+
+      "NOT_offsets": {
+        "sources_that_do_NOT_reduce_apsc": [
+          "Income Replacement Benefit (IRB)",
+          "Pain and Suffering Compensation (PSC)",
+          "Employment income",
+          "CPP-D"
+        ]
+      },
+
+      "pro_tips": [
+        "APSC is automatic after PSC approval only if VAC conducts the impairment assessment. If you have severe functional limitations and were not assessed, request an APSC assessment explicitly.",
+        "Veterans with psychiatric conditions (PTSD, major depression) meeting the DSM-5 severe and frequent symptom threshold qualify for Grade 1 APSC — but must request the assessment.",
+        "If you currently receive the Exceptional Incapacity Allowance (older program), you are NOT eligible for APSC — it cannot be received simultaneously."
+      ],
+
+      "concurrent_benefits": {
+        "_schema": "type: always=no gate | prerequisite=required, surface as warning | conditional=only suggest if gate_intake_id answer equals gate_answer",
+        "stacks_with": [
+          {
+            "benefit_id": "pain-suffering",
+            "label": "Pain and Suffering Compensation (PSC)",
+            "type": "prerequisite",
+            "gate_intake_id": "psc_approved",
+            "gate_answer": "yes",
+            "note": "APSC cannot be applied for independently. An approved PSC (or legacy Disability Award/Pension) is required before APSC can be assessed."
+          },
+          {
+            "benefit_id": "income-replacement",
+            "label": "Income Replacement Benefit (IRB)",
+            "type": "always",
+            "note": "APSC does NOT reduce IRB. Both can be received concurrently."
+          },
+          {
+            "benefit_id": "caregiver-recognition",
+            "label": "Caregiver Recognition Benefit (CRB)",
+            "type": "conditional",
+            "gate_intake_id": "has_caregiver",
+            "gate_answer": "yes",
+            "note": "If someone provides you with unpaid daily care, CRB may be available to them concurrently with your APSC."
+          },
+          {
+            "benefit_id": "veterans-independence",
+            "label": "Veterans Independence Program (VIP)",
+            "type": "always",
+            "note": "VIP home-care services can be received concurrently with APSC."
+          }
+        ],
+        "conflicts_with": [
+          {
+            "benefit_id": "exceptional-incapacity-allowance",
+            "label": "Exceptional Incapacity Allowance (EIA — legacy pre-2019 benefit)",
+            "reason": "APSC and EIA cannot be received simultaneously. Veterans grandfathered on EIA must choose. EIA is typically higher."
+          }
+        ]
+      },
+
+      "policy_source": "https://veterans.gc.ca/en/financial-programs-and-services/compensation-illness-or-injury/disability-benefits",
+      "last_verified": "2026-05-03"
+    },
+
+    "caregiver-recognition": {
+      "id": "caregiver-recognition",
+      "name": "Caregiver Recognition Benefit (CRB)",
+      "plain_name": "Monthly payment to the person caring for a disabled veteran",
+      "legal_basis": "Veterans Well-being Act, section 65.1",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "has_disability_benefit",
+            "label": "Veteran has an approved VAC disability benefit (PSC, Disability Award, or Disability Pension of 1% or more)",
+            "notes": "Cannot apply for CRB independently. VAC disability approval is the gateway."
+          },
+          {
+            "id": "ongoing_care_need",
+            "label": "Veteran needs ongoing care expected to last at least 12 months",
+            "notes": "The care need must be caused by the condition for which the disability benefit was approved."
+          },
+          {
+            "id": "care_level",
+            "label": "Requires one of: institutional-level supervision, daily physical assistance for most ADLs, ongoing direction and supervision during most ADLs, or daily supervision due to safety risk",
+            "notes": "ADLs = Activities of Daily Living: bathing, dressing, eating, toileting, mobility, personal hygiene."
+          },
+          {
+            "id": "caregiver_qualifies",
+            "label": "Caregiver is over 18, provides essential unpaid care, and is not a paid professional",
+            "notes": "The veteran must not be a permanent resident of a nursing home or LTC facility."
+          }
+        ]
+      },
+
+      "amount": {
+        "monthly_2026": 1264.25,
+        "monthly_confirmed": "2026-01-01",
+        "monthly_source": "veterans.gc.ca/en/about-vac/resources/rates (effective Jan 1, 2026)",
+        "taxable": false,
+        "paid_to": "The CAREGIVER, not the veteran",
+        "purpose_note": "This is recognition for the caregiver. It does not replace lost caregiver income."
+      },
+
+      "important_notes": [
+        "The benefit is paid to the CAREGIVER directly, not to the veteran.",
+        "If the veteran already receives a Disability Pension and Attendance Allowance (pre-2006 program), they use a different caregiver pathway — not CRB.",
+        "Payment begins on the first day of the month the application is received.",
+        "If the veteran enters a nursing home or LTC facility permanently, CRB stops."
+      ],
+
+      "policy_source": "https://www.veterans.gc.ca/en/mental-and-physical-health/mental-health-and-wellness/compensation-illness-or-injury/caregiver-recognition-benefit",
+      "last_verified": "2026-05-03"
+    },
+
+    "veterans-independence": {
+      "id": "veterans-independence",
+      "name": "Veterans Independence Program (VIP)",
+      "plain_name": "Funding for home care, housekeeping, yard work to stay independent",
+      "legal_basis": "Veterans Well-being Act, sections 62–64",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "OR — multiple veteran categories qualify; see conditions",
+        "conditions": [
+          {
+            "id": "war_service",
+            "label": "Served in wartime (WWII, Korea) with specific health or income criteria"
+          },
+          {
+            "id": "modern_veteran_with_psych",
+            "label": "Released CAF veteran with a psychiatric condition approved for VAC disability benefits"
+          },
+          {
+            "id": "modern_veteran_needs_home_support",
+            "label": "Released CAF veteran who needs home support to remain independent due to a service-related health condition"
+          },
+          {
+            "id": "survivor_primary_caregiver",
+            "label": "Survivor or primary caregiver of a VIP-eligible veteran who recently passed away (eligibility window applies)"
+          }
+        ],
+        "notes": "VIP eligibility criteria are more complex than other benefits — eligibility varies by era of service. When in doubt, apply and let VAC adjudicate."
+      },
+
+      "services_covered": [
+        "Housekeeping and cleaning",
+        "Yard maintenance (lawn care, snow removal)",
+        "Personal care assistance (bathing, dressing, grooming)",
+        "Meal preparation",
+        "Transportation to medical appointments",
+        "Access to social activities"
+      ],
+
+      "amount": {
+        "note": "Maximum amounts per service category — see current VIP rate table PDF at veterans.gc.ca/en/about-vac/resources/rates",
+        "current_rates_flag": "VERIFY_ON_UPDATE — VIP rates vary by service type; PDF rate table is the authoritative source"
+      },
+
+      "pro_tips": [
+        "VIP can stack with other VAC benefits including PSC and IRB.",
+        "Survivors of eligible veterans retain VIP eligibility for a period after the veteran's death — apply promptly.",
+        "VIP is often underutilized by modern veterans who don't know they qualify. If you have a service-related physical or mental health condition affecting your ability to maintain your home, apply.",
+        "PLANNING NOTE: VIP and Long-Term Care (LTC) are mutually exclusive. Maximize VIP services at home as long as possible — once you transition to an LTC facility, VIP ends. Discuss this transition planning with your case manager early."
+      ],
+
+      "concurrent_benefits": {
+        "_schema": "type: always=no gate | prerequisite=required, surface as warning | conditional=only suggest if gate_intake_id answer equals gate_answer",
+        "stacks_with": [
+          {
+            "benefit_id": "pain-suffering",
+            "label": "Pain and Suffering Compensation (PSC)",
+            "type": "always",
+            "note": "VIP and PSC can be received concurrently."
+          },
+          {
+            "benefit_id": "income-replacement",
+            "label": "Income Replacement Benefit (IRB)",
+            "type": "always",
+            "note": "VIP does NOT reduce IRB. Both can be received concurrently."
+          },
+          {
+            "benefit_id": "case-management",
+            "label": "Case Management",
+            "type": "always",
+            "note": "Case Management typically coordinates VIP services — these are almost always paired."
+          }
+        ],
+        "conflicts_with": [
+          {
+            "benefit_id": "long-term-care",
+            "label": "Long-Term Care (LTC)",
+            "reason": "VIP and LTC are mutually exclusive. VIP covers home care for independently living veterans; LTC covers institutional facility care. VIP eligibility ends upon LTC placement."
+          }
+        ]
+      },
+
+      "policy_source": "https://veterans.gc.ca/en/about-vac/resources/rates",
+      "last_verified": "2026-05-03"
+    },
+
+    "education-training": {
+      "id": "education-training",
+      "name": "Education and Training Benefit (ETB)",
+      "plain_name": "Up to $80,000 for post-secondary education or trade training",
+      "legal_basis": "Veterans Well-being Act, sections 33–35.1",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "caf_service",
+            "label": "Served in the CAF",
+            "notes": "Both Regular and Reserve Force members qualify."
+          },
+          {
+            "id": "service_duration",
+            "label": "Total service of at least 6 years (for $40,000 maximum) or at least 12 years (for $80,000 maximum)",
+            "notes": "Service years determine the benefit amount. Partial years count toward the threshold."
+          },
+          {
+            "id": "honourable_release",
+            "label": "Released honourably from the CAF",
+            "notes": "Medical releases also qualify."
+          }
+        ]
+      },
+
+      "amount": {
+        "6_to_12_years_service": "$40,000 maximum (lifetime)",
+        "12_or_more_years_service": "$80,000 maximum (lifetime)",
+        "short_courses": "Up to $6,321.24 of the maximum can be used for short courses, certifications, professional designations",
+        "short_courses_confirmed": "2026-01-01",
+        "short_courses_source": "veterans.gc.ca/en/about-vac/resources/rates (effective Jan 1, 2026)",
+        "taxable": false,
+        "use_it_or_lose_it": "Unused amounts do not expire for 10 years post-release — but plan ahead."
+      },
+
+      "eligible_programs": [
+        "University and college programs (degree, diploma, certificate)",
+        "Technical and vocational training",
+        "Apprenticeship programs",
+        "Short-term certification courses (within the $6,321.24 short-course sub-limit)"
+      ],
+
+      "pro_tips": [
+        "ETB can be used after IRB ends — it's a natural transition benefit. Plan the sequence: IRB through rehab, then ETB for retraining.",
+        "The short-course sub-limit ($6,321.24) is useful for certifications like PMP, trade tickets, or professional designations without consuming the full ETB amount.",
+        "ETB does not count as income for tax purposes."
+      ],
+
+      "policy_source": "https://veterans.gc.ca/en/about-vac/resources/rates",
+      "last_verified": "2026-05-03"
+    },
+
+    "rehabilitation": {
+      "id": "rehabilitation",
+      "name": "Rehabilitation Services and Vocational Assistance Program",
+      "plain_name": "Free medical, psychological, and career rehab services",
+      "legal_basis": "Veterans Well-being Act, sections 10–18",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "caf_release",
+            "label": "Released from the CAF"
+          },
+          {
+            "id": "barrier_to_reestablishment",
+            "label": "Has a barrier to re-establishment in civilian life resulting from a physical or mental health problem from service",
+            "notes": "Same legal test as IRB. Apply for both simultaneously."
+          }
+        ]
+      },
+
+      "services_covered": [
+        "Physiotherapy and occupational therapy",
+        "Psychological counselling and mental health treatment",
+        "Medical services not covered by provincial health",
+        "Vocational assessment and career planning",
+        "Job skills training and education support",
+        "Job placement assistance"
+      ],
+
+      "important_notes": [
+        "Veterans must actively participate in their Rehabilitation Plan — failure to participate can result in IRB suspension or cancellation.",
+        "If you find employment before completing rehab, your plan is administratively 'cancelled' by VAC systems even if goals were met — this affects DEC eligibility. Understand this before accepting employment during rehab.",
+        "Apply for Rehabilitation AND IRB simultaneously — they are processed together and are interdependent."
+      ],
+
+      "policy_source": "https://veterans.gc.ca/en/about-vac/resources/rates",
+      "last_verified": "2026-05-03"
+    },
+
+    "case-management": {
+      "id": "case-management",
+      "name": "Case Management Services",
+      "plain_name": "Dedicated VAC case manager to coordinate all your benefits",
+      "legal_basis": "Veterans Well-being Act, sections 5.1–5.2",
+      "taxable": false,
+      "cost": "Free",
+
+      "eligibility": {
+        "conditions": [
+          {
+            "id": "released",
+            "label": "Released CAF member or Veteran",
+            "notes": "Case management is available to Veterans with complex needs — there is no income or disability threshold required to request it."
+          }
+        ],
+        "notes": "Not all veterans get automatic case management — you may need to request it. Veterans with multiple conditions, complex files, or difficulty navigating VAC should request this explicitly."
+      },
+
+      "what_case_manager_does": [
+        "Single point of contact for all VAC programs and services",
+        "Assists with applications and documentation",
+        "Coordinates with medical professionals and VAC adjudicators",
+        "Monitors rehabilitation progress",
+        "Connects veterans with community resources",
+        "Advocates for the veteran within VAC"
+      ],
+
+      "pro_tips": [
+        "Request a case manager explicitly and in writing. VAC does not automatically assign one to every veteran.",
+        "A case manager can significantly reduce processing times by navigating the system on your behalf.",
+        "If your case manager is unresponsive or ineffective, you have the right to request a different one. The Veterans Ombudsman can assist if VAC is unresponsive: 1-877-330-4343."
+      ],
+
+      "policy_source": "https://veterans.gc.ca/en/about-vac/resources/rates",
+      "last_verified": "2026-05-03"
+    },
+
+    "long-term-care": {
+      "id": "long-term-care",
+      "name": "Long Term Care Program",
+      "plain_name": "Funding for nursing home or residential care facility",
+      "legal_basis": "Veterans Well-being Act, sections 66–71",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "caf_or_allied",
+            "label": "Served in the CAF, Merchant Navy, or other eligible wartime service",
+            "notes": "Eligibility varies significantly by era of service. WWII and Korean War veterans have broader LTC access than modern veterans."
+          },
+          {
+            "id": "requires_ltc",
+            "label": "Requires the level of care provided by a long-term care facility",
+            "notes": "Must be assessed as requiring institutional-level care. Cannot access LTC funding if living independently or receiving VIP home care."
+          }
+        ]
+      },
+
+      "important_notes": [
+        "Priority access to LTC beds in contracted facilities is available for eligible veterans.",
+        "VAC may fund the difference between provincial LTC rates and the actual cost for eligible veterans.",
+        "This program has the most complex eligibility rules of any VAC benefit — era of service, type of service, and health status all factor in. Request a case manager for this application.",
+        "MUTUAL EXCLUSION WITH VIP: LTC and the Veterans Independence Program (VIP) cannot be received simultaneously. VIP covers home care for veterans living independently; LTC covers institutional facility care. If a veteran transitions into a facility, VIP eligibility ends. Plan accordingly — VIP should be maximized before LTC becomes necessary."
+      ],
+
+      "concurrent_benefits": {
+        "_schema": "type: always=no gate | prerequisite=required, surface as warning | conditional=only suggest if gate_intake_id answer equals gate_answer",
+        "stacks_with": [
+          {
+            "benefit_id": "pain-suffering",
+            "label": "Pain and Suffering Compensation (PSC)",
+            "type": "always",
+            "note": "PSC can continue to be received while in LTC."
+          },
+          {
+            "benefit_id": "case-management",
+            "label": "Case Management",
+            "type": "always",
+            "note": "Case Management services are typically active during LTC placement — essential for coordinating care."
+          }
+        ],
+        "conflicts_with": [
+          {
+            "benefit_id": "veterans-independence",
+            "label": "Veterans Independence Program (VIP)",
+            "reason": "LTC and VIP are mutually exclusive. VIP provides home care for veterans living independently. Once institutional LTC placement begins, VIP eligibility ends. This is a critical planning point — exhaust VIP options before LTC transition."
+          }
+        ]
+      },
+
+      "policy_source": "https://veterans.gc.ca/en/about-vac/resources/rates",
+      "last_verified": "2026-05-03"
+    },
+
+    "funeral-burial": {
+      "id": "funeral-burial",
+      "name": "Funeral and Burial Program",
+      "plain_name": "Covers funeral and burial costs for eligible veterans",
+      "legal_basis": "Veterans Well-being Act, sections 72–77",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "veteran_deceased",
+            "label": "The veteran has passed away"
+          },
+          {
+            "id": "eligible_service",
+            "label": "The veteran served in the CAF, RCMP, or other eligible service category",
+            "notes": "Both wartime and modern veterans qualify depending on specific service and circumstance of death."
+          },
+          {
+            "id": "financial_need_or_service_death",
+            "label": "Financial need OR death resulting from a service-related condition OR veteran was receiving certain VAC benefits",
+            "notes": "Death directly from a service-related condition removes the financial need test. Check with VAC — eligibility is broader than most families realize."
+          }
+        ]
+      },
+
+      "amount": {
+        "note": "VAC covers funeral and burial costs up to specific maximums. Check current amounts at veterans.gc.ca rates page.",
+        "current_rates_flag": "VERIFY_ON_UPDATE"
+      },
+
+      "apply_deadline": "Apply as soon as possible after the veteran's death. Do not delay while managing grief.",
+
+      "who_applies": "The next of kin, executor of the estate, or the funeral home on behalf of the family.",
+
+      "pro_tips": [
+        "Apply before arrangements are finalized if possible — VAC may have specific contracted funeral homes or arrangements.",
+        "If the veteran died from a service-related condition, funeral costs may be fully covered regardless of financial means.",
+        "The funeral home can apply directly to VAC in many cases — ask them explicitly if they have experience with VAC claims."
+      ],
+
+      "policy_source": "https://veterans.gc.ca/en/about-vac/resources/rates",
+      "last_verified": "2026-05-03"
+    },
+
+    "disability-benefits-pension-act": {
+      "id": "disability-benefits-pension-act",
+      "name": "Disability Benefits (Pension Act)",
+      "plain_name": "For veterans who served before April 1, 2006 — the old pension system",
+      "legal_basis": "Pension Act (R.S.C., 1985, c. P-6)",
+      "program_family": "Pre-Pension for Life system — different adjudication rules than modern benefits",
+      "taxable": false,
+
+      "eligibility": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "id": "pre_2006_service",
+            "label": "Applied for disability benefits BEFORE April 1, 2006 OR served in WWII or Korean War",
+            "notes": "Veterans who served before 2006 but applied AFTER April 1, 2006 fall under the New Veterans Charter (PSC system) instead. The application date, not the service date, determines which system applies in many cases."
+          },
+          {
+            "id": "service_related_disability",
+            "label": "Has a disability related to or aggravated by CAF service",
+            "notes": "Same substantive test as PSC, but adjudicated under different legislation with different standards."
+          }
+        ]
+      },
+
+      "important_differences_from_psc": [
+        "Monthly payment only — no lump sum option (unlike PSC which offers both)",
+        "Disability Pension is indexed to CPI annually",
+        "The Pension Act's legal presumptions and burdens of proof differ from the Veterans Well-being Act",
+        "Dependants receive additional amounts on top of the base pension",
+        "VRAB handles appeals under different procedural rules"
+      ],
+
+      "pro_tips": [
+        "If you served before 2006 and never applied, you may still be eligible under the Pension Act. There is no hard deadline to apply.",
+        "Veterans receiving Disability Pensions may also be eligible for modern benefits (VIP, Case Management) — these systems are not mutually exclusive.",
+        "The Attendance Allowance (for pension recipients needing home care assistance) is the Pension Act equivalent of the Caregiver Recognition Benefit."
+      ],
+
+      "policy_source": "https://veterans.gc.ca/en/financial-programs-and-services/compensation-illness-or-injury/disability-benefits",
+      "last_verified": "2026-05-03"
+    }
+
+  },
+
+  "cross_cutting_rules": {
+    "application_deadline": "Most VAC benefits have no hard application deadline. However, retroactive payment is limited — awards typically begin from the application date, not the onset of the condition. Apply early.",
+    "benefit_of_the_doubt": "Under VRAB rules, when evidence is approximately equal for and against entitlement, the decision must favour the veteran. This is a statutory obligation, not a courtesy. Cite it in any appeal.",
+    "service_attribution_standard": "The legal test is 'resulting primarily from service' — not 'caused exclusively by service.' Aggravation of a pre-existing condition qualifies.",
+    "simultaneous_applications": "Veterans can and should apply for multiple benefits simultaneously. VAC will process each independently. Applying for one does not preclude another.",
+    "reserve_force_note": "Reserve Force eligibility often requires Class B service exceeding 180 days or Class C service. Part-time Class A Reservists have limited eligibility — confirm before applying.",
+    "survivors_window": "Survivors of eligible veterans have independent benefit entitlements. Apply promptly — some windows are time-limited after the veteran's death.",
+    "free_representation": "The Bureau of Pensions Advocates (BPA) provides free legal representation for VRAB appeals: 1-877-228-2250. Royal Canadian Legion Service Officers provide free application assistance. Use both.",
+    "vac_main_line": "1-866-522-2122 — VAC direct. 8am–4pm local time, Monday to Friday."
+  },
+
+  "appeal_bodies": {
+    "departmental_review": {
+      "who": "Veterans Affairs Canada — different adjudicator from original",
+      "window": "90 days from decision date",
+      "cost": "Free",
+      "tip": "Submit new medical evidence at this stage. This is the fastest resolution path."
+    },
+    "vrab": {
+      "full_name": "Veterans Review and Appeal Board",
+      "who": "Independent quasi-judicial body",
+      "website": "vrab-tacra.gc.ca",
+      "cost": "Free. Free representation via Bureau of Pensions Advocates (BPA): 1-877-228-2250",
+      "standard": "Benefit of the doubt applies. Credible evidence in the veteran's favour must be given weight.",
+      "two_levels": "Review level (first) and Appeal level (second, final VRAB step)"
+    },
+    "federal_court": {
+      "who": "Federal Court of Canada — judicial review only",
+      "cost": "Requires private legal counsel",
+      "scope": "Reviews errors of law or procedural fairness — does not re-weigh medical evidence",
+      "note": "Rare recourse. Exhaust VRAB first."
+    },
+    "ombudsman": {
+      "full_name": "Office of the Veterans Ombudsman",
+      "phone": "1-877-330-4343",
+      "website": "ombudsman-veterans.gc.ca",
+      "role": "Investigates systemic issues and individual cases of unfair treatment by VAC. Not a decision-maker, but can escalate and apply pressure.",
+      "use_when": "VAC is unresponsive, case manager is unhelpful, or you believe process was unfair"
+    }
+  },
+
+  "crisis_resources": {
+    "vac_assistance_line": { "number": "1-800-268-7708", "hours": "24/7", "description": "VAC Assistance Line — mental health crisis support for veterans and families" },
+    "osiss": { "number": "1-800-883-6094", "hours": "24/7", "description": "Operational Stress Injury Social Support — peer support from veterans with lived experience" },
+    "crisis_line": { "number": "988", "hours": "24/7", "description": "Suicide Crisis Helpline — Canada and US" },
+    "crisis_text": { "number": "Text 45645", "hours": "24/7", "description": "Crisis Text Line Canada" },
+    "vac_direct": { "number": "1-866-522-2122", "hours": "Mon–Fri, 8am–4pm local time", "description": "VAC main service line — benefits, applications, general inquiries" },
+    "bpa": { "number": "1-877-228-2250", "description": "Bureau of Pensions Advocates — free legal representation for VRAB" },
+    "rcl": { "website": "legion.ca", "description": "Royal Canadian Legion — free service officers for VAC applications across Canada" }
+  }
+}

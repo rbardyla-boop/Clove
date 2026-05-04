@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Free VAC benefits navigator for Canadian veterans. Find your eligibility and draft your application — fully offline, no data leaves your device.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; img-src 'none';">
+<title>VAC Navigator — Operator's Deck</title>
+<style>
+  :root {
+    --bg: #08080f;
+    --bg2: #0f0f1a;
+    --bg3: #141420;
+    --red: #c0392b;
+    --red-dim: #7a2218;
+    --gold: #d4a843;
+    --green: #27ae60;
+    --dim: #2a2a3a;
+    --muted: #555570;
+    --text: #d0d0e0;
+    --text-dim: #888899;
+    --mono: 'DM Mono', 'Courier New', monospace;
+    --sans: system-ui, -apple-system, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--dim);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-back {
+    color: var(--muted);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .header-back:hover { color: var(--text); }
+  .header-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .header-sep { color: var(--dim); font-size: 18px; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* ── INTRO ── */
+  .intro {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    border-left: 3px solid var(--red);
+    padding: 18px 20px;
+    margin-bottom: 24px;
+  }
+  .intro-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .intro p { color: var(--text-dim); font-size: 14px; margin-bottom: 6px; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* ── INPUT SECTION ── */
+  .input-section {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .situation-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 14px;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .situation-input:focus { border-color: var(--red-dim); }
+  .situation-input::placeholder { color: var(--muted); }
+
+  .prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .prompt-chip {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .prompt-chip:hover {
+    border-color: var(--red-dim);
+    color: var(--text);
+  }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; align-items: center; }
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: #a93226; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+  .char-count { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  /* ── STATUS ── */
+  .status-bar {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    padding: 8px 0;
+    letter-spacing: 0.05em;
+    display: none;
+  }
+
+  /* ── RESULTS ── */
+  .results { display: none; }
+  .results-header {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--dim);
+  }
+
+  /* ── BENEFIT CARD ── */
+  .benefit-card {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .benefit-card.rank-1 { border-left: 3px solid var(--red); }
+  .benefit-card.rank-2 { border-left: 3px solid var(--gold); }
+  .benefit-card.rank-3 { border-left: 3px solid var(--muted); }
+
+  .benefit-header {
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+  }
+  .benefit-header:hover { background: var(--bg3); }
+  .benefit-rank {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: bold;
+    width: 28px;
+    flex-shrink: 0;
+  }
+  .rank-1 .benefit-rank { color: var(--red); }
+  .rank-2 .benefit-rank { color: var(--gold); }
+  .rank-3 .benefit-rank { color: var(--muted); }
+
+  .benefit-info { flex: 1; min-width: 0; }
+  .benefit-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .benefit-short { font-size: 12px; color: var(--text-dim); }
+  .benefit-score {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .score-bar {
+    height: 3px;
+    background: var(--dim);
+    margin-top: 4px;
+    width: 60px;
+  }
+  .score-fill {
+    height: 100%;
+    background: var(--red);
+    transition: width 0.3s;
+  }
+  .rank-2 .score-fill { background: var(--gold); }
+  .rank-3 .score-fill { background: var(--muted); }
+
+  .expand-icon {
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .benefit-card.open .expand-icon { transform: rotate(180deg); }
+
+  /* ── BENEFIT BODY ── */
+  .benefit-body { display: none; border-top: 1px solid var(--dim); }
+  .benefit-card.open .benefit-body { display: block; }
+
+  .benefit-section {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--dim);
+  }
+  .benefit-section:last-child { border-bottom: none; }
+  .subsection-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* Conditions checklist */
+  .condition-list { display: flex; flex-direction: column; gap: 6px; }
+  .condition-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .condition-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .condition-met { color: var(--green); }
+  .condition-unknown { color: var(--gold); }
+  .condition-text { color: var(--text-dim); }
+  .condition-text.met { color: var(--text); }
+
+  /* Form questions */
+  .question-list { display: flex; flex-direction: column; gap: 8px; }
+  .question-item {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding-left: 16px;
+    position: relative;
+  }
+  .question-item::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  /* Form draft */
+  .form-draft {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    font-family: var(--sans);
+  }
+  .entity-blank {
+    background: var(--red-dim);
+    color: #fff;
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-radius: 2px;
+  }
+
+  .btn-copy {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 6px 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.15s;
+  }
+  .btn-copy:hover { color: var(--text); border-color: var(--muted); }
+
+  /* Tax status badge */
+  .tax-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .tax-badge.taxable { background: rgba(212,168,67,.12); color: var(--gold); border: 1px solid rgba(212,168,67,.3); }
+  .tax-badge.nontaxable { background: rgba(39,174,96,.1); color: var(--green); border: 1px solid rgba(39,174,96,.25); }
+
+  /* NOT offsets section */
+  .not-offsets-note {
+    font-size: 11px;
+    color: var(--red);
+    font-family: var(--mono);
+    margin-bottom: 8px;
+  }
+  .not-offsets-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  .not-offsets-list li {
+    font-size: 13px;
+    color: var(--text);
+    padding-left: 18px;
+    position: relative;
+  }
+  .not-offsets-list li::before {
+    content: '✗';
+    position: absolute;
+    left: 0;
+    color: var(--red);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  /* Evidence checklist */
+  .evidence-list { display: flex; flex-direction: column; gap: 10px; }
+  .evidence-item { font-size: 13px; }
+  .evidence-doc { color: var(--text); display: block; margin-bottom: 3px; }
+  .evidence-form {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--gold);
+    background: rgba(212,168,67,.08);
+    border: 1px solid rgba(212,168,67,.2);
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-right: 6px;
+  }
+  .evidence-how { font-size: 11px; color: var(--muted); }
+
+  /* Pro tips */
+  .pro-tips-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .pro-tips-list li {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .pro-tips-list li::before {
+    content: '⚡';
+    position: absolute;
+    left: 0;
+    font-size: 11px;
+  }
+
+  /* Intake launch button */
+  .intake-launch-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(192,57,43,.1), rgba(192,57,43,.04));
+    border: none;
+    border-bottom: 1px solid var(--dim);
+    color: var(--red);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+  }
+  .intake-launch-btn:hover { background: rgba(192,57,43,.16); }
+
+  /* Intake full-screen overlay */
+  .intake-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .intake-hdr {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--dim);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .intake-close { font-family: var(--mono); font-size: 12px; color: var(--muted); cursor: pointer; flex-shrink: 0; }
+  .intake-title { flex: 1; font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .intake-step { font-family: var(--mono); font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .intake-progress { height: 2px; background: var(--dim); flex-shrink: 0; }
+  .intake-progress-fill { height: 100%; background: var(--red); transition: width 0.3s; }
+  .intake-body { flex: 1; padding: 28px 20px 20px; overflow-y: auto; }
+  .intake-q { font-size: 18px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; color: var(--text); }
+  .intake-hint { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-bottom: 20px; line-height: 1.5; }
+  .intake-input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 72px;
+    font-family: var(--sans);
+    line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+  .intake-input:focus { border-color: var(--muted); }
+  .intake-yesno { display: flex; gap: 12px; margin-top: 4px; }
+  .intake-yn-btn {
+    flex: 1;
+    padding: 16px;
+    background: var(--bg2);
+    border: 1.5px solid var(--dim);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .intake-yn-btn.selected { border-color: var(--red); color: var(--text); background: rgba(192,57,43,.08); }
+  .intake-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(212,168,67,.06);
+    border-left: 2px solid var(--gold);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .intake-footer { padding: 14px 16px; display: flex; gap: 10px; border-top: 1px solid var(--dim); background: var(--bg); flex-shrink: 0; }
+  .intake-btn {
+    flex: 1;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    border: 1px solid var(--dim);
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .intake-btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+  .intake-btn:disabled { opacity: 0.3; cursor: default; }
+
+  /* Completion screen */
+  .intake-complete-body { flex: 1; padding: 20px; overflow-y: auto; }
+  .intake-complete-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; color: var(--green); margin-bottom: 12px; }
+  .intake-filled-draft {
+    background: var(--bg3);
+    border: 1px solid rgba(39,174,96,.2);
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .intake-dl-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: var(--red);
+    border: none;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-bottom: 10px;
+  }
+  .intake-dl-btn:hover { opacity: 0.88; }
+  .btn-copy.copied { color: var(--green); border-color: var(--green); }
+
+  /* ── CONCURRENT OPTIMIZER ── */
+  .concurrent-section {
+    margin-top: 28px;
+    border-top: 1px solid var(--dim);
+    padding-top: 20px;
+  }
+  .concurrent-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .concurrent-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .concurrent-card {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .concurrent-card.type-prerequisite { border-left: 3px solid var(--red); }
+  .concurrent-card.type-always       { border-left: 3px solid var(--green); }
+  .concurrent-card.type-conditional  { border-left: 3px solid var(--gold); }
+  .concurrent-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .badge-prerequisite { background: var(--red);   color: #fff; }
+  .badge-always       { background: var(--green); color: #fff; }
+  .badge-conditional  { background: var(--gold);  color: #08080f; }
+  .concurrent-info { flex: 1; min-width: 0; }
+  .concurrent-name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: var(--text);
+  }
+  .concurrent-short {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+  .concurrent-note {
+    font-size: 11px;
+    color: var(--gold);
+    font-family: var(--mono);
+    line-height: 1.5;
+  }
+  .concurrent-action {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    margin-top: 2px;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .concurrent-action:hover { color: var(--text); border-color: var(--muted); }
+  .conflict-note {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--red-dim, rgba(231,76,60,.3));
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .conflict-note strong {
+    color: var(--red);
+    font-family: var(--mono);
+    font-size: 10px;
+  }
+
+  .vac-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+  }
+  .vac-link:hover { color: var(--red); }
+
+  /* ── CLARIFYING QUESTIONS ── */
+  .clarify-box {
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .clarify-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .clarify-list { display: flex; flex-direction: column; gap: 8px; }
+  .clarify-item {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding-left: 14px;
+    position: relative;
+  }
+  .clarify-item::before {
+    content: '?';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  /* ── NO RESULTS ── */
+  .no-results {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    padding: 24px 20px;
+    text-align: center;
+    display: none;
+  }
+  .no-results-icon { font-size: 28px; margin-bottom: 10px; }
+  .no-results-text { color: var(--text-dim); font-size: 14px; line-height: 1.6; }
+
+  /* ── CRISIS BAR ── */
+  .crisis-bar {
+    background: var(--bg2);
+    border: 1px solid var(--dim);
+    border-left: 3px solid var(--red);
+    padding: 14px 16px;
+    margin-top: 32px;
+  }
+  .crisis-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .crisis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  @media (max-width: 500px) { .crisis-grid { grid-template-columns: 1fr; } }
+  .crisis-item {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .crisis-item strong { color: var(--text); font-family: var(--mono); font-size: 11px; }
+
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    margin-top: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* ── LOADING ── */
+  .loading-bar {
+    height: 2px;
+    background: var(--dim);
+    position: relative;
+    overflow: hidden;
+    display: none;
+    margin: 10px 0;
+  }
+  .loading-bar::after {
+    content: '';
+    position: absolute;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    background: var(--red);
+    animation: loading 0.8s linear infinite;
+  }
+  @keyframes loading { to { left: 100%; } }
+
+  /* ── OFFLINE BANNER ── */
+  .offline-banner {
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    text-align: center;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Offline notice (JS detects) -->
+<div class="offline-banner" id="offlineBanner">OFFLINE — All policy data is loaded locally. This tool works without internet.</div>
+
+<!-- Header -->
+<div class="header">
+  <a href="./?tab=more" class="header-back">← BACK</a>
+  <span class="header-sep">|</span>
+  <span class="header-title">VAC NAVIGATOR</span>
+</div>
+
+<div class="container">
+
+  <!-- Intro -->
+  <div class="intro">
+    <div class="intro-title">▸ WHAT THIS DOES</div>
+    <p>Describe your situation in plain language. This tool matches you to VAC benefits and drafts your application language — no account, no login, no internet required.</p>
+    <p>Everything runs on your device. Nothing is sent anywhere.</p>
+  </div>
+
+  <!-- Input -->
+  <div class="input-section">
+    <div class="section-label">// DESCRIBE YOUR SITUATION</div>
+    <textarea
+      class="situation-input"
+      id="situationInput"
+      placeholder="Example: I was released from the army in 2022 after 12 years. I have a back injury and PTSD from deployment in Afghanistan. I can't work full time anymore and I'm struggling financially."
+      rows="5"
+      maxlength="2000"
+    ></textarea>
+
+    <div class="prompts" id="promptChips">
+      <span class="prompt-chip" data-text="I was medically released due to an injury sustained during training.">Medical release / injury</span>
+      <span class="prompt-chip" data-text="I am a veteran who can't work because of PTSD and need help with income.">Can't work / PTSD</span>
+      <span class="prompt-chip" data-text="My spouse is caring for me full time because of my disability from service.">Caregiver needed</span>
+      <span class="prompt-chip" data-text="I want to go back to school after being released from the military.">Back to school</span>
+      <span class="prompt-chip" data-text="I need help with housekeeping and yard work because of my physical limitations.">Home support / VIP</span>
+      <span class="prompt-chip" data-text="My father was a veteran and passed away recently. I need help with funeral costs.">Funeral costs</span>
+    </div>
+
+    <div class="denial-gate">
+      <div class="section-label">// HAVE YOU ALREADY APPLIED TO VAC?</div>
+      <div class="denial-options">
+        <button class="denial-opt" data-val="never"
+          onclick="setDenialState('never', this)">FIRST TIME APPLYING</button>
+        <button class="denial-opt" data-val="pending"
+          onclick="setDenialState('pending', this)">APPLIED — WAITING</button>
+        <button class="denial-opt" data-val="denied"
+          onclick="setDenialState('denied', this)">APPLIED — DENIED</button>
+      </div>
+      <div class="denial-extra" id="denialExtra" style="display:none">
+        <div class="denial-extra-row">
+          <label class="section-label" style="margin-bottom:6px">
+            // WHICH BENEFIT WAS DENIED?
+          </label>
+          <select class="denial-select" id="deniedBenefitSelect">
+            <option value="">— Select benefit —</option>
+          </select>
+        </div>
+        <div class="denial-extra-row" style="margin-top:12px">
+          <label class="section-label" style="margin-bottom:6px">
+            // WHEN WAS THE DECISION LETTER DATED?
+          </label>
+          <input type="date" class="denial-date-input" id="denialDateInput"
+            placeholder="YYYY-MM-DD">
+        </div>
+        <div class="denial-window-notice" id="denialWindowNotice"
+          style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="analyzeBtn" onclick="analyze()">FIND MY BENEFITS</button>
+      <button class="btn-secondary" onclick="clearAll()">CLEAR</button>
+      <span class="char-count" id="charCount">0 / 2000</span>
+    </div>
+    <div class="loading-bar" id="loadingBar"></div>
+  </div>
+
+  <div class="status-bar" id="statusBar"></div>
+
+  <!-- Clarifying questions (low confidence) -->
+  <div class="clarify-box" id="clarifyBox">
+    <div class="clarify-title">⚠ NEED MORE DETAIL — ADD ANY OF THESE</div>
+    <div class="clarify-list" id="clarifyList"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="results-header" id="resultsHeader"></div>
+    <div id="benefitCards"></div>
+  </div>
+
+  <!-- No results -->
+  <div class="no-results" id="noResults">
+    <div class="no-results-icon">—</div>
+    <div class="no-results-text">
+      No strong benefit match found with that description.<br>
+      Try adding: years served, type of injury or illness, whether you've been released, or what you need help with.
+    </div>
+  </div>
+
+  <!-- Crisis resources (always visible) -->
+  <div class="crisis-bar">
+    <div class="crisis-title">CRISIS SUPPORT — ALWAYS AVAILABLE</div>
+    <div class="crisis-grid">
+      <div class="crisis-item"><strong>1-800-268-7708</strong><br>VAC 24/7 Assistance Line</div>
+      <div class="crisis-item"><strong>1-800-883-6094</strong><br>OSISS — Veteran Peer Support</div>
+      <div class="crisis-item"><strong>988</strong><br>Suicide Crisis Helpline (CA/US)</div>
+      <div class="crisis-item"><strong>Text 45645</strong><br>Crisis Text Line Canada</div>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    SELF-HELP TOOL — NOT LEGAL OR CLINICAL ADVICE. This tool helps you understand and draft your VAC application. For complex files, contact a VAC Service Officer or visit veterans.gc.ca. This tool is not affiliated with Veterans Affairs Canada.
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// VAC POLICY DATA (inline for 100% offline operation)
+// Update this data when VAC policy changes.
+// Last updated: 2026-05-03 — veterans.gc.ca
+// ═══════════════════════════════════════════════════════
+
+const BENEFITS = [
+  {
+    id: "pain-suffering",
+    name: "Pain and Suffering Compensation",
+    short: "Monthly tax-free payment for service-related disability",
+    url: "https://veterans.gc.ca/en/financial-programs-and-services/compensation-illness-or-injury/disability-benefits",
+    taxable: false,
+    keywords: ["injury","injured","hurt","wound","wounded","disability","disabled","ptsd","trauma","traumatic","chronic","pain","condition","illness","sick","mental","health","hearing","loss","back","knee","shoulder","depression","anxiety","tinnitus","concussion","tbi","service-related","combat","accident","incident","deployment","operational","stress","disorder","syndrome"],
+    conditions: [
+      { id:"served", label:"Served in the Canadian Armed Forces", keywords:["served","military","army","navy","air force","forces","soldier","veteran","caf","rcaf","rcn","infantry","signals","engineer","deployed","regiment","battalion","base"] },
+      { id:"released", label:"Released from the CAF (medical or honourable)", keywords:["released","retired","discharged","left","civilian","medical release","got out","left service","no longer serving"] },
+      { id:"injury_service", label:"Injury or illness attributable to service", keywords:["during service","during training","training","deployment","on duty","in theatre","because of service","from service","service related","on base","accident while"] }
+    ],
+    notOffsets: [
+      "Income Replacement Benefit (IRB)",
+      "Additional Pain and Suffering Compensation (APSC)",
+      "Veterans Independence Program (VIP)",
+      "Employment income"
+    ],
+    evidenceRequired: [
+      { doc: "VAC Application Form 21-0168", formNum: "21-0168", how: "Download from veterans.gc.ca or complete guided version in My VAC Account" },
+      { doc: "Medical diagnosis documentation", how: "From family physician or specialist — must name the condition" },
+      { doc: "CF 1 — Record of Service and service records linking condition to CAF service", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "Buddy/witness statements (optional but powerful)", how: "Written statements from CAF colleagues who witnessed the incident or service conditions — VRAB weighs these heavily" }
+    ],
+    proTips: [
+      "Apply for PSC and Income Replacement Benefit (IRB) simultaneously — PSC does NOT reduce IRB. Most veterans don't know this.",
+      "If CAF service aggravated a pre-existing condition (not just caused it), that still qualifies. Document the aggravation specifically.",
+      "VRAB applies 'benefit of the doubt' — credible evidence in your favour must be weighed in your favour by law. Always appeal a denial."
+    ],
+    formQuestions: [
+      "What is the specific injury or diagnosis?",
+      "When did it occur or first appear?",
+      "Was it during active service or training?",
+      "Do you have a medical diagnosis document?"
+    ],
+    concurrent_benefits: {
+      stacks_with: [
+        { id:"income-replacement",   type:"always",      gate_intake_id:null,           gate_answer:null,  note:"PSC does NOT reduce IRB. Apply for both simultaneously — this is the most commonly missed combination." },
+        { id:"additional-psc",       type:"always",      gate_intake_id:null,           gate_answer:null,  note:"APSC requires an approved PSC as a prerequisite. If approved and you have permanent severe impairment, request an APSC assessment explicitly." },
+        { id:"caregiver-recognition",type:"conditional", gate_intake_id:"has_caregiver",gate_answer:"yes", note:"PSC approval is a prerequisite for CRB. If someone provides you unpaid daily care, they may receive $1,264.25/month (2026)." },
+        { id:"veterans-independence", type:"always",     gate_intake_id:null,           gate_answer:null,  note:"VIP home-care services can be received concurrently with PSC." },
+        { id:"rehabilitation",        type:"always",     gate_intake_id:null,           gate_answer:null,  note:"Rehabilitation services are available concurrently with PSC and complement recovery." }
+      ],
+      conflicts_with: []
+    },
+    template: "The applicant is a released member of the Canadian Armed Forces who sustained [INJURY/DIAGNOSIS] which is attributable to service in the CAF. The condition was first identified [TIMEFRAME] and has resulted in [IMPACT ON DAILY LIFE]. The applicant is requesting Pain and Suffering Compensation under the Veterans Well-being Act."
+  },
+  {
+    id: "income-replacement",
+    name: "Income Replacement Benefit",
+    short: "90% of pre-release salary if disability prevents work",
+    url: "https://www.veterans.gc.ca/en/financial-programs-and-services/income-support/income-replacement-benefit",
+    taxable: true,
+    keywords: ["work","job","employment","income","salary","money","financial","cant work","cannot work","unable work","unemployed","unemployable","earning","earnings","support","living","bills","afford","struggling","no income","no money","disability prevents","too sick to work","cant hold job"],
+    conditions: [
+      { id:"served", label:"Served in the CAF", keywords:["served","military","army","forces","veteran","caf","soldier"] },
+      { id:"released", label:"Released from the CAF", keywords:["released","retired","discharged","civilian"] },
+      { id:"cant_work", label:"Disability prevents working at pre-release income", keywords:["cant work","cannot work","unable","too sick","pain stops","prevents work","can't hold","too injured","disability stops"] }
+    ],
+    notOffsets: [
+      "Pain and Suffering Compensation (PSC)",
+      "Additional PSC (APSC)",
+      "Disability Award (pre-2019)",
+      "Critical Injury Benefit",
+      "Clothing or Attendance Allowance"
+    ],
+    evidenceRequired: [
+      { doc: "CF 1 — Record of Service", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "CF 2033 — Release Documentation", how: "Issued at release; request via Director Military Careers if missing" },
+      { doc: "Medical documentation of condition and barrier to work", how: "From family physician or specialist — must link condition to service" },
+      { doc: "Pre-release salary documentation", how: "T4s from DND or pay stubs from your final 12 months of service" },
+      { doc: "IRB Application Form 21-0237", formNum: "21-0237", how: "Download from veterans.gc.ca or complete guided version in My VAC Account" }
+    ],
+    proTips: [
+      "Apply for IRB and the Rehabilitation Program simultaneously — they are processed together. Applying for one without the other delays both.",
+      "Request a Diminished Earning Capacity (DEC) assessment in writing. VAC will not initiate this automatically. DEC extends IRB potentially for life.",
+      "You can earn up to $20,000/year in employment income without any reduction to IRB. Income above $20k is offset dollar-for-dollar — plan around this threshold."
+    ],
+    formQuestions: [
+      "What was your rank and trade at time of release?",
+      "What was your approximate pre-release salary?",
+      "What disability prevents you from working?",
+      "Have you applied for Canada Pension Plan Disability (CPP-D)?"
+    ],
+    concurrent_benefits: {
+      stacks_with: [
+        { id:"rehabilitation",       type:"prerequisite", gate_intake_id:"rehab",     gate_answer:"no",  note:"Rehabilitation enrollment is REQUIRED for IRB. Apply for both simultaneously — VAC processes them together. Without Rehab enrollment or a Diminished Earning Capacity (DEC) determination, IRB has no legal basis." },
+        { id:"pain-suffering",       type:"always",       gate_intake_id:null,        gate_answer:null,  note:"PSC does NOT reduce IRB. Apply for both simultaneously — this is the most commonly missed combination." },
+        { id:"additional-psc",       type:"always",       gate_intake_id:null,        gate_answer:null,  note:"APSC does NOT reduce IRB. If you have approved PSC and severe functional limitations, request an APSC assessment — VAC does not initiate this automatically." },
+        { id:"caregiver-recognition",type:"conditional",  gate_intake_id:"caregiver", gate_answer:"yes", note:"If someone provides regular unpaid care, they may qualify for $1,264.25/month (2026 rate). Paid to the caregiver, not the veteran. Requires an approved VAC disability benefit." },
+        { id:"veterans-independence", type:"always",      gate_intake_id:null,        gate_answer:null,  note:"VIP covers home care, housekeeping, and yard maintenance. Does not reduce IRB." },
+        { id:"case-management",      type:"always",       gate_intake_id:null,        gate_answer:null,  note:"A case manager coordinates all your benefits at no cost. Request one explicitly — VAC does not automatically assign one." },
+        { id:"education-training",   type:"always",       gate_intake_id:null,        gate_answer:null,  note:"ETB is the natural follow-on after IRB ends — up to $80,000 for post-secondary education or retraining." }
+      ],
+      conflicts_with: [
+        "Still-serving CAF members (full-time Regular Force) — must release first",
+        "Earnings Loss Benefit (pre-2019 equivalent — if already receiving, confirm conversion to IRB)"
+      ]
+    },
+    template: "The applicant, a released CAF member at the rank of [RANK/TRADE], is unable to maintain gainful employment at their pre-release income level due to [DISABILITY/CONDITION]. The applicant seeks the Income Replacement Benefit under the Veterans Well-being Act to maintain financial stability during rehabilitation and reintegration into civilian life."
+  },
+  {
+    id: "caregiver-recognition",
+    name: "Caregiver Recognition Benefit",
+    short: "Monthly payment to the person caring for a disabled veteran",
+    url: "https://www.veterans.gc.ca/en/mental-and-physical-health/mental-health-and-wellness/compensation-illness-or-injury/caregiver-recognition-benefit",
+    taxable: false,
+    keywords: ["caregiver","caring","care","spouse","partner","wife","husband","family","help","assist","support","home","daily activities","dependent","full time care","cant manage","need help","dressing","bathing","cooking","driving","appointments","not independent","requires assistance","around the clock"],
+    conditions: [
+      { id:"vac_approved", label:"Veteran has an approved VAC disability benefit", keywords:["vac approved","already receiving","disability benefit","pain suffering approved","getting vac","have vac benefit"] },
+      { id:"has_caregiver", label:"Someone provides unpaid care at home", keywords:["spouse helps","partner helps","family helps","someone cares","caregiver","carer","my wife","my husband","my partner","my son","my daughter","my parent"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "VAC disability benefit approval letter", how: "Must be on file — CRB requires an active PSC, Disability Award, or Disability Pension" },
+      { doc: "VAC CRB Application Form", how: "Complete through My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "Description of daily care tasks and frequency", how: "Written statement from caregiver and/or treating physician" }
+    ],
+    proTips: [
+      "The $1,264.25/month (2026 rate) is paid directly to the CAREGIVER, not the veteran. The caregiver must be the applicant.",
+      "If the veteran is permanently in a nursing home or LTC facility, CRB stops. This benefit is for community-based care only.",
+      "Pre-2006 veterans receiving a Disability Pension may use Attendance Allowance instead of CRB — confirm which applies with VAC."
+    ],
+    formQuestions: [
+      "Who is the caregiver (relationship to veteran)?",
+      "Does the veteran currently receive a VAC disability benefit?",
+      "What daily activities does the caregiver assist with?",
+      "How many hours per week does the caregiver provide care?"
+    ],
+    template: "The applicant, [CAREGIVER FULL NAME], provides informal daily care to [VETERAN NAME], a VAC client currently receiving [EXISTING VAC BENEFIT]. The caregiver assists with [LIST OF CARE TASKS] on a regular basis, which enables the veteran to remain living in the community rather than requiring institutional care. The Caregiver Recognition Benefit would recognize and support this essential role."
+  },
+  {
+    id: "veterans-independence",
+    name: "Veterans Independence Program (VIP)",
+    short: "Funding for home care, housekeeping, yard maintenance",
+    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    taxable: false,
+    keywords: ["home","house","cleaning","housekeeping","yard","lawn","snow","shovelling","groceries","shopping","cooking","meal","transport","independent","independence","stay home","personal care","hygiene","bathing","laundry","ambulatory","limited mobility","physical limitation","cant do chores","home maintenance"],
+    conditions: [
+      { id:"served", label:"Served in the CAF or RCMP", keywords:["served","military","veteran","rcmp","police","caf"] },
+      { id:"needs_home_support", label:"Health condition limits ability to manage home independently", keywords:["struggling","difficulty","cant manage","need help","too hard","physical limitation","cant do","hard to","limited","mobility","chronic pain"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "CF 1 — Record of Service", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "Medical documentation of health condition", how: "From family physician — must state functional limitations affecting home management" },
+      { doc: "VIP Application Form", how: "Complete through My VAC Account or call VAC at 1-866-522-2122" }
+    ],
+    proTips: [
+      "VIP is underutilized — many modern veterans with service-related physical or mental health conditions qualify and don't know it.",
+      "Survivors of eligible veterans retain VIP eligibility for a period after the veteran's death. Apply promptly — this window is time-limited.",
+      "VIP stacks with PSC, IRB, and most other VAC benefits. Receiving other benefits does not reduce VIP eligibility."
+    ],
+    formQuestions: [
+      "What specific home tasks are you unable to perform?",
+      "What health condition limits you?",
+      "Do you currently receive any other VAC benefits?",
+      "What is your living situation (own home, renting, with family)?"
+    ],
+    template: "The applicant is a released CAF veteran whose [HEALTH CONDITION] prevents independent management of [SPECIFIC HOME TASKS]. Veterans Independence Program funding would allow the applicant to obtain services for [SERVICES NEEDED — e.g., housekeeping, snow removal, meal preparation], enabling continued safe and independent living in the community."
+  },
+  {
+    id: "education-training",
+    name: "Education and Training Benefit",
+    short: "Up to $80,000 for post-secondary education or training",
+    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    taxable: false,
+    keywords: ["school","college","university","education","training","course","program","degree","diploma","certificate","trade","apprentice","retraining","career change","new job","study","learn","tuition","student","return school","go back school","civilian career","credential"],
+    conditions: [
+      { id:"served_6yrs", label:"Served at least 6 years in the CAF", keywords:["6 years","six years","more than 6","7 years","8 years","9 years","10 years","12 years","15 years","20 years","long service","career soldier","full career"] },
+      { id:"released_honourable", label:"Released honourably from the CAF", keywords:["released","retired","honourable","discharged","civilian"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "CF 1 — Record of Service (confirms years of service)", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "CF 2033 — Release Documentation (confirms honourable release)", how: "Issued at release; request via Director Military Careers if missing" },
+      { doc: "ETB Application Form", how: "Complete through My VAC Account" },
+      { doc: "Acceptance letter from institution or program", how: "Not required at application but speeds processing significantly" }
+    ],
+    proTips: [
+      "$40,000 maximum for 6–11 years service; $80,000 for 12+ years. The short-course sub-limit ($6,321.24 in 2026) covers certifications, trade tickets, and professional designations without consuming the full ETB amount.",
+      "ETB does not count as taxable income — it does not affect your CRA reporting.",
+      "ETB is the natural follow-on after IRB ends. Plan the sequence: IRB through rehab → ETB for retraining → civilian career."
+    ],
+    formQuestions: [
+      "Total years served in the CAF?",
+      "What program or trade school are you planning to attend?",
+      "What career field are you retraining for?",
+      "Have you already been accepted to the program?"
+    ],
+    template: "The applicant served [TOTAL YEARS] in the Canadian Armed Forces and was honourably released. The applicant seeks to attend [PROGRAM NAME] at [INSTITUTION] to train for a career in [TARGET CAREER FIELD]. The applicant is requesting Education and Training Benefit funding to cover tuition and associated costs of this program."
+  },
+  {
+    id: "rehabilitation",
+    name: "Rehabilitation Program",
+    short: "Free medical, psychosocial, and vocational rehab services",
+    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    taxable: false,
+    keywords: ["rehabilitation","rehab","physiotherapy","physio","therapy","psychologist","counselling","mental health","treatment","recovery","heal","healing","occupational","vocational","job help","back to work","functional","reintegration","transition","civilian life","support services","treatment plan","specialist"],
+    conditions: [
+      { id:"released", label:"Released from the CAF", keywords:["released","retired","discharged","civilian"] },
+      { id:"needs_treatment", label:"Physical or mental health need related to service", keywords:["need therapy","need treatment","struggling","mental health","ptsd","pain","injury","condition","trauma","counselling"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "CF 1 — Record of Service", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "Medical documentation of health condition from service", how: "From family physician or specialist" },
+      { doc: "Rehabilitation Application Form", how: "Complete through My VAC Account — apply simultaneously with IRB" }
+    ],
+    proTips: [
+      "Apply for Rehabilitation and IRB simultaneously — they are processed together. Without Rehab enrollment or a DEC determination, IRB has no legal basis.",
+      "If you find employment before completing rehab, VAC may administratively cancel your Rehab plan — this can affect your DEC eligibility. Understand this before accepting work during the rehab period.",
+      "Rehabilitation covers services your provincial health plan doesn't: physio, occupational therapy, psychological treatment, and vocational training — all free."
+    ],
+    formQuestions: [
+      "What specific rehabilitation services do you need?",
+      "Is the condition related to your CAF service?",
+      "Are you currently working? Is work affected by this condition?",
+      "Have you seen a physician about this condition?"
+    ],
+    template: "The applicant, a released CAF veteran, requires [REHABILITATION SERVICES NEEDED] related to [MEDICAL CONDITION] resulting from or aggravated by military service. The Rehabilitation Program will assist the applicant in achieving [REHABILITATION GOAL], supporting successful reintegration into civilian employment and community life."
+  },
+  {
+    id: "case-management",
+    name: "Case Management Services",
+    short: "Dedicated VAC case manager to coordinate your benefits",
+    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    taxable: false,
+    keywords: ["help navigating","confused","overwhelmed","dont know where","complex","multiple benefits","need guidance","case manager","coordinator","help figure out","too complicated","stressed paperwork","dont understand","complicated file","lost","not sure where","complex file","many issues","many conditions"],
+    conditions: [
+      { id:"released", label:"Released from the CAF", keywords:["released","retired","veteran","civilian"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "No formal application required — request in writing or by phone", how: "Call VAC at 1-866-522-2122 or submit a written request through My VAC Account" }
+    ],
+    proTips: [
+      "Request a case manager explicitly and in writing. VAC does not automatically assign one to every veteran.",
+      "If your case manager is unresponsive or ineffective, you have the right to request a different one. The Veterans Ombudsman can assist: 1-877-330-4343.",
+      "A case manager can significantly reduce application processing times by navigating VAC's internal systems on your behalf."
+    ],
+    formQuestions: [
+      "What VAC benefits are you currently receiving?",
+      "What is your primary challenge right now?",
+      "Have you previously worked with a VAC case manager?",
+      "What would you most like help coordinating?"
+    ],
+    template: "The applicant is a released CAF veteran with a complex needs profile that warrants coordinated case management support. Current challenges include [PRIMARY CHALLENGES]. A dedicated case manager would help the applicant coordinate [SERVICES/BENEFITS NEEDED] and ensure access to all entitled programs and services under the Veterans Well-being Act."
+  },
+  {
+    id: "long-term-care",
+    name: "Long Term Care Program",
+    short: "Funding for nursing home or residential care facility",
+    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    taxable: false,
+    keywords: ["nursing home","long term care","facility","institution","care home","cant live alone","full time care","24 hour care","severe disability","advanced age","dementia","alzheimers","wheelchair","completely dependent","cannot function","residential care","total care","complex care","frail","elder care"],
+    conditions: [
+      { id:"served", label:"Served in the CAF", keywords:["served","military","veteran","caf"] },
+      { id:"needs_ltc", label:"Requires institutional-level 24-hour care", keywords:["nursing home","care facility","cant live alone","full time care","24 hours","around the clock","total care"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "CF 1 — Record of Service", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "Medical assessment documenting need for institutional-level care", how: "From a physician or specialist — must indicate level and type of care required" },
+      { doc: "Current placement assessment from facility or social worker", how: "Typically completed by the LTC facility or a provincial assessment team" }
+    ],
+    proTips: [
+      "LTC eligibility varies significantly by era of service — WWII and Korean War veterans have broader access than modern veterans. Request a case manager for this application.",
+      "VAC may fund the difference between provincial LTC rates and actual costs for eligible veterans — this gap can be significant.",
+      "Priority access to contracted LTC beds is available for eligible veterans. Ask VAC about contracted facilities in your province."
+    ],
+    formQuestions: [
+      "What is the veteran's current primary health condition?",
+      "What level of daily care do they currently require?",
+      "Is the veteran currently in a care facility or waiting for placement?",
+      "What is their CAF service history (years, trades, operations)?"
+    ],
+    template: "The applicant is a veteran of the Canadian Armed Forces who served [SERVICE HISTORY]. Their current condition of [MEDICAL CONDITION] requires [LEVEL OF CARE] in a long-term care facility. Current care requirements include [SPECIFIC CARE NEEDS]. The applicant is requesting VAC program support for placement in a [FACILITY TYPE] that meets their care requirements."
+  },
+  {
+    id: "disability-benefits",
+    name: "Disability Benefits (Pension Act)",
+    short: "For veterans who served before April 1, 2006",
+    url: "https://veterans.gc.ca/en/financial-programs-and-services/compensation-illness-or-injury/disability-benefits",
+    taxable: false,
+    keywords: ["pension","old","traditional","pre-2006","wwii","korea","cold war","peacekeeping","gulf war","older veteran","pensioner","pension act","old system","traditional pension","first gulf","somalia","bosnia","croatia","cypress","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005"],
+    conditions: [
+      { id:"served_pre_2006", label:"Service occurred before April 1, 2006", keywords:["before 2006","old pension","wwii","korea","cold war","gulf war","bosnia","somalia","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","old pension act"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "CF 1 — Record of Service", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "Medical documentation of disability", how: "From physician or specialist — must establish the condition and its service connection" },
+      { doc: "Service records linking disability to specific operations or postings", how: "Deployment records, incident reports, CF 98 if available" },
+      { doc: "Pension Act Application Form", how: "Complete through My VAC Account or call VAC at 1-866-522-2122" }
+    ],
+    proTips: [
+      "There is no hard deadline — veterans who served before 2006 and never applied may still be eligible. Apply now.",
+      "The Pension Act's 'benefit of the doubt' standard is the same as VRAB's — credible evidence in your favour must be given weight by law.",
+      "Pension Act recipients may also be eligible for modern VAC services (VIP, Case Management, Rehabilitation) — the two systems are not mutually exclusive."
+    ],
+    formQuestions: [
+      "What years did you serve in the CAF?",
+      "What operations, postings, or theatres were you on?",
+      "What disability are you claiming?",
+      "Have you previously applied under the Veterans Well-being Act (post-2006 system)?"
+    ],
+    template: "The applicant served in the Canadian Armed Forces during [SERVICE PERIOD] and was posted to / participated in [OPERATIONS OR POSTINGS]. The applicant sustained [DISABILITY DESCRIPTION] attributable to that service. The applicant is applying for Disability Benefits under the Pension Act as the relevant service occurred before April 1, 2006."
+  },
+  {
+    id: "funeral-burial",
+    name: "Funeral and Burial Program",
+    short: "Covers funeral and burial costs for eligible veterans",
+    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    taxable: false,
+    keywords: ["funeral","burial","death","died","passed away","deceased","grave","cemetery","cremation","ashes","memorial","cost of funeral","cant afford funeral","funeral expenses","arrangements","interment","repatriation","death benefits","bereavement"],
+    conditions: [
+      { id:"veteran_deceased", label:"The veteran has passed away", keywords:["died","passed","deceased","death","funeral","passed away","no longer with us"] },
+      { id:"served", label:"The deceased served in the CAF or qualified service", keywords:["served","veteran","military","caf","rcmp"] }
+    ],
+    notOffsets: [],
+    evidenceRequired: [
+      { doc: "Death certificate", how: "From provincial vital statistics or the funeral home" },
+      { doc: "CF 1 — Record of Service for the deceased veteran", how: "Request via My VAC Account or call VAC at 1-866-522-2122" },
+      { doc: "Itemized funeral cost estimate or receipt", how: "From the funeral home" },
+      { doc: "Funeral Expense Application Form", how: "Funeral home can often apply directly — ask them explicitly if they have VAC experience" }
+    ],
+    proTips: [
+      "Apply before funeral arrangements are finalized if possible — VAC may have contracted funeral homes with preferred arrangements.",
+      "If the veteran died from a service-related condition, funeral costs may be fully covered regardless of the family's financial means.",
+      "The funeral home can apply directly to VAC in many cases — ask them explicitly. Some homes do this regularly and know the process."
+    ],
+    formQuestions: [
+      "What was the veteran's full legal name and service number?",
+      "What dates did the veteran serve in the CAF?",
+      "What is the approximate total cost of the funeral arrangements?",
+      "Was the veteran receiving any VAC benefits at time of death?"
+    ],
+    template: "The applicant is applying on behalf of [VETERAN FULL NAME], a released member of the Canadian Armed Forces who served from [SERVICE START DATE] to [SERVICE END DATE], and who passed away on [DATE OF DEATH]. The family is requesting support through the Funeral and Burial Program to offset the costs of [FUNERAL/BURIAL ARRANGEMENTS], totalling approximately [ESTIMATED COST]."
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+// INTAKE QUESTIONS (per benefit — fills template entities)
+// type: "text" | "yesno"
+// fills: bracket placeholder text to replace in template
+// note: policy note to display; noteIf: "yes"|"no"|null (always show if null)
+// ═══════════════════════════════════════════════════════
+
+const INTAKE_QUESTIONS = {
+  "pain-suffering": [
+    { id:"injury",       q:"What is your injury or diagnosis?",                                     hint:"e.g., PTSD, hearing loss, lumbar disc injury, tinnitus",                         type:"text",   fills:["INJURY/DIAGNOSIS"],       note:null,           noteIf:null },
+    { id:"timeframe",    q:"When did the condition first appear?",                                  hint:"e.g., during training at CFB Petawawa, 2018; during deployment to Mali, 2019",   type:"text",   fills:["TIMEFRAME"],              note:null,           noteIf:null },
+    { id:"impact",       q:"How has this condition affected your daily life?",                      hint:"e.g., chronic pain limiting mobility, sleep disruption, inability to work",       type:"text",   fills:["IMPACT ON DAILY LIFE"],   note:null,           noteIf:null },
+    { id:"diagnosed",    q:"Has a physician diagnosed this condition in writing?",                  hint:null,                                                                              type:"yesno",  fills:[],                         note:"Before applying, get a written diagnosis from your physician. It must name the condition and explicitly link it to CAF service. This is your most important piece of evidence.", noteIf:"no" },
+    { id:"service_link", q:"Is this condition caused or aggravated by your CAF service?",           hint:null,                                                                              type:"yesno",  fills:[],                         note:"If CAF service aggravated a pre-existing condition — not just caused it — that still qualifies. Document the aggravation specifically in your medical letter.", noteIf:"no" }
+  ],
+  "income-replacement": [
+    { id:"rank_trade",    q:"What was your rank and trade at time of release?",                     hint:"e.g., Master Corporal — Signals, Sergeant — Infantry, Corporal — Medical Tech",  type:"text",   fills:["RANK/TRADE"],             note:null,           noteIf:null },
+    { id:"disability",    q:"What condition prevents you from working?",                            hint:"e.g., PTSD and chronic lumbar injury sustained during training",                  type:"text",   fills:["DISABILITY/CONDITION"],   note:null,           noteIf:null },
+    { id:"diagnosed",     q:"Has a physician diagnosed this condition in writing?",                 hint:null,                                                                              type:"yesno",  fills:[],                         note:"A written diagnosis that explicitly links the condition to CAF service is your most critical document for IRB. Get this before applying.", noteIf:"no" },
+    { id:"rehab",         q:"Have you applied for the VAC Rehabilitation Program?",                 hint:null,                                                                              type:"yesno",  fills:[],                         note:"Apply for IRB and Rehabilitation simultaneously — they are processed together. Without Rehab enrollment or a Diminished Earning Capacity (DEC) determination, IRB has no legal foundation.", noteIf:"no" },
+    { id:"income",        q:"Are you currently earning any employment income?",                     hint:null,                                                                              type:"yesno",  fills:[],                         note:"The first $20,000/year of employment income does NOT reduce your IRB. Income above $20,000 is offset dollar-for-dollar. Track your earnings carefully and plan around this threshold.", noteIf:"yes" },
+    { id:"caregiver",     q:"Does a spouse, family member, or friend provide unpaid care for you at home?", hint:null,                                                                     type:"yesno",  fills:[],                         note:"If someone provides you with unpaid daily care, the Caregiver Recognition Benefit ($1,264.25/month, 2026) may be available to them. PSC approval is a prerequisite — apply for both simultaneously.", noteIf:"yes" }
+  ],
+  "caregiver-recognition": [
+    { id:"caregiver_name", q:"What is the caregiver's full legal name?",                            hint:"The person providing the care, not the veteran",                                  type:"text",   fills:["CAREGIVER FULL NAME"],    note:null,           noteIf:null },
+    { id:"veteran_name",   q:"What is the veteran's full name?",                                    hint:null,                                                                              type:"text",   fills:["VETERAN NAME"],           note:null,           noteIf:null },
+    { id:"vac_benefit",    q:"What VAC benefit is the veteran currently receiving?",                hint:"e.g., Pain and Suffering Compensation, Disability Pension",                       type:"text",   fills:["EXISTING VAC BENEFIT"],   note:null,           noteIf:null },
+    { id:"care_tasks",     q:"What daily care tasks does the caregiver provide?",                   hint:"e.g., bathing, dressing, medication management, transportation to appointments",  type:"text",   fills:["LIST OF CARE TASKS"],     note:null,           noteIf:null }
+  ],
+  "veterans-independence": [
+    { id:"condition",    q:"What health condition limits your ability to manage your home?",         hint:"e.g., PTSD with severe anxiety, chronic back pain, limited mobility post-surgery", type:"text",   fills:["HEALTH CONDITION"],       note:null,           noteIf:null },
+    { id:"home_tasks",   q:"What specific home tasks are you unable to do?",                        hint:"e.g., vacuuming, shovelling snow, mowing the lawn, grocery shopping",             type:"text",   fills:["SPECIFIC HOME TASKS"],    note:null,           noteIf:null },
+    { id:"services",     q:"What services would VIP funding need to cover?",                        hint:"e.g., housekeeping, snow removal, meal preparation, personal care assistance",    type:"text",   fills:["SERVICES NEEDED — e.g., housekeeping, snow removal, meal preparation"], note:null, noteIf:null }
+  ],
+  "education-training": [
+    { id:"years_served",   q:"How many years did you serve in the CAF in total?",                   hint:"Total service years determine your benefit ceiling: 6–11 yrs = $40k, 12+ yrs = $80k", type:"text", fills:["TOTAL YEARS"],         note:null,           noteIf:null },
+    { id:"program",        q:"What program or training are you planning to attend?",                hint:"e.g., Electrical Engineering at Algonquin College, Ironworker Apprenticeship",    type:"text",   fills:["PROGRAM NAME"],           note:null,           noteIf:null },
+    { id:"institution",    q:"What institution or training provider?",                              hint:"e.g., Algonquin College, SAIT, University of Calgary",                            type:"text",   fills:["INSTITUTION"],            note:null,           noteIf:null },
+    { id:"career",         q:"What career field are you retraining for?",                           hint:"e.g., electrical systems, healthcare, trades, cybersecurity",                     type:"text",   fills:["TARGET CAREER FIELD"],    note:null,           noteIf:null }
+  ],
+  "rehabilitation": [
+    { id:"services",       q:"What rehabilitation services do you need?",                           hint:"e.g., physiotherapy, PTSD treatment, occupational therapy, vocational assessment", type:"text",  fills:["REHABILITATION SERVICES NEEDED"], note:null,    noteIf:null },
+    { id:"condition",      q:"What medical condition are you addressing?",                          hint:"e.g., service-attributable PTSD, lumbar disc injury from training",               type:"text",   fills:["MEDICAL CONDITION"],      note:null,           noteIf:null },
+    { id:"goal",           q:"What is your rehabilitation goal?",                                   hint:"e.g., return to work in a civilian trade, manage PTSD symptoms, regain mobility", type:"text",   fills:["REHABILITATION GOAL"],    note:null,           noteIf:null },
+    { id:"irb_applied",    q:"Have you also applied for the Income Replacement Benefit (IRB)?",     hint:null,                                                                              type:"yesno",  fills:[],                         note:"Apply for IRB and Rehabilitation simultaneously — they are processed together and are interdependent. You can submit both in one My VAC Account session.", noteIf:"no" }
+  ],
+  "case-management": [
+    { id:"challenges",     q:"What are your primary challenges right now?",                         hint:"e.g., multiple VAC applications in progress, mental health crisis, housing instability", type:"text", fills:["PRIMARY CHALLENGES"],  note:null,          noteIf:null },
+    { id:"coordination",   q:"What benefits or services do you need help coordinating?",            hint:"e.g., IRB, Rehabilitation Program, PSC, community mental health services",        type:"text",   fills:["SERVICES/BENEFITS NEEDED"], note:null,        noteIf:null }
+  ],
+  "long-term-care": [
+    { id:"service_history", q:"Briefly describe the veteran's CAF service history",                 hint:"e.g., 22 years, Infantry, served in Bosnia and Afghanistan",                      type:"text",   fills:["SERVICE HISTORY"],        note:null,           noteIf:null },
+    { id:"condition",       q:"What medical condition requires LTC placement?",                     hint:"e.g., advanced dementia, severe TBI with complete care dependency",               type:"text",   fills:["MEDICAL CONDITION"],      note:null,           noteIf:null },
+    { id:"care_level",      q:"What level of care is required?",                                    hint:"e.g., 24-hour supervised care, full assistance with all activities of daily living", type:"text", fills:["LEVEL OF CARE"],         note:null,           noteIf:null },
+    { id:"care_needs",      q:"What specific care requirements exist?",                             hint:"e.g., wound care, medication management, mobility assistance, behavioural supervision", type:"text", fills:["SPECIFIC CARE NEEDS"],  note:null,         noteIf:null },
+    { id:"facility_type",   q:"What type of facility is being requested?",                          hint:"e.g., secure memory care unit, complex continuing care facility",                  type:"text",   fills:["FACILITY TYPE"],          note:null,           noteIf:null }
+  ],
+  "disability-benefits": [
+    { id:"service_period",  q:"What years did you serve in the CAF?",                               hint:"e.g., 1991–2004, Regular Force, Infantry",                                   type:"text",   fills:["SERVICE PERIOD"],         note:null,           noteIf:null },
+    { id:"operations",      q:"What operations, postings, or theatres were you on?",                hint:"e.g., Bosnia 1993–94, Cyprus 1996, Gulf War 1991",                            type:"text",   fills:["OPERATIONS OR POSTINGS"], note:null,           noteIf:null },
+    { id:"disability",      q:"What disability are you claiming?",                                  hint:"e.g., hearing loss from artillery training, knee injury from Bosnia deployment",   type:"text",   fills:["DISABILITY DESCRIPTION"], note:null,           noteIf:null }
+  ],
+  "funeral-burial": [
+    { id:"veteran_name",    q:"What was the veteran's full legal name?",                            hint:null,                                                                              type:"text",   fills:["VETERAN FULL NAME"],      note:null,           noteIf:null },
+    { id:"service_start",   q:"When did the veteran begin their CAF service?",                      hint:"e.g., September 1985",                                                            type:"text",   fills:["SERVICE START DATE"],     note:null,           noteIf:null },
+    { id:"service_end",     q:"When did the veteran end their CAF service?",                        hint:"e.g., March 2007",                                                                type:"text",   fills:["SERVICE END DATE"],       note:null,           noteIf:null },
+    { id:"date_of_death",   q:"What was the date of death?",                                        hint:"e.g., April 12, 2026",                                                            type:"text",   fills:["DATE OF DEATH"],          note:null,           noteIf:null },
+    { id:"arrangements",    q:"What funeral or burial arrangements are being made?",                hint:"e.g., burial at Beechwood Cemetery with visitation and memorial service",         type:"text",   fills:["FUNERAL/BURIAL ARRANGEMENTS"], note:null,       noteIf:null },
+    { id:"cost",            q:"What is the approximate total cost?",                                hint:"e.g., $8,500",                                                                    type:"text",   fills:["ESTIMATED COST"],         note:null,           noteIf:null }
+  ]
+};
+
+// ═══════════════════════════════════════════════════════
+// INTAKE STATE MACHINE
+// ═══════════════════════════════════════════════════════
+
+let intakeState = null;
+
+function beginIntake(benefitId) {
+  const benefit = BENEFITS.find(b => b.id === benefitId);
+  const questions = INTAKE_QUESTIONS[benefitId];
+  if (!benefit || !questions || !questions.length) return;
+  intakeState = { benefit, questions, step: 0, answers: {}, entities: {}, ynSel: null };
+  renderIntake();
+}
+
+function renderIntake() {
+  const { benefit, questions, step, answers, entities } = intakeState;
+  const total = questions.length;
+  const complete = step >= total;
+
+  const existing = document.getElementById('intakeOverlay');
+  if (existing) existing.remove();
+
+  const ov = document.createElement('div');
+  ov.id = 'intakeOverlay';
+  ov.className = 'intake-overlay';
+
+  if (complete) {
+    const filledText = fillDraftTemplate(benefit.template, entities);
+    ov.innerHTML =
+      '<div class="intake-hdr">' +
+        '<div class="intake-close" onclick="closeIntake()">✕ CLOSE</div>' +
+        '<div class="intake-title">' + esc(benefit.name) + '</div>' +
+      '</div>' +
+      '<div class="intake-complete-body">' +
+        '<div class="intake-complete-label">✓ DRAFT COMPLETE — REVIEW AND DOWNLOAD</div>' +
+        '<div class="intake-filled-draft" id="iFilledDraft">' + esc(filledText) + '</div>' +
+        '<button class="intake-dl-btn" onclick="downloadPackage(\'' + benefit.id + '\')">↓ DOWNLOAD APPLICATION PACKAGE (.txt)</button>' +
+        '<button class="intake-btn" onclick="copyFilledDraft(this)" style="width:100%;margin-bottom:10px">COPY DRAFT TEXT</button>' +
+        '<button class="intake-btn" onclick="closeIntake()" style="width:100%">← BACK TO RESULTS</button>' +
+        buildConcurrentSection(benefit.id, answers) +
+      '</div>';
+  } else {
+    const q = questions[step];
+    const pct = Math.round((step / total) * 100);
+    const isYN = q.type === 'yesno';
+    const saved = answers[q.id] !== undefined ? answers[q.id] : '';
+
+    let inputHtml = '';
+    if (isYN) {
+      const sy = intakeState.ynSel === 'yes' ? ' selected' : '';
+      const sn = intakeState.ynSel === 'no' ? ' selected' : '';
+      inputHtml = '<div class="intake-yesno">' +
+        '<button class="intake-yn-btn' + sy + '" onclick="intakeYN(\'yes\')">YES</button>' +
+        '<button class="intake-yn-btn' + sn + '" onclick="intakeYN(\'no\')">NO</button>' +
+        '</div>';
+    } else {
+      inputHtml = '<textarea class="intake-input" id="iInput" placeholder="' + (q.hint ? esc(q.hint) : '') + '">' + esc(saved) + '</textarea>';
+    }
+
+    let noteHtml = '';
+    if (q.note && (!q.noteIf || intakeState.ynSel === q.noteIf)) {
+      noteHtml = '<div class="intake-note">' + esc(q.note) + '</div>';
+    }
+
+    const canNext = isYN ? intakeState.ynSel !== null : true;
+    const isLast = step === total - 1;
+
+    ov.innerHTML =
+      '<div class="intake-hdr">' +
+        '<div class="intake-close" onclick="closeIntake()">✕</div>' +
+        '<div class="intake-title">' + esc(benefit.name) + '</div>' +
+        '<div class="intake-step">' + (step + 1) + ' / ' + total + '</div>' +
+      '</div>' +
+      '<div class="intake-progress"><div class="intake-progress-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="intake-body">' +
+        '<div class="intake-q">' + esc(q.q) + '</div>' +
+        (q.hint && !isYN ? '<div class="intake-hint">' + esc(q.hint) + '</div>' : '') +
+        inputHtml +
+        noteHtml +
+      '</div>' +
+      '<div class="intake-footer">' +
+        (step > 0 ? '<button class="intake-btn" onclick="intakeBack()">← BACK</button>' : '') +
+        '<button class="intake-btn primary" id="iNext" onclick="intakeNext()"' + (canNext ? '' : ' disabled') + '>' +
+          (isLast ? 'FINISH →' : 'NEXT →') +
+        '</button>' +
+      '</div>';
+  }
+
+  document.body.appendChild(ov);
+  if (!complete) {
+    const inp = ov.querySelector('#iInput');
+    if (inp) setTimeout(function(){ inp.focus(); }, 80);
+  }
+}
+
+function intakeYN(val) {
+  intakeState.ynSel = val;
+  renderIntake();
+}
+
+function intakeNext() {
+  const { questions, step, answers, entities } = intakeState;
+  const q = questions[step];
+  if (q.type === 'yesno') {
+    answers[q.id] = intakeState.ynSel;
+    intakeState.ynSel = null;
+  } else {
+    const inp = document.getElementById('iInput');
+    const val = inp ? inp.value.trim() : '';
+    answers[q.id] = val;
+    if (q.fills && val) {
+      q.fills.forEach(function(ph){ entities[ph] = val; });
+    }
+  }
+  intakeState.step++;
+  renderIntake();
+}
+
+function intakeBack() {
+  intakeState.step = Math.max(0, intakeState.step - 1);
+  const prevQ = intakeState.questions[intakeState.step];
+  intakeState.ynSel = prevQ.type === 'yesno' ? (intakeState.answers[prevQ.id] || null) : null;
+  renderIntake();
+}
+
+function closeIntake() {
+  const ov = document.getElementById('intakeOverlay');
+  if (ov) ov.remove();
+  intakeState = null;
+}
+
+function fillDraftTemplate(template, entities) {
+  let out = template;
+  Object.keys(entities).forEach(function(ph){
+    out = out.split('[' + ph + ']').join(entities[ph]);
+  });
+  return out;
+}
+
+function copyFilledDraft(btn) {
+  const el = document.getElementById('iFilledDraft');
+  if (!el) return;
+  const text = el.textContent || el.innerText;
+  navigator.clipboard.writeText(text).then(function(){
+    btn.textContent = 'COPIED ✓';
+    setTimeout(function(){ btn.textContent = 'COPY DRAFT TEXT'; }, 2000);
+  }).catch(function(){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'COPIED ✓';
+    setTimeout(function(){ btn.textContent = 'COPY DRAFT TEXT'; }, 2000);
+  });
+}
+
+function downloadPackage(benefitId) {
+  const benefit = BENEFITS.find(function(b){ return b.id === benefitId; });
+  if (!benefit || !intakeState) return;
+
+  const draft = fillDraftTemplate(benefit.template, intakeState.entities);
+  const today = new Date().toLocaleDateString('en-CA');
+  const sep = '━'.repeat(48);
+
+  let t = 'VAC APPLICATION PACKAGE\n';
+  t += 'Generated: ' + today + '\n';
+  t += 'Tool: Operator\'s Deck VAC Navigator (clovelearn.io)\n';
+  t += sep + '\n\n';
+
+  t += 'BENEFIT: ' + benefit.name.toUpperCase() + '\n';
+  t += 'TAX STATUS: ' + (benefit.taxable ? 'Taxable income' : 'Tax-free') + '\n\n';
+
+  t += sep + '\n';
+  t += 'DRAFT APPLICATION LANGUAGE\n';
+  t += sep + '\n';
+  t += draft + '\n\n';
+
+  if (benefit.evidenceRequired && benefit.evidenceRequired.length) {
+    t += sep + '\n';
+    t += 'DOCUMENTS TO GATHER BEFORE APPLYING\n';
+    t += sep + '\n';
+    benefit.evidenceRequired.forEach(function(e){
+      t += '□ ' + (e.formNum ? '[Form ' + e.formNum + '] ' : '') + e.doc + '\n';
+      t += '  → ' + e.how + '\n\n';
+    });
+  }
+
+  if (benefit.notOffsets && benefit.notOffsets.length) {
+    t += sep + '\n';
+    t += 'KEY FACTS — THESE DO NOT REDUCE THIS BENEFIT\n';
+    t += sep + '\n';
+    benefit.notOffsets.forEach(function(item){ t += '✗ ' + item + '\n'; });
+    t += '\n';
+  }
+
+  if (benefit.proTips && benefit.proTips.length) {
+    t += sep + '\n';
+    t += 'PRO TIPS\n';
+    t += sep + '\n';
+    benefit.proTips.forEach(function(tip){ t += '⚡ ' + tip + '\n\n'; });
+  }
+
+  t += sep + '\n';
+  t += 'YOUR APPEAL RIGHTS IF DENIED\n';
+  t += sep + '\n';
+  t += '1. Departmental Review — 90 days from decision letter, free\n';
+  t += '2. Veterans Review and Appeal Board (VRAB) — free, independent\n';
+  t += '   Bureau of Pensions Advocates (free legal rep): 1-877-228-2250\n';
+  t += '   Apply at: vrab-tacra.gc.ca\n';
+  t += '3. Federal Court — judicial review only, requires private counsel\n\n';
+
+  t += sep + '\n';
+  t += 'FREE HELP\n';
+  t += sep + '\n';
+  t += 'VAC Direct: 1-866-522-2122 (Mon–Fri 8am–4pm local)\n';
+  t += 'Bureau of Pensions Advocates: 1-877-228-2250\n';
+  t += 'Royal Canadian Legion Service Officers: legion.ca\n';
+  t += 'VAC Mental Health Crisis Line: 1-800-268-7708 (24/7)\n';
+  t += 'OSISS Peer Support: 1-800-883-6094 (24/7)\n';
+
+  const blob = new Blob([t], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vac-' + benefitId + '-' + today + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const hist = JSON.parse(localStorage.getItem('od_vac_history') || '[]');
+  hist.unshift({ date: new Date().toISOString(), benefit: benefit.name, action: 'package_downloaded' });
+  if (hist.length > 20) hist.pop();
+  localStorage.setItem('od_vac_history', JSON.stringify(hist));
+}
+
+const STOPWORDS = new Set([
+  "i","me","my","we","our","you","your","he","she","it","they","am","is","are",
+  "was","were","be","been","being","have","has","had","do","does","did","will",
+  "would","shall","should","may","might","must","can","could","a","an","the",
+  "and","but","or","so","for","of","in","on","at","to","by","from","with","as",
+  "this","that","these","those","not","no","nor","very","just","also","about",
+  "up","out","into","over","after","before","some","get","got","like","know",
+  "think","want","need","feel","really","when","what","where","who","how","why",
+  "which","then","than","there","here","now","still","since","both","each","few",
+  "more","most","other","such","own","same","too","any","all","them","their",
+  "said","went","going","come","coming","having","doing","being","make","made",
+  "take","taken","give","given","find","found","keep","kept","left","right",
+  "year","years","old","new","good","bad","big","small","long","little","around"
+]);
+
+const CLARIFYING = {
+  served:    "Did you serve in the Canadian Armed Forces or RCMP?",
+  released:  "Have you been released or retired from the CAF?",
+  injury:    "Did you sustain an injury or develop a condition during service?",
+  cant_work: "Is your condition preventing you from working or earning what you did before?",
+  caregiver: "Is someone (spouse, family) providing unpaid care for you at home?"
+};
+
+// ═══════════════════════════════════════════════════════
+// NLP ENGINE
+// ═══════════════════════════════════════════════════════
+
+function tokenize(text) {
+  return text.toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 2 && !STOPWORDS.has(t));
+}
+
+function buildBigrams(tokens) {
+  const bigrams = [];
+  for (let i = 0; i < tokens.length - 1; i++) {
+    bigrams.push(tokens[i] + ' ' + tokens[i+1]);
+  }
+  return bigrams;
+}
+
+function scoreKeywords(tokens, bigrams, keywordList) {
+  let score = 0;
+  const matched = [];
+  const allTerms = [...tokens, ...bigrams];
+  for (const kw of keywordList) {
+    for (const term of allTerms) {
+      if (term === kw || term.includes(kw) || kw.includes(term)) {
+        score++;
+        if (!matched.includes(kw)) matched.push(kw);
+        break;
+      }
+    }
+  }
+  return { score, matched };
+}
+
+function checkConditions(tokens, bigrams, conditions) {
+  return conditions.map(cond => {
+    const { score } = scoreKeywords(tokens, bigrams, cond.keywords);
+    return { ...cond, met: score > 0 };
+  });
+}
+
+function identifyClarifications(tokens, bigrams, matches) {
+  const needed = [];
+  const allText = tokens.join(' ');
+
+  // Check if "served" is unclear
+  const servedWords = ["served","military","army","navy","air force","veteran","caf","soldier","forces"];
+  const hasServed = servedWords.some(w => allText.includes(w));
+  if (!hasServed) needed.push('served');
+
+  // Check if "released" is unclear
+  const releasedWords = ["released","retired","discharged","civilian","left service"];
+  const hasReleased = releasedWords.some(w => allText.includes(w));
+  if (!hasReleased && matches.length > 0) needed.push('released');
+
+  // If top match is pain/suffering, check injury clarity
+  if (matches.length > 0 && matches[0].id === 'pain-suffering') {
+    const injuryWords = ["injury","ptsd","pain","condition","illness","disability","trauma"];
+    const hasInjury = injuryWords.some(w => allText.includes(w));
+    if (!hasInjury) needed.push('injury');
+  }
+
+  return needed;
+}
+
+function matchBenefits(rawInput) {
+  const tokens = tokenize(rawInput);
+  const bigrams = buildBigrams(tokens);
+
+  const scored = BENEFITS.map(benefit => {
+    const { score, matched } = scoreKeywords(tokens, bigrams, benefit.keywords);
+    const conditions = checkConditions(tokens, bigrams, benefit.conditions);
+    const conditionScore = conditions.filter(c => c.met).length;
+
+    return {
+      ...benefit,
+      score,
+      matched,
+      conditions,
+      conditionScore,
+      // Weight: keyword matches + bonus for met conditions
+      totalScore: score + (conditionScore * 2)
+    };
+  });
+
+  return scored
+    .filter(b => b.score > 0)
+    .sort((a, b) => b.totalScore - a.totalScore)
+    .slice(0, 3);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════════════════
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderTemplate(template) {
+  // Highlight entity blanks in red
+  return esc(template).replace(/\[([^\]]+)\]/g, '<span class="entity-blank">[$1]</span>');
+}
+
+function renderBenefitCard(benefit, rank) {
+  const rankClass = `rank-${rank}`;
+  const maxScore = 12;
+  const pct = Math.min(100, Math.round((benefit.totalScore / maxScore) * 100));
+
+  const taxBadge = `<span class="tax-badge ${benefit.taxable ? 'taxable' : 'nontaxable'}">${benefit.taxable ? 'TAXABLE' : 'TAX-FREE'}</span>`;
+
+  const conditionsHtml = benefit.conditions.map(c => `
+    <div class="condition-item">
+      <span class="condition-icon ${c.met ? 'condition-met' : 'condition-unknown'}">${c.met ? '✓' : '?'}</span>
+      <span class="condition-text ${c.met ? 'met' : ''}">${esc(c.label)}</span>
+    </div>
+  `).join('');
+
+  const notOffsetsHtml = benefit.notOffsets && benefit.notOffsets.length ? `
+    <div class="benefit-section">
+      <div class="subsection-label">// DOES NOT REDUCE THIS BENEFIT</div>
+      <div class="not-offsets-note">Veterans are often told these reduce their payment — they do NOT:</div>
+      <ul class="not-offsets-list">
+        ${benefit.notOffsets.map(item => `<li>${esc(item)}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  const evidenceHtml = benefit.evidenceRequired && benefit.evidenceRequired.length ? `
+    <div class="benefit-section">
+      <div class="subsection-label">// EVIDENCE CHECKLIST — GATHER THESE BEFORE APPLYING</div>
+      <div class="evidence-list">
+        ${benefit.evidenceRequired.map(e => `
+          <div class="evidence-item">
+            <span class="evidence-doc">${e.formNum ? `<span class="evidence-form">${esc(e.formNum)}</span>` : ''}${esc(e.doc)}</span>
+            <span class="evidence-how">${esc(e.how)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const proTipsHtml = benefit.proTips && benefit.proTips.length ? `
+    <div class="benefit-section">
+      <div class="subsection-label">// PRO TIPS</div>
+      <ul class="pro-tips-list">
+        ${benefit.proTips.map(tip => `<li>${esc(tip)}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  return `
+    <div class="benefit-card ${rankClass}" id="card-${benefit.id}">
+      <div class="benefit-header" onclick="toggleCard('${benefit.id}')">
+        <div class="benefit-rank">${rank}.</div>
+        <div class="benefit-info">
+          <div class="benefit-name">${esc(benefit.name)}${taxBadge}</div>
+          <div class="benefit-short">${esc(benefit.short)}</div>
+        </div>
+        <div class="benefit-score">
+          MATCH
+          <div class="score-bar"><div class="score-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="expand-icon">▼</div>
+      </div>
+      <div class="benefit-body">
+        ${INTAKE_QUESTIONS[benefit.id] ? `<button class="intake-launch-btn" onclick="beginIntake('${benefit.id}')">▶ BEGIN APPLICATION — COMPLETE YOUR DRAFT</button>` : ''}
+        <div class="benefit-section">
+          <div class="subsection-label">// ELIGIBILITY CONDITIONS</div>
+          <div class="condition-list">${conditionsHtml}</div>
+        </div>
+        ${notOffsetsHtml}
+        ${evidenceHtml}
+        ${proTipsHtml}
+        <div class="benefit-section">
+          <div class="subsection-label">// DRAFT APPLICATION LANGUAGE — FILL IN RED FIELDS</div>
+          <div class="form-draft" id="draft-${benefit.id}">${renderTemplate(benefit.template)}</div>
+          <button class="btn-copy" onclick="copyDraft('${benefit.id}')">COPY DRAFT TEXT</button>
+          <br>
+          <a class="vac-link" href="${esc(benefit.url)}" target="_blank" rel="noopener noreferrer">→ OFFICIAL VAC PAGE ↗</a>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// MAIN ANALYZE FUNCTION
+// ═══════════════════════════════════════════════════════
+
+function analyze() {
+  const input = document.getElementById('situationInput').value.trim();
+  if (input.length < 10) {
+    document.getElementById('statusBar').textContent = '→ Add more detail to get accurate results.';
+    document.getElementById('statusBar').style.display = 'block';
+    return;
+  }
+
+  // Show loading
+  document.getElementById('loadingBar').style.display = 'block';
+  document.getElementById('statusBar').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('noResults').style.display = 'none';
+  document.getElementById('clarifyBox').style.display = 'none';
+
+  // Small timeout for loading UX
+  setTimeout(() => {
+    const matches = matchBenefits(input);
+    const tokens = tokenize(input);
+    const bigrams = buildBigrams(tokens);
+
+    document.getElementById('loadingBar').style.display = 'none';
+
+    if (matches.length === 0) {
+      document.getElementById('noResults').style.display = 'block';
+      return;
+    }
+
+    // Clarifications
+    const clarify = identifyClarifications(tokens, bigrams, matches);
+    if (clarify.length > 0) {
+      const items = clarify.map(k => `<div class="clarify-item">${esc(CLARIFYING[k])}</div>`).join('');
+      document.getElementById('clarifyList').innerHTML = items;
+      document.getElementById('clarifyBox').style.display = 'block';
+    }
+
+    // Results
+    const header = `${matches.length} BENEFIT${matches.length > 1 ? 'S' : ''} MATCHED — ranked by relevance to your situation`;
+    document.getElementById('resultsHeader').textContent = header;
+
+    const cards = matches.map((b, i) => renderBenefitCard(b, i + 1)).join('');
+    document.getElementById('benefitCards').innerHTML = cards;
+
+    document.getElementById('results').style.display = 'block';
+
+    // Auto-open top result
+    setTimeout(() => toggleCard(matches[0].id), 100);
+
+    // Scroll to results
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Save to localStorage
+    const entry = {
+      date: new Date().toLocaleDateString('en-CA'),
+      input: input.substring(0, 200),
+      topBenefit: matches[0].name
+    };
+    try {
+      const history = JSON.parse(localStorage.getItem('od_vac_history') || '[]');
+      history.unshift(entry);
+      if (history.length > 20) history.pop();
+      localStorage.setItem('od_vac_history', JSON.stringify(history));
+    } catch(e) {}
+
+  }, 300);
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  if (!card) return;
+  card.classList.toggle('open');
+}
+
+function buildConcurrentSection(primaryBenefitId, intakeAnswers) {
+  const primary = BENEFITS.find(b => b.id === primaryBenefitId);
+  if (!primary || !primary.concurrent_benefits) return '';
+
+  const cc = primary.concurrent_benefits;
+  const stacks = cc.stacks_with || [];
+  const conflicts = cc.conflicts_with || [];
+
+  const getEntryId = e => e.id || e.benefit_id || '';
+
+  const surfaced = stacks.filter(entry => {
+    if (entry.type === 'always') return true;
+    if (entry.type === 'prerequisite') return true;
+    if (entry.type === 'conditional') {
+      if (!entry.gate_intake_id) return true;
+      const answer = (intakeAnswers || {})[entry.gate_intake_id];
+      return answer && answer.toLowerCase() === (entry.gate_answer || 'yes').toLowerCase();
+    }
+    return false;
+  });
+
+  if (surfaced.length === 0 && conflicts.length === 0) return '';
+
+  const badgeClass = { prerequisite: 'badge-prerequisite', always: 'badge-always', conditional: 'badge-conditional' };
+  const badgeLabel = { prerequisite: 'REQUIRED', always: 'STACKS', conditional: 'APPLIES TO YOU' };
+  const cardClass  = { prerequisite: 'type-prerequisite', always: 'type-always', conditional: 'type-conditional' };
+
+  const cardsHtml = surfaced.map(entry => {
+    const benefit = BENEFITS.find(b => b.id === getEntryId(entry));
+    if (!benefit) return '';
+    const bClass = cardClass[entry.type]  || 'type-always';
+    const bLabel = badgeLabel[entry.type] || 'STACKS';
+    const bBadge = badgeClass[entry.type] || 'badge-always';
+    const noteHtml = entry.note
+      ? '<div class="concurrent-note">→ ' + esc(entry.note) + '</div>'
+      : '';
+    return '<div class="concurrent-card ' + bClass + '">' +
+      '<span class="concurrent-badge ' + bBadge + '">' + bLabel + '</span>' +
+      '<div class="concurrent-info">' +
+        '<div class="concurrent-name">' + esc(benefit.name) + '</div>' +
+        '<div class="concurrent-short">' + esc(benefit.short) + '</div>' +
+        noteHtml +
+      '</div>' +
+      '<a class="concurrent-action" href="' + esc(benefit.url) + '"' +
+        ' target="_blank" rel="noopener noreferrer">VIEW →</a>' +
+    '</div>';
+  }).join('');
+
+  const conflictsHtml = conflicts.map(entry => {
+    if (typeof entry === 'string') {
+      return '<div class="conflict-note"><strong>⚠ CONFLICT</strong><br>' + esc(entry) + '</div>';
+    }
+    const benefit = BENEFITS.find(b => b.id === getEntryId(entry));
+    const name = benefit ? benefit.name : (entry.label || getEntryId(entry));
+    return '<div class="conflict-note">' +
+      '<strong>⚠ CONFLICT</strong><br>' +
+      esc(name) + ' — ' + esc(entry.reason || 'Cannot be received simultaneously with this benefit') +
+    '</div>';
+  }).join('');
+
+  return '<div class="concurrent-section">' +
+    '<div class="concurrent-title">// WHAT ELSE YOU MAY QUALIFY FOR</div>' +
+    '<div class="concurrent-grid">' + cardsHtml + '</div>' +
+    conflictsHtml +
+  '</div>';
+}
+
+function copyDraft(id) {
+  const el = document.getElementById('draft-' + id);
+  if (!el) return;
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = el.parentElement.querySelector('.btn-copy');
+    if (btn) {
+      btn.textContent = 'COPIED ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'COPY DRAFT TEXT';
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+  }).catch(() => {
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+  });
+}
+
+function clearAll() {
+  document.getElementById('situationInput').value = '';
+  document.getElementById('charCount').textContent = '0 / 2000';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('noResults').style.display = 'none';
+  document.getElementById('clarifyBox').style.display = 'none';
+  document.getElementById('statusBar').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('situationInput');
+  const count = document.getElementById('charCount');
+
+  // Char counter
+  input.addEventListener('input', () => {
+    count.textContent = `${input.value.length} / 2000`;
+  });
+
+  // Enter to submit (Ctrl+Enter or Cmd+Enter)
+  input.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyze();
+  });
+
+  // Prompt chips
+  document.querySelectorAll('.prompt-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const current = input.value.trim();
+      input.value = current ? current + ' ' + chip.dataset.text : chip.dataset.text;
+      count.textContent = `${input.value.length} / 2000`;
+      input.focus();
+    });
+  });
+
+  // Offline detection
+  if (!navigator.onLine) {
+    document.getElementById('offlineBanner').style.display = 'block';
+  }
+  window.addEventListener('offline', () => {
+    document.getElementById('offlineBanner').style.display = 'block';
+  });
+  window.addEventListener('online', () => {
+    document.getElementById('offlineBanner').style.display = 'none';
+  });
+});
+</script>
+</body>
+</html>
