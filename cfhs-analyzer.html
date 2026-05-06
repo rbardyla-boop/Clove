@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFHS/ATIP Document Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+:root {
+  --bg: #08080f;
+  --bg2: #0f0f1a;
+  --bg3: #141420;
+  --dim: #1e1e2e;
+  --dim2: #2a2a3a;
+  --red: #c0392b;
+  --red2: #7a2218;
+  --gold: #d4a843;
+  --green: #27ae60;
+  --blue: #2980b9;
+  --muted: #555570;
+  --text: #d0d0e0;
+  --text2: #888899;
+  --mono: 'Courier New', monospace;
+  --sans: system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: var(--bg2);
+  border-bottom: 2px solid var(--red2);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.header-title {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--red);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.header-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+.privacy-pill {
+  margin-left: auto;
+  background: var(--bg3);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  text-transform: uppercase;
+}
+
+/* LAYOUT */
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  min-height: calc(100vh - 60px);
+}
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--dim);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* DROP ZONE */
+.drop-zone {
+  border: 2px dashed var(--dim2);
+  background: var(--bg3);
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.drag { border-color: var(--gold); }
+.drop-zone input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.drop-icon { font-size: 24px; margin-bottom: 8px; }
+.drop-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+}
+.drop-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* FILE QUEUE */
+.file-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.file-item {
+  background: var(--bg3);
+  border: 1px solid var(--dim);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.file-item:hover { border-color: var(--muted); }
+.file-item.active { border-color: var(--gold); }
+.file-item.done { border-left: 3px solid var(--green); }
+.file-item.error { border-left: 3px solid var(--red); }
+.file-item.processing { border-left: 3px solid var(--gold); }
+.file-status {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.file-name {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text);
+  letter-spacing: 0.04em;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-pages {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* ANALYZE BUTTON */
+.btn-analyze {
+  background: var(--red);
+  border: none;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 13px;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+}
+.btn-analyze:hover { background: #a93226; }
+.btn-analyze:disabled { background: var(--dim2); color: var(--muted); cursor: not-allowed; }
+
+.btn-export {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s;
+  display: none;
+}
+.btn-export:hover { background: var(--gold); color: #08080f; }
+.btn-export.visible { display: block; }
+
+.btn-copy-all {
+  background: transparent;
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s;
+  display: none;
+}
+.btn-copy-all:hover { background: var(--blue); color: #fff; }
+.btn-copy-all.visible { display: block; }
+
+/* PROGRESS */
+.progress-bar {
+  height: 2px;
+  background: var(--dim);
+  overflow: hidden;
+  display: none;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--gold);
+  width: 0%;
+  transition: width 0.3s;
+}
+.progress-text {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 4px 0;
+  display: none;
+}
+
+/* ── OCR PROGRESS ── */
+.ocr-status-bar {
+  background: var(--bg3);
+  border: 1px solid var(--dim);
+  border-left: 2px solid var(--gold);
+  padding: 10px 14px;
+  display: none;
+}
+.ocr-status-bar.visible { display: block; }
+.ocr-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.ocr-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+.ocr-time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.ocr-page-progress {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.ocr-mode-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border: 1px solid;
+}
+.ocr-mode-badge.embedded {
+  color: var(--green);
+  border-color: rgba(39,174,96,0.3);
+}
+.ocr-mode-badge.ocr {
+  color: var(--gold);
+  border-color: rgba(212,168,67,0.3);
+}
+.ocr-redaction-notice {
+  background: var(--bg2);
+  border: 1px solid var(--gold);
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--gold);
+  line-height: 1.6;
+  margin-top: 8px;
+  display: none;
+}
+.ocr-redaction-notice.visible { display: block; }
+.btn-cancel {
+  background: transparent;
+  border: 1px solid var(--red2);
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 7px 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s;
+  display: none;
+}
+.btn-cancel.visible { display: block; }
+.btn-cancel:hover { background: var(--red2); }
+.stream-notice {
+  background: var(--bg3);
+  border: 1px solid var(--dim);
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  line-height: 1.6;
+  display: none;
+}
+.stream-notice.visible { display: block; }
+
+/* MAIN RESULTS */
+.main {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 12px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 40px; opacity: 0.3; }
+.empty-text { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+
+/* RESULT SECTIONS */
+.result-header {
+  border-bottom: 1px solid var(--dim);
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.result-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.result-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.section { margin-bottom: 20px; }
+.section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--dim);
+}
+
+/* CARDS */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--dim);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.card.critical { border-left: 3px solid var(--red); }
+.card.warning { border-left: 3px solid var(--gold); }
+.card.good { border-left: 3px solid var(--green); }
+.card.info { border-left: 3px solid var(--blue); }
+.card.risk { border-left: 3px solid var(--red); background: rgba(192,57,43,0.05); }
+
+.card-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.card.critical .card-label { color: var(--red); }
+.card.warning .card-label { color: var(--gold); }
+.card.good .card-label { color: var(--green); }
+.card.info .card-label { color: var(--blue); }
+.card.risk .card-label { color: var(--red); }
+
+.card-content { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.card-content strong { color: var(--text); }
+.card-content .score { font-family: var(--mono); font-size: 18px; color: var(--text); }
+.card-content .threshold { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+/* SCORE GRID */
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.score-card {
+  background: var(--bg3);
+  border: 1px solid var(--dim);
+  padding: 12px;
+}
+.score-card.above { border-top: 2px solid var(--red); }
+.score-card.at-risk { border-top: 2px solid var(--gold); }
+.score-card.below { border-top: 2px solid var(--green); }
+.score-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.score-value {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: bold;
+}
+.score-card.above .score-value { color: var(--red); }
+.score-card.at-risk .score-value { color: var(--gold); }
+.score-card.below .score-value { color: var(--green); }
+.score-label { font-size: 11px; color: var(--text2); margin-top: 3px; }
+.score-threshold {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* TAG LIST */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border: 1px solid;
+}
+.tag.red { color: var(--red); border-color: var(--red2); background: rgba(192,57,43,0.1); }
+.tag.gold { color: var(--gold); border-color: rgba(212,168,67,0.3); background: rgba(212,168,67,0.05); }
+.tag.green { color: var(--green); border-color: rgba(39,174,96,0.3); background: rgba(39,174,96,0.05); }
+.tag.blue { color: var(--blue); border-color: rgba(41,128,185,0.3); background: rgba(41,128,185,0.05); }
+.tag.muted { color: var(--text2); border-color: var(--dim2); }
+
+/* COPY BUTTON */
+.copy-btn {
+  background: transparent;
+  border: 1px solid var(--dim2);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 8px;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--muted); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+/* MULTI-FILE NAV */
+.file-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.file-tab {
+  background: var(--bg3);
+  border: 1px solid var(--dim);
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-tab:hover { border-color: var(--muted); color: var(--text); }
+.file-tab.active { border-color: var(--gold); color: var(--gold); }
+
+/* DIVIDER */
+.divider {
+  border: none;
+  border-top: 1px solid var(--dim);
+  margin: 16px 0;
+}
+
+/* QUOTE BOX */
+.quote-box {
+  background: var(--bg3);
+  border-left: 2px solid var(--muted);
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-top: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--dim); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">CFHS / ATIP Document Analyzer</div>
+    <div class="header-sub">VAC Claims Intelligence — Protected B Compatible</div>
+  </div>
+  <div class="privacy-pill">⚡ Zero Data Transmission — Local Only</div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-label">// Upload Files</div>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".pdf" multiple>
+        <div class="drop-icon">📄</div>
+        <div class="drop-label">DROP PDFs HERE OR CLICK</div>
+        <div class="drop-sub">Multiple files supported</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-label">// Queue</div>
+      <div class="file-queue" id="fileQueue">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:12px">
+          No files loaded
+        </div>
+      </div>
+    </div>
+
+    <div class="ocr-status-bar" id="ocrStatusBar">
+      <div class="ocr-status-row">
+        <span class="ocr-label" id="ocrLabel">INITIALIZING...</span>
+        <span class="ocr-time" id="ocrTime"></span>
+      </div>
+      <div class="ocr-page-progress" id="ocrPageProgress"></div>
+      <div class="progress-bar" id="progressBar" style="display:block;margin:0">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+    <div class="ocr-redaction-notice" id="ocrRedactionNotice">
+      ⚠ REDACTED CONTENT DETECTED<br>
+      Operation name or unit details appear blacked out.<br>
+      Standard for CSOR operational records.<br>
+      SDA status must be confirmed via VAC: 1-866-522-2122
+    </div>
+    <div class="stream-notice" id="streamNotice">
+      ⚡ STREAMING — Results appear as each page completes.
+      Large files take 25-40 min. You can review partial
+      results while processing continues.
+    </div>
+
+    <button class="btn-analyze" id="analyzeBtn"
+      onclick="runAnalysis()" disabled>
+      ANALYZE ALL FILES
+    </button>
+    <button class="btn-cancel" id="cancelBtn" onclick="cancelAnalysis()">
+      CANCEL
+    </button>
+    <button class="btn-export visible" id="exportBtn" onclick="exportAll()" style="display:none">
+      ↓ EXPORT FULL REPORT (.txt)
+    </button>
+    <button class="btn-copy-all visible" id="copyAllBtn" onclick="copyAll()" style="display:none">
+      COPY ALL RESULTS
+    </button>
+
+    <div style="margin-top:auto;font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.7">
+      All processing happens in your browser.<br>
+      No data is sent anywhere.<br>
+      Files are read into memory only.<br>
+      Nothing is stored or logged.
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainContent">
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-text">LOAD YOUR CFHS / ATIP FILES TO BEGIN</div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;line-height:1.8;margin-top:8px">
+        Detects: PCL-C · PHQ-9 · PHQ-7 · AUDIT · SF-36<br>
+        Claim risks · Nexus language · Deployment linkage<br>
+        OSI flags · Scored instruments · Document classification
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// PDF.JS SETUP
+// ═══════════════════════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── OCR WORKER ──────────────────────────────────────────
+
+async function initOCRWorker(statusCallback) {
+  if (ocrWorker && ocrReady) return ocrWorker;
+  if (ocrInitializing) {
+    return new Promise(resolve => {
+      const check = setInterval(() => {
+        if (ocrReady) { clearInterval(check); resolve(ocrWorker); }
+      }, 200);
+    });
+  }
+
+  ocrInitializing = true;
+  if (statusCallback) statusCallback('LOADING OCR ENGINE...');
+
+  try {
+    ocrWorker = await Tesseract.createWorker('eng+fra', 1, {
+      logger: () => {}
+    });
+    ocrReady = true;
+    ocrInitializing = false;
+    if (statusCallback) statusCallback('OCR ENGINE READY');
+    return ocrWorker;
+  } catch(err) {
+    ocrInitializing = false;
+    throw new Error('OCR engine failed to load: ' + err.message);
+  }
+}
+
+async function terminateOCRWorker() {
+  if (ocrWorker) {
+    try { await ocrWorker.terminate(); } catch(e) {}
+    ocrWorker = null;
+    ocrReady = false;
+  }
+}
+
+// ── PAGE RASTERIZER ─────────────────────────────────────
+
+async function rasterizePage(pdfPage) {
+  const viewport = pdfPage.getViewport({ scale: OCR_SCALE });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.floor(viewport.width);
+  canvas.height = Math.floor(viewport.height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  await pdfPage.render({ canvasContext: ctx, viewport }).promise;
+  return canvas;
+}
+
+// ── REDACTION DETECTOR ──────────────────────────────────
+
+function detectRedactions(pageText) {
+  const signals = [
+    /█+/g,
+    /■+/g,
+    /MISSING\b/gi,
+    /operation\s*[:\s]+\s*$/gim,
+    /unit\s*[:\s]+\s*$/gim,
+    /[^a-zA-Z0-9\s]{8,}/g
+  ];
+  return signals.some(p => p.test(pageText));
+}
+
+// ── ESTIMATE REMAINING TIME ──────────────────────────────
+
+function formatTimeRemaining(pagesLeft) {
+  const secs = Math.round(pagesLeft * SECS_PER_PAGE_EST);
+  if (secs < 60) return `~${secs}s remaining`;
+  const mins = Math.ceil(secs / 60);
+  return `~${mins} min remaining`;
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let files = [];       // { file, name, pages, text, analysis }
+let activeIdx = 0;
+
+// OCR state
+let ocrWorker = null;
+let ocrReady = false;
+let ocrInitializing = false;
+let processingActive = false;
+const OCR_SCALE = 2.78; // 200 DPI equivalent (200/72)
+const SECS_PER_PAGE_EST = 3.5; // calibrated for average hardware
+
+// ═══════════════════════════════════════════════════════
+// NLP DATA
+// ═══════════════════════════════════════════════════════
+
+const SCORED_INSTRUMENTS = [
+  {
+    id: 'pclc',
+    name: 'PCL-C (PTSD Checklist)',
+    patterns: [
+      /pcl[\s\-\.]?c\s*(?:score)?[:\s=]+(\d+)/i,
+      /pcl[\s\-\.]?c.*?=\s*(\d+)/i,
+      /ptsd.*?pcl.*?(\d+)/i,
+      /pcl[\s\-\.]?c\s+score\s+of\s+(\d+)/i
+    ],
+    altPatterns: [/pcl.c score = (\d+)/i, /PTSD.*?(\d+).*?HIGH RISK/i],
+    threshold: 33,
+    high: 50,
+    label_above: 'HIGH RISK FOR PTSD — above clinical threshold',
+    label_at: 'Clinically significant — at or above threshold',
+    label_below: 'Below clinical threshold',
+    vac_note: 'PCL-C ≥ 33 supports PSC (PTSD) entitlement. PCL-C 57 = HIGH RISK. Include this score prominently in your application.'
+  },
+  {
+    id: 'phq9',
+    name: 'PHQ-9 (Depression)',
+    patterns: [
+      /phq[\s\-\.]?9\s*(?:score)?[:\s=]+(\d+)/i,
+      /phq\.9\s+score\s+=\s+(\d+)/i,
+      /depression.*?phq.*?(\d+)/i
+    ],
+    threshold: 10,
+    high: 15,
+    label_above: 'Moderate-Severe Depression',
+    label_at: 'Moderate Depression',
+    label_below: 'Below clinical threshold',
+    vac_note: 'PHQ-9 ≥ 10 documents clinically significant depression. Supports PSC for depression/MDD.'
+  },
+  {
+    id: 'phq7',
+    name: 'PHQ-7 (Anxiety)',
+    patterns: [
+      /phq[\s\-\.]?7\s*(?:score)?[:\s=]+(\d+)/i,
+      /phq\.7\s+score\s+=\s+(\d+)/i,
+      /anxiety.*?phq.*?(\d+)/i,
+      /phq-7\s+score\s*=\s*(\d+)/i
+    ],
+    threshold: 10,
+    high: 15,
+    label_above: 'Severe Anxiety',
+    label_at: 'Moderate Anxiety',
+    label_below: 'Below clinical threshold',
+    vac_note: 'PHQ-7 ≥ 10 documents clinically significant anxiety. Supports PSC for anxiety disorders.'
+  },
+  {
+    id: 'audit',
+    name: 'AUDIT (Alcohol Use)',
+    patterns: [
+      /audit\s*(?:score)?[:\s=]+(\d+)/i,
+      /audit.*?score.*?(\d+)/i,
+      /audit\s+score\s*=\s*(\d+)/i
+    ],
+    threshold: 15,
+    high: 20,
+    label_above: 'HIGH RISK — Alcohol Use Disorder',
+    label_at: 'Hazardous drinking',
+    label_below: 'Below high-risk threshold',
+    vac_note: 'High AUDIT score supports Substance Use Disorder documentation. May support PSC and Rehab Program eligibility.'
+  },
+  {
+    id: 'sf36mcs',
+    name: 'SF-36 MCS (Mental Health)',
+    patterns: [
+      /mcs\s*[:\s=]+(\d+)/i,
+      /mental\s+component\s+summary\s*[:\s=]+(\d+)/i,
+      /global\s+mental\s+health.*?(\d+)/i
+    ],
+    threshold: 40,
+    high: null,
+    inverted: true,
+    label_above: 'Above threshold — mental health concern',
+    label_at: 'At threshold',
+    label_below: 'Below cut-off — mental health concern',
+    vac_note: 'SF-36 MCS < 40 (below cut-off) indicates significant mental health impairment. The lower the score, the worse the mental health status.'
+  }
+];
+
+const CLAIM_RISK_PHRASES = [
+  {
+    pattern: /operational\s+stress\s+injury\s*[:\s]+n\/a/gi,
+    label: 'Operational Stress Injury: N/A',
+    explanation: 'Clinicians marked OSI as "N/A" in this document. VAC adjudicators may interpret this as the treating clinician not attributing the condition to operational stress. Rebuttal required: these entries appear in couple/family therapy records where the treatment focus was relationship distress, not OSI. OSI documentation appears in Post-Deployment Assessment documents.',
+    severity: 'critical'
+  },
+  {
+    pattern: /relationship\s+distress\s+with\s+spouse\s+or\s+partner/gi,
+    label: 'Clinical Classification: Relationship Distress',
+    explanation: 'Document classifies condition as "Relationship distress with spouse or partner." VAC may use this to argue conditions are not service-related. Rebuttal: the relationship distress was a downstream effect of deployment-related mood dysregulation, documented as such in Post-Deployment Assessment.',
+    severity: 'warning'
+  },
+  {
+    pattern: /family\s+circumstances.*?relationship\s+distress/gi,
+    label: 'Clinical Classification: Family Circumstances',
+    explanation: 'Condition classified under Family Circumstances. See Relationship Distress rebuttal above.',
+    severity: 'warning'
+  },
+  {
+    pattern: /not\s+related\s+to\s+service|unrelated\s+to.*?service|not\s+attributable/gi,
+    label: 'Explicit Non-Attribution to Service',
+    explanation: 'Document contains language explicitly stating condition is NOT related to service. This is a significant claim risk. Obtain a nexus letter from current treating physician to counter this finding.',
+    severity: 'critical'
+  },
+  {
+    pattern: /follow.up\s+is\s+not\s+required|no\s+follow.up\s+required/gi,
+    label: 'No Follow-Up Recommended',
+    explanation: 'A clinician documented no follow-up required. VAC may use this to argue conditions were resolved or minor. Document clinical care that continued after this notation.',
+    severity: 'warning'
+  },
+  {
+    pattern: /dagged\s+green|tagged\s+green|status\s+is\s+green/gi,
+    label: 'GREEN Deployment Status',
+    explanation: 'Member was cleared GREEN for deployment at some point. VAC may use this to argue functional capacity. Context: GREEN status reflects fitness to deploy at that moment, not the absence of service-related conditions.',
+    severity: 'warning'
+  }
+];
+
+const NEXUS_POSITIVE = [
+  { pattern: /largely\s+related\s+to\s+deployment/gi, strength: 'strong', label: 'Largely related to deployment' },
+  { pattern: /somewhat\s+related\s+to\s+deployment/gi, strength: 'moderate', label: 'Somewhat related to deployment' },
+  { pattern: /as\s+a\s+result\s+of\s+his\s+deployment|as\s+a\s+result\s+of\s+her\s+deployment/gi, strength: 'strong', label: 'As a result of deployment' },
+  { pattern: /deployment\s+sent\s+him\s+into\s+a\s+downward\s+spiral/gi, strength: 'strong', label: 'Deployment caused downward spiral (direct causal language)' },
+  { pattern: /because\s+of\s+what\s+transpired\s+during\s+and\s+following\s+this\s+deployment/gi, strength: 'strong', label: 'Release attributed to deployment events' },
+  { pattern: /submitted\s+his\s+vr\s+from\s+the\s+caf/gi, strength: 'strong', label: 'Voluntary Release from CAF documented' },
+  { pattern: /attributable\s+to\s+service|related\s+to\s+service|caused\s+by\s+service|service.related/gi, strength: 'strong', label: 'Service connection language present' },
+  { pattern: /as\s+part\s+of\s+your\s+military\s+service\s+while\s+deployed/gi, strength: 'strong', label: 'Stressful experiences attributed to service while deployed (PCL-C Q18)' },
+  { pattern: /interpersonal\s+conflict\s+with\s+coc|chain\s+of\s+command/gi, strength: 'moderate', label: 'CoC conflict during deployment documented' },
+  { pattern: /more\s+guarded.*?mistrusting.*?result\s+of.*?deployment/gi, strength: 'strong', label: 'Social changes attributed to deployment' },
+  { pattern: /occupational\s+stress|operational\s+stress\s+injury/gi, strength: 'moderate', label: 'Operational/Occupational Stress documented' }
+];
+
+const DIAGNOSES_LIST = [
+  { pattern: /major\s+depressive\s+disorder|mdd/gi, label: 'Major Depressive Disorder (MDD)' },
+  { pattern: /\bptsd\b|post.traumatic\s+stress/gi, label: 'PTSD / Post-Traumatic Stress' },
+  { pattern: /generalized\s+anxiety|anxiety\s+disorder/gi, label: 'Anxiety Disorder' },
+  { pattern: /\badhd\b|attention\s+deficit/gi, label: 'ADHD' },
+  { pattern: /\bocd\b|obsessive.compulsive/gi, label: 'OCD' },
+  { pattern: /\bbpd\b|borderline\s+personality/gi, label: 'Borderline Personality Disorder (BPD)' },
+  { pattern: /avoidant\s+personality/gi, label: 'Avoidant Personality Disorder' },
+  { pattern: /alcohol\s+use\s+disorder|aud\b/gi, label: 'Alcohol Use Disorder' },
+  { pattern: /cannabis\s+use\s+disorder|cannabis.*?disorder/gi, label: 'Cannabis Use Disorder' },
+  { pattern: /substance\s+use\s+disorder|sud\b/gi, label: 'Substance Use Disorder' },
+  { pattern: /depression\b/gi, label: 'Depression' },
+  { pattern: /anger\s+management|chronic.*?anger/gi, label: 'Anger (chronic)' },
+  { pattern: /suicid/gi, label: 'Suicidal Ideation (documented)' },
+  { pattern: /panic\s+disorder|panic\s+attack/gi, label: 'Panic Disorder / Panic Attacks' }
+];
+
+const DEPLOYMENT_PHRASES = [
+  /operation\s+tropical\s+dagger/gi,
+  /operation\s+[a-z]+/gi,
+  /special\s+duty\s+area|sda\b/gi,
+  /csor\b/gi,
+  /deployed\s+to|deployment\s+to/gi,
+  /post.deployment|pre.deployment/gi,
+  /enhanced\s+post.deployment\s+screening|epds/gi,
+  /reintegration\s+screening/gi
+];
+
+const MEDICATION_PATTERNS = [
+  /zoloft|sertraline/gi, /wellbutrin|bupropion/gi,
+  /medication\s+adjusted|medication\s+increased/gi,
+  /psychiatr/gi, /psycholog/gi
+];
+
+const DOC_TYPES = [
+  { pattern: /post.deployment\s+assessment/gi, label: 'Post-Deployment Assessment' },
+  { pattern: /pre.deployment\s+screening/gi, label: 'Pre-Deployment Screening' },
+  { pattern: /reintegration\s+screening/gi, label: 'Reintegration Screening' },
+  { pattern: /discharge\s+summary/gi, label: 'Discharge Summary' },
+  { pattern: /session\s+note/gi, label: 'Session Note(s)' },
+  { pattern: /periodic\s+case\s+review/gi, label: 'Periodic Case Review' },
+  { pattern: /couple.*?family\s+assessment|mental\s+health.*?assessment/gi, label: 'Mental Health Assessment' },
+  { pattern: /scan.epds|epds\s+questionnaire|enhanced\s+post.deployment/gi, label: 'EPDS Questionnaire / Report' },
+  { pattern: /initial\s+assessment/gi, label: 'Initial Assessment' },
+  { pattern: /admin\s+note/gi, label: 'Admin Note' }
+];
+
+// ═══════════════════════════════════════════════════════
+// FILE HANDLING
+// ═══════════════════════════════════════════════════════
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag');
+  addFiles(Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf'));
+});
+fileInput.addEventListener('change', () => {
+  addFiles(Array.from(fileInput.files));
+  fileInput.value = '';
+});
+
+function addFiles(newFiles) {
+  newFiles.forEach(f => {
+    if (!files.find(x => x.name === f.name && x.file.size === f.size)) {
+      files.push({ file: f, name: f.name, pages: null, text: null, analysis: null, status: 'pending' });
+    }
+  });
+  renderQueue();
+  document.getElementById('analyzeBtn').disabled = files.length === 0;
+}
+
+function renderQueue() {
+  const q = document.getElementById('fileQueue');
+  if (files.length === 0) {
+    q.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:12px">No files loaded</div>';
+    return;
+  }
+  const icons = { pending: '○', processing: '◌', done: '✓', error: '✗' };
+  q.innerHTML = files.map((f, i) => `
+    <div class="file-item ${f.status} ${i === activeIdx ? 'active' : ''}" onclick="showResult(${i})">
+      <span class="file-status">${icons[f.status] || '○'}</span>
+      <span class="file-name" title="${f.name}">${f.name}</span>
+      <span class="file-pages">${f.pages ? f.pages + 'p' : ''}</span>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// PDF EXTRACTION
+// ═══════════════════════════════════════════════════════
+
+async function extractText(file, onPageComplete) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({
+    data: arrayBuffer,
+    verbosity: 0
+  }).promise;
+
+  const totalPages = pdf.numPages;
+  let fullText = '';
+  let hasRedactions = false;
+
+  // Check first 3 pages for embedded text (non-scanned fast path)
+  let embeddedText = '';
+  for (let i = 1; i <= Math.min(3, totalPages); i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    embeddedText += content.items.map(item => item.str).join(' ');
+  }
+  const useEmbedded = embeddedText.trim().length > 200;
+
+  if (useEmbedded) {
+    for (let i = 1; i <= totalPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items.map(item => item.str).join(' ') + '\n';
+      fullText += pageText;
+      if (onPageComplete) {
+        onPageComplete({
+          page: i, total: totalPages, pageText,
+          accumulated: fullText, mode: 'embedded', timeRemaining: null
+        });
+      }
+    }
+    return { text: fullText.trim(), pages: totalPages, mode: 'embedded', hasRedactions: false };
+  }
+
+  // OCR path: scanned PDF
+  const worker = await initOCRWorker((msg) => {
+    if (onPageComplete) onPageComplete({ status: msg, page: 0, total: totalPages });
+  });
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (!processingActive) break;
+
+    const pdfPage = await pdf.getPage(i);
+    const canvas = await rasterizePage(pdfPage);
+
+    let pageText = '';
+    try {
+      const result = await worker.recognize(canvas);
+      pageText = result.data.text || '';
+    } catch(e) {
+      pageText = '';
+    }
+
+    if (detectRedactions(pageText)) hasRedactions = true;
+
+    fullText += pageText + '\n';
+
+    // Release canvas memory
+    canvas.width = 0;
+    canvas.height = 0;
+
+    if (onPageComplete) {
+      onPageComplete({
+        page: i, total: totalPages, pageText,
+        accumulated: fullText, mode: 'ocr',
+        timeRemaining: formatTimeRemaining(totalPages - i),
+        hasRedactions
+      });
+    }
+  }
+
+  return { text: fullText.trim(), pages: totalPages, mode: 'ocr', hasRedactions };
+}
+
+// ═══════════════════════════════════════════════════════
+// NLP ANALYSIS ENGINE
+// ═══════════════════════════════════════════════════════
+
+function analyzeText(rawText) {
+  const lower = rawText.toLowerCase();
+
+  // 1. Document types
+  const docTypes = DOC_TYPES
+    .filter(d => d.pattern.test(rawText))
+    .map(d => { d.pattern.lastIndex = 0; return d.label; });
+
+  // 2. Scored instruments
+  const scores = [];
+  SCORED_INSTRUMENTS.forEach(inst => {
+    let found = null;
+    const allPatterns = [...inst.patterns, ...(inst.altPatterns || [])];
+    for (const pat of allPatterns) {
+      pat.lastIndex = 0;
+      const m = pat.exec(rawText);
+      if (m) { found = parseInt(m[1]); break; }
+    }
+    if (found !== null && !isNaN(found)) {
+      const threshold = inst.threshold;
+      let status;
+      if (inst.inverted) {
+        status = found < threshold ? 'above' : 'below';
+      } else {
+        status = found >= (inst.high || threshold + 1) ? 'above' :
+                 found >= threshold ? 'at-risk' : 'below';
+      }
+      scores.push({ ...inst, value: found, status });
+    }
+  });
+
+  // 3. Claim risks
+  const risks = [];
+  const riskCounts = {};
+  CLAIM_RISK_PHRASES.forEach(r => {
+    r.pattern.lastIndex = 0;
+    const matches = rawText.match(r.pattern);
+    if (matches) {
+      risks.push({ ...r, count: matches.length });
+      r.pattern.lastIndex = 0;
+    }
+  });
+
+  // 4. Nexus (service connection) language
+  const nexus = [];
+  NEXUS_POSITIVE.forEach(n => {
+    n.pattern.lastIndex = 0;
+    if (n.pattern.test(rawText)) {
+      nexus.push(n);
+      n.pattern.lastIndex = 0;
+    }
+  });
+
+  // 5. Diagnoses
+  const diagnoses = [];
+  DIAGNOSES_LIST.forEach(d => {
+    d.pattern.lastIndex = 0;
+    if (d.pattern.test(rawText)) {
+      diagnoses.push(d.label);
+      d.pattern.lastIndex = 0;
+    }
+  });
+
+  // 6. Deployment mentions
+  const deploymentMentions = DEPLOYMENT_PHRASES.filter(p => {
+    p.lastIndex = 0;
+    const r = p.test(rawText);
+    p.lastIndex = 0;
+    return r;
+  }).length;
+
+  // 7. Suicidality
+  const suicidePatterns = [
+    /thoughts.*?better off dead/gi,
+    /hurting himself|hurting herself/gi,
+    /suicidal ideation/gi,
+    /thoughts of suicide/gi,
+    /\bsuicid/gi,
+    /more than half.*?suicid/gi,
+    /si\/vi/gi
+  ];
+  const suicidalityFound = suicidePatterns.some(p => {
+    p.lastIndex = 0;
+    const r = p.test(rawText);
+    p.lastIndex = 0;
+    return r;
+  });
+
+  // 8. SDA / Special Duty Area
+  const sdaFound = /special\s+duty\s+area|sda\b/gi.test(rawText);
+
+  // 9. Medication
+  const medicationFound = MEDICATION_PATTERNS.some(p => {
+    p.lastIndex = 0;
+    const r = p.test(rawText);
+    p.lastIndex = 0;
+    return r;
+  });
+
+  // 10. Key excerpts — pull sentence-level context for strong findings
+  const excerpts = [];
+  const sentences = rawText.match(/[^.!?\n]{30,200}[.!?\n]/g) || [];
+  const excerptPatterns = [
+    /downward spiral/i, /voluntary.*?release|submitted.*?vr/i,
+    /largely related/i, /as a result of.*?deployment/i,
+    /high risk for ptsd/i, /moderately severe depression/i,
+    /suicid/i, /thoughts.*?better off dead/i
+  ];
+  excerptPatterns.forEach(ep => {
+    const match = sentences.find(s => ep.test(s));
+    if (match) excerpts.push(match.trim().replace(/\s+/g, ' '));
+  });
+
+  // 11. Date range
+  const dateMatches = rawText.match(/\b(20\d{2}[.\-/]\d{2}[.\-/]\d{2}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+20\d{2})/gi) || [];
+  const dates = [...new Set(dateMatches)].slice(0, 6);
+
+  return {
+    docTypes,
+    scores,
+    risks,
+    nexus,
+    diagnoses,
+    deploymentMentions,
+    suicidalityFound,
+    sdaFound,
+    medicationFound,
+    excerpts,
+    dates,
+    wordCount: rawText.split(/\s+/).length
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// MAIN ANALYSIS RUN
+// ═══════════════════════════════════════════════════════
+
+async function runAnalysis() {
+  if (processingActive) return;
+  processingActive = true;
+
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const cancelBtn  = document.getElementById('cancelBtn');
+  const ocrBar     = document.getElementById('ocrStatusBar');
+  const ocrLabel   = document.getElementById('ocrLabel');
+  const ocrTime    = document.getElementById('ocrTime');
+  const ocrPages   = document.getElementById('ocrPageProgress');
+  const progFill   = document.getElementById('progressFill');
+  const streamNote = document.getElementById('streamNotice');
+  const redactNote = document.getElementById('ocrRedactionNotice');
+  const exportBtn  = document.getElementById('exportBtn');
+  const copyBtn    = document.getElementById('copyAllBtn');
+
+  analyzeBtn.disabled = true;
+  analyzeBtn.textContent = 'PROCESSING...';
+  cancelBtn.classList.add('visible');
+  ocrBar.classList.add('visible');
+  streamNote.classList.remove('visible');
+
+  let totalPagesAllFiles = 0;
+  let pagesProcessed = 0;
+
+  // Pre-count pages for global progress bar
+  for (const f of files) {
+    if (f.status === 'done') continue;
+    try {
+      const ab = await f.file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: ab, verbosity: 0 }).promise;
+      files[files.indexOf(f)].pages = pdf.numPages;
+      totalPagesAllFiles += pdf.numPages;
+    } catch(e) {
+      files[files.indexOf(f)].pages = 0;
+    }
+  }
+  renderQueue();
+
+  for (let fi = 0; fi < files.length; fi++) {
+    if (!processingActive) break;
+    const f = files[fi];
+    if (f.status === 'done') continue;
+
+    files[fi].status = 'processing';
+    files[fi].text = '';
+    renderQueue();
+
+    const isLargeFile = (f.pages || 0) > 100;
+    if (isLargeFile) streamNote.classList.add('visible');
+
+    ocrLabel.textContent = `FILE ${fi + 1}/${files.length}: ${f.name}`;
+
+    try {
+      const result = await extractText(f.file, (progress) => {
+        if (!processingActive) return;
+
+        if (progress.status && !progress.page) {
+          ocrLabel.textContent = progress.status;
+          return;
+        }
+
+        const p = progress.page || 0;
+        const t = progress.total || 1;
+        const globalPct = Math.round(
+          ((pagesProcessed + p) / Math.max(totalPagesAllFiles, 1)) * 100
+        );
+
+        progFill.style.width = globalPct + '%';
+        ocrPages.textContent = `Page ${p} of ${t} (${Math.round((p/t)*100)}%)`;
+        ocrTime.textContent  = progress.timeRemaining || '';
+        ocrLabel.textContent = `${progress.mode === 'ocr' ? 'OCR' : 'TEXT'} — ${f.name}`;
+
+        if (progress.hasRedactions) {
+          redactNote.classList.add('visible');
+        }
+
+        // Progressive NLP every 10 pages
+        if (p > 0 && p % 10 === 0 && progress.accumulated) {
+          files[fi].text = progress.accumulated;
+          files[fi].analysis = analyzeText(progress.accumulated);
+          if (fi === activeIdx || activeIdx < 0) {
+            activeIdx = fi;
+            showResult(fi);
+          }
+        }
+      });
+
+      files[fi].text        = result.text;
+      files[fi].pages       = result.pages;
+      files[fi].mode        = result.mode;
+      files[fi].hasRedactions = result.hasRedactions;
+      files[fi].analysis    = analyzeText(result.text);
+      files[fi].status      = 'done';
+      pagesProcessed       += result.pages;
+
+    } catch(err) {
+      files[fi].status = 'error';
+      files[fi].error  = err.message;
+    }
+
+    renderQueue();
+
+    if (activeIdx < 0 || files[activeIdx].status !== 'done') {
+      const firstDone = files.findIndex(f => f.status === 'done');
+      if (firstDone >= 0) { activeIdx = firstDone; showResult(firstDone); }
+    } else {
+      showResult(activeIdx);
+    }
+  }
+
+  processingActive = false;
+  progFill.style.width = '100%';
+  ocrLabel.textContent = 'COMPLETE';
+  ocrTime.textContent  = '';
+  ocrPages.textContent = `${files.filter(f => f.status === 'done').length} files processed`;
+
+  setTimeout(() => ocrBar.classList.remove('visible'), 3000);
+  cancelBtn.classList.remove('visible');
+  streamNote.classList.remove('visible');
+
+  analyzeBtn.disabled = false;
+  analyzeBtn.textContent = 'ANALYZE ALL FILES';
+  exportBtn.style.display = 'block';
+  copyBtn.style.display   = 'block';
+
+  const firstDone = files.findIndex(f => f.status === 'done');
+  if (firstDone >= 0) showResult(firstDone);
+}
+
+function cancelAnalysis() {
+  processingActive = false;
+  document.getElementById('cancelBtn').classList.remove('visible');
+  document.getElementById('ocrLabel').textContent = 'CANCELLED';
+  document.getElementById('analyzeBtn').disabled = false;
+  document.getElementById('analyzeBtn').textContent = 'ANALYZE ALL FILES';
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════════════════════════════
+
+function showResult(idx) {
+  activeIdx = idx;
+  renderQueue();
+
+  const f = files[idx];
+  if (!f || !f.analysis) {
+    document.getElementById('mainContent').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${f ? (f.status === 'error' ? '✗' : '◌') : '?'}</div>
+        <div class="empty-text">${f ? (f.error || 'Run analysis to see results') : 'No file selected'}</div>
+      </div>`;
+    return;
+  }
+
+  const a = f.analysis;
+  const main = document.getElementById('mainContent');
+
+  // File navigation tabs
+  const tabs = files.map((ff, i) => `
+    <div class="file-tab ${i === idx ? 'active' : ''}" onclick="showResult(${i})"
+         title="${ff.name}">${ff.name.replace('.pdf', '')}</div>
+  `).join('');
+
+  // Score grid
+  const scoreGrid = a.scores.length > 0 ? `
+    <div class="section">
+      <div class="section-title" style="color:var(--text)">// Scored Instruments</div>
+      <div class="score-grid">
+        ${a.scores.map(s => `
+          <div class="score-card ${s.status}">
+            <div class="score-name">${s.name}</div>
+            <div class="score-value">${s.value}</div>
+            <div class="score-label">${s.status === 'above' ? s.label_above : s.status === 'at-risk' ? s.label_at : s.label_below}</div>
+            <div class="score-threshold">Clinical threshold: ${s.threshold}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${a.scores.filter(s => s.status !== 'below').map(s => `
+        <div class="card ${s.status === 'above' ? 'critical' : 'warning'}">
+          <div class="card-label">VAC NOTE: ${s.name}</div>
+          <div class="card-content">${s.vac_note}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  // Claim risks
+  const riskSection = a.risks.length > 0 ? `
+    <div class="section">
+      <div class="section-title" style="color:var(--red)">// ⚠ Claim Risks Detected</div>
+      ${a.risks.map(r => `
+        <div class="card ${r.severity === 'critical' ? 'critical' : 'warning'}">
+          <div class="card-label">${r.severity === 'critical' ? '✗ CRITICAL' : '⚠ WARNING'}: ${r.label}</div>
+          <div class="card-content">${r.explanation}${r.count > 1 ? `<br><strong>Appears ${r.count} times in this document.</strong>` : ''}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '<div class="card good"><div class="card-label">✓ Claim Risks</div><div class="card-content">No significant claim risk phrases detected in this document.</div></div>';
+
+  // Nexus
+  const nexusSection = a.nexus.length > 0 ? `
+    <div class="section">
+      <div class="section-title" style="color:var(--green)">// ✓ Service Connection Language Found</div>
+      ${a.nexus.map(n => `
+        <div class="card good">
+          <div class="card-label">${n.strength.toUpperCase()}: ${n.label}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : `
+    <div class="section">
+      <div class="section-title" style="color:var(--red)">// ✗ Service Connection Language — ABSENT</div>
+      <div class="card critical">
+        <div class="card-label">CRITICAL GAP</div>
+        <div class="card-content">
+          No language directly linking conditions to CAF service was detected in this document.
+          This does not mean service connection doesn't exist — it means this document doesn't contain it.
+          Service connection language must appear somewhere in your combined file package.
+          If absent across all documents, a nexus letter from your treating physician is mandatory.
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Diagnoses
+  const diagSection = a.diagnoses.length > 0 ? `
+    <div class="section">
+      <div class="section-title">// Conditions Documented</div>
+      <div class="tag-list">
+        ${[...new Set(a.diagnoses)].map(d => {
+          const color = d.includes('Suicidal') ? 'red' :
+                        d.includes('PTSD') ? 'red' :
+                        d.includes('Disorder') ? 'gold' : 'blue';
+          return `<span class="tag ${color}">${d}</span>`;
+        }).join('')}
+      </div>
+      ${a.suicidalityFound ? `
+        <div class="card critical" style="margin-top:8px">
+          <div class="card-label">⚠ Suicidal Ideation Documented</div>
+          <div class="card-content">
+            This document contains references to suicidal ideation. This is clinically significant
+            and supports severity assessment for PSC and potentially APSC (Additional PSC) eligibility.
+            Ensure this is documented in your application as evidence of condition severity.
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  ` : '';
+
+  // Key excerpts
+  const excerptSection = a.excerpts.length > 0 ? `
+    <div class="section">
+      <div class="section-title">// Key Excerpts — High Value for Application</div>
+      ${a.excerpts.map(e => `<div class="quote-box">${e}</div>`).join('')}
+      <button class="copy-btn" onclick="copyExcerpts(${idx})">COPY ALL EXCERPTS</button>
+    </div>
+  ` : '';
+
+  // SDA
+  const sdaSection = a.sdaFound ? `
+    <div class="card good">
+      <div class="card-label">✓ Special Duty Area (SDA) Reference Found</div>
+      <div class="card-content">
+        This document references Special Duty Area. If Operation Tropical Dagger is a confirmed SDA,
+        PTSD and OSI conditions receive presumptive entitlement — VAC cannot require you to prove service connection.
+        Confirm SDA status in writing with VAC: 1-866-522-2122.
+      </div>
+    </div>
+  ` : '';
+
+  main.innerHTML = `
+    <div class="file-nav">${tabs}</div>
+
+    <div class="result-header">
+      <div>
+        <div class="result-title">${f.name}</div>
+        <div class="result-meta">
+          ${f.pages} pages
+          · ${a.wordCount.toLocaleString()} words extracted
+          · <span class="ocr-mode-badge ${f.mode || 'embedded'}">
+              ${f.mode === 'ocr' ? 'OCR' : 'EMBEDDED TEXT'}
+            </span>
+          ${a.docTypes.length > 0 ? ' · ' + a.docTypes.join(', ') : ''}
+          ${a.dates.length > 0 ? ' · ' + a.dates.slice(0,3).join(', ') : ''}
+          ${f.hasRedactions
+            ? ' · <span style="color:var(--gold);font-family:var(--mono);font-size:10px">⚠ REDACTIONS DETECTED</span>'
+            : ''}
+        </div>
+      </div>
+      <button class="copy-btn" onclick="copyResult(${idx})">COPY REPORT</button>
+    </div>
+
+    ${buildPlainSummary(f)}
+    ${sdaSection}
+    ${scoreGrid}
+    ${riskSection}
+    ${nexusSection}
+    ${diagSection}
+    ${excerptSection}
+
+    ${a.medicationFound ? `
+      <div class="card info" style="margin-top:8px">
+        <div class="card-label">✓ Medication / Psychiatric Treatment Documented</div>
+        <div class="card-content">Psychiatric medication and/or ongoing mental health professional care is documented. This supports condition severity and treatment continuity.</div>
+      </div>
+    ` : ''}
+
+    ${a.deploymentMentions > 0 ? `
+      <div class="card good" style="margin-top:8px">
+        <div class="card-label">✓ Deployment Context Present (${a.deploymentMentions} references)</div>
+        <div class="card-content">Deployment operations, post-deployment context, or deployment-related terminology appears throughout this document.</div>
+      </div>
+    ` : ''}
+
+    <hr class="divider">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.8">
+      ANALYZER v1.0 — CFHS/ATIP Analysis Engine · All processing local · No data transmitted<br>
+      This output is an analytical aid. Verify all findings against original documents before submission.
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// COPY / EXPORT
+// ═══════════════════════════════════════════════════════
+
+function buildPlainSummary(f) {
+  if (!f.analysis) return '';
+  const a = f.analysis;
+
+  const scoreLines = a.scores.map(s => {
+    return `${s.name}: your score is ${s.value}. The concern level starts at ${s.threshold}. ${s.status !== 'below' ? s.label_above : ''}`;
+  });
+
+  const nexusLines = a.nexus.map(n => `✓ ${n.label}`);
+
+  const riskLines = a.risks.map(r =>
+    `${r.severity === 'critical' ? '✗' : '⚠'} ${r.label} — ${r.explanation.slice(0, 120)}...`
+  );
+
+  const diagLines = [...new Set(a.diagnoses)].join(', ');
+
+  return `
+    <div class="section">
+      <div class="section-title" style="color:var(--gold)">
+        // PLAIN LANGUAGE SUMMARY — GRADE 8 READING LEVEL
+      </div>
+      <div class="card info">
+        <div class="card-label">WHAT YOUR RECORDS SHOW</div>
+        <div class="card-content" style="line-height:2">
+          ${scoreLines.length > 0
+            ? scoreLines.map(l => `→ ${l}`).join('<br>')
+            : '→ No scored mental health assessments found in this document.'}
+          <br><br>
+          ${diagLines
+            ? `Conditions documented: <strong>${diagLines}</strong>`
+            : ''}
+          ${a.suicidalityFound
+            ? '<br><strong style="color:var(--red)">→ Thoughts of suicide or self-harm are documented in this record.</strong>'
+            : ''}
+        </div>
+      </div>
+      ${nexusLines.length > 0 ? `
+        <div class="card good" style="margin-top:8px">
+          <div class="card-label">LANGUAGE IN YOUR FILE THAT HELPS YOUR CLAIM</div>
+          <div class="card-content">${nexusLines.join('<br>')}</div>
+        </div>
+      ` : ''}
+      ${riskLines.length > 0 ? `
+        <div class="card warning" style="margin-top:8px">
+          <div class="card-label">THINGS THAT MIGHT WORK AGAINST YOUR CLAIM</div>
+          <div class="card-content">${riskLines.join('<br><br>')}</div>
+        </div>
+      ` : ''}
+    </div>`;
+}
+
+function buildReport(f) {
+  if (!f.analysis) return `${f.name}: Not analyzed\n`;
+  const a = f.analysis;
+  const lines = [
+    `═══════════════════════════════════════════════════`,
+    `FILE: ${f.name}`,
+    `Pages: ${f.pages} | Words: ${a.wordCount}`,
+    `Document Types: ${a.docTypes.join(', ') || 'Not classified'}`,
+    `Dates detected: ${a.dates.join(', ')}`,
+    `═══════════════════════════════════════════════════`,
+    '',
+    '--- SCORED INSTRUMENTS ---',
+    a.scores.length > 0 ? a.scores.map(s =>
+      `${s.name}: ${s.value} (threshold: ${s.threshold}) → ${s.status.toUpperCase()} — ${s.status === 'above' ? s.label_above : s.label_below}`
+    ).join('\n') : 'None detected',
+    '',
+    '--- CLAIM RISKS ---',
+    a.risks.length > 0 ? a.risks.map(r =>
+      `${r.severity.toUpperCase()}: ${r.label} (appears ${r.count}x)\n  → ${r.explanation}`
+    ).join('\n') : 'No significant claim risks detected',
+    '',
+    '--- SERVICE CONNECTION LANGUAGE ---',
+    a.nexus.length > 0 ? a.nexus.map(n => `${n.strength.toUpperCase()}: ${n.label}`).join('\n')
+      : 'ABSENT — No service connection language found in this document',
+    '',
+    '--- CONDITIONS DOCUMENTED ---',
+    a.diagnoses.length > 0 ? [...new Set(a.diagnoses)].join('\n') : 'None detected',
+    a.suicidalityFound ? '\n⚠ SUICIDAL IDEATION DOCUMENTED' : '',
+    '',
+    '--- KEY EXCERPTS ---',
+    a.excerpts.length > 0 ? a.excerpts.map(e => `"${e}"`).join('\n') : 'None extracted',
+    '',
+    a.sdaFound ? '✓ SPECIAL DUTY AREA REFERENCE FOUND' : '',
+    a.medicationFound ? '✓ MEDICATION / PSYCHIATRIC TREATMENT DOCUMENTED' : '',
+    ''
+  ];
+  return lines.filter(l => l !== undefined).join('\n');
+}
+
+function copyResult(idx) {
+  const text = buildReport(files[idx]);
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.copy-btn');
+    btns.forEach(b => {
+      if (b.textContent === 'COPY REPORT') {
+        b.textContent = 'COPIED ✓';
+        b.classList.add('copied');
+        setTimeout(() => { b.textContent = 'COPY REPORT'; b.classList.remove('copied'); }, 2000);
+      }
+    });
+  });
+}
+
+function copyExcerpts(idx) {
+  const a = files[idx].analysis;
+  if (!a) return;
+  const text = a.excerpts.map(e => `"${e}"`).join('\n\n');
+  navigator.clipboard.writeText(text);
+}
+
+function copyAll() {
+  const text = files.map(buildReport).join('\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyAllBtn');
+    btn.textContent = 'COPIED ✓';
+    setTimeout(() => { btn.textContent = 'COPY ALL RESULTS'; }, 2000);
+  });
+}
+
+function exportAll() {
+  const header = [
+    'CFHS / ATIP DOCUMENT ANALYSIS REPORT',
+    `Generated: ${new Date().toLocaleDateString('en-CA')} ${new Date().toLocaleTimeString()}`,
+    `Files analyzed: ${files.filter(f => f.status === 'done').length} of ${files.length}`,
+    '',
+    'ANALYZER: Operator\'s Deck CFHS Analysis Engine',
+    'All processing performed locally. No data was transmitted.',
+    'Verify all findings against original documents before submission.',
+    '',
+    '═══════════════════════════════════════════════════',
+    ''
+  ].join('\n');
+
+  const body = files.map(buildReport).join('\n\n');
+  const full = header + body;
+
+  const blob = new Blob([full], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `CFHS-Analysis-${new Date().toLocaleDateString('en-CA')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

@@ -103,11 +103,51 @@ body{background:#08080f;color:#ddd;font-family:-apple-system,BlinkMacSystemFont,
   <div class="hdr-sub">Every feature, fix, and optimization.<br>Nothing ships without documentation.</div>
 </div>
 
+<!-- ═══════════════ v1.8.0 ═══════════════ -->
+<div class="ver">
+  <div class="ver-hdr">
+    <div class="ver-num current">v1.8.0</div>
+    <span class="ver-tag latest">LATEST</span>
+    <div class="ver-date">MAY 6, 2026</div>
+  </div>
+
+  <div class="chg-group">
+    <div class="chg-label added">ADDED</div>
+
+    <div class="chg added"><div class="chg-icon">🔍</div><div class="chg-text"><strong>CFHS / ATIP Document Analyzer</strong> — Standalone Protected B–compatible tool for veterans analyzing CFHS medical records and ATIP disclosure packages. Detects scored instruments (PCL-C, PHQ-9, PHQ-7, AUDIT, SF-36), claim risk phrases, service connection language, diagnoses, SDA references, and key excerpts. Zero data transmission — all processing local. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">📷</div><div class="chg-text"><strong>Tesseract.js OCR integration (Sprint A)</strong> — Full scanned-PDF support via PDF.js page rasterization at 200 DPI + Tesseract.js 5 eng+fra OCR. Worker initialized once and reused across all pages and files. Canvas memory released per page. Automatic fallback to fast embedded-text path for non-scanned PDFs. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">⚡</div><div class="chg-text"><strong>Streaming progressive analysis</strong> — NLP engine runs every 10 pages during OCR. First findings appear within 2 minutes of upload on large files. Results panel updates live while processing continues. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">⚠️</div><div class="chg-text"><strong>Redaction detection</strong> — Flags blacked-out operation names and unit details. Surfaces VAC contact number for SDA confirmation when CSOR operational records detected. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">📋</div><div class="chg-text"><strong>Plain Language Summary section</strong> — Grade 8 reading level breakdown of every file: what scores mean, which language helps the claim, which language creates risk. Rendered before the technical sections for immediate orientation. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+  </div>
+
+  <div class="chg-group">
+    <div class="chg-label changed">CHANGED</div>
+
+    <div class="chg changed"><div class="chg-icon">🔄</div><div class="chg-text"><strong>extractText() replaced with OCR pipeline</strong> — Old function: PDF.js embedded text only, silent failure on scanned files. New function: auto-detects scan vs embedded, routes accordingly, streams page-by-page progress with time estimate. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg changed"><div class="chg-icon">📊</div><div class="chg-text"><strong>Result meta bar updated</strong> — Now shows OCR vs EMBEDDED TEXT mode badge per file, plus redaction warning inline. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg changed"><div class="chg-icon">🛑</div><div class="chg-text"><strong>Cancel button added</strong> — Stops OCR processing cleanly mid-file. Partial results remain visible. Re-analyze from beginning on next run. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+  </div>
+
+  <div class="ver-stats">
+    <div class="vs"><span>1</span> new tool</div>
+    <div class="vs"><span>5</span> features added</div>
+    <div class="vs"><span>eng+fra</span> OCR languages</div>
+    <div class="vs"><span>200 DPI</span> render target</div>
+  </div>
+</div>
+
 <!-- ═══════════════ v1.7.0 ═══════════════ -->
 <div class="ver">
   <div class="ver-hdr">
-    <div class="ver-num current">v1.7.0</div>
-    <span class="ver-tag latest">LATEST</span>
+    <div class="ver-num past">v1.7.0</div>
+    <span class="ver-tag stable">STABLE</span>
     <div class="ver-date">APR 3, 2026</div>
   </div>
 

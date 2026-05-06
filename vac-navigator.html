@@ -920,6 +920,13 @@
     transition: all 0.15s;
   }
   .doc-clear-btn:hover { color: var(--red); border-color: var(--red); }
+  .expand-icon {
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
   .atip-submit-targets {
     margin-top: 14px;
     display: grid;
@@ -1256,6 +1263,7 @@
   </div>
 
   <!-- Input -->
+  <div id="docReaderMount"></div>
   <div class="input-section">
     <div class="section-label">// DESCRIBE YOUR SITUATION</div>
     <textarea
@@ -2564,6 +2572,86 @@ function toggleCard(id) {
   card.classList.toggle('open');
 }
 
+function buildDocReaderSection() {
+  return '<div class="doc-reader-section" id="docReaderSection">' +
+    '<div class="doc-reader-header" onclick="toggleDocReader()">' +
+      '<div>' +
+        '<div class="doc-reader-header-title">📄 MEDICAL DOCUMENT ANALYZER</div>' +
+        '<div class="doc-reader-header-sub">Upload a medical letter or report — gap analysis for your VAC application. Runs locally. Zero upload.</div>' +
+      '</div>' +
+      '<span class="expand-icon">▼</span>' +
+    '</div>' +
+    '<div class="doc-reader-body">' +
+      '<div class="doc-drop-zone" id="docDropZone">' +
+        '<input type="file" id="docFileInput" accept=".pdf" onchange="handleDocUpload(event)">' +
+        '<div class="doc-drop-icon">⬆</div>' +
+        '<div class="doc-drop-label">CLICK OR DRAG A PDF TO ANALYZE</div>' +
+        '<div class="doc-drop-sublabel">Medical letters, GP reports, specialist assessments, CF 2985 extracts, VAC medical opinions.<br>PDF only. Max 30 pages analyzed.</div>' +
+      '</div>' +
+      '<div class="doc-privacy-banner">⚿ PRIVACY: Your document is processed entirely in your browser. It is never uploaded, transmitted, or stored. Close or reload this page to clear all document data from memory.</div>' +
+      '<div class="doc-processing" id="docProcessing">Extracting text and analyzing...</div>' +
+      '<div id="docAnalysisOutput"></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleDocReader() {
+  const section = document.getElementById('docReaderSection');
+  if (!section) return;
+  section.classList.toggle('open');
+  const icon = section.querySelector('.expand-icon');
+  if (icon) icon.style.transform = section.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+async function handleDocUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const processing = document.getElementById('docProcessing');
+  const output     = document.getElementById('docAnalysisOutput');
+  if (!output) return;
+  if (processing) processing.style.display = 'block';
+  output.innerHTML = '';
+  try {
+    let text = '';
+    if (file.type === 'application/pdf') {
+      text = await extractTextFromPDF(file);
+    } else {
+      output.innerHTML =
+        '<div style="padding:16px;font-size:13px;color:var(--text-dim)">' +
+        'Image files are not supported yet. Please convert your document to PDF and try again. ' +
+        'Free conversion: <a href="https://ilovepdf.com" target="_blank" rel="noopener noreferrer" ' +
+        'style="color:var(--gold)">ilovepdf.com</a></div>';
+      if (processing) processing.style.display = 'none';
+      return;
+    }
+    if (!text || text.trim().length < 50) {
+      output.innerHTML =
+        '<div style="padding:16px;font-size:13px;color:var(--red)">' +
+        'Could not extract text from this PDF. The file may be a scanned image without OCR. ' +
+        'Try a text-based PDF, or ask your physician to provide a digital copy.</div>';
+      if (processing) processing.style.display = 'none';
+      return;
+    }
+    const analysis = analyzeDocumentText(text);
+    output.innerHTML = renderDocumentAnalysis(analysis, file.name) +
+      '<button class="doc-clear-btn" onclick="clearDocAnalysis()">CLEAR DOCUMENT</button>';
+    output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(err) {
+    output.innerHTML =
+      '<div style="padding:16px;font-size:13px;color:var(--red)">' +
+      'Error reading document: ' + esc(err.message || 'unknown error') + '. Try a different PDF.</div>';
+  } finally {
+    if (processing) processing.style.display = 'none';
+  }
+}
+
+function clearDocAnalysis() {
+  const output = document.getElementById('docAnalysisOutput');
+  const input  = document.getElementById('docFileInput');
+  if (output) output.innerHTML = '';
+  if (input)  input.value = '';
+}
+
 function buildATIPSection(benefitId, intakeAnswers, isDenial, denialDateStr) {
   const profileFormId = 'atipProfile_' + (benefitId || 'main');
   const profile = loadATIPProfile();
@@ -2726,7 +2814,6 @@ function buildAppealSection(benefitId, denialDateStr, windowResult) {
 function analyzeDocumentText(rawText) {
   const lower = rawText.toLowerCase();
   const tokens = tokenize(rawText);
-  const bigrams = buildBigrams(tokens);
 
   const diagnosesFound  = MED_TAXONOMY.diagnoses.filter(d => lower.includes(d));
   const nexusFound      = MED_TAXONOMY.nexus_present.filter(n => lower.includes(n));
@@ -3148,6 +3235,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const denialDateInput = document.getElementById('denialDateInput');
   if (denialDateInput) {
     denialDateInput.addEventListener('change', renderDenialWindowNotice);
+  }
+
+  // Mount document reader
+  const docMount = document.getElementById('docReaderMount');
+  if (docMount) docMount.innerHTML = buildDocReaderSection();
+
+  // Drag and drop wiring (runs after mount)
+  const dropZone = document.getElementById('docDropZone');
+  if (dropZone) {
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) {
+        const input = document.getElementById('docFileInput');
+        if (input) {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          input.files = dt.files;
+          handleDocUpload({ target: input });
+        }
+      }
+    });
   }
 
   // Offline detection
