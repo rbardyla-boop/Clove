@@ -25,7 +25,6 @@ const STATIC_ASSETS = [
   '/anchor/anchor-ratio.js',
   '/semantic/benefit-embeddings.json',
   '/semantic/transformers.min.js',
-  '/semantic/model/Xenova/all-MiniLM-L6-v2/onnx/model_quantized.onnx',
   '/voice-engine.js',
   '/stt-worker.js'
 ];
