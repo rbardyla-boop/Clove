@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CFHS/ATIP Document Analyzer</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="/scripts/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root {
   --bg: #08080f;
@@ -702,8 +702,7 @@ body {
 // ═══════════════════════════════════════════════════════
 // PDF.JS SETUP
 // ═══════════════════════════════════════════════════════
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/scripts/pdf.worker.min.js';
 
 // ── OCR WORKER ──────────────────────────────────────────
 
@@ -1406,6 +1405,7 @@ async function runAnalysis() {
       totalPagesAllFiles += pdf.numPages;
     } catch(e) {
       files[files.indexOf(f)].pages = 0;
+      console.error('[CFHS] Pre-count error:', f.name, e);
     }
   }
   renderQueue();
@@ -1472,6 +1472,7 @@ async function runAnalysis() {
     } catch(err) {
       files[fi].status = 'error';
       files[fi].error  = err.message;
+      console.error('[CFHS] File error:', f.name, err);
     }
 
     renderQueue();

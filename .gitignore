@@ -1,0 +1,15 @@
+# ── Deployment excludes ──────────────────────────────────────────
+# Wrangler respects .gitignore when running `wrangler pages deploy`
+# None of these should ever be served from Cloudflare Pages.
+
+# Electron desktop app — not a web asset
+electron-app/
+
+# ATIP documents and processing scripts — sensitive, not web content
+atip/
+
+# Local AI assistant config — never public
+.claude/
+
+# Node artifacts (if electron-app deps ever get installed locally)
+node_modules/

@@ -15,6 +15,14 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
 
+## ── CFHS ANALYZER: CDN OVERRIDE ──────────────────────────────
+## Tesseract.js v5 spawns workers that fetch WASM + language data
+## from jsdelivr at runtime — cannot be bundled without a full
+## offline language pack (~30 MB). pdf.js is served locally.
+## cdnjs.cloudflare.com removed: pdf.js is now self-hosted.
+/cfhs-analyzer.html
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net blob:; worker-src 'self' blob: https://cdn.jsdelivr.net; media-src 'self' blob:
+
 ## ── INTELLIGENCE OPS: COEP OVERRIDE ──────────────────────────
 ## transformers.js WASM backend creates blob: URLs for its worker
 ## and then dynamically imports them. COEP: credentialless causes
