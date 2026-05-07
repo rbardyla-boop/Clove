@@ -716,12 +716,35 @@ async function initOCRWorker(statusCallback) {
     });
   }
 
+  if (!localStorage.getItem('od_ocr_consent')) {
+    const ok = window.confirm(
+      'OCR ENGINE — ONE-TIME NOTICE\n\n' +
+      'ATIP documents are scanned images and require optical character\n' +
+      'recognition to read. First use downloads English + French language\n' +
+      'models (~20 MB) from cdn.jsdelivr.net.\n\n' +
+      'Models are cached in your browser after that.\n' +
+      'No document content ever leaves your device.\n\n' +
+      'Proceed with download?'
+    );
+    if (!ok) {
+      if (statusCallback) statusCallback('OCR DOWNLOAD DECLINED');
+      throw new Error('OCR language download declined by user');
+    }
+    localStorage.setItem('od_ocr_consent', '1');
+  }
+
   ocrInitializing = true;
   if (statusCallback) statusCallback('LOADING OCR ENGINE...');
 
   try {
     ocrWorker = await Tesseract.createWorker('eng+fra', 1, {
-      logger: () => {}
+      workerPath: '/scripts/tesseract-worker.min.js',
+      corePath: '/scripts/tesseract-core',
+      logger: (m) => {
+        if (statusCallback && m.status) {
+          statusCallback('OCR: ' + m.status.toUpperCase());
+        }
+      }
     });
     ocrReady = true;
     ocrInitializing = false;
@@ -729,7 +752,7 @@ async function initOCRWorker(statusCallback) {
     return ocrWorker;
   } catch(err) {
     ocrInitializing = false;
-    throw new Error('OCR engine failed to load: ' + err.message);
+    throw new Error('OCR engine failed to load: ' + (err?.message || err?.toString() || 'unknown'));
   }
 }
 
