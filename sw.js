@@ -1,4 +1,4 @@
-const CACHE_NAME = 'operators-deck-v51';
+const CACHE_NAME = 'operators-deck-v52';
 
 // Only cache true static assets — never HTML files.
 // Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)
@@ -73,7 +73,7 @@ self.addEventListener('fetch', (event) => {
       return fetch(request, { redirect: 'follow' }).then((res) => {
         if (res && res.ok && res.type === 'basic') {
           const resClone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone));
+          event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone)));
         }
         return res;
       }).catch(() => new Response('', { status: 408 }));

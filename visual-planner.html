@@ -288,6 +288,7 @@ const todayKey=()=>new Date().toISOString().slice(0,10);
 // ── KEY MIGRATION (one-time) ──
 (function(){try{var fs=localStorage.getItem('ops-focus-sessions');if(fs!==null){var sfs;try{JSON.parse(fs);sfs=fs;}catch(e2){sfs=JSON.stringify(fs);}localStorage.setItem('od_vp_focus',sfs);localStorage.removeItem('ops-focus-sessions');}for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('ops-visual-')===0){var d=k.substring(11);var v=localStorage.getItem(k);var sv;try{JSON.parse(v);sv=v;}catch(e3){sv=JSON.stringify(v);}localStorage.setItem('od_vp_'+d,sv);localStorage.removeItem(k);}}}catch(e){}})();
 
+(function(){try{var cut=new Date();cut.setDate(cut.getDate()-90);var cs=cut.toISOString().slice(0,10);for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.length===16&&k.indexOf('od_vp_')===0&&k.slice(6)<cs)localStorage.removeItem(k);}}catch(e){}})();
 function loadData(){
   try{
     const saved=localStorage.getItem('od_vp_'+todayKey());

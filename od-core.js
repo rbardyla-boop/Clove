@@ -186,13 +186,18 @@
     return uint8ToBase64(combined);
   };
 
+  function _safeReviver(k, v) {
+    if (k === '__proto__' || k === 'constructor' || k === 'prototype') return undefined;
+    return v;
+  }
+
   g.decryptValue = async function(stored) {
     if (!_vk) throw new Error('Vault not initialized');
     var combined  = base64ToUint8(stored);
     var iv        = combined.slice(0, 12);
     var data      = combined.slice(12);
     var decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, _vk, data);
-    return JSON.parse(new TextDecoder().decode(decrypted));
+    return JSON.parse(new TextDecoder().decode(decrypted), _safeReviver);
   };
 
   // ── SAFE LOCALSTORAGE (encrypted) ────────────────────────────
@@ -213,7 +218,7 @@
       } catch (_e) {
         // Legacy plaintext — migrate silently
         try {
-          var parsed = JSON.parse(raw);
+          var parsed = JSON.parse(raw, _safeReviver);
           g.odSet(key, parsed); // fire-and-forget re-encrypt
           return parsed;
         } catch (_e2) {
@@ -272,7 +277,7 @@
         if (!raw) continue;
         try { await g.decryptValue(raw); continue; } catch (_e) {} // already encrypted
         try {
-          var parsed = JSON.parse(raw);
+          var parsed = JSON.parse(raw, _safeReviver);
           await g.odSet(key, parsed);
         } catch (_e2) {} // not JSON — leave as-is
       } catch (err) {

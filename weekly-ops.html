@@ -117,6 +117,7 @@ function getMonday(d){const dt=new Date(d);const day=dt.getDay();const diff=dt.g
 function weekKey(d){const y=d.getFullYear();const jan1=new Date(y,0,1);const days=Math.floor((d-jan1)/86400000);const w=Math.ceil((days+jan1.getDay()+1)/7);return y+'-W'+String(w).padStart(2,'0');}
 // ── KEY MIGRATION (one-time) ──
 (function(){try{for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('wo-')===0){localStorage.setItem('od_'+k,localStorage.getItem(k));localStorage.removeItem(k);}}}catch(e){}})();
+(function(){try{var now=new Date();var y=now.getFullYear();var jan1=new Date(y,0,1);var days=Math.floor((now-jan1)/86400000);var wn=Math.ceil((days+jan1.getDay()+1)/7);var cutWk=wn-52;var cutY=y;if(cutWk<1){cutY--;cutWk+=52;}var cutStr=cutY+'-W'+String(cutWk).padStart(2,'0');for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('od_wo-')===0&&k.slice(6)<cutStr)localStorage.removeItem(k);}}catch(e){}})();
 function load(){try{weekData=JSON.parse(localStorage.getItem('od_wo-'+weekKey(weekStart))||'{}');}catch(e){weekData={};}render();}
 function save(){localStorage.setItem('od_wo-'+weekKey(weekStart),JSON.stringify(weekData));}
 
