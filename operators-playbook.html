@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#08080f">
@@ -12,8 +11,8 @@
 <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
 <link rel="canonical" href="https://clovelearn.io/operators-playbook.html">
 <title>OPERATOR'S PLAYBOOK • STATE LOCK • OPERATOR'S DECK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 :root{--bg:#08080f;--bg2:#0e0e18;--bg3:#151520;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a80c4;--pur:#9d5ff0;--dim:#5a5a7a;--dim2:#777;--text:#e0e0ec}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -515,7 +514,7 @@ function clearLog(){
 renderCards();
 renderLog();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 </body>
 </html>

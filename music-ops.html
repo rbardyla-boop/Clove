@@ -1,15 +1,21 @@
 <!DOCTYPE html>
+<!-- KNOWN EXTERNAL INTEGRATION: Spotify
+     Outbound connections: accounts.spotify.com (OAuth PKCE token exchange, user-initiated)
+                           api.spotify.com (playback control + library sync, user-initiated)
+     No CloveLearn data is transmitted. User authenticates directly with Spotify.
+     Tokens stored locally in localStorage key 'od_music_token'. No server involved.
+     Gate 5 exception: declared, user-initiated third-party integration.
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08080f">
 <meta name="mobile-web-app-capable" content="yes">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://i.scdn.co; script-src 'self' 'unsafe-inline'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com https://open.spotify.com">
 <title>FIELD FREQUENCY · OPERATOR'S DECK</title>
 <link rel="icon" href="./clove32.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
@@ -346,7 +352,7 @@ async function init(){
 window.startAuth=startAuth;window.runSync=runSync;window.setSuit=setSuit;window.downloadCSV=downloadCSV;window.disconnect=disconnect;
 init();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>
 <script>injectHelpButton();</script>

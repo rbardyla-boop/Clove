@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#08080f">
 <meta property="og:title" content="MEDITATION OPS • OPERATOR'S DECK">
@@ -13,8 +12,8 @@
 <meta name="description" content="8 tactical meditation types for men. Box breathing, body scan, 5-4-3-2-1 grounding, progressive relaxation, and more. Fully offline.">
 <meta name="referrer" content="no-referrer">
 <title>MEDITATION OPS • OPERATOR'S DECK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 :root{--bg:#06060a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--pur:#9333ea;--dim:#8a8a8a;--dim2:#777;--dim3:#1a1a22;--teal:#0d9488}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -649,7 +648,7 @@ render();
 window.addEventListener('pagehide',stopBinaural);
 document.addEventListener('visibilitychange',function(){if(document.hidden)stopBinaural();});
 </script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>
 <script>injectHelpButton();</script>

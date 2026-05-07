@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#08080f">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'">
 <meta property="og:title" content="FEEDBACK • OPERATOR'S DECK">
 <meta property="og:description" content="Report a bug. Request a feature. Tell us what's broken. Direct line — no middleman.">
 <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
@@ -13,8 +12,8 @@
 <meta name="description" content="Send feedback, report bugs, or request features for The Operator's Deck. Direct line to the builder.">
 <meta name="referrer" content="no-referrer">
 <title>FEEDBACK • OPERATOR'S DECK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 :root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--red:#c0392b;--red-bright:#e74c3c;--grn:#27ae60;--gld:#d4a843;--dim:#8a8a8a;--dim2:#777;--dim3:#1a1a22}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -217,7 +216,7 @@ function showToast(msg){
   setTimeout(function(){t.classList.remove('show');}, 3000);
 }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 </body>
 </html>

@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#08080f">
@@ -764,7 +763,7 @@ const PROTOCOLS = {
       {n:'EXPANSION',t:'Where do you feel this in your body? Chest? Jaw? Gut? Instead of fighting it, breathe INTO that spot. Give it space. You\'re not making it bigger — you\'re stopping the war with it.'},
       {n:'DEFUSION TECHNIQUE',t:'Take the thought and say it in a cartoon voice. Or sing it. Or prefix it with "My mind is telling me that..." The content doesn\'t change. Your grip on it does.'},
       {n:'THE PASSENGERS ON THE BUS',t:'You\'re driving the bus. The thoughts are passengers yelling directions. They can yell. You don\'t have to turn the wheel. Who is driving — you or the passengers?'},
-      {n:'VALUES COMPASS',t:'What matters to you in this area of life? Not goals — values. Connection? Integrity? Growth? Courage? What kind of person do you want to be in this moment?'},
+      {n:'VALUES COMPASS',t:'What matters to you in this area of life? Not goals — values. Connection? Integrity? Consistency? Courage? What kind of person do you want to be in this moment?'},
       {n:'COMMITTED ACTION',t:'What is one small action you can take in the next 10 minutes that moves toward that value? Not a big thing. A micro-step. The action IS the therapy.'},
       {n:'WILLINGNESS CHECK',t:'Are you willing to have the uncomfortable thought/feeling AND still take the action? Willingness doesn\'t mean wanting. It means choosing to move despite the discomfort.'},
       {n:'PROCESS REFLECTION',t:'After the action: Did the thought change? Did the feeling shift? Did you prove you can act with the pain present? That\'s the data. Write it down.'}
@@ -1573,7 +1572,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">CloveLearn Detection Engine v2.0 — Not a diagnostic tool. Not therapy. Keyword-based state detection for self-awareness and protocol routing only. Adapted from CBT, DBT, ACT clinical frameworks.</div>
 <script src="voice-engine.js?v=7"></script>
 <div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>
 <script>injectHelpButton();</script>

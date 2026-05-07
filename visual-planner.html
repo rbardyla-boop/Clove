@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://open.spotify.com https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; worker-src 'self' blob: https://cdn.jsdelivr.net">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#08080f">
@@ -12,8 +11,8 @@
 <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
 <link rel="canonical" href="https://clovelearn.io/visual-planner.html">
   <title>OPS VISUAL PLANNER • OPERATOR'S DECK</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/fonts/fonts.css">
   <style>
     :root {
       --bg: #000000; --bg2: #0a0a0a; --bg3: #111111;
@@ -287,7 +286,7 @@ let timerInterval=null, timeLeft=25*60, isRunning=false;
 const todayKey=()=>new Date().toISOString().slice(0,10);
 
 // ── KEY MIGRATION (one-time) ──
-(function(){try{var fs=localStorage.getItem('ops-focus-sessions');if(fs!==null){localStorage.setItem('od_vp_focus',fs);localStorage.removeItem('ops-focus-sessions');}for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('ops-visual-')===0){var d=k.substring(11);localStorage.setItem('od_vp_'+d,localStorage.getItem(k));localStorage.removeItem(k);}}}catch(e){}})();
+(function(){try{var fs=localStorage.getItem('ops-focus-sessions');if(fs!==null){var sfs;try{JSON.parse(fs);sfs=fs;}catch(e2){sfs=JSON.stringify(fs);}localStorage.setItem('od_vp_focus',sfs);localStorage.removeItem('ops-focus-sessions');}for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('ops-visual-')===0){var d=k.substring(11);var v=localStorage.getItem(k);var sv;try{JSON.parse(v);sv=v;}catch(e3){sv=JSON.stringify(v);}localStorage.setItem('od_vp_'+d,sv);localStorage.removeItem(k);}}}catch(e){}})();
 
 function loadData(){
   try{
@@ -421,7 +420,7 @@ window.onload=()=>{
 </script>
 <div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="kanban-ops.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#2c5282;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">KANBAN OPS →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Move tasks through the board as the day unfolds</span></a><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Day mapped — get your operator's edge</span></a></div>
 <div style="text-align:center;margin:20px auto;max-width:480px;padding:12px 16px;background:#0a0a14;border:1px solid rgba(212,168,67,.15);border-radius:10px"><div style="color:#d4a843;font-size:7px;font-family:monospace;letter-spacing:2px;margin-bottom:4px">DECK LINK</div><div style="color:#888;font-size:9px;font-family:Georgia,serif;font-style:italic;line-height:1.6">Day planned. Focus locked. Draw a card — the Deck sees what you don't.</div><a href="./" style="display:inline-block;margin-top:8px;color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:1.5px;text-decoration:none;border:1px solid rgba(212,168,67,.2);border-radius:6px;padding:6px 14px">← OPEN THE DECK</a></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+<script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>
 <script>injectHelpButton();</script>

@@ -230,8 +230,18 @@
     var ta = document.getElementById(targetId);
     if (!ta) return;
 
-    // State: not loaded yet → init first
+    // State: not loaded yet → consent check then init
     if (!isReady && !isLoading) {
+      if (!localStorage.getItem('od_voice_consent')) {
+        var ok = window.confirm(
+          'VOICE TRANSCRIPTION — ONE-TIME NOTICE\n\n' +
+          'First use downloads the Whisper speech model (~75 MB) from HuggingFace.\n' +
+          'The model is cached locally after that. No audio ever leaves your device.\n\n' +
+          'Proceed with download?'
+        );
+        if (!ok) return;
+        localStorage.setItem('od_voice_consent', '1');
+      }
       if (btn) { btn.textContent = 'LOADING ENGINE...'; btn.style.color = 'var(--gld)'; }
       voiceInit(
         function(pct) { if (btn) btn.textContent = 'DOWNLOADING ' + pct + '%'; },

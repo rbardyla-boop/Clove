@@ -1,4 +1,4 @@
-import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+import { pipeline, env } from '/semantic/transformers.min.js';
 
 env.allowLocalModels = false;
 env.useBrowserCache = true;
