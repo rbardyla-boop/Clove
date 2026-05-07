@@ -184,6 +184,23 @@
           r * Math.sin(phi) * Math.sin(theta),
           r * Math.cos(phi)
         ];
+      },
+
+      galaxy: function (i, n, R) {
+        // Two logarithmic spiral arms (Milky Way structure)
+        // arm 0 and arm 1 offset by π, density falls off with radius
+        var arm    = i % 2;
+        var j      = Math.floor(i / 2);
+        var t      = (j / (n / 2)) * Math.PI * 5;      // 2.5 full turns per arm
+        var r      = R * 0.12 * Math.exp(0.22 * t);    // logarithmic spiral
+        r         *= 0.7 + Math.random() * 0.6;        // scatter around spine
+        var angle  = t + arm * Math.PI;
+        var ySpread = R * 0.06 * (Math.random() - 0.5); // thin disc, not flat
+        return [
+          r * Math.cos(angle),
+          ySpread,
+          r * Math.sin(angle)
+        ];
       }
     };
 
@@ -255,6 +272,7 @@
       'uniform float uTime;',
       'uniform float uSize;',
       'uniform float uMorphT;',
+      'uniform float uBreath;',
       'attribute vec3 aColor;',
       'attribute vec3 aTarget;',
       'attribute vec3 aVelocity;',
@@ -265,6 +283,8 @@
       '  vec3 morphed = mix(position, aTarget, uMorphT);',
       '  // Velocity drift: organic micro-movement keyed per-particle via morphed.x',
       '  morphed += aVelocity * sin(uTime * 0.3 + morphed.x * 0.01) * 8.0;',
+      '  // Breathing scale: whole cloud swells on inhale, contracts on exhale',
+      '  morphed *= 1.0 + 0.22 * uBreath;',
       '  // Animate brightness: slow sine keyed to morphed position prevents lock-step flash',
       '  float pulse = 0.8 + 0.2 * sin(uTime * 0.5 + morphed.x * 0.008 + morphed.z * 0.006);',
       '  vColor = aColor * pulse;',
@@ -301,7 +321,8 @@
       uniforms: {
         uTime:   { value: 0.0 },
         uSize:   { value: SIZE * dpr },  // scale for device pixel ratio
-        uMorphT: { value: 0.0 }          // 0 = at position, 1 = at aTarget
+        uMorphT: { value: 0.0 },         // 0 = at position, 1 = at aTarget
+        uBreath: { value: 0.0 }          // 0 = rest, 1 = full inhale
       },
       vertexShader:   vertexShader,
       fragmentShader: fragmentShader,
@@ -337,6 +358,13 @@
     var rafId         = null;
     var active        = true;
     var lastFrameTime = performance.now();
+
+    // ── Breath state ──────────────────────────────────────────────────────
+    var breathActive     = false;
+    var breathPattern    = [4, 0, 4, 0];  // [inhale, holdIn, exhale, holdOut] seconds
+    var breathPhase      = 0;
+    var breathPhaseStart = 0;
+    var breathOnPhase    = null;          // optional callback(phaseIndex)
 
     // ── FPS sampler — auto-reduce quality if sustained low FPS ───────────
     var fpsSamples   = [];
@@ -400,6 +428,27 @@
       }
       // ── End morph interpolation ─────────────────────────────────────────
 
+      // ── Breath driver ────────────────────────────────────────────────────
+      if (breathActive) {
+        var elapsed  = (now - breathPhaseStart) / 1000;
+        var phaseDur = breathPattern[breathPhase];
+        var raw      = Math.min(elapsed / phaseDur, 1);
+        // smoothstep for organic feel
+        var smooth   = raw * raw * (3 - 2 * raw);
+        // inhale / hold-in → uBreath goes 0→1 / stays 1
+        // exhale / hold-out → uBreath goes 1→0 / stays 0
+        if (breathPhase === 0)      mat.uniforms.uBreath.value = smooth;        // inhale
+        else if (breathPhase === 1) mat.uniforms.uBreath.value = 1.0;           // hold in
+        else if (breathPhase === 2) mat.uniforms.uBreath.value = 1.0 - smooth;  // exhale
+        else                        mat.uniforms.uBreath.value = 0.0;           // hold out
+        if (elapsed >= phaseDur) {
+          breathPhase     = (breathPhase + 1) % breathPattern.length;
+          breathPhaseStart = now;
+          if (breathOnPhase) breathOnPhase(breathPhase);
+        }
+      }
+      // ── End breath driver ─────────────────────────────────────────────────
+
       renderer.render(scene, camera);
     }
 
@@ -417,16 +466,68 @@
 
     frame();
 
-    // ── Expose morph API (shelved — available but not auto-triggered) ────
-    // Usage:  window.odMorph('torus', 3)   → morph to torus over 3s
-    //         window.odMorph('sphere', 2)  → morph back to sphere over 2s
-    //         window.odMorph('helix', 4)   → DNA double helix over 4s
-    //         window.odMorph('scatter', 2) → explode outward over 2s
-    // Returns available shape names when called with no args.
+    // ── Expose morph API ─────────────────────────────────────────────────
+    // window.odMorph('torus', 3)   → morph to torus over 3s
+    // window.odMorph('sphere', 2)  → morph back to sphere over 2s
+    // window.odMorph('helix', 4)   → DNA double helix over 4s
+    // window.odMorph('scatter', 2) → explode outward over 2s
+    // window.odMorph('galaxy', 3)  → two-arm spiral galaxy over 3s
+    // window.odMorph()             → returns available shape names
     window.odMorph = function (shapeName, duration) {
       if (!shapeName) return Object.keys(shapes);
       morphTo(shapeName, duration || 3);
     };
+
+    // ── Expose breath API ─────────────────────────────────────────────────
+    // Patterns: '478' (4s inhale, 7s hold, 8s exhale — parasympathetic)
+    //           'box' (4s inhale, 4s hold, 4s exhale, 4s hold — military)
+    //           'combat' (4s inhale, 4s exhale — simplest, field use)
+    //           [n,n,n,n] custom [inhale, holdIn, exhale, holdOut] seconds
+    //
+    // window.odBreath('478', onPhaseFn)  → start; onPhaseFn(0/1/2/3) per phase
+    // window.odBreath(null)              → stop
+    var BREATH_PATTERNS = {
+      '478':    [4, 7, 8, 0],
+      'box':    [4, 4, 4, 4],
+      'combat': [4, 0, 4, 0]
+    };
+    // ── Burst API — completion celebration ───────────────────────────────
+    // window.odBurst()  →  scatter outward → pause → reform to sphere (or page shape)
+    // Optional: pass a shape name to reform to a specific shape instead of sphere.
+    window.odBurst = function (reformShape) {
+      if (typeof morphTo !== 'function') return;
+      morphTo('scatter', 1.4);
+      setTimeout(function () {
+        var target = (reformShape && shapes[reformShape]) ? reformShape : 'sphere';
+        // If page has a shape identity, prefer that
+        var pd = document.body && document.body.dataset && document.body.dataset.odShape;
+        if (pd && shapes[pd]) target = pd;
+        morphTo(target, 2.6);
+      }, 1900);
+    };
+
+    window.odBreath = function (pattern, onPhase) {
+      if (!pattern) {
+        breathActive = false;
+        mat.uniforms.uBreath.value = 0;
+        breathOnPhase = null;
+        return;
+      }
+      breathPattern    = Array.isArray(pattern) ? pattern : (BREATH_PATTERNS[pattern] || BREATH_PATTERNS['combat']);
+      breathOnPhase    = onPhase || null;
+      breathPhase      = 0;
+      breathPhaseStart = performance.now();
+      breathActive     = true;
+    };
+
+    // ── Per-page shape identity ───────────────────────────────────────────
+    // Add data-od-shape="torus|helix|scatter|galaxy" to <body> on any page.
+    // The cloud morphs to that shape 800ms after particle init (feels intentional,
+    // not a race-condition flash).
+    var pageShape = document.body && document.body.dataset && document.body.dataset.odShape;
+    if (pageShape && shapes[pageShape]) {
+      setTimeout(function () { morphTo(pageShape, 2.5); }, 800);
+    }
 
     // ── Cleanup API ───────────────────────────────────────────────────────
     function destroy() {

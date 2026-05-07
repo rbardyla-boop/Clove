@@ -29,11 +29,26 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
 .top-title{color:var(--dim2);font-size:7px;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase}
 
 /* HERO */
-.hero{padding:40px 20px 28px;text-align:center;border-bottom:1px solid rgba(192,57,43,.1)}
+.hero{padding:40px 20px 28px;text-align:center;border-bottom:2px solid var(--red)}
 .hero-tag{font-size:8px;letter-spacing:5px;color:var(--red);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px}
 .hero-tag::before,.hero-tag::after{content:'';width:20px;height:1px;background:var(--red)}
-.hero h1{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;line-height:1;margin-bottom:14px}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;line-height:1;margin-bottom:14px;text-shadow:0 0 30px rgba(192,57,43,.7),0 0 60px rgba(192,57,43,.3)}
 .hero-sub{color:var(--dim);font-size:10px;font-family:Georgia,serif;font-style:italic;line-height:1.8;max-width:340px;margin:0 auto}
+
+/* VOTE SECTION */
+.vote-section{padding:20px 16px;border-bottom:1px solid rgba(192,57,43,.1)}
+.vote-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.vote-counter{font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--red);transition:opacity .2s}
+.vote-counter.zero{opacity:0}
+.vote-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vote-card{background:var(--bg2);border-radius:10px;padding:14px 12px;cursor:pointer;border-left:3px solid transparent;position:relative;transition:all .2s;user-select:none;-webkit-user-select:none}
+.vote-card:active{transform:scale(.97)}
+.vote-card.voted{border-left-color:var(--red);background:#14101a}
+.vote-badge{position:absolute;top:6px;right:8px;font-size:9px;color:var(--red);font-weight:900;opacity:0;transition:opacity .15s}
+.vote-card.voted .vote-badge{opacity:1}
+.vote-card-name{font-size:8px;font-weight:800;letter-spacing:1px;margin-bottom:4px;color:#ccc}
+.vote-card.voted .vote-card-name{color:#fff}
+.vote-card-desc{font-size:8px;color:var(--dim2);font-family:Georgia,serif;line-height:1.5}
 
 /* SECTIONS */
 .sec{padding:20px 16px}
@@ -57,8 +72,9 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
 
 /* SEND BUTTON */
 .send-btn{display:block;width:100%;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;border:none;border-radius:10px;padding:16px 24px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:3px;text-transform:uppercase;transition:all .2s;margin-top:16px}
+.send-btn:not(:disabled){box-shadow:0 0 0 2px var(--red),0 0 16px rgba(192,57,43,.4)}
 .send-btn:active{transform:scale(.96)}
-.send-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.send-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
 
 /* INFO BLOCKS */
 .info-block{background:var(--bg3);border:1px solid rgba(192,57,43,.08);border-radius:10px;padding:14px 16px;margin-top:14px}
@@ -92,14 +108,64 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-tag">DIRECT LINE</div>
-  <h1>FEEDBACK</h1>
-  <div class="hero-sub">Report a bug. Request a tool. Tell me what's broken.<br>This goes straight to the builder. No middleman.</div>
+  <div class="hero-tag">DIRECT LINE TO THE BUILDER</div>
+  <h1>SPEAK UP.</h1>
+  <div class="hero-sub">I read every message personally. This app exists because of what the last batch said. Tell me what it needs — that's the debrief, not a suggestion box.</div>
+</div>
+
+<!-- VOTE SECTION -->
+<div class="vote-section">
+  <div class="vote-header">
+    <div class="sec-label" style="margin-bottom:0">WHAT DO YOU WANT BUILT NEXT?</div>
+    <div class="vote-counter zero" id="voteCounter">0 SELECTED</div>
+  </div>
+  <div class="vote-grid">
+    <div class="vote-card" id="vc-breath" onclick="toggleVote('breath')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">BREATHWORK MODE</div>
+      <div class="vote-card-desc">Guided breathing with the particle field — 4-7-8, box, combat patterns</div>
+    </div>
+    <div class="vote-card" id="vc-sleep" onclick="toggleVote('sleep')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">SLEEP TRACKER</div>
+      <div class="vote-card-desc">Log sleep quality and correlate it against your mood trends</div>
+    </div>
+    <div class="vote-card" id="vc-med" onclick="toggleVote('med')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">MEDICATION LOG</div>
+      <div class="vote-card-desc">Track prescriptions, doses, side effects — private, offline, encrypted</div>
+    </div>
+    <div class="vote-card" id="vc-vapdf" onclick="toggleVote('vapdf')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">VA APPOINTMENT PREP</div>
+      <div class="vote-card-desc">One-tap clinical summary export — scores, conditions, dates — ready for your next appointment</div>
+    </div>
+    <div class="vote-card" id="vc-atip2" onclick="toggleVote('atip2')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">ATIP BATCH ANALYZER</div>
+      <div class="vote-card-desc">Cross-file analysis: patterns across all your ATIP files at once, not one at a time</div>
+    </div>
+    <div class="vote-card" id="vc-voice" onclick="toggleVote('voice')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">VOICE JOURNAL</div>
+      <div class="vote-card-desc">Speak your journal entry. Auto-transcribed, saved offline. No typing required.</div>
+    </div>
+    <div class="vote-card" id="vc-crisis" onclick="toggleVote('crisis')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">CRISIS CONVERSATION DRILLS</div>
+      <div class="vote-card-desc">Practice the exact words for hard conversations — VA rep, family, crisis line. Scripted, rehearsable.</div>
+    </div>
+    <div class="vote-card" id="vc-debrief" onclick="toggleVote('debrief')">
+      <span class="vote-badge">✓</span>
+      <div class="vote-card-name">WEEKLY DEBRIEF</div>
+      <div class="vote-card-desc">Automated summary of your check-ins, mood trends, and streaks every 7 days</div>
+    </div>
+  </div>
 </div>
 
 <!-- CATEGORY SELECT -->
 <div class="sec">
-  <div class="sec-label">What kind of message?</div>
+  <div class="sec-label">WHAT ARE YOU SENDING?</div>
 
   <div class="cat-card" id="cat-bug" onclick="selectCat('bug')">
     <div class="cat-hdr">
@@ -137,7 +203,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
   <div class="info-block">
     <div class="ib-title">HOW THIS WORKS</div>
     <div class="ib-body">
-      Clicking send opens your device's email app with a pre-filled message. <strong>Nothing is transmitted from this page.</strong> Your email client handles the send. If you don't have an email app configured, copy the address shown and paste it into whatever you use.
+      Clicking send opens your device's email app with a pre-filled message. <strong>Nothing is transmitted from this page.</strong> Your email client handles the send. If you don't have an email app configured, copy the address shown and paste it into whatever you use. Your roadmap votes go directly into the build priority list.
     </div>
   </div>
 
@@ -159,10 +225,31 @@ body{background:var(--bg);color:#fff;font-family:'DM Mono',monospace;overflow-x:
 
 <script>
 var selectedCat = null;
+var votedFeatures = [];
 
 // ── Email obfuscation — never in HTML source ──
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function gm(){var p=['ryan','bardyla'];var d=['gmail','com'];return p.join('')+'@'+d.join('.');}
+
+function toggleVote(id){
+  var card = document.getElementById('vc-'+id);
+  var idx = votedFeatures.indexOf(id);
+  if(idx === -1){
+    votedFeatures.push(id);
+    card.classList.add('voted');
+  } else {
+    votedFeatures.splice(idx,1);
+    card.classList.remove('voted');
+  }
+  var ctr = document.getElementById('voteCounter');
+  if(votedFeatures.length === 0){
+    ctr.textContent = '0 SELECTED';
+    ctr.classList.add('zero');
+  } else {
+    ctr.textContent = votedFeatures.length + ' SELECTED';
+    ctr.classList.remove('zero');
+  }
+}
 
 function selectCat(cat){
   selectedCat = cat;
@@ -176,7 +263,7 @@ function checkReady(){
   var body = document.getElementById('msgBody').value.trim();
   if(selectedCat && body.length > 5){
     btn.disabled = false;
-    btn.textContent = 'OPEN EMAIL → SEND FEEDBACK';
+    btn.textContent = 'SEND THIS TO THE BUILDER →';
   } else if(selectedCat && body.length <= 5){
     btn.disabled = true;
     btn.textContent = 'TYPE YOUR MESSAGE';
@@ -191,20 +278,41 @@ function sendFeedback(){
   var body = document.getElementById('msgBody').value.trim();
   if(body.length < 6) return;
 
-  var tags = {bug:'BUG',feature:'FEATURE',general:'GENERAL'};
-  var subj = '[CLOVELEARN-' + tags[selectedCat] + '] ';
+  var voteLabels = {
+    breath:'Breathwork Mode',
+    sleep:'Sleep Tracker',
+    med:'Medication Log',
+    vapdf:'VA Appointment Prep',
+    atip2:'ATIP Batch Analyzer',
+    voice:'Voice Journal',
+    crisis:'Crisis Conversation Drills',
+    debrief:'Weekly Debrief'
+  };
 
-  // Add device info automatically
+  var tags = {bug:'BUG',feature:'FEATURE',general:'GENERAL'};
+  var subj = '[CLOVELEARN-' + tags[selectedCat] + ']';
+  if(selectedCat === 'feature' && votedFeatures.length > 0){
+    subj += ' (' + votedFeatures.length + ' vote' + (votedFeatures.length > 1 ? 's' : '') + ')';
+  }
+  subj += ' ';
+
   var device = navigator.userAgent || 'Unknown';
   var screen = window.screen ? window.screen.width+'x'+window.screen.height : 'Unknown';
 
   var fullBody = body + '\n\n---\nDevice: ' + device + '\nScreen: ' + screen + '\nPage: feedback.html';
+
+  if(votedFeatures.length > 0){
+    fullBody = 'ROADMAP VOTE: ' + votedFeatures.map(function(v){return voteLabels[v];}).join(', ')
+      + '\n\n' + fullBody;
+  }
 
   var mailto = 'ma' + 'il' + 'to:' + gm()
     + '?subject=' + encodeURIComponent(subj)
     + '&body=' + encodeURIComponent(fullBody);
 
   window.location.href = mailto;
+
+  if(typeof odBurst === 'function') odBurst();
 
   showToast('EMAIL CLIENT OPENED — HIT SEND');
 }

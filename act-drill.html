@@ -122,7 +122,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
     *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
 </style>
 </head>
-<body>
+<body data-od-shape="torus">
 <div class="app" role="main">
 
 <div class="nav-bar" role="navigation" aria-label="Page navigation">
@@ -411,6 +411,7 @@ function saveEntry(){
     arr.push(entry);
     saveEntries(arr);
     hap([15,30,15]);
+    if (typeof odBurst === 'function') odBurst();
     showToast('ACT DRILL SAVED ✓');
     buildSummary(entry);
     goStep(7);
