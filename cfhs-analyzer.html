@@ -1898,10 +1898,44 @@ function buildReport(f) {
     `FILE: ${f.name}`,
     `Pages: ${f.pages} | Words: ${a.wordCount}`,
   ];
-
   if (f.documents && f.documents.length > 0) {
     lines.push(`Documents identified: ${f.documents.length}`);
-    lines.push(`═══════════════════════════════════════════════════`);
+  }
+  lines.push(`═══════════════════════════════════════════════════`);
+  lines.push('');
+
+  lines.push('--- SCORED INSTRUMENTS ---');
+  lines.push(a.scores.length > 0 ? a.scores.map(s =>
+    `${s.name}: ${s.value} (threshold: ${s.threshold}) → ${s.status.toUpperCase()}\n  → ${s.status !== 'below' ? s.label_above : s.label_below}`
+  ).join('\n') : 'None detected');
+  lines.push('');
+
+  lines.push('--- CLAIM RISKS ---');
+  lines.push(a.risks.length > 0 ? a.risks.map(r =>
+    `${r.severity.toUpperCase()}: ${r.label} (×${r.count})\n  → ${r.explanation}`
+  ).join('\n') : 'No significant claim risks detected');
+  lines.push('');
+
+  lines.push('--- SERVICE CONNECTION LANGUAGE ---');
+  lines.push(a.nexus.length > 0 ? a.nexus.map(n => `${n.strength.toUpperCase()}: ${n.label}`).join('\n')
+    : 'ABSENT — No service connection language found in this document');
+  lines.push('');
+
+  lines.push('--- CONDITIONS DOCUMENTED ---');
+  lines.push(a.diagnoses.length > 0 ? [...new Set(a.diagnoses)].join('\n') : 'None detected');
+  if (a.suicidalityFound) lines.push('\n⚠ SUICIDAL IDEATION DOCUMENTED');
+  lines.push('');
+
+  lines.push('--- KEY EXCERPTS ---');
+  lines.push(a.excerpts.length > 0 ? a.excerpts.map(e => `"${e}"`).join('\n') : 'None extracted');
+  lines.push('');
+
+  if (a.sdaFound) lines.push('✓ SPECIAL DUTY AREA REFERENCE FOUND');
+  if (a.medicationFound) lines.push('✓ MEDICATION / PSYCHIATRIC TREATMENT DOCUMENTED');
+  if (a.sdaFound || a.medicationFound) lines.push('');
+
+  if (f.documents && f.documents.length > 0) {
+    lines.push(`--- DOCUMENTS IDENTIFIED (${f.documents.length}) ---`);
     lines.push('');
     for (const doc of f.documents) {
       lines.push(`[${doc.priority}] ${doc.rawType} — ${doc.dateFormatted || doc.date} (${doc.pageCount} page${doc.pageCount !== 1 ? 's' : ''})`);
@@ -1919,35 +1953,6 @@ function buildReport(f) {
       }
       lines.push('');
     }
-  } else {
-    lines.push(`Document Types: ${a.docTypes.join(', ') || 'Not classified'}`);
-    lines.push(`Dates detected: ${a.dates.join(', ')}`);
-    lines.push(`═══════════════════════════════════════════════════`);
-    lines.push('');
-    lines.push('--- SCORED INSTRUMENTS ---');
-    lines.push(a.scores.length > 0 ? a.scores.map(s =>
-      `${s.name}: ${s.value} (threshold: ${s.threshold}) → ${s.status.toUpperCase()} — ${s.status === 'above' ? s.label_above : s.label_below}`
-    ).join('\n') : 'None detected');
-    lines.push('');
-    lines.push('--- CLAIM RISKS ---');
-    lines.push(a.risks.length > 0 ? a.risks.map(r =>
-      `${r.severity.toUpperCase()}: ${r.label} (×${r.count})\n  → ${r.explanation}`
-    ).join('\n') : 'No significant claim risks detected');
-    lines.push('');
-    lines.push('--- SERVICE CONNECTION LANGUAGE ---');
-    lines.push(a.nexus.length > 0 ? a.nexus.map(n => `${n.strength.toUpperCase()}: ${n.label}`).join('\n')
-      : 'ABSENT — No service connection language found in this document');
-    lines.push('');
-    lines.push('--- CONDITIONS DOCUMENTED ---');
-    lines.push(a.diagnoses.length > 0 ? [...new Set(a.diagnoses)].join('\n') : 'None detected');
-    if (a.suicidalityFound) lines.push('\n⚠ SUICIDAL IDEATION DOCUMENTED');
-    lines.push('');
-    lines.push('--- KEY EXCERPTS ---');
-    lines.push(a.excerpts.length > 0 ? a.excerpts.map(e => `"${e}"`).join('\n') : 'None extracted');
-    lines.push('');
-    if (a.sdaFound) lines.push('✓ SPECIAL DUTY AREA REFERENCE FOUND');
-    if (a.medicationFound) lines.push('✓ MEDICATION / PSYCHIATRIC TREATMENT DOCUMENTED');
-    lines.push('');
   }
 
   return lines.filter(l => l !== undefined).join('\n');
