@@ -697,6 +697,7 @@ function saveRes(){odSet("od3_resonance",resonance.slice(0,200));}
 function saveNotes(){var clean={};Object.keys(songNotes).slice(0,200).forEach(function(k){if(typeof songNotes[k]==='string')clean[k]=songNotes[k].substring(0,200)});odSet("od3_songnotes",clean);}
 function saveLF(){odSet("od3_listenfirst",listenFirst);}
 function saveOb(){odSet("od3ob",{ob:onboarded,sc:sessionCount,td:tourDone});}
+window.saveOb=saveOb;
 // ── ONBOARDING ──
 window.togglePref=(g)=>{
   const i=musicPref.indexOf(g);
