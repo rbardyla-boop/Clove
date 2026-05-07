@@ -103,11 +103,51 @@ body{background:#08080f;color:#ddd;font-family:-apple-system,BlinkMacSystemFont,
   <div class="hdr-sub">Every feature, fix, and optimization.<br>Nothing ships without documentation.</div>
 </div>
 
+<!-- ═══════════════ v1.9.0 ═══════════════ -->
+<div class="ver">
+  <div class="ver-hdr">
+    <div class="ver-num current">v1.9.0</div>
+    <span class="ver-tag latest">LATEST</span>
+    <div class="ver-date">MAY 6, 2026</div>
+  </div>
+
+  <div class="chg-group">
+    <div class="chg-label added">ADDED</div>
+
+    <div class="chg added"><div class="chg-icon">📂</div><div class="chg-text"><strong>ATIP Document Classifier (Sprint B)</strong> — Identifies individual CFHS documents within each ATIP file using page-header parsing (<code>Patient/DOB/Document Date</code> pattern). Groups consecutive pages with matching type + date into discrete document objects. Classifies each document against 18 known CFHS types across four priority tiers. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">🔴</div><div class="chg-text"><strong>Priority tiering</strong> — Documents classified as CRITICAL (EPDS, PDHA, Mental Health Assessment, Psychiatry/Psychology Consultation), HIGH (Consultation Note, MH Progress, Individual/Couple Therapy, Referral), STANDARD (Progress Note, AHA, Medical Exam, Sick Parade, Rx), or ADMIN. CRITICAL docs sorted first in the document collection view. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">🧠</div><div class="chg-text"><strong>Per-document NLP (runTypeNLP)</strong> — Scored instruments, nexus language, and claim risk phrases evaluated per document rather than per file. Nexus patterns include: downward spiral, deployment causation, largely related, VR attribution, SDA reference, CSOR mention. Risk patterns flag relationship distress and OSI: N/A for rebuttal. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">🗂️</div><div class="chg-text"><strong>Document collection view</strong> — Navigable card list replaces flat report as default. Each card shows priority badge, document type, date, page count, and a dot indicator when significant findings exist. Expand any card to see scores, nexus hits, and risk flags in context. Summary bar at top shows aggregate counts. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg added"><div class="chg-icon">↔️</div><div class="chg-text"><strong>Flat View toggle</strong> — FLAT VIEW button in the document collection header switches back to the original full-file NLP report. Flat view retains full functionality (copy, export, excerpts). Clicking any file tab routes through the document view for classified files. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+  </div>
+
+  <div class="chg-group">
+    <div class="chg-label changed">CHANGED</div>
+
+    <div class="chg changed"><div class="chg-icon">🔄</div><div class="chg-text"><strong>showResult() now dispatches to showFileView()</strong> — For any file with classified documents, showResult() redirects to the document collection view by default. Pass <code>forceFlat=true</code> to render the flat report directly. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg changed"><div class="chg-icon">📋</div><div class="chg-text"><strong>buildReport() updated for document-aware output</strong> — Exported text report now lists each identified document with its priority, type, date, page count, and per-document findings. Falls back to legacy flat output for unclassified files. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+
+    <div class="chg changed"><div class="chg-icon">⚡</div><div class="chg-text"><strong>Progressive classification during OCR</strong> — classifyDocuments() called every 10 pages alongside analyzeText() so document cards appear incrementally during OCR rather than only at completion. <span class="chg-file">cfhs-analyzer.html</span></div></div>
+  </div>
+
+  <div class="ver-stats">
+    <div class="vs"><span>5</span> features added</div>
+    <div class="vs"><span>18</span> CFHS doc types</div>
+    <div class="vs"><span>4</span> priority tiers</div>
+    <div class="vs"><span>3</span> systems changed</div>
+  </div>
+</div>
+
 <!-- ═══════════════ v1.8.0 ═══════════════ -->
 <div class="ver">
   <div class="ver-hdr">
-    <div class="ver-num current">v1.8.0</div>
-    <span class="ver-tag latest">LATEST</span>
+    <div class="ver-num past">v1.8.0</div>
+    <span class="ver-tag stable">STABLE</span>
     <div class="ver-date">MAY 6, 2026</div>
   </div>
 

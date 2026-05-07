@@ -1,4 +1,4 @@
-const CACHE_NAME = 'operators-deck-v47';
+const CACHE_NAME = 'operators-deck-v51';
 
 // Only cache true static assets — never HTML files.
 // Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)
@@ -22,7 +22,12 @@ const STATIC_ASSETS = [
   '/anchor/db.js',
   '/anchor/tension-meter.js',
   '/anchor/anchor-step.js',
-  '/anchor/anchor-ratio.js'
+  '/anchor/anchor-ratio.js',
+  '/semantic/benefit-embeddings.json',
+  '/semantic/transformers.min.js',
+  '/semantic/model/Xenova/all-MiniLM-L6-v2/onnx/model_quantized.onnx',
+  '/voice-engine.js',
+  '/stt-worker.js'
 ];
 
 self.addEventListener('install', (event) => {

@@ -656,7 +656,7 @@ var toolZoneOpen={crisis:true,workon:false,build:false,understand:false,learn:fa
 window.navTool=function(href){try{var tv=JSON.parse(localStorage.getItem('od3_tv')||'{}');tv[href]=Date.now();localStorage.setItem('od3_tv',JSON.stringify(tv));}catch(e){}window.location.href=href;};
 let streak=0,total=0,done=0,log=[],playlist=[],darkUnlocked={},evidence=[],mirrors=[],stuckPoints=[],goals=[],evView="suit",evOpen={};
 let lastD="",lastD2="",dailyDrawn="",isDaily=false,checkIn="",checkInDate="",checkInZones={},milestoneSeen={},lastMilestone=0,musicPref=["pop","alt","old","cty"],cueWords=[];
-let onboarded=false,orbOpen=false,sessionCount=0,discModal=false,discTarget='',obStep=0,voiceOn=false,firstDraw='',lastPhase=0;
+let onboarded=false,orbOpen=false,sessionCount=0,discModal=false,discTarget='',obStep=0,voiceOn=false,firstDraw='',lastPhase=0,tourStep=0,tourDone=false;
 var resonance=[],songNotes={},listenFirst=false,listenRevealed=false;
 var orientMode=false,orientQ1=null;
 var rosaModal=false,rosaZones={};
@@ -677,7 +677,7 @@ async function secureLoad(){
   resonance=vArr(await odGet("od3_resonance",[]),200);
   const sn=await odGet("od3_songnotes",{});songNotes=(sn&&typeof sn==='object')?sn:{};
   listenFirst=!!(await odGet("od3_listenfirst",false));
-  const ob=await odGet("od3ob",{});onboarded=!!ob.ob;sessionCount=vNum(ob.sc,0);
+  const ob=await odGet("od3ob",{});onboarded=!!ob.ob;sessionCount=vNum(ob.sc,0);tourDone=!!ob.td;
   activeProtocol=await odGet('active_protocol',null);
 }
 (async function boot(){
@@ -696,7 +696,7 @@ function saveGoals(){odSet("od3_goals",goals.slice(0,50));}
 function saveRes(){odSet("od3_resonance",resonance.slice(0,200));}
 function saveNotes(){var clean={};Object.keys(songNotes).slice(0,200).forEach(function(k){if(typeof songNotes[k]==='string')clean[k]=songNotes[k].substring(0,200)});odSet("od3_songnotes",clean);}
 function saveLF(){odSet("od3_listenfirst",listenFirst);}
-function saveOb(){odSet("od3ob",{ob:onboarded,sc:sessionCount});}
+function saveOb(){odSet("od3ob",{ob:onboarded,sc:sessionCount,td:tourDone});}
 // ── ONBOARDING ──
 window.togglePref=(g)=>{
   const i=musicPref.indexOf(g);
@@ -726,9 +726,12 @@ window.toggleVoice=function(){
 completeOnboard=function(skip){
   onboarded=true;
   sessionCount=(sessionCount||0)+1;
+  if(skip){tourDone=true;}
   saveOb();
   R();
 };
+window.startTour=function(){tourStep=1;R();};
+window.skipTour=function(){tourDone=true;saveOb();R();};
 // ── HELP ORB ──
 function initOrb(){
   if(document.getElementById('helpOrb'))return;
@@ -1130,7 +1133,7 @@ if(discModal){
   h+=`<div class="disc-modal"><div class="disc-modal-inner"><div class="dm-tag">⚠ IMPORTANT DISCLAIMER</div><div class="dm-title">BEFORE YOU CONTINUE</div><div class="dm-text">This is a self-help tool only. It is <strong>NOT therapy</strong>, NOT a substitute for professional mental health care, and NOT a replacement for CPT, ACT, or any clinical treatment.<br><br>If you are struggling with trauma, PTSD, addiction, or suicidal thoughts — contact a licensed therapist or call a crisis line immediately.<br><br>This tool was built by a communications specialist who has been there, not a clinician. Use it to prepare for therapy, not replace it. Your data stays on your device only.</div><div class="dm-btns"><button class="bg" style="flex:1" onclick="confirmDisc()">I UNDERSTAND — CONTINUE</button><button class="bo" style="flex:1" onclick="discModal=false;discTarget='';R()">CANCEL</button></div></div></div>`;
   a.innerHTML=h;return;
 }
-// ROSA INLINE MODAL
+// ROSA GATE \u2014 full-page standalone screen
 if(rosaModal){
   var _rd=[
     {k:'mood',   label:'HOW YOU FEEL',     opts:[{v:'h',t:'Good'},{v:'r',t:'Okay'},{v:'i',t:'Low'},{v:'l',t:'In crisis'}]},
@@ -1141,15 +1144,21 @@ if(rosaModal){
     {k:'substance',label:'SUBSTANCE USE',  opts:[{v:'h',t:'None'},{v:'r',t:'Minimal'},{v:'i',t:'Notable'},{v:'l',t:'Heavy'}]},
   ];
   var _rdFilled=Object.keys(rosaZones).length;
-  h+=`<div class="ob" style="padding:0;justify-content:flex-start;overflow-y:auto">`;
-  h+=`<div style="position:sticky;top:0;background:#000;padding:18px 20px 14px;width:100%;border-bottom:1px solid rgba(255,255,255,.05);z-index:1">`;
-  h+=`<div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:8px;font-family:monospace;letter-spacing:3px;color:var(--red);margin-bottom:3px">STATUS CHECK</div><div style="font-size:16px;font-weight:900;letter-spacing:.5px">DAILY INTEL</div></div></div>`;
-  h+=`<div style="display:flex;gap:4px;margin-top:10px">${_rd.map(function(d){var f=!!rosaZones[d.k];return'<div style="flex:1;height:3px;border-radius:2px;background:'+(f?'var(--red)':'#222')+'"></div>';}).join('')}</div>`;
+  var _rdReady=_rdFilled>=6;
+  var _yd2=(function(){var d=new Date();d.setDate(d.getDate()-1);return dStr(d)})();
+  var _hasYd2=checkInZones[_yd2]&&['mood','attitude','sleep','physical','activity','substance'].every(function(k){return checkInZones[_yd2][k];});
+  h+=`<div style="min-height:100dvh;overflow-y:auto;padding:32px 20px 60px;max-width:480px;margin:0 auto">`;
+  h+=`<div style="text-align:center;margin-bottom:28px">`;
+  h+=`<div style="font-size:8px;font-family:monospace;letter-spacing:4px;color:var(--red);margin-bottom:6px">STATUS CHECK</div>`;
+  h+=`<div style="font-size:22px;font-weight:900;letter-spacing:.5px;margin-bottom:16px">DAILY INTEL</div>`;
+  h+=`<div style="display:flex;gap:5px;justify-content:center">${_rd.map(function(d){var f=!!rosaZones[d.k];return'<div style="width:36px;height:3px;border-radius:2px;background:'+(f?'var(--red)':'rgba(255,255,255,.08)')+'"></div>';}).join('')}</div>`;
   h+=`</div>`;
-  h+=`<div style="padding:16px 20px;width:100%">`;
+  if(_hasYd2){
+    h+=`<button onclick="copyYesterdayCheckIn()" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:10px;padding:12px;font-size:9px;font-weight:700;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-bottom:20px;transition:all .2s">SAME AS YESTERDAY \u2192</button>`;
+  }
   _rd.forEach(function(domain){
     var sel=rosaZones[domain.k];
-    h+=`<div style="margin-bottom:18px">`;
+    h+=`<div style="margin-bottom:20px">`;
     h+=`<div style="font-size:8px;font-family:monospace;letter-spacing:2px;color:var(--dim);margin-bottom:8px">${domain.label}</div>`;
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">`;
     domain.opts.forEach(function(opt){
@@ -1159,10 +1168,31 @@ if(rosaModal){
     });
     h+=`</div></div>`;
   });
-  var _rdReady=_rdFilled>=6;
   h+=`<button onclick="submitRosa()" style="width:100%;background:${_rdReady?'linear-gradient(135deg,var(--red),#6b1515)':'var(--bg2)'};color:${_rdReady?'#fff':'var(--dim2)'};border:none;border-radius:12px;padding:16px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:${_rdReady?'pointer':'default'};margin-top:4px;transition:all .2s">${_rdReady?'\u26A1 SUBMIT STATUS CHECK':'RATE ALL 6 AREAS TO CONTINUE'}</button>`;
-  h+=`<div style="height:32px"></div>`;
-  h+=`</div></div>`;
+  h+=`<div style="text-align:center;margin-top:20px"><button onclick="enterNotOk()" style="background:none;border:none;color:var(--red);font-size:8px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;opacity:.7">\u26A0 IN CRISIS \u2014 SKIP TO HELP</button></div>`;
+  h+=`</div>`;
+  a.innerHTML=h;return;
+}
+// GUIDED TOUR — optional, triggered post-onboarding or by TOUR button
+if(tourStep>0&&tourStep<=5){
+  var _TOUR=[
+    {n:1,head:'DRAW YOUR CARD',body:'Tap the card in the centre of the home screen to draw your daily mission. Each card is a hard truth paired with a 24-hour action and a matched soundtrack.'},
+    {n:2,head:'LOG THE MISSION',body:'After you complete a mission, tap LOG. Your evidence builds over time — Pattern Recon reads it to detect behavioral drift.'},
+    {n:3,head:'DAILY CHECK-IN',body:'ROSA asks you to rate 6 zones every day. It takes 30 seconds and gives the intelligence layer something to work with.'},
+    {n:4,head:'51+ TOOLS',body:'Open the TOOLS tab. Crisis tools are pinned at the top. CBT, ACT, DBT drills below. ADHD ops below that. Use what fits — nothing is required.'},
+    {n:5,head:'VETERAN TOOLS',body:'Navigating VAC benefits or analyzing ATIP medical records? Open the menu (≡) → VAC NAVIGATOR or CFHS ANALYZER. Describe your situation in plain language — the AI matches you to benefits offline.'},
+  ];
+  var _ts=_TOUR[tourStep-1];
+  var _isLast=tourStep===5;
+  h+=`<div style="min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px 60px;max-width:480px;margin:0 auto">`;
+  h+=`<div style="font-size:8px;font-family:monospace;letter-spacing:4px;color:var(--dim2);margin-bottom:24px">${tourStep} / 5</div>`;
+  h+=`<div style="width:100%;background:var(--bg2);border:1px solid var(--bg4);border-radius:16px;padding:28px 22px;text-align:center;margin-bottom:24px">`;
+  h+=`<div style="font-size:20px;font-weight:900;letter-spacing:1px;margin-bottom:16px">${_ts.head}</div>`;
+  h+=`<div style="color:var(--dim);font-family:Georgia,serif;font-size:11px;line-height:1.8">${_ts.body}</div>`;
+  h+=`</div>`;
+  h+=`<button onclick="${_isLast?'tourStep=0;tourDone=true;saveOb();R()':'tourStep++;R()'}" style="width:100%;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;border:none;border-radius:12px;padding:16px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-bottom:12px">${_isLast?'✓ DONE — ENTER THE DECK':'NEXT →'}</button>`;
+  h+=`<button onclick="tourStep=0;tourDone=true;saveOb();R()" style="background:none;border:none;color:var(--dim2);font-size:8px;font-family:monospace;letter-spacing:2px;cursor:pointer;padding:8px">SKIP TOUR</button>`;
+  h+=`</div>`;
   a.innerHTML=h;return;
 }
 if(!onboarded){
@@ -1468,6 +1498,17 @@ if(notOkMode){
   h+=`<div class="nok-exit" onclick="exitNotOk()">I\u2019M READY TO GO BACK</div></div>`;
   a.innerHTML=h;return;
 }
+// TOUR PROMPT — shown once after fresh onboarding completes
+if(onboarded&&!tourDone&&tourStep===0&&sessionCount===1){
+  h+=`<div style="min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px 60px;max-width:480px;margin:0 auto;text-align:center">`;
+  h+=`<div style="font-size:8px;font-family:monospace;letter-spacing:4px;color:var(--red);margin-bottom:12px">YOU'RE IN</div>`;
+  h+=`<div style="font-size:24px;font-weight:900;margin-bottom:10px">READY TO ENTER</div>`;
+  h+=`<div style="color:var(--dim);font-family:Georgia,serif;font-size:10px;line-height:1.8;margin-bottom:28px">Take a 2-minute guided tour of the deck, or jump straight in.</div>`;
+  h+=`<button onclick="startTour()" style="width:100%;background:linear-gradient(135deg,var(--red),#6b1515);color:#fff;border:none;border-radius:12px;padding:16px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer;margin-bottom:12px">TAKE THE TOUR — 2 MIN</button>`;
+  h+=`<button onclick="skipTour()" style="width:100%;background:var(--bg2);color:var(--dim);border:1px solid var(--bg4);border-radius:12px;padding:14px;font-size:10px;font-weight:800;font-family:monospace;letter-spacing:2px;cursor:pointer">SKIP TOUR → ENTER THE DECK</button>`;
+  h+=`</div>`;
+  a.innerHTML=h;return;
+}
 h+=`<div class="nav" role="tablist"><button class="nb${tab==="home"?" on":""}" onclick="go('home')" role="tab" aria-selected="${tab==='home'}">TODAY</button><button class="nb${tab==="tools"?" on":""}" onclick="go('tools')" role="tab" aria-selected="${tab==='tools'}">TOOLS</button><button class="nb${tab==="evidence"?" on":""}" onclick="go('evidence')" role="tab" aria-selected="${tab==='evidence'}">PROGRESS</button><button class="nb${tab==="browse"?" on":""}" onclick="go('browse')" role="tab" aria-selected="${tab==='browse'}">DECK</button><button class="nb-ham${drawerOpen?' on':''}" onclick="toggleDrawer()" aria-label="Menu">\u2261</button></div>`;
 // ══════ HOME ══════
 if(tab==="home"){
@@ -1477,7 +1518,7 @@ if(tab==="home"){
   const CI_DORDER=['mood','attitude','sleep','physical','activity','substance'];
   const ciAnyIll=ciDone&&CI_DORDER.some(k=>ciZ[k]==='l');
   const ciColor=!ciDone?'':checkIn==='strong'?'#27ae60':checkIn==='standing'?'#d4a843':ciAnyIll?'var(--red)':'#e67e22';
-  h+=`<div class="hdr"><div class="tg">FIELD INTELLIGENCE</div><h1>THE OPERATOR'S DECK</h1><p class="sub">115 tactical cards with a soundtrack. No bullshit.</p></div>`;
+  h+=`<div class="hdr"><div class="tg">FIELD INTELLIGENCE</div><h1>THE OPERATOR'S DECK</h1><p class="sub">115 tactical cards with a soundtrack. No bullshit.</p>${!tourDone?`<button onclick="startTour()" style="background:none;border:1px solid var(--bg4);color:var(--dim2);font-size:7px;font-family:monospace;letter-spacing:2px;padding:5px 12px;border-radius:6px;cursor:pointer;margin-top:8px">TOUR →</button>`:''}</div>`;
   h+=`<div style="text-align:center;display:flex;align-items:center;justify-content:center;gap:8px"><div class="rank-badge" style="background:${rank.c}12;border:1px solid ${rank.c}30"><span class="rank-icon">${rank.icon}</span><span class="rank-name" style="color:${rank.c}">${rank.name}</span></div>${ciDone?`<a href="rosa-checkin.html" style="width:10px;height:10px;border-radius:50%;background:${ciColor};display:inline-block;box-shadow:0 0 8px ${ciColor};flex-shrink:0;opacity:.9" aria-label="Status: ${checkIn}"></a>`:''}</div>`;
   const ph=getPhase();
   h+=`<div style="text-align:center;margin:4px 0 2px"><div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid ${ph.color}25;border-radius:16px;padding:4px 14px"><span style="font-size:10px;color:${ph.color}">${ph.icon}</span><span style="font-size:7px;font-family:monospace;letter-spacing:2px;font-weight:800;color:${ph.color}">PHASE ${ph.phase} \u2022 ${ph.name}</span></div></div>`;
@@ -1944,6 +1985,7 @@ if(drawerOpen&&!dEl){
     ]},
     {id:'system',label:'SYSTEM',c:'var(--dim)',items:[
       {icon:'\uD83C\uDF96',name:'VAC NAVIGATOR',c:'var(--grn)',href:'vac-navigator.html'},
+      {icon:'\uD83D\uDCC4',name:'CFHS ANALYZER',c:'var(--grn)',href:'./cfhs-analyzer.html'},
       {icon:'\uD83D\uDCCA',name:'PROGRESS REPORT',c:'var(--dim)',href:'progress-report.html'},
       {icon:'\uD83D\uDCE1',name:'STATUS HISTORY',c:'var(--red)',href:'rosa-checkin.html'},
       {icon:'\uD83D\uDCCB',name:'CLINICAL REPORT',c:'var(--acc)',href:'clinical-report.html'},

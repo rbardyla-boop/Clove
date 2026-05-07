@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Free VAC benefits navigator for Canadian veterans. Find your eligibility and draft your application — fully offline, no data leaves your device.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; worker-src blob:; connect-src 'none'; img-src 'none' blob: data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src blob:; connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; img-src 'none' blob: data:;">
 <title>VAC Navigator — Operator's Deck</title>
 <style>
   :root {
@@ -1317,7 +1317,9 @@
     <div class="btn-row">
       <button class="btn-primary" id="analyzeBtn" onclick="analyze()">FIND MY BENEFITS</button>
       <button class="btn-secondary" onclick="clearAll()">CLEAR</button>
+      <button class="btn-secondary" id="voiceBtn_situationInput" onclick="voiceMicTap('situationInput')" style="display:none">◉ VOICE LOG</button>
       <span class="char-count" id="charCount">0 / 2000</span>
+      <span id="sem-badge" style="display:none;font:600 10px/1 monospace;background:#1565c0;color:#fff;padding:2px 7px;border-radius:3px;letter-spacing:.05em;vertical-align:middle;margin-left:4px">SEMANTIC</span>
     </div>
     <div class="loading-bar" id="loadingBar"></div>
   </div>
@@ -1343,6 +1345,18 @@
       No strong benefit match found with that description.<br>
       Try adding: years served, type of injury or illness, whether you've been released, or what you need help with.
     </div>
+  </div>
+
+  <div class="atip-callout" style="margin-top:24px;border-color:var(--gold);margin-bottom:0">
+    <strong>HAVE YOUR MEDICAL FILE?</strong><br>
+    Upload your DND ATIP / CFHS records to the
+    <a href="./cfhs-analyzer.html"
+       style="color:var(--gold);text-decoration:none;font-family:var(--mono)">
+      CFHS ANALYZER →
+    </a>
+    — detects PTSD scores, nexus language, and claim risks
+    directly from your Protected B records.
+    Runs locally. Nothing transmitted.
   </div>
 
   <!-- Crisis resources (always visible) -->
@@ -1527,7 +1541,7 @@ const BENEFITS = [
     id: "veterans-independence",
     name: "Veterans Independence Program (VIP)",
     short: "Funding for home care, housekeeping, yard maintenance",
-    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    url: "https://www.veterans.gc.ca/en/financial-programs-and-services/help-home/veterans-independence-program",
     taxable: false,
     keywords: ["home","house","cleaning","housekeeping","yard","lawn","snow","shovelling","groceries","shopping","cooking","meal","transport","independent","independence","stay home","personal care","hygiene","bathing","laundry","ambulatory","limited mobility","physical limitation","cant do chores","home maintenance"],
     conditions: [
@@ -1557,7 +1571,7 @@ const BENEFITS = [
     id: "education-training",
     name: "Education and Training Benefit",
     short: "Up to $80,000 for post-secondary education or training",
-    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    url: "https://veterans.gc.ca/en/education-and-jobs/go-back-school/education-and-training-benefit",
     taxable: false,
     keywords: ["school","college","university","education","training","course","program","degree","diploma","certificate","trade","apprentice","retraining","career change","new job","study","learn","tuition","student","return school","go back school","civilian career","credential"],
     conditions: [
@@ -1588,7 +1602,7 @@ const BENEFITS = [
     id: "rehabilitation",
     name: "Rehabilitation Program",
     short: "Free medical, psychosocial, and vocational rehab services",
-    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    url: "https://veterans.gc.ca/en/health-programs-and-services/physical-health-and-wellness/rehabilitation-services",
     taxable: false,
     keywords: ["rehabilitation","rehab","physiotherapy","physio","therapy","psychologist","counselling","mental health","treatment","recovery","heal","healing","occupational","vocational","job help","back to work","functional","reintegration","transition","civilian life","support services","treatment plan","specialist"],
     conditions: [
@@ -1618,7 +1632,7 @@ const BENEFITS = [
     id: "case-management",
     name: "Case Management Services",
     short: "Dedicated VAC case manager to coordinate your benefits",
-    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    url: "https://www.veterans.gc.ca/en/mental-and-physical-health/case-management",
     taxable: false,
     keywords: ["help navigating","confused","overwhelmed","dont know where","complex","multiple benefits","need guidance","case manager","coordinator","help figure out","too complicated","stressed paperwork","dont understand","complicated file","lost","not sure where","complex file","many issues","many conditions"],
     conditions: [
@@ -1645,7 +1659,7 @@ const BENEFITS = [
     id: "long-term-care",
     name: "Long Term Care Program",
     short: "Funding for nursing home or residential care facility",
-    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    url: "https://www.veterans.gc.ca/en/housing-and-home-life/long-term-care",
     taxable: false,
     keywords: ["nursing home","long term care","facility","institution","care home","cant live alone","full time care","24 hour care","severe disability","advanced age","dementia","alzheimers","wheelchair","completely dependent","cannot function","residential care","total care","complex care","frail","elder care"],
     conditions: [
@@ -1705,7 +1719,7 @@ const BENEFITS = [
     id: "funeral-burial",
     name: "Funeral and Burial Program",
     short: "Covers funeral and burial costs for eligible veterans",
-    url: "https://veterans.gc.ca/en/about-vac/resources/rates",
+    url: "https://www.veterans.gc.ca/en/families-and-caregivers/death-and-bereavement/funeral-and-burial-assistance",
     taxable: false,
     keywords: ["funeral","burial","death","died","passed away","deceased","grave","cemetery","cremation","ashes","memorial","cost of funeral","cant afford funeral","funeral expenses","arrangements","interment","repatriation","death benefits","bereavement"],
     conditions: [
@@ -2499,7 +2513,7 @@ function renderBenefitCard(benefit, rank) {
 // MAIN ANALYZE FUNCTION
 // ═══════════════════════════════════════════════════════
 
-function analyze() {
+async function analyze() {
   const input = document.getElementById('situationInput').value.trim();
   if (input.length < 10) {
     document.getElementById('statusBar').textContent = '→ Add more detail to get accurate results.';
@@ -2515,10 +2529,32 @@ function analyze() {
   document.getElementById('clarifyBox').style.display = 'none';
 
   // Small timeout for loading UX
-  setTimeout(() => {
-    const matches = matchBenefits(input);
+  setTimeout(async () => {
+    let matches;
     const tokens = tokenize(input);
     const bigrams = buildBigrams(tokens);
+    if (window.SEMANTIC_READY) {
+      try {
+        const semScores = await window.embedAndScore(input);
+        const semMap = Object.fromEntries(semScores.map(s => [s.id, s.semScore]));
+        const scored = BENEFITS.map(benefit => {
+          const { score, matched } = scoreKeywords(tokens, bigrams, benefit.keywords);
+          const conditions = checkConditions(tokens, bigrams, benefit.conditions);
+          const conditionScore = conditions.filter(c => c.met).length;
+          const semScore = semMap[benefit.id] || 0;
+          const totalScore = (score * 0.4) + (semScore * 0.6) + (conditionScore * 2);
+          return { ...benefit, score, matched, conditions, conditionScore, totalScore };
+        });
+        matches = scored
+          .filter(b => b.totalScore > 0.5)
+          .sort((a, b) => b.totalScore - a.totalScore)
+          .slice(0, 3);
+      } catch (_) {
+        matches = matchBenefits(input);
+      }
+    } else {
+      matches = matchBenefits(input);
+    }
 
     document.getElementById('loadingBar').style.display = 'none';
 
@@ -3278,6 +3314,57 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('offlineBanner').style.display = 'none';
   });
 });
+</script>
+<script src="voice-engine.js?v=7"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof voiceCapable === 'function' && voiceCapable()) {
+    var btn = document.getElementById('voiceBtn_situationInput');
+    if (btn) btn.style.display = '';
+  }
+});
+</script>
+<script type="module">
+// ── SEMANTIC ENGINE (MiniLM-L6-v2, self-hosted) ──────────────────────────────
+window.SEMANTIC_READY = false;
+let _extractor = null;
+let _bvecs = null;
+
+function cosineSim(a, b) {
+  let dot = 0, mA = 0, mB = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; mA += a[i]*a[i]; mB += b[i]*b[i]; }
+  return dot / (Math.sqrt(mA) * Math.sqrt(mB));
+}
+
+async function loadSemantic() {
+  try {
+    const r = await fetch('/semantic/benefit-embeddings.json');
+    if (!r.ok) return;
+    _bvecs = await r.json();
+
+    const { pipeline, env } = await import('/semantic/transformers.min.js');
+    env.allowRemoteModels = false;
+    env.localModelPath = '/semantic/model/';
+
+    _extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2',
+      { quantized: true });
+
+    window.SEMANTIC_READY = true;
+    const badge = document.getElementById('sem-badge');
+    if (badge) badge.style.display = 'inline';
+  } catch (_) { /* keyword fallback stays active */ }
+}
+
+window.embedAndScore = async function(rawInput) {
+  const out = await _extractor(rawInput, { pooling: 'mean', normalize: true });
+  const qVec = Array.from(out.data);
+  return Object.keys(_bvecs).map(id => ({
+    id,
+    semScore: Math.max(0, cosineSim(qVec, _bvecs[id])) * 10
+  }));
+};
+
+loadSemantic();
 </script>
 </body>
 </html>

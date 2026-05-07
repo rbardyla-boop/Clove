@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src blob: 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.hf.co blob:; img-src blob: data:;">
 <title>CFHS/ATIP Document Analyzer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -302,6 +303,60 @@ body {
   display: none;
 }
 .ocr-redaction-notice.visible { display: block; }
+
+/* DOCUMENT CLASSIFIER */
+.doc-collection { display: flex; flex-direction: column; gap: 6px; }
+.doc-card {
+  background: var(--bg2);
+  border: 1px solid var(--dim);
+  border-left: 3px solid var(--dim);
+}
+.doc-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.doc-card-header:hover { background: var(--bg3); }
+.doc-card-meta { display: flex; align-items: center; gap: 10px; }
+.doc-priority-badge {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border: 1px solid;
+}
+.doc-type-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+}
+.doc-card-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.doc-toggle-icon { font-size: 8px; }
+.doc-card-body { padding: 0 14px 12px; }
+.doc-findings { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.doc-finding {
+  font-size: 12px;
+  color: var(--text2);
+  padding: 6px 10px;
+  border-left: 2px solid var(--dim);
+  line-height: 1.5;
+}
+.doc-finding.critical { border-left-color: var(--red); color: var(--red); }
+.doc-finding.warning  { border-left-color: var(--gold); }
+.doc-finding.good     { border-left-color: var(--green); }
+.doc-finding.muted    { color: var(--muted); font-style: italic; }
+.doc-finding-note { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
 .btn-cancel {
   background: transparent;
   border: 1px solid var(--red2);
@@ -574,6 +629,17 @@ body {
       </div>
     </div>
 
+    <div style="margin-top:16px">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);margin-bottom:6px">CASE NOTES</div>
+      <div style="display:flex;gap:6px;align-items:flex-start">
+        <textarea id="analyzerNotes" placeholder="Type or speak notes for your appeal…"
+          style="flex:1;background:var(--bg);border:1px solid #333;color:var(--text);font-family:var(--mono);font-size:12px;padding:8px;border-radius:4px;resize:vertical;min-height:72px;line-height:1.5"></textarea>
+        <button id="voiceBtn_analyzerNotes" onclick="voiceMicTap('analyzerNotes')"
+          style="display:none;background:none;border:1px solid #444;color:var(--muted);font-size:13px;padding:6px 8px;border-radius:4px;cursor:pointer;line-height:1;flex-shrink:0"
+          title="Voice note">◉</button>
+      </div>
+    </div>
+
     <div class="ocr-status-bar" id="ocrStatusBar">
       <div class="ocr-status-row">
         <span class="ocr-label" id="ocrLabel">INITIALIZING...</span>
@@ -689,6 +755,60 @@ async function rasterizePage(pdfPage) {
   return canvas;
 }
 
+// ── DOCUMENT HEADER PARSER & CLASSIFIER ─────────────────
+
+function extractPageHeader(pageText) {
+  const m = pageText.match(/Patient:[^\n]+DOB:[^\n]+\n([^\n]+?)\s+Document Date:\s+(\d{4}-\d{2}-\d{2})/);
+  return {
+    docType: m ? m[1].trim() : null,
+    docDate: m ? m[2] : null,
+  };
+}
+
+function formatDocDate(dateStr) {
+  if (!dateStr) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [y, m, d] = dateStr.split('-');
+  return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
+}
+
+function classifyDocuments(fullText) {
+  const docs = [];
+  const headerRe = /Patient:[^\n]+DOB:[^\n]+\n([^\n]+?)\s+Document Date:\s+(\d{4}-\d{2}-\d{2})/g;
+  const matches = [...fullText.matchAll(headerRe)];
+  if (matches.length === 0) return docs;
+
+  let current = null;
+  for (let mi = 0; mi < matches.length; mi++) {
+    const m = matches[mi];
+    const rawType = m[1].trim();
+    const docDate = m[2];
+    const segEnd  = mi + 1 < matches.length ? matches[mi + 1].index : fullText.length;
+    const text    = fullText.slice(m.index, segEnd);
+    const key     = `${rawType.toLowerCase()}|${docDate}`;
+
+    if (current && current.key === key) {
+      current.pageCount++;
+      current.text += '\n' + text;
+    } else {
+      if (current) { current.findings = runTypeNLP(current); docs.push(current); }
+      const typeDef = DOCUMENT_TYPES.find(dt =>
+        dt.patterns.length > 0 && dt.patterns.some(p => p.test(rawType))
+      ) || DOCUMENT_TYPES[DOCUMENT_TYPES.length - 1];
+      current = { key, id: typeDef.id, label: typeDef.label, priority: typeDef.priority,
+        rawType, date: docDate, dateFormatted: formatDocDate(docDate),
+        pageCount: 1, text, findings: null };
+    }
+  }
+  if (current) { current.findings = runTypeNLP(current); docs.push(current); }
+
+  docs.sort((a, b) => {
+    const pd = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+    return pd !== 0 ? pd : a.date.localeCompare(b.date);
+  });
+  return docs;
+}
+
 // ── REDACTION DETECTOR ──────────────────────────────────
 
 function detectRedactions(pageText) {
@@ -729,6 +849,80 @@ const SECS_PER_PAGE_EST = 3.5; // calibrated for average hardware
 // ═══════════════════════════════════════════════════════
 // NLP DATA
 // ═══════════════════════════════════════════════════════
+
+// ── DOCUMENT CLASSIFIER DATA ─────────────────────────────
+
+const DOCUMENT_TYPES = [
+  { id: 'epds',         label: 'EPDS',                       priority: 'CRITICAL', patterns: [/\bEPDS\b/, /Enhanced Pre.Deployment Screening/i] },
+  { id: 'pdha',         label: 'Post-Deployment Health',      priority: 'CRITICAL', patterns: [/Post.Deployment Health/i, /\bPDHA\b/] },
+  { id: 'mh_assess',    label: 'Mental Health Assessment',    priority: 'CRITICAL', patterns: [/Mental Health Assessment/i] },
+  { id: 'psych_consult',label: 'Psychiatry Consultation',     priority: 'CRITICAL', patterns: [/Psychiatr(?:y|ist|ic) Consult/i, /Psychiatry Note/i] },
+  { id: 'psych_assess', label: 'Psychology Assessment',       priority: 'CRITICAL', patterns: [/Psycholog(?:y|ical) Assessment/i] },
+  { id: 'consult',      label: 'Consultation Note',           priority: 'HIGH',     patterns: [/Consultation Note/i, /Consult Note/i] },
+  { id: 'mh_prog',      label: 'MH Progress Note',            priority: 'HIGH',     patterns: [/Mental Health Progress/i, /MH Progress/i] },
+  { id: 'therapy_i',    label: 'Individual Therapy',          priority: 'HIGH',     patterns: [/Individual Therap/i] },
+  { id: 'therapy_c',    label: 'Couple/Family Therapy',       priority: 'HIGH',     patterns: [/Couples? Therap/i, /Family Therap/i] },
+  { id: 'referral',     label: 'Referral',                    priority: 'HIGH',     patterns: [/\bReferral\b/i] },
+  { id: 'progress',     label: 'Progress Note',               priority: 'STANDARD', patterns: [/Progress Note/i, /SOAP Note/i, /Clinical Note/i] },
+  { id: 'aha',          label: 'Annual Health Assessment',    priority: 'STANDARD', patterns: [/Annual Health Assessment/i, /\bAHA\b/] },
+  { id: 'exam',         label: 'Medical Examination',         priority: 'STANDARD', patterns: [/Medical Examination/i, /Physical Examination/i] },
+  { id: 'sick',         label: 'Sick Parade',                 priority: 'STANDARD', patterns: [/Sick Parade/i, /Walk.In/i] },
+  { id: 'rx',           label: 'Prescription',                priority: 'STANDARD', patterns: [/Prescription/i, /Medication Order/i] },
+  { id: 'admin',        label: 'Administrative',              priority: 'ADMIN',    patterns: [/Administrative/i, /Admin Note/i] },
+  { id: 'demo',         label: 'Demographics',                priority: 'ADMIN',    patterns: [/Demographic/i, /Patient Profile/i] },
+  { id: 'unknown',      label: 'Other Document',              priority: 'ADMIN',    patterns: [] },
+];
+
+const PRIORITY_ORDER  = { CRITICAL: 0, HIGH: 1, STANDARD: 2, ADMIN: 3 };
+const PRIORITY_COLOR  = { CRITICAL: '#c62828', HIGH: '#e65100', STANDARD: '#1565c0', ADMIN: '#546e7a' };
+const PRIORITY_BORDER = { CRITICAL: '#ef9a9a', HIGH: '#ffcc80', STANDARD: '#90caf9', ADMIN: '#b0bec5' };
+
+function runTypeNLP(doc) {
+  const findings = [];
+  const text = doc.text;
+
+  for (const inst of SCORED_INSTRUMENTS) {
+    const allPats = [...(inst.patterns || []), ...(inst.altPatterns || [])];
+    for (const pat of allPats) {
+      const m = text.match(pat);
+      if (m && m[1]) {
+        const score = parseInt(m[1]);
+        const status = inst.inverted
+          ? (score < inst.threshold ? 'above' : 'below')
+          : score >= (inst.high || inst.threshold + 1) ? 'above'
+            : score >= inst.threshold ? 'at-risk' : 'below';
+        findings.push({ type: 'score', id: inst.id, name: inst.name, score,
+          threshold: inst.threshold, status, vac_note: inst.vac_note });
+        break;
+      }
+    }
+  }
+
+  if (doc.priority === 'CRITICAL' || doc.priority === 'HIGH') {
+    const nexusPats = [
+      { re: /downward spiral/i,                                            label: 'Downward spiral attributed to deployment' },
+      { re: /sent him into/i,                                              label: 'Deployment causation language' },
+      { re: /because of what transpired/i,                                 label: 'Explicit causal attribution to deployment' },
+      { re: /largely related/i,                                            label: 'Largely related — workplace/service connection' },
+      { re: /voluntary release.*deployment|deployment.*voluntary release/i,label: 'VR attributed to deployment events' },
+      { re: /special duty area|\bSDA\b/i,                                  label: 'Special Duty Area reference' },
+      { re: /\bCSOR\b|special operations regiment/i,                       label: 'CSOR/Special Operations unit reference' },
+    ];
+    const riskPats = [
+      { re: /relationship distress/gi,  label: 'Relationship distress (downstream — rebuttal needed)' },
+      { re: /OSI\s*[:\s]*N\/A/gi,       label: 'OSI: N/A flag (couple therapy context — rebuttal needed)' },
+    ];
+    for (const nx of nexusPats) {
+      if (nx.re.test(text)) findings.push({ type: 'nexus', label: nx.label });
+    }
+    for (const rp of riskPats) {
+      const ms = text.match(new RegExp(rp.re.source, 'gi'));
+      if (ms) findings.push({ type: 'risk', label: rp.label, count: ms.length });
+    }
+  }
+
+  return findings;
+}
 
 const SCORED_INSTRUMENTS = [
   {
@@ -1257,11 +1451,12 @@ async function runAnalysis() {
 
         // Progressive NLP every 10 pages
         if (p > 0 && p % 10 === 0 && progress.accumulated) {
-          files[fi].text = progress.accumulated;
-          files[fi].analysis = analyzeText(progress.accumulated);
+          files[fi].text      = progress.accumulated;
+          files[fi].analysis  = analyzeText(progress.accumulated);
+          files[fi].documents = classifyDocuments(progress.accumulated);
           if (fi === activeIdx || activeIdx < 0) {
             activeIdx = fi;
-            showResult(fi);
+            selectFile(fi);
           }
         }
       });
@@ -1271,6 +1466,7 @@ async function runAnalysis() {
       files[fi].mode        = result.mode;
       files[fi].hasRedactions = result.hasRedactions;
       files[fi].analysis    = analyzeText(result.text);
+      files[fi].documents   = classifyDocuments(result.text);
       files[fi].status      = 'done';
       pagesProcessed       += result.pages;
 
@@ -1283,9 +1479,9 @@ async function runAnalysis() {
 
     if (activeIdx < 0 || files[activeIdx].status !== 'done') {
       const firstDone = files.findIndex(f => f.status === 'done');
-      if (firstDone >= 0) { activeIdx = firstDone; showResult(firstDone); }
+      if (firstDone >= 0) { activeIdx = firstDone; selectFile(firstDone); }
     } else {
-      showResult(activeIdx);
+      selectFile(activeIdx);
     }
   }
 
@@ -1305,7 +1501,7 @@ async function runAnalysis() {
   copyBtn.style.display   = 'block';
 
   const firstDone = files.findIndex(f => f.status === 'done');
-  if (firstDone >= 0) showResult(firstDone);
+  if (firstDone >= 0) selectFile(firstDone);
 }
 
 function cancelAnalysis() {
@@ -1317,10 +1513,124 @@ function cancelAnalysis() {
 }
 
 // ═══════════════════════════════════════════════════════
+// DOCUMENT FILE VIEW
+// ═══════════════════════════════════════════════════════
+
+function showFileView(fileIdx) {
+  activeIdx = fileIdx;
+  renderQueue();
+  const f = files[fileIdx];
+  if (!f || !f.documents || f.documents.length === 0) {
+    return showResult(fileIdx, true);
+  }
+
+  const tabs = files.map((ff, i) => `
+    <div class="file-tab ${i === fileIdx ? 'active' : ''}" onclick="selectFile(${i})"
+         title="${ff.name}">${ff.name.replace('.pdf', '')}</div>
+  `).join('');
+
+  const critCount   = f.documents.filter(d => d.priority === 'CRITICAL').length;
+  const highCount   = f.documents.filter(d => d.priority === 'HIGH').length;
+  const scoreFinds  = f.documents.flatMap(d => (d.findings || []).filter(x => x.type === 'score'));
+  const nexusFinds  = f.documents.flatMap(d => (d.findings || []).filter(x => x.type === 'nexus'));
+  const riskFinds   = f.documents.flatMap(d => (d.findings || []).filter(x => x.type === 'risk'));
+
+  const summaryBar = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      ${critCount > 0 ? `<span class="tag red">${critCount} CRITICAL</span>` : ''}
+      ${highCount > 0 ? `<span class="tag gold">${highCount} HIGH</span>` : ''}
+      ${scoreFinds.map(s =>
+        `<span class="tag ${s.status === 'above' ? 'red' : s.status === 'at-risk' ? 'gold' : 'green'}">${s.name}: ${s.score}</span>`
+      ).join('')}
+      ${nexusFinds.length > 0 ? `<span class="tag green">✓ ${nexusFinds.length} NEXUS</span>` : ''}
+      ${riskFinds.length  > 0 ? `<span class="tag gold">⚠ ${riskFinds.length} RISKS</span>` : ''}
+    </div>`;
+
+  const cards = f.documents.map((doc, di) => {
+    const pc      = PRIORITY_COLOR[doc.priority] || '#888';
+    const scoreFds = (doc.findings || []).filter(x => x.type === 'score');
+    const nexusFds = (doc.findings || []).filter(x => x.type === 'nexus');
+    const riskFds  = (doc.findings || []).filter(x => x.type === 'risk');
+    const hasFd    = scoreFds.length + nexusFds.length + riskFds.length > 0;
+
+    return `
+      <div class="doc-card" id="doc-${fileIdx}-${di}" style="border-left-color:${pc}">
+        <div class="doc-card-header" onclick="toggleDocCard(${fileIdx},${di})">
+          <div class="doc-card-meta">
+            <span class="doc-priority-badge" style="color:${pc};border-color:${pc}">${doc.priority}</span>
+            <span class="doc-type-label">${doc.rawType || doc.label}</span>
+          </div>
+          <div class="doc-card-info">
+            <span>${doc.dateFormatted || doc.date}</span>
+            <span>${doc.pageCount} p.</span>
+            ${hasFd ? '<span style="color:var(--gold)">●</span>' : ''}
+            <span class="doc-toggle-icon">▶</span>
+          </div>
+        </div>
+        <div class="doc-card-body" id="doc-body-${fileIdx}-${di}" style="display:none">
+          <div class="doc-findings">
+            ${scoreFds.map(s => `
+              <div class="doc-finding ${s.status === 'above' ? 'critical' : s.status === 'at-risk' ? 'warning' : 'good'}">
+                <strong>${s.name}: ${s.score}</strong> (threshold: ${s.threshold})
+                ${s.status !== 'below' ? `<div class="doc-finding-note">${s.vac_note}</div>` : ''}
+              </div>`).join('')}
+            ${nexusFds.map(n => `
+              <div class="doc-finding good">✓ ${n.label}</div>`).join('')}
+            ${riskFds.map(r => `
+              <div class="doc-finding warning">⚠ ${r.label}${r.count > 1 ? ` (×${r.count})` : ''}</div>`).join('')}
+            ${!hasFd ? '<div class="doc-finding muted">No significant findings in this document.</div>' : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="file-nav">${tabs}</div>
+    <div class="result-header">
+      <div>
+        <div class="result-title">${f.name}</div>
+        <div class="result-meta">${f.pages} pages · ${f.documents.length} documents identified</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="copy-btn" onclick="showResult(${fileIdx}, true)">FLAT VIEW</button>
+        <button class="copy-btn" onclick="copyResult(${fileIdx})">COPY REPORT</button>
+      </div>
+    </div>
+    ${summaryBar}
+    <div class="doc-collection">${cards}</div>`;
+}
+
+function toggleDocCard(fileIdx, di) {
+  const body = document.getElementById(`doc-body-${fileIdx}-${di}`);
+  const card = document.getElementById(`doc-${fileIdx}-${di}`);
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  const icon = card.querySelector('.doc-toggle-icon');
+  if (icon) icon.textContent = open ? '▶' : '▼';
+}
+
+function scrollToDoc(fileIdx, di) {
+  const el = document.getElementById(`doc-${fileIdx}-${di}`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function selectFile(idx) {
+  if (files[idx] && files[idx].documents && files[idx].documents.length > 0) {
+    showFileView(idx);
+  } else {
+    showResult(idx);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
 // RENDER RESULTS
 // ═══════════════════════════════════════════════════════
 
-function showResult(idx) {
+function showResult(idx, forceFlat = false) {
+  if (!forceFlat && files[idx] && files[idx].documents && files[idx].documents.length > 0) {
+    return showFileView(idx);
+  }
   activeIdx = idx;
   renderQueue();
 
@@ -1564,35 +1874,59 @@ function buildReport(f) {
     `═══════════════════════════════════════════════════`,
     `FILE: ${f.name}`,
     `Pages: ${f.pages} | Words: ${a.wordCount}`,
-    `Document Types: ${a.docTypes.join(', ') || 'Not classified'}`,
-    `Dates detected: ${a.dates.join(', ')}`,
-    `═══════════════════════════════════════════════════`,
-    '',
-    '--- SCORED INSTRUMENTS ---',
-    a.scores.length > 0 ? a.scores.map(s =>
-      `${s.name}: ${s.value} (threshold: ${s.threshold}) → ${s.status.toUpperCase()} — ${s.status === 'above' ? s.label_above : s.label_below}`
-    ).join('\n') : 'None detected',
-    '',
-    '--- CLAIM RISKS ---',
-    a.risks.length > 0 ? a.risks.map(r =>
-      `${r.severity.toUpperCase()}: ${r.label} (appears ${r.count}x)\n  → ${r.explanation}`
-    ).join('\n') : 'No significant claim risks detected',
-    '',
-    '--- SERVICE CONNECTION LANGUAGE ---',
-    a.nexus.length > 0 ? a.nexus.map(n => `${n.strength.toUpperCase()}: ${n.label}`).join('\n')
-      : 'ABSENT — No service connection language found in this document',
-    '',
-    '--- CONDITIONS DOCUMENTED ---',
-    a.diagnoses.length > 0 ? [...new Set(a.diagnoses)].join('\n') : 'None detected',
-    a.suicidalityFound ? '\n⚠ SUICIDAL IDEATION DOCUMENTED' : '',
-    '',
-    '--- KEY EXCERPTS ---',
-    a.excerpts.length > 0 ? a.excerpts.map(e => `"${e}"`).join('\n') : 'None extracted',
-    '',
-    a.sdaFound ? '✓ SPECIAL DUTY AREA REFERENCE FOUND' : '',
-    a.medicationFound ? '✓ MEDICATION / PSYCHIATRIC TREATMENT DOCUMENTED' : '',
-    ''
   ];
+
+  if (f.documents && f.documents.length > 0) {
+    lines.push(`Documents identified: ${f.documents.length}`);
+    lines.push(`═══════════════════════════════════════════════════`);
+    lines.push('');
+    for (const doc of f.documents) {
+      lines.push(`[${doc.priority}] ${doc.rawType} — ${doc.dateFormatted || doc.date} (${doc.pageCount} page${doc.pageCount !== 1 ? 's' : ''})`);
+      if (doc.findings && doc.findings.length > 0) {
+        for (const fd of doc.findings) {
+          if (fd.type === 'score') {
+            lines.push(`  SCORE ${fd.name}: ${fd.score} (threshold: ${fd.threshold}) → ${fd.status.toUpperCase()}`);
+            if (fd.status !== 'below') lines.push(`    → ${fd.vac_note}`);
+          } else if (fd.type === 'nexus') {
+            lines.push(`  ✓ NEXUS: ${fd.label}`);
+          } else if (fd.type === 'risk') {
+            lines.push(`  ⚠ RISK: ${fd.label} (×${fd.count})`);
+          }
+        }
+      }
+      lines.push('');
+    }
+  } else {
+    lines.push(`Document Types: ${a.docTypes.join(', ') || 'Not classified'}`);
+    lines.push(`Dates detected: ${a.dates.join(', ')}`);
+    lines.push(`═══════════════════════════════════════════════════`);
+    lines.push('');
+    lines.push('--- SCORED INSTRUMENTS ---');
+    lines.push(a.scores.length > 0 ? a.scores.map(s =>
+      `${s.name}: ${s.value} (threshold: ${s.threshold}) → ${s.status.toUpperCase()} — ${s.status === 'above' ? s.label_above : s.label_below}`
+    ).join('\n') : 'None detected');
+    lines.push('');
+    lines.push('--- CLAIM RISKS ---');
+    lines.push(a.risks.length > 0 ? a.risks.map(r =>
+      `${r.severity.toUpperCase()}: ${r.label} (×${r.count})\n  → ${r.explanation}`
+    ).join('\n') : 'No significant claim risks detected');
+    lines.push('');
+    lines.push('--- SERVICE CONNECTION LANGUAGE ---');
+    lines.push(a.nexus.length > 0 ? a.nexus.map(n => `${n.strength.toUpperCase()}: ${n.label}`).join('\n')
+      : 'ABSENT — No service connection language found in this document');
+    lines.push('');
+    lines.push('--- CONDITIONS DOCUMENTED ---');
+    lines.push(a.diagnoses.length > 0 ? [...new Set(a.diagnoses)].join('\n') : 'None detected');
+    if (a.suicidalityFound) lines.push('\n⚠ SUICIDAL IDEATION DOCUMENTED');
+    lines.push('');
+    lines.push('--- KEY EXCERPTS ---');
+    lines.push(a.excerpts.length > 0 ? a.excerpts.map(e => `"${e}"`).join('\n') : 'None extracted');
+    lines.push('');
+    if (a.sdaFound) lines.push('✓ SPECIAL DUTY AREA REFERENCE FOUND');
+    if (a.medicationFound) lines.push('✓ MEDICATION / PSYCHIATRIC TREATMENT DOCUMENTED');
+    lines.push('');
+  }
+
   return lines.filter(l => l !== undefined).join('\n');
 }
 
@@ -1641,7 +1975,9 @@ function exportAll() {
   ].join('\n');
 
   const body = files.map(buildReport).join('\n\n');
-  const full = header + body;
+  const notesEl = document.getElementById('analyzerNotes');
+  const notes = notesEl ? notesEl.value.trim() : '';
+  const full = header + body + (notes ? '\n\n══════════════════════════════\nCASE NOTES\n══════════════════════════════\n' + notes : '');
 
   const blob = new Blob([full], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
@@ -1651,6 +1987,15 @@ function exportAll() {
   a.click();
   URL.revokeObjectURL(url);
 }
+</script>
+<script src="voice-engine.js?v=7"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof voiceCapable === 'function' && voiceCapable()) {
+    var btn = document.getElementById('voiceBtn_analyzerNotes');
+    if (btn) btn.style.display = '';
+  }
+});
 </script>
 </body>
 </html>

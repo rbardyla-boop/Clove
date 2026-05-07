@@ -161,15 +161,16 @@ body{background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
     Time to <em>fix it.</em>
   </div>
   <div class="hero-what">
-    115 cards. A hard truth and a 24-hour mission, every day. Evidence-based tools. No account. No server. Nothing leaves your device.
+    115 cards. A hard truth and a 24-hour mission, every day. Evidence-based tools. Offline AI that matches veterans to benefits without knowing the benefit name. Voice input. No account. No server. Nothing leaves your device.
   </div>
 
   <!-- Stats strip — trust signal before CTA -->
   <div class="hero-stats">
     <div class="hs-item"><div class="hs-num">115</div><div class="hs-label">CARDS</div></div>
-    <div class="hs-item"><div class="hs-num">51</div><div class="hs-label">TOOLS</div></div>
+    <div class="hs-item"><div class="hs-num">55+</div><div class="hs-label">TOOLS</div></div>
     <div class="hs-item"><div class="hs-num">41</div><div class="hs-label">LESSONS</div></div>
     <div class="hs-item"><div class="hs-num">0</div><div class="hs-label">SERVERS</div></div>
+    <div class="hs-item"><div class="hs-num" style="font-size:11px">AI</div><div class="hs-label">ON-DEVICE</div></div>
   </div>
 
   <div class="hero-cta-wrap">
@@ -286,6 +287,42 @@ body{background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
   </div>
 </div>
 
+<!-- ── VETERAN INTELLIGENCE ── -->
+<div class="sec">
+  <div class="sec-label" style="color:var(--blu)">VETERAN INTELLIGENCE</div>
+  <div class="sec-title">Built for CAF Veterans</div>
+  <div class="body-copy" style="margin-bottom:14px">Two tools built specifically for Canadian Armed Forces veterans navigating VAC claims and medical records. All processing runs locally — no uploads, no data sent anywhere.</div>
+
+  <div class="support-card" style="border-left:3px solid var(--blu)">
+    <div class="sc-hdr"><div class="sc-icon">🎖</div><div class="sc-name" style="color:var(--blu)">VAC NAVIGATOR</div></div>
+    <div class="sc-body">Describe your situation in plain language. Offline semantic AI — MiniLM-L6-v2 running locally in your browser — matches you to the 10 most relevant CAF benefits, ranked by relevance. No benefit name required.<br><br>
+    <span style="font-size:9px;font-family:monospace;color:var(--dim);line-height:2;display:block">
+      ✓ &nbsp;10 benefits — IRB, PSC, VIP, Rehabilitation, ETB and more<br>
+      ✓ &nbsp;"Kandahar destroyed me, can't work" → Income Replacement Benefit<br>
+      ✓ &nbsp;Evidence checklists, pro tips, denial playbooks, appeal paths<br>
+      ✓ &nbsp;Voice input — speak your situation, Whisper transcribes offline<br>
+      ✓ &nbsp;23MB AI model downloads once, serves from cache forever
+    </span>
+    </div>
+    <a href="./vac-navigator.html" class="link-btn" style="background:linear-gradient(135deg,#1565c0,#0d3d6b);font-size:9px">OPEN VAC NAVIGATOR →</a>
+  </div>
+
+  <div class="support-card" style="border-left:3px solid #546e7a;margin-top:0">
+    <div class="sc-hdr"><div class="sc-icon">📄</div><div class="sc-name" style="color:#90a4ae">CFHS / ATIP ANALYZER</div></div>
+    <div class="sc-body">Upload scanned ATIP medical packages. Tesseract.js OCR reads the scanned pages — English and French — and classifies every document by type, flags redactions, and surfaces nexus language and scored instruments your case manager needs.<br><br>
+    <span style="font-size:9px;font-family:monospace;color:var(--dim);line-height:2;display:block">
+      ✓ &nbsp;18 CFHS document types — EPDS, Mental Status, Clinical Psychology, CF 2985 and more<br>
+      ✓ &nbsp;Priority tiers: CRITICAL / HIGH / STANDARD / ADMIN<br>
+      ✓ &nbsp;Nexus language detection — "attributable to service", causal phrases<br>
+      ✓ &nbsp;Scored instruments: PCL-5, PHQ-9, GAD-7 flagged per document<br>
+      ✓ &nbsp;Redaction detection — flags blacked-out operations and unit names<br>
+      ✓ &nbsp;Zero upload — all OCR and analysis runs in-browser
+    </span>
+    </div>
+    <a href="./cfhs-analyzer.html" class="link-btn" style="background:linear-gradient(135deg,#37474f,#1c2f36);font-size:9px">OPEN CFHS ANALYZER →</a>
+  </div>
+</div>
+
 <!-- ── RECOVERY TOOLS — accordion ── -->
 <div class="sec">
   <div class="sec-label">TOOL SHED</div>
@@ -314,10 +351,14 @@ body{background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
       <div class="tool-item"><div class="t-icon" style="color:var(--gld)">📡</div><div><div class="t-name" style="color:var(--gld)">PATTERN RECON</div><div class="t-desc">Analytics. Streak patterns, word frequency, behavioral insights.</div></div></div>
       <div class="tool-item"><div class="t-icon" style="color:var(--gld)">📖</div><div><div class="t-name" style="color:var(--gld)">FIELD MANUAL</div><div class="t-desc">41 micro-lessons on the science behind every drill.</div></div></div>
       <div class="tool-item"><div class="t-icon" style="color:var(--gld)">⚙</div><div><div class="t-name" style="color:var(--gld)">SYSTEM CHECK</div><div class="t-desc">Data integrity audit. Corruption scan. Repair tools.</div></div></div>
+      <div class="tool-item"><div class="t-icon" style="color:#ec4899">🧩</div><div><div class="t-name" style="color:#ec4899">PARTS MAPPING</div><div class="t-desc">IFS-based. Map your internal family system — exile, firefighter, manager.</div></div></div>
+      <div class="tool-item"><div class="t-icon" style="color:#f97316">🔬</div><div><div class="t-name" style="color:#f97316">FAILURE AUTOPSY</div><div class="t-desc">Structured post-mortem. Extract the lesson without the spiral.</div></div></div>
+      <div class="tool-item"><div class="t-icon" style="color:#a78bfa">⚖</div><div><div class="t-name" style="color:#a78bfa">QUIT/STAY DRILL</div><div class="t-desc">Decision framework for the question you keep reopening.</div></div></div>
+      <div class="tool-item"><div class="t-icon" style="color:#34d399">📞</div><div><div class="t-name" style="color:#34d399">CONTACT PROTOCOL</div><div class="t-desc">Structured outreach. Script the call before you make it.</div></div></div>
     </div>
 
     <button class="expand-btn" id="toolToggle" onclick="toggleTools()" aria-expanded="false">
-      SHOW ALL 17 TOOLS ↓
+      SHOW ALL 21 TOOLS ↓
     </button>
   </div>
 </div>
@@ -346,6 +387,24 @@ body{background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
     <button class="expand-btn" id="adhdToggle" onclick="toggleAdhd()" aria-expanded="false">
       SHOW ALL 10 TOOLS ↓
     </button>
+  </div>
+</div>
+
+<!-- ── CLINICAL & INTELLIGENCE ── -->
+<div class="sec">
+  <div class="sec-label" style="color:var(--pur)">CLINICAL & INTELLIGENCE</div>
+  <div class="sec-title">Evidence-Based Clinical Tools</div>
+  <div class="body-copy" style="margin-bottom:12px">Structured clinical protocols and behavioral tracking. All data local. Therapist-ready export.</div>
+
+  <div class="tools-list">
+    <div class="tool-item"><div class="t-icon" style="color:#ef4444">📈</div><div><div class="t-name" style="color:#ef4444">EXPOSURE HIERARCHY</div><div class="t-desc">Build your fear ladder (SUDS 0–100). Log exposures. Track habituation over time.</div></div></div>
+    <div class="tool-item"><div class="t-icon" style="color:var(--grn)">⚡</div><div><div class="t-name" style="color:var(--grn)">BEHAVIORAL ACTIVATION</div><div class="t-desc">Rate pleasure and mastery after each activity. Map mood shifts over time.</div></div></div>
+    <div class="tool-item"><div class="t-icon" style="color:var(--blu)">🛡</div><div><div class="t-name" style="color:var(--blu)">RELAPSE PREVENTION PLAN</div><div class="t-desc">Triggers, warning signs, coping strategies — built before the crisis hits.</div></div></div>
+    <div class="tool-item"><div class="t-icon" style="color:var(--gld)">📋</div><div><div class="t-name" style="color:var(--gld)">AFTER-ACTION REVIEW</div><div class="t-desc">52-week structured retrospective. What worked, what didn't, what changes next.</div></div></div>
+    <div class="tool-item"><div class="t-icon" style="color:#0d9488">🟩</div><div><div class="t-name" style="color:#0d9488">ROUTINE HEATMAP</div><div class="t-desc">12-week GitHub-style consistency heatmap. Spot streaks and dead zones instantly.</div></div></div>
+    <div class="tool-item"><div class="t-icon" style="color:#3b82f6">📊</div><div><div class="t-name" style="color:#3b82f6">CLINICAL REPORT</div><div class="t-desc">Therapist-ready PHQ-9, GAD-7, PCL-5 trend charts. Print or share with your provider.</div></div></div>
+    <div class="tool-item"><div class="t-icon" style="color:var(--red)">🧠</div><div><div class="t-name" style="color:var(--red)">INTELLIGENCE OPS</div><div class="t-desc">Behavioral drift detection. Intensity trend analysis. The system watching itself.</div></div></div>
+    <div class="tool-item"><div class="t-icon" style="color:#6366f1">🌙</div><div><div class="t-name" style="color:#6366f1">NIGHT SHIFT ENGINE</div><div class="t-desc">Background analysis every 12 hours via PeriodicBackgroundSync. Insights ready when you wake up.</div></div></div>
   </div>
 </div>
 
@@ -378,7 +437,7 @@ body{background:#08080f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
 
 <!-- ── FOOTER ── -->
 <div class="footer">
-  <div class="f-ver">THE OPERATOR'S DECK · v1.1.0 · MARCH 2026</div>
+  <div class="f-ver">THE OPERATOR'S DECK · v1.9.0 · MAY 2026</div>
   <div class="f-copy">
     Created by Ryan Bardyla<br>
     Canadian Army veteran · Communications specialist<br>
@@ -411,7 +470,7 @@ function toggleTools(){
   var overflow = document.getElementById('toolOverflow');
   var btn      = document.getElementById('toolToggle');
   var open     = overflow.classList.toggle('open');
-  btn.textContent = open ? 'SHOW FEWER ↑' : 'SHOW ALL 17 TOOLS ↓';
+  btn.textContent = open ? 'SHOW FEWER ↑' : 'SHOW ALL 21 TOOLS ↓';
   btn.setAttribute('aria-expanded', String(open));
 }
 

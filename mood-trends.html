@@ -246,8 +246,8 @@ function render(){
 
 function renderTrendChart(dates,scores){
   var labels=dates.map(function(d){
-    var parts=d.split('/');
-    return parts.length>=2?(parts[0]+'/'+parts[1]):d;
+    var parts=d.split('-');
+    return parts.length>=3?(parts[1]+'/'+parts[2]):d;
   });
   var last30Labels=labels.slice(-30);
   var last30Scores=scores.slice(-30);
@@ -316,7 +316,7 @@ function renderHeatmap(zones){
 
   var d=new Date(start);
   while(d<=today){
-    var key=d.toLocaleDateString();
+    var key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
     var dayZones=zones[key];
     var score=dayZones?scoreDay(dayZones):0;
     var cls='lv0';
@@ -324,7 +324,7 @@ function renderHeatmap(zones){
     else if(score>25&&score<=50)cls='hm-warn';
     else if(score>50&&score<=75)cls='lv2';
     else if(score>75)cls='lv3';
-    cells.push('<div class="hm-cell '+cls+'" title="'+(d.toLocaleDateString())+': '+(dayZones?score+'%':'No data')+'">'+(d.getDate())+'</div>');
+    cells.push('<div class="hm-cell '+cls+'" title="'+key+': '+(dayZones?score+'%':'No data')+'">'+(d.getDate())+'</div>');
     d.setDate(d.getDate()+1);
   }
   grid.innerHTML=cells.join('');
