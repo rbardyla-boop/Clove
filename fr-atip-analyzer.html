@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FR Document Analyzer — Operator's Deck</title>
+<meta name="description" content="Analyze First Responder documents — RCMP, Police, Paramedic, Fire. Classifies document type, identifies applicable legislation, flags dual-law triggers. Zero data transmitted.">
+<script src="/scripts/pdf.min.js"></script>
+<script src="/scripts/tesseract.min.js"></script>
+<style>
+:root {
+  --bg: #08080f;
+  --bg2: #0f0f1a;
+  --bg3: #141420;
+  --dim: #1e1e2e;
+  --dim2: #2a2a3a;
+  --red: #c0392b;
+  --red2: #7a2218;
+  --gold: #d4a843;
+  --green: #27ae60;
+  --blue: #2980b9;
+  --muted: #555570;
+  --text: #d0d0e0;
+  --text2: #888899;
+  --mono: 'Courier New', monospace;
+  --sans: system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+/* HEADER */
+.header { background: var(--bg2); border-bottom: 2px solid var(--red2); padding: 16px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.header-title { font-family: var(--mono); font-size: 14px; color: var(--red); letter-spacing: 0.15em; text-transform: uppercase; }
+.header-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+.header-back { color: var(--muted); text-decoration: none; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; margin-right: 6px; }
+.header-back:hover { color: var(--text); }
+.privacy-pill { margin-left: auto; background: var(--bg3); border: 1px solid var(--green); color: var(--green); font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; text-transform: uppercase; }
+
+/* LAYOUT */
+.layout { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 60px); }
+@media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
+
+/* SIDEBAR */
+.sidebar { background: var(--bg2); border-right: 1px solid var(--dim); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.sidebar-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+
+/* DROP ZONE */
+.drop-zone { border: 2px dashed var(--dim2); background: var(--bg3); padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+.drop-zone:hover, .drop-zone.drag { border-color: var(--gold); }
+.drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop-icon { font-size: 24px; margin-bottom: 8px; }
+.drop-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.drop-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* SECTOR SELECTOR (sidebar) */
+.sector-sel { display: flex; flex-direction: column; gap: 6px; }
+.sector-opt { background: var(--bg3); border: 1px solid var(--dim2); color: var(--text2); font-family: var(--mono); font-size: 10px; padding: 7px 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.15s; text-align: left; }
+.sector-opt:hover { border-color: var(--muted); color: var(--text); }
+.sector-opt.active { border-color: var(--blue); color: var(--blue); background: rgba(41,128,185,0.1); }
+
+/* FILE LIST */
+.file-list { display: flex; flex-direction: column; gap: 8px; }
+.file-item { background: var(--bg3); border: 1px solid var(--dim2); padding: 10px 12px; }
+.file-name { font-family: var(--mono); font-size: 10px; color: var(--gold); letter-spacing: 0.05em; margin-bottom: 4px; word-break: break-all; }
+.file-meta { font-size: 11px; color: var(--muted); }
+.file-progress { height: 2px; background: var(--dim2); margin-top: 8px; }
+.file-progress-fill { height: 100%; background: var(--gold); transition: width 0.3s; width: 0; }
+.file-progress-fill.done { background: var(--green); }
+.file-progress-fill.error { background: var(--red); }
+
+/* MAIN PANEL */
+.main-panel { padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: var(--muted); text-align: center; }
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.empty-state-text { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ANALYSIS CARD */
+.analysis-card { background: var(--bg2); border: 1px solid var(--dim2); }
+.analysis-hdr { padding: 14px 16px; border-bottom: 1px solid var(--dim2); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.analysis-title { font-family: var(--mono); font-size: 11px; color: var(--text); letter-spacing: 0.1em; text-transform: uppercase; flex: 1; }
+.analysis-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.strength-label { font-family: var(--mono); font-size: 11px; }
+.strength-bar { height: 3px; background: var(--dim2); margin-top: 6px; width: 100%; }
+.strength-fill { height: 100%; transition: width 0.5s; }
+.analysis-section { padding: 14px 16px; border-bottom: 1px solid var(--dim2); }
+.analysis-section:last-child { border-bottom: none; }
+.sec-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+
+/* DOC TAGS */
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-family: var(--mono); font-size: 10px; padding: 3px 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+.tag-found { background: rgba(39,174,96,0.15); border: 1px solid rgba(39,174,96,0.4); color: var(--green); }
+.tag-warn  { background: rgba(212,168,67,0.15); border: 1px solid rgba(212,168,67,0.4); color: var(--gold); }
+.tag-missing { background: rgba(192,57,43,0.12); border: 1px solid rgba(192,57,43,0.3); color: var(--red); }
+.tag-info  { background: rgba(41,128,185,0.12); border: 1px solid rgba(41,128,185,0.3); color: var(--blue); }
+
+/* JURISDICTION CARD */
+.juris-card { background: var(--bg3); border: 1px solid var(--dim2); border-left: 3px solid var(--gold); padding: 14px 16px; }
+.juris-title { font-family: var(--mono); font-size: 10px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+.juris-act { font-size: 13px; color: var(--text); margin-bottom: 4px; padding-left: 14px; position: relative; }
+.juris-act::before { content: '►'; position: absolute; left: 0; font-size: 9px; color: var(--gold); top: 4px; }
+.juris-opi { font-size: 12px; color: var(--text2); margin-top: 8px; }
+.juris-note { font-size: 12px; color: var(--gold); margin-top: 8px; font-style: italic; }
+.dual-badge { display: inline-block; background: rgba(212,168,67,0.15); border: 1px solid var(--gold); color: var(--gold); font-family: var(--mono); font-size: 9px; padding: 2px 8px; text-transform: uppercase; margin-right: 6px; }
+
+/* CHECKLIST */
+.checklist { display: flex; flex-direction: column; gap: 8px; }
+.check-item { display: flex; gap: 10px; align-items: flex-start; }
+.check-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.check-body { flex: 1; }
+.check-label { font-size: 13px; }
+.check-fix { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.check-critical { font-family: var(--mono); font-size: 9px; background: rgba(192,57,43,0.2); border: 1px solid var(--red2); color: var(--red); padding: 1px 6px; margin-left: 8px; flex-shrink: 0; }
+
+/* NEXUS WARNING */
+.nexus-warning { background: rgba(192,57,43,0.08); border: 1px solid var(--red2); padding: 12px 14px; font-size: 13px; color: var(--text2); margin-top: 10px; }
+.nexus-warning strong { color: var(--red); display: block; margin-bottom: 6px; }
+
+/* DOCUMENT TYPE BADGE */
+.doc-type-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(41,128,185,0.1); border: 1px solid var(--blue); padding: 6px 12px; }
+.doc-type-label { font-family: var(--mono); font-size: 10px; color: var(--blue); letter-spacing: 0.1em; text-transform: uppercase; }
+.doc-type-act { font-family: var(--mono); font-size: 10px; color: var(--text2); }
+
+/* PRIVACY NOTE */
+.privacy-note { font-family: var(--mono); font-size: 10px; color: var(--muted); padding: 10px 12px; border-top: 1px solid var(--dim2); letter-spacing: 0.05em; }
+
+/* TEXT VIEWER */
+.text-viewer { background: var(--bg3); border: 1px solid var(--dim2); padding: 14px; font-family: var(--mono); font-size: 11px; white-space: pre-wrap; word-break: break-word; color: var(--text2); max-height: 400px; overflow-y: auto; line-height: 1.6; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-sm { background: transparent; border: 1px solid var(--dim2); color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 6px 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.15s; }
+.btn-sm:hover { border-color: var(--text); color: var(--text); }
+.btn-sm.dl { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn-sm.dl:hover { background: #1a6fa0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="header-back" href="toolshed.html">← TOOLSHED</a>
+  <div>
+    <div class="header-title">FR DOCUMENT ANALYZER</div>
+    <div class="header-sub">RCMP · POLICE · PARAMEDIC · FIRE — Jurisdictional Classification</div>
+  </div>
+  <div class="privacy-pill">ZERO DATA TRANSMITTED</div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div>
+      <div class="sidebar-label">1 — Drop Document (PDF or Image)</div>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".pdf,image/*" multiple>
+        <div class="drop-icon">📄</div>
+        <div class="drop-label">DROP FILE HERE</div>
+        <div class="drop-sub">PDF, PNG, JPG, TIFF accepted</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-label">2 — Select Sector (optional — improves classification)</div>
+      <div class="sector-sel" id="sectorSel">
+        <button class="sector-opt" data-sector="rcmp"             onclick="selectSector('rcmp',this)"             >RCMP (Federal)</button>
+        <button class="sector-opt" data-sector="provincial-police" onclick="selectSector('provincial-police',this)">Provincial Police</button>
+        <button class="sector-opt" data-sector="municipal-police"  onclick="selectSector('municipal-police',this)" >Municipal Police</button>
+        <button class="sector-opt" data-sector="paramedic"         onclick="selectSector('paramedic',this)"        >Paramedic / EMS</button>
+        <button class="sector-opt" data-sector="fire"              onclick="selectSector('fire',this)"             >Fire Services</button>
+        <button class="sector-opt" data-sector="auto"              onclick="selectSector('auto',this)" style="border-color:var(--gold);color:var(--gold)">AUTO-DETECT</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-label">Files Queued</div>
+      <div class="file-list" id="fileList">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">No files loaded yet.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.7;letter-spacing:0.05em">
+        PROCESSING: On-device only<br>
+        OCR: Tesseract WASM (embedded)<br>
+        CLASSIFICATION: Rule-based, no AI<br>
+        No data leaves your device.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel" id="mainPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state-icon">🔎</div>
+      <div class="empty-state-text">Drop a document to begin analysis</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;max-width:320px;text-align:center">
+        Classifies document type (ACR, employment record, conduct file, union grievance), identifies applicable legislation, and flags dual-law triggers.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+
+let selectedSector = 'auto';
+let analysisResults = [];
+
+// ═══════════════════════════════════════════════════════
+// DOCUMENT TAXONOMY — Classification Rules
+// ═══════════════════════════════════════════════════════
+
+const DOC_TYPES = [
+  {
+    id: 'acr',
+    label: 'Ambulance Call Record (ACR)',
+    governing_act: 'PHIPA, SO 2004, c 3, Sch A (patient health information)',
+    custodian: 'Health Information Custodian — EMS Service Medical Director',
+    flags: ['acr','ambulance call report','patient name','chief complaint','vitals','blood pressure','respiratory rate','heart rate','treatment rendered','patient dob','patient health number','ohip','triage','medic unit'],
+    sector_hint: 'paramedic',
+    critical_note: 'ACRs are PHIPA records documenting PATIENT health information. They are NOT MFIPPA employment records. The paramedic is NOT the custodian — the EMS service medical director is. Do not confuse this with your own employment records.'
+  },
+  {
+    id: 'employment-hr',
+    label: 'Employment / HR / Personnel Record',
+    governing_act: 'MFIPPA, RSO 1990, c M.56 (municipal) or FIPPA (provincial institution)',
+    custodian: 'Institution Head / FOI Coordinator — [Employer]',
+    flags: ['employee number','personnel file','employee record','performance review','sick leave','annual leave','probation','position description','salary','rate of pay','job classification','hire date','employment history'],
+    sector_hint: null,
+    critical_note: null
+  },
+  {
+    id: 'conduct-discipline',
+    label: 'Conduct / Discipline File',
+    governing_act: 'MFIPPA s.14 (may apply); CSPA 2019 / O. Reg 407/23 (police); FPPA Part IX (fire); RCMP Act Part IV (RCMP)',
+    custodian: 'Institution Head / FOI Coordinator — [Employer]',
+    flags: ['misconduct','conduct board','notice of hearing','notice of conduct','disciplinary','allegation','sanction','reprimand','suspension','demotion','dismissal','terminated','code of conduct','conduct measures','o. reg 407','part iv','cspa','fppa'],
+    sector_hint: null,
+    critical_note: null
+  },
+  {
+    id: 'wsib-claim',
+    label: 'WSIB / Workers Compensation Claim',
+    governing_act: 'WSIA, SO 1997, c 16, Sch A; s.15.1 (PTSD); s.15.3 (firefighter cancer)',
+    custodian: 'WSIB — wsib.ca',
+    flags: ['wsib','form 6','form 7','loss of earnings','health care benefits','labour market re-entry','workersafety','wsib claim number','return to work','functional abilities','initial entitlement','claim denied','wsib decision'],
+    sector_hint: null,
+    critical_note: null
+  },
+  {
+    id: 'union-grievance',
+    label: 'Union Grievance / Collective Agreement Record',
+    governing_act: 'Labour Relations Act, 1995, SO 1995, c 1, Sch A; applicable CBA',
+    custodian: 'Union (NPF, CUPE, IAFF, OPPA local)',
+    flags: ['grievance','arbitration','collective agreement','article','cba','union steward','labour relations board','olrb','without prejudice','settlement','mediation','grievance number','filed on','step 1','step 2','step 3'],
+    sector_hint: null,
+    critical_note: null
+  },
+  {
+    id: 'atip-response',
+    label: 'ATIP / FOI Response Package',
+    governing_act: 'Privacy Act (RCMP/federal); MFIPPA or FIPPA (ON provincial/municipal); PHIPA (health info)',
+    custodian: 'Originating institution',
+    flags: ['access to information','atip','privacy act','mfippa','fippa','phipa','access request','records released','records withheld','redacted','section 14','exemption claimed','foi','freedom of information','atip coordinator','pursuant to'],
+    sector_hint: null,
+    critical_note: null
+  },
+  {
+    id: 'rcmp-personnel',
+    label: 'RCMP Personnel / Service Record',
+    governing_act: 'Privacy Act, RSC 1985, c P-21; RCMP Act, RSC 1985, c R-10',
+    custodian: 'RCMP National Division — ATIP Office (atip-aiprp@rcmp-grc.gc.ca)',
+    flags: ['rcmp','royal canadian mounted police','regimental number','badge number','e division','f division','k division','npf','national police federation','detachment','form 1004','aps assessment','rcmp health services','force.gc.ca'],
+    sector_hint: 'rcmp',
+    critical_note: null
+  },
+  {
+    id: 'medical-psych',
+    label: 'Medical / Psychological Assessment',
+    governing_act: 'Privacy Act s.29 (federal); PHIPA s.52 (ON health info); MFIPPA / FIPPA (employer-commissioned assessments)',
+    custodian: 'Depends on who commissioned the assessment: employer (MFIPPA) or treating clinician (PHIPA)',
+    flags: ['diagnosis','ptsd','post traumatic','dsm-5','assessment','clinical report','psychiatric','psychological','psychologist','psychiatrist','physician','medical opinion','nexus','functional capacity','fitness for duty','medical category','cf2985'],
+    sector_hint: null,
+    critical_note: 'DUAL CUSTODIAN RISK: If commissioned by employer, may be MFIPPA record. If created by treating clinician for clinical purposes, it is a PHIPA record. Determine who holds the original and who commissioned it.'
+  },
+  {
+    id: 'pension-benefits',
+    label: 'Pension / Benefits Document',
+    governing_act: 'RCMP Superannuation Act (RCMP); OMERS Act (ON municipal); WSIA (WSIB); applicable provincial pension legislation',
+    custodian: 'Pension administrator or benefit adjudicator',
+    flags: ['pension','superannuation','omers','cpp','disability pension','death benefit','survivor benefit','annuity','pensionable service','commuted value','early retirement','pension statement','benefit entitlement'],
+    sector_hint: null,
+    critical_note: null
+  }
+];
+
+// Dual-law trigger phrases
+const DUAL_LAW_FLAGS = [
+  { phrase: 'contract policing',           label: 'Contract Policing Trigger', note: 'Provincial PIPA/FOIPPA may apply alongside federal Privacy Act' },
+  { phrase: 'provincial police services agreement', label: 'PPSA Trigger', note: 'Dual-law: Privacy Act + BC PIPA / AB PIPA overlay possible' },
+  { phrase: 'municipal agreement',         label: 'Municipal MOU Trigger', note: 'MFIPPA may apply to municipal operational data' },
+  { phrase: 'mou',                         label: 'MOU Trigger', note: 'Memorandum of Understanding — may invoke municipal legislation' },
+  { phrase: 'e division',                  label: 'E Division (BC)', note: 'RCMP in BC — potential BC PIPA overlay for operational data' },
+  { phrase: 'k division',                  label: 'K Division (AB)', note: 'RCMP in AB — potential AB PIPA overlay for operational data' },
+  { phrase: 'patient name',                label: 'PHIPA Trigger', note: 'Document may contain patient PHI — PHIPA governs, not MFIPPA' },
+  { phrase: 'chief complaint',             label: 'PHIPA Trigger (ACR)', note: 'ACR language detected — PHIPA custodian is EMS Medical Director, not employer' }
+];
+
+// Sector auto-detection keywords
+const SECTOR_KEYWORDS = {
+  rcmp:              ['rcmp','royal canadian mounted police','badge number','regimental','detachment','npf','national police federation','grc','rcmp act'],
+  'provincial-police': ['opp','ontario provincial police','surete','sûreté','sq','provincial police','fippa'],
+  'municipal-police':  ['police service','police officer','constable','detective','staff sergeant','inspector','mfippa','cspa','o. reg 407','tpa','oppa'],
+  paramedic:           ['paramedic','ambulance','ems','acr','ambulance call','cupe','pcp','acp','dispatcher','emt'],
+  fire:               ['firefighter','fire department','fire services','fire hall','iaff','fppa','fire chief','station','engine','ladder','aerial','wsib s.15.3','occupational cancer']
+};
+
+// Requirements checklist per document type
+const DOC_REQUIREMENTS = {
+  'acr': [
+    { id:'phipa_custodian', label:'Custodian identified as EMS Medical Director (not employer)', critical:true, keywords:['medical director','ems service'], missing_fix:'Verify document holder — ACRs are PHIPA records, not MFIPPA. Submit access request to EMS Medical Director, not HR.' },
+    { id:'patient_consent', label:'Patient consent obtained or waiver applicable', critical:true, keywords:['consent','authorization','waiver'], missing_fix:'Patient health information requires patient consent for disclosure. As the attending paramedic, you may access records about yourself via PHIPA s.52 but cannot access other patients\' records without consent.' },
+    { id:'phipa_s52', label:'PHIPA s.52 access right invoked', critical:false, keywords:['s.52','section 52','phipa'], missing_fix:'Reference PHIPA s.52 in your access request to the health information custodian.' }
+  ],
+  'employment-hr': [
+    { id:'mfippa_s36', label:'MFIPPA s.36 access right invoked', critical:true, keywords:['s.36','section 36','mfippa','personal information'], missing_fix:'File an MFIPPA s.36 personal access request with the institution\'s FOI Coordinator. $5 fee required.' },
+    { id:'identity_verified', label:'Government ID provided', critical:false, keywords:['id','identification','passport','drivers licence'], missing_fix:'Include a copy of government-issued photo ID with your request.' }
+  ],
+  'conduct-discipline': [
+    { id:'union_rep', label:'Union representation engaged', critical:true, keywords:['npf','oppa','iaff','cupe','union representative','legal counsel'], missing_fix:'Contact your union/association immediately — you have the right to representation at all conduct/discipline stages.' },
+    { id:'notice_received', label:'Formal notice of proceedings received', critical:true, keywords:['notice','hearing','allegation','conduct board'], missing_fix:'If you have not received written notice, this is a procedural defect. Request notice in writing via MFIPPA/ATIP.' },
+    { id:'appeal_window', label:'Appeal window identified', critical:false, keywords:['appeal','deadline','30 days','15 days'], missing_fix:'Check your CBA and governing statute (RCMP Act Part IV, CSPA, FPPA Part IX) for appeal time limits — these are often strict.' }
+  ],
+  'wsib-claim': [
+    { id:'form6_filed', label:'WSIB Form 6 filed', critical:true, keywords:['form 6','worker\'s report','filed'], missing_fix:'If Form 6 is not on file, file immediately at wsib.ca — delay beyond 6 months from injury may bar the claim.' },
+    { id:'form7_filed', label:'WSIB Form 7 (Employer\'s Report) filed', critical:false, keywords:['form 7','employer\'s report'], missing_fix:'Your employer must file Form 7. Follow up with HR to confirm they have done so.' },
+    { id:'ptsd_s15_cited', label:'PTSD presumption (WSIA s.15.1) cited if PTSD claim', critical:false, keywords:['s.15.1','section 15.1','ptsd presumption','presumption'], missing_fix:'If this is a PTSD claim, explicitly cite WSIA s.15.1 on Form 6. The presumption means WSIB cannot require proof of a specific triggering event.' },
+    { id:'cancer_s153_cited', label:'Cancer presumption (WSIA s.15.3) cited if firefighter cancer claim', critical:false, keywords:['s.15.3','section 15.3','cancer presumption','firefighter cancer'], missing_fix:'If this is a firefighter cancer claim, explicitly cite WSIA s.15.3 and confirm your cancer type is on the schedule.' }
+  ],
+  'union-grievance': [
+    { id:'cba_article_cited', label:'Specific CBA article cited', critical:true, keywords:['article','section','clause','collective agreement'], missing_fix:'Identify the specific CBA article violated. A grievance without a CBA citation is difficult to sustain.' },
+    { id:'time_limit', label:'Grievance filed within CBA time limit', critical:true, keywords:['filed','date','within','days'], missing_fix:'Most CBAs have strict time limits (10–20 days from the employer action). Confirm the filing date meets your CBA deadline.' }
+  ],
+  'atip-response': [
+    { id:'redaction_review', label:'Redaction basis identified', critical:false, keywords:['exemption','redacted','withheld','section'], missing_fix:'For each redacted passage, note which statutory section the institution claimed. You have the right to appeal any claimed exemption to the IPC (MFIPPA/FIPPA) or OPC (Privacy Act).' },
+    { id:'appeal_window', label:'IPC / OPC appeal window noted', critical:false, keywords:['appeal','ipc','opc','office of the privacy commissioner'], missing_fix:'You have the right to complain to the IPC (Ontario) or OPC (federal) if you believe records were wrongly withheld. Note the deadline in your institution\'s response letter.' }
+  ],
+  'default': [
+    { id:'custodian', label:'Records custodian identified', critical:true, keywords:['custodian','institution','employer','department'], missing_fix:'Identify who holds these records before submitting an access request.' },
+    { id:'governing_act', label:'Governing access legislation identified', critical:true, keywords:['privacy act','mfippa','fippa','phipa','foippa'], missing_fix:'Determine whether to use Privacy Act (federal), MFIPPA/FIPPA (ON), PHIPA (health), or provincial equivalent.' }
+  ]
+};
+
+// ═══════════════════════════════════════════════════════
+// SECTOR CONTROL
+// ═══════════════════════════════════════════════════════
+
+function selectSector(sector, btn) {
+  selectedSector = sector;
+  document.querySelectorAll('.sector-opt').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// FILE PROCESSING
+// ═══════════════════════════════════════════════════════
+
+function handleFiles(files) {
+  if (!files || files.length === 0) return;
+  document.getElementById('emptyState').style.display = 'none';
+  Array.from(files).forEach(file => processFile(file));
+}
+
+async function processFile(file) {
+  const id = 'f-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  addFileEntry(id, file.name);
+
+  try {
+    let rawText = '';
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (ext === 'pdf') {
+      rawText = await extractPDFText(file, id);
+    } else {
+      rawText = await ocrImage(file, id);
+    }
+
+    if (!rawText || rawText.trim().length < 30) {
+      setFileStatus(id, 'error', 'Could not extract text');
+      return;
+    }
+
+    setFileProgress(id, 100);
+    setFileStatus(id, 'done', `${rawText.split(/\s+/).length} words extracted`);
+
+    const analysis = analyzeDocument(rawText, file.name);
+    renderAnalysis(analysis, id);
+
+  } catch (err) {
+    setFileStatus(id, 'error', 'Processing failed: ' + (err.message || 'unknown error'));
+  }
+}
+
+async function extractPDFText(file, id) {
+  const arrayBuffer = await file.arrayBuffer();
+  const typedArray = new Uint8Array(arrayBuffer);
+  let fullText = '';
+
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js not loaded');
+  const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+  const total = pdf.numPages;
+
+  for (let i = 1; i <= total; i++) {
+    setFileProgress(id, Math.round((i / total) * 50));
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += pageText + '\n';
+  }
+
+  // If native text is sparse (scanned PDF), fall back to OCR on first page
+  if (fullText.replace(/\s/g,'').length < 100) {
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    fullText = await ocrCanvas(canvas, id, 50);
+  }
+
+  return fullText;
+}
+
+async function ocrImage(file, id) {
+  const img = await loadImage(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  return ocrCanvas(canvas, id, 0);
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function ocrCanvas(canvas, id, startPct) {
+  if (typeof Tesseract === 'undefined') throw new Error('Tesseract not loaded');
+  const result = await Tesseract.recognize(canvas, 'eng', {
+    logger: m => {
+      if (m.status === 'recognizing text') {
+        setFileProgress(id, startPct + Math.round(m.progress * (100 - startPct)));
+      }
+    }
+  });
+  return result.data.text;
+}
+
+// ═══════════════════════════════════════════════════════
+// DOCUMENT ANALYSIS ENGINE
+// ═══════════════════════════════════════════════════════
+
+function analyzeDocument(rawText, filename) {
+  const lower = rawText.toLowerCase();
+
+  // 1. Detect document type
+  const typeScores = DOC_TYPES.map(dt => {
+    const hits = dt.flags.filter(f => lower.includes(f)).length;
+    return { type: dt, score: hits };
+  }).sort((a, b) => b.score - a.score);
+
+  const detectedType = typeScores[0].score > 0 ? typeScores[0].type : null;
+  const secondType   = typeScores[1]?.score > 0 ? typeScores[1].type : null;
+
+  // 2. Auto-detect sector if needed
+  let effectiveSector = selectedSector === 'auto' ? null : selectedSector;
+  if (!effectiveSector) {
+    const sectorScores = Object.entries(SECTOR_KEYWORDS).map(([s, kws]) => ({
+      sector: s, score: kws.filter(k => lower.includes(k)).length
+    })).sort((a, b) => b.score - a.score);
+    effectiveSector = sectorScores[0].score > 0 ? sectorScores[0].sector : null;
+  }
+
+  // 3. Dual-law triggers
+  const dualLawHits = DUAL_LAW_FLAGS.filter(f => lower.includes(f.phrase));
+
+  // 4. Run requirements checklist
+  const reqKey = detectedType ? detectedType.id : 'default';
+  const reqs = DOC_REQUIREMENTS[reqKey] || DOC_REQUIREMENTS['default'];
+  const reqResults = reqs.map(req => ({
+    ...req,
+    present: req.keywords.some(k => lower.includes(k))
+  }));
+
+  // 5. Key terms extracted
+  const diagnoses = ['ptsd','post traumatic','depression','anxiety','tbi','concussion','lumbar','mesothelioma','cancer','leukemia','lymphoma','burnout','osi'].filter(d => lower.includes(d));
+  const nexusTerms = ['service-related','attributable to','arising from','caused by','aggravated by','related to service','in the course of employment','occupational','line of duty','duty-related','while on duty','arising out of'].filter(n => lower.includes(n));
+  const legislationMentioned = ['privacy act','mfippa','fippa','phipa','wsia','wsib','fppa','cspa','rcmp act','labour relations act','pipeda','foippa','pipa'].filter(l => lower.includes(l));
+  const dateTerms = ['january','february','march','april','may','june','july','august','september','october','november','december'].filter(d => lower.includes(d));
+
+  // 6. Strength calculation
+  const criticalMet = reqResults.filter(r => r.critical).every(r => r.present);
+  const metCount = reqResults.filter(r => r.present).length;
+  const strengthPct = reqResults.length > 0 ? Math.round((metCount / reqResults.length) * 100) : 0;
+  let strengthLabel, strengthColor;
+  if (criticalMet && strengthPct >= 80) { strengthLabel = 'STRONG'; strengthColor = 'var(--green)'; }
+  else if (criticalMet && strengthPct >= 50) { strengthLabel = 'ADEQUATE — GAPS PRESENT'; strengthColor = 'var(--gold)'; }
+  else { strengthLabel = 'GAPS DETECTED'; strengthColor = 'var(--red)'; }
+
+  return { filename, rawText, lower, detectedType, secondType, effectiveSector, dualLawHits, reqResults, diagnoses, nexusTerms, legislationMentioned, dateTerms, strengthPct, strengthLabel, strengthColor, criticalMet, wordCount: rawText.split(/\s+/).filter(w => w).length, pageEstimate: Math.max(1, Math.round(rawText.length / 2500)) };
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ANALYSIS
+// ═══════════════════════════════════════════════════════
+
+function renderAnalysis(a, fileId) {
+  const panel = document.getElementById('mainPanel');
+  const cardId = 'analysis-' + fileId;
+
+  const sectorLabel = a.effectiveSector ? ({
+    rcmp: 'RCMP (Federal)', 'provincial-police': 'Provincial Police', 'municipal-police': 'Municipal Police',
+    paramedic: 'Paramedic / EMS', fire: 'Fire Services'
+  }[a.effectiveSector] || a.effectiveSector) : 'UNKNOWN SECTOR';
+
+  // Document type badge
+  const typeHtml = a.detectedType
+    ? `<div class="doc-type-badge"><span class="doc-type-label">${esc(a.detectedType.label)}</span><span class="doc-type-act">${esc(a.detectedType.governing_act)}</span></div>`
+    : `<div class="tag tag-warn">Document type unclear — review manually</div>`;
+
+  const secondTypeHtml = (a.secondType && a.secondType.id !== a.detectedType?.id)
+    ? `<div style="margin-top:8px;font-size:12px;color:var(--text2)">Also possible: <strong>${esc(a.secondType.label)}</strong></div>` : '';
+
+  // Critical note
+  const critNoteHtml = a.detectedType?.critical_note
+    ? `<div class="nexus-warning"><strong>⚠ CRITICAL CLASSIFICATION NOTE</strong>${esc(a.detectedType.critical_note)}</div>` : '';
+
+  // Jurisdiction panel
+  let jurisHtml = '';
+  if (a.detectedType || a.effectiveSector) {
+    const acts = a.detectedType ? [a.detectedType.governing_act] : [];
+    const custodian = a.detectedType?.custodian || 'Verify with institution';
+    const dualHtml = a.dualLawHits.length > 0
+      ? `<div style="margin-bottom:10px"><span class="dual-badge">DUAL-LAW TRIGGER</span> ${a.dualLawHits.map(d => `<span style="font-size:12px;color:var(--gold)">${esc(d.label)}: ${esc(d.note)}</span>`).join(' | ')}</div>` : '';
+    jurisHtml = `
+<div class="analysis-section">
+  <div class="sec-label">// Jurisdictional Classification</div>
+  <div class="juris-card">
+    <div class="juris-title">APPLICABLE LEGISLATION — DOCUMENT TYPE: ${esc(a.detectedType?.label || 'NOT DETERMINED')}</div>
+    ${dualHtml}
+    ${acts.map(act => `<div class="juris-act">${esc(act)}</div>`).join('')}
+    <div class="juris-opi"><strong>Custodian:</strong> ${esc(custodian)}</div>
+    ${a.detectedType?.critical_note ? `<div class="juris-note">${esc(a.detectedType.critical_note)}</div>` : ''}
+  </div>
+</div>`;
+  }
+
+  // Requirements checklist
+  const reqsHtml = a.reqResults.map(req => {
+    const icon = req.present
+      ? `<span class="check-icon" style="color:var(--green)">✓</span>`
+      : `<span class="check-icon" style="color:var(--red)">✗</span>`;
+    return `<div class="check-item">
+      ${icon}
+      <div class="check-body">
+        <div class="check-label">${esc(req.label)}${req.critical && !req.present ? '<span class="check-critical">CRITICAL</span>' : ''}</div>
+        ${!req.present && req.missing_fix ? `<div class="check-fix">→ ${esc(req.missing_fix)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Terms detected
+  const diagHtml = a.diagnoses.length > 0
+    ? a.diagnoses.map(d => `<span class="tag tag-found">${esc(d)}</span>`).join('')
+    : `<span class="tag tag-missing">NO DIAGNOSIS TERMS DETECTED</span>`;
+
+  const nexusHtml = a.nexusTerms.length > 0
+    ? a.nexusTerms.map(n => `<span class="tag tag-found">${esc(n)}</span>`).join('')
+    : `<span class="tag tag-missing">NO SERVICE-CONNECTION LANGUAGE DETECTED</span>`;
+
+  const nexusWarnHtml = a.nexusTerms.length === 0 && (a.diagnoses.length > 0 || (a.detectedType && ['medical-psych','wsib-claim'].includes(a.detectedType.id)))
+    ? `<div class="nexus-warning"><strong>MISSING: SERVICE-CONNECTION LANGUAGE</strong>For WSIB and ATIP claim documents, the most common reason for denial is the absence of explicit language linking the condition to employment duties. Ensure your supporting medical letter contains phrasing such as:<br><br>"In my medical opinion, [PATIENT NAME]'s [DIAGNOSIS] is caused by / aggravated by / related to their duties as [ROLE], specifically [OPERATIONAL EXPOSURE]."</div>` : '';
+
+  const legHtml = a.legislationMentioned.length > 0
+    ? a.legislationMentioned.map(l => `<span class="tag tag-info">${esc(l)}</span>`).join('')
+    : `<span class="tag tag-warn">NO LEGISLATION CITED IN DOCUMENT</span>`;
+
+  const html = `
+<div class="analysis-card" id="${cardId}">
+  <div class="analysis-hdr">
+    <div>
+      <div class="analysis-title">// DOCUMENT ANALYSIS — ${esc(a.filename)}</div>
+      <div class="analysis-meta">~${a.pageEstimate} page(s) · ${a.wordCount} words · Sector: ${esc(sectorLabel)}</div>
+    </div>
+    <div>
+      <div class="strength-label" style="color:${a.strengthColor}">DOCUMENT STATUS: ${esc(a.strengthLabel)}</div>
+      <div class="strength-bar"><div class="strength-fill" style="width:${a.strengthPct}%;background:${a.strengthColor}"></div></div>
+    </div>
+  </div>
+
+  <div class="analysis-section">
+    <div class="sec-label">// Document Type Classification</div>
+    ${typeHtml}${secondTypeHtml}${critNoteHtml}
+  </div>
+
+  ${jurisHtml}
+
+  <div class="analysis-section">
+    <div class="sec-label">// Document Requirements Checklist</div>
+    <div class="checklist">${reqsHtml}</div>
+  </div>
+
+  <div class="analysis-section">
+    <div class="sec-label">// Diagnoses / Medical Terms Detected</div>
+    <div class="tags">${diagHtml}</div>
+  </div>
+
+  <div class="analysis-section">
+    <div class="sec-label">// Service-Connection / Nexus Language</div>
+    <div class="tags">${nexusHtml}</div>
+    ${nexusWarnHtml}
+  </div>
+
+  <div class="analysis-section">
+    <div class="sec-label">// Legislation Referenced in Document</div>
+    <div class="tags">${legHtml}</div>
+  </div>
+
+  <div class="analysis-section">
+    <div class="sec-label">// Extracted Text (Raw OCR)</div>
+    <div class="btn-row" style="margin-bottom:8px">
+      <button class="btn-sm" onclick="toggleText('${cardId}-text')">SHOW / HIDE TEXT</button>
+      <button class="btn-sm dl" onclick="downloadText('${cardId}')">↓ DOWNLOAD TEXT (.txt)</button>
+    </div>
+    <div class="text-viewer" id="${cardId}-text" style="display:none">${esc(a.rawText.slice(0, 8000))}${a.rawText.length > 8000 ? '\n... [truncated at 8,000 chars for display — full text available in download]' : ''}</div>
+  </div>
+
+  <div class="privacy-note">
+    ⚿ ZERO DATA TRANSMITTED — All analysis ran locally on your device.
+    This document never left your browser. Reload or close this page to clear document data from memory.
+  </div>
+</div>`;
+
+  // Store raw text for download
+  window['_rawText_' + cardId] = a.rawText;
+  window['_filename_' + cardId] = a.filename;
+
+  panel.insertAdjacentHTML('afterbegin', html);
+}
+
+function toggleText(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function downloadText(cardId) {
+  const text = window['_rawText_' + cardId] || '';
+  const filename = window['_filename_' + cardId] || 'document';
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = filename.replace(/\.[^.]+$/, '') + '-extracted.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════
+// FILE LIST UI
+// ═══════════════════════════════════════════════════════
+
+function addFileEntry(id, name) {
+  const list = document.getElementById('fileList');
+  if (list.querySelector('[data-placeholder]')) list.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'file-item';
+  el.id = 'fi-' + id;
+  el.innerHTML = `<div class="file-name">${esc(name)}</div><div class="file-meta" id="fm-${id}">Queued…</div><div class="file-progress"><div class="file-progress-fill" id="fp-${id}"></div></div>`;
+  list.appendChild(el);
+}
+
+function setFileProgress(id, pct) {
+  const bar = document.getElementById('fp-' + id);
+  if (bar) bar.style.width = pct + '%';
+}
+
+function setFileStatus(id, state, msg) {
+  const meta = document.getElementById('fm-' + id);
+  const bar  = document.getElementById('fp-' + id);
+  if (meta) { meta.textContent = msg; meta.style.color = state === 'done' ? 'var(--green)' : state === 'error' ? 'var(--red)' : 'var(--muted)'; }
+  if (bar)  { bar.classList.toggle('done', state === 'done'); bar.classList.toggle('error', state === 'error'); }
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('fileInput');
+  const dropZone  = document.getElementById('dropZone');
+
+  fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  // Paste support
+  document.addEventListener('paste', e => {
+    const text = e.clipboardData?.getData('text');
+    if (text && text.trim().length > 50) {
+      document.getElementById('emptyState').style.display = 'none';
+      const a = analyzeDocument(text, 'pasted-text.txt');
+      renderAnalysis(a, 'paste-' + Date.now());
+    }
+  });
+
+  // Auto-select AUTO-DETECT
+  const autoBtn = document.querySelector('.sector-opt[data-sector="auto"]');
+  if (autoBtn) autoBtn.classList.add('active');
+});
+</script>
+</body>
+</html>

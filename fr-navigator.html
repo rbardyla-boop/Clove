@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Free benefits and rights navigator for Canadian First Responders — RCMP, Police, Paramedics, Fire Services. Jurisdiction-aware. Fully offline, no data leaves your device.">
+<title>First Responder Navigator — Operator's Deck</title>
+<style>
+  :root {
+    --bg: #08080f;
+    --bg2: #0f0f1a;
+    --bg3: #141420;
+    --red: #c0392b;
+    --red-dim: #7a2218;
+    --gold: #d4a843;
+    --green: #27ae60;
+    --blue: #2980b9;
+    --dim: #2a2a3a;
+    --muted: #555570;
+    --text: #d0d0e0;
+    --text-dim: #888899;
+    --mono: 'DM Mono', 'Courier New', monospace;
+    --sans: system-ui, -apple-system, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; min-height: 100vh; }
+
+  .header { background: var(--bg2); border-bottom: 1px solid var(--dim); padding: 14px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .header-back { color: var(--muted); text-decoration: none; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; }
+  .header-back:hover { color: var(--text); }
+  .header-title { font-family: var(--mono); font-size: 13px; color: var(--red); letter-spacing: 0.1em; text-transform: uppercase; }
+  .header-sep { color: var(--dim); font-size: 18px; }
+  .privacy-pill { margin-left: auto; background: var(--bg3); border: 1px solid var(--green); color: var(--green); font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; text-transform: uppercase; }
+
+  .container { max-width: 820px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  .intro { background: var(--bg2); border: 1px solid var(--dim); border-left: 3px solid var(--blue); padding: 18px 20px; margin-bottom: 24px; }
+  .intro-title { font-family: var(--mono); font-size: 11px; color: var(--blue); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .intro p { color: var(--text-dim); font-size: 14px; margin-bottom: 6px; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* ── SELECTOR PANEL ── */
+  .selector-panel { background: var(--bg2); border: 1px solid var(--dim); padding: 18px 20px; margin-bottom: 20px; }
+  .selector-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+  .selector-row:last-child { margin-bottom: 0; }
+  .selector-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .sector-btn {
+    background: var(--bg3); border: 1px solid var(--dim); color: var(--text-dim);
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    padding: 8px 14px; cursor: pointer; transition: all 0.15s; text-transform: uppercase;
+  }
+  .sector-btn:hover { border-color: var(--muted); color: var(--text); }
+  .sector-btn.active { border-color: var(--blue); color: #fff; background: rgba(41,128,185,0.2); }
+  .sector-btn.active.rcmp { border-color: var(--red); color: var(--red); background: rgba(192,57,43,0.1); }
+  .sector-btn.active.fire { border-color: var(--red); color: var(--red); background: rgba(192,57,43,0.1); }
+
+  .province-select, .status-select {
+    background: var(--bg3); border: 1px solid var(--dim); color: var(--text);
+    font-family: var(--mono); font-size: 11px; padding: 8px 12px; letter-spacing: 0.05em;
+    outline: none; cursor: pointer; min-width: 200px;
+  }
+  .province-select:focus, .status-select:focus { border-color: var(--blue); }
+
+  .fire-status-row { display: none; }
+  .fire-status-row.visible { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+  /* ── JURISDICTION PANEL ── */
+  .jurisdiction-panel { display: none; background: var(--bg2); border: 1px solid var(--dim); border-left: 3px solid var(--gold); padding: 16px 18px; margin-bottom: 20px; }
+  .jurisdiction-panel.visible { display: block; }
+  .jurisdiction-title { font-family: var(--mono); font-size: 10px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .jurisdiction-act { font-family: var(--mono); font-size: 12px; color: var(--text); margin-bottom: 4px; }
+  .jurisdiction-act span { color: var(--gold); }
+  .jurisdiction-opi { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+  .jurisdiction-note { font-size: 12px; color: var(--gold); margin-top: 8px; font-style: italic; }
+  .dual-law-badge { display: inline-block; background: rgba(212,168,67,0.15); border: 1px solid var(--gold); color: var(--gold); font-family: var(--mono); font-size: 9px; padding: 2px 8px; text-transform: uppercase; margin-right: 6px; vertical-align: middle; }
+
+  /* ── INPUT SECTION ── */
+  .input-section { background: var(--bg2); border: 1px solid var(--dim); padding: 20px; margin-bottom: 24px; }
+  .section-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .situation-input { width: 100%; background: var(--bg3); border: 1px solid var(--dim); color: var(--text); font-family: var(--sans); font-size: 15px; padding: 14px; resize: vertical; min-height: 120px; line-height: 1.5; outline: none; transition: border-color 0.2s; }
+  .situation-input:focus { border-color: var(--blue); }
+  .situation-input::placeholder { color: var(--muted); }
+  .prompts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .prompt-chip { background: var(--bg3); border: 1px solid var(--dim); color: var(--text-dim); font-size: 12px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+  .prompt-chip:hover { border-color: var(--blue); color: var(--text); }
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--red); color: #fff; border: none; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 24px; cursor: pointer; transition: background 0.15s; }
+  .btn-primary:hover { background: #a93226; }
+  .btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--dim); font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; padding: 11px 16px; cursor: pointer; transition: all 0.15s; }
+  .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+  .char-count { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  .status-bar { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 8px 0; letter-spacing: 0.05em; display: none; }
+
+  /* ── RESULTS ── */
+  .results { display: none; }
+  .results-header { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--dim); }
+
+  /* ── BENEFIT CARD ── */
+  .benefit-card { background: var(--bg2); border: 1px solid var(--dim); margin-bottom: 16px; overflow: hidden; }
+  .benefit-card.rank-1 { border-left: 3px solid var(--red); }
+  .benefit-card.rank-2 { border-left: 3px solid var(--gold); }
+  .benefit-card.rank-3 { border-left: 3px solid var(--muted); }
+  .benefit-header { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; user-select: none; }
+  .benefit-header:hover { background: var(--bg3); }
+  .benefit-rank { font-family: var(--mono); font-size: 18px; font-weight: bold; width: 28px; flex-shrink: 0; }
+  .rank-1 .benefit-rank { color: var(--red); }
+  .rank-2 .benefit-rank { color: var(--gold); }
+  .rank-3 .benefit-rank { color: var(--muted); }
+  .benefit-info { flex: 1; min-width: 0; }
+  .benefit-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .benefit-short { font-size: 12px; color: var(--text-dim); }
+  .benefit-law { font-family: var(--mono); font-size: 10px; color: var(--blue); margin-top: 3px; }
+  .benefit-score { font-family: var(--mono); font-size: 11px; color: var(--muted); flex-shrink: 0; text-align: right; }
+  .score-bar { height: 3px; background: var(--dim); margin-top: 4px; width: 60px; }
+  .score-fill { height: 100%; background: var(--red); transition: width 0.3s; }
+  .rank-2 .score-fill { background: var(--gold); }
+  .rank-3 .score-fill { background: var(--muted); }
+  .expand-icon { font-size: 12px; color: var(--muted); flex-shrink: 0; transition: transform 0.2s; }
+  .benefit-card.open .expand-icon { transform: rotate(180deg); }
+
+  .benefit-body { display: none; border-top: 1px solid var(--dim); }
+  .benefit-card.open .benefit-body { display: block; }
+  .benefit-section { padding: 14px 16px; border-bottom: 1px solid var(--dim); }
+  .benefit-section:last-child { border-bottom: none; }
+  .subsection-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+
+  .condition-list { display: flex; flex-direction: column; gap: 6px; }
+  .condition-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+  .condition-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .condition-met { color: var(--green); }
+  .condition-unknown { color: var(--gold); }
+  .condition-text { color: var(--text-dim); }
+  .condition-text.met { color: var(--text); }
+
+  .evidence-list { display: flex; flex-direction: column; gap: 10px; }
+  .evidence-item { font-size: 13px; }
+  .evidence-doc { color: var(--text); font-weight: 500; margin-bottom: 2px; }
+  .evidence-doc::before { content: '📋 '; }
+  .evidence-how { color: var(--text-dim); font-size: 12px; padding-left: 22px; }
+
+  .question-list { display: flex; flex-direction: column; gap: 8px; }
+  .question-item { font-size: 13px; color: var(--text-dim); padding-left: 16px; position: relative; }
+  .question-item::before { content: '→'; position: absolute; left: 0; color: var(--muted); font-family: var(--mono); }
+
+  .form-draft { background: var(--bg3); border: 1px solid var(--dim); padding: 14px; font-size: 13px; line-height: 1.7; color: var(--text); white-space: pre-wrap; font-family: var(--sans); }
+  .entity-blank { background: var(--red-dim); color: #fff; padding: 1px 6px; font-family: var(--mono); font-size: 11px; }
+  .btn-copy { background: transparent; border: 1px solid var(--dim); color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 6px 12px; cursor: pointer; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.15s; }
+  .btn-copy:hover { border-color: var(--text); color: var(--text); }
+  .btn-copy.copied { border-color: var(--green); color: var(--green); }
+
+  /* ── ATIP SECTION ── */
+  .atip-section { background: var(--bg3); border: 1px solid var(--blue); padding: 16px 18px; margin-top: 8px; }
+  .atip-title { font-family: var(--mono); font-size: 10px; color: var(--blue); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+  .atip-letter-preview { background: var(--bg); border: 1px solid var(--dim); padding: 14px; font-family: var(--mono); font-size: 11px; white-space: pre; overflow-x: auto; line-height: 1.6; color: var(--text); margin-top: 10px; display: none; }
+  .atip-letter-preview.visible { display: block; }
+  .atip-fields { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .atip-field-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .atip-field { flex: 1; min-width: 200px; }
+  .atip-field label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .atip-field input { width: 100%; background: var(--bg2); border: 1px solid var(--dim); color: var(--text); font-family: var(--sans); font-size: 13px; padding: 8px 10px; outline: none; }
+  .atip-field input:focus { border-color: var(--blue); }
+  .atip-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-atip { background: transparent; border: 1px solid var(--blue); color: var(--blue); font-family: var(--mono); font-size: 10px; padding: 8px 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.15s; }
+  .btn-atip:hover { background: rgba(41,128,185,0.15); }
+  .btn-atip.dl { background: var(--blue); color: #fff; }
+  .btn-atip.dl:hover { background: #1a6fa0; }
+
+  /* ── UNION SOURCE ── */
+  .union-source { background: rgba(41,128,185,0.07); border-left: 2px solid var(--blue); padding: 10px 14px; font-size: 12px; color: var(--text-dim); }
+  .union-source strong { color: var(--blue); }
+
+  /* ── NO RESULTS ── */
+  .no-results { display: none; background: var(--bg2); border: 1px solid var(--dim); padding: 24px 20px; text-align: center; color: var(--text-dim); }
+  .no-results-title { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+
+  /* ── VOLUNTEER WARNING ── */
+  .volunteer-warning { display: none; background: rgba(212,168,67,0.08); border: 1px solid var(--gold); border-left: 3px solid var(--gold); padding: 14px 16px; margin-bottom: 16px; font-size: 13px; color: var(--text-dim); }
+  .volunteer-warning.visible { display: block; }
+  .volunteer-warning strong { color: var(--gold); }
+
+  /* ── CRISIS BOX ── */
+  .crisis-box { background: rgba(192,57,43,0.07); border: 1px solid var(--red-dim); padding: 16px; margin-top: 32px; }
+  .crisis-title { font-family: var(--mono); font-size: 10px; color: var(--red); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .crisis-item { font-size: 13px; color: var(--text-dim); margin-bottom: 5px; }
+  .crisis-item strong { color: var(--text); }
+
+  .offline-banner { display: none; background: rgba(212,168,67,0.12); border: 1px solid var(--gold); padding: 10px 16px; font-family: var(--mono); font-size: 11px; color: var(--gold); text-align: center; margin-bottom: 16px; }
+
+  @media (max-width: 600px) {
+    .sector-btn { font-size: 10px; padding: 7px 10px; }
+    .province-select { min-width: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="header-back" href="toolshed.html" aria-label="Back to Toolshed">← TOOLSHED</a>
+  <span class="header-sep">|</span>
+  <div class="header-title">FIRST RESPONDER NAVIGATOR</div>
+  <span class="header-sep">|</span>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">RCMP · POLICE · PARAMEDIC · FIRE</div>
+  <div class="privacy-pill">ZERO DATA TRANSMITTED</div>
+</div>
+
+<div class="container">
+  <div id="offlineBanner" class="offline-banner">OFFLINE MODE — All features work without internet</div>
+
+  <div class="intro">
+    <div class="intro-title">// WHAT THIS TOOL DOES</div>
+    <p>Select your sector, province, and describe your situation. The engine matches your description to relevant benefits, rights, and ATIP request pathways under the correct Canadian legislation.</p>
+    <p>All processing is on-device. No accounts, no data transmission, no third-party analytics.</p>
+    <p style="color:var(--gold);font-size:12px;margin-top:8px"><strong>Ontario used as primary provincial example.</strong> If you are in BC, AB, or another province, substitute FOIPPA/PIPA for MFIPPA/FIPPA and WCB for WSIB. The jurisdictional logic panel will flag this.</p>
+  </div>
+
+  <!-- SECTOR SELECTOR -->
+  <div class="selector-panel">
+    <div class="selector-label">1 — Select Your Sector</div>
+    <div class="selector-row" id="sectorRow">
+      <button class="sector-btn rcmp" data-sector="rcmp" onclick="setSector('rcmp',this)" aria-label="RCMP sector">RCMP (Federal)</button>
+      <button class="sector-btn" data-sector="provincial-police" onclick="setSector('provincial-police',this)" aria-label="Provincial police sector">Provincial Police (OPP / SQ)</button>
+      <button class="sector-btn" data-sector="municipal-police" onclick="setSector('municipal-police',this)" aria-label="Municipal police sector">Municipal Police</button>
+      <button class="sector-btn" data-sector="paramedic" onclick="setSector('paramedic',this)" aria-label="Paramedic sector">Paramedic / EMS</button>
+      <button class="sector-btn fire" data-sector="fire" onclick="setSector('fire',this)" aria-label="Fire services sector">Fire Services</button>
+    </div>
+
+    <div class="selector-label" style="margin-top:14px">2 — Select Province of Employment</div>
+    <div class="selector-row">
+      <select class="province-select" id="provinceSelect" onchange="setProvince(this.value)" aria-label="Select province">
+        <option value="">-- Select province --</option>
+        <option value="ON">Ontario (ON)</option>
+        <option value="BC">British Columbia (BC)</option>
+        <option value="AB">Alberta (AB)</option>
+        <option value="SK">Saskatchewan (SK)</option>
+        <option value="MB">Manitoba (MB)</option>
+        <option value="QC">Quebec (QC)</option>
+        <option value="NB">New Brunswick (NB)</option>
+        <option value="NS">Nova Scotia (NS)</option>
+        <option value="NL">Newfoundland &amp; Labrador (NL)</option>
+        <option value="PE">Prince Edward Island (PE)</option>
+        <option value="YT">Yukon (YT)</option>
+        <option value="NT">Northwest Territories (NT)</option>
+        <option value="NU">Nunavut (NU)</option>
+      </select>
+    </div>
+
+    <div class="fire-status-row" id="fireStatusRow">
+      <div class="selector-label" style="margin-top:14px;width:100%">3 — Firefighter Status</div>
+      <select class="status-select" id="fireStatus" onchange="setFireStatus(this.value)" aria-label="Firefighter employment status">
+        <option value="professional">Professional (Full-Time / Career)</option>
+        <option value="composite">Composite (Part-Time / Paid On-Call)</option>
+        <option value="volunteer">Volunteer</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- JURISDICTIONAL DECISION TREE OUTPUT -->
+  <div class="jurisdiction-panel" id="jurisdictionPanel">
+    <div class="jurisdiction-title">// APPLICABLE LEGISLATION — JURISDICTIONAL ANALYSIS</div>
+    <div id="jurisdictionContent"></div>
+  </div>
+
+  <!-- VOLUNTEER WARNING -->
+  <div class="volunteer-warning" id="volunteerWarning">
+    <strong>VOLUNTEER FIREFIGHTER — IMPORTANT DISTINCTIONS</strong><br>
+    <br>
+    As a volunteer firefighter, your entitlements differ from professional firefighters:<br>
+    <br>
+    • <strong>WSIB coverage:</strong> YES — through your municipality as a Schedule 1 employer. File Form 6 the same way a professional firefighter would.<br>
+    • <strong>IAFF CBA / union grievance:</strong> NOT typically available — volunteers are not usually covered by IAFF local collective agreements.<br>
+    • <strong>ESA (Employment Standards Act):</strong> Does NOT apply to volunteer firefighters (ESA Schedule 1 exclusion).<br>
+    • <strong>FPPA s.51:</strong> Volunteer-specific provisions of the Fire Protection and Prevention Act apply to your service.<br>
+    • <strong>PTSD presumption (WSIA s.15.1):</strong> Contact WSIB directly to confirm your volunteer status qualifies — the presumption covers "firefighters" but confirm Schedule 1 applicability.<br>
+    <br>
+    This tool filters benefit results to show volunteer-relevant pathways only.
+  </div>
+
+  <!-- SITUATION INPUT -->
+  <div class="input-section">
+    <div class="section-label">Describe Your Situation</div>
+    <textarea
+      id="situationInput"
+      class="situation-input"
+      placeholder="e.g., I was injured on duty during an arrest and filed a WSIB claim but it was denied. I also have PTSD from cumulative trauma over 12 years..."
+      maxlength="2000"
+      aria-label="Describe your situation"></textarea>
+    <div class="prompts" id="promptChips"></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="analyze()" aria-label="Find matching benefits">FIND MATCHING BENEFITS</button>
+      <button class="btn-secondary" onclick="clearAll()" aria-label="Clear input">CLEAR</button>
+      <span class="char-count" id="charCount">0 / 2000</span>
+    </div>
+    <div class="status-bar" id="statusBar"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+    <div class="results-header" id="resultsHeader">MATCHING BENEFITS AND RIGHTS PATHWAYS</div>
+    <div id="benefitCards"></div>
+  </div>
+
+  <div class="no-results" id="noResults">
+    <div class="no-results-title">No strong matches found</div>
+    <p>Try adding more detail about your injury, condition, employment status, or the specific issue you are facing. You can also browse all benefits for your sector by leaving the text field empty and clicking FIND MATCHING BENEFITS.</p>
+  </div>
+
+  <!-- CRISIS RESOURCES -->
+  <div class="crisis-box">
+    <div class="crisis-title">// CRISIS AND SUPPORT RESOURCES</div>
+    <div class="crisis-item"><strong>9-8-8</strong> — Suicide Crisis Helpline (Canada, 24/7)</div>
+    <div class="crisis-item"><strong>1-800-268-7708</strong> — First Responder and Public Safety Support Line</div>
+    <div class="crisis-item"><strong>1-800-883-6094</strong> — Operational Stress Injury Social Support (OSISS)</div>
+    <div class="crisis-item"><strong>NPF Member Assistance (RCMP):</strong> npf-fpn.ca</div>
+    <div class="crisis-item"><strong>IAFF Peer Support:</strong> iaff.org/canada/resources</div>
+    <div class="crisis-item"><strong>CUPE Member Assistance:</strong> cupe.ca</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA — BENEFITS (inline from fr-policies.json schema)
+// ═══════════════════════════════════════════════════════
+
+const BENEFITS_FR = [
+  {
+    id: "rcmp-duty-disability", sector: "rcmp",
+    name: "RCMP Duty-Related Disability Benefit",
+    short: "Long-term income support for RCMP members disabled in the line of duty",
+    law: "RCMP Superannuation Act, RSC 1985, c R-11; RCMP Act s.32",
+    keywords: ["injury","injured","hurt","disability","disabled","line of duty","on duty","incident","patrol","training","deployment","medical release","ptsd","trauma","mental health","chronic","pain","operational stress","osi","hearing loss","back","knee","shoulder","concussion","tbi"],
+    conditions: [
+      { id:"is_rcmp", label:"Member of the RCMP (Regular or Civilian)", keywords:["rcmp","mounted police","officer","constable","corporal","sergeant","inspector","grc"] },
+      { id:"on_duty_injury", label:"Injury or illness in the line of duty / service-attributable", keywords:["on duty","line of duty","during patrol","arrest","training","service-related","operational"] }
+    ],
+    evidence: [
+      { doc:"Form 1004 — Medical Certificate for Disability", how:"Completed by attending physician; from RCMP Human Resources" },
+      { doc:"APS — Assessment of Physical Suitability", how:"Conducted by RCMP Health Services; request through detachment commander" },
+      { doc:"Incident / Operational Report", how:"From detachment or PRIME records; request via ATIP to RCMP if not in possession" },
+      { doc:"RCMP Service Record", how:"Request via Privacy Act ATIP to RCMP National Division" }
+    ],
+    questions: ["What is your rank and badge number?","What injury or condition are you claiming?","What specific incident or exposure caused this?","Are you fit for duty, on modified duties, or medically released?"],
+    template: "The applicant is a [RANK] with the RCMP (Badge: [BADGE NUMBER]), currently [DUTY STATUS]. The member sustained [INJURY/CONDITION] as a direct result of [INCIDENT/OPERATIONAL EXPOSURE] on or around [DATE]. The condition has been assessed by RCMP Health Services as [ASSESSMENT OUTCOME]. The member is applying for Duty-Related Disability support under the RCMP Superannuation Act.",
+    atip_custodian: "RCMP National Division — ATIP Office", atip_email: "atip-aiprp@rcmp-grc.gc.ca", atip_act: "Privacy Act, RSC 1985, c P-21",
+    union_source: "National Police Federation (NPF) — npf-fpn.ca — NPF CBA 2021–2025, Article 32"
+  },
+  {
+    id: "rcmp-ptsd-osi", sector: "rcmp",
+    name: "RCMP Operational Stress Injury / PTSD Support",
+    short: "Mental health services, OSI clinics, and occupational stress benefit pathway",
+    law: "RCMP Act, RSC 1985, c R-10; NPF CBA 2021-2025, Article 34",
+    keywords: ["ptsd","post traumatic","stress","anxiety","depression","operational stress","osi","mental health","trauma","nightmares","flashbacks","hypervigilance","burnout","crisis","critical incident","cumulative"],
+    conditions: [
+      { id:"is_rcmp", label:"Member of the RCMP", keywords:["rcmp","officer","constable","grc","mounted police"] },
+      { id:"service_exposure", label:"Mental health condition linked to operational exposures", keywords:["exposure","incident","scene","arrest","confrontation","death","trauma","cumulative","on duty"] }
+    ],
+    evidence: [
+      { doc:"Mental health assessment (RCMP Health Services or registered psychologist)", how:"Request referral through RCMP Employee Assistance Programme (EAP)" },
+      { doc:"Critical Incident Log / Exposure history", how:"From supervisor or detachment log; request via ATIP if needed" },
+      { doc:"NPF Member Assistance referral", how:"Contact NPF directly at npf-fpn.ca for peer support and referral" }
+    ],
+    questions: ["What operational exposures contributed to this condition?","Have you received a formal diagnosis from a registered psychologist or psychiatrist?","Are you accessing RCMP Health Services or EAP?","Has this resulted in modified duties, sick leave, or medical release?"],
+    template: "The applicant is an RCMP member who has sustained an Operational Stress Injury (OSI) consistent with [DIAGNOSIS] as a result of cumulative and/or acute operational exposures including [EXPOSURES]. The member has been assessed by [CLINICIAN/SERVICE] and is requesting access to [REQUESTED SUPPORT]. The NPF CBA Article 34 and RCMP Health Services directive provide the framework.",
+    atip_custodian: "RCMP National Division — ATIP Office", atip_email: "atip-aiprp@rcmp-grc.gc.ca", atip_act: "Privacy Act, RSC 1985, c P-21",
+    union_source: "NPF CBA 2021–2025, Article 34 (Mental Health and Wellness) — npf-fpn.ca"
+  },
+  {
+    id: "rcmp-conduct-grievance", sector: "rcmp",
+    name: "RCMP Conduct / Grievance Process Rights",
+    short: "Member rights under RCMP Act Part IV conduct process and NPF grievance procedure",
+    law: "RCMP Act, RSC 1985, c R-10, Part IV; RCMP Regulations, 2014, SOR/2014-281",
+    keywords: ["conduct","discipline","allegation","misconduct","complaint","investigation","grievance","appeal","board","hearing","demotion","dismissal","suspended","sanction","reprimand","rights","npf","representation"],
+    conditions: [
+      { id:"conduct_process", label:"Member is subject to or appealing a conduct process", keywords:["conduct board","allegation","notice","conduct","investigation","disciplinary","sanction"] }
+    ],
+    evidence: [
+      { doc:"Notice of Conduct Hearing or Conduct Measures document", how:"You should have received this; if not, request via Privacy Act ATIP to RCMP" },
+      { doc:"NPF representation request", how:"Contact NPF immediately at npf-fpn.ca — you have the right to representation at all stages" },
+      { doc:"Operational records, body-cam footage, witness statements", how:"Request via NPF rep or directly via Privacy Act ATIP" }
+    ],
+    questions: ["What conduct allegation or measure are you responding to?","At what stage — investigation, hearing, appeal?","Have you engaged NPF representation?","What outcome are you seeking?"],
+    template: "The applicant, [RANK] [NAME] (Badge: [BADGE NUMBER]), is responding to conduct proceedings under RCMP Act Part IV regarding [ALLEGATION SUMMARY]. The member is at the [STAGE] stage and is requesting [OUTCOME SOUGHT]. NPF representation has [BEEN/NOT BEEN] engaged.",
+    atip_custodian: "RCMP National Division — ATIP Office", atip_email: "atip-aiprp@rcmp-grc.gc.ca", atip_act: "Privacy Act, RSC 1985, c P-21",
+    union_source: "NPF CBA 2021–2025 — grievance procedure; RCMP Act Part IV"
+  },
+  {
+    id: "rcmp-survivor-benefit", sector: "rcmp",
+    name: "RCMP Survivor / Death-in-Service Benefit",
+    short: "Lump sum and ongoing pension for survivors of RCMP members who die in service",
+    law: "RCMP Superannuation Act, RSC 1985, c R-11, Part III",
+    keywords: ["death","died","killed","fatal","survivor","widow","widower","spouse","dependent","line of duty death","officer down","funeral","death benefit","survivor pension"],
+    conditions: [
+      { id:"member_deceased", label:"RCMP member has died", keywords:["died","death","deceased","killed","fatal","passed"] }
+    ],
+    evidence: [
+      { doc:"Death certificate", how:"From provincial vital statistics or coroner" },
+      { doc:"RCMP service confirmation", how:"Provided by RCMP Human Resources / pension administration" },
+      { doc:"Marriage certificate / proof of dependency", how:"Required to establish survivor eligibility" }
+    ],
+    questions: ["What was the member's rank and service number?","What were the circumstances of death (line of duty / medical / other)?","What is the claimant's relationship to the deceased?","Are there dependent children?"],
+    template: "The applicant, [CLAIMANT NAME], is the [RELATIONSHIP] of [MEMBER FULL NAME] (Badge: [BADGE NUMBER]), who died on [DATE OF DEATH] under the following circumstances: [CIRCUMSTANCES]. The claimant is applying for survivor benefits under the RCMP Superannuation Act and applicable Death-in-Service benefits.",
+    atip_custodian: "RCMP National Division — ATIP Office", atip_email: "atip-aiprp@rcmp-grc.gc.ca", atip_act: "Privacy Act, RSC 1985, c P-21",
+    union_source: "NPF CBA 2021–2025, Article 33 (Death Benefits) — npf-fpn.ca"
+  },
+  {
+    id: "police-wsib-injury", sector: "municipal-police",
+    name: "WSIB Injury / Illness Claim (Municipal Police — ON)",
+    short: "Workers compensation for on-duty injury or occupational illness",
+    law: "WSIA, SO 1997, c 16, Sch A; WSIA s.15.1 (PTSD presumption)",
+    keywords: ["injury","hurt","accident","assault","fall","struck","shooting","exposure","infection","illness","disability","wsib","workers compensation","claim","lost time","on duty","patrol","arrest"],
+    conditions: [
+      { id:"is_police_on", label:"Employed as a police officer in Ontario (municipal force)", keywords:["police","officer","constable","detective","sergeant","inspector"] },
+      { id:"on_duty", label:"Injury or illness occurred on duty or is occupationally caused", keywords:["on duty","while working","patrol","arrest","scene","shift","call","training"] }
+    ],
+    evidence: [
+      { doc:"WSIB Form 6 (Worker's Report of Injury/Disease)", how:"File at wsib.ca or through HR within 6 months of injury" },
+      { doc:"WSIB Form 7 (Employer's Report)", how:"Your employer must file this; confirm they did" },
+      { doc:"Medical documentation from treating physician or ER", how:"Keep all records; submit copies to WSIB" },
+      { doc:"Use of Force Report / Incident Report (if applicable)", how:"From service records; your police association can assist" }
+    ],
+    questions: ["What injury or illness are you claiming?","When and how did the incident occur?","Did you seek immediate medical attention?","Have you filed Form 6 with WSIB?"],
+    template: "The applicant, [NAME], a police [RANK] employed by [POLICE SERVICE], sustained [INJURY/ILLNESS] on [DATE] during [CIRCUMSTANCES]. The injury is occupationally caused and the applicant is filing a WSIB claim under WSIA. Benefits requested: [WSIB BENEFITS SOUGHT].",
+    atip_custodian: "FOI/MFIPPA Coordinator — [Police Service Name]", atip_email: "Contact institution FOI Coordinator", atip_act: "MFIPPA, RSO 1990, c M.56",
+    union_source: "Ontario Provincial Police Association (OPPA) — oppa.ca; or your local police association CBA"
+  },
+  {
+    id: "police-ptsd-presumption", sector: "municipal-police",
+    name: "PTSD Presumption — Police (ON, WSIA s.15.1)",
+    short: "PTSD diagnosed in a police officer is presumed work-related — no specific event required",
+    law: "WSIA, SO 1997, c 16, Sch A, s.15.1 (proclaimed April 6, 2018); MFIPPA, RSO 1990, c M.56",
+    keywords: ["ptsd","post traumatic","stress","trauma","anxiety","depression","nightmares","flashbacks","hypervigilance","intrusive","mental health","critical incident","cumulative","burnout","osi"],
+    conditions: [
+      { id:"is_first_responder_on", label:"Police officer, firefighter, or paramedic in Ontario", keywords:["police","officer","constable","firefighter","paramedic","fire","ems"] },
+      { id:"ptsd_diagnosis", label:"PTSD diagnosed by a regulated health professional", keywords:["diagnosis","diagnosed","ptsd","post traumatic","psychologist","psychiatrist","physician"] }
+    ],
+    evidence: [
+      { doc:"DSM-5 PTSD diagnosis from registered psychologist or psychiatrist", how:"The presumption applies automatically once PTSD is diagnosed — employer cannot require proof of specific triggering event" },
+      { doc:"WSIB Form 6 — cite WSIA s.15.1 explicitly", how:"File at wsib.ca; reference the PTSD presumption section directly" },
+      { doc:"Employment confirmation letter", how:"HR confirms Schedule 1 employer status" }
+    ],
+    questions: ["Have you received a formal PTSD diagnosis from a registered psychologist or psychiatrist?","When were you diagnosed?","Are you currently employed by a police, fire, or EMS service in Ontario?","Has your employer or insurer challenged the presumption?"],
+    template: "The applicant, [NAME], a [ROLE] employed by [EMPLOYER], received a diagnosis of PTSD from [CLINICIAN, CREDENTIALS] on [DIAGNOSIS DATE]. Pursuant to WSIA s.15.1 (proclaimed April 6, 2018), PTSD in a worker employed as [ROLE] is presumed to be an occupational disease. The applicant is filing a WSIB claim and asserting this statutory presumption.",
+    atip_custodian: "WSIB; FOI/MFIPPA Coordinator (employment records)", atip_email: "wsib.ca; Contact institution FOI Coordinator", atip_act: "WSIA s.15.1; MFIPPA (employer records)",
+    union_source: "Ontario Provincial Police Association (OPPA) — oppa.ca; or local police association"
+  },
+  {
+    id: "police-conduct-cspa", sector: "municipal-police",
+    name: "Police Conduct / Discipline Rights (ON — CSPA)",
+    short: "Member rights under Community Safety and Policing Act, 2019 conduct process",
+    law: "Community Safety and Policing Act, 2019 (CSPA), SO 2019, c 1; O. Reg 407/23",
+    keywords: ["conduct","complaint","misconduct","allegation","discipline","suspension","hearing","tribunal","appeal","sdpc","oiprd","code of conduct","dismissed","demotion","sanction","investigation"],
+    conditions: [
+      { id:"cspa_process", label:"Member subject to or appealing a CSPA conduct process", keywords:["cspa","oiprd","sdpc","code of conduct","misconduct","conduct hearing","complaint","allegation"] }
+    ],
+    evidence: [
+      { doc:"OIPRD complaint or CSPA Notice of Hearing", how:"You should have formal notice; request via MFIPPA if not received" },
+      { doc:"O. Reg 407/23 — Police Code of Conduct", how:"Available at ontario.ca/laws; review all applicable sections before hearing" },
+      { doc:"Union representation confirmation", how:"Contact your police association immediately — you have the right to representation at all stages" }
+    ],
+    questions: ["What conduct allegation are you responding to?","Which provision of O. Reg 407/23 is cited?","At what stage — investigation, hearing, appeal?","Has your association engaged legal representation?"],
+    template: "The applicant, [RANK] [NAME], employed by [POLICE SERVICE], is responding to conduct proceedings under CSPA 2019 / O. Reg 407/23, s. [SECTION], regarding [ALLEGATION SUMMARY]. The member is at the [STAGE] stage and is requesting [OUTCOME SOUGHT].",
+    atip_custodian: "FOI/MFIPPA Coordinator — [Police Service Name]", atip_email: "Contact institution FOI Coordinator", atip_act: "MFIPPA, RSO 1990, c M.56 (municipal) or FIPPA (OPP)",
+    union_source: "Ontario Provincial Police Association (OPPA) — oppa.ca"
+  },
+  {
+    id: "police-mfippa-records", sector: "municipal-police",
+    name: "MFIPPA Personal Records Request (Municipal Police)",
+    short: "Request your employment records held by a municipal police service",
+    law: "Municipal Freedom of Information and Protection of Privacy Act (MFIPPA), RSO 1990, c M.56, s.36",
+    keywords: ["records","file","personnel file","employment records","performance","access","information","request","my records","what do they have","mfippa","freedom of information","foi","privacy","disclosure"],
+    conditions: [
+      { id:"municipal_employee", label:"Employed by a municipal institution", keywords:["police service","fire department","municipality","city","town","county"] }
+    ],
+    evidence: [
+      { doc:"Government-issued photo ID", how:"Required to verify identity for personal access request" },
+      { doc:"Written MFIPPA access request form", how:"Submit to municipal ATIP / FOI Coordinator. Application fee: $5." }
+    ],
+    questions: ["What specific records are you requesting?","What date range do the records cover?","Is this for a WSIB claim, conduct hearing, or civil matter?","Have you previously requested these records?"],
+    template: "Pursuant to s.36 of MFIPPA, I, [FULL LEGAL NAME], am requesting access to the following personal information held by [INSTITUTION NAME]: [DESCRIPTION OF RECORDS REQUESTED], for the period [DATE RANGE]. I understand the $5.00 application fee is payable. Please respond within 30 days as required by MFIPPA s.19.",
+    atip_custodian: "MFIPPA Coordinator / FOI Coordinator — [Institution Name]", atip_email: "Contact institution FOI Coordinator", atip_act: "MFIPPA, RSO 1990, c M.56",
+    union_source: "Ontario Association of Chiefs of Police (OACP) — oacp.ca (policy standards)"
+  },
+  {
+    id: "para-wsib-claim", sector: "paramedic",
+    name: "WSIB Injury / Illness Claim (Paramedic / EMS — ON)",
+    short: "Workers compensation for on-duty physical injury or occupational exposure",
+    law: "WSIA, SO 1997, c 16, Sch A; WSIA s.15.1 (PTSD); OHSA, RSO 1990, c O.1 (exposure reporting)",
+    keywords: ["injury","hurt","back","lifting","patient","assault","needlestick","exposure","infection","hepatitis","covid","mva","accident","fall","ambulance","wsib","claim","lost time","on duty","shift"],
+    conditions: [
+      { id:"is_paramedic", label:"Employed as a paramedic, EMT, or dispatcher in Ontario", keywords:["paramedic","emt","advanced care paramedic","acp","primary care paramedic","pcp","dispatcher","ems","ambulance"] },
+      { id:"work_related", label:"Injury or illness occurred on duty / occupationally caused", keywords:["on duty","while working","call","patient","scene","shift","lifting","exposure","needle"] }
+    ],
+    evidence: [
+      { doc:"WSIB Form 6 (Worker's Report of Injury/Disease)", how:"File at wsib.ca within 6 months; your union can assist" },
+      { doc:"WSIB Form 7 (Employer's Report)", how:"Confirm HR filed this; follow up" },
+      { doc:"Medical documentation from treating physician", how:"Collect all records; submit copies to WSIB" },
+      { doc:"Employer incident log (NOT the patient's ACR)", how:"CRITICAL: Ambulance Call Reports (ACRs) are patient records governed by PHIPA — do NOT use them as your evidence. Request an employer-sanitized incident log instead." }
+    ],
+    questions: ["What injury or exposure are you claiming?","When and how did the incident occur?","Was this physical injury, infectious exposure, or mental health?","Have you notified your supervisor and filed Form 6?"],
+    template: "The applicant, [NAME], a [ROLE] employed by [EMS SERVICE], sustained [INJURY/ILLNESS/EXPOSURE] on [DATE] during [CIRCUMSTANCES]. This is an occupationally caused condition and the applicant is filing a WSIB claim under WSIA. Benefits requested: [WSIB BENEFITS SOUGHT].",
+    atip_custodian: "MFIPPA Coordinator — [EMS Service / Municipality] (employment records); PHIPA Custodian (patient ACRs — separate regime)", atip_email: "Contact FOI Coordinator for employment records; EMS medical director for PHIPA records", atip_act: "MFIPPA (employment records); PHIPA, SO 2004, c 3, Sch A (patient care records)",
+    union_source: "CUPE Emergency Services — cupe.ca/emergency-services; CUPE 873 (BC) — cupe873.org"
+  },
+  {
+    id: "para-ptsd-presumption", sector: "paramedic",
+    name: "Paramedic PTSD Presumption (ON — WSIA s.15.1)",
+    short: "PTSD diagnosed in a paramedic is presumed work-related — no specific event required",
+    law: "WSIA, SO 1997, c 16, Sch A, s.15.1 (proclaimed April 6, 2018); CUPE 873 CBA 2022–2025",
+    keywords: ["ptsd","post traumatic","stress","trauma","anxiety","depression","flashbacks","nightmares","hypervigilance","mental health","osi","critical incident","cumulative","exposure","burnout"],
+    conditions: [
+      { id:"is_paramedic_on", label:"Employed as a paramedic in Ontario (Schedule 1 employer)", keywords:["paramedic","emt","ems","ambulance","acp","pcp","dispatcher"] },
+      { id:"ptsd_diagnosed", label:"Formal PTSD diagnosis from regulated health professional", keywords:["diagnosed","diagnosis","ptsd","psychologist","psychiatrist","dsm-5","registered"] }
+    ],
+    evidence: [
+      { doc:"DSM-5 PTSD diagnosis from registered psychologist or psychiatrist", how:"Presumption under WSIA s.15.1 applies automatically — employer cannot require proof of specific triggering event" },
+      { doc:"WSIB Form 6 — cite WSIA s.15.1 explicitly", how:"File at wsib.ca; reference 'PTSD Presumption s.15.1'" },
+      { doc:"Employment confirmation as Schedule 1 paramedic", how:"HR letter confirming you work for a municipal EMS service (Schedule 1 employer)" }
+    ],
+    questions: ["Have you received a formal PTSD diagnosis from a registered psychologist or psychiatrist?","When was the diagnosis made?","Are you currently employed as a paramedic in Ontario?","Has your employer or WSIB challenged the presumption?"],
+    template: "The applicant, [NAME], a [ROLE] employed by [EMS SERVICE], was diagnosed with PTSD by [CLINICIAN, CREDENTIALS] on [DIAGNOSIS DATE]. Under WSIA s.15.1 (proclaimed April 6, 2018), PTSD is presumed to be an occupational disease for [ROLE] workers. The applicant is asserting this statutory presumption and filing a WSIB claim.",
+    atip_custodian: "WSIB; MFIPPA Coordinator (employer records)", atip_email: "wsib.ca", atip_act: "WSIA s.15.1; MFIPPA (employment records)",
+    union_source: "CUPE 873 CBA 2022–2025 — cupe873.org; OPSEU EMS Local agreements"
+  },
+  {
+    id: "para-phipa-records", sector: "paramedic",
+    name: "PHIPA Personal Health Information Access (Paramedic)",
+    short: "Request your own health information under PHIPA — NOT for patient Ambulance Call Records",
+    law: "PHIPA, SO 2004, c 3, Sch A, s.52; Health Care Consent Act, 1996, SO 1996, c 2, Sch A",
+    keywords: ["health record","my health","medical record","treatment","diagnosis","mental health record","phipa","health care","clinic","hospital","physician","my own record","personal health","access"],
+    conditions: [
+      { id:"seeking_own_health_info", label:"Requesting access to your own personal health information (not a patient record)", keywords:["my record","my health","my diagnosis","my treatment","access my","copy of my"] }
+    ],
+    evidence: [
+      { doc:"Government-issued photo ID", how:"Required by the health information custodian to verify identity" },
+      { doc:"Written PHIPA s.52 access request", how:"Submit to the custodian (hospital, physician, EMS medical director). No prescribed form — a written letter is sufficient." }
+    ],
+    questions: ["Who holds the health information you are requesting (hospital, physician, EMS service medical director)?","What type of records (assessment notes, treatment records, mental health records)?","What date range?","Are you requesting for yourself or as a substitute decision-maker?"],
+    template: "Pursuant to s.52 of PHIPA, I, [FULL LEGAL NAME] (DOB: [DATE OF BIRTH]), am requesting access to my personal health information held by [CUSTODIAN NAME AND ADDRESS]. I am requesting: [DESCRIPTION OF RECORDS], for the period [DATE RANGE]. Please respond within 30 days pursuant to PHIPA s.54.",
+    atip_custodian: "Health Information Custodian (hospital privacy officer, clinic, EMS medical director)", atip_email: "Contact institution Privacy Officer", atip_act: "PHIPA, SO 2004, c 3, Sch A (health records); MFIPPA (employment records — separate request)",
+    union_source: "Information and Privacy Commissioner of Ontario (IPC) — ipc.on.ca; CUPE 873 — cupe873.org"
+  },
+  {
+    id: "para-cupe-grievance", sector: "paramedic",
+    name: "CUPE Grievance / CBA Rights (Paramedic)",
+    short: "Enforce your rights under the CUPE collective agreement — discipline, scheduling, wages",
+    law: "Labour Relations Act, 1995, SO 1995, c 1, Sch A; CUPE CBA; ESA, 2000, SO 2000, c 41",
+    keywords: ["grievance","union","collective agreement","cba","cupe","discipline","unjust dismissal","suspension","demotion","scheduling","overtime","vacation","sick leave","wages","back pay","arbitration","rights"],
+    conditions: [
+      { id:"cupe_member", label:"Member of CUPE or other paramedic union local", keywords:["cupe","union","local","collective agreement","grievance","arbitration","steward"] }
+    ],
+    evidence: [
+      { doc:"Relevant CBA articles", how:"Available from your CUPE local steward or cupe.ca; CUPE 873 CBA at cupe873.org" },
+      { doc:"Written record of the employer action being grieved", how:"Discipline letter, schedule change notice, denial of leave, etc." },
+      { doc:"Union steward contact and grievance form", how:"Contact your CUPE local immediately — grievance time limits are strict (often 10–20 days)" }
+    ],
+    questions: ["What employer action are you grieving?","When did the event occur?","What CBA article has been violated?","Have you contacted your union steward within the CBA time limit?"],
+    template: "The applicant, [NAME], a [ROLE] and member of [CUPE LOCAL], is filing a grievance against [EMPLOYER] regarding [GRIEVANCE SUBJECT]. The employer action occurred on [DATE] and constitutes a violation of CBA [ARTICLE AND SECTION]. The applicant seeks [REMEDY SOUGHT]. This grievance is filed pursuant to Article [GRIEVANCE ARTICLE] of the [CBA NAME] Collective Agreement.",
+    atip_custodian: "MFIPPA Coordinator — [Municipality/EMS Service]", atip_email: "Contact institution FOI Coordinator", atip_act: "MFIPPA (employment records); Labour Relations Act, 1995",
+    union_source: "CUPE Emergency Services — cupe.ca/emergency-services; CUPE 873 — cupe873.org"
+  },
+  {
+    id: "fire-wsib-injury", sector: "fire",
+    name: "WSIB Injury / Illness Claim (Firefighter — ON)",
+    short: "Workers compensation for on-duty injury, occupational cancer, or PTSD",
+    law: "WSIA, SO 1997, c 16, Sch A; s.15.1 (PTSD); s.15.3 (cancer presumptions)",
+    keywords: ["injury","burn","fall","smoke","inhalation","exposure","cancer","mesothelioma","lung","bladder","cardiac","heart","training","structural fire","mva","wsib","claim","disability","on duty"],
+    conditions: [
+      { id:"is_firefighter", label:"Employed or serving as a firefighter in Ontario", keywords:["firefighter","fire fighter","fire services","fire hall","station","iaff","composite","professional","volunteer"] },
+      { id:"on_duty", label:"Injury, illness, or exposure occurred on duty, at training, or is occupationally attributed", keywords:["on duty","at the station","training","structural fire","wildland fire","mva","scene","call","shift"] }
+    ],
+    evidence: [
+      { doc:"WSIB Form 6 (Worker's Report)", how:"File at wsib.ca within 6 months; for cancer claims, file upon diagnosis" },
+      { doc:"Cancer diagnosis documentation (for s.15.3 claims)", how:"Pathology report, oncologist letter; WSIB adjudicates cancer type against the presumption schedule" },
+      { doc:"Employment history confirming firefighter service years", how:"WSIA s.15.3 requires minimum service years per cancer type; confirm with HR" }
+    ],
+    questions: ["What condition are you claiming — physical injury, occupational cancer, or PTSD?","When did the injury/diagnosis occur?","What is your firefighter status (professional, composite, volunteer)?","How many years of firefighting service do you have?"],
+    template: "The applicant, [NAME], a [STATUS] firefighter with [FIRE DEPARTMENT] with [YEARS] years of service, is claiming [CONDITION] under WSIA. The condition is occupationally attributed: [ATTRIBUTION]. [If cancer: The cancer type ([CANCER TYPE]) is in the WSIA s.15.3 Schedule and the member meets the [THRESHOLD]-year minimum.] Benefits requested: [WSIB BENEFITS SOUGHT].",
+    atip_custodian: "MFIPPA Coordinator — [Municipality]", atip_email: "Contact municipality FOI Coordinator", atip_act: "MFIPPA, RSO 1990, c M.56; FPPA, SO 1997, c 4",
+    union_source: "International Association of Fire Fighters (IAFF) Canada — iaff.org/canada; your IAFF Local"
+  },
+  {
+    id: "fire-cancer-presumption", sector: "fire",
+    name: "Firefighter Occupational Cancer Presumption (ON — WSIA s.15.3)",
+    short: "Listed cancers in professional firefighters with sufficient service are deemed work-related",
+    law: "WSIA, SO 1997, c 16, Sch A, s.15.3; Workplace Safety and Insurance Amendment Act, 2014",
+    keywords: ["cancer","leukemia","lymphoma","mesothelioma","bladder","lung","kidney","colorectal","ureter","brain","testicular","esophageal","firefighter cancer","occupational cancer","presumption"],
+    conditions: [
+      { id:"is_firefighter_professional", label:"Professional firefighter with sufficient years of service", keywords:["firefighter","professional","full-time","career","fire department","iaff"] },
+      { id:"cancer_diagnosis", label:"Diagnosis of a cancer type listed in WSIA s.15.3", keywords:["cancer","malignant","carcinoma","mesothelioma","lymphoma","leukemia","tumor"] }
+    ],
+    evidence: [
+      { doc:"Oncologist/pathology report specifying cancer type", how:"Must identify cancer type to match against WSIA s.15.3 schedule" },
+      { doc:"Employment history confirming professional firefighter service years", how:"WSIA s.15.3 minimums vary by cancer type (typically 10 years for most); confirm with HR" },
+      { doc:"WSIB Form 6 citing WSIA s.15.3", how:"Reference the presumption section explicitly; contact IAFF local for claim support" }
+    ],
+    questions: ["What type of cancer has been diagnosed?","How many years of professional firefighting service?","When was the diagnosis made?","Have you consulted your IAFF local or a WSIB advocate?"],
+    template: "The applicant, [NAME], a professional firefighter with [YEARS] years of service, was diagnosed with [CANCER TYPE] on [DIAGNOSIS DATE]. Pursuant to WSIA s.15.3, [CANCER TYPE] is a presumed occupational disease for professional firefighters with [MINIMUM SERVICE] years of service. The applicant meets this threshold and is asserting the statutory presumption. WSIB Form 6 is filed herewith.",
+    atip_custodian: "WSIB; MFIPPA Coordinator (employer records)", atip_email: "wsib.ca", atip_act: "WSIA s.15.3; MFIPPA",
+    union_source: "IAFF Canada — iaff.org/canada; your IAFF local representative"
+  },
+  {
+    id: "fire-ptsd-presumption", sector: "fire",
+    name: "Firefighter PTSD Presumption (ON — WSIA s.15.1)",
+    short: "PTSD diagnosed in a firefighter is presumed work-related — no specific event required",
+    law: "WSIA, SO 1997, c 16, Sch A, s.15.1 (proclaimed April 6, 2018); FPPA, SO 1997, c 4",
+    keywords: ["ptsd","post traumatic","stress","trauma","mental health","anxiety","depression","flashbacks","nightmares","hypervigilance","osi","critical incident","cumulative","moral injury","burnout"],
+    conditions: [
+      { id:"is_firefighter_on", label:"Firefighter in Ontario", keywords:["firefighter","fire services","iaff","fire department","station"] },
+      { id:"ptsd_diagnosed", label:"PTSD diagnosed by a regulated health professional", keywords:["diagnosed","diagnosis","ptsd","psychologist","psychiatrist","dsm-5"] }
+    ],
+    evidence: [
+      { doc:"DSM-5 PTSD diagnosis from registered psychologist or psychiatrist", how:"Statutory presumption applies — employer cannot require proof of specific triggering incident" },
+      { doc:"WSIB Form 6 citing WSIA s.15.1", how:"File at wsib.ca; explicitly reference the PTSD presumption section" },
+      { doc:"Employment confirmation as a firefighter in Ontario", how:"From fire department HR; confirms Schedule 1 employer status" }
+    ],
+    questions: ["Have you received a formal PTSD diagnosis from a registered psychologist or psychiatrist?","When was the diagnosis made?","Are you employed or serving as a firefighter in Ontario?","Are you professional, composite, or volunteer?"],
+    template: "The applicant, [NAME], a [STATUS] firefighter with [FIRE DEPARTMENT], was diagnosed with PTSD by [CLINICIAN, CREDENTIALS] on [DIAGNOSIS DATE]. Under WSIA s.15.1 (proclaimed April 6, 2018), PTSD is presumed to be an occupational disease for firefighters. The applicant is asserting this presumption and filing a WSIB claim.",
+    atip_custodian: "WSIB; MFIPPA Coordinator", atip_email: "wsib.ca", atip_act: "WSIA s.15.1; FPPA; MFIPPA",
+    union_source: "IAFF Canada — iaff.org/canada; your IAFF local"
+  },
+  {
+    id: "fire-volunteer-coverage", sector: "fire",
+    name: "Volunteer Firefighter — WSIB Schedule 1 Coverage",
+    short: "Volunteer firefighters are covered under WSIB through their municipality",
+    law: "WSIA, SO 1997, c 16, Sch A, Schedule 1; FPPA, SO 1997, c 4, s.51; ESA does NOT apply to volunteers",
+    keywords: ["volunteer","volunteer firefighter","on call","part-time","composite","wsib","injured","coverage","benefits","no union","not full-time","rural","fire department","training injury"],
+    conditions: [
+      { id:"is_volunteer_ff", label:"Serving as a volunteer or composite firefighter", keywords:["volunteer","on call","composite","part-time firefighter","rural fire"] },
+      { id:"municipal_service", label:"Serving with a municipality", keywords:["municipality","town","county","district","fire department","fire hall"] }
+    ],
+    evidence: [
+      { doc:"Confirmation of volunteer service with municipal fire department", how:"Letter from Fire Chief or municipal HR confirming volunteer status and service dates" },
+      { doc:"WSIB Form 6", how:"Volunteer firefighters ARE covered; file at wsib.ca. Coverage is through the municipality as Schedule 1 employer." },
+      { doc:"Incident report confirming injury during duty or training", how:"From Fire Chief; duty includes fire calls, training, and station work" }
+    ],
+    questions: ["Are you a volunteer or composite firefighter with a municipal fire department?","What injury or illness are you claiming?","Did the injury occur on a fire call, during training, or at the station?","Are you aware that union CBA rights typically do NOT apply to volunteers?"],
+    template: "The applicant, [NAME], is a [VOLUNTEER/COMPOSITE] firefighter with [FIRE DEPARTMENT], a municipal fire department covered under WSIB Schedule 1. The applicant sustained [INJURY/ILLNESS] on [DATE] during [CIRCUMSTANCES — fire call / training / station duty]. As a Schedule 1 worker, the applicant is entitled to WSIB benefits and files Form 6 herewith. Note: ESA and IAFF CBA entitlements do not apply to this member's volunteer status.",
+    atip_custodian: "MFIPPA Coordinator — [Municipality]", atip_email: "Contact municipality FOI Coordinator", atip_act: "WSIA (WSIB claim); MFIPPA; FPPA s.51",
+    union_source: "FPPA s.51 governs; Volunteer Firefighters' Association (province-specific); no IAFF local coverage typically"
+  },
+  {
+    id: "fire-fppa-conduct", sector: "fire",
+    name: "FPPA Conduct / Discipline Process (Firefighter — ON)",
+    short: "Firefighter rights under the Fire Protection and Prevention Act, 1997 discipline process",
+    law: "FPPA, SO 1997, c 4, Part IX; OHSA, RSO 1990, c O.1",
+    keywords: ["conduct","discipline","allegation","misconduct","suspension","dismissal","reprimand","hearing","appeal","fppa","investigation","insubordination","harassment","complaint","rights","iaff"],
+    conditions: [
+      { id:"fppa_process", label:"Firefighter subject to or appealing an FPPA discipline process", keywords:["fppa","discipline","suspension","conduct","allegation","fire chief","investigation","hearing"] }
+    ],
+    evidence: [
+      { doc:"Written notice of disciplinary action from Fire Chief", how:"Must receive written notice under FPPA Part IX; if not received, request via MFIPPA" },
+      { doc:"IAFF Local representation confirmation", how:"Contact your IAFF local immediately — you have the right to representation" },
+      { doc:"Incident records / audio records (if any)", how:"Request via MFIPPA (municipal records) or through IAFF rep" }
+    ],
+    questions: ["What conduct allegation are you responding to?","What stage — investigation, hearing, or appeal?","Have you engaged your IAFF local representative?","What outcome are you seeking?"],
+    template: "The applicant, [RANK] [NAME], employed by [FIRE DEPARTMENT], is responding to disciplinary proceedings under FPPA Part IX regarding [ALLEGATION SUMMARY]. The member is at the [STAGE] stage and is requesting [OUTCOME SOUGHT]. IAFF representation has [BEEN/NOT BEEN] engaged.",
+    atip_custodian: "MFIPPA Coordinator — [Municipality]", atip_email: "Contact municipality FOI Coordinator", atip_act: "MFIPPA, RSO 1990, c M.56; FPPA Part IX",
+    union_source: "IAFF Canada — iaff.org/canada; your IAFF local"
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+
+let currentSector = null;
+let currentProvince = '';
+let currentFireStatus = 'professional';
+const STOPWORDS = new Set(["i","me","my","we","our","you","your","he","she","it","they","am","is","are","was","were","be","been","have","has","had","do","does","did","will","would","shall","should","may","might","must","can","could","a","an","the","and","but","or","so","for","of","in","on","at","to","by","from","with","as","this","that","not","no","get","like","know","think","want","need","feel","when","what","where","who","how","why","which","then","than","there","here","now","still","since"]);
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function tokenize(text) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(t => t.length > 2 && !STOPWORDS.has(t));
+}
+
+function scoreKeywords(tokens, keywords) {
+  const tokenSet = new Set(tokens);
+  let hits = 0;
+  for (const kw of keywords) {
+    const kwTokens = kw.toLowerCase().split(/\s+/);
+    if (kwTokens.every(kt => tokenSet.has(kt))) hits++;
+  }
+  return hits;
+}
+
+// ═══════════════════════════════════════════════════════
+// JURISDICTIONAL DECISION TREE
+// ═══════════════════════════════════════════════════════
+
+function runJurisdictionTree(sector, province) {
+  if (!sector || !province) return null;
+
+  if (sector === 'rcmp') {
+    const dual_pipa_provinces = { BC: 'BC PIPA (SBC 2003, c 63)', AB: 'AB PIPA (SA 2003, c P-6.5)' };
+    const no_contract_provinces = ['ON', 'QC'];
+    const base = { acts: ['Privacy Act, RSC 1985, c P-21', 'RCMP Act, RSC 1985, c R-10'], opi: 'RCMP National Division — ATIP Office (atip-aiprp@rcmp-grc.gc.ca)', dual_law: false, note: '' };
+    if (no_contract_provinces.includes(province)) {
+      base.note = `RCMP does NOT contract-police in ${province} (${province === 'ON' ? 'OPP' : 'SQ'} is the provincial force). Privacy Act only — no provincial overlay.`;
+    } else if (dual_pipa_provinces[province]) {
+      base.acts.push(dual_pipa_provinces[province] + ' — may apply to operational/contract-policing data');
+      base.dual_law = true;
+      base.note = `Dual-law: operational data generated under a Provincial Police Services Agreement in ${province} may trigger ${dual_pipa_provinces[province]}. Federal Privacy Act governs employment records.`;
+    } else {
+      base.note = `Privacy Act governs. No equivalent provincial private-sector PIPA in ${province} — no provincial overlay on contract policing data.`;
+    }
+    return base;
+  }
+
+  if (sector === 'provincial-police') {
+    if (province === 'ON') {
+      return { acts: ['Freedom of Information and Protection of Privacy Act (FIPPA), RSO 1990, c F.31', 'Community Safety and Policing Act, 2019 (CSPA), SO 2019, c 1', 'O. Reg 407/23 — Police Code of Conduct'], opi: 'OPP / Ministry of the Solicitor General ATIP Coordinator (FIPPA)', dual_law: false, note: 'OPP is a provincial institution — use FIPPA, not MFIPPA. Application fee: $5.' };
+    }
+    if (province === 'BC') {
+      return { acts: ['Freedom of Information and Protection of Privacy Act (FOIPPA), RSBC 1996, c 165', 'Police Act, RSBC 1996, c 367'], opi: 'OIPC BC — oipc.bc.ca', dual_law: false, note: 'BC provincial police matters use FOIPPA. BC RCMP contract policing is separate (federal Privacy Act).' };
+    }
+    return { acts: ['Provincial equivalent of FIPPA/FOIPPA (see your province\'s access legislation)', 'Provincial Police Services Act (varies by province)'], opi: 'Provincial Information Commissioner', dual_law: false, note: `Verify the specific provincial police services act and FOI legislation for ${province}.` };
+  }
+
+  if (sector === 'municipal-police') {
+    if (province === 'ON') {
+      return { acts: ['Municipal Freedom of Information and Protection of Privacy Act (MFIPPA), RSO 1990, c M.56', 'Community Safety and Policing Act, 2019 (CSPA), SO 2019, c 1', 'O. Reg 407/23 — Police Code of Conduct', 'WSIA, SO 1997, c 16, Sch A (for injury/PTSD claims)'], opi: 'FOI/MFIPPA Coordinator — [Police Service Name]. Application fee: $5.', dual_law: false, note: 'Conduct records may invoke MFIPPA s.14 (law enforcement exemption) — IPC can review any wrongful exemption claim.' };
+    }
+    if (province === 'BC') {
+      return { acts: ['FOIPPA, RSBC 1996, c 165', 'Police Act, RSBC 1996, c 367', 'Workers Compensation Act, RSBC 2019 (WorkSafeBC)'], opi: 'FOI Coordinator — [Police Department]', dual_law: false, note: 'BC municipal police use FOIPPA. Workers comp through WorkSafeBC.' };
+    }
+    return { acts: ['Provincial FOI equivalent (FOIPPA/FIPPA) for employment records', 'Provincial police services act', 'Provincial WCB/workers comp legislation'], opi: 'Institution FOI Coordinator', dual_law: false, note: `Substitute provincial FOI and police services act for ${province}.` };
+  }
+
+  if (sector === 'paramedic') {
+    if (province === 'ON') {
+      return {
+        acts: [
+          'MFIPPA, RSO 1990, c M.56 — governs employment / HR records',
+          'PHIPA, SO 2004, c 3, Sch A — governs Ambulance Call Records (patient health info — SEPARATE REGIME)',
+          'WSIA, SO 1997, c 16, Sch A — WSIB injury and PTSD claims (s.15.1 presumption)',
+          'CUPE CBA (applicable local) — grievance and discipline rights'
+        ],
+        opi: 'TWO SEPARATE CUSTODIANS: (1) MFIPPA Coordinator — [Municipality] for employment records | (2) Health Information Custodian — EMS Medical Director for ACRs (PHIPA)',
+        dual_law: true,
+        note: 'CRITICAL SPLIT: Ambulance Call Reports (ACRs) are PHIPA records documenting PATIENT health information — not MFIPPA records. Do not confuse the two regimes when requesting records.'
+      };
+    }
+    if (province === 'BC') {
+      return { acts: ['FOIPPA, RSBC 1996, c 165 (employment records)', 'Workers Compensation Act, RSBC 2019 (WorkSafeBC)', 'CUPE 873 CBA 2022–2025 (BC paramedics)'], opi: 'FOI Coordinator — [EMS Service]', dual_law: false, note: 'BC ambulance records may fall under FOIPPA or health privacy rules — contact OIPC BC for guidance.' };
+    }
+    return { acts: ['Provincial FOI equivalent (employment records)', 'Provincial health privacy act (patient care records)', 'Provincial WCB/workers comp act', 'Applicable CUPE local CBA'], opi: 'Separate custodians for employment vs. health records', dual_law: true, note: `In ${province}, verify the split between employment records and patient care records with the provincial IPC.` };
+  }
+
+  if (sector === 'fire') {
+    if (province === 'ON') {
+      return {
+        acts: [
+          'MFIPPA, RSO 1990, c M.56 — employment / HR / discipline records',
+          'FPPA, SO 1997, c 4 — Part IX discipline; s.51 volunteer provisions',
+          'WSIA, SO 1997, c 16, Sch A — s.15.1 PTSD presumption; s.15.3 cancer presumption',
+          'OHSA, RSO 1990, c O.1 — workplace safety, harassment, critical injury reporting',
+          'IAFF Local CBA (professional/composite) — grievance and discipline rights'
+        ],
+        opi: 'MFIPPA Coordinator — [Municipality]. Application fee: $5.',
+        dual_law: false,
+        note: currentFireStatus === 'volunteer'
+          ? 'VOLUNTEER: ESA does NOT apply. IAFF CBA typically does NOT apply. WSIB Schedule 1 coverage exists through municipality. FPPA s.51 governs volunteer-specific provisions.'
+          : 'Professional firefighters have full FPPA, WSIA, MFIPPA, and CBA coverage. Cancer presumption (s.15.3) applies to professional firefighters with qualifying years of service.'
+      };
+    }
+    if (province === 'BC') {
+      return { acts: ['FOIPPA, RSBC 1996, c 165', 'Fire Services Act, RSBC 1996, c 144', 'Workers Compensation Act, RSBC 2019 — WorkSafeBC', 'IAFF Local CBA'], opi: 'FOI Coordinator — [Municipality]', dual_law: false, note: 'BC WCB cancer presumption for firefighters exists under Workers Compensation Act. Verify current schedule with WorkSafeBC.' };
+    }
+    return { acts: ['Provincial FOI equivalent', 'Provincial fire services act', 'Provincial WCB act (cancer and PTSD presumptions vary)', 'IAFF Local CBA'], opi: 'Municipality FOI Coordinator', dual_law: false, note: `Verify cancer and PTSD presumption schedule for ${province} with your provincial WCB/workers comp body.` };
+  }
+
+  return null;
+}
+
+function renderJurisdictionPanel() {
+  const panel = document.getElementById('jurisdictionPanel');
+  const content = document.getElementById('jurisdictionContent');
+  if (!currentSector || !currentProvince) { panel.classList.remove('visible'); return; }
+
+  const result = runJurisdictionTree(currentSector, currentProvince);
+  if (!result) { panel.classList.remove('visible'); return; }
+
+  let html = '';
+  if (result.dual_law) {
+    html += '<div style="margin-bottom:8px"><span class="dual-law-badge">DUAL-LAW</span> <span style="font-size:12px;color:var(--gold)">Multiple legislative regimes apply — read carefully</span></div>';
+  }
+  result.acts.forEach(act => {
+    html += `<div class="jurisdiction-act">&#9656; <span>${esc(act)}</span></div>`;
+  });
+  html += `<div class="jurisdiction-opi"><strong style="color:var(--text-dim)">ATIP/Records Custodian:</strong> ${esc(result.opi)}</div>`;
+  if (result.note) {
+    html += `<div class="jurisdiction-note">${esc(result.note)}</div>`;
+  }
+
+  content.innerHTML = html;
+  panel.classList.add('visible');
+}
+
+// ═══════════════════════════════════════════════════════
+// SECTOR / PROVINCE / STATUS CONTROLS
+// ═══════════════════════════════════════════════════════
+
+function setSector(sector, btn) {
+  currentSector = sector;
+  document.querySelectorAll('.sector-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const fireRow = document.getElementById('fireStatusRow');
+  if (sector === 'fire') {
+    fireRow.classList.add('visible');
+  } else {
+    fireRow.classList.remove('visible');
+    document.getElementById('volunteerWarning').classList.remove('visible');
+  }
+  renderJurisdictionPanel();
+  updatePromptChips(sector);
+  clearResults();
+}
+
+function setProvince(province) {
+  currentProvince = province;
+  renderJurisdictionPanel();
+}
+
+function setFireStatus(status) {
+  currentFireStatus = status;
+  const warning = document.getElementById('volunteerWarning');
+  if (status === 'volunteer' || status === 'composite') {
+    warning.classList.add('visible');
+  } else {
+    warning.classList.remove('visible');
+  }
+  renderJurisdictionPanel();
+  clearResults();
+}
+
+// ═══════════════════════════════════════════════════════
+// PROMPT CHIPS
+// ═══════════════════════════════════════════════════════
+
+const PROMPTS = {
+  rcmp: ['injury on duty','PTSD','conduct board','grievance','NPF representative','disability pension','medical release','ATIP records request'],
+  'provincial-police': ['PTSD diagnosis','WSIB claim','FIPPA records','OPP conduct','CSPA process','union rights'],
+  'municipal-police': ['WSIB injury claim','PTSD presumption','MFIPPA records request','CSPA conduct','police association grievance','suspension'],
+  paramedic: ['WSIB injury claim','PTSD presumption','CUPE grievance','PHIPA records','sick leave denial','MFIPPA employment records','needle exposure'],
+  fire: ['WSIB injury','cancer presumption','PTSD diagnosis','FPPA discipline','IAFF grievance','MFIPPA records','volunteer coverage']
+};
+
+function updatePromptChips(sector) {
+  const chips = document.getElementById('promptChips');
+  const prompts = PROMPTS[sector] || [];
+  chips.innerHTML = prompts.map(p =>
+    `<button class="prompt-chip" data-text="${esc(p)}">${esc(p)}</button>`
+  ).join('');
+  chips.querySelectorAll('.prompt-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const input = document.getElementById('situationInput');
+      const current = input.value.trim();
+      input.value = current ? current + ' ' + chip.dataset.text : chip.dataset.text;
+      document.getElementById('charCount').textContent = `${input.value.length} / 2000`;
+      input.focus();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// SCORING ENGINE
+// ═══════════════════════════════════════════════════════
+
+function analyze() {
+  const rawInput = document.getElementById('situationInput').value.trim();
+  const statusBar = document.getElementById('statusBar');
+
+  if (!currentSector) {
+    statusBar.textContent = '⚠ Select your sector first (RCMP, Police, Paramedic, or Fire).';
+    statusBar.style.display = 'block';
+    return;
+  }
+
+  statusBar.style.display = 'none';
+  let sectorBenefits = BENEFITS_FR.filter(b => b.sector === currentSector);
+
+  // For volunteer firefighters, filter to volunteer-relevant benefits
+  if (currentSector === 'fire' && (currentFireStatus === 'volunteer' || currentFireStatus === 'composite')) {
+    sectorBenefits = sectorBenefits.filter(b => !['fire-cancer-presumption','fire-fppa-conduct'].includes(b.id) || currentFireStatus === 'composite');
+  }
+
+  let scored = [];
+  if (!rawInput) {
+    scored = sectorBenefits.map((b, i) => ({ benefit: b, score: 10 - i, rank: i < 3 ? i + 1 : 3 }));
+  } else {
+    const tokens = tokenize(rawInput);
+    scored = sectorBenefits.map(b => {
+      const kwScore = scoreKeywords(tokens, b.keywords);
+      const condScore = b.conditions.reduce((sum, c) => sum + scoreKeywords(tokens, c.keywords), 0);
+      const score = kwScore * 2 + condScore;
+      return { benefit: b, score };
+    }).filter(r => r.score > 0 || !rawInput)
+      .sort((a, b) => b.score - a.score);
+
+    scored = scored.map((r, i) => ({ ...r, rank: i === 0 ? 1 : i < 3 ? 2 : 3 }));
+  }
+
+  if (scored.length === 0) {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('noResults').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('noResults').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  const sectorLabel = document.querySelector(`.sector-btn[data-sector="${currentSector}"]`)?.textContent || currentSector;
+  document.getElementById('resultsHeader').textContent = `${scored.length} RESULTS — ${sectorLabel.toUpperCase()}${currentProvince ? ' · ' + currentProvince : ''}`;
+
+  document.getElementById('benefitCards').innerHTML = scored.slice(0, 8).map((r, idx) => renderBenefitCard(r.benefit, r.rank, idx, rawInput)).join('');
+
+  // Wire up toggles
+  document.querySelectorAll('.benefit-header').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const card = hdr.closest('.benefit-card');
+      card.classList.toggle('open');
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// BENEFIT CARD RENDERER
+// ═══════════════════════════════════════════════════════
+
+function renderBenefitCard(b, rank, idx, rawInput) {
+  const tokens = rawInput ? new Set(tokenize(rawInput)) : new Set();
+
+  const condHtml = b.conditions.map(c => {
+    const met = tokens.size > 0 && c.keywords.some(k => k.split(' ').every(t => tokens.has(t)));
+    const icon = met ? '<span class="condition-icon condition-met">✓</span>' : '<span class="condition-icon condition-unknown">?</span>';
+    return `<div class="condition-item">${icon}<span class="condition-text${met ? ' met' : ''}">${esc(c.label)}</span></div>`;
+  }).join('');
+
+  const evidenceHtml = b.evidence.map(e =>
+    `<div class="evidence-item"><div class="evidence-doc">${esc(e.doc)}</div><div class="evidence-how">${esc(e.how)}</div></div>`
+  ).join('');
+
+  const qHtml = b.questions.map(q => `<div class="question-item">${esc(q)}</div>`).join('');
+
+  const cardId = 'card-' + idx;
+  return `
+<div class="benefit-card rank-${rank}" id="${cardId}">
+  <div class="benefit-header" role="button" aria-expanded="false" aria-controls="${cardId}-body">
+    <div class="benefit-rank">${rank}</div>
+    <div class="benefit-info">
+      <div class="benefit-name">${esc(b.name)}</div>
+      <div class="benefit-short">${esc(b.short)}</div>
+      <div class="benefit-law">${esc(b.law)}</div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="benefit-body" id="${cardId}-body">
+    <div class="benefit-section">
+      <div class="subsection-label">// Eligibility Conditions</div>
+      <div class="condition-list">${condHtml}</div>
+    </div>
+    <div class="benefit-section">
+      <div class="subsection-label">// Evidence Required</div>
+      <div class="evidence-list">${evidenceHtml}</div>
+    </div>
+    <div class="benefit-section">
+      <div class="subsection-label">// Key Questions To Answer Before Applying</div>
+      <div class="question-list">${qHtml}</div>
+    </div>
+    <div class="benefit-section">
+      <div class="subsection-label">// Application Draft Template</div>
+      <div class="form-draft">${esc(b.template)}</div>
+      <button class="btn-copy" onclick="copyDraft(this)">COPY DRAFT TEXT</button>
+    </div>
+    <div class="benefit-section">
+      <div class="subsection-label">// ATIP / Records Request Pathway</div>
+      ${renderATIPSection(b, idx)}
+    </div>
+    <div class="benefit-section">
+      <div class="union-source"><strong>Union/Association Source:</strong> ${esc(b.union_source)}</div>
+    </div>
+  </div>
+</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// ATIP SECTION
+// ═══════════════════════════════════════════════════════
+
+function renderATIPSection(b, idx) {
+  const previewId = `atip-preview-${idx}`;
+  return `
+<div class="atip-section">
+  <div class="atip-title">// ATIP / RECORDS REQUEST LETTER GENERATOR</div>
+  <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px">
+    Governing Act: <strong style="color:var(--text)">${esc(b.atip_act)}</strong><br>
+    Custodian: ${esc(b.atip_custodian)}<br>
+    Submit to: ${esc(b.atip_email)}
+  </div>
+  <div class="atip-fields">
+    <div class="atip-field-row">
+      <div class="atip-field">
+        <label>Your Full Legal Name</label>
+        <input type="text" id="atip-name-${idx}" placeholder="Full legal name">
+      </div>
+      <div class="atip-field">
+        <label>Date of Birth</label>
+        <input type="text" id="atip-dob-${idx}" placeholder="YYYY-MM-DD">
+      </div>
+    </div>
+    <div class="atip-field-row">
+      <div class="atip-field">
+        <label>Mailing Address</label>
+        <input type="text" id="atip-address-${idx}" placeholder="Street, City, Province, Postal Code">
+      </div>
+      <div class="atip-field">
+        <label>Your Employee / Badge / Service Number (if known)</label>
+        <input type="text" id="atip-empnum-${idx}" placeholder="Optional">
+      </div>
+    </div>
+  </div>
+  <div class="atip-btn-row">
+    <button class="btn-atip" onclick="previewATIP(${idx}, '${b.id}', '${esc(b.atip_custodian)}', '${esc(b.atip_act)}', '${esc(b.atip_email)}')">PREVIEW LETTER</button>
+    <button class="btn-atip dl" onclick="downloadATIP(${idx}, '${b.id}', '${esc(b.atip_custodian)}', '${esc(b.atip_act)}', '${esc(b.atip_email)}')">↓ DOWNLOAD (.txt)</button>
+  </div>
+  <div class="atip-letter-preview" id="${previewId}"></div>
+</div>`;
+}
+
+function buildATIPLetter(idx, benefitId, custodian, act, email) {
+  const today = new Date().toLocaleDateString('en-CA');
+  const name    = document.getElementById('atip-name-' + idx)?.value.trim()    || 'YOUR FULL LEGAL NAME';
+  const dob     = document.getElementById('atip-dob-' + idx)?.value.trim()     || 'YOUR DATE OF BIRTH (YYYY-MM-DD)';
+  const address = document.getElementById('atip-address-' + idx)?.value.trim() || 'YOUR MAILING ADDRESS';
+  const empnum  = document.getElementById('atip-empnum-' + idx)?.value.trim();
+
+  const empLine = empnum ? `Employee / Badge / Service Number: ${empnum}\n` : '';
+  const benefit = BENEFITS_FR.find(b => b.id === benefitId);
+  const benefitName = benefit ? benefit.name : '[BENEFIT NAME]';
+
+  const isMFIPPA = act.includes('MFIPPA');
+  const isPHIPA  = act.includes('PHIPA');
+  const isPrivAct = act.includes('Privacy Act');
+  const isFIPPA  = act.includes('FIPPA') && !isMFIPPA;
+
+  let reRef = 'Re: Personal Information / Records Access Request';
+  let legalBasis = act;
+  let sectionRef = '';
+  if (isPrivAct)  { reRef = 'Re: Privacy Act Request — Access to Personal Information'; sectionRef = '(R.S.C., 1985, c. P-21), s.12'; }
+  if (isMFIPPA)   { reRef = 'Re: MFIPPA Request — Access to Personal Information'; sectionRef = '(RSO 1990, c M.56), s.36'; }
+  if (isFIPPA)    { reRef = 'Re: FIPPA Request — Access to Personal Information'; sectionRef = '(RSO 1990, c F.31), s.47'; }
+  if (isPHIPA)    { reRef = 'Re: PHIPA Request — Access to Personal Health Information'; sectionRef = '(SO 2004, c 3, Sch A), s.52'; }
+
+  return `${today}
+
+${custodian}
+${email ? 'Email: ' + email : ''}
+
+${reRef}
+
+To the Privacy / ATIP / FOI Coordinator,
+
+I, ${name}, born ${dob},
+${empLine}hereby request, pursuant to the ${legalBasis} ${sectionRef},
+access to all records held by your institution pertaining to my person
+in connection with the matter of: ${benefitName}
+
+Specifically, I am requesting:
+
+1. All employment records, personnel file entries, and HR records
+   pertaining to me and related to the above-noted matter.
+
+2. All injury reports, incident reports, and investigation files
+   related to any incident involving me.
+
+3. All medical, mental health, or fitness-for-duty assessments
+   conducted by or at the direction of my employer related to me.
+
+4. All correspondence, emails, notes, or internal communications
+   between institution staff pertaining to my file or any application
+   I have made.
+
+5. All decisions, assessments, or determinations made in respect
+   of any claim, complaint, or application I have filed.
+
+Please provide all responsive records in electronic format if possible.
+
+Please respond to:
+${name}
+${address}
+
+${isPrivAct  ? 'I understand the 30-day response requirement under s.13 of the Privacy Act.' : ''}${isMFIPPA   ? 'I understand the 30-day response requirement under s.19 of MFIPPA. I enclose the $5.00 application fee.' : ''}${isFIPPA    ? 'I understand the 30-day response requirement under FIPPA. I enclose the $5.00 application fee.' : ''}${isPHIPA    ? 'I understand the 30-day response requirement under s.54 of PHIPA.' : ''}
+
+Sincerely,
+
+${name}
+Date: ${today}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GENERATED BY: Operator's Deck — First Responder Navigator (clovelearn.io)
+This tool is not affiliated with any government institution or union.
+Content provided for general informational purposes only — not legal advice.
+All processing occurred locally on your device. No data was transmitted.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+}
+
+function previewATIP(idx, benefitId, custodian, act, email) {
+  const text = buildATIPLetter(idx, benefitId, custodian, act, email);
+  const el = document.getElementById('atip-preview-' + idx);
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('visible');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function downloadATIP(idx, benefitId, custodian, act, email) {
+  const text = buildATIPLetter(idx, benefitId, custodian, act, email);
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `FR-ATIP-Request-${new Date().toLocaleDateString('en-CA')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  try {
+    const hist = JSON.parse(localStorage.getItem('od_fr_history') || '[]');
+    hist.unshift({ date: new Date().toISOString(), type: 'atip_download', benefit: benefitId });
+    if (hist.length > 20) hist.pop();
+    localStorage.setItem('od_fr_history', JSON.stringify(hist));
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════
+
+function copyDraft(btn) {
+  const section = btn.closest('.benefit-section');
+  const draft = section ? section.querySelector('.form-draft') : null;
+  if (!draft) return;
+  const text = draft.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY DRAFT TEXT'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const range = document.createRange();
+    range.selectNode(draft);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+  });
+}
+
+function clearAll() {
+  document.getElementById('situationInput').value = '';
+  document.getElementById('charCount').textContent = '0 / 2000';
+  clearResults();
+}
+
+function clearResults() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('noResults').style.display = 'none';
+  document.getElementById('statusBar').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('situationInput');
+  const count = document.getElementById('charCount');
+
+  input.addEventListener('input', () => {
+    count.textContent = `${input.value.length} / 2000`;
+  });
+  input.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyze();
+  });
+
+  if (!navigator.onLine) document.getElementById('offlineBanner').style.display = 'block';
+  window.addEventListener('offline', () => { document.getElementById('offlineBanner').style.display = 'block'; });
+  window.addEventListener('online',  () => { document.getElementById('offlineBanner').style.display = 'none'; });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,759 @@
+{
+  "_meta": {
+    "version": "2026-05-08",
+    "source": "npf-fpn.ca, wsib.ca, cupe.ca, iaff.org/canada, laws-lois.justice.gc.ca, ipc.on.ca",
+    "maintainer": "Update annually. Verify WSIB rates each January. Confirm PTSD presumption proclamation dates. Check NPF CBA expiry (current: 2021-2025).",
+    "update_procedure": "1. Verify legislative citations at laws-lois.justice.gc.ca. 2. Confirm WSIB/WCB rates at wsib.ca / worksafebc.com. 3. Check NPF CBA renewal date. 4. Bump version date. 5. Redeploy.",
+    "jurisdiction_note": "Ontario used as primary provincial example. BC/AB/other provinces: substitute FOIPPA for MFIPPA, WCB for WSIB, and applicable provincial acts. RCMP is always federal regardless of province of posting.",
+    "disclaimer": "This tool provides general information only. It is not legal advice. Verify all citations with the authoritative statute text at laws-lois.justice.gc.ca."
+  },
+
+  "sectors": {
+    "rcmp":             { "label": "RCMP (Federal)", "color": "#c0392b", "jurisdiction": "federal" },
+    "provincial-police":{ "label": "Provincial / OPP", "color": "#2980b9", "jurisdiction": "provincial" },
+    "municipal-police": { "label": "Municipal Police", "color": "#2980b9", "jurisdiction": "municipal" },
+    "paramedic":        { "label": "Paramedic / EMS", "color": "#d4a843", "jurisdiction": "municipal" },
+    "fire":             { "label": "Fire Services", "color": "#c0392b", "jurisdiction": "municipal" }
+  },
+
+  "benefits": [
+
+    {
+      "id": "rcmp-duty-disability",
+      "sector": "rcmp",
+      "name": "RCMP Duty-Related Disability Benefit",
+      "short": "Long-term income support for RCMP members disabled in the line of duty",
+      "legislative_hook": "RCMP Superannuation Act, RSC 1985, c R-11; RCMP Act, RSC 1985, c R-10, s.32",
+      "jurisdiction": "federal",
+      "keywords": [
+        "injury", "injured", "hurt", "disability", "disabled", "line of duty",
+        "on duty", "incident", "patrol", "training", "deployment", "medical release",
+        "ptsd", "trauma", "mental health", "chronic", "pain", "operational stress",
+        "osi", "hearing loss", "back", "knee", "shoulder", "concussion", "tbi"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_rcmp",
+          "label": "Member of the RCMP (Regular or Civilian Member)",
+          "keywords": ["rcmp", "royal canadian mounted police", "officer", "constable", "corporal", "sergeant", "inspector", "grc"]
+        },
+        {
+          "id": "on_duty_injury",
+          "label": "Injury or illness occurred in the line of duty or is service-attributable",
+          "keywords": ["on duty", "line of duty", "during patrol", "arrest", "training", "service-related", "operational", "during service"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Form 1004 — Medical Certificate for Disability", "how": "Completed by your attending physician; available from RCMP Human Resources" },
+        { "doc": "APS — Assessment of Physical Suitability report", "how": "Conducted by RCMP Health Services; request through your detachment commander" },
+        { "doc": "Incident Report / Operational Report", "how": "From your detachment or PRIME records; request via ATIP to RCMP if not in possession" },
+        { "doc": "RCMP Service Record (CF-equivalent: Form 4)", "how": "Request via Privacy Act ATIP to RCMP National Division" }
+      ],
+      "form_questions": [
+        "What is your rank and badge number?",
+        "What injury or condition are you claiming?",
+        "What specific incident or operational exposure caused this condition?",
+        "Are you currently fit for duty, on modified duties, or medically released?"
+      ],
+      "template": "The applicant is a [RANK] with the Royal Canadian Mounted Police (Badge: [BADGE NUMBER]), currently [DUTY STATUS]. The member sustained [INJURY/CONDITION] as a direct result of [INCIDENT/OPERATIONAL EXPOSURE] occurring during service on or around [DATE]. The condition has been assessed by RCMP Health Services as [ASSESSMENT OUTCOME], and the member is applying for Duty-Related Disability support under the RCMP Superannuation Act.",
+      "entities": ["RANK", "BADGE NUMBER", "DUTY STATUS", "INJURY/CONDITION", "INCIDENT/OPERATIONAL EXPOSURE", "DATE", "ASSESSMENT OUTCOME"],
+      "atip_custodian": "RCMP National Division — ATIP Office",
+      "atip_email": "atip-aiprp@rcmp-grc.gc.ca",
+      "atip_act": "Privacy Act, RSC 1985, c P-21",
+      "union_source": "National Police Federation (NPF) — npf-fpn.ca; NPF Collective Agreement 2021–2025, Article 32 (Duty-Related Benefits)"
+    },
+
+    {
+      "id": "rcmp-ptsd-osi",
+      "sector": "rcmp",
+      "name": "RCMP Operational Stress Injury / PTSD Support",
+      "short": "Mental health services, OSI clinics, and occupational stress benefit pathway",
+      "legislative_hook": "RCMP Act, RSC 1985, c R-10; Privacy Act, RSC 1985, c P-21; NPF CBA 2021-2025, Article 34 (Mental Health)",
+      "jurisdiction": "federal",
+      "keywords": [
+        "ptsd", "post traumatic", "stress", "anxiety", "depression", "operational stress",
+        "osi", "mental health", "trauma", "nightmares", "flashbacks", "hypervigilance",
+        "burnout", "crisis", "suicidal", "critical incident", "cumulative", "emotional"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_rcmp",
+          "label": "Member of the RCMP",
+          "keywords": ["rcmp", "officer", "constable", "grc", "royal canadian mounted police"]
+        },
+        {
+          "id": "service_exposure",
+          "label": "Mental health condition linked to operational exposures",
+          "keywords": ["exposure", "incident", "scene", "arrest", "confrontation", "death", "trauma", "cumulative", "on duty"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Mental health assessment from RCMP Health Services or registered psychologist", "how": "Request referral through RCMP Employee Assistance Programme (EAP) or your OHN" },
+        { "doc": "Critical Incident Log / Exposure history", "how": "From your supervisor or detachment log; can be requested via ATIP" },
+        { "doc": "NPF Member Assistance referral (if applicable)", "how": "Contact NPF directly at npf-fpn.ca for peer support and referral resources" }
+      ],
+      "form_questions": [
+        "What operational exposures (incidents, scenes, threats) have contributed to this condition?",
+        "Have you received a formal diagnosis from a registered psychologist or psychiatrist?",
+        "Are you currently accessing RCMP Health Services or EAP?",
+        "Has this condition resulted in modified duties, sick leave, or a medical release?"
+      ],
+      "template": "The applicant is an RCMP member who has sustained an Operational Stress Injury (OSI) consistent with [DIAGNOSIS] as a result of cumulative and/or acute operational exposures including [EXPOSURES]. The member has been assessed by [CLINICIAN/SERVICE] and is requesting access to [REQUESTED SUPPORT/PATHWAY]. The NPF Collective Agreement Article 34 and RCMP Health Services directive provide the framework for this request.",
+      "entities": ["DIAGNOSIS", "EXPOSURES", "CLINICIAN/SERVICE", "REQUESTED SUPPORT/PATHWAY"],
+      "atip_custodian": "RCMP National Division — ATIP Office",
+      "atip_email": "atip-aiprp@rcmp-grc.gc.ca",
+      "atip_act": "Privacy Act, RSC 1985, c P-21",
+      "union_source": "NPF CBA 2021–2025, Article 34 (Mental Health and Wellness)"
+    },
+
+    {
+      "id": "rcmp-survivor-benefit",
+      "sector": "rcmp",
+      "name": "RCMP Survivor / Death-in-Service Benefit",
+      "short": "Lump sum and ongoing pension support for survivors of RCMP members who die in service",
+      "legislative_hook": "RCMP Superannuation Act, RSC 1985, c R-11, Part III; Royal Canadian Mounted Police Death Benefit Act",
+      "jurisdiction": "federal",
+      "keywords": [
+        "death", "died", "killed", "fatal", "survivor", "widow", "widower",
+        "spouse", "dependent", "line of duty death", "officer down", "funeral",
+        "death benefit", "survivor pension", "estate"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "member_deceased",
+          "label": "RCMP member has died",
+          "keywords": ["died", "death", "deceased", "killed", "fatal", "passed"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Death certificate", "how": "From provincial vital statistics or coroner" },
+        { "doc": "RCMP service confirmation", "how": "Provided by RCMP Human Resources / pension administration" },
+        { "doc": "Marriage certificate / proof of dependency", "how": "Required to establish survivor eligibility" }
+      ],
+      "form_questions": [
+        "What was the member's rank and service number?",
+        "What were the circumstances of death (line of duty / medical / other)?",
+        "What is the claimant's relationship to the deceased member?",
+        "Are there dependent children?"
+      ],
+      "template": "The applicant, [CLAIMANT NAME], is the [RELATIONSHIP] of [MEMBER FULL NAME] (Badge: [BADGE NUMBER]), a member of the Royal Canadian Mounted Police who died on [DATE OF DEATH] under the following circumstances: [CIRCUMSTANCES]. The claimant is applying for survivor benefits under the RCMP Superannuation Act and any applicable Death-in-Service benefits.",
+      "entities": ["CLAIMANT NAME", "RELATIONSHIP", "MEMBER FULL NAME", "BADGE NUMBER", "DATE OF DEATH", "CIRCUMSTANCES"],
+      "atip_custodian": "RCMP National Division — ATIP Office",
+      "atip_email": "atip-aiprp@rcmp-grc.gc.ca",
+      "atip_act": "Privacy Act, RSC 1985, c P-21",
+      "union_source": "NPF CBA 2021–2025, Article 33 (Death Benefits)"
+    },
+
+    {
+      "id": "rcmp-conduct-grievance",
+      "sector": "rcmp",
+      "name": "RCMP Conduct / Grievance Process Rights",
+      "short": "Member rights under the RCMP Act conduct process and NPF grievance procedure",
+      "legislative_hook": "RCMP Act, RSC 1985, c R-10, Part IV (Conduct); RCMP Regulations, 2014, SOR/2014-281",
+      "jurisdiction": "federal",
+      "keywords": [
+        "conduct", "discipline", "allegation", "misconduct", "complaint", "investigation",
+        "grievance", "appeal", "board", "hearing", "demotion", "dismissal", "suspended",
+        "sanction", "reprimand", "rights", "union rep", "npf", "representation"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "conduct_process",
+          "label": "Member is subject to or appealing a conduct process",
+          "keywords": ["conduct board", "allegation", "notice", "conduct", "investigation", "disciplinary"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Notice of Conduct Hearing or Conduct Measures document", "how": "You should have received this; if not, request via ATIP to RCMP" },
+        { "doc": "NPF representation request", "how": "Contact NPF immediately at npf-fpn.ca — you have the right to representation at all stages" },
+        { "doc": "Relevant operational records, body-cam footage, witness statements", "how": "Request via your NPF rep or directly via Privacy Act ATIP" }
+      ],
+      "form_questions": [
+        "What conduct allegation or measure are you responding to?",
+        "At what stage is the process (investigation, hearing, appeal)?",
+        "Have you engaged NPF representation?",
+        "What outcome are you seeking (dismissal of allegation, reduced sanction, other)?"
+      ],
+      "template": "The applicant, [RANK] [NAME] (Badge: [BADGE NUMBER]), is responding to conduct proceedings under Part IV of the RCMP Act regarding [ALLEGATION SUMMARY]. The member is at the [STAGE] stage of the process and is requesting [OUTCOME SOUGHT]. This matter is subject to the RCMP Act Part IV and RCMP Regulations, 2014. NPF representation has [BEEN/NOT BEEN] engaged.",
+      "entities": ["RANK", "NAME", "BADGE NUMBER", "ALLEGATION SUMMARY", "STAGE", "OUTCOME SOUGHT", "BEEN/NOT BEEN"],
+      "atip_custodian": "RCMP National Division — ATIP Office",
+      "atip_email": "atip-aiprp@rcmp-grc.gc.ca",
+      "atip_act": "Privacy Act, RSC 1985, c P-21",
+      "union_source": "NPF CBA 2021–2025 — grievance procedure; RCMP Act Part IV"
+    },
+
+    {
+      "id": "police-wsib-injury",
+      "sector": "municipal-police",
+      "name": "WSIB Injury / Illness Claim (ON Municipal Police)",
+      "short": "Workers compensation for on-duty injury or occupational illness — Ontario",
+      "legislative_hook": "Workplace Safety and Insurance Act, 1997 (WSIA), SO 1997, c 16, Sch A; WSIA s.15.1 (PTSD presumption, 2018)",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "injury", "hurt", "accident", "assault", "fall", "struck", "shooting",
+        "exposure", "infection", "illness", "cancer", "disability", "work",
+        "on duty", "wsib", "workers compensation", "claim", "lost time", "ltw"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_police_on",
+          "label": "Employed as a police officer in Ontario (municipal force)",
+          "keywords": ["police", "officer", "constable", "detective", "sergeant", "staff sergeant", "inspector"]
+        },
+        {
+          "id": "on_duty",
+          "label": "Injury or illness occurred on duty or is occupationally caused",
+          "keywords": ["on duty", "while working", "patrol", "arrest", "scene", "shift", "call", "training", "occupational"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "WSIB Form 6 (Worker's Report of Injury/Disease)", "how": "File directly at wsib.ca or through your HR department within 6 months of injury" },
+        { "doc": "WSIB Form 7 (Employer's Report)", "how": "Your employer must file this; follow up to confirm they did" },
+        { "doc": "Medical documentation from treating physician or ER", "how": "Keep all records; submit copies to WSIB and your union rep" },
+        { "doc": "Use of Force Report / Incident Report (if applicable)", "how": "From your service records; your union (OPPA/local association) can assist" }
+      ],
+      "form_questions": [
+        "What injury or illness are you claiming?",
+        "When and how did the incident or exposure occur?",
+        "Did you seek immediate medical attention? From whom?",
+        "Have you notified your employer and filed a Form 6 with WSIB?"
+      ],
+      "template": "The applicant, [NAME], a police [RANK] employed by [POLICE SERVICE], sustained [INJURY/ILLNESS] on [DATE] during [CIRCUMSTANCES OF INCIDENT]. The injury/illness is occupationally caused and the applicant is filing a WSIB claim under the Workplace Safety and Insurance Act, 1997. The applicant is requesting [WSIB BENEFITS SOUGHT — e.g., loss of earnings, health care, labour market re-entry].",
+      "entities": ["NAME", "RANK", "POLICE SERVICE", "INJURY/ILLNESS", "DATE", "CIRCUMSTANCES OF INCIDENT", "WSIB BENEFITS SOUGHT"],
+      "atip_custodian": "Institution Head — [Police Service Name]",
+      "atip_act": "Municipal Freedom of Information and Protection of Privacy Act (MFIPPA), RSO 1990, c M.56",
+      "union_source": "Ontario Provincial Police Association (OPPA) — oppa.ca; or your local police association CBA"
+    },
+
+    {
+      "id": "police-ptsd-presumption",
+      "sector": "municipal-police",
+      "name": "PTSD Presumption Benefit — Police (ON)",
+      "short": "Statutory presumption: PTSD is deemed work-related for police in Ontario",
+      "legislative_hook": "WSIA, SO 1997, c 16, Sch A, s.15.1 (proclaimed April 6, 2018); MFIPPA, RSO 1990, c M.56",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "ptsd", "post traumatic", "stress", "trauma", "anxiety", "depression",
+        "nightmares", "flashbacks", "hypervigilance", "intrusive", "avoidance",
+        "mental health", "critical incident", "cumulative", "burnout", "osi"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_first_responder_on",
+          "label": "Employed as a police officer, firefighter, or paramedic in Ontario",
+          "keywords": ["police", "officer", "constable", "firefighter", "paramedic", "paramedics", "fire"]
+        },
+        {
+          "id": "ptsd_diagnosis",
+          "label": "PTSD diagnosed by a regulated health professional",
+          "keywords": ["diagnosis", "diagnosed", "ptsd", "post traumatic", "psychologist", "psychiatrist", "physician"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "DSM-5 PTSD diagnosis from a registered psychologist or psychiatrist", "how": "The presumption applies automatically once PTSD is diagnosed — the employer cannot require you to prove the specific triggering event" },
+        { "doc": "WSIB Form 6 (Worker's Report of Injury/Disease)", "how": "File at wsib.ca; reference WSIA s.15.1 explicitly" },
+        { "doc": "Employment confirmation letter", "how": "Your HR department confirms you are a Schedule 1 employer (police, fire, EMS are all Schedule 1)" }
+      ],
+      "form_questions": [
+        "Have you received a formal PTSD diagnosis from a registered psychologist or psychiatrist?",
+        "When were you diagnosed?",
+        "Are you currently employed by a police, fire, or paramedic service in Ontario?",
+        "Has your employer or insurer challenged the presumption?"
+      ],
+      "template": "The applicant, [NAME], a [ROLE] employed by [EMPLOYER], received a diagnosis of Post-Traumatic Stress Disorder (PTSD) from [CLINICIAN, CREDENTIALS] on [DIAGNOSIS DATE]. Pursuant to s.15.1 of the Workplace Safety and Insurance Act, 1997 (proclaimed April 6, 2018), PTSD diagnosed in a worker employed as [ROLE] is presumed to be an occupational disease arising out of and in the course of employment. The applicant is filing a WSIB claim and asserting this statutory presumption.",
+      "entities": ["NAME", "ROLE", "EMPLOYER", "CLINICIAN, CREDENTIALS", "DIAGNOSIS DATE"],
+      "atip_custodian": "WSIB — wsib.ca; Institution Head — [Employer] for employment records",
+      "atip_act": "WSIA s.15.1; MFIPPA (employer records)",
+      "union_source": "Ontario Provincial Police Association (OPPA); Toronto Police Association (TPA); or local police association"
+    },
+
+    {
+      "id": "police-conduct-cspa",
+      "sector": "municipal-police",
+      "name": "Police Conduct / Discipline Rights (ON — CSPA)",
+      "short": "Member rights under the Community Safety and Policing Act, 2019 conduct process",
+      "legislative_hook": "Community Safety and Policing Act, 2019 (CSPA), SO 2019, c 1, Sch 1; O. Reg 407/23 — Police Code of Conduct",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "conduct", "complaint", "misconduct", "allegation", "discipline", "suspension",
+        "hearing", "tribunal", "appeal", "sdpc", "oiprd", "code of conduct",
+        "dismissed", "resigned", "demotion", "sanction", "investigation", "rights"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "cspa_process",
+          "label": "Member subject to or appealing a CSPA conduct process",
+          "keywords": ["cspa", "oiprd", "sdpc", "code of conduct", "misconduct", "conduct hearing", "complaint", "allegation", "o. reg 407"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "OIPRD complaint or CSPA Notice of Hearing", "how": "You should have received formal notice; if not, request via MFIPPA or through your union rep" },
+        { "doc": "O. Reg 407/23 — Police Code of Conduct (the governing standard)", "how": "Available at ontario.ca/laws; review all applicable sections before your hearing" },
+        { "doc": "Union representation confirmation", "how": "Contact your police association immediately — you have the right to legal representation at all stages" }
+      ],
+      "form_questions": [
+        "What conduct allegation are you responding to?",
+        "Which provision of O. Reg 407/23 is cited?",
+        "At what stage are you (investigation, hearing, appeal to SDPC or court)?",
+        "Has your association engaged legal representation for you?"
+      ],
+      "template": "The applicant, [RANK] [NAME], employed by [POLICE SERVICE], is responding to conduct proceedings under the Community Safety and Policing Act, 2019, specifically O. Reg 407/23, s. [SECTION], regarding [ALLEGATION SUMMARY]. The member is at the [STAGE] stage and is requesting [OUTCOME SOUGHT — e.g., dismissal of complaint, reduced sanction, reinstatement].",
+      "entities": ["RANK", "NAME", "POLICE SERVICE", "SECTION", "ALLEGATION SUMMARY", "STAGE", "OUTCOME SOUGHT"],
+      "atip_custodian": "Institution Head — [Police Service Name]",
+      "atip_act": "MFIPPA, RSO 1990, c M.56 (municipal police) or FIPPA (OPP)",
+      "union_source": "Ontario Provincial Police Association (OPPA) — oppa.ca; or local association"
+    },
+
+    {
+      "id": "police-mfippa-records",
+      "sector": "municipal-police",
+      "name": "MFIPPA Personal Records Request (Municipal Police)",
+      "short": "Request access to your employment records held by a municipal police service",
+      "legislative_hook": "Municipal Freedom of Information and Protection of Privacy Act (MFIPPA), RSO 1990, c M.56, s.36 (personal access)",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "records", "file", "personnel file", "employment records", "performance",
+        "access", "information", "request", "obtain my records", "what do they have",
+        "mfippa", "freedom of information", "foi", "privacy", "disclosure"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "municipal_employee",
+          "label": "Employed by a municipal institution (police, fire, municipal government)",
+          "keywords": ["police service", "fire department", "municipality", "city", "town", "county", "regional municipality"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Government-issued photo ID", "how": "Required to verify identity for personal access request" },
+        { "doc": "Written MFIPPA access request form", "how": "Most municipalities have a form; submit to the municipal ATIP / FOI Coordinator. Fee: $5 application fee required by law." }
+      ],
+      "form_questions": [
+        "What specific records are you requesting (personnel file, discipline records, complaint files, other)?",
+        "What date range do the records cover?",
+        "Is this for a specific proceeding (WSIB claim, conduct hearing, civil matter)?",
+        "Have you previously requested these records?"
+      ],
+      "template": "Pursuant to s.36 of the Municipal Freedom of Information and Protection of Privacy Act (MFIPPA), I, [FULL LEGAL NAME], am requesting access to the following personal information held by [INSTITUTION NAME]: [DESCRIPTION OF RECORDS REQUESTED]. The records relate to the period [DATE RANGE]. I understand the $5.00 application fee is payable upon submission. Please respond within 30 days as required by MFIPPA s.19.",
+      "entities": ["FULL LEGAL NAME", "INSTITUTION NAME", "DESCRIPTION OF RECORDS REQUESTED", "DATE RANGE"],
+      "atip_custodian": "MFIPPA Coordinator / FOI Coordinator — [Institution Name]",
+      "atip_act": "MFIPPA, RSO 1990, c M.56",
+      "union_source": "Ontario Association of Chiefs of Police (OACP) — oacp.ca"
+    },
+
+    {
+      "id": "para-wsib-claim",
+      "sector": "paramedic",
+      "name": "WSIB Injury / Illness Claim (Paramedic / EMS)",
+      "short": "Workers compensation for on-duty physical injury or occupational exposure — Ontario",
+      "legislative_hook": "WSIA, SO 1997, c 16, Sch A; WSIA s.15.1 (PTSD presumption); WSIA Schedule 1 (Schedule 1 employer: EMS services)",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "injury", "hurt", "back", "lifting", "patient", "assault", "needlestick",
+        "exposure", "infection", "infectious disease", "hepatitis", "covid", "hiv",
+        "mva", "accident", "fall", "struck", "ambulance", "wsib", "claim", "lost time"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_paramedic",
+          "label": "Employed as a paramedic, EMT, or dispatcher in Ontario",
+          "keywords": ["paramedic", "emt", "advanced care paramedic", "acp", "primary care paramedic", "pcp", "dispatcher", "ems", "ambulance"]
+        },
+        {
+          "id": "work_related",
+          "label": "Injury or illness occurred on duty or is occupationally caused",
+          "keywords": ["on duty", "while working", "call", "patient", "scene", "shift", "lifting", "exposure", "needle"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "WSIB Form 6 (Worker's Report of Injury/Disease)", "how": "File at wsib.ca or through HR; file within 6 months of injury or illness" },
+        { "doc": "WSIB Form 7 (Employer's Report)", "how": "Your employer must file this; confirm with HR" },
+        { "doc": "Ambulance Call Report (ACR) for the relevant call (if applicable)", "how": "Note: ACRs are PHIPA records of the patient, NOT your records. Request an employer-sanitized incident log instead. Do not use the patient's ACR." },
+        { "doc": "Medical documentation from treating physician or ER", "how": "Collect all treatment records; submit copies to WSIB" },
+        { "doc": "Infectious Disease Exposure Report (needle/blood exposure)", "how": "Mandatory employer report under OHSA; contact your occupational health nurse immediately after exposure" }
+      ],
+      "form_questions": [
+        "What injury or exposure are you claiming?",
+        "When and how did the incident occur?",
+        "Was this a physical injury, infectious exposure, or mental health condition?",
+        "Have you notified your supervisor and filed Form 6 with WSIB?"
+      ],
+      "template": "The applicant, [NAME], a [ROLE] employed by [EMS SERVICE], sustained [INJURY/ILLNESS/EXPOSURE] on [DATE] during [CIRCUMSTANCES]. This is an occupationally caused condition and the applicant is filing a WSIB claim under the Workplace Safety and Insurance Act, 1997. Benefits requested: [WSIB BENEFITS SOUGHT].",
+      "entities": ["NAME", "ROLE", "EMS SERVICE", "INJURY/ILLNESS/EXPOSURE", "DATE", "CIRCUMSTANCES", "WSIB BENEFITS SOUGHT"],
+      "atip_custodian": "MFIPPA Coordinator — [EMS Service / Municipality]",
+      "atip_act": "MFIPPA (employment records); PHIPA, SO 2004, c 3, Sch A (patient care records — separate custodian)",
+      "union_source": "CUPE Emergency Services — cupe.ca/emergency-services; CUPE 873 (BC Ambulance Paramedics) — cupe873.org"
+    },
+
+    {
+      "id": "para-phipa-records",
+      "sector": "paramedic",
+      "name": "PHIPA Personal Health Information Access (Paramedic)",
+      "short": "Request access to your own health information under PHIPA — NOT for patient ACRs",
+      "legislative_hook": "Personal Health Information Protection Act (PHIPA), SO 2004, c 3, Sch A, s.52 (right of access); Health Care Consent Act, 1996, SO 1996, c 2, Sch A",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "health record", "my health information", "medical record", "treatment",
+        "diagnosis", "mental health record", "phipa", "health care", "clinic",
+        "hospital", "physician", "my own record", "personal health", "access"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "seeking_own_health_info",
+          "label": "Requesting access to your own personal health information",
+          "keywords": ["my record", "my health", "my diagnosis", "my treatment", "access my", "copy of my"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Government-issued photo ID", "how": "Required by the health information custodian to verify identity" },
+        { "doc": "Written PHIPA access request", "how": "Submit to the health information custodian (hospital, clinic, physician, EMS service medical director). No prescribed form — a written letter is sufficient." }
+      ],
+      "form_questions": [
+        "Who holds the health information you are requesting (hospital, physician, EMS service medical director)?",
+        "What type of records are you requesting (assessment notes, treatment records, mental health records)?",
+        "What date range do the records cover?",
+        "Are you requesting for yourself or as a substitute decision-maker?"
+      ],
+      "template": "Pursuant to s.52 of the Personal Health Information Protection Act (PHIPA), I, [FULL LEGAL NAME] (DOB: [DATE OF BIRTH]), am requesting access to my personal health information held by [CUSTODIAN NAME AND ADDRESS]. Specifically, I am requesting: [DESCRIPTION OF RECORDS]. The records relate to the period [DATE RANGE]. I understand you must respond within 30 days pursuant to PHIPA s.54.",
+      "entities": ["FULL LEGAL NAME", "DATE OF BIRTH", "CUSTODIAN NAME AND ADDRESS", "DESCRIPTION OF RECORDS", "DATE RANGE"],
+      "atip_custodian": "Health Information Custodian (e.g., hospital privacy officer, clinic, EMS medical director)",
+      "atip_act": "PHIPA, SO 2004, c 3, Sch A (health records); MFIPPA (employment records — separate request)",
+      "union_source": "CUPE 873 — cupe873.org; OPSEU EMS Locals; Information and Privacy Commissioner of Ontario — ipc.on.ca"
+    },
+
+    {
+      "id": "para-ptsd-presumption",
+      "sector": "paramedic",
+      "name": "Paramedic PTSD Presumption (ON — WSIA s.15.1)",
+      "short": "PTSD diagnosed in a paramedic is presumed work-related — no proof of specific event required",
+      "legislative_hook": "WSIA, SO 1997, c 16, Sch A, s.15.1 (proclaimed April 6, 2018); CUPE 873 CBA 2022–2025",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "ptsd", "post traumatic", "stress", "trauma", "anxiety", "depression",
+        "flashbacks", "nightmares", "hypervigilance", "mental health", "osi",
+        "critical incident", "cumulative", "exposure", "burnout", "dissociation"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_paramedic_on",
+          "label": "Employed as a paramedic in Ontario (Schedule 1 employer)",
+          "keywords": ["paramedic", "emt", "ems", "ambulance", "acp", "pcp", "dispatcher"]
+        },
+        {
+          "id": "ptsd_diagnosed",
+          "label": "Formal PTSD diagnosis from a regulated health professional",
+          "keywords": ["diagnosed", "diagnosis", "ptsd", "psychologist", "psychiatrist", "dsm-5", "registered"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "DSM-5 PTSD diagnosis from registered psychologist or psychiatrist", "how": "The presumption under WSIA s.15.1 applies automatically. Employer cannot require proof of specific triggering event." },
+        { "doc": "WSIB Form 6", "how": "File at wsib.ca; cite WSIA s.15.1 in the description of injury" },
+        { "doc": "Employer confirmation of employment category", "how": "Confirm Schedule 1 status — paramedic services are Schedule 1 employers; HR letter sufficient" }
+      ],
+      "form_questions": [
+        "Have you received a formal PTSD diagnosis from a registered psychologist or psychiatrist?",
+        "When was the diagnosis made?",
+        "Are you currently employed as a paramedic in Ontario?",
+        "Has your employer or WSIB challenged the presumption or requested documentation of specific traumatic events?"
+      ],
+      "template": "The applicant, [NAME], a [ROLE] employed by [EMS SERVICE], was diagnosed with Post-Traumatic Stress Disorder (PTSD) by [CLINICIAN, CREDENTIALS] on [DIAGNOSIS DATE]. Pursuant to s.15.1 of the Workplace Safety and Insurance Act, 1997, PTSD is presumed to be an occupational disease arising out of and in the course of employment for workers employed as [ROLE]. The applicant is asserting this statutory presumption and requests that WSIB process this claim accordingly.",
+      "entities": ["NAME", "ROLE", "EMS SERVICE", "CLINICIAN, CREDENTIALS", "DIAGNOSIS DATE"],
+      "atip_custodian": "WSIB; MFIPPA Coordinator (employer records)",
+      "atip_act": "WSIA s.15.1; MFIPPA (employment records)",
+      "union_source": "CUPE 873 CBA 2022–2025; OPSEU EMS Local agreements"
+    },
+
+    {
+      "id": "para-cupe-grievance",
+      "sector": "paramedic",
+      "name": "CUPE Grievance / CBA Rights (Paramedic)",
+      "short": "Enforce your rights under the CUPE collective agreement — discipline, scheduling, wages",
+      "legislative_hook": "Labour Relations Act, 1995, SO 1995, c 1, Sch A; CUPE 873 CBA 2022–2025; Employment Standards Act, 2000 (ESA), SO 2000, c 41",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "grievance", "union", "collective agreement", "cba", "cupe", "discipline",
+        "unjust dismissal", "suspension", "demotion", "scheduling", "overtime",
+        "vacation", "sick leave", "wages", "back pay", "arbitration", "rights"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "cupe_member",
+          "label": "Member of CUPE (or other paramedic union local)",
+          "keywords": ["cupe", "union", "local", "collective agreement", "grievance", "arbitration"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Relevant CBA articles (e.g., discipline, scheduling, sick leave)", "how": "Available from your CUPE local steward or cupe.ca; CUPE 873 CBA at cupe873.org" },
+        { "doc": "Written record of the employer action you are grieving", "how": "Discipline letter, schedule change notice, denial of leave, etc." },
+        { "doc": "Union steward contact and grievance form", "how": "Contact your CUPE local immediately — grievance time limits in CBAs are strict (often 10–20 days)" }
+      ],
+      "form_questions": [
+        "What employer action are you grieving (discipline, scheduling, denial of leave, wage dispute)?",
+        "When did the event occur?",
+        "What article of the CBA has been violated?",
+        "Have you contacted your union steward? Within the CBA time limit?"
+      ],
+      "template": "The applicant, [NAME], a [ROLE] and member of [CUPE LOCAL], is filing a grievance against [EMPLOYER] regarding [GRIEVANCE SUBJECT MATTER]. The employer action occurred on [DATE] and constitutes a violation of [CBA ARTICLE AND SECTION]. The applicant seeks [REMEDY SOUGHT — e.g., reinstatement, back pay, removal of discipline from file, schedule correction]. This grievance is filed pursuant to Article [GRIEVANCE ARTICLE] of the [CBA NAME] Collective Agreement.",
+      "entities": ["NAME", "ROLE", "CUPE LOCAL", "EMPLOYER", "GRIEVANCE SUBJECT MATTER", "DATE", "CBA ARTICLE AND SECTION", "REMEDY SOUGHT", "GRIEVANCE ARTICLE", "CBA NAME"],
+      "atip_custodian": "MFIPPA Coordinator — [Municipality/EMS Service]",
+      "atip_act": "MFIPPA (employment records); Labour Relations Act, 1995",
+      "union_source": "CUPE Emergency Services — cupe.ca/emergency-services; CUPE 873 — cupe873.org"
+    },
+
+    {
+      "id": "fire-wsib-injury",
+      "sector": "fire",
+      "name": "WSIB Injury / Illness Claim (Firefighter — ON)",
+      "short": "Workers compensation for on-duty injury, occupational cancer, or PTSD — Ontario",
+      "legislative_hook": "WSIA, SO 1997, c 16, Sch A; WSIA s.15.3 (firefighter cancer presumptions); WSIA s.15.1 (PTSD presumption)",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "injury", "burn", "fall", "smoke", "inhalation", "exposure", "cancer",
+        "mesothelioma", "lung", "bladder", "cardiac", "heart", "firefighter",
+        "station", "training", "structural fire", "mva", "wsib", "claim", "disability"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_firefighter",
+          "label": "Employed or serving as a firefighter in Ontario",
+          "keywords": ["firefighter", "fire fighter", "fire services", "fire hall", "station", "iaff", "composite", "professional", "volunteer"]
+        },
+        {
+          "id": "on_duty",
+          "label": "Injury or illness occurred on duty, at training, or is occupationally attributed",
+          "keywords": ["on duty", "at the station", "training", "structural fire", "wildland fire", "mva", "scene", "call", "shift"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "WSIB Form 6 (Worker's Report of Injury/Disease)", "how": "File at wsib.ca within 6 months; for cancer claims, file as soon as diagnosis is received" },
+        { "doc": "WSIB Form 7 (Employer's Report)", "how": "Your fire department must file this; confirm with your chief" },
+        { "doc": "Cancer diagnosis documentation (for s.15.3 claims)", "how": "Pathology report, oncologist letter; WSIB adjudicates cancer type against the presumption schedule" },
+        { "doc": "Employment history confirming firefighter service (years)", "how": "WSIA s.15.3 requires minimum service years for each cancer type; confirm with HR" }
+      ],
+      "form_questions": [
+        "What condition are you claiming — physical injury, occupational cancer, or PTSD?",
+        "When did the injury/diagnosis occur?",
+        "What is your firefighter status (professional full-time, composite, volunteer)?",
+        "How many years of firefighting service do you have?"
+      ],
+      "template": "The applicant, [NAME], a [STATUS] firefighter employed by / serving with [FIRE DEPARTMENT/MUNICIPALITY] with [YEARS] years of service, is claiming [CONDITION] under the Workplace Safety and Insurance Act, 1997. The condition is occupationally attributed as follows: [ATTRIBUTION EXPLANATION]. [If cancer: The claimed cancer type ([CANCER TYPE]) is included in WSIA s.15.3 Schedule and the member meets the minimum service threshold of [THRESHOLD].] The applicant seeks [WSIB BENEFITS SOUGHT].",
+      "entities": ["NAME", "STATUS", "FIRE DEPARTMENT/MUNICIPALITY", "YEARS", "CONDITION", "ATTRIBUTION EXPLANATION", "CANCER TYPE", "THRESHOLD", "WSIB BENEFITS SOUGHT"],
+      "atip_custodian": "MFIPPA Coordinator — [Municipality]",
+      "atip_act": "MFIPPA, RSO 1990, c M.56; FPPA, SO 1997, c 4",
+      "union_source": "International Association of Fire Fighters (IAFF) Canada — iaff.org/canada; your IAFF Local"
+    },
+
+    {
+      "id": "fire-cancer-presumption",
+      "sector": "fire",
+      "name": "Firefighter Occupational Cancer Presumption (ON — WSIA s.15.3)",
+      "short": "Statutory presumption: listed cancers in firefighters with sufficient service are work-related",
+      "legislative_hook": "WSIA, SO 1997, c 16, Sch A, s.15.3 (firefighter occupational cancers, effective 2007, expanded 2014); Workplace Safety and Insurance Amendment Act, 2014",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "cancer", "leukemia", "lymphoma", "mesothelioma", "bladder", "lung",
+        "kidney", "colorectal", "ureter", "brain", "testicular", "esophageal",
+        "firefighter cancer", "occupational cancer", "schedule 3", "presumption"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_firefighter_professional",
+          "label": "Professional firefighter with sufficient years of service (varies by cancer type)",
+          "keywords": ["firefighter", "professional", "full-time", "career", "fire department", "IAFF"]
+        },
+        {
+          "id": "cancer_diagnosis",
+          "label": "Diagnosis of a cancer type listed in WSIA s.15.3",
+          "keywords": ["cancer", "malignant", "carcinoma", "mesothelioma", "lymphoma", "leukemia", "tumor"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Oncologist/pathology report with cancer type", "how": "Must specifically identify the cancer type to match against WSIA s.15.3 schedule" },
+        { "doc": "Employment history confirming professional firefighter service", "how": "HR confirmation letter; WSIA s.15.3 minimum service: 10 years for most cancers, fewer for some" },
+        { "doc": "WSIB Form 6 with WSIA s.15.3 citation", "how": "Reference the presumption section explicitly; contact IAFF local for claim support" }
+      ],
+      "form_questions": [
+        "What type of cancer has been diagnosed?",
+        "How many years of professional firefighting service do you have?",
+        "When was the diagnosis made?",
+        "Have you consulted your IAFF local or a WSIB advocate?"
+      ],
+      "template": "The applicant, [NAME], a professional firefighter with [YEARS] years of service, was diagnosed with [CANCER TYPE] on [DIAGNOSIS DATE]. Pursuant to s.15.3 of the Workplace Safety and Insurance Act, 1997 (as amended 2014), [CANCER TYPE] is a presumed occupational disease for professional firefighters with [MINIMUM SERVICE] years of service. The applicant meets this threshold and is asserting the statutory presumption. WSIB Form 6 is filed herewith.",
+      "entities": ["NAME", "YEARS", "CANCER TYPE", "DIAGNOSIS DATE", "MINIMUM SERVICE"],
+      "atip_custodian": "WSIB; MFIPPA Coordinator (employer records)",
+      "atip_act": "WSIA s.15.3; MFIPPA",
+      "union_source": "IAFF Canada — iaff.org/canada; IAFF local representative"
+    },
+
+    {
+      "id": "fire-ptsd-presumption",
+      "sector": "fire",
+      "name": "Firefighter PTSD Presumption (ON — WSIA s.15.1)",
+      "short": "PTSD diagnosed in a firefighter is presumed work-related — no specific event required",
+      "legislative_hook": "WSIA, SO 1997, c 16, Sch A, s.15.1 (proclaimed April 6, 2018); FPPA, SO 1997, c 4",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "ptsd", "post traumatic", "stress", "trauma", "mental health", "anxiety",
+        "depression", "flashbacks", "nightmares", "hypervigilance", "osi",
+        "critical incident", "cumulative", "moral injury", "burnout"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_firefighter_on",
+          "label": "Firefighter in Ontario (professional, composite, or volunteer in Schedule 1 service)",
+          "keywords": ["firefighter", "fire services", "iaff", "fire department", "station"]
+        },
+        {
+          "id": "ptsd_diagnosed",
+          "label": "PTSD diagnosed by a regulated health professional",
+          "keywords": ["diagnosed", "diagnosis", "ptsd", "psychologist", "psychiatrist", "dsm-5"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "DSM-5 PTSD diagnosis from registered psychologist or psychiatrist", "how": "Statutory presumption applies — employer cannot require proof of specific triggering incident" },
+        { "doc": "WSIB Form 6 citing WSIA s.15.1", "how": "File at wsib.ca; explicitly reference the PTSD presumption section" },
+        { "doc": "Employment confirmation as a firefighter in Ontario", "how": "From fire department HR; confirms Schedule 1 employer status" }
+      ],
+      "form_questions": [
+        "Have you received a formal PTSD diagnosis from a registered psychologist or psychiatrist?",
+        "When was the diagnosis made?",
+        "Are you employed or serving as a firefighter in Ontario?",
+        "Are you a professional, composite, or volunteer firefighter?"
+      ],
+      "template": "The applicant, [NAME], a [STATUS — professional/composite/volunteer] firefighter serving with [FIRE DEPARTMENT], was diagnosed with Post-Traumatic Stress Disorder (PTSD) by [CLINICIAN, CREDENTIALS] on [DIAGNOSIS DATE]. Under WSIA s.15.1 (proclaimed April 6, 2018), PTSD is presumed to be an occupational disease arising out of and in the course of employment for firefighters. The applicant is asserting this presumption and filing a WSIB claim.",
+      "entities": ["NAME", "STATUS", "FIRE DEPARTMENT", "CLINICIAN, CREDENTIALS", "DIAGNOSIS DATE"],
+      "atip_custodian": "WSIB; MFIPPA Coordinator",
+      "atip_act": "WSIA s.15.1; FPPA (discipline); MFIPPA (employment records)",
+      "union_source": "IAFF Canada — iaff.org/canada; your IAFF local"
+    },
+
+    {
+      "id": "fire-volunteer-coverage",
+      "sector": "fire",
+      "name": "Volunteer Firefighter — WSIB Schedule 1 Coverage",
+      "short": "Volunteer firefighters in Ontario are covered under WSIB Schedule 1 through the municipality",
+      "legislative_hook": "WSIA, SO 1997, c 16, Sch A, Schedule 1 (municipal fire departments); FPPA, SO 1997, c 4, s.51; Employment Standards Act, 2000 (ESA) does NOT apply to most volunteers",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "volunteer", "volunteer firefighter", "on call", "part-time",
+        "composite", "wsib", "injured", "coverage", "benefits", "no union",
+        "not full-time", "rural", "fire department", "training injury"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "is_volunteer_ff",
+          "label": "Serving as a volunteer or composite firefighter",
+          "keywords": ["volunteer", "on call", "composite", "part-time firefighter", "rural fire"]
+        },
+        {
+          "id": "municipal_service",
+          "label": "Serving with a municipality (not a private or industrial brigade)",
+          "keywords": ["municipality", "town", "county", "district", "fire department", "fire hall"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Confirmation of volunteer service with the municipal fire department", "how": "Letter from the Fire Chief or municipal HR confirming your volunteer status and service dates" },
+        { "doc": "WSIB Form 6 (Worker's Report)", "how": "Volunteer firefighters ARE covered; file at wsib.ca like any other worker. Coverage is through the municipality as Schedule 1 employer." },
+        { "doc": "Incident report confirming the injury occurred during duty or training", "how": "From the Fire Chief; duty includes attendance at fire calls, training, and station work" }
+      ],
+      "form_questions": [
+        "Are you a volunteer or composite firefighter with a municipal fire department?",
+        "What injury or illness are you claiming?",
+        "Did the injury occur on a fire call, during training, or at the fire station?",
+        "Are you aware that union CBA rights (e.g., grievance procedures) typically do NOT apply to volunteers?"
+      ],
+      "template": "The applicant, [NAME], is a [VOLUNTEER/COMPOSITE] firefighter serving with [FIRE DEPARTMENT], a municipal fire department covered under WSIB Schedule 1. The applicant sustained [INJURY/ILLNESS] on [DATE] during [CIRCUMSTANCES — fire call / training / station duty]. As a Schedule 1 worker, the applicant is entitled to WSIB benefits and is filing Form 6 herewith. Note: ESA provisions and union CBA entitlements do not apply to this member's volunteer status.",
+      "entities": ["NAME", "VOLUNTEER/COMPOSITE", "FIRE DEPARTMENT", "INJURY/ILLNESS", "DATE", "CIRCUMSTANCES"],
+      "atip_custodian": "MFIPPA Coordinator — [Municipality]",
+      "atip_act": "WSIA (WSIB claim); MFIPPA (municipal employment records); FPPA s.51 (volunteer firefighter provisions)",
+      "union_source": "Volunteer Firefighters' Association (province-specific); FPPA s.51 governs — no IAFF local coverage typically"
+    },
+
+    {
+      "id": "fire-fppa-conduct",
+      "sector": "fire",
+      "name": "FPPA Conduct / Discipline Process (Firefighter — ON)",
+      "short": "Firefighter rights under the Fire Protection and Prevention Act, 1997 discipline process",
+      "legislative_hook": "Fire Protection and Prevention Act, 1997 (FPPA), SO 1997, c 4, Part IX (Discipline); OHSA, RSO 1990, c O.1 (workplace safety, harassment)",
+      "jurisdiction": "provincial-ON",
+      "keywords": [
+        "conduct", "discipline", "allegation", "misconduct", "suspension",
+        "dismissal", "reprimand", "hearing", "appeal", "fppa", "investigation",
+        "insubordination", "harassment", "complaint", "rights", "union rep", "iaff"
+      ],
+      "must_match_min": 1,
+      "conditions": [
+        {
+          "id": "fppa_process",
+          "label": "Firefighter subject to or appealing an FPPA discipline process",
+          "keywords": ["fppa", "discipline", "suspension", "conduct", "allegation", "fire chief", "investigation", "hearing"]
+        }
+      ],
+      "evidence_required": [
+        { "doc": "Written notice of disciplinary action from Fire Chief", "how": "You must receive written notice under FPPA Part IX; if not received, request via MFIPPA" },
+        { "doc": "IAFF Local representation confirmation", "how": "Contact your IAFF local immediately — you have the right to representation" },
+        { "doc": "Relevant incident records, body camera / audio records (if any)", "how": "Request via MFIPPA (municipal records) or through IAFF rep" }
+      ],
+      "form_questions": [
+        "What conduct allegation are you responding to?",
+        "What stage of the FPPA Part IX process are you at?",
+        "Have you engaged your IAFF local representative?",
+        "What outcome are you seeking?"
+      ],
+      "template": "The applicant, [RANK] [NAME], employed by [FIRE DEPARTMENT], is responding to disciplinary proceedings under Part IX of the Fire Protection and Prevention Act, 1997, regarding [ALLEGATION SUMMARY]. The member is at the [STAGE] stage and is requesting [OUTCOME SOUGHT]. IAFF representation has [BEEN/NOT BEEN] engaged.",
+      "entities": ["RANK", "NAME", "FIRE DEPARTMENT", "ALLEGATION SUMMARY", "STAGE", "OUTCOME SOUGHT", "BEEN/NOT BEEN"],
+      "atip_custodian": "MFIPPA Coordinator — [Municipality]",
+      "atip_act": "MFIPPA, RSO 1990, c M.56; FPPA Part IX",
+      "union_source": "IAFF Canada — iaff.org/canada; your IAFF local"
+    }
+
+  ],
+
+  "stopwords": [
+    "i", "me", "my", "we", "our", "you", "your", "he", "she", "it", "they",
+    "am", "is", "are", "was", "were", "be", "been", "being", "have", "has",
+    "had", "do", "does", "did", "will", "would", "shall", "should", "may",
+    "might", "must", "can", "could", "a", "an", "the", "and", "but", "or",
+    "so", "for", "of", "in", "on", "at", "to", "by", "from", "with", "as",
+    "this", "that", "these", "those", "not", "no", "nor", "very", "just",
+    "also", "about", "up", "out", "into", "over", "after", "before", "some",
+    "get", "got", "like", "know", "think", "want", "need", "feel", "really",
+    "when", "what", "where", "who", "how", "why", "which", "then", "than",
+    "there", "here", "now", "still", "been", "since", "both", "each", "few",
+    "more", "most", "other", "such", "own", "same", "too", "any", "all"
+  ],
+
+  "clarifying_questions": {
+    "is_rcmp":    "Are you a current or former member of the RCMP (Royal Canadian Mounted Police)?",
+    "is_police":  "Are you a current or former police officer with a provincial or municipal force?",
+    "is_paramedic": "Are you a current or former paramedic, EMT, or dispatcher?",
+    "is_firefighter": "Are you a current or former firefighter (professional, composite, or volunteer)?",
+    "province":   "Which province do you work or worked in? (Ontario used as default — specify if different)",
+    "volunteer":  "Are you a full-time/professional, composite, or volunteer firefighter?"
+  },
+
+  "crisis_resources": {
+    "police_wellness": "Canadian Police Association Wellness Resources — canadianpolice.ca",
+    "first_responder_line": "1-800-268-7708 — First Responder and Public Safety Support Line",
+    "npf_member_assistance": "NPF Member Assistance Program (RCMP) — npf-fpn.ca",
+    "cupe_support": "CUPE Member Assistance — cupe.ca",
+    "iaff_peer_support": "IAFF Peer Support and Behavioral Health — iaff.org/resources",
+    "crisis_line": "9-8-8 — Suicide Crisis Helpline (Canada)",
+    "osiss": "1-800-883-6094 — Operational Stress Injury Social Support (also open to first responders)"
+  }
+}

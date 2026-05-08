@@ -1,0 +1,534 @@
+{
+  "_meta": {
+    "version": "2026-05-08",
+    "effective_rates_date": "2026-01-01",
+    "licence": "Legislative text reproduced from laws-lois.justice.gc.ca under Open Government Licence - Canada (OGL-CA). Provincial statute summaries are editorial; verify against ontario.ca/laws and equivalent provincial portals.",
+    "attribution": "Sources: laws-lois.justice.gc.ca (federal), ontario.ca/laws (ON provincial), wsib.ca, worksafebc.com, npf-fpn.ca, iaff.org/canada, ipc.on.ca",
+    "maintainer_notes": [
+      "WSIB loss-of-earnings rates index annually — confirm at wsib.ca/rates each January.",
+      "NPF Collective Agreement expires 2025 — check for renewal at npf-fpn.ca.",
+      "WSIA s.15.1 (PTSD) and s.15.3 (cancer) presumption schedules may expand — verify at ontario.ca/laws.",
+      "PHIPA s.52 response deadline is 30 days — confirm no amendments.",
+      "MFIPPA s.19 response deadline is 30 days; s.22 allows 30-day extension — confirm no amendments.",
+      "Update OPI routing if RCMP reorganizes national ATIP function.",
+      "NOT_offsets arrays are critical — verify on each annual update."
+    ],
+    "update_procedure": "1. Verify legislative citations at laws-lois.justice.gc.ca and ontario.ca/laws. 2. Confirm WSIB rates at wsib.ca. 3. Check NPF CBA status at npf-fpn.ca. 4. Bump version date. 5. Redeploy."
+  },
+
+  "legislation": {
+
+    "federal": {
+      "privacy-act": {
+        "id": "privacy-act",
+        "short_name": "Privacy Act",
+        "full_name": "Privacy Act",
+        "citation": "RSC 1985, c P-21",
+        "jurisdiction": "federal",
+        "applies_to": ["RCMP", "federal Crown employees", "federal institutions"],
+        "key_sections": {
+          "s.12": "Right of individual to access own personal information held by a federal institution",
+          "s.29": "Exemption for medical information held in an individual's interest",
+          "s.16": "Law enforcement exemption (may be claimed to redact operational records)"
+        },
+        "response_deadline_days": 30,
+        "atip_coordinator": "Each federal institution has a designated ATIP Coordinator",
+        "source_url": "https://laws-lois.justice.gc.ca/eng/acts/P-21",
+        "opi_for_rcmp": "RCMP National Division — ATIP Office, atip-aiprp@rcmp-grc.gc.ca",
+        "NOT_offsets": ["Requesting your own records under s.12 is a right; cost exemptions apply for personal access requests"]
+      },
+
+      "access-to-information-act": {
+        "id": "access-to-information-act",
+        "short_name": "Access to Information Act",
+        "full_name": "Access to Information Act",
+        "citation": "RSC 1985, c A-1",
+        "jurisdiction": "federal",
+        "applies_to": ["Federal institutions (RCMP, DND, VAC, etc.)"],
+        "key_sections": {
+          "s.4": "Right of access to records under the control of a federal institution",
+          "s.16": "Law enforcement exemption — RCMP frequently applies this to operational records",
+          "s.23": "Solicitor-client privilege exemption"
+        },
+        "response_deadline_days": 30,
+        "note": "For first responders, the Privacy Act (personal information) is more commonly used than the ATIA (government records). Use ATIA when seeking institutional/operational records not about you personally.",
+        "source_url": "https://laws-lois.justice.gc.ca/eng/acts/A-1"
+      },
+
+      "rcmp-act": {
+        "id": "rcmp-act",
+        "short_name": "RCMP Act",
+        "full_name": "Royal Canadian Mounted Police Act",
+        "citation": "RSC 1985, c R-10",
+        "jurisdiction": "federal",
+        "applies_to": ["RCMP Regular Members", "RCMP Civilian Members"],
+        "key_sections": {
+          "Part-IV-s41-s45": "Conduct proceedings — formal conduct board process",
+          "Part-IV-s63": "Conduct appeal to the RCMP External Review Committee (ERC)",
+          "Part-2.1": "Collective bargaining — NPF as certified bargaining agent",
+          "s.32": "Duty to provide safe working conditions; disability provisions"
+        },
+        "source_url": "https://laws-lois.justice.gc.ca/eng/acts/R-10",
+        "conduct_appeal_body": "RCMP External Review Committee (ERC)",
+        "bargaining_agent": "National Police Federation (NPF) — npf-fpn.ca"
+      },
+
+      "rcmp-regulations-2014": {
+        "id": "rcmp-regulations-2014",
+        "short_name": "RCMP Regulations, 2014",
+        "full_name": "Royal Canadian Mounted Police Regulations, 2014",
+        "citation": "SOR/2014-281",
+        "jurisdiction": "federal",
+        "applies_to": ["RCMP Regular and Civilian Members"],
+        "key_sections": {
+          "Part-4": "Conduct standards and conduct measures",
+          "Part-5": "Conduct hearings process"
+        },
+        "source_url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2014-281"
+      },
+
+      "rcmp-superannuation-act": {
+        "id": "rcmp-superannuation-act",
+        "short_name": "RCMP Superannuation Act",
+        "full_name": "Royal Canadian Mounted Police Superannuation Act",
+        "citation": "RSC 1985, c R-11",
+        "jurisdiction": "federal",
+        "applies_to": ["RCMP Regular Members"],
+        "key_sections": {
+          "Part-III": "Survivor benefits — surviving spouse and children",
+          "s.32": "Duty-related disability — early departure provisions",
+          "s.10": "Pensionable service calculation"
+        },
+        "pension_plan": "RCMP Pension Plan (defined benefit, federal Public Service Pension Centre administration)",
+        "source_url": "https://laws-lois.justice.gc.ca/eng/acts/R-11",
+        "NOT_offsets": ["RCMP pension and VAC PSC can be received concurrently (different acts, different legal bases — verify current co-administration rules)"]
+      },
+
+      "pipeda": {
+        "id": "pipeda",
+        "short_name": "PIPEDA",
+        "full_name": "Personal Information Protection and Electronic Documents Act",
+        "citation": "SC 2000, c 5",
+        "jurisdiction": "federal",
+        "applies_to": ["Private-sector organizations in provinces without substantially similar legislation", "Federally regulated businesses"],
+        "key_sections": {
+          "s.4": "Scope — applies to personal information collected, used, or disclosed in commercial activity",
+          "Principle-9": "Individual access to own personal information"
+        },
+        "note": "PIPEDA applies to private-sector health clinics, private insurance, and federally regulated employers. For public-sector employees (municipal police, fire, paramedics), MFIPPA/FIPPA is the primary access tool. For BC/AB private sector, PIPA applies instead of PIPEDA.",
+        "source_url": "https://laws-lois.justice.gc.ca/eng/acts/P-8.6"
+      }
+    },
+
+    "provincial-ON": {
+      "mfippa": {
+        "id": "mfippa",
+        "short_name": "MFIPPA",
+        "full_name": "Municipal Freedom of Information and Protection of Privacy Act",
+        "citation": "RSO 1990, c M.56",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Municipalities", "Police services boards", "Municipal fire departments", "Municipal EMS services", "Local health integration networks"],
+        "key_sections": {
+          "s.36": "Personal access — individual's right to access own personal information",
+          "s.14": "Law enforcement exemption — applies to police records",
+          "s.19": "30-day response deadline",
+          "s.22": "30-day extension where processing is complex"
+        },
+        "application_fee": "$5.00 (mandatory)",
+        "response_deadline_days": 30,
+        "appeal_body": "Information and Privacy Commissioner of Ontario (IPC) — ipc.on.ca",
+        "source_url": "https://www.ontario.ca/laws/statute/90m56",
+        "NOT_offsets": ["MFIPPA s.36 personal access requests cannot be denied solely for 'law enforcement purposes' — that exemption (s.14) applies to third-party records, not your own file"]
+      },
+
+      "fippa": {
+        "id": "fippa",
+        "short_name": "FIPPA",
+        "full_name": "Freedom of Information and Protection of Privacy Act",
+        "citation": "RSO 1990, c F.31",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Provincial institutions (OPP, provincial Crown agencies, ministries)", "NOT municipalities — those use MFIPPA"],
+        "key_sections": {
+          "s.47": "Personal access right",
+          "s.14": "Law enforcement exemption (same as MFIPPA but for provincial institutions)",
+          "s.26": "30-day response deadline"
+        },
+        "application_fee": "$5.00",
+        "response_deadline_days": 30,
+        "appeal_body": "Information and Privacy Commissioner of Ontario (IPC) — ipc.on.ca",
+        "source_url": "https://www.ontario.ca/laws/statute/90f31",
+        "note": "OPP members use FIPPA (provincial). Municipal police (Toronto, Peel, Ottawa, etc.) use MFIPPA. If unsure, submit to the institution's FOI Coordinator and they will route it."
+      },
+
+      "phipa": {
+        "id": "phipa",
+        "short_name": "PHIPA",
+        "full_name": "Personal Health Information Protection Act",
+        "citation": "SO 2004, c 3, Sch A",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Health information custodians: hospitals, physicians, EMS medical directors, pharmacists, long-term care homes"],
+        "key_sections": {
+          "s.4": "Definition of 'personal health information' — includes ACRs, diagnoses, treatment records",
+          "s.52": "Right of access — individual may request own PHI from custodian",
+          "s.54": "30-day response deadline",
+          "s.3": "'Health information custodian' definition — EMS service is a custodian for ACRs"
+        },
+        "response_deadline_days": 30,
+        "appeal_body": "Information and Privacy Commissioner of Ontario (IPC) — ipc.on.ca",
+        "source_url": "https://www.ontario.ca/laws/statute/04p03",
+        "critical_distinction": "ACRs (Ambulance Call Reports) are PHIPA records, NOT MFIPPA records. They document patient health information. A paramedic's own employment/HR records are MFIPPA records. These are two separate custodians and two separate access regimes.",
+        "NOT_offsets": ["PHIPA s.52 access cannot be denied without specific justification; IPC has broad oversight authority"]
+      },
+
+      "wsia": {
+        "id": "wsia",
+        "short_name": "WSIA",
+        "full_name": "Workplace Safety and Insurance Act, 1997",
+        "citation": "SO 1997, c 16, Sch A",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Schedule 1 employers: municipalities, fire departments, police services, EMS services", "Schedule 2 employers: some Crown agencies"],
+        "key_sections": {
+          "s.15.1": "PTSD presumption — PTSD in first responders is presumed occupational disease (proclaimed April 6, 2018). Applies to: police officers, firefighters, paramedics, dispatchers, correctional officers.",
+          "s.15.3": "Firefighter cancer presumption — listed cancers presumed occupational for professional firefighters with minimum service years (effective 2007, expanded 2014). Cancers include: bladder, brain, colorectal, esophageal, kidney, leukemia, lung, lymphoma, mesothelioma, multiple myeloma, prostate, testicular, ureter.",
+          "s.15.3-minimums": "Minimum service years by cancer type vary — e.g., bladder cancer: 10 years; mesothelioma: any duration; verify current schedule at wsib.ca",
+          "s.13": "Worker's right to benefits for work-related injury or disease"
+        },
+        "form_6_deadline": "6 months from date of injury or date worker knew/ought to have known condition was work-related",
+        "appeal_body": "WSIB Appeals (internal); Workplace Safety and Insurance Appeals Tribunal (WSIAT)",
+        "source_url": "https://www.ontario.ca/laws/statute/97w16",
+        "wsib_rates_url": "https://www.wsib.ca/en/businesses/rates",
+        "NOT_offsets": ["WSIB benefits do NOT reduce PTSD presumption applicability — the presumption means WSIB cannot require proof of specific triggering event", "WSIB loss-of-earnings benefits are generally NOT taxable"]
+      },
+
+      "cspa": {
+        "id": "cspa",
+        "short_name": "CSPA",
+        "full_name": "Community Safety and Policing Act, 2019",
+        "citation": "SO 2019, c 1, Sch 1",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Provincial (OPP) and municipal police officers in Ontario"],
+        "replaces": "Police Services Act (PSA) — fully replaced by CSPA as of April 1, 2024",
+        "key_sections": {
+          "Part-VIII": "Conduct and discipline — complaint process, investigations, hearings",
+          "s.87": "Police misconduct — categories of conduct subject to proceedings",
+          "s.88": "Discipline hearings process",
+          "s.92": "Appeals to Special Investigations Unit (SIU) or courts"
+        },
+        "conduct_regulation": "O. Reg 407/23 — Police Code of Conduct",
+        "oversight_bodies": {
+          "OIPRD": "Office of the Independent Police Review Director — public complaints",
+          "SIU": "Special Investigations Unit — serious incidents involving civilian harm",
+          "SDPC": "Special Investigations Unit (oversight appeal body)"
+        },
+        "source_url": "https://www.ontario.ca/laws/statute/19c01",
+        "conduct_reg_url": "https://www.ontario.ca/laws/regulation/r23407"
+      },
+
+      "fppa": {
+        "id": "fppa",
+        "short_name": "FPPA",
+        "full_name": "Fire Protection and Prevention Act, 1997",
+        "citation": "SO 1997, c 4",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Professional, composite, and volunteer firefighters in Ontario"],
+        "key_sections": {
+          "Part-IX": "Discipline proceedings — firefighter conduct and discipline",
+          "s.51": "Volunteer firefighter provisions — schedule and duty coverage",
+          "s.6":  "Fire Chief authority and duties",
+          "Part-VI": "Fire Prevention and Protection"
+        },
+        "note": "FPPA does not contain a standalone information access provision. MFIPPA governs access to municipal fire department records.",
+        "source_url": "https://www.ontario.ca/laws/statute/97f04"
+      },
+
+      "ohsa": {
+        "id": "ohsa",
+        "short_name": "OHSA",
+        "full_name": "Occupational Health and Safety Act",
+        "citation": "RSO 1990, c O.1",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["All Ontario workplaces including fire, police, EMS"],
+        "key_sections": {
+          "s.25": "Employer duties to maintain safe workplace",
+          "s.32.0.1-32.0.7": "Workplace harassment and violence prevention — Bill 168 provisions",
+          "s.37": "Critical injury reporting duty (employer must report to Ministry of Labour)",
+          "s.51": "Workplace fatality reporting duty"
+        },
+        "source_url": "https://www.ontario.ca/laws/statute/90o01"
+      },
+
+      "esa-2000": {
+        "id": "esa-2000",
+        "short_name": "ESA",
+        "full_name": "Employment Standards Act, 2000",
+        "citation": "SO 2000, c 41",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Most Ontario employees — but NOT volunteer firefighters (ESA Sch 1), and often superseded by CBA for unionized workers"],
+        "key_sections": {
+          "s.50": "Personal emergency leave — 10 days (2 paid, 8 unpaid) for personal illness or family emergency",
+          "s.53": "Infectious disease emergency leave"
+        },
+        "note": "For unionized first responders (CUPE, IAFF, OPPA), the CBA typically provides superior ESA minimums. ESA applies as a floor only.",
+        "source_url": "https://www.ontario.ca/laws/statute/00e41"
+      },
+
+      "labour-relations-act": {
+        "id": "labour-relations-act",
+        "short_name": "LRA",
+        "full_name": "Labour Relations Act, 1995",
+        "citation": "SO 1995, c 1, Sch A",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Unionized workers — CUPE paramedics, IAFF firefighters, OPPA police associations"],
+        "key_sections": {
+          "s.48": "Arbitration of collective agreement disputes (grievance arbitration)",
+          "s.96": "Unfair labour practice complaints",
+          "s.5":  "Right to organize and bargain collectively"
+        },
+        "arbitration_body": "Ontario Labour Relations Board (OLRB) — olrb.gov.on.ca",
+        "source_url": "https://www.ontario.ca/laws/statute/95l01"
+      },
+
+      "omers-act": {
+        "id": "omers-act",
+        "short_name": "OMERS Act",
+        "full_name": "Ontario Municipal Employees Retirement System Act, 2006",
+        "citation": "SO 2006, c 2",
+        "jurisdiction": "provincial-ON",
+        "applies_to": ["Municipal employees including municipal police, fire, and paramedics in Ontario"],
+        "pension_type": "Defined benefit — 2% per year of service × average best 5 years salary",
+        "disability_benefit": "Early departure on medical grounds with enhanced pension calculations available",
+        "source_url": "https://www.ontario.ca/laws/statute/06o02",
+        "contact": "OMERS — omers.com",
+        "NOT_offsets": ["OMERS pension and WSIB can generally be received concurrently — verify with OMERS actuary for your specific situation"]
+      }
+    },
+
+    "provincial-BC": {
+      "foippa": {
+        "id": "foippa",
+        "short_name": "FOIPPA",
+        "full_name": "Freedom of Information and Protection of Privacy Act",
+        "citation": "RSBC 1996, c 165",
+        "jurisdiction": "provincial-BC",
+        "applies_to": ["BC public bodies: municipalities, police departments, Crown agencies"],
+        "key_sections": {
+          "s.5": "Individual right to access own personal information",
+          "s.14": "Law enforcement exemption"
+        },
+        "response_deadline_days": 30,
+        "appeal_body": "Office of the Information and Privacy Commissioner for BC (OIPC BC) — oipc.bc.ca",
+        "source_url": "https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/96165_01"
+      },
+
+      "pipa-bc": {
+        "id": "pipa-bc",
+        "short_name": "PIPA (BC)",
+        "full_name": "Personal Information Protection Act (BC)",
+        "citation": "SBC 2003, c 63",
+        "jurisdiction": "provincial-BC",
+        "applies_to": ["BC private-sector organizations — NOT public bodies"],
+        "note": "Relevant to RCMP contract policing edge case: operational data generated under a BC Provincial Police Services Agreement may involve BC PIPA for private-party data. Federal RCMP employment records remain under the federal Privacy Act.",
+        "source_url": "https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/03063_01"
+      },
+
+      "pipa-ab": {
+        "id": "pipa-ab",
+        "short_name": "PIPA (AB)",
+        "full_name": "Personal Information Protection Act (Alberta)",
+        "citation": "SA 2003, c P-6.5",
+        "jurisdiction": "provincial-AB",
+        "applies_to": ["AB private-sector organizations"],
+        "note": "Same RCMP edge case as BC PIPA — federal Privacy Act governs RCMP employment records; AB PIPA may apply to operational data from private organizations collected under RCMP contract policing.",
+        "source_url": "https://www.qp.alberta.ca/documents/Acts/P06P5.pdf"
+      }
+    }
+  },
+
+  "jurisdictional_decision_tree": {
+    "description": "Use this tree to determine which legislation applies to a given document. Run top-down.",
+    "nodes": [
+      {
+        "id": "q1",
+        "question": "Is the document about an RCMP member?",
+        "yes_goto": "q2",
+        "no_goto": "q5"
+      },
+      {
+        "id": "q2",
+        "question": "Is the document about the member's federal employment (pay, pension, conduct, HR)?",
+        "yes_result": { "legislation": ["Privacy Act (RSC 1985, c P-21)", "RCMP Act (RSC 1985, c R-10)"], "opi": "RCMP National Division — ATIP Office (atip-aiprp@rcmp-grc.gc.ca)", "note": "No provincial overlay." },
+        "no_goto": "q3"
+      },
+      {
+        "id": "q3",
+        "question": "Is the document about operational/contract-policing activity in a province?",
+        "yes_goto": "q4",
+        "no_result": { "legislation": ["Privacy Act (RSC 1985, c P-21)"], "opi": "RCMP National Division — ATIP Office", "note": "Default: Privacy Act only." }
+      },
+      {
+        "id": "q4",
+        "question": "Which province is the RCMP member posted / operating in?",
+        "branches": [
+          { "province": "ON", "result": { "legislation": ["Privacy Act only — RCMP does NOT contract-police in Ontario (OPP is the provincial force)"], "note": "No provincial overlay. Privacy Act governs." } },
+          { "province": "QC", "result": { "legislation": ["Privacy Act only — RCMP does NOT contract-police in Quebec (SQ is the provincial force)"], "note": "No provincial overlay." } },
+          { "province": "BC", "result": { "legislation": ["Privacy Act (RSC 1985, c P-21)", "BC PIPA (SBC 2003, c 63) — may apply to private-party operational data"], "note": "Dual-law: confirm whether document contains BC private-party data." } },
+          { "province": "AB", "result": { "legislation": ["Privacy Act (RSC 1985, c P-21)", "AB PIPA (SA 2003, c P-6.5) — may apply to private-party operational data"], "note": "Dual-law: confirm whether document contains AB private-party data." } },
+          { "province": "SK/MB/NS/NB/NL/PEI", "result": { "legislation": ["Privacy Act (RSC 1985, c P-21)"], "note": "No equivalent provincial private-sector PIPA in these provinces. Privacy Act governs." } }
+        ]
+      },
+      {
+        "id": "q5",
+        "question": "Is the document about a Provincial or Municipal Police officer?",
+        "yes_goto": "q6",
+        "no_goto": "q7"
+      },
+      {
+        "id": "q6",
+        "question": "Is the officer with the OPP (Ontario Provincial Police)?",
+        "yes_result": { "legislation": ["FIPPA (RSO 1990, c F.31)", "Community Safety and Policing Act, 2019 (SO 2019, c 1)"], "opi": "OPP ATIP Coordinator — Ministry of the Solicitor General", "note": "OPP is a provincial institution — FIPPA, not MFIPPA." },
+        "no_result": { "legislation": ["MFIPPA (RSO 1990, c M.56)", "Community Safety and Policing Act, 2019", "O. Reg 407/23"], "opi": "FOI Coordinator — [Police Service Name]", "note": "Municipal police use MFIPPA. Application fee: $5." }
+      },
+      {
+        "id": "q7",
+        "question": "Is the document about a Paramedic / EMS worker?",
+        "yes_goto": "q8",
+        "no_goto": "q9"
+      },
+      {
+        "id": "q8",
+        "question": "Does the document contain patient care information (ACR — Ambulance Call Report)?",
+        "yes_result": { "legislation": ["PHIPA (SO 2004, c 3, Sch A)"], "opi": "Health Information Custodian — EMS Service Medical Director", "note": "PHIPA governs. ACRs are NOT MFIPPA records. s.52 gives patient (not paramedic) right of access." },
+        "no_result": { "legislation": ["MFIPPA (RSO 1990, c M.56)", "WSIA (SO 1997, c 16, Sch A) for injury records"], "opi": "FOI Coordinator — [Municipality/EMS Service]", "note": "Paramedic's own employment and HR records are MFIPPA records." }
+      },
+      {
+        "id": "q9",
+        "question": "Is the document about a Firefighter?",
+        "yes_goto": "q10",
+        "no_result": { "legislation": ["Unable to classify — review document type manually"], "note": "May be a composite jurisdiction or non-standard document type." }
+      },
+      {
+        "id": "q10",
+        "question": "Is the firefighter a Volunteer or Composite (not full-time professional)?",
+        "yes_result": { "legislation": ["FPPA, SO 1997, c 4, s.51 (volunteer provisions)", "WSIA Schedule 1 (WSIB coverage through municipality)", "MFIPPA (employment records)"], "note": "ESA does NOT apply to volunteers. CBA/IAFF entitlements typically do NOT apply. WSIB coverage is through municipality as Schedule 1 employer." },
+        "no_result": { "legislation": ["FPPA, SO 1997, c 4, Part IX (discipline)", "WSIA (WSIB claims — s.15.1 PTSD, s.15.3 cancer)", "MFIPPA (employment records)", "IAFF Local CBA"], "opi": "FOI Coordinator — [Municipality]", "note": "Professional firefighters have full FPPA, WSIA, MFIPPA, and CBA coverage." }
+      }
+    ]
+  },
+
+  "ptsd_presumptions": {
+    "ON": {
+      "statute": "WSIA, SO 1997, c 16, Sch A, s.15.1",
+      "proclaimed": "2018-04-06",
+      "covered_workers": [
+        "Police officers (municipal and provincial)",
+        "Firefighters (professional, composite — confirm volunteer status with WSIB)",
+        "Paramedics and emergency medical dispatchers",
+        "Correctional officers",
+        "First Nation constables"
+      ],
+      "how_it_works": "PTSD diagnosed by a regulated health professional is PRESUMED to be an occupational disease. WSIB cannot require the worker to prove a specific triggering event. The employer can rebut only with strong contrary evidence.",
+      "critical_tip": "Reference WSIA s.15.1 explicitly on Form 6. Do not accept any denial that requires you to 'prove' the specific incident that caused the PTSD."
+    },
+    "BC": {
+      "statute": "Workers Compensation Act, RSBC 2019, c 1, s.5.1",
+      "note": "BC enacted its first responder PTSD presumption in 2018. Check WorkSafeBC for current scope.",
+      "contact": "worksafebc.com"
+    },
+    "AB": {
+      "statute": "Workers Compensation Act, RSA 2000, c W-15, s.24.2",
+      "note": "Alberta's presumption applies to specific categories. Verify current scope at wcb.ab.ca."
+    }
+  },
+
+  "atip_routing": {
+    "rcmp": {
+      "custodian": "Commissioner of the RCMP",
+      "opi_unit": "RCMP National Division — ATIP Directorate",
+      "email": "atip-aiprp@rcmp-grc.gc.ca",
+      "mailing_address": "National Division ATIP Unit, 73 Leikin Drive, Ottawa ON K1A 0R2",
+      "governing_act": "Privacy Act, RSC 1985, c P-21",
+      "cost": "No fee for personal Privacy Act requests",
+      "response_days": 30
+    },
+    "opp": {
+      "custodian": "Minister of the Solicitor General (institution head)",
+      "opi_unit": "OPP / Ministry of the Solicitor General ATIP Coordinator",
+      "governing_act": "FIPPA, RSO 1990, c F.31",
+      "cost": "$5 application fee",
+      "response_days": 30
+    },
+    "municipal-police": {
+      "custodian": "Institution Head (Chief of Police or Police Services Board Chair)",
+      "opi_unit": "FOI / MFIPPA Coordinator — [Police Service Name]",
+      "governing_act": "MFIPPA, RSO 1990, c M.56",
+      "cost": "$5 application fee",
+      "response_days": 30
+    },
+    "ems-on": {
+      "note": "Two separate custodians and two separate access regimes",
+      "employment_records": {
+        "custodian": "Institution Head — [Municipality/EMS Service]",
+        "governing_act": "MFIPPA, RSO 1990, c M.56",
+        "cost": "$5 application fee",
+        "response_days": 30
+      },
+      "patient_care_records": {
+        "custodian": "Health Information Custodian — EMS Service Medical Director",
+        "governing_act": "PHIPA, SO 2004, c 3, Sch A, s.52",
+        "cost": "Reasonable cost recovery — varies",
+        "response_days": 30
+      }
+    },
+    "fire-on": {
+      "custodian": "Institution Head — [Municipality]",
+      "opi_unit": "FOI / MFIPPA Coordinator — [Municipality]",
+      "governing_act": "MFIPPA, RSO 1990, c M.56",
+      "cost": "$5 application fee",
+      "response_days": 30
+    }
+  },
+
+  "union_contacts": {
+    "NPF": {
+      "name": "National Police Federation",
+      "sector": "RCMP",
+      "website": "npf-fpn.ca",
+      "phone": "1-844-663-8883",
+      "cba_expiry": "2025 (check for renewal)",
+      "notes": "NPF is the certified bargaining agent for all RCMP Regular and Civilian Members. Contact immediately on any conduct, disability, or ATIP matter."
+    },
+    "OPPA": {
+      "name": "Ontario Provincial Police Association",
+      "sector": "OPP",
+      "website": "oppa.ca",
+      "notes": "Represents OPP officers. Separate from municipal police associations."
+    },
+    "TPA": {
+      "name": "Toronto Police Association",
+      "sector": "Municipal Police (Toronto)",
+      "website": "tpa.ca",
+      "notes": "One of the largest municipal police associations in Canada."
+    },
+    "CUPE-EMS": {
+      "name": "CUPE Emergency Services",
+      "sector": "Paramedics / EMS",
+      "website": "cupe.ca/emergency-services",
+      "notes": "Represents 9,400+ paramedics and dispatchers. Contact your local CUPE office for CBA copy."
+    },
+    "CUPE-873": {
+      "name": "Ambulance Paramedics of BC (CUPE Local 873)",
+      "sector": "BC Paramedics",
+      "website": "cupe873.org",
+      "cba_period": "2022–2025",
+      "notes": "Full public CBA available at cupe873.org."
+    },
+    "IAFF": {
+      "name": "International Association of Fire Fighters — Canada",
+      "sector": "Fire Services",
+      "website": "iaff.org/canada",
+      "notes": "Primary repository for Canadian fire sector CBAs, advocacy, and cancer presumption resources."
+    }
+  },
+
+  "disclaimer": "This reference material is for informational purposes only and does not constitute legal advice. Legislative references were current as of the version date above. Verify all statutory citations at laws-lois.justice.gc.ca (federal) and ontario.ca/laws (Ontario) before acting. For legal advice, consult a lawyer or your union representative."
+}

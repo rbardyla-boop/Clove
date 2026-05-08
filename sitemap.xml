@@ -89,4 +89,6 @@
   <url><loc>https://clovelearn.io/articles/the-attraction-protocol.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://clovelearn.io/vac-navigator.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://clovelearn.io/cfhs-analyzer.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://clovelearn.io/fr-navigator.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://clovelearn.io/fr-atip-analyzer.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
