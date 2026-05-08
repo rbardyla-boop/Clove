@@ -1181,7 +1181,7 @@ if(tourStep>0&&tourStep<=5){
     {n:2,head:'LOG THE MISSION',body:'After you complete a mission, tap LOG. Your evidence builds over time — Pattern Recon reads it to detect behavioral drift.'},
     {n:3,head:'DAILY CHECK-IN',body:'ROSA asks you to rate 6 zones every day. It takes 30 seconds and gives the intelligence layer something to work with.'},
     {n:4,head:'51+ TOOLS',body:'Open the TOOLS tab. Crisis tools are pinned at the top. CBT, ACT, DBT drills below. ADHD ops below that. Use what fits — nothing is required.'},
-    {n:5,head:'VETERAN TOOLS',body:'Navigating VAC benefits or analyzing ATIP medical records? Open the menu (≡) → VAC NAVIGATOR or CFHS ANALYZER. Describe your situation in plain language — the AI matches you to benefits offline.'},
+    {n:5,head:'SPECIALIST TOOLS',body:'CAF veteran? Open menu (≡) → VAC NAVIGATOR or CFHS ANALYZER. First Responder (RCMP, Police, Paramedic, Fire)? Use FR NAVIGATOR or FR DOC ANALYZER. Both run jurisdiction-aware benefit and document analysis — offline, nothing transmitted.'},
   ];
   var _ts=_TOUR[tourStep-1];
   var _isLast=tourStep===5;
@@ -1987,6 +1987,8 @@ if(drawerOpen&&!dEl){
     {id:'system',label:'SYSTEM',c:'var(--dim)',items:[
       {icon:'\uD83C\uDF96',name:'VAC NAVIGATOR',c:'var(--grn)',href:'vac-navigator.html'},
       {icon:'\uD83D\uDCC4',name:'CFHS ANALYZER',c:'var(--grn)',href:'./cfhs-analyzer.html'},
+      {icon:'\uD83D\uDEA8',name:'FR NAVIGATOR',c:'var(--blu)',href:'fr-navigator.html'},
+      {icon:'\uD83D\uDD0E',name:'FR DOC ANALYZER',c:'var(--blu)',href:'fr-atip-analyzer.html'},
       {icon:'\uD83D\uDCCA',name:'PROGRESS REPORT',c:'var(--dim)',href:'progress-report.html'},
       {icon:'\uD83D\uDCE1',name:'STATUS HISTORY',c:'var(--red)',href:'rosa-checkin.html'},
       {icon:'\uD83D\uDCCB',name:'CLINICAL REPORT',c:'var(--acc)',href:'clinical-report.html'},
