@@ -1,2 +1,6 @@
 # Cloudflare Pages redirects
 # Root redirect handled via JS in index.html
+
+# All tool pages link back to index.html (the old app entry point).
+# Redirect those links to deck.html so they land on the app, not the splash.
+/index.html  /deck.html  302

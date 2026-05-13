@@ -647,9 +647,6 @@ function getDailyCard(mood){
 }
 // Spotify OAuth callback — forward to handler page
 (function(){var _p=new URLSearchParams(location.search);if(_p.has('code')&&_p.get('state')==='od-spotify'){location.replace('./music-ops.html?'+location.search.slice(1));}})();
-// Field Frequency entry redirect — root sends new/returning users to field-ops
-// Skips when: ?tab= (coming back from field-ops deck button), or OAuth params present
-(function(){var s=location.search;if(s.indexOf('tab=')>-1||s.indexOf('code=')>-1)return;location.replace('./field-ops.html');})();
 let tab="home",subTab=null,card=null,flip=false,busy=false,msn=false,evMode=false,aarMode=false,notOkMode=false,filt="all",bFlips={};
 var drawerOpen=false,drawerSec={settings:true,system:false,about:false};
 var toolZoneOpen={crisis:true,workon:false,build:false,understand:false,learn:false};
