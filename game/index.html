@@ -2,11 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Singularity Inc.</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+    <!-- Portrait lockout overlay -->
+    <div id="rotate-overlay">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="14" y="4" width="36" height="56" rx="6" stroke="#2ec4b6" stroke-width="2.5" fill="none"/>
+            <circle cx="32" cy="52" r="2.5" fill="#2ec4b6" opacity="0.5"/>
+            <path d="M44 28 L54 22 L54 34 Z" fill="#2ec4b6" opacity="0.7"/>
+            <path d="M44 28 Q32 14 20 28" stroke="#2ec4b6" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+        <p>ROTATE DEVICE</p>
+        <span>This game requires landscape orientation</span>
+    </div>
+
     <div id="game-container">
         <div id="labelContainer"></div>
     </div>
@@ -112,6 +126,19 @@
         <button id="tut-skip">SKIP TUTORIAL</button>
     </div>
 
+    <script>
+        // Attempt hardware landscape lock (works on Chrome Android in fullscreen/PWA)
+        function tryLockLandscape() {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(function(){});
+            }
+        }
+        document.addEventListener('click', function lockOnce() {
+            tryLockLandscape();
+            document.removeEventListener('click', lockOnce);
+        }, { once: true });
+        tryLockLandscape();
+    </script>
     <script src="three.min.js"></script>
     <script src="OrbitControls.js"></script>
     <script src="topojson-client.min.js"></script>

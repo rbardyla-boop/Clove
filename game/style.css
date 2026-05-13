@@ -278,3 +278,34 @@ html, body {
 .zero-day-target-btn strong { font-size: 13px; font-weight: 600; }
 .zero-day-target-btn small { font-size: 10px; color: rgba(210,230,255,0.4); font-family: ui-monospace,monospace; }
 .zero-day-close-btn { width: 100%; padding: 10px; margin-top: 6px; background: none; border: 1px solid rgba(255,100,100,0.25); border-radius: 10px; color: rgba(255,120,120,0.6); font-size: 11px; letter-spacing: 0.1em; cursor: pointer; }
+
+/* ─── Portrait / Rotate Overlay ──────────────────────────────────────────── */
+#rotate-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 99999;
+    background: #030c18;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 22px; text-align: center; padding: 40px;
+}
+#rotate-overlay svg {
+    opacity: 0.9;
+    animation: rotate-hint 2.4s ease-in-out infinite;
+    transform-origin: center;
+}
+@keyframes rotate-hint {
+    0%   { transform: rotate(0deg); }
+    40%  { transform: rotate(-90deg); }
+    60%  { transform: rotate(-90deg); }
+    100% { transform: rotate(0deg); }
+}
+#rotate-overlay p {
+    font-size: 13px; letter-spacing: 0.22em; font-weight: 700;
+    color: #2ec4b6; margin: 0;
+}
+#rotate-overlay span {
+    font-size: 11px; color: rgba(210,230,255,0.38);
+    letter-spacing: 0.08em; margin: 0;
+}
+@media (orientation: portrait) {
+    #rotate-overlay { display: flex; }
+}
