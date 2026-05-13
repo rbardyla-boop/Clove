@@ -27,6 +27,21 @@ controls.maxPolarAngle = Math.PI / 2.05;
 controls.panSpeed = 0.8; controls.rotateSpeed = 0.5;
 controls.target.set(0, 0, 0);
 
+// Mobile landscape: top-down 2D view, rotation disabled
+function applyMobileView() {
+    if (window.innerHeight <= 500 && window.innerWidth > window.innerHeight) {
+        controls.enableRotate = false;
+        controls.minPolarAngle = 0;
+        controls.maxPolarAngle = 0;
+        camera.up.set(0, 0, -1); // north faces up on the flat map
+        camera.position.set(0, 200, 0);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+        controls.update();
+    }
+}
+applyMobileView();
+
 // ─── World Map Plane ───────────────────────────────────────────────────────────
 const MAP_W = 200, MAP_H = 100;
 const planeMat = new THREE.MeshStandardMaterial({ color: 0x061020, roughness: 1, metalness: 0 });
@@ -942,6 +957,40 @@ renderer.domElement.addEventListener('click', e => {
     buildUpgradePanel();
 });
 
+// Mobile touch: tap detector — OrbitControls consumes touch events before 'click' fires
+let _touchStart = null;
+renderer.domElement.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) _touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+renderer.domElement.addEventListener('touchend', e => {
+    if (!_touchStart || e.changedTouches.length !== 1) { _touchStart = null; return; }
+    const t = e.changedTouches[0];
+    const dx = t.clientX - _touchStart.x, dy = t.clientY - _touchStart.y;
+    _touchStart = null;
+    if (Math.sqrt(dx*dx + dy*dy) > 10) return; // drag, not tap
+    if (gameOver || !selectedArchetype) return;
+    mouse.x =  (t.clientX / window.innerWidth)  * 2 - 1;
+    mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(regionMeshes);
+    if (selectedRegion) {
+        const prev = regionMeshes.find(m => m.userData.region === selectedRegion);
+        if (prev) prev.material.emissiveIntensity = 0;
+    }
+    if (hits.length > 0 && !hits[0].object.userData.region.collapsed) {
+        selectedRegion = hits[0].object.userData.region;
+        hits[0].object.material.emissive.set(0x3a7ad4);
+        hits[0].object.material.emissiveIntensity = 0.4;
+        showRegionPopup(selectedRegion);
+        advanceTutorial(1);
+    } else {
+        selectedRegion = null;
+        document.getElementById('region-popup').style.display = 'none';
+    }
+    document.getElementById('selected-label').textContent = selectedRegion ? `▶ ${selectedRegion.name}` : '';
+    buildUpgradePanel();
+}, { passive: true });
+
 function showRegionPopup(region) {
     document.getElementById('popup-name').textContent = region.name;
     document.getElementById('popup-stats').innerHTML = [
@@ -1243,6 +1292,7 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    applyMobileView();
 });
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
