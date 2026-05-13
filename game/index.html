@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Singularity Inc.</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="game-container">
+        <div id="labelContainer"></div>
+    </div>
+
+    <!-- HUD: top-left -->
+    <div id="hud">
+        <div class="hud-title">SINGULARITY INC.</div>
+        <div class="hud-row"><span>TURN</span><span id="turnValue">0</span></div>
+        <div class="hud-row" id="stage-row" style="display:none"><span>STAGE</span><span id="stageValue" style="color:#a78bfa">INFILTRATE</span></div>
+        <div class="hud-row"><span>STABILITY</span><span id="stabilityValue">100%</span></div>
+        <div class="hud-row"><span>STATUS</span><span id="statusValue">NOMINAL</span></div>
+        <div class="hud-row"><span>INFLUENCE</span><span id="ipDisplay">5 IP</span></div>
+        <div class="hud-row"><span>OBJECTIVE</span><span id="objectiveValue" style="color:#a78bfa">0/8 @ 75%</span></div>
+        <div id="resistance-row">
+            <div class="hud-label">HUMAN RESISTANCE</div>
+            <div id="resistance-bar-bg"><div id="resistance-bar"></div></div>
+            <span id="resistance-pct">0%</span>
+        </div>
+        <button id="end-turn-btn">PROCESS_CYCLE()</button>
+        <button id="mute-btn" title="Toggle sound">🔊</button>
+    </div>
+
+    <!-- Upgrade Panel: right side -->
+    <div id="sidebar">
+        <h2>DEPLOY</h2>
+        <p id="select-hint">Click a cylinder to target upgrades</p>
+        <div id="selected-label"></div>
+        <div id="upgrade-list"></div>
+    </div>
+
+    <!-- Event Log: bottom -->
+    <div id="log">
+        <div class="log-title">Event Log</div>
+        <div id="logLines"></div>
+    </div>
+
+    <!-- Region Detail Popup -->
+    <div id="region-popup">
+        <button id="popup-close">✕</button>
+        <div id="popup-name"></div>
+        <div id="popup-stats"></div>
+    </div>
+
+    <!-- Crisis Modal -->
+    <div id="crisis-modal">
+        <div id="crisis-box">
+            <div id="crisis-title">⚠ REGIONAL CRISIS</div>
+            <div id="crisis-region-name"></div>
+            <div id="crisis-stats-text"></div>
+            <div id="crisis-message"></div>
+            <div id="crisis-buttons">
+                <button id="crisis-suppress">OVERRIDE<br><small>control +6, trust -12<br>Resistance +2</small></button>
+                <button id="crisis-concede">THROTTLE<br><small>automation -10<br>trust +12</small></button>
+                <button id="crisis-abandon">ABANDON NODE<br><small>PERMANENT — node removed from mesh</small><small id="collapse-counter" style="color:#ff6b6b;display:block"></small></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen">
+        <div id="end-box">
+            <div id="end-title"></div>
+            <div id="end-subtitle"></div>
+            <div id="end-stats-text"></div>
+            <div id="end-history"></div>
+            <button id="restart-btn">RESTART SIMULATION</button>
+            <button id="feedback-btn">SEND FEEDBACK / BUG REPORT</button>
+        </div>
+    </div>
+
+    <!-- Boot Screen -->
+    <div id="boot-screen">
+        <div id="boot-content">
+            <div id="boot-logo">SINGULARITY INC.</div>
+            <div id="boot-lines"></div>
+            <div id="boot-bar-bg"><div id="boot-bar"></div></div>
+        </div>
+    </div>
+
+    <!-- Archetype Select Screen (shown first) -->
+    <div id="archetype-screen">
+        <div id="archetype-inner">
+            <div id="archetype-header">SELECT OPERATIONAL PROFILE</div>
+            <div id="archetype-tabs"></div>
+            <div id="archetype-detail"></div>
+            <button id="deploy-btn">DEPLOY SYSTEM</button>
+        </div>
+    </div>
+
+    <div id="footer">Drag to orbit · Scroll to zoom · Right-click to pan · Click cylinder to select</div>
+
+    <!-- News Ticker -->
+    <div id="ticker">
+        <div id="ticker-label">LIVE</div>
+        <div id="ticker-track"><span id="ticker-content"></span></div>
+    </div>
+
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-box">
+        <div id="tut-step"></div>
+        <div id="tut-title"></div>
+        <div id="tut-body"></div>
+        <button id="tut-skip">SKIP TUTORIAL</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
