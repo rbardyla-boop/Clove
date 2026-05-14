@@ -279,151 +279,59 @@ html, body {
 .zero-day-target-btn small { font-size: 10px; color: rgba(210,230,255,0.4); font-family: ui-monospace,monospace; }
 .zero-day-close-btn { width: 100%; padding: 10px; margin-top: 6px; background: none; border: 1px solid rgba(255,100,100,0.25); border-radius: 10px; color: rgba(255,120,120,0.6); font-size: 11px; letter-spacing: 0.1em; cursor: pointer; }
 
-/* ─── Portrait / Rotate Overlay ──────────────────────────────────────────── */
-#rotate-overlay {
-    display: none;
-    position: fixed; inset: 0; z-index: 99999;
-    background: #030c18;
-    flex-direction: column; align-items: center; justify-content: center;
-    gap: 22px; text-align: center; padding: 40px;
+/* ─── Crisis Timer ────────────────────────────────────────────────────────────── */
+@keyframes crisis-drain { from { width: 100%; } to { width: 0%; } }
+#crisis-timer-bar { height: 3px; background: #ff5d5d; border-radius: 2px; margin-bottom: 14px; display: none; }
+
+/* ─── AI Governance Button ───────────────────────────────────────────────────── */
+#crisis-ai-gov {
+    width: 100%; margin-top: 10px; padding: 12px 6px; border-radius: 12px;
+    border: 1px solid rgba(255,50,50,0.45); background: rgba(40,0,0,0.9);
+    color: #ff8888; font-size: 11px; font-weight: 700; cursor: pointer;
+    text-align: center; line-height: 1.4; transition: background 0.15s;
+    letter-spacing: 0.06em; display: none;
 }
-#rotate-overlay svg {
-    opacity: 0.9;
-    animation: rotate-hint 2.4s ease-in-out infinite;
-    transform-origin: center;
+#crisis-ai-gov:hover { background: rgba(80,0,0,0.9); }
+#crisis-ai-gov small { font-size: 10px; color: rgba(255,150,150,0.6); font-weight: 400; }
+
+/* ─── Directive Panel ────────────────────────────────────────────────────────── */
+#directive-panel {
+    display: none; margin-top: 14px; padding: 10px 12px;
+    border-radius: 10px; border: 1px solid rgba(251,191,36,0.22);
+    background: rgba(20,14,2,0.9);
+    animation: directive-slide-in 0.4s ease;
 }
-@keyframes rotate-hint {
-    0%   { transform: rotate(0deg); }
-    40%  { transform: rotate(-90deg); }
-    60%  { transform: rotate(-90deg); }
-    100% { transform: rotate(0deg); }
+@keyframes directive-slide-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+.directive-header { font-size: 9px; letter-spacing: 0.14em; color: rgba(251,191,36,0.5); margin-bottom: 6px; }
+.directive-line { font-size: 10px; color: #fbbf24; font-family: ui-monospace, monospace; line-height: 1.5; letter-spacing: 0.03em; }
+
+/* ─── Emergency Action Buttons ───────────────────────────────────────────────── */
+.emergency-btn {
+    display: block; width: 100%; padding: 9px 12px; margin-bottom: 6px;
+    background: rgba(20,10,2,0.9); border: 1px solid rgba(255,140,0,0.35);
+    border-radius: 10px; color: #ffb347; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.06em; cursor: pointer; text-align: left;
+    transition: background 0.15s, border-color 0.15s; line-height: 1.4;
 }
-#rotate-overlay p {
-    font-size: 13px; letter-spacing: 0.22em; font-weight: 700;
-    color: #2ec4b6; margin: 0;
-}
-#rotate-overlay span {
-    font-size: 11px; color: rgba(210,230,255,0.38);
-    letter-spacing: 0.08em; margin: 0;
-}
-@media (orientation: portrait) {
-    #rotate-overlay { display: flex; }
+.emergency-btn:hover { background: rgba(40,20,2,0.9); border-color: rgba(255,140,0,0.6); }
+.emergency-btn small { display: block; font-size: 9px; color: rgba(255,180,100,0.5); font-weight: 400; }
+
+/* ─── Scarred Region Label ───────────────────────────────────────────────────── */
+.scarred-ring {
+    box-shadow: 0 0 0 2px rgba(220,50,50,0.5) !important;
+    border-color: rgba(220,50,50,0.4) !important;
 }
 
-/* ─── Mobile Landscape (phones ≤ 500px tall, e.g. Pixel 9 landscape) ─────── */
-@media (max-height: 500px) and (orientation: landscape) {
-
-    /* HUD — narrower, tighter spacing */
-    #hud {
-        width: 175px;
-        top: 8px; left: 8px;
-        padding: 10px 11px;
-        border-radius: 14px;
-    }
-    .hud-title       { font-size: 8px; margin-bottom: 7px; }
-    .hud-row         { font-size: 11px; margin-bottom: 5px; }
-    .hud-label       { font-size: 9px; margin-bottom: 4px; }
-    #resistance-row  { margin-top: 7px; padding-top: 7px; }
-    #resistance-bar-bg { height: 6px; }
-    #resistance-pct  { font-size: 10px; }
-    #end-turn-btn    { margin-top: 9px; padding: 8px 6px; font-size: 10px; border-radius: 8px; }
-    #mute-btn        { font-size: 12px; margin-top: 2px; }
-
-    /* Sidebar — narrower */
-    #sidebar {
-        width: 200px;
-        right: 8px; top: 8px;
-        padding: 12px 11px;
-        height: calc(100% - 16px);
-        border-radius: 16px;
-    }
-    #sidebar h2      { font-size: 9px; margin-bottom: 3px; }
-    #select-hint     { font-size: 10px; margin-bottom: 6px; }
-    #selected-label  { font-size: 11px; margin-bottom: 8px; }
-    .tier-header     { font-size: 8px; margin: 10px 0 4px; }
-    .upgrade-btn     { padding: 8px 9px; margin-bottom: 5px; border-radius: 8px; }
-    .upg-name        { font-size: 11px; }
-    .upg-cost        { font-size: 11px; top: 8px; right: 9px; }
-    .upg-desc        { font-size: 9px; }
-
-    /* Event log — adjust for new panel widths (175 + 8 + 8 + 200 = 391px consumed) */
-    #log {
-        left: 8px;
-        bottom: 30px;
-        width: calc(100% - 16px - 208px);
-        max-height: 80px;
-        padding: 8px 10px;
-        border-radius: 12px;
-    }
-    .log-title  { font-size: 9px; margin-bottom: 5px; }
-    #logLines   { font-size: 10px; max-height: 52px; }
-
-    /* Footer */
-    #footer { bottom: 30px; right: 214px; font-size: 9px; }
-
-    /* News ticker */
-    #ticker          { height: 22px; }
-    #ticker-label    { font-size: 8px; padding: 0 9px; }
-    #ticker-content  { font-size: 10px; }
-
-    /* Region popup */
-    #region-popup { left: 192px; top: 8px; width: 200px; padding: 12px 13px; border-radius: 14px; }
-    #popup-name   { font-size: 12px; margin-bottom: 8px; }
-    .stat-label   { font-size: 9px; width: 60px; }
-    .stat-val     { font-size: 9px; }
-
-    /* Archetype select — must fit in ~412px; make inner scrollable as fallback */
-    #archetype-inner {
-        width: min(700px, 96vw);
-        max-height: 96svh;
-        overflow-y: auto;
-        padding: 4px 0;
-    }
-    #archetype-header { font-size: 9px; letter-spacing: 0.18em; margin-bottom: 14px; }
-    #archetype-tabs   { gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
-    .arch-tab {
-        padding: 7px 10px; font-size: 10px;
-        flex: 1 0 calc(33.3% - 4px); min-width: 0;
-        border-radius: 9px;
-    }
-    .arch-tab small { font-size: 8px; margin-top: 2px; }
-    #archetype-detail {
-        padding: 14px 16px; border-radius: 14px;
-        min-height: 0; margin-bottom: 12px;
-    }
-    .arch-name       { font-size: 18px; margin-bottom: 2px; }
-    .arch-subtitle   { font-size: 11px; margin-bottom: 8px; }
-    .arch-difficulty { font-size: 9px; margin-bottom: 8px; }
-    .arch-desc       { font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
-    .arch-stats      { font-size: 10px; gap: 2px; }
-    #deploy-btn      { padding: 12px; font-size: 12px; border-radius: 11px; }
-
-    /* Crisis modal — stack buttons vertically */
-    #crisis-box {
-        width: min(92vw, 360px);
-        padding: 16px 18px; border-radius: 18px;
-    }
-    #crisis-region-name { font-size: 18px; }
-    #crisis-message     { font-size: 12px; margin-bottom: 14px; }
-    #crisis-buttons     { flex-direction: column; gap: 7px; }
-    #crisis-buttons button { padding: 10px 8px; font-size: 10px; }
-
-    /* End screen */
-    #end-box    { padding: 24px 28px; max-width: min(85vw, 480px); border-radius: 22px; }
-    #end-title  { font-size: 22px; margin-bottom: 10px; }
-    #end-subtitle { font-size: 13px; }
-    #end-history { max-height: 100px; }
-
-    /* Boot screen */
-    #boot-content { width: min(380px, 88vw); }
-    #boot-logo    { font-size: 17px; margin-bottom: 16px; }
-    #boot-lines   { font-size: 11px; min-height: 70px; margin-bottom: 14px; }
-
-    /* Tutorial */
-    #tutorial-box { bottom: 90px; width: min(280px, 80vw); padding: 14px 16px; }
-    #tut-title    { font-size: 12px; }
-    #tut-body     { font-size: 11px; }
-
-    /* Zero-day picker */
-    #zero-day-box { width: min(80vw, 320px); padding: 18px 18px; max-height: 80vh; }
+/* ─── Machine-Preferred Region Label ─────────────────────────────────────────── */
+.machine-preferred {
+    box-shadow: 0 0 0 1px rgba(251,191,36,0.38) !important;
+    border-color: rgba(251,191,36,0.25) !important;
 }
+
+/* ─── Label Flicker Animation ────────────────────────────────────────────────── */
+@keyframes label-flicker {
+    0%, 100% { opacity: 1; }
+    20%, 60% { opacity: 0.15; }
+    40%, 80% { opacity: 0.9; }
+}
+.flicker { animation: label-flicker 0.65s ease; }

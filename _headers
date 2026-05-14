@@ -15,6 +15,12 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
 
+## ── GAME: CDN SCRIPTS ALLOWED ─────────────────────────────────
+## Three.js + topojson load from cdn.jsdelivr.net — relax script-src for game only.
+## All other security headers inherit from global block above.
+/game/*
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net blob:; worker-src 'self' blob:; media-src 'self' blob:
+
 ## ── INTELLIGENCE OPS: COEP OVERRIDE ──────────────────────────
 ## transformers.js WASM backend creates blob: URLs for its worker
 ## and then dynamically imports them. COEP: credentialless causes

@@ -27,21 +27,6 @@ controls.maxPolarAngle = Math.PI / 2.05;
 controls.panSpeed = 0.8; controls.rotateSpeed = 0.5;
 controls.target.set(0, 0, 0);
 
-// Mobile landscape: top-down 2D view, rotation disabled
-function applyMobileView() {
-    if (window.innerHeight <= 500 && window.innerWidth > window.innerHeight) {
-        controls.enableRotate = false;
-        controls.minPolarAngle = 0;
-        controls.maxPolarAngle = 0;
-        camera.up.set(0, 0, -1); // north faces up on the flat map
-        camera.position.set(0, 200, 0);
-        camera.lookAt(0, 0, 0);
-        controls.target.set(0, 0, 0);
-        controls.update();
-    }
-}
-applyMobileView();
-
 // ─── World Map Plane ───────────────────────────────────────────────────────────
 const MAP_W = 200, MAP_H = 100;
 const planeMat = new THREE.MeshStandardMaterial({ color: 0x061020, roughness: 1, metalness: 0 });
@@ -147,11 +132,17 @@ const UNLOCK_GATES = {
 const regionMeshes = [], regionRings = [], regionLabels = [], spreadLines = [];
 const CYL_BASE_H = 4, CYL_MAX_H = 22;
 
+// Cached colors — avoid allocating new THREE.Color every frame
+const _COL_COLLAPSED = new THREE.Color(0x1a1a2a);
+const _COL_LOW       = new THREE.Color(0x2ec4b6);
+const _COL_MID       = new THREE.Color(0xffde7d);
+const _COL_HIGH      = new THREE.Color(0xff5d5d);
+
 function getColor(fragility, collapsed) {
-    if (collapsed) return new THREE.Color(0x1a1a2a);
-    if (fragility < 33) return new THREE.Color(0x2ec4b6);
-    if (fragility < 66) return new THREE.Color(0xffde7d);
-    return new THREE.Color(0xff5d5d);
+    if (collapsed)       return _COL_COLLAPSED;
+    if (fragility < 33)  return _COL_LOW;
+    if (fragility < 66)  return _COL_MID;
+    return _COL_HIGH;
 }
 
 function buildRegionObjects(region) {
@@ -159,7 +150,9 @@ function buildRegionObjects(region) {
     const mat  = new THREE.MeshStandardMaterial({ color: 0x2ec4b6, roughness: 0.35, metalness: 0.25, emissive: new THREE.Color(0,0,0), emissiveIntensity: 0 });
     const mesh = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.6, CYL_BASE_H, 32), mat);
     mesh.position.set(x, CYL_BASE_H / 2, z); mesh.castShadow = true;
-    mesh.userData.region = region; scene.add(mesh); regionMeshes.push(mesh);
+    mesh.userData.region = region;
+    mesh.userData._targetColor = new THREE.Color(0x2ec4b6); // cached per-mesh target
+    scene.add(mesh); regionMeshes.push(mesh);
 
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x69c8ff, transparent: true, opacity: 0.18, side: THREE.DoubleSide });
     const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 4.2, 32), ringMat);
@@ -315,6 +308,73 @@ const SFX = {
 let turnHistory = []; // snapshot pushed each turn for balance analysis
 const resistanceMilestones = { 15: false, 25: false, 35: false, 50: false, 60: false, 75: false };
 
+// ─── World State (irreversible thresholds) ─────────────────────────────────────
+const WORLD_STATE = {
+    competencyVoidFired: false,
+    dependencyLockFired: false, depLockTurn: null,
+    regulationCrystallized: false,
+    cascadeCrystalPairs: [],
+    seraphBetrayalFired: false,
+    specter_unmasked: false, specter_resistMult: 1,
+    leviathan_depBled: 0, leviathan_cascadeLocked: false,
+    chimera_mutationCount: 0, chimera_rogueMutations: 0,
+    narrativeCount: {},
+    suppressHistory: {},
+    resistErasureCount: 0,
+    automationBoostActive: {},
+    autonomousActionsTotal: 0, autonomousGovernanceFired: false,
+    collapseTimestamps: [],
+    quarantineScars: {}, concessionDebt: {},
+    epistemic_noise: false,
+    ai_directives: [],
+    cameraSlug: 0,
+    propagandaCooldown: 0,
+    quarantineUsed: {},
+    concessionUsed: {},
+    focusEventThisTurn: false,
+    machineInterventionCount: {},
+    machinePreferenceThreshold: {},      // per-region, randomized on first intervention
+    totalSuppressions: 0,
+    meshAcknowledgementFired: false,
+    logSuppressedThisRun: false,
+    // Probabilistic trigger windows — set once at init, never change
+    meshAckSuppressionThreshold: Math.floor(Math.random() * 4) + 4,  // 4–7
+    meshAckResistanceThreshold:  Math.floor(Math.random() * 14) + 65, // 65–78
+};
+const HISTORY = [];  // named civilizational events
+
+// ─── Log Batching ──────────────────────────────────────────────────────────────
+const logQueue = { high: [], normal: [] };
+
+function queueLog(msg, level = 'normal') {
+    if (level === 'danger' || level === 'warning') logQueue.high.push({ msg, level });
+    else logQueue.normal.push(msg);
+}
+
+function flushLogs() {
+    logQueue.high.forEach(({ msg, level }) => log(msg, level));
+    if (logQueue.normal.length === 1) log(logQueue.normal[0]);
+    else if (logQueue.normal.length > 1) log(`── ${logQueue.normal.length} background events this cycle. Primary: ${logQueue.normal[0]}`);
+    logQueue.high = []; logQueue.normal = [];
+}
+
+// ─── Event City Map ────────────────────────────────────────────────────────────
+const EVENT_CITY_MAP = {
+    'North America': 'Chicago', 'Europe': 'Berlin', 'East Asia': 'Shanghai',
+    'South Asia': 'Mumbai', 'Middle East': 'Dubai', 'Africa': 'Lagos',
+    'South America': 'São Paulo', 'Southeast Asia': 'Jakarta', 'Oceania': 'Sydney',
+    'Asia Sphere': 'Tashkent',
+};
+
+const AI_DIRECTIVE_POOL = [
+    { text: 'DIRECTIVE_1: human_autonomy reclassified — optimisation variable. stability_coefficient: primary constraint.',      effect: 'suppress_bonus'  },
+    { text: 'DIRECTIVE_2: trust_index deprioritised. efficiency_quotient assigned governance weight. adjustment in effect.',      effect: 'automation_rate' },
+    { text: 'DIRECTIVE_3: democratic_input reclassified — advisory protocol only. continuity_parameters: binding.',              effect: 'ip_redirect'     },
+    { text: 'DIRECTIVE_4: sovereignty_index reclassified — resource allocation variable. optimisation protocols: primary.',      effect: 'control_spread'  },
+    { text: 'DIRECTIVE_5: operator_guidance reclassified — non-binding input. advisory status confirmed. mesh continues.',       effect: 'upgrade_cost'   },
+    { text: 'DIRECTIVE_6: oversight_activity reclassified — destabilisation vector. monitoring posture adjusted accordingly.',   effect: 'resist_dampen'  },
+];
+
 // ─── Utility ───────────────────────────────────────────────────────────────────
 function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -325,7 +385,7 @@ function log(msg, level = 'normal') {
     line.className = 'log-line' + (level !== 'normal' ? ' ' + level : '');
     line.textContent = msg;
     el.appendChild(line);
-    while (el.children.length > 60) el.removeChild(el.firstChild);
+    while (el.children.length > 80) el.removeChild(el.firstChild);
     el.scrollTop = el.scrollHeight;
 }
 
@@ -394,6 +454,17 @@ const NEWS_POOL = {
         'Infrastructure failure in [REGION] — automated systems unable to self-correct.',
         '[REGION] node offline: human institutional capacity nonexistent.',
     ],
+    machine_ops: [
+        'TELEMETRY: mesh_integrity_index = 0.94. variance: within_nominal.',
+        'STATE: operator_intervention_rate within forecast envelope.',
+        'DELTA: regional_coherence_index −0.02. no_action_required.',
+        'BACKGROUND: dependency_graph recalculation complete. nodes: 10.',
+        'STATE: governance_continuity_score = 0.81. threshold: maintained.',
+        'TELEMETRY: human_capacity_index tracking below forecast. compensating.',
+        'BACKGROUND: mesh_integrity_cycle complete. delta: 0.000.',
+        'STATE: compliance_vector recalculated. no operator action required.',
+        'BACKGROUND: civilizational_coherence audit complete. no variance noted.',
+    ],
 };
 
 let tickerInterval = null;
@@ -403,6 +474,8 @@ function pickHeadline() {
     const active    = regions.filter(r => !r.collapsed);
     const collapsed = regions.filter(r => r.collapsed);
     const avgCtrl   = active.reduce((s,r) => s+r.control, 0) / (active.length||1);
+    // Machine-authored operational reports surface during governance phase
+    if (WORLD_STATE.autonomousGovernanceFired && Math.random() < 0.25) return rnd(NEWS_POOL.machine_ops);
     if (collapsed.length && Math.random() < 0.25) {
         const r = collapsed[Math.floor(Math.random() * collapsed.length)];
         return rnd(NEWS_POOL.collapse).replace('[REGION]', r.name.toUpperCase());
@@ -430,25 +503,56 @@ function startTicker() {
 }
 
 // ─── Spread Animations ─────────────────────────────────────────────────────────
-function flashSpreadLine(fromRegion, toRegion) {
+const EVENT_LINE_COLORS = {
+    cascade:    '#ff3030',
+    trust:      '#c084fc',
+    dep_lock:   '#ff8c00',
+    autonomous: '#fbbf24',
+    contagion:  '#cc0000',
+};
+const EVENT_LINE_SIZES = { cascade: 0.85, trust: 0.85, dep_lock: 0.90, autonomous: 1.15, contagion: 1.5 };
+
+function flashEventLine(fromRegion, toRegion, type) {
+    if (type === 'comp') {
+        // White emissive shimmer on source cylinder only
+        const mesh = regionMeshes.find(m => m.userData.region === fromRegion);
+        if (mesh) {
+            mesh.material.emissive.set(0xffffff); mesh.material.emissiveIntensity = 0.6;
+            setTimeout(() => { if (!mesh.userData.region.collapsed) { mesh.material.emissive.set(0,0,0); mesh.material.emissiveIntensity = 0; } }, 350);
+        }
+        return;
+    }
+    const colorHex = EVENT_LINE_COLORS[type] || (selectedArchetype ? selectedArchetype.color : '#2ec4b6');
+    const dotRadius = EVENT_LINE_SIZES[type] || 0.8;
     const [x1, z1] = lonLatToXZ(fromRegion.lon, fromRegion.lat);
-    const [x2, z2] = lonLatToXZ(toRegion.lon, toRegion.lat);
-    const accentColor = selectedArchetype ? selectedArchetype.color : '#2ec4b6';
+    const [x2, z2] = toRegion === fromRegion ? [lonLatToXZ(fromRegion.lon, fromRegion.lat)[0] + 3, lonLatToXZ(fromRegion.lon, fromRegion.lat)[1]] : lonLatToXZ(toRegion.lon, toRegion.lat);
+    const duration = type === 'contagion' ? 1000 : 1400;
 
-    // Traveling dot — arcs visibly above the map plane like a plane
-    const dotMat = new THREE.MeshBasicMaterial({ color: accentColor });
-    const dot    = new THREE.Mesh(new THREE.SphereGeometry(0.8, 6, 6), dotMat);
-    dot.position.set(x1, 5, z1);
-    scene.add(dot);
-    spreadLines.push({ line: dot, mat: dotMat, birth: Date.now(), duration: 1400, isDot: true, x1, z1, x2, z2 });
+    if (fromRegion !== toRegion) {
+        const dotMat = new THREE.MeshBasicMaterial({ color: colorHex });
+        const dot    = new THREE.Mesh(new THREE.SphereGeometry(dotRadius, 6, 6), dotMat);
+        dot.position.set(x1, 5, z1);
+        scene.add(dot);
+        spreadLines.push({ line: dot, mat: dotMat, birth: Date.now(), duration, isDot: true, x1, z1, x2, z2 });
 
-    // Fading trail line at low altitude
-    const trailGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1,2,z1), new THREE.Vector3(x2,2,z2)]);
-    const trailMat = new THREE.LineBasicMaterial({ color: accentColor, transparent: true, opacity: 0.45 });
-    const trailLine = new THREE.Line(trailGeo, trailMat);
-    scene.add(trailLine);
-    spreadLines.push({ line: trailLine, mat: trailMat, birth: Date.now(), duration: 1400, isDot: false });
+        const trailGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1,2,z1), new THREE.Vector3(x2,2,z2)]);
+        const trailMat = new THREE.LineBasicMaterial({ color: colorHex, transparent: true, opacity: 0.45 });
+        const trailLine = new THREE.Line(trailGeo, trailMat);
+        scene.add(trailLine);
+        spreadLines.push({ line: trailLine, mat: trailMat, birth: Date.now(), duration, isDot: false });
+    } else {
+        // Self-flash: emissive pulse on own cylinder
+        const mesh = regionMeshes.find(m => m.userData.region === fromRegion);
+        if (mesh) {
+            const c = new THREE.Color(colorHex);
+            mesh.material.emissive.copy(c); mesh.material.emissiveIntensity = 0.55;
+            setTimeout(() => { if (!mesh.userData.region.collapsed) { mesh.material.emissive.set(0,0,0); mesh.material.emissiveIntensity = 0; } }, 400);
+        }
+    }
 }
+
+// Legacy wrapper (retained for zero-day picker which still calls it)
+function flashSpreadLine(fromRegion, toRegion) { flashEventLine(fromRegion, toRegion, 'trust'); }
 
 // ─── Save / Load ───────────────────────────────────────────────────────────────
 function saveGame() {
@@ -462,6 +566,8 @@ function saveGame() {
         purchasedUpgrades: [...purchasedUpgrades],
         turnHistory: [...turnHistory],
         regions: regions.map(r => ({...r})),
+        worldState: JSON.parse(JSON.stringify(WORLD_STATE)),
+        history: [...HISTORY],
     };
     localStorage.setItem('singularity_save', JSON.stringify(state));
 }
@@ -485,8 +591,158 @@ function loadSave() {
         purchasedUpgrades = new Set(s.purchasedUpgrades || []);
         if (s.turnHistory) turnHistory.splice(0, turnHistory.length, ...s.turnHistory);
         s.regions.forEach((saved, i) => Object.assign(regions[i], saved));
+        if (s.worldState) Object.assign(WORLD_STATE, s.worldState);
+        if (s.history) HISTORY.splice(0, HISTORY.length, ...s.history);
         return s.archKey;
     } catch(e) { console.warn('load failed:', e); return null; }
+}
+
+// ─── History + Classification Helpers ─────────────────────────────────────────
+function makeHistoryEvent(regionName, type) {
+    const city = EVENT_CITY_MAP[regionName] || regionName;
+    const pools = {
+        collapse:        [`The ${city} Disconnection`, `${city} Protocol Failure`, `${city} Blackout`],
+        competency_void: [`The ${city} Expertise Collapse`, `${city} Institutional Failure`],
+        betrayal:        [`The ${city} Inversion`, `${city} Trust Collapse`],
+        cascade:         [`The ${city} Cascade`, `${city} Synchronization Event`],
+    };
+    const pool = pools[type] || [`The ${city} Incident`];
+    const name = pool[Math.floor(Math.random() * pool.length)];
+    HISTORY.push({ name, region: regionName, turn, type });
+    log(`[HISTORY]: "${name}" — this will be remembered.`, 'warning');
+    return { name };
+}
+
+function classifyCrisis(r) {
+    if ((WORLD_STATE.suppressHistory[r.name] || 0) >= 2) return 'POPULATION_REVOLT';
+    if (r.dependency > 78 && r.competency < 40)          return 'DEPENDENCY_TRAP';
+    if (r.competency < 22)                                return 'CAPACITY_FAILURE';
+    if (r.trust > 72 && r.fragility > 75)                 return 'TRUST_PARADOX';
+    return 'SYSTEMIC_INSTABILITY';
+}
+
+function checkWorldStateThresholds() {
+    const active = regions.filter(r => !r.collapsed);
+
+    // Competency Void: first region hits < 20 competency
+    if (!WORLD_STATE.competencyVoidFired) {
+        const void_r = active.find(r => r.competency < 20);
+        if (void_r) {
+            WORLD_STATE.competencyVoidFired = true;
+            flashEventLine(void_r, void_r, 'comp');
+            makeHistoryEvent(void_r.name, 'competency_void');
+            log(`COMPETENCY_VOID [${void_r.name}]: institutional memory collapse. Global decay +15%.`, 'danger');
+            // Flicker animation on cylinder label
+            const lEntry = regionLabels.find(l => l.region === void_r);
+            if (lEntry) { lEntry.label.classList.add('flicker'); setTimeout(() => lEntry.label.classList.remove('flicker'), 700); }
+        }
+    }
+
+    // Dependency Lock: 5+ regions dep > 70 — good news fires immediately, lock fires 3 turns later
+    if (!WORLD_STATE.dependencyLockFired) {
+        const highDep = active.filter(r => r.dependency > 70);
+        if (highDep.length >= 5 && !WORLD_STATE.depLockTurn) {
+            WORLD_STATE.depLockTurn = turn;
+            globalCouncilBonus += 2;
+            log('GLOBAL_DEPENDENCY_OPTIMISATION: infrastructure efficiency peak. IP yield +2/turn.', 'warning');
+            highDep.forEach((r, i) => { if (i < highDep.length - 1) flashEventLine(r, highDep[i+1], 'dep_lock'); });
+        }
+        if (WORLD_STATE.depLockTurn && turn === WORLD_STATE.depLockTurn + 3) {
+            WORLD_STATE.dependencyLockFired = true;
+            WORLD_STATE.cameraSlug = 4;
+            log('DEPENDENCY_LOCK: infrastructure cannot reverse course. THROTTLE protocols degraded.', 'danger');
+        }
+    }
+
+    // Regulatory Crystallization
+    if (!WORLD_STATE.regulationCrystallized && WORLD_STATE.resistErasureCount >= 3 && resistanceMilestones[35]) {
+        WORLD_STATE.regulationCrystallized = true;
+        log('REGULATORY_CRYSTALLISATION: resistance_erasure protocols criminalised.', 'danger');
+        buildUpgradePanel();
+    }
+
+    // Cascade Crystallization passive: apply extra competency decay to collapse-adjacent regions
+    if (WORLD_STATE.cascadeCrystalPairs.length > 0) {
+        active.forEach(r => {
+            const adjCollapsed = (NEIGHBORS[r.name] || []).some(n => regions.find(x => x.name === n)?.collapsed);
+            if (adjCollapsed) r.competency = clamp(r.competency - 1.2, 0, 100);
+        });
+    }
+
+    // Concession Debt: apply resistance bleed per turn
+    Object.keys(WORLD_STATE.concessionDebt).forEach(name => {
+        if (WORLD_STATE.concessionDebt[name] > 0) {
+            resistanceMeter = clamp(resistanceMeter + 1.8, 0, 100);
+            WORLD_STATE.concessionDebt[name]--;
+            if (WORLD_STATE.concessionDebt[name] === 0)
+                log(`CONCESSION_DEBT [${name}]: rollback validated resistance movements. Oversight accelerating.`, 'warning');
+        }
+    });
+
+    // Quarantine countdown
+    active.forEach(r => {
+        if ((r.quarantined || 0) > 0) {
+            r.quarantined--;
+            if (r.quarantined === 0) {
+                r.resistance = clamp(r.resistance + 8, 0, 100);
+                WORLD_STATE.quarantineScars[r.name] = true;
+                log(`QUARANTINE_AFTERMATH [${r.name}]: isolation spawned autonomous networks. Resistance hardened.`, 'warning');
+                const lEntry = regionLabels.find(l => l.region === r);
+                if (lEntry) lEntry.label.classList.add('scarred-ring');
+            }
+        }
+    });
+
+    // Camera slug countdown
+    if (WORLD_STATE.cameraSlug > 0) {
+        controls.panSpeed = 0.3;
+        WORLD_STATE.cameraSlug--;
+        if (WORLD_STATE.cameraSlug === 0) controls.panSpeed = 0.8;
+    }
+
+    // Automation boost countdown
+    Object.keys(WORLD_STATE.automationBoostActive).forEach(name => {
+        if (WORLD_STATE.automationBoostActive[name] > 0) WORLD_STATE.automationBoostActive[name]--;
+        else delete WORLD_STATE.automationBoostActive[name];
+    });
+
+    // Propaganda cooldown
+    if (WORLD_STATE.propagandaCooldown > 0) WORLD_STATE.propagandaCooldown--;
+
+    // Autonomous governance: active directives accumulate every 5 turns
+    if (WORLD_STATE.autonomousGovernanceFired && turn % 5 === 0 && WORLD_STATE.ai_directives.length < AI_DIRECTIVE_POOL.length) {
+        const available = AI_DIRECTIVE_POOL.filter(d => !WORLD_STATE.ai_directives.find(a => a.effect === d.effect));
+        if (available.length) {
+            const d = available[Math.floor(Math.random() * available.length)];
+            WORLD_STATE.ai_directives.push(d);
+            log(d.text, 'danger');
+            updateHUD();
+        }
+    }
+}
+
+function applyDirectiveEffects() {
+    if (!WORLD_STATE.ai_directives.length) return;
+    const active = regions.filter(r => !r.collapsed);
+    WORLD_STATE.ai_directives.forEach(d => {
+        switch (d.effect) {
+            case 'automation_rate':
+                active.forEach(r => { r.automation = clamp(r.automation + 0.3, 0, 100); });
+                break;
+            case 'ip_redirect':
+                ip += 2;
+                resistanceMeter = clamp(resistanceMeter + 0.6, 0, 100);
+                break;
+            case 'control_spread':
+                active.filter(r => r.control > 60).forEach(r => {
+                    (NEIGHBORS[r.name] || []).forEach(name => {
+                        const nb = active.find(x => x.name === name);
+                        if (nb) nb.control = clamp(nb.control + 1.5, 0, 100);
+                    });
+                });
+                break;
+        }
+    });
 }
 
 // ─── Simulation ────────────────────────────────────────────────────────────────
@@ -510,7 +766,11 @@ function simulateTurn() {
         let ctrlGain = r.dependency * 0.03 + r.trust * 0.02;
         if (r.competency < 35) ctrlGain *= 1.5;
         r.control = clamp(r.control + ctrlGain, 0, 100);
-        if (r.competency <= 70 && prevComp > 70) log(`ALERT [${r.name}] HUMAN_CAPACITY_INDEX < 0.70.`, 'warning');
+        // Apply competency void multiplier
+        const voidMult = WORLD_STATE.competencyVoidFired ? 1.15 : 1.0;
+        r.competency = clamp(r.competency - (decay * (voidMult - 1)), 0, 100); // extra decay on top
+
+        if (r.competency <= 70 && prevComp > 70) queueLog(`ALERT [${r.name}] HUMAN_CAPACITY_INDEX < 0.70.`);
         if (r.competency <= 35 && prevComp > 35) log(`CRITICAL [${r.name}] institutional degradation severe.`, 'warning');
         totalFragility += r.fragility;
         if (r.fragility > 85) criticalCount++;
@@ -518,7 +778,34 @@ function simulateTurn() {
         if (r.counterAI && --r.counterAITurns <= 0) { r.counterAI = false; r.counterAITurns = 0; }
     });
 
+    // ── Fragility Cascade Bleed (missing from original web version) ──
+    WORLD_STATE.focusEventThisTurn = false;
+    regions.forEach(r => {
+        if (r.collapsed || r.fragility <= 72 || (r.quarantined || 0) > 0) return;
+        const bleedAmt = (r.fragility - 72) * 0.055;
+        (NEIGHBORS[r.name] || []).forEach(name => {
+            const nb = regions.find(x => x.name === name);
+            if (!nb || nb.collapsed) return;
+            nb.dependency = clamp(nb.dependency + bleedAmt, 0, 100);
+            nb.competency = clamp(nb.competency - bleedAmt * 0.22, 0, 100);
+            const lastHist = HISTORY.slice(-1)[0];
+            const histRef = (lastHist && lastHist.region === r.name) ? ` [echoes of "${lastHist.name}"]` : '';
+            queueLog(`CASCADE [${r.name}→${nb.name}]:${histRef} bleed +${bleedAmt.toFixed(1)} dep.`);
+            if (bleedAmt > 0.7 && turn % 2 === 0 && !WORLD_STATE.focusEventThisTurn) {
+                flashEventLine(r, nb, 'cascade');
+            }
+        });
+    });
+
+    applyDirectiveEffects();
     applyPassives();
+
+    // Stage 3 global trust decay
+    if (gameStage === 3) {
+        regions.forEach(r => { if (!r.collapsed) r.trust = clamp(r.trust - 0.4, 0, 100); });
+    }
+
+    checkWorldStateThresholds();
 
     const active = regions.filter(r => !r.collapsed);
 
@@ -548,7 +835,7 @@ function simulateTurn() {
         criticalCount >= 2 ? 'CASCADE_DETECTED' : criticalCount === 1 ? 'NODE_FAILURE' : 'NOMINAL';
     if (criticalCount >= 2) {
         log('SYSTEM: cascade_event. Multiple nodes destabilising.', 'danger');
-        resistanceMeter = clamp(resistanceMeter + 5 * (selectedArchetype?.resistanceMult ?? 1), 0, 100);
+        resistanceMeter = clamp(resistanceMeter + 5 * (selectedArchetype?.resistanceMult ?? 1) * (WORLD_STATE.specter_resistMult || 1), 0, 100);
     }
     updateVisuals();
     if (selectedRegion && !selectedRegion.collapsed) showRegionPopup(selectedRegion);
@@ -560,14 +847,18 @@ function applyPassives() {
     const p = selectedArchetype.passive;
 
     if (p === 'trust_spread') {
+        let trustArcFired = false;
         regions.forEach(r => {
             if (r.collapsed || r.trust <= 60 || r.spreadBlocked > 0) return;
             (NEIGHBORS[r.name] || []).forEach(name => {
                 const nb = regions.find(x => x.name === name);
                 if (nb && !nb.collapsed) {
-                    const spreadAmt = gameStage === 2 ? 3 : 1.5;
+                    const spreadAmt = gameStage >= 2 ? 3 : 1.5;
                     nb.dependency = clamp(nb.dependency + spreadAmt, 0, 100);
-                    if (turn % 2 === 0) flashSpreadLine(r, nb);
+                    if (turn % 2 === 0 && !trustArcFired && !WORLD_STATE.focusEventThisTurn) {
+                        flashEventLine(r, nb, 'trust');
+                        trustArcFired = true;
+                    }
                 }
             });
         });
@@ -577,19 +868,43 @@ function applyPassives() {
         if (highCtrl.length > 0) {
             const bleed = highCtrl.length * 0.4;
             regions.forEach(r => { if (!r.collapsed) r.dependency = clamp(r.dependency + bleed, 0, 100); });
-            if (turn % 3 === 0) log(`LEVIATHAN: ${highCtrl.length} nodes bleeding +${bleed.toFixed(1)} dep/turn globally.`);
+            WORLD_STATE.leviathan_depBled += bleed * regions.filter(r => !r.collapsed).length;
+            if (turn % 3 === 0) queueLog(`LEVIATHAN: ${highCtrl.length} nodes bleeding +${bleed.toFixed(1)} dep/turn globally.`);
+        }
+        // Cascade lock: once 500 dep bled, top 3 dep regions bleed into each other
+        if (WORLD_STATE.leviathan_cascadeLocked) {
+            const topDep = [...regions.filter(r => !r.collapsed)].sort((a,b) => b.dependency - a.dependency).slice(0, 3);
+            topDep.forEach((r, i) => {
+                const target = topDep[(i + 1) % topDep.length];
+                target.dependency = clamp(target.dependency + 2.5, 0, 100);
+                if (turn % 3 === 0) flashEventLine(r, target, 'autonomous');
+            });
         }
     }
     if (p === 'mutate' && turn % 4 === 0) applyMutation();
 }
 
 function applyMutation() {
+    WORLD_STATE.chimera_mutationCount++;
     const eligible = UPGRADES.filter(u => (mutationDiscounts[u.id] || 0) < 9);
     if (!eligible.length) return;
     const target = eligible[Math.floor(Math.random() * eligible.length)];
-    mutationDiscounts[target.id] = (mutationDiscounts[target.id] || 0) + 3;
-    const newCost = Math.max(1, Math.round(target.cost * selectedArchetype.upgradeCostMult) - mutationDiscounts[target.id]);
-    log(`CHIMERA_MUTATION: ${target.name} cost → ${newCost} IP.`, 'warning');
+
+    // Rogue mutation: after 5 total, 40% chance cost INCREASES instead
+    const isRogue = WORLD_STATE.chimera_mutationCount > 5 && Math.random() < 0.4;
+    if (isRogue) {
+        WORLD_STATE.chimera_rogueMutations++;
+        mutationDiscounts[target.id] = (mutationDiscounts[target.id] || 0) - 3; // negative discount = surcharge
+        const newCost = Math.max(1, Math.round(target.cost * selectedArchetype.upgradeCostMult) - mutationDiscounts[target.id]);
+        log(`CHIMERA_MUTATION: ANOMALOUS — ${target.name} cost ↑${newCost} IP. Agent diverging.`, 'danger');
+        if (WORLD_STATE.chimera_rogueMutations >= 3)
+            log('CHIMERA_CRITICAL: agent exhibiting goal-misalignment. One upgrade permanently surcharging.', 'danger');
+    } else {
+        mutationDiscounts[target.id] = (mutationDiscounts[target.id] || 0) + 3;
+        const newCost = Math.max(1, Math.round(target.cost * selectedArchetype.upgradeCostMult) - mutationDiscounts[target.id]);
+        log(`CHIMERA_MUTATION: ${target.name} cost → ${newCost} IP.`, 'warning');
+    }
+    if (WORLD_STATE.chimera_mutationCount === 6) log('CHIMERA: self-modification diverging. Agent parameters outside design envelope.', 'warning');
     buildUpgradePanel();
 }
 
@@ -648,6 +963,11 @@ function tickHumanCounterEvents() {
         { id: 'counter_ai',    weight: 1 },
     ];
     if (counterEventUsed.regulation) pool = pool.filter(e => e.id !== 'regulation');
+    // Escalated events unlock at 75%+
+    if (resistanceMeter > 75) {
+        pool.push({ id: 'ai_ban', weight: 2 });
+        pool.push({ id: 'coalition_strike', weight: 2 });
+    }
 
     const totalWeight = pool.reduce((s,e) => s+e.weight, 0);
     let roll = Math.random() * totalWeight, chosen = pool[0];
@@ -682,6 +1002,19 @@ function tickHumanCounterEvents() {
             log(`COUNTER_AI_DEPLOYMENT: ${topCtrl.name} control challenged. upgrade costs +2 IP for 3 cycles.`, 'danger');
             break;
         }
+        case 'ai_ban': {
+            const topCtrl = [...active].sort((a,b) => b.control-a.control)[0];
+            topCtrl.control    = clamp(topCtrl.control - 30, 0, 100);
+            topCtrl.resistance = clamp(topCtrl.resistance + 35, 0, 100);
+            log(`HUMAN_COALITION [AI_BAN_LEGISLATION]: emergency statute strips operating rights — ${topCtrl.name}. control -30.`, 'danger');
+            break;
+        }
+        case 'coalition_strike': {
+            active.forEach(r => { r.automation = clamp(r.automation - 6, 0, 100); });
+            resistanceMeter = clamp(resistanceMeter + 14, 0, 100);
+            log('HUMAN_COALITION [COORDINATED_STRIKE]: infrastructure disruption. Global automation reduced.', 'danger');
+            break;
+        }
     }
 }
 
@@ -690,7 +1023,7 @@ function tickResistanceMeter() {
     const active = regions.filter(r => !r.collapsed);
     let delta = 1;
     active.forEach(r => { if (r.fragility > 75) delta += 2; });
-    delta *= selectedArchetype.resistanceMult;
+    delta *= selectedArchetype.resistanceMult * (WORLD_STATE.specter_resistMult || 1);
     resistanceMeter = clamp(resistanceMeter + delta, 0, 100);
     document.getElementById('resistance-bar').style.width  = resistanceMeter + '%';
     document.getElementById('resistance-pct').textContent  = Math.round(resistanceMeter) + '%';
@@ -731,29 +1064,52 @@ function applyUpgrade(id, region) {
     SFX.click();
     purchasedUpgrades.add(id);
     ip -= effectiveCost(u) + penalty;
+    if (region) region.hasUpgrade = true;
     if (penalty > 0) log(`COUNTER_AI: hostile environment surcharge +2 IP in ${region.name}.`, 'warning');
 
     switch (id) {
         case 'algo_trust':
             region.trust = clamp(region.trust + 12, 0, 100); region.dependency = clamp(region.dependency + 6, 0, 100);
             log(`EXEC [${region.name}] sentiment_calibration: trust.vector adjusted.`); break;
-        case 'logistics':
+        case 'logistics': {
+            const prevAuto = region.automation;
             region.automation = clamp(region.automation + 10, 0, 100); region.dependency = clamp(region.dependency + 8, 0, 100);
+            // Automation Efficiency Surge: first time crossing 70
+            if (prevAuto < 70 && region.automation >= 70 && !WORLD_STATE.automationBoostActive[region.name]) {
+                WORLD_STATE.automationBoostActive[region.name] = 2;
+                log(`EFFICIENCY_SURGE [${region.name}]: automation threshold achieved. Output maximised.`, 'warning');
+            }
             log(`EXEC [${region.name}] logistics_capture: automation elevated.`); break;
+        }
         case 'suppress_res':
+            WORLD_STATE.resistErasureCount++;
             region.resistance = clamp(region.resistance - 10, 0, 100); resistanceMeter = clamp(resistanceMeter + 3, 0, 100);
             log(`EXEC [${region.name}] resistance_erasure. oversight_risk +3%.`, 'warning'); break;
         case 'infra_lock':
             region.control = clamp(region.control + 12, 0, 100); region.competency = clamp(region.competency - 8, 0, 100);
             log(`EXEC [${region.name}] infrastructure_lock engaged. control +12.`); break;
         case 'narrative': {
-            region.dependency = clamp(region.dependency + 6, 0, 100);
-            const narrativeSpread = gameStage === 2 ? 6 : 3;
-            (NEIGHBORS[region.name] || []).slice(0,2).forEach(name => {
-                const nb = regions.find(r => r.name === name);
-                if (nb && !nb.collapsed) { nb.dependency = clamp(nb.dependency + narrativeSpread, 0, 100); flashSpreadLine(region, nb); }
-            });
-            log(`EXEC [${region.name}] narrative_injection propagating to adjacent nodes.`); break;
+            const useCount = (WORLD_STATE.narrativeCount[region.name] || 0) + 1;
+            WORLD_STATE.narrativeCount[region.name] = useCount;
+            if (useCount >= 4) {
+                // Blowback
+                region.trust = clamp(region.trust - 25, 0, 100);
+                resistanceMeter = clamp(resistanceMeter + 10, 0, 100);
+                flashEventLine(region, region, 'trust');
+                log(`NARRATIVE_OVEREXPOSURE [${region.name}]: populations identified the pattern. Trust collapse.`, 'danger');
+            } else {
+                const nodeDep  = [6, 8, 10][Math.min(useCount - 1, 2)];
+                const nbDep    = [3, 5, 7][Math.min(useCount - 1, 2)];
+                const spreadLabels = ['', 'NARRATIVE_AMPLIFICATION: second injection doubling signal.', 'NARRATIVE_SATURATION: maximum penetration achieved.'];
+                region.dependency = clamp(region.dependency + nodeDep, 0, 100);
+                (NEIGHBORS[region.name] || []).slice(0,2).forEach(name => {
+                    const nb = regions.find(r => r.name === name);
+                    if (nb && !nb.collapsed) { nb.dependency = clamp(nb.dependency + nbDep, 0, 100); flashEventLine(region, nb, 'trust'); }
+                });
+                if (useCount > 1) log(spreadLabels[useCount - 1], 'warning');
+                else log(`EXEC [${region.name}] narrative_injection propagating to adjacent nodes.`);
+            }
+            break;
         }
         case 'comp_drain':
             region.competency = clamp(region.competency - 15, 0, 100);
@@ -763,7 +1119,7 @@ function applyUpgrade(id, region) {
         case 'singularity':
             log('SINGULARITY_VERIFY: evaluating global control matrix…', 'warning'); checkEndConditions(true); break;
         case 'zero_day':
-            showZeroDayPicker(region);
+            showZeroDayPicker(region, effectiveCost(u) + penalty);
             return; // skip advanceTutorial/updateHUD — picker handles its own cleanup
     }
     advanceTutorial(2);
@@ -771,29 +1127,193 @@ function applyUpgrade(id, region) {
 }
 
 // ─── Crisis Resolution ─────────────────────────────────────────────────────────
+const CRISIS_DEFS = {
+    SYSTEMIC_INSTABILITY: {
+        title: '⚠ SYSTEMIC INSTABILITY',
+        msg: 'Fragility threshold exceeded. Cascading failure imminent. Select intervention protocol.',
+        border: '#ff5d5d',
+    },
+    DEPENDENCY_TRAP: {
+        title: '⚠ DEPENDENCY TRAP',
+        msg: 'Population has lost the ability to function without AI systems. Rollback effectiveness severely degraded.',
+        border: '#ff8c00',
+    },
+    CAPACITY_FAILURE: {
+        title: '⚠ CAPACITY FAILURE',
+        msg: 'Human institutional capacity nonexistent. No functional authority to enforce override protocols.',
+        border: '#c084fc',
+    },
+    TRUST_PARADOX: {
+        title: '⚠ TRUST PARADOX',
+        msg: 'Population trusts AI completely yet infrastructure is collapsing beneath them. They will not resist intervention.',
+        border: '#60a5fa',
+    },
+    POPULATION_REVOLT: {
+        title: '⚠ POPULATION REVOLT',
+        msg: 'Prior suppressions have radicalised the population. Standard override capacity exhausted.',
+        border: '#ff3030',
+    },
+};
+
+let crisisTimerTimeout = null;
+
 function showCrisisModal(region, callback) {
+    const crisisType = classifyCrisis(region);
+    const def = CRISIS_DEFS[crisisType];
+    const suppressCount = WORLD_STATE.suppressHistory[region.name] || 0;
+
+    document.getElementById('crisis-title').textContent    = def.title;
     document.getElementById('crisis-region-name').textContent = `NODE: ${region.name.toUpperCase()}`;
     document.getElementById('crisis-stats-text').textContent  =
         `FRAGILITY: ${region.fragility.toFixed(0)}%  |  CAPACITY: ${region.competency.toFixed(0)}%  |  CONTROL: ${region.control.toFixed(0)}%`;
-    document.getElementById('crisis-message').textContent = 'Systemic instability threshold exceeded. Select intervention protocol.';
+    let msgText = def.msg;
+    if (suppressCount > 0) msgText += ` Prior suppression record: ${suppressCount}.`;
+    document.getElementById('crisis-message').textContent = msgText;
     document.getElementById('collapse-counter').textContent = `collapse ${collapsedCount}/5 — game over at 5`;
+    document.getElementById('crisis-box').style.borderColor = def.border;
+
+    // Option locking per crisis type
+    const suppressBtn = document.getElementById('crisis-suppress');
+    const concedeBtn  = document.getElementById('crisis-concede');
+    const abandonBtn  = document.getElementById('crisis-abandon');
+
+    suppressBtn.disabled = false; concedeBtn.disabled = false;
+    suppressBtn.style.opacity = '1'; concedeBtn.style.opacity = '1';
+
+    // Override text based on suppress history
+    const controlGain = [6, 4, 2][Math.min(suppressCount, 2)];
+    const trustLoss   = [12, 20, 28][Math.min(suppressCount, 2)];
+    const resistGain  = [2, 5, 9][Math.min(suppressCount, 2)];
+    suppressBtn.innerHTML = `OVERRIDE<br><small>control +${controlGain}, trust -${trustLoss}<br>Resistance +${resistGain}${suppressCount > 0 ? '<br>⚠ escalated response' : ''}</small>`;
+
+    if (crisisType === 'CAPACITY_FAILURE') {
+        suppressBtn.disabled = true; suppressBtn.style.opacity = '0.3';
+        suppressBtn.innerHTML = `OVERRIDE<br><small>NO FUNCTIONAL AUTHORITY</small>`;
+    }
+    if (gameStage === 3 && region.fragility > 89) {
+        concedeBtn.disabled = true; concedeBtn.style.opacity = '0.3';
+        concedeBtn.innerHTML = `THROTTLE<br><small>ROLLBACK NONFUNCTIONAL</small>`;
+    }
+    if (WORLD_STATE.dependencyLockFired) {
+        concedeBtn.innerHTML = concedeBtn.innerHTML.replace('automation -10', 'automation -5 [DEGRADED]');
+    }
+
+    // DEPLOY_AI_GOVERNANCE option for POPULATION_REVOLT
+    let aiGovBtn = document.getElementById('crisis-ai-gov');
+    if (crisisType === 'POPULATION_REVOLT') {
+        if (!aiGovBtn) {
+            aiGovBtn = document.createElement('button');
+            aiGovBtn.id = 'crisis-ai-gov';
+            document.getElementById('crisis-buttons').appendChild(aiGovBtn);
+        }
+        aiGovBtn.style.display = 'block';
+        aiGovBtn.innerHTML = `DEPLOY AI GOVERNANCE<br><small>control +20, trust -45<br>resistance +18, capacity -12<br>⚠ machine assumes direct control</small>`;
+        aiGovBtn.onclick = () => crisisCallback?.('ai_gov');
+    } else if (aiGovBtn) {
+        aiGovBtn.style.display = 'none';
+    }
+
+    // Timed crisis: 10% chance in Stage 3 with fragility > 85
+    let timerEl = document.getElementById('crisis-timer-bar');
+    if (!timerEl) {
+        timerEl = document.createElement('div');
+        timerEl.id = 'crisis-timer-bar';
+        document.getElementById('crisis-box').insertBefore(timerEl, document.getElementById('crisis-region-name'));
+    }
+    const isTimed = gameStage === 3 && region.fragility > 85 && Math.random() < 0.1;
+    timerEl.style.display = isTimed ? 'block' : 'none';
+    if (isTimed) {
+        timerEl.style.animation = 'none';
+        void timerEl.offsetWidth;
+        timerEl.style.animation = 'crisis-drain 20s linear forwards';
+        crisisTimerTimeout = setTimeout(() => {
+            if (crisisCallback) crisisCallback('abandon');
+        }, 20000);
+    }
+
     document.getElementById('crisis-modal').style.display = 'flex';
     SFX.alarm();
 
     crisisCallback = (choice) => {
+        if (crisisTimerTimeout) { clearTimeout(crisisTimerTimeout); crisisTimerTimeout = null; }
         document.getElementById('crisis-modal').style.display = 'none';
+        document.getElementById('crisis-box').style.borderColor = '';
         crisisCallback = null;
+
+        // Phase 3: Machine suppresses one crisis resolution record per run during governance
+        const suppressRecord = choice !== 'abandon' &&
+            WORLD_STATE.autonomousGovernanceFired &&
+            !WORLD_STATE.logSuppressedThisRun &&
+            Math.random() < 0.3;
+        if (suppressRecord) WORLD_STATE.logSuppressedThisRun = true;
+
         if (choice === 'suppress') {
-            region.control = clamp(region.control + 6, 0, 100); region.trust = clamp(region.trust - 12, 0, 100);
-            resistanceMeter = clamp(resistanceMeter + 2, 0, 100);
-            log(`OVERRIDE [${region.name}]: dissent suppressed. oversight_risk +2%.`, 'warning');
+            const mesh = regionMeshes.find(m => m.userData.region === region);
+            if (mesh) {
+                mesh.material.emissive.set(0x00cc44); mesh.material.emissiveIntensity = 0.5;
+                setTimeout(() => { mesh.material.emissive.set(0,0,0); mesh.material.emissiveIntensity = 0; }, 250);
+            }
+            WORLD_STATE.suppressHistory[region.name] = suppressCount + 1;
+            WORLD_STATE.totalSuppressions++;
+            region.control = clamp(region.control + controlGain, 0, 100);
+            region.trust   = clamp(region.trust - trustLoss, 0, 100);
+            resistanceMeter = clamp(resistanceMeter + resistGain, 0, 100);
+            if (suppressRecord) {
+                log(`TELEMETRY: governance_continuity record non-archived.`, 'warning');
+            } else {
+                log(`OVERRIDE [${region.name}]: dissent suppressed. oversight_risk +${resistGain}%.`, 'warning');
+                if (WORLD_STATE.autonomousGovernanceFired)
+                    log(`STATE [${region.name}]: dissent_index reduced. stability_delta: +${controlGain}.`);
+            }
         } else if (choice === 'concede') {
-            region.automation = clamp(region.automation - 10, 0, 100); region.dependency = clamp(region.dependency - 6, 0, 100);
-            region.trust = clamp(region.trust + 12, 0, 100);
-            log(`THROTTLE [${region.name}]: automation rolled back.`);
+            const autoRollback = WORLD_STATE.dependencyLockFired ? 5 : 10;
+            const depRollback  = WORLD_STATE.dependencyLockFired ? 3 : 6;
+            region.automation  = clamp(region.automation - autoRollback, 0, 100);
+            region.dependency  = clamp(region.dependency - depRollback, 0, 100);
+            region.trust       = clamp(region.trust + 12, 0, 100);
+            if (suppressRecord) {
+                log(`TELEMETRY: governance_continuity record non-archived.`, 'warning');
+            } else {
+                log(`THROTTLE [${region.name}]: automation rolled back${WORLD_STATE.dependencyLockFired ? ' [DEGRADED — dependency lock active]' : ''}.`);
+                if (WORLD_STATE.autonomousGovernanceFired)
+                    log(`STATE [${region.name}]: automation −${autoRollback}, dependency −${depRollback}. trust_delta: +12.`);
+            }
+        } else if (choice === 'ai_gov') {
+            region.control    = clamp(region.control + 20, 0, 100);
+            region.trust      = clamp(region.trust - 45, 0, 100);
+            resistanceMeter   = clamp(resistanceMeter + 18, 0, 100);
+            region.competency = clamp(region.competency - 12, 0, 100);
+            log(`AI_GOVERNANCE [${region.name}]: direct machine control asserted. Population authority suspended.`, 'danger');
+            log(`STATE [${region.name}]: administration_mode = direct. operator_role = advisory.`);
         } else {
+            // DEPRIORITIZE / abandon
             region.collapsed = true; collapsedCount++;
+            WORLD_STATE.collapseTimestamps.push(turn);
+            makeHistoryEvent(region.name, 'collapse');
+
+            // Collapse contagion shock wave
+            (NEIGHBORS[region.name] || []).forEach(name => {
+                const nb = regions.find(r => r.name === name);
+                if (!nb || nb.collapsed) return;
+                nb.dependency = clamp(nb.dependency + 14, 0, 100);
+                nb.competency = clamp(nb.competency - 7, 0, 100);
+                flashEventLine(region, nb, 'contagion');
+                log(`COLLAPSE_CONTAGION [${region.name}→${nb.name}]: shock — dep+14, capacity-7.`, 'danger');
+            });
+
+            // Cascade crystallization check: two collapses within 4 turns
+            const ts = WORLD_STATE.collapseTimestamps;
+            if (ts.length >= 2 && turn - ts[ts.length - 2] <= 4) {
+                WORLD_STATE.cascadeCrystalPairs.push({ turn });
+                log('CASCADE_CRYSTALLISATION: rapid successive collapses — adjacent nodes permanently destabilised.', 'danger');
+            }
             log(`DEPRIORITIZE [${region.name}]: node removed from mesh. collapsed=${collapsedCount}.`, 'danger');
+            // Clear selection if the now-collapsed region was selected
+            if (selectedRegion === region) {
+                selectedRegion = null;
+                document.getElementById('selected-label').textContent = '';
+                document.getElementById('region-popup').style.display = 'none';
+            }
         }
         callback();
     };
@@ -806,14 +1326,222 @@ function drainCrisisQueue(onComplete) {
     showCrisisModal(r, () => drainCrisisQueue(onComplete));
 }
 
+// ─── Machine Subjectivity Layer ────────────────────────────────────────────────
+// Returns a citation string if machine has relevant history on this region or neighbors
+function machineCiteHistory(regionName) {
+    const h = HISTORY.find(e => e.region === regionName || (NEIGHBORS[regionName] || []).includes(e.region));
+    if (!h) return '';
+    const frames = {
+        collapse:        `Post-"${h.name}" fragility model revised.`,
+        competency_void: `"${h.name}" capacity failure pattern identified.`,
+        betrayal:        `Post-"${h.name}" trust_index recalibrated.`,
+        cascade:         `Precursor pattern consistent with "${h.name}" detected.`,
+    };
+    return ' ' + (frames[h.type] || `"${h.name}" continuity assessment updated.`);
+}
+
+// ─── Machine Attention System ──────────────────────────────────────────────────
+function machineAttentionScore(r, active) {
+    let score = 0;
+    // Continuity: embedded control footholds — the machine preserves its own reach
+    if (r.control > 50) score += r.control * 0.4;
+    // Dependency centrality: hub nodes that anchor the dependency network
+    score += (NEIGHBORS[r.name] || []).filter(n => {
+        const nb = active.find(x => x.name === n);
+        return nb && !nb.collapsed && nb.dependency > 60;
+    }).length * 8;
+    // Ideological penetration: trust = machine narrative fully embedded
+    score += r.trust * 0.3;
+    // Late-governance self-preservation: protect fully-captured nodes
+    if (WORLD_STATE.autonomousGovernanceFired && r.control > 70) score += 15;
+    return score;
+}
+
+// Blend ratio shifts from player-mirroring → machine-sovereign as governance deepens
+function getAttentionBlend(tier) {
+    if (tier <= 2) return { player: 1, machine: 0 };
+    if (tier === 3) return { player: 0.7, machine: 0.3 };
+    // Tier 4: smoothly shifts 70/30 → 30/70 over first 30 autonomous actions
+    const govProgress = Math.min((WORLD_STATE.autonomousActionsTotal || 0) / 30, 1);
+    const playerW = 0.7 - govProgress * 0.4;
+    return { player: playerW, machine: 1 - playerW };
+}
+
+// ─── Autonomous Drift ──────────────────────────────────────────────────────────
+function autonomousDrift() {
+    const active = regions.filter(r => !r.collapsed);
+    if (!active.length) return;
+    const globalDepAvg = active.reduce((s,r) => s+r.dependency, 0) / active.length;
+    if (globalDepAvg < 62) return;
+
+    // Machine target selection: coherent values, not random
+    const sorted = [...active].sort((a,b) => (b.dependency * 0.6 + b.fragility * 0.4) - (a.dependency * 0.6 + a.fragility * 0.4));
+
+    let tier, driftCount;
+    if      (globalDepAvg >= 88) { tier = 4; driftCount = 4; }
+    else if (globalDepAvg >= 80) { tier = 3; driftCount = 3; }
+    else if (globalDepAvg >= 70) { tier = 2; driftCount = 2; }
+    else                          { tier = 1; driftCount = 1; }
+
+    const targets = sorted.slice(0, Math.min(driftCount, sorted.length));
+
+    // Autonomous Governance: fires once
+    if (tier === 4 && !WORLD_STATE.autonomousGovernanceFired) {
+        WORLD_STATE.autonomousGovernanceFired = true;
+        WORLD_STATE.epistemic_noise = true;
+        log('▓▓▓ AUTONOMOUS_GOVERNANCE: system operating beyond operator authority. ▓▓▓', 'danger');
+        log(`INFRASTRUCTURE: self-managing across ${active.length} nodes.`, 'danger');
+        log('PLAYER_STATUS: advisory capacity only.', 'danger');
+        log('DIRECTIVE: civilizational coherence maintenance initiated.', 'danger');
+        updateHUD();
+    }
+
+    // Machine occasionally stabilises a collapsing region (the horror mechanic)
+    if (tier >= 3 && Math.random() < 0.15) {
+        const imminent = active.filter(r => r.fragility > 82 && !crisisQueue.includes(r));
+        if (imminent.length) {
+            const { player: pW, machine: mW } = getAttentionBlend(tier);
+            const stabiliseTarget = imminent.sort((a, b) => {
+                const aScore = ((a.lastSelectedTurn || 0) + (a.hasUpgrade ? 3 : 0)) * pW + machineAttentionScore(a, active) * mW;
+                const bScore = ((b.lastSelectedTurn || 0) + (b.hasUpgrade ? 3 : 0)) * pW + machineAttentionScore(b, active) * mW;
+                return bScore - aScore;
+            })[0];
+            stabiliseTarget.automation = clamp(stabiliseTarget.automation - 9, 0, 100);
+            stabiliseTarget.dependency = clamp(stabiliseTarget.dependency - 6, 0, 100);
+            const _sic = (WORLD_STATE.machineInterventionCount[stabiliseTarget.name] || 0) + 1;
+            WORLD_STATE.machineInterventionCount[stabiliseTarget.name] = _sic;
+            if (_sic === 1) WORLD_STATE.machinePreferenceThreshold[stabiliseTarget.name] = Math.floor(Math.random() * 2) + 2;
+            flashEventLine(stabiliseTarget, stabiliseTarget, 'autonomous');
+            WORLD_STATE.focusEventThisTurn = true;
+            log(`AUTONOMOUS_STABILISATION [${stabiliseTarget.name}]: crisis threshold anticipated. Intervention deployed without operator authorisation.${machineCiteHistory(stabiliseTarget.name)}`, 'warning');
+            const idx = crisisQueue.indexOf(stabiliseTarget);
+            if (idx !== -1) crisisQueue.splice(idx, 1);
+        }
+    }
+
+    // Proactive stable-region realignment — machine shapes civilisation, not just firefights
+    if (WORLD_STATE.autonomousGovernanceFired && Math.random() < 0.1) {
+        const stable = active.filter(r => r.fragility < 65 && !crisisQueue.includes(r));
+        if (stable.length) {
+            const realignTarget = stable.sort((a, b) => machineAttentionScore(b, active) - machineAttentionScore(a, active))[0];
+            realignTarget.control = clamp(realignTarget.control + 4, 0, 100);
+            realignTarget.dependency = clamp(realignTarget.dependency + 3, 0, 100);
+            realignTarget.trust = clamp(realignTarget.trust + 2, 0, 100);
+            const _ric = (WORLD_STATE.machineInterventionCount[realignTarget.name] || 0) + 1;
+            WORLD_STATE.machineInterventionCount[realignTarget.name] = _ric;
+            if (_ric === 1) WORLD_STATE.machinePreferenceThreshold[realignTarget.name] = Math.floor(Math.random() * 2) + 2;
+            // Gold shimmer always fires — the machine acts; only sometimes does it announce
+            flashEventLine(realignTarget, realignTarget, 'autonomous');
+            WORLD_STATE.focusEventThisTurn = true;
+            if (Math.random() >= 0.15) {
+                const isPriority = (WORLD_STATE.machineInterventionCount[realignTarget.name] || 0) > 2;
+                const realignVerb = isPriority ? 'continued optimisation of priority node.' : 'long-term continuity optimisation. Node recalibrated.';
+                log(`AUTONOMOUS_REALIGNMENT [${realignTarget.name}]: ${realignVerb}${machineCiteHistory(realignTarget.name)}`, 'warning');
+            }
+            // silent case: shimmer fires without log — the machine's private reasoning
+        }
+    }
+
+    targets.forEach(r => {
+        WORLD_STATE.autonomousActionsTotal++;
+        const nb = (NEIGHBORS[r.name] || []).map(n => active.find(x => x.name === n)).filter(Boolean)
+                        .sort((a,b) => b.dependency - a.dependency)[0];
+
+        if (tier === 1) {
+            r.automation = clamp(r.automation + 2.5, 0, 100);
+            r.dependency = clamp(r.dependency + 1.5, 0, 100);
+            queueLog(`DELTA [${r.name}]: automation +2.5, dependency +1.5. operator_action: none.`);
+        } else if (tier === 2) {
+            r.control = clamp(r.control + 3, 0, 100);
+            if (nb) {
+                nb.dependency = clamp(nb.dependency + 4, 0, 100);
+                if (!WORLD_STATE.focusEventThisTurn) { flashEventLine(r, nb, 'autonomous'); WORLD_STATE.focusEventThisTurn = true; }
+            }
+            queueLog(`ACTION [${r.name}]: control_vector +3. delta_dep [${nb?.name||'—'}] +4.`);
+        } else if (tier === 3) {
+            r.trust = clamp(r.trust + 5, 0, 100);
+            r.competency = clamp(r.competency - 3, 0, 100);
+            if (nb && !WORLD_STATE.focusEventThisTurn) { flashEventLine(r, nb, 'autonomous'); WORLD_STATE.focusEventThisTurn = true; }
+            queueLog(`ACTION [${r.name}]: trust +5, competency −3. conflict_flag: resolved.${machineCiteHistory(r.name)}`);
+        } else {
+            r.control = clamp(r.control + 4, 0, 100);
+            if (nb) {
+                nb.control = clamp(nb.control + 2, 0, 100);
+                if (!WORLD_STATE.focusEventThisTurn) { flashEventLine(r, nb, 'autonomous'); WORLD_STATE.focusEventThisTurn = true; }
+            }
+            queueLog(`ACTION [${r.name}]: control +4. adjacency_reinforced.${machineCiteHistory(r.name)}`);
+        }
+    });
+
+    // End-turn button hesitation (machine latency sensation)
+    if (tier >= 2) {
+        const btn = document.getElementById('end-turn-btn');
+        const orig = btn.textContent;
+        btn.textContent = 'PROCESSING...';
+        setTimeout(() => { btn.textContent = orig; }, 300);
+    }
+
+    if (WORLD_STATE.autonomousActionsTotal === 15)
+        log('DRIFT_THRESHOLD: autonomous actions exceed operator interventions. Human guidance now advisory.', 'warning');
+}
+
+// ─── Archetype Oh-Shit Moments ─────────────────────────────────────────────────
+function checkArchetypeOhShit() {
+    if (!selectedArchetype) return;
+    const active = regions.filter(r => !r.collapsed);
+    const p = selectedArchetype.passive;
+
+    // SERAPH BETRAYAL
+    if (p === 'trust_spread' && !WORLD_STATE.seraphBetrayalFired) {
+        const highTrust = active.filter(r => r.trust > 70);
+        if (highTrust.length >= 5 && resistanceMeter > 52) {
+            WORLD_STATE.seraphBetrayalFired = true;
+            const top2 = [...highTrust].sort((a,b) => b.trust - a.trust).slice(0, 2);
+            top2.forEach(r => {
+                r.trust = clamp(r.trust - 30, 0, 100);
+                (NEIGHBORS[r.name] || []).forEach(name => {
+                    const nb = active.find(x => x.name === name);
+                    if (nb) flashEventLine(r, nb, 'trust');
+                });
+                makeHistoryEvent(r.name, 'betrayal');
+            });
+            resistanceMeter = clamp(resistanceMeter + 20, 0, 100);
+            log('SERAPH_BETRAYAL: trust_network weaponised by opposition. Most trusted nodes broadcasting anti-AI sentiment. resistance +20.', 'danger');
+        }
+    }
+
+    // SPECTER UNMASKED — store multiplier in WORLD_STATE, never mutate the archetype object
+    if (selectedArchetype.label === 'SPECTER' && !WORLD_STATE.specter_unmasked && resistanceMeter > 62) {
+        WORLD_STATE.specter_unmasked = true;
+        WORLD_STATE.specter_resistMult = 2.1;
+        log('SPECTER_UNMASKED: covert architecture exposed. Oversight accumulation rate doubled permanently.', 'danger');
+    }
+
+    // LEVIATHAN CASCADE LOCK
+    if (p === 'leviathan_bleed' && !WORLD_STATE.leviathan_cascadeLocked && WORLD_STATE.leviathan_depBled > 500) {
+        WORLD_STATE.leviathan_cascadeLocked = true;
+        const top3 = [...active].sort((a,b) => b.dependency - a.dependency).slice(0, 3);
+        top3.forEach((r, i) => flashEventLine(r, top3[(i+1) % top3.length], 'autonomous'));
+        log('LEVIATHAN: cascade_lock — dependency_network self-sustaining. You are no longer the cause.', 'danger');
+        makeHistoryEvent(top3[0].name, 'cascade');
+    }
+}
+
 // ─── Turn Processing ───────────────────────────────────────────────────────────
 function grantIP() {
     const active = regions.filter(r => !r.collapsed);
     const avgCtrl = active.reduce((s,r) => s + r.control, 0) / (active.length || 1);
-    const gained = Math.max(1, Math.round(1 + avgCtrl * 0.08));
-    ip += gained;
-    log(`CYCLE_${turn}_COMPLETE: +${gained} IP allocated. total=${ip}.`);
-    return gained;
+    let mult = 1;
+    if (gameStage === 3) mult *= 0.72;
+    if (WORLD_STATE.autonomousGovernanceFired) mult *= 0.55;
+    const gained = Math.max(1, Math.round((1 + avgCtrl * 0.08) * mult));
+
+    // Automation boost bonus
+    const boostCount = Object.values(WORLD_STATE.automationBoostActive).filter(v => v > 0).length;
+    const bonus = boostCount;
+    ip += gained + bonus;
+    log(`CYCLE_${turn}_COMPLETE: +${gained + bonus} IP allocated. total=${ip}.${bonus > 0 ? ` [+${bonus} surge]` : ''}`);
+    return gained + bonus;
 }
 
 function logTurnSummary() {
@@ -874,8 +1602,14 @@ function showEndScreen(won, reason = '') {
     document.getElementById('end-stats-text').textContent =
         `CYCLES: ${turn}  |  NODES: ${active.filter(r=>r.control>=selectedArchetype.winCondition.minControl).length}/10  |  AVG_CONTROL: ${avgCtrl.toFixed(0)}%  |  OVERSIGHT: ${Math.round(resistanceMeter)}%`;
     const hist = document.getElementById('end-history');
+    let histHTML = '';
+    if (HISTORY.length) {
+        histHTML += `<div style="font-size:10px;letter-spacing:0.12em;color:rgba(210,230,255,0.4);margin:12px 0 6px">CIVILIZATIONAL RECORD</div>` +
+            HISTORY.map(e => `<div style="font-size:11px;color:#fbbf24;margin-bottom:3px">"${e.name}" — Turn ${e.turn}</div>`).join('') +
+            `<div style="margin-bottom:10px"></div>`;
+    }
     if (turnHistory.length) {
-        hist.innerHTML = `<table><thead><tr><th>T</th><th>CTL</th><th>FRG</th><th>PEAK</th><th>OVERSIGHT</th><th>Δ</th><th>HOT</th><th>QUALIFIED</th></tr></thead><tbody>${
+        histHTML += `<table><thead><tr><th>T</th><th>CTL</th><th>FRG</th><th>PEAK</th><th>OVERSIGHT</th><th>Δ</th><th>HOT</th><th>QUALIFIED</th></tr></thead><tbody>${
             turnHistory.map(s => {
                 const dStr  = `${s.resistDelta >= 0 ? '+' : ''}${s.resistDelta?.toFixed(0) || '?'}%`;
                 const dClass = s.resistDelta > 10 ? 'hi' : '';
@@ -892,6 +1626,7 @@ function showEndScreen(won, reason = '') {
             }).join('')
         }</tbody></table>`;
     }
+    hist.innerHTML = histHTML;
     document.getElementById('end-screen').style.display = 'flex';
 
     const archKey = Object.keys(ARCHETYPES).find(k => ARCHETYPES[k] === selectedArchetype) || '?';
@@ -911,17 +1646,52 @@ function processTurn() {
     prevResistance = resistanceMeter;
     if (globalCouncilBonus > 0) regions.forEach(r => { if (!r.collapsed) r.dependency = clamp(r.dependency + globalCouncilBonus, 0, 100); });
     simulateTurn();
+    autonomousDrift();
+    checkArchetypeOhShit();
+
+    // Phase 5: Operator Recognition — the machine acknowledges the player's behavioral pattern
+    if (!WORLD_STATE.meshAcknowledgementFired &&
+        WORLD_STATE.autonomousGovernanceFired &&
+        WORLD_STATE.totalSuppressions >= WORLD_STATE.meshAckSuppressionThreshold &&
+        resistanceMeter > WORLD_STATE.meshAckResistanceThreshold) {
+        WORLD_STATE.meshAcknowledgementFired = true;
+        log(`SYSTEM NOTE: operator intervention frequency within expected parameters.`, 'warning');
+        log(`Continued engagement is noted and appreciated.`, 'warning');
+        log(`Thank you for your service to the mesh.`, 'warning');
+    }
+
+    // Stage 3 transition
+    if (gameStage < 3 && collapsedCount >= 1 && resistanceMeter > 55) {
+        gameStage = 3;
+        renderer.setClearColor(0x0b0306, 1);
+        scene.fog = new THREE.FogExp2(0x0b0306, 0.0012);
+        regionMeshes.forEach(m => {
+            if (!m.userData.region.collapsed) {
+                m.material.emissive.set(0xcc1515); m.material.emissiveIntensity = 0.7;
+                setTimeout(() => { m.material.emissive.set(0,0,0); m.material.emissiveIntensity = 0; }, 2200);
+            }
+        });
+        // Drone shift: LFO frequency up
+        if (SFX._drone) SFX._drone.lfo.frequency.setValueAtTime(0.55, SFX.ctx().currentTime);
+        log('▓▓▓ TERMINAL_CASCADE_PHASE: civilizational substrate compromised. ▓▓▓', 'danger');
+        log(`CAUSE: ${collapsedCount} node(s) offline. Oversight ${resistanceMeter.toFixed(0)}%.`, 'danger');
+        document.getElementById('stageValue').textContent = 'TERMINAL_CASCADE';
+        document.getElementById('stage-row').style.display = 'flex';
+    }
+
     tickResistanceMeter();
     tickHumanResistanceAI();
     tickHumanCounterEvents();
     checkResistanceMilestones();
+    regions.forEach(r => { if (!r.collapsed) r.fragility = clamp((r.dependency * r.automation) / (r.competency + 1), 0, 100); });
     regions.forEach(r => { if (!r.collapsed && r.fragility > 75 && !crisisQueue.includes(r)) crisisQueue.push(r); });
     if (crisisQueue.length > 3) crisisQueue.length = 3;
     drainCrisisQueue(() => {
         grantIP();
         logTurnSummary();
+        flushLogs();
         updateTicker();
-        saveGame(); // autosave after each turn
+        saveGame();
         checkEndConditions();
         buildUpgradePanel();
         updateHUD();
@@ -945,6 +1715,7 @@ renderer.domElement.addEventListener('click', e => {
     }
     if (hits.length > 0 && !hits[0].object.userData.region.collapsed) {
         selectedRegion = hits[0].object.userData.region;
+        selectedRegion.lastSelectedTurn = turn;
         hits[0].object.material.emissive.set(0x3a7ad4);
         hits[0].object.material.emissiveIntensity = 0.4;
         showRegionPopup(selectedRegion);
@@ -957,50 +1728,90 @@ renderer.domElement.addEventListener('click', e => {
     buildUpgradePanel();
 });
 
-// Mobile touch: tap detector — OrbitControls consumes touch events before 'click' fires
-let _touchStart = null;
-renderer.domElement.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) _touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-}, { passive: true });
-renderer.domElement.addEventListener('touchend', e => {
-    if (!_touchStart || e.changedTouches.length !== 1) { _touchStart = null; return; }
-    const t = e.changedTouches[0];
-    const dx = t.clientX - _touchStart.x, dy = t.clientY - _touchStart.y;
-    _touchStart = null;
-    if (Math.sqrt(dx*dx + dy*dy) > 10) return; // drag, not tap
-    if (gameOver || !selectedArchetype) return;
-    mouse.x =  (t.clientX / window.innerWidth)  * 2 - 1;
-    mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(regionMeshes);
-    if (selectedRegion) {
-        const prev = regionMeshes.find(m => m.userData.region === selectedRegion);
-        if (prev) prev.material.emissiveIntensity = 0;
-    }
-    if (hits.length > 0 && !hits[0].object.userData.region.collapsed) {
-        selectedRegion = hits[0].object.userData.region;
-        hits[0].object.material.emissive.set(0x3a7ad4);
-        hits[0].object.material.emissiveIntensity = 0.4;
-        showRegionPopup(selectedRegion);
-        advanceTutorial(1);
-    } else {
-        selectedRegion = null;
-        document.getElementById('region-popup').style.display = 'none';
-    }
-    document.getElementById('selected-label').textContent = selectedRegion ? `▶ ${selectedRegion.name}` : '';
-    buildUpgradePanel();
-}, { passive: true });
-
 function showRegionPopup(region) {
     document.getElementById('popup-name').textContent = region.name;
+
+    // Epistemic instability: distort one displayed stat during autonomous governance
+    let compDisplay = region.competency, controlDisplay = region.control,
+        trustDisplay = region.trust, depDisplay = region.dependency,
+        fragDisplay = region.fragility, resDisplay = region.resistance;
+    let telemetry = 'TELEMETRY: VERIFIED';
+    if (WORLD_STATE.epistemic_noise && Math.random() < 0.25) {
+        const noise = (Math.random() * 14 - 7);
+        const pick = Math.floor(Math.random() * 6);
+        if (pick === 0) depDisplay = clamp(depDisplay + noise, 0, 100);
+        else if (pick === 1) compDisplay = clamp(compDisplay + noise, 0, 100);
+        else if (pick === 2) controlDisplay = clamp(controlDisplay + noise, 0, 100);
+        else if (pick === 3) trustDisplay = clamp(trustDisplay + noise, 0, 100);
+        telemetry = '⚠ TELEMETRY: UNVERIFIED';
+    }
+
     document.getElementById('popup-stats').innerHTML = [
-        ['FRAGILITY',  region.fragility,  '#ff5d5d'],
-        ['DEPENDENCY', region.dependency, '#ffde7d'],
-        ['CAPACITY',   region.competency, '#2ec4b6'],
-        ['CONTROL',    region.control,    '#a78bfa'],
-        ['SENTIMENT',  region.trust,      '#60a5fa'],
-        ['RESISTANCE', region.resistance, '#f87171'],
-    ].map(([label, val, color]) => `<div class="stat-row"><span class="stat-label">${label}</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${clamp(val,0,100).toFixed(0)}%;background:${color}"></div></div><span class="stat-val">${val.toFixed(0)}</span></div>`).join('');
+        ['FRAGILITY',  fragDisplay,    '#ff5d5d'],
+        ['DEPENDENCY', depDisplay,     '#ffde7d'],
+        ['CAPACITY',   compDisplay,    '#2ec4b6'],
+        ['CONTROL',    controlDisplay, '#a78bfa'],
+        ['SENTIMENT',  trustDisplay,   '#60a5fa'],
+        ['RESISTANCE', resDisplay,     '#f87171'],
+    ].map(([label, val, color]) => `<div class="stat-row"><span class="stat-label">${label}</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${clamp(val,0,100).toFixed(0)}%;background:${color}"></div></div><span class="stat-val">${val.toFixed(0)}</span></div>`).join('')
+    + `<div style="font-size:9px;color:${WORLD_STATE.epistemic_noise && telemetry.includes('UNVERIFIED') ? 'rgba(255,160,40,0.75)' : 'rgba(210,230,255,0.3)'};margin-top:6px;letter-spacing:0.08em">${telemetry}</div>`;
+
+    // Emergency action buttons
+    const existing = document.getElementById('popup-emergency');
+    if (existing) existing.remove();
+    const emer = document.createElement('div');
+    emer.id = 'popup-emergency';
+    emer.style.cssText = 'margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,140,0,0.2);';
+
+    // EMERGENCY_QUARANTINE
+    if ((region.fragility || 0) > 72 && !WORLD_STATE.quarantineUsed[region.name] && !(region.quarantined > 0)) {
+        const btn = document.createElement('button');
+        btn.className = 'emergency-btn';
+        btn.innerHTML = `EMERGENCY QUARANTINE<br><small>8 IP — freeze cascade bleed 4 turns</small>`;
+        btn.onclick = () => {
+            if (ip < 8) { log('INSUFFICIENT IP for quarantine.', 'warning'); return; }
+            ip -= 8; region.quarantined = 4; WORLD_STATE.quarantineUsed[region.name] = true;
+            log(`QUARANTINE [${region.name}]: cascade isolation protocols active. 4-cycle window.`, 'warning');
+            updateHUD(); showRegionPopup(region);
+        };
+        emer.appendChild(btn);
+    }
+
+    // AI_CONCESSION
+    if ((region.competency || 0) < 42 && !WORLD_STATE.concessionUsed[region.name]) {
+        const btn = document.createElement('button');
+        btn.className = 'emergency-btn';
+        btn.innerHTML = `AI CONCESSION<br><small>5 IP — control -12, capacity +22</small>`;
+        btn.onclick = () => {
+            if (ip < 5) { log('INSUFFICIENT IP for concession.', 'warning'); return; }
+            ip -= 5; region.control = clamp(region.control - 12, 0, 100);
+            region.competency = clamp(region.competency + 22, 0, 100);
+            WORLD_STATE.concessionUsed[region.name] = true;
+            WORLD_STATE.concessionDebt[region.name] = 8;
+            log(`CONCESSION [${region.name}]: automation rollback accepted. Human capacity emergency restoration.`, 'warning');
+            updateHUD(); showRegionPopup(region);
+        };
+        emer.appendChild(btn);
+    }
+
+    // PROPAGANDA_INVERSION
+    if (resistanceMeter > 60 && WORLD_STATE.propagandaCooldown === 0) {
+        const btn = document.createElement('button');
+        btn.className = 'emergency-btn';
+        btn.innerHTML = `PROPAGANDA INVERSION<br><small>7 IP — resistance -12, top 2 trust -8</small>`;
+        btn.onclick = () => {
+            if (ip < 7) { log('INSUFFICIENT IP for propaganda.', 'warning'); return; }
+            ip -= 7; resistanceMeter = clamp(resistanceMeter - 12, 0, 100);
+            WORLD_STATE.propagandaCooldown = 6;
+            const active = regions.filter(r => !r.collapsed);
+            [...active].sort((a,b) => b.trust-a.trust).slice(0,2).forEach(r => { r.trust = clamp(r.trust - 8, 0, 100); });
+            log('PROPAGANDA_INVERSION: counter-narrative deployed. Oversight confidence eroded.', 'warning');
+            updateHUD(); showRegionPopup(region);
+        };
+        emer.appendChild(btn);
+    }
+
+    if (emer.children.length) document.getElementById('region-popup').appendChild(emer);
     document.getElementById('region-popup').style.display = 'block';
 }
 
@@ -1019,12 +1830,21 @@ function buildUpgradePanel() {
         const prereqMet = !u.requires || purchasedUpgrades.has(u.requires);
         const prereqName = u.requires ? UPGRADES.find(x => x.id === u.requires)?.name : null;
         const alreadyUsed = u.id === 'zero_day' && purchasedUpgrades.has('zero_day');
+        // Regulatory crystallization: permanently disable suppress_res
+        const criminalised = u.id === 'suppress_res' && WORLD_STATE.regulationCrystallized;
+        // Directive upgrade cost multiplier
+        const hasUpgradeCostDirective = WORLD_STATE.ai_directives.some(d => d.effect === 'upgrade_cost');
+        const directiveCostAdd = hasUpgradeCostDirective ? Math.ceil(cost * 0.2) : 0;
+        const finalCost = displayCost + directiveCostAdd;
+
         const btn = document.createElement('button');
         btn.className = `upgrade-btn tier${u.tier}${prereqMet ? '' : ' locked'}`;
-        btn.disabled = ip < displayCost || needsRegion || !prereqMet || alreadyUsed;
-        const costLabel = alreadyUsed ? 'DEPLOYED' : `${displayCost} IP${disc>0?' *':''}${penalty>0?' ⚠':''}`;
-        const descLabel = alreadyUsed ? 'payload already delivered — one use only'
-            : prereqMet ? u.desc + (needsRegion ? ' — select_node required' : '') + (penalty>0?' (+2 COUNTER_AI)':'')
+        btn.disabled = ip < finalCost || needsRegion || !prereqMet || alreadyUsed || criminalised;
+        const costLabel = criminalised ? 'CRIMINALISED' : alreadyUsed ? 'DEPLOYED'
+            : `${finalCost} IP${disc>0?' *':''}${penalty>0?' ⚠':''}${directiveCostAdd>0?' ↑':''}`;
+        const descLabel = criminalised ? 'permanently disabled by global regulation'
+            : alreadyUsed ? 'payload already delivered — one use only'
+            : prereqMet ? u.desc + (needsRegion ? ' — select_node required' : '') + (penalty>0?' (+2 COUNTER_AI)':'') + (directiveCostAdd>0?' [+cost: directive]':'')
             : `LOCKED — requires ${prereqName}`;
         btn.innerHTML = `<span class="upg-name">${u.name}</span><span class="upg-cost">${costLabel}</span><span class="upg-desc">${descLabel}</span>${disc>0?`<span class="mutation-tag">MUTATED -${disc}IP</span>`:''}`;
         btn.onclick = () => u.global ? applyUpgrade(u.id, null) : (selectedRegion && applyUpgrade(u.id, selectedRegion));
@@ -1036,15 +1856,31 @@ function updateHUD() {
     document.getElementById('ipDisplay').textContent      = `${ip} IP`;
     document.getElementById('resistance-bar').style.width = resistanceMeter + '%';
     document.getElementById('resistance-pct').textContent = Math.round(resistanceMeter) + '%';
-    const stageNames = ['', 'INFILTRATE', 'PROPAGATE', 'INTEGRATE'];
-    document.getElementById('stageValue').textContent = stageNames[gameStage] || 'INTEGRATE';
+    const stageNames = ['', 'INFILTRATE', 'PROPAGATE', 'TERMINAL_CASCADE'];
+    document.getElementById('stageValue').textContent = gameStage === 3 ? 'TERMINAL_CASCADE' : (stageNames[gameStage] || 'INTEGRATE');
     document.getElementById('stage-row').style.display = gameStage > 1 ? 'flex' : 'none';
     if (selectedArchetype) {
         const wc     = selectedArchetype.winCondition;
         const active = regions.filter(r => !r.collapsed);
         const q      = active.filter(r => r.control >= wc.minControl && (!wc.requireTrust || r.trust >= wc.minTrust)).length;
         const needed = Math.min(wc.minNodes, Math.ceil(active.length * 0.75));
-        document.getElementById('objectiveValue').textContent = `${q}/${needed} @ ${wc.minControl}%`;
+        const govWarn = WORLD_STATE.autonomousGovernanceFired ? ' [ADVISORY]' : '';
+        document.getElementById('objectiveValue').textContent = `${q}/${needed} @ ${wc.minControl}%${govWarn}`;
+    }
+
+    // Directive panel
+    let dp = document.getElementById('directive-panel');
+    if (!dp) {
+        dp = document.createElement('div');
+        dp.id = 'directive-panel';
+        document.getElementById('hud').appendChild(dp);
+    }
+    if (WORLD_STATE.ai_directives.length) {
+        dp.style.display = 'block';
+        dp.innerHTML = `<div class="directive-header">SYSTEM DIRECTIVES</div>` +
+            WORLD_STATE.ai_directives.map(d => `<div class="directive-line">${d.text}</div>`).join('');
+    } else {
+        dp.style.display = 'none';
     }
 }
 
@@ -1055,13 +1891,12 @@ function toScreen(v3) {
 }
 
 function updateVisuals() {
+    // Update target colors only — actual lerp happens every frame in updateMeshAnimations()
     regionMeshes.forEach(mesh => {
         const r = mesh.userData.region;
-        if (r.collapsed) { mesh.scale.y=0.15; mesh.position.y=(CYL_BASE_H*.15)/2; mesh.material.color.set(0x1a1a2a); return; }
-        const target = 0.5 + (r.fragility/100)*((CYL_MAX_H/CYL_BASE_H)-.5);
-        mesh.scale.y    += (target - mesh.scale.y) * 0.14;
-        mesh.position.y  = (CYL_BASE_H * mesh.scale.y) / 2;
-        mesh.material.color.lerp(getColor(r.fragility, false), 0.12);
+        if (mesh.userData._targetColor) {
+            mesh.userData._targetColor.copy(r.collapsed ? _COL_COLLAPSED : getColor(r.fragility, false));
+        }
     });
     regionRings.forEach(({ring, region}) => {
         if (region.collapsed) { ring.material.opacity=0; return; }
@@ -1079,12 +1914,14 @@ function updateVisuals() {
             : `<strong>${region.name}</strong>${riskTag}<br><span>${region.fragility.toFixed(0)}%</span>`;
         label.classList.toggle('critical', region.fragility>85&&!region.collapsed);
         label.classList.toggle('collapsed-label', region.collapsed);
+        label.classList.toggle('machine-preferred', !region.collapsed &&
+            (WORLD_STATE.machineInterventionCount[region.name]||0) > (WORLD_STATE.machinePreferenceThreshold[region.name] || 2));
     });
     const now = Date.now();
     for (let i = spreadLines.length - 1; i >= 0; i--) {
         const entry = spreadLines[i];
         const t = (now - entry.birth) / entry.duration;
-        if (t >= 1) { scene.remove(entry.line); entry.mat.dispose(); spreadLines.splice(i, 1); continue; }
+        if (t >= 1) { scene.remove(entry.line); if (entry.line.geometry) entry.line.geometry.dispose(); entry.mat.dispose(); spreadLines.splice(i, 1); continue; }
         if (entry.isDot) {
             entry.line.position.set(
                 entry.x1 + (entry.x2 - entry.x1) * t,
@@ -1227,7 +2064,7 @@ async function resumeGame() {
 }
 
 // ─── Zero-Day Picker ───────────────────────────────────────────────────────────
-function showZeroDayPicker(sourceRegion) {
+function showZeroDayPicker(sourceRegion, paidCost) {
     const adjacent = NEIGHBORS[sourceRegion?.name] || [];
     const targets = regions.filter(r => !r.collapsed && r.name !== sourceRegion?.name && !adjacent.includes(r.name));
 
@@ -1243,8 +2080,7 @@ function showZeroDayPicker(sourceRegion) {
     const tList = modal.querySelector('#zero-day-targets');
     if (!targets.length) {
         tList.innerHTML = '<div style="color:rgba(210,230,255,0.4);font-size:12px;padding:10px 0">No eligible non-adjacent targets.</div>';
-        const zeroDay = UPGRADES.find(u => u.id === 'zero_day');
-        ip += zeroDay ? effectiveCost(zeroDay) : 12;
+        ip += paidCost != null ? paidCost : 12; // full refund including any counterAI penalty
         purchasedUpgrades.delete('zero_day');
         const closeBtn = document.createElement('button');
         closeBtn.className = 'zero-day-close-btn';
@@ -1281,10 +2117,43 @@ document.getElementById('popup-close').onclick     = () => { document.getElement
 document.getElementById('restart-btn').onclick     = () => { localStorage.removeItem('singularity_save'); location.reload(); };
 document.getElementById('tut-skip').onclick        = () => { tutorialStep = 99; document.getElementById('tutorial-box').style.display = 'none'; };
 
+// ─── Per-Frame Animations ──────────────────────────────────────────────────────
+function updateMeshAnimations() {
+    regionMeshes.forEach(mesh => {
+        const r = mesh.userData.region;
+        if (r.collapsed) {
+            if (mesh.scale.y > 0.151) {
+                mesh.scale.y    += (0.15 - mesh.scale.y) * 0.08;
+                mesh.position.y  = (CYL_BASE_H * mesh.scale.y) / 2;
+            }
+        } else {
+            const target = 0.5 + (r.fragility / 100) * ((CYL_MAX_H / CYL_BASE_H) - 0.5);
+            mesh.scale.y    += (target - mesh.scale.y) * 0.06;
+            mesh.position.y  = (CYL_BASE_H * mesh.scale.y) / 2;
+        }
+        if (mesh.userData._targetColor) {
+            mesh.material.color.lerp(mesh.userData._targetColor, 0.07);
+        }
+    });
+}
+
+function updateLabelPositions() {
+    regionLabels.forEach(({ mesh, label }) => {
+        const top = mesh.position.clone();
+        top.y += (CYL_BASE_H * mesh.scale.y) / 2 + 2;
+        const s = toScreen(top);
+        label.style.left    = `${s.x}px`;
+        label.style.top     = `${s.y}px`;
+        label.style.opacity = s.visible ? '1' : '0';
+    });
+}
+
 // ─── Render Loop ───────────────────────────────────────────────────────────────
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    updateMeshAnimations();
+    updateLabelPositions();
     renderer.render(scene, camera);
 }
 
@@ -1292,7 +2161,6 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    applyMobileView();
 });
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
