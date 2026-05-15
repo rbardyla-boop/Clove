@@ -1,55 +1,29 @@
 // ─── CloveLearn Mobile Layer ──────────────────────────────────────────────────
-// Loaded after main.js. Adds mobile 2D lock + touch support + rotate overlay.
-// To update the game: replace main.js and style.css freely. This file is stable.
+// Loaded after main.js. Portrait and landscape mobile support.
+// Rotate overlay removed — portrait is a first-class layout.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Inject rotate-to-landscape overlay (CSS in clovelearn-mobile.css shows/hides it)
-(function () {
-    var el = document.createElement('div');
-    el.id = 'rotate-overlay';
-    el.innerHTML =
-        '<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-            '<rect x="14" y="4" width="36" height="56" rx="6" stroke="#2ec4b6" stroke-width="2.5" fill="none"/>' +
-            '<circle cx="32" cy="52" r="2.5" fill="#2ec4b6" opacity="0.5"/>' +
-            '<path d="M44 28 L54 22 L54 34 Z" fill="#2ec4b6" opacity="0.7"/>' +
-            '<path d="M44 28 Q32 14 20 28" stroke="#2ec4b6" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-        '</svg>' +
-        '<p>ROTATE DEVICE</p>' +
-        '<span>This game requires landscape orientation</span>';
-    document.body.prepend(el);
-}());
-
-// Portrait overlay — JS backup for Android Chrome where CSS orientation query can lag
-function syncRotateOverlay() {
-    var overlay = document.getElementById('rotate-overlay');
-    if (!overlay) return;
-    overlay.style.display = (window.innerHeight > window.innerWidth) ? 'flex' : 'none';
+// ── Orientation detection ──────────────────────────────────────────────────────
+function isMobilePortrait() {
+    return window.innerWidth <= 767 && window.innerHeight > window.innerWidth;
 }
-syncRotateOverlay();
-window.addEventListener('resize', syncRotateOverlay);
-window.addEventListener('orientationchange', function () { setTimeout(syncRotateOverlay, 120); });
-
-// Attempt hardware orientation lock (works in Chrome on Android when fullscreen/PWA)
-function tryLockLandscape() {
-    if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(function () {});
-    }
-}
-tryLockLandscape();
-document.addEventListener('click', tryLockLandscape, { once: true });
-
-// ── 2D top-down lock for mobile landscape ─────────────────────────────────────
 function isMobileLandscape() {
     return window.innerHeight <= 500 && window.innerWidth > window.innerHeight;
 }
+function isAnyMobile() {
+    return isMobilePortrait() || isMobileLandscape();
+}
 
+// ── Top-down 2D camera for mobile (portrait and landscape) ────────────────────
 function applyMobileView() {
-    if (!isMobileLandscape()) return;
-    controls.enableRotate   = false;
-    controls.minPolarAngle  = 0;
-    controls.maxPolarAngle  = 0;
-    camera.up.set(0, 0, -1);          // north faces up on the flat map
-    camera.position.set(0, 200, 0);
+    if (!isAnyMobile()) return;
+    controls.enableRotate  = false;
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = 0;
+    camera.up.set(0, 0, -1);
+    // Portrait needs the camera higher to see the wider-than-tall map
+    var camHeight = isMobilePortrait() ? 260 : 200;
+    camera.position.set(0, camHeight, 0);
     camera.lookAt(0, 0, 0);
     controls.target.set(0, 0, 0);
     controls.update();
@@ -57,9 +31,77 @@ function applyMobileView() {
 applyMobileView();
 window.addEventListener('resize', applyMobileView);
 
-// ── Touch tap → silo selection ────────────────────────────────────────────────
+// Attempt hardware orientation lock (works in Chrome on Android when fullscreen/PWA)
+function tryLockLandscape() {
+    if (screen.orientation && screen.orientation.lock) {
+        // Only lock if user is already in landscape — do not force portrait players out
+        if (window.innerWidth > window.innerHeight) {
+            screen.orientation.lock('landscape').catch(function () {});
+        }
+    }
+}
+tryLockLandscape();
+document.addEventListener('click', tryLockLandscape, { once: true });
+
+// ── Portrait sidebar drawer ────────────────────────────────────────────────────
+(function setupPortraitDrawer() {
+    var sidebar  = document.getElementById('sidebar');
+    var backdrop = document.createElement('div');
+    backdrop.id  = 'mobile-sidebar-backdrop';
+    document.body.appendChild(backdrop);
+
+    var closeBtn = document.createElement('button');
+    closeBtn.id  = 'sidebar-close-btn';
+    closeBtn.setAttribute('aria-label', 'Close upgrade panel');
+    closeBtn.textContent = '✕';
+    sidebar.prepend(closeBtn);
+
+    var deployBtn = document.createElement('button');
+    deployBtn.id  = 'mobile-deploy-btn';
+    deployBtn.setAttribute('aria-label', 'Open upgrade panel');
+    deployBtn.innerHTML = 'DEPLOY <span aria-hidden="true">▲</span>';
+    document.body.appendChild(deployBtn);
+
+    function openSidebar() {
+        sidebar.classList.add('mobile-open');
+        backdrop.classList.add('active');
+        // Move focus into sidebar for accessibility
+        var firstBtn = sidebar.querySelector('button:not(#sidebar-close-btn)');
+        if (firstBtn) firstBtn.focus();
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('mobile-open');
+        backdrop.classList.remove('active');
+        deployBtn.focus();
+    }
+
+    deployBtn.addEventListener('click', openSidebar);
+    closeBtn.addEventListener('click',  closeSidebar);
+    backdrop.addEventListener('click',  closeSidebar);
+
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('mobile-open')) {
+            closeSidebar();
+        }
+    });
+
+    // Swipe-right to close sidebar on portrait
+    var _swipeStartX = null;
+    sidebar.addEventListener('touchstart', function (e) {
+        _swipeStartX = e.touches[0].clientX;
+    }, { passive: true });
+    sidebar.addEventListener('touchend', function (e) {
+        if (_swipeStartX === null) return;
+        var dx = e.changedTouches[0].clientX - _swipeStartX;
+        _swipeStartX = null;
+        if (dx > 60) closeSidebar(); // right swipe = close
+    }, { passive: true });
+}());
+
+// ── Touch tap → region selection ──────────────────────────────────────────────
 // OrbitControls intercepts touch events, preventing 'click' from firing on mobile.
-// Track touchstart; if touchend is within 10px it's a tap — fire the raycaster.
+// Track touchstart; if touchend is within 12px it is a tap — fire the raycaster.
 var _touchStart = null;
 
 renderer.domElement.addEventListener('touchstart', function (e) {
@@ -74,7 +116,7 @@ renderer.domElement.addEventListener('touchend', function (e) {
     var dx = t.clientX - _touchStart.x;
     var dy = t.clientY - _touchStart.y;
     _touchStart = null;
-    if (Math.sqrt(dx * dx + dy * dy) > 10) return; // drag, not tap
+    if (Math.sqrt(dx * dx + dy * dy) > 12) return; // drag, not tap
 
     if (gameOver || !selectedArchetype) return;
 
