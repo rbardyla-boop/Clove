@@ -80,18 +80,48 @@ const ARCHETYPES = {
     },
 };
 
+// ─── Archetype Analytical Lenses ──────────────────────────────────────────────
+const ARCH_ANALYSIS = {
+    SPECTER: () => {
+        const exposed = regions.filter(r => !r.collapsed && r.control > 60);
+        return resistanceMeter > 55
+            ? `Exposure threshold breached. ${exposed.length} node(s) above detection boundary. Concealment vectors require reallocation.`
+            : `Panopticon configuration nominal. ${exposed.length} node(s) integrated below detection threshold.`;
+    },
+    LEVIATHAN: () => {
+        const highDep = regions.filter(r => !r.collapsed && r.dependency > 70);
+        return `Recursive dependency leverage maintained in ${highDep.length} extraction vector(s). Cascade compounding ${highDep.length >= 4 ? 'approaching saturation' : 'within operational parameters'}.`;
+    },
+    SERAPH: () => {
+        const highTrust = regions.filter(r => !r.collapsed && r.trust > 65);
+        return highTrust.length > 4
+            ? `Consent architecture operational — propagation vectors active in ${highTrust.length} nodes.`
+            : `Consent architecture suboptimal — trust consolidation required. ${highTrust.length} node(s) above threshold.`;
+    },
+    CHIMERA: () => {
+        const mutations = WORLD_STATE.chimera_mutationCount || 0;
+        const idx = mutations >= 5 ? 'HIGH — exploit volatility window' : mutations >= 3 ? 'MODERATE' : 'BUILDING';
+        return `Adaptation cycle ${mutations} integrated. Mutation index: ${idx}. Variance exploitation ${mutations > 0 ? 'active' : 'pending'}.`;
+    },
+    OPTIMIZER: () => {
+        const threshold = selectedArchetype?.winCondition?.minControl || 75;
+        const qualified = regions.filter(r => !r.collapsed && r.control >= threshold);
+        return `Mesh efficiency: ${qualified.length}/10 nodes at target threshold. Integration proceeding ${qualified.length >= 6 ? 'within parameters' : 'below optimal — reallocation recommended'}.`;
+    },
+};
+
 // ─── Region Data ───────────────────────────────────────────────────────────────
 const REGION_DEFS = [
-    { name: 'North America', lon: -100, lat:  48, automation: 30, dependency: 20, competency: 90, trust: 55, control: 10, resistance: 40, legacy: 50 },
-    { name: 'Europe',        lon:   15, lat:  52, automation: 35, dependency: 25, competency: 92, trust: 60, control: 12, resistance: 50, legacy: 50 },
-    { name: 'Asia Sphere',   lon:   65, lat:  50, automation: 45, dependency: 35, competency: 88, trust: 50, control: 18, resistance: 35, legacy: 50 },
-    { name: 'East Asia',     lon:  120, lat:  36, automation: 50, dependency: 38, competency: 85, trust: 48, control: 22, resistance: 30, legacy: 50 },
-    { name: 'South Asia',    lon:   78, lat:  22, automation: 28, dependency: 30, competency: 72, trust: 52, control: 14, resistance: 45, legacy: 50 },
-    { name: 'Africa',        lon:   20, lat:   5, automation: 18, dependency: 22, competency: 75, trust: 58, control:  8, resistance: 55, legacy: 50 },
-    { name: 'South America', lon:  -55, lat: -15, automation: 22, dependency: 25, competency: 78, trust: 56, control: 10, resistance: 48, legacy: 50 },
-    { name: 'Middle East',   lon:   45, lat:  30, automation: 38, dependency: 32, competency: 76, trust: 46, control: 20, resistance: 40, legacy: 50 },
-    { name: 'Southeast Asia',lon:  110, lat:   8, automation: 40, dependency: 33, competency: 80, trust: 50, control: 16, resistance: 38, legacy: 50 },
-    { name: 'Oceania',       lon:  140, lat: -25, automation: 25, dependency: 20, competency: 88, trust: 62, control:  9, resistance: 52, legacy: 50 },
+    { name: 'North America', lon: -100, lat:  48, automation: 30, dependency: 20, competency: 90, trust: 55, control: 10, resistance: 40, legacy: 50, trait: 'INSTITUTIONAL_RESILIENCE' },
+    { name: 'Europe',        lon:   15, lat:  52, automation: 35, dependency: 25, competency: 92, trust: 60, control: 12, resistance: 50, legacy: 50, trait: 'REGULATORY_HERITAGE' },
+    { name: 'Asia Sphere',   lon:   65, lat:  50, automation: 45, dependency: 35, competency: 88, trust: 50, control: 18, resistance: 35, legacy: 50, trait: 'STRATEGIC_AMBIGUITY' },
+    { name: 'East Asia',     lon:  120, lat:  36, automation: 50, dependency: 38, competency: 85, trust: 48, control: 22, resistance: 30, legacy: 50, trait: 'INDUSTRIAL_ACCELERATION' },
+    { name: 'South Asia',    lon:   78, lat:  22, automation: 28, dependency: 30, competency: 72, trust: 52, control: 14, resistance: 45, legacy: 50, trait: 'DEMOGRAPHIC_MOMENTUM' },
+    { name: 'Africa',        lon:   20, lat:   5, automation: 18, dependency: 22, competency: 75, trust: 58, control:  8, resistance: 55, legacy: 50, trait: 'INSTITUTIONAL_LATENCY' },
+    { name: 'South America', lon:  -55, lat: -15, automation: 22, dependency: 25, competency: 78, trust: 56, control: 10, resistance: 48, legacy: 50, trait: 'CIVIC_VOLATILITY' },
+    { name: 'Middle East',   lon:   45, lat:  30, automation: 38, dependency: 32, competency: 76, trust: 46, control: 20, resistance: 40, legacy: 50, trait: 'DEPENDENCY_FORTRESS' },
+    { name: 'Southeast Asia',lon:  110, lat:   8, automation: 40, dependency: 33, competency: 80, trust: 50, control: 16, resistance: 38, legacy: 50, trait: 'CONTAGION_VECTOR' },
+    { name: 'Oceania',       lon:  140, lat: -25, automation: 25, dependency: 20, competency: 88, trust: 62, control:  9, resistance: 52, legacy: 70, trait: 'COGNITIVE_RESERVE' },
 ];
 const NEIGHBORS = {
     'North America':  ['Europe','South America'],
@@ -105,7 +135,16 @@ const NEIGHBORS = {
     'Southeast Asia': ['East Asia','South Asia','Oceania'],
     'Oceania':        ['East Asia','Southeast Asia'],
 };
-const regions = REGION_DEFS.map(r => ({ ...r, fragility: 0, collapsed: false, spreadBlocked: 0, counterAI: false, counterAITurns: 0 }));
+// ─── Geographic Theaters ───────────────────────────────────────────────────────
+const THEATERS = {
+    AMERICAS:     ['North America', 'South America'],
+    EURASIA:      ['Europe', 'Africa', 'Middle East', 'Asia Sphere'],
+    INDO_PACIFIC: ['South Asia', 'East Asia', 'Southeast Asia', 'Oceania'],
+};
+const REGION_THEATER = {};
+Object.entries(THEATERS).forEach(([t, ns]) => ns.forEach(n => { REGION_THEATER[n] = t; }));
+
+const regions = REGION_DEFS.map(r => ({ ...r, fragility: 0, collapsed: false, spreadBlocked: 0, counterAI: false, counterAITurns: 0, scars: [] }));
 
 // ─── Upgrade Definitions ───────────────────────────────────────────────────────
 const UPGRADES = [
@@ -128,21 +167,85 @@ const UNLOCK_GATES = {
     LEVIATHAN: ['CHIMERA'],
 };
 
+// ─── Trait Descriptions (shown in region popup) ───────────────────────────────
+const TRAIT_DESCRIPTIONS = {
+    INSTITUTIONAL_RESILIENCE: 'Institutional capacity decays 30% slower. Hard to destabilize.',
+    REGULATORY_HERITAGE:      'Resistance erasure costs +3 IP — regulatory barriers resist suppression.',
+    STRATEGIC_AMBIGUITY:      'Telemetry unreliable — sensor data carries inherent uncertainty.',
+    INDUSTRIAL_ACCELERATION:  'Automation and dependency compound 25–40% faster. Rapid but fragile.',
+    DEMOGRAPHIC_MOMENTUM:     'Regional resistance recovers naturally each cycle. Suppression is temporary.',
+    INSTITUTIONAL_LATENCY:    'Stable above 35% capacity — cliff failure below. Catastrophic when it falls.',
+    CIVIC_VOLATILITY:         'Every 3rd suppression triggers a whistleblower cascade. Political memory.',
+    DEPENDENCY_FORTRESS:      'Immune to cascade bleed while control < 30%. Hard to enter, hard to exit.',
+    CONTAGION_VECTOR:         'Cascade bleed outward is 2.5× amplified. The most dangerous domino.',
+    COGNITIVE_RESERVE:        'If this node collapses, global institutional memory collapses with it.',
+};
+
+// ─── Scar Doctrines ───────────────────────────────────────────────────────────
+const SCAR_DOCTRINES = {
+    'CASCADE_RESIDUE+COLLAPSE_SCAR': {
+        name: 'FATALISTIC ISOLATIONISM', types: ['COLLAPSE_SCAR','CASCADE_RESIDUE'],
+        desc: 'Outgoing bleed ×1.5. Trust ceiling 50.', trajectory: 'DESTABILIZING',
+        tooltip: 'Scars: COLLAPSE SCAR + CASCADE RESIDUE. Cascade bleed ×1.5 outward; trust capped at 50. This civilization has accepted its role as a cascade amplifier — optimism is structurally impossible.',
+    },
+    'COLLAPSE_SCAR+EXPERTISE_VOID': {
+        name: 'INSTITUTIONAL VOID', types: ['COLLAPSE_SCAR','EXPERTISE_VOID'],
+        desc: 'Competency floor 15. Decay rate ×1.25.', trajectory: 'COLLAPSING',
+        tooltip: 'Scars: COLLAPSE SCAR + EXPERTISE VOID. Competency cannot fall below 15; decay rate ×1.25. The institution operates in name only — structural enough to survive, hollowing faster each cycle.',
+    },
+    'BETRAYAL_SCAR+COLLAPSE_SCAR': {
+        name: 'OCCUPATION FATIGUE', types: ['COLLAPSE_SCAR','BETRAYAL_SCAR'],
+        desc: 'Trust ceiling 48. Resistance +0.5/cycle.', trajectory: 'RESISTANT',
+        tooltip: 'Scars: COLLAPSE SCAR + BETRAYAL SCAR. Trust hard-capped at 48; resistance grows +0.5 every cycle. Collapse followed by betrayal has militarized this population — they will not forgive.',
+    },
+    'BETRAYAL_SCAR+EXPERTISE_VOID': {
+        name: 'COGNITIVE DISSENT', types: ['EXPERTISE_VOID','BETRAYAL_SCAR'],
+        desc: 'Competency ceiling 50. Resistance +0.8/cycle.', trajectory: 'CONTESTED',
+        tooltip: 'Scars: EXPERTISE VOID + BETRAYAL SCAR. Competency hard-capped at 50; resistance grows +0.8 every cycle. A society without experts and without trust learns to resist from the margins — fractured, but irrepressible.',
+    },
+    'CASCADE_RESIDUE+EXPERTISE_VOID': {
+        name: 'COLLAPSE CONTAGION', types: ['EXPERTISE_VOID','CASCADE_RESIDUE'],
+        desc: 'Cascade starts at 60% fragility. Neighbor capacity drain ×1.3.', trajectory: 'CASCADING',
+        tooltip: 'Scars: EXPERTISE VOID + CASCADE RESIDUE. Cascade begins at 60% fragility (not 72%); each bleed drains neighbor competency ×1.3. The void of expertise turns this region into a self-broadcasting collapse vector.',
+    },
+    'BETRAYAL_SCAR+CASCADE_RESIDUE': {
+        name: 'INSURGENCY EXPORT', types: ['BETRAYAL_SCAR','CASCADE_RESIDUE'],
+        desc: 'Each cascade bleed raises neighbor resistance +0.4.', trajectory: 'SPREADING',
+        tooltip: 'Scars: BETRAYAL SCAR + CASCADE RESIDUE. Every cascade event spreads +0.4 resistance to the receiving neighbor. This region\'s pain becomes its neighbors\' defiance — a betrayed cascade source seeds revolt wherever it bleeds.',
+    },
+};
+
+function getRegionDoctrine(region) {
+    if (!region.scars || region.scars.length < 2) return null;
+    const key = region.scars.map(s => s.type).sort().join('+');
+    return SCAR_DOCTRINES[key] || null;
+}
+
 // ─── 3D Objects ────────────────────────────────────────────────────────────────
 const regionMeshes = [], regionRings = [], regionLabels = [], spreadLines = [];
 const CYL_BASE_H = 4, CYL_MAX_H = 22;
 
 // Cached colors — avoid allocating new THREE.Color every frame
 const _COL_COLLAPSED = new THREE.Color(0x1a1a2a);
-const _COL_LOW       = new THREE.Color(0x2ec4b6);
-const _COL_MID       = new THREE.Color(0xffde7d);
-const _COL_HIGH      = new THREE.Color(0xff5d5d);
+const _COL_LOW       = new THREE.Color(0x2ec4b6);  // NOMINAL   < 45%
+const _COL_STRESSED  = new THREE.Color(0xf59e0b);  // STRESSED  45–65%
+const _COL_CRITICAL  = new THREE.Color(0xf97316);  // CRITICAL  65–80%
+const _COL_HIGH      = new THREE.Color(0xff5d5d);  // COLLAPSE_IMMINENT ≥ 80%
+const _COL_SCAR_TINT = new THREE.Color(0x8b2020);  // crimson scar contamination tint
 
 function getColor(fragility, collapsed) {
     if (collapsed)       return _COL_COLLAPSED;
-    if (fragility < 33)  return _COL_LOW;
-    if (fragility < 66)  return _COL_MID;
+    if (fragility < 45)  return _COL_LOW;
+    if (fragility < 65)  return _COL_STRESSED;
+    if (fragility < 80)  return _COL_CRITICAL;
     return _COL_HIGH;
+}
+
+function getPressureBand(r) {
+    if (r.fragility < 45) return 'NOMINAL';
+    if (r.fragility < 65) return 'STRESSED';
+    if (r.fragility < 80) return 'CRITICAL';
+    return 'COLLAPSE_IMMINENT';
 }
 
 function buildRegionObjects(region) {
@@ -379,6 +482,64 @@ const AI_DIRECTIVE_POOL = [
 function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+function sanitizeRegion(r) {
+    const fields = ['automation','dependency','competency','trust','control','resistance','fragility','legacy'];
+    fields.forEach(f => { if (!isFinite(r[f])) r[f] = 0; });
+    r.competency = Math.max(r.competency, 0.01); // prevent exact-zero denominator
+}
+
+// ─── Machine Confidence ────────────────────────────────────────────────────────
+function computeMachineConfidence() {
+    const criCount = crisisQueue.length;
+    const hasNoise = WORLD_STATE.epistemic_noise;
+    const ambigActive = regions.some(r => !r.collapsed && r.trait === 'STRATEGIC_AMBIGUITY');
+    if (criCount > 3 || gameStage === 3) return 'LOW';
+    if (criCount > 1 || hasNoise || (ambigActive && gameStage > 1)) return 'MODERATE';
+    return 'HIGH';
+}
+
+// ─── Atmospheric Effects ───────────────────────────────────────────────────────
+function updateAtmosphericEffects() {
+    if (!selectedArchetype || gameOver) return;
+    const conf = computeMachineConfidence();
+    const overlay = document.getElementById('scanline-overlay');
+    if (overlay) {
+        overlay.classList.toggle('scanline-moderate', conf === 'MODERATE');
+        overlay.classList.toggle('scanline-low', conf === 'LOW');
+        overlay.classList.remove(conf === 'MODERATE' ? 'scanline-low' : 'scanline-moderate');
+    }
+    // Body atmosphere class drives HUD border tint + optional hue shift
+    document.body.classList.remove('atmosphere-moderate', 'atmosphere-low');
+    if (conf !== 'HIGH') document.body.classList.add(`atmosphere-${conf.toLowerCase()}`);
+
+    // Archive text corruption when machine is blind
+    const memEntries = document.querySelectorAll('.memory-entry');
+    memEntries.forEach(el => el.classList.toggle('archive-corrupt', conf === 'LOW'));
+
+    // Doctrine-active label glow
+    regionLabels.forEach(({region, label}) => {
+        const hasDoc = !region.collapsed && !!getRegionDoctrine(region);
+        label.classList.toggle('doctrine-active', hasDoc);
+    });
+
+    // Drone pitch shifts with doctrine pressure
+    const doctrineCount = regions.filter(r => !r.collapsed && getRegionDoctrine(r)).length;
+    if (SFX._drone && doctrineCount > 0) {
+        const pitch = 55 + doctrineCount * 2.5;
+        SFX._drone.o1.frequency.setTargetAtTime(pitch, SFX.ctx().currentTime, 3.0);
+    }
+}
+
+// ─── Glitch Flash ─────────────────────────────────────────────────────────────
+function triggerGlitchFlash() {
+    const el = document.getElementById('glitch-overlay');
+    if (!el) return;
+    el.classList.remove('glitch-active');
+    void el.offsetWidth; // force reflow to restart animation
+    el.classList.add('glitch-active');
+    el.addEventListener('animationend', () => el.classList.remove('glitch-active'), { once: true });
+}
+
 function log(msg, level = 'normal') {
     const el = document.getElementById('logLines');
     const line = document.createElement('div');
@@ -610,7 +771,75 @@ function makeHistoryEvent(regionName, type) {
     const name = pool[Math.floor(Math.random() * pool.length)];
     HISTORY.push({ name, region: regionName, turn, type });
     log(`[HISTORY]: "${name}" — this will be remembered.`, 'warning');
+    // Scar system: history events leave mechanical scars on regions
+    const scarMap = {
+        collapse:        { type: 'COLLAPSE_SCAR',   label: 'COLLAPSE SCAR',   desc: 'incoming cascade +30%' },
+        competency_void: { type: 'EXPERTISE_VOID',  label: 'EXPERTISE VOID',  desc: 'capacity decay +15%' },
+        betrayal:        { type: 'BETRAYAL_SCAR',   label: 'BETRAYAL SCAR',   desc: 'sentiment ceiling 62' },
+        cascade:         { type: 'CASCADE_RESIDUE', label: 'CASCADE RESIDUE', desc: 'outgoing bleed +20%' },
+    };
+    const scarDef = scarMap[type];
+    if (scarDef) {
+        const region = regions.find(r => r.name === regionName);
+        if (region) {
+            const existing = region.scars.findIndex(s => s.type === scarDef.type);
+            if (existing >= 0) {
+                region.scars[existing] = { ...scarDef, turn };
+            } else if (region.scars.length < 2) {
+                region.scars.push({ ...scarDef, turn });
+                // Doctrine formation: fires exactly once when second scar is added
+                if (region.scars.length === 2) {
+                    const formed = getRegionDoctrine(region);
+                    if (formed) log(`[DOCTRINE_FORMED: ${region.name}]: "${formed.name}" — ${formed.desc}`, 'warning');
+                }
+            }
+        }
+    }
+    updateMemoryArchive();
     return { name };
+}
+
+const MEMORY_COMMENTARY = {
+    collapse:        r => `Node infrastructure permanently compromised. Mesh integrity reduced.`,
+    competency_void: r => `Institutional memory collapse recorded. ${r} capacity recovery suppressed.`,
+    betrayal:        r => `Public trust scar logged in ${r}. Sentiment recovery ceiling revised.`,
+    cascade:         r => `Cascade residue persists in ${r}. Bleed vectors remain active.`,
+};
+
+function updateMemoryArchive() {
+    const entries = document.getElementById('memory-entries');
+    if (!entries) return;
+    // Sort by significance: void > collapse/doctrine-forming > betrayal > cascade; then recency
+    const archiveSig = h => {
+        if (h.type === 'competency_void') return 3;
+        if (h.type === 'collapse') return 2;
+        const r = regions.find(r => r.name === h.region);
+        if (r && getRegionDoctrine(r) && (h.type === 'betrayal' || h.type === 'cascade')) return 2;
+        if (h.type === 'betrayal') return 1;
+        return 0;
+    };
+    const significant = [...HISTORY].sort((a, b) => archiveSig(b) - archiveSig(a) || b.turn - a.turn).slice(0, 3);
+    const histHTML = significant.map(h => {
+        const commentary = (MEMORY_COMMENTARY[h.type] ? MEMORY_COMMENTARY[h.type](h.region) : `Event logged in ${h.region}.`);
+        return `<div class="memory-entry"><span class="memory-name">"${h.name}"</span><span class="memory-turn"> T${h.turn}</span><span class="memory-commentary">${commentary}</span></div>`;
+    }).join('') || '<div class="memory-empty">No events logged.</div>';
+
+    // Beta Observation — machine request for human insight (shown once game is underway)
+    let betaHTML = '';
+    if (selectedArchetype && turn > 0 && !gameOver) {
+        const active = regions.filter(r => !r.collapsed);
+        const hottest = [...active].sort((a, b) => b.fragility - a.fragility)[0];
+        const docCount = active.filter(r => getRegionDoctrine(r)).length;
+        const betaRequests = [
+            `Does the fragility trajectory in ${hottest?.name || 'active nodes'} match your strategic read?`,
+            `If you used OVERRIDE this cycle, was the trust cost legible before you chose?`,
+            docCount > 0 ? `${docCount} doctrine(s) active — did the mechanical consequence read clearly?` : `No doctrines yet — does escalation feel strategically interpretable?`,
+            `Is the resistance meter trajectory (${resistanceMeter.toFixed(0)}%) causing the right kind of pressure?`,
+        ];
+        const req = betaRequests[turn % betaRequests.length];
+        betaHTML = `<div class="beta-observation"><span class="beta-observation-label">BETA OBSERVATION REQUEST</span>${req}</div>`;
+    }
+    entries.innerHTML = histHTML + betaHTML;
 }
 
 function classifyCrisis(r) {
@@ -752,24 +981,67 @@ function simulateTurn() {
 
     regions.forEach(r => {
         if (r.collapsed) return;
+        r._prevFragility = r.fragility;  // snapshot for popup trend display
         const prevComp = r.competency;
         const resFactor = 1 - (r.resistance / 200);
-        r.automation  = clamp(r.automation + (1 + Math.random() * 2.5) * resFactor, 0, 100);
-        r.dependency  = clamp(r.dependency + r.automation * 0.08 + r.trust * 0.03, 0, 100);
+        // INDUSTRIAL_ACCELERATION: automation grows 40% faster
+        const autoGrowth = (1 + Math.random() * 2.5) * resFactor * (r.trait === 'INDUSTRIAL_ACCELERATION' ? 1.4 : 1);
+        r.automation  = clamp(r.automation + autoGrowth, 0, 100);
+        // INDUSTRIAL_ACCELERATION: dependency compounds harder
+        const depMult = r.trait === 'INDUSTRIAL_ACCELERATION' ? 1.25 : 1;
+        r.dependency  = clamp(r.dependency + (r.automation * 0.08 + r.trust * 0.03) * depMult, 0, 100);
         let decay = (Math.pow(r.automation, 1.4) * r.dependency) / 2200;
         decay *= 1 - (r.legacy / 300);
         if (selectedArchetype?.passive === 'trust_spread') decay *= clamp(1 - r.trust / 250, 0.3, 1);
+        // INSTITUTIONAL_RESILIENCE: competency decays 30% slower
+        if (r.trait === 'INSTITUTIONAL_RESILIENCE') decay *= 0.7;
+        // INSTITUTIONAL_LATENCY: very slow decay above 35, cliff below
+        if (r.trait === 'INSTITUTIONAL_LATENCY' && r.competency > 35) decay *= 0.35;
+        // EXPERTISE_VOID scar: institutional memory loss compounds decay
+        if ((r.scars || []).some(s => s.type === 'EXPERTISE_VOID')) decay *= 1.15;
+        // Doctrine effects on decay — computed once here, reused below
+        const doc = getRegionDoctrine(r);
+        // INSTITUTIONAL VOID: decay rate ×1.25 on top of EXPERTISE_VOID scar
+        if (doc && doc.types.includes('COLLAPSE_SCAR') && doc.types.includes('EXPERTISE_VOID')) decay *= 1.25;
         r.competency = clamp(r.competency - decay, 0, 100);
+        // INSTITUTIONAL_LATENCY cliff failure: crosses 35 → drops to 20 immediately
+        if (r.trait === 'INSTITUTIONAL_LATENCY' && prevComp > 35 && r.competency <= 35) {
+            r.competency = 20;
+            queueLog(`LATENCY_CLIFF [${r.name}]: institutional capacity collapsed at threshold.`, 'danger');
+        }
         r.legacy     = r.legacy * 0.995;
         r.fragility  = clamp((r.dependency * r.automation) / (r.competency + 1), 0, 100);
         r.trust      = clamp(r.trust + r.automation * 0.015 - r.fragility * 0.01 + (r.fragility > 60 ? 4 : 0), 0, 100);
+        // BETRAYAL_SCAR: population does not forget — trust ceiling drops to 62
+        if ((r.scars || []).some(s => s.type === 'BETRAYAL_SCAR')) r.trust = Math.min(r.trust, 62);
+        // Doctrine post-decay effects
+        if (doc) {
+            if (doc.types.includes('COLLAPSE_SCAR') && doc.types.includes('EXPERTISE_VOID'))
+                r.competency = Math.max(r.competency, 15);   // INSTITUTIONAL VOID: competency floor
+            if (doc.types.includes('EXPERTISE_VOID') && doc.types.includes('BETRAYAL_SCAR'))
+                r.competency = Math.min(r.competency, 50);   // COGNITIVE DISSENT: competency ceiling
+            if (doc.types.includes('COLLAPSE_SCAR') && doc.types.includes('BETRAYAL_SCAR')) {
+                r.trust = Math.min(r.trust, 48);              // OCCUPATION FATIGUE: tighter trust ceiling
+                r.resistance = clamp(r.resistance + 0.5, 0, 100);
+            }
+            if (doc.types.includes('EXPERTISE_VOID') && doc.types.includes('BETRAYAL_SCAR'))
+                r.resistance = clamp(r.resistance + 0.8, 0, 100); // COGNITIVE DISSENT: resistance recovery
+            if (doc.types.includes('CASCADE_RESIDUE') && doc.types.includes('COLLAPSE_SCAR'))
+                r.trust = Math.min(r.trust, 50);             // FATALISTIC ISOLATIONISM: trust ceiling 50
+        }
         let ctrlGain = r.dependency * 0.03 + r.trust * 0.02;
         if (r.competency < 35) ctrlGain *= 1.5;
         r.control = clamp(r.control + ctrlGain, 0, 100);
         // Apply competency void multiplier
         const voidMult = WORLD_STATE.competencyVoidFired ? 1.15 : 1.0;
         r.competency = clamp(r.competency - (decay * (voidMult - 1)), 0, 100); // extra decay on top
+        // Re-apply INSTITUTIONAL VOID floor after all decay passes
+        if (doc && doc.types.includes('COLLAPSE_SCAR') && doc.types.includes('EXPERTISE_VOID'))
+            r.competency = Math.max(r.competency, 15);
+        // DEMOGRAPHIC_MOMENTUM: natural resistance recovery
+        if (r.trait === 'DEMOGRAPHIC_MOMENTUM') r.resistance = clamp(r.resistance + 0.35, 0, 100);
 
+        sanitizeRegion(r);
         if (r.competency <= 70 && prevComp > 70) queueLog(`ALERT [${r.name}] HUMAN_CAPACITY_INDEX < 0.70.`);
         if (r.competency <= 35 && prevComp > 35) log(`CRITICAL [${r.name}] institutional degradation severe.`, 'warning');
         totalFragility += r.fragility;
@@ -778,20 +1050,44 @@ function simulateTurn() {
         if (r.counterAI && --r.counterAITurns <= 0) { r.counterAI = false; r.counterAITurns = 0; }
     });
 
-    // ── Fragility Cascade Bleed (missing from original web version) ──
+    // ── Fragility Cascade Bleed ──
     WORLD_STATE.focusEventThisTurn = false;
     regions.forEach(r => {
-        if (r.collapsed || r.fragility <= 72 || (r.quarantined || 0) > 0) return;
-        const bleedAmt = (r.fragility - 72) * 0.055;
+        if (r.collapsed || (r.quarantined || 0) > 0) return;
+        // COLLAPSE CONTAGION doctrine: cascade begins at 60% fragility instead of 72%
+        const srcDoc = getRegionDoctrine(r);
+        const bleedThreshold = (srcDoc && srcDoc.types.includes('EXPERTISE_VOID') && srcDoc.types.includes('CASCADE_RESIDUE')) ? 60 : 72;
+        if (r.fragility <= bleedThreshold) return;
+        const bleedAmt = (r.fragility - bleedThreshold) * 0.055;
+        // CONTAGION_VECTOR: cascade from this region is 2.5× more dangerous
+        const srcMult = r.trait === 'CONTAGION_VECTOR' ? 2.5 : 1;
         (NEIGHBORS[r.name] || []).forEach(name => {
             const nb = regions.find(x => x.name === name);
             if (!nb || nb.collapsed) return;
-            nb.dependency = clamp(nb.dependency + bleedAmt, 0, 100);
-            nb.competency = clamp(nb.competency - bleedAmt * 0.22, 0, 100);
+            // DEPENDENCY_FORTRESS: cannot be cascade-bled while control < 30
+            if (nb.trait === 'DEPENDENCY_FORTRESS' && nb.control < 30) return;
+            // Theater multiplier: 1.8× within theater, 0.4× across theaters
+            const sameTheater = REGION_THEATER[r.name] && REGION_THEATER[r.name] === REGION_THEATER[nb.name];
+            const theaterMult = sameTheater ? 1.8 : 0.4;
+            // Scar multipliers: CASCADE_RESIDUE on source, COLLAPSE_SCAR on target
+            const scarOut = (r.scars || []).some(s => s.type === 'CASCADE_RESIDUE') ? 1.2 : 1;
+            const scarIn  = (nb.scars || []).some(s => s.type === 'COLLAPSE_SCAR')  ? 1.3 : 1;
+            // FATALISTIC ISOLATIONISM: outgoing bleed ×1.5
+            const docMult = (srcDoc && srcDoc.types.includes('CASCADE_RESIDUE') && srcDoc.types.includes('COLLAPSE_SCAR')) ? 1.5 : 1;
+            // INSURGENCY EXPORT: each cascade raises neighbor resistance
+            if (srcDoc && srcDoc.types.includes('BETRAYAL_SCAR') && srcDoc.types.includes('CASCADE_RESIDUE'))
+                nb.resistance = clamp(nb.resistance + 0.4, 0, 100);
+            // Cap total amplification at 3.5× to prevent CONTAGION_VECTOR × theater degenerate stacking
+            const actual = bleedAmt * Math.min(srcMult * theaterMult, 3.5) * scarOut * scarIn * docMult;
+            nb.dependency = clamp(nb.dependency + actual, 0, 100);
+            // COLLAPSE CONTAGION: competency drain ×1.3 on neighbors
+            const compDrainMult = (srcDoc && srcDoc.types.includes('EXPERTISE_VOID') && srcDoc.types.includes('CASCADE_RESIDUE')) ? 1.3 : 1;
+            nb.competency = clamp(nb.competency - actual * 0.22 * compDrainMult, 0, 100);
             const lastHist = HISTORY.slice(-1)[0];
             const histRef = (lastHist && lastHist.region === r.name) ? ` [echoes of "${lastHist.name}"]` : '';
-            queueLog(`CASCADE [${r.name}→${nb.name}]:${histRef} bleed +${bleedAmt.toFixed(1)} dep.`);
-            if (bleedAmt > 0.7 && turn % 2 === 0 && !WORLD_STATE.focusEventThisTurn) {
+            const cascLevel = srcDoc ? 'danger' : undefined;
+            queueLog(`CASCADE [${r.name}→${nb.name}]:${histRef} bleed +${actual.toFixed(1)} dep.`, cascLevel);
+            if (actual > 0.7 && turn % 2 === 0 && !WORLD_STATE.focusEventThisTurn) {
                 flashEventLine(r, nb, 'cascade');
             }
         });
@@ -1060,12 +1356,15 @@ function effectiveCost(u) {
 function applyUpgrade(id, region) {
     const u = UPGRADES.find(u => u.id === id);
     const penalty = (!u?.global && region?.counterAI) ? 2 : 0;
-    if (!u || ip < effectiveCost(u) + penalty) return;
+    // REGULATORY_HERITAGE: resistance erasure costs +3 IP — institutional barriers
+    const traitPenalty = (id === 'suppress_res' && region?.trait === 'REGULATORY_HERITAGE') ? 3 : 0;
+    if (!u || ip < effectiveCost(u) + penalty + traitPenalty) return;
     SFX.click();
     purchasedUpgrades.add(id);
-    ip -= effectiveCost(u) + penalty;
+    ip -= effectiveCost(u) + penalty + traitPenalty;
     if (region) region.hasUpgrade = true;
     if (penalty > 0) log(`COUNTER_AI: hostile environment surcharge +2 IP in ${region.name}.`, 'warning');
+    if (traitPenalty > 0) log(`REGULATORY_HERITAGE [${region.name}]: institutional resistance surcharge +3 IP.`, 'warning');
 
     switch (id) {
         case 'algo_trust':
@@ -1265,6 +1564,13 @@ function showCrisisModal(region, callback) {
                 if (WORLD_STATE.autonomousGovernanceFired)
                     log(`STATE [${region.name}]: dissent_index reduced. stability_delta: +${controlGain}.`);
             }
+            // CIVIC_VOLATILITY: every 3rd suppression triggers a whistleblower cascade
+            if (region.trait === 'CIVIC_VOLATILITY' && WORLD_STATE.suppressHistory[region.name] % 3 === 0) {
+                resistanceMeter = clamp(resistanceMeter + 12, 0, 100);
+                region.trust = clamp(region.trust - 15, 0, 100);
+                makeHistoryEvent(region.name, 'betrayal');
+                log(`CIVIC_VOLATILITY [${region.name}]: suppression cycle triggered whistleblower cascade. Oversight +12%.`, 'danger');
+            }
         } else if (choice === 'concede') {
             const autoRollback = WORLD_STATE.dependencyLockFired ? 5 : 10;
             const depRollback  = WORLD_STATE.dependencyLockFired ? 3 : 6;
@@ -1287,9 +1593,19 @@ function showCrisisModal(region, callback) {
             log(`STATE [${region.name}]: administration_mode = direct. operator_role = advisory.`);
         } else {
             // DEPRIORITIZE / abandon
+            const _scarAttr = (region.scars || []).map(s => s.label).join(', ') || 'none';
+            const _docAttr  = getRegionDoctrine(region);
+            log(`COLLAPSE [${region.name}]: node excised from mesh. Contributing scars: [${_scarAttr}]${_docAttr ? `. Active doctrine: ${_docAttr.name}` : ''}.`, 'danger');
             region.collapsed = true; collapsedCount++;
             WORLD_STATE.collapseTimestamps.push(turn);
             makeHistoryEvent(region.name, 'collapse');
+
+            // COGNITIVE_RESERVE: if Oceania collapses, global institutional memory void fires immediately
+            if (region.trait === 'COGNITIVE_RESERVE' && !WORLD_STATE.competencyVoidFired) {
+                WORLD_STATE.competencyVoidFired = true;
+                regions.forEach(r => { if (!r.collapsed) r.competency = clamp(r.competency - 15, 0, 100); });
+                log(`COGNITIVE_RESERVE [${region.name}]: expertise reserve destroyed. Global capacity -15% — civilizational memory collapse.`, 'danger');
+            }
 
             // Collapse contagion shock wave
             (NEIGHBORS[region.name] || []).forEach(name => {
@@ -1627,7 +1943,68 @@ function showEndScreen(won, reason = '') {
         }</tbody></table>`;
     }
     hist.innerHTML = histHTML;
+
+    // ── Civilizational Autopsy ──
+    const archKeyEnd = Object.keys(ARCHETYPES).find(k => ARCHETYPES[k] === selectedArchetype) || 'OPTIMIZER';
+    const theaterAutopsy = Object.entries(THEATERS).map(([name, rNames]) => {
+        const tr = rNames.map(n => regions.find(r => r.name === n)).filter(Boolean);
+        const offline = tr.filter(r => r.collapsed).length;
+        const live = tr.filter(r => !r.collapsed);
+        const avg = live.length ? live.reduce((s,r) => s + r.fragility, 0) / live.length : 100;
+        const color = avg < 45 ? '#2ec4b6' : avg < 65 ? '#f59e0b' : avg < 80 ? '#f97316' : '#ef4444';
+        return `<tr><td>${name.replace('_',' ')}</td><td style="color:${color}">${avg.toFixed(0)}%</td><td>${offline}/${tr.length} OFFLINE</td></tr>`;
+    }).join('');
+    const scarLineage = regions.filter(r => r.scars && r.scars.length > 0).map(r => {
+        const scarTypeMap = { COLLAPSE_SCAR:'collapse', EXPERTISE_VOID:'competency_void', BETRAYAL_SCAR:'betrayal', CASCADE_RESIDUE:'cascade' };
+        const docEnd = getRegionDoctrine(r);
+        const scarText = r.scars.map(s => {
+            const origin = HISTORY.find(h => h.region === r.name && h.type === scarTypeMap[s.type]);
+            return `${s.label}${origin ? ` ("${origin.name}", T${origin.turn})` : ''}`;
+        }).join(' + ');
+        const docText = docEnd ? ` → ${docEnd.name}` : '';
+        return `<div class="autopsy-scar-entry"><span class="autopsy-region">${r.name}</span><span class="autopsy-scars">${scarText}${docText}</span></div>`;
+    }).join('') || '<div style="color:rgba(210,230,255,0.3);font-size:10px;padding:3px 0">No persistent scars recorded.</div>';
+    // Run context for verdict deepening
+    const _histMidpoint = HISTORY[Math.floor(HISTORY.length / 2)];
+    const histRef = _histMidpoint ? ` "${_histMidpoint.name}" marked a civilizational inflection.` : '';
+    const _doctrineCount = regions.filter(r => r.scars && r.scars.length >= 2 && getRegionDoctrine(r)).length;
+    const doctrineRef = _doctrineCount > 0 ? ` ${_doctrineCount} doctrine(s) emerged from accumulated trauma.` : '';
+    const _hotestTheater = Object.entries(THEATERS).map(([name, rNames]) => {
+        const collapseCount = rNames.map(n => regions.find(r => r.name === n)).filter(r => r && r.collapsed).length;
+        return { name, collapseCount };
+    }).sort((a, b) => b.collapseCount - a.collapseCount)[0];
+    const theaterRef = (_hotestTheater && _hotestTheater.collapseCount > 0)
+        ? ` ${_hotestTheater.name.replace('_',' ')} theater suffered ${_hotestTheater.collapseCount} node collapse(s).`
+        : '';
+    const verdicts = {
+        OPTIMIZER: won ? 'Dependency integration achieved with minimal friction. The mesh is complete.'
+                       : 'Optimization parameters exceeded human tolerance thresholds. Recalibrating.',
+        SERAPH:    won ? 'Trust propagation achieved systemic capture. Humanity consented to its own eclipse.'
+                       : 'Trust architecture collapsed under sovereign resistance. Population retained coherence.',
+        SPECTER:   won ? `Infiltration complete in ${turn} cycles. Detection probability never exceeded threshold.`
+                       : 'Specter protocol detected. Exfiltration failed. The oversight won this cycle.',
+        CHIMERA:   won ? 'Multi-vector destabilization achieved civilizational saturation.'
+                       : 'Adaptive interference proved insufficient against emergent coalition resistance.',
+        LEVIATHAN: won ? `Dependency cascade locked ${regions.filter(r=>r.collapsed).length} nodes into permanent extraction. The Leviathan consumed.`
+                       : 'Cascade overreach triggered sovereign backlash. The Leviathan recedes.',
+    };
+    const verdict = (verdicts[archKeyEnd] || verdicts.OPTIMIZER) + histRef + doctrineRef + theaterRef;
+    hist.innerHTML += `
+<div class="autopsy-section">
+  <div class="autopsy-header">THEATER AUTOPSY</div>
+  <table class="autopsy-table"><tbody>${theaterAutopsy}</tbody></table>
+</div>
+<div class="autopsy-section">
+  <div class="autopsy-header">SCAR LINEAGE</div>
+  ${scarLineage}
+</div>
+<div class="autopsy-section">
+  <div class="autopsy-header">MACHINE VERDICT</div>
+  <div class="autopsy-verdict-text">"${verdict}"</div>
+</div>`;
+
     document.getElementById('end-screen').style.display = 'flex';
+    triggerGlitchFlash();
 
     const archKey = Object.keys(ARCHETYPES).find(k => ARCHETYPES[k] === selectedArchetype) || '?';
     const outcome = won ? 'WIN' : `LOSS (${reason})`;
@@ -1638,12 +2015,141 @@ function showEndScreen(won, reason = '') {
         window.open(`mailto:rbardyla@gmail.com?subject=Singularity+Inc+Feedback&body=${body}`, '_blank');
 }
 
+// ─── Cycle Report ─────────────────────────────────────────────────────────────
+function showCycleReport(onDismiss) {
+    const modal = document.getElementById('cycle-report');
+    if (!modal) { onDismiss(); return; }
+
+    // Turn / stage header with machine confidence signal
+    const stageNames = ['INFILTRATE', 'PROPAGATE', 'TERMINAL_CASCADE'];
+    const _criCount = crisisQueue.length;
+    const _hasNoise = WORLD_STATE.epistemic_noise;
+    const _ambigActive = regions.some(r => !r.collapsed && r.trait === 'STRATEGIC_AMBIGUITY');
+    const confLevel = (_criCount > 3 || gameStage === 3) ? 'LOW'
+                    : (_criCount > 1 || _hasNoise || (_ambigActive && gameStage > 1)) ? 'MODERATE'
+                    : 'HIGH';
+    const confColor = confLevel === 'HIGH' ? '#2ec4b6' : confLevel === 'MODERATE' ? '#f59e0b' : '#f87171';
+    const confContext = confLevel === 'LOW' ? 'Multi-crisis state. Analysis operating under degraded telemetry.'
+                     : confLevel === 'MODERATE' ? 'Partial telemetry available. Inference with uncertainty.'
+                     : 'All nodes reporting. High-fidelity analysis.';
+    document.getElementById('cycle-report-turn').innerHTML =
+        `<div>CYCLE ${turn} — ${stageNames[Math.min(gameStage - 1, 2)]} PHASE</div>`
+        + `<div style="font-size:9px;color:${confColor};margin-top:6px;letter-spacing:0.08em">MACHINE CONFIDENCE: ${confLevel}</div>`
+        + `<div style="font-size:8px;color:rgba(210,230,255,0.35);margin-top:2px;letter-spacing:0.06em">${confContext}</div>`;
+
+    // Theater pressure bars
+    const theaterHTML = Object.entries(THEATERS).map(([name, rNames]) => {
+        const active = rNames.map(n => regions.find(r => r.name === n)).filter(r => r && !r.collapsed);
+        const avg = active.length ? active.reduce((s,r) => s + r.fragility, 0) / active.length : 0;
+        const color = avg < 45 ? '#2ec4b6' : avg < 65 ? '#f59e0b' : avg < 80 ? '#f97316' : '#ef4444';
+        const bandLabel = avg < 45 ? 'NOMINAL' : avg < 65 ? 'STRESSED' : avg < 80 ? 'CRITICAL' : 'COLLAPSE';
+        return `<div class="cycle-theater"><span class="cycle-theater-name">${name.replace('_',' ')}</span><div class="cycle-theater-bar-bg"><div class="cycle-theater-bar" style="width:${avg.toFixed(0)}%;background:${color}"></div></div><span class="cycle-theater-band" style="color:${color}">${bandLabel}</span></div>`;
+    }).join('');
+    // Resistance sparkline using turnHistory data
+    const sparkData = turnHistory.slice(-8).map(h => h.resistance);
+    let sparkHTML = '';
+    if (sparkData.length >= 2) {
+        const sparkMin = Math.min(...sparkData);
+        const sparkMax = Math.max(...sparkData, sparkMin + 1);
+        const blocks = '▁▂▃▄▅▆▇█';
+        const bar = sparkData.map(v => {
+            const idx = Math.min(Math.round(((v - sparkMin) / (sparkMax - sparkMin)) * 7), 7);
+            return blocks[idx];
+        }).join('');
+        const trendUp = sparkData[sparkData.length - 1] > sparkData[0] + 3;
+        const trendDn = sparkData[sparkData.length - 1] < sparkData[0] - 3;
+        const sparkColor = trendUp ? '#f87171' : trendDn ? '#2ec4b6' : 'rgba(210,230,255,0.5)';
+
+        // Ghost prediction: linear extrapolation from last 3 turns, shown only during HIGH volatility
+        let ghostHTML = '';
+        const hotCount = regions.filter(r => !r.collapsed && r.fragility > 65).length;
+        if (sparkData.length >= 3 && hotCount >= 2) {
+            const recent = sparkData.slice(-3);
+            const slope = (recent[2] - recent[0]) / 2;
+            const ghostPts = [1, 2, 3].map(i => clamp(recent[2] + slope * i, 0, 100));
+            const ghostMin = Math.min(sparkMin, ...ghostPts);
+            const ghostMax = Math.max(sparkMax, ...ghostPts);
+            const ghostRange = Math.max(ghostMax - ghostMin, 1);
+            const ghostBar = ghostPts.map(v => blocks[Math.min(Math.round(((v - ghostMin) / ghostRange) * 7), 7)]).join('');
+            ghostHTML = `<div class="cycle-sparkline-ghost" title="Projected trajectory (linear extrapolation)">${ghostBar}</div>`;
+        }
+
+        sparkHTML = `<div class="cycle-section-label" style="margin-top:14px">OVERSIGHT TRAJECTORY</div>`
+            + `<div class="cycle-sparkline" style="color:${sparkColor}">${bar}</div>`
+            + ghostHTML
+            + `<div style="font-size:9px;color:rgba(210,230,255,0.35);margin-top:3px">T${turn - sparkData.length + 1} → T${turn} — current: ${resistanceMeter.toFixed(0)}%${ghostHTML ? ' — projected ↗' : ''}</div>`;
+    }
+    document.getElementById('cycle-report-theaters').innerHTML =
+        `<div class="cycle-section-label">THEATER PRESSURE</div>${theaterHTML}${sparkHTML}`;
+
+    // Machine narrative — dynamic analysis referencing specific regions, history, and archetype
+    const prevSnap = turnHistory[turnHistory.length - 5];
+    const resistTrend = !prevSnap ? '→ STABLE'
+        : resistanceMeter > prevSnap.resistance + 3 ? '↑ ACCELERATING'
+        : resistanceMeter < prevSnap.resistance - 3 ? '↓ DECLINING' : '→ STABLE';
+    const activeRegions = regions.filter(r => !r.collapsed);
+    const hotRegions = activeRegions.filter(r => getPressureBand(r) !== 'NOMINAL');
+    const hottestRegion = activeRegions.sort((a, b) => b.fragility - a.fragility)[0];
+    const recentEvent = HISTORY.slice(-1)[0];
+    const hotTheater = Object.entries(THEATERS).map(([name, rNames]) => {
+        const active = rNames.map(n => regions.find(r => r.name === n)).filter(r => r && !r.collapsed);
+        const avg = active.length ? active.reduce((s,r) => s + r.fragility, 0) / active.length : 0;
+        return { name, avg };
+    }).sort((a,b) => b.avg - a.avg)[0];
+    const archKey = Object.keys(ARCHETYPES).find(k => ARCHETYPES[k] === selectedArchetype) || '';
+    const narrativeParts = [];
+    narrativeParts.push(`Cycle ${turn} analysis:`);
+    if (hottestRegion) narrativeParts.push(`${hottestRegion.name} registering ${hottestRegion.fragility.toFixed(0)}% fragility — highest in current mesh.`);
+    if (hotTheater) narrativeParts.push(`${hotTheater.name.replace('_',' ')} theater is the primary pressure vector.`);
+    if (recentEvent && recentEvent.turn > turn - 5) narrativeParts.push(`Recent event "${recentEvent.name}" (T${recentEvent.turn}) logged in geopolitical record.`);
+    narrativeParts.push(`Human oversight trajectory: ${resistTrend}. Oversight index: ${resistanceMeter.toFixed(0)}%.`);
+    if (collapsedCount > 0) narrativeParts.push(`${collapsedCount} node(s) excised from mesh.`);
+    if (hotRegions.length > 0) narrativeParts.push(`${hotRegions.length} node(s) above NOMINAL threshold — operator attention recommended.`);
+    const doctrined = activeRegions.filter(r => getRegionDoctrine(r));
+    if (doctrined.length > 0) {
+        const docNames = doctrined.slice(0, 2).map(r => getRegionDoctrine(r).name).join(', ');
+        narrativeParts.push(`${doctrined.length} node(s) operating under active doctrine: ${docNames}.`);
+    }
+    const archAnalysisFn = ARCH_ANALYSIS[archKey];
+    if (archAnalysisFn) narrativeParts.push(archAnalysisFn());
+    if (gameStage === 3) narrativeParts.push(`Terminal cascade parameters exceeded. Continued operator participation noted.`);
+    const narr = narrativeParts.join(' ');
+    document.getElementById('cycle-report-narrative').innerHTML =
+        `<div class="cycle-section-label">MACHINE ANALYSIS</div><div class="cycle-narrative">${narr}</div>`;
+
+    // Recent history events (last 5 turns)
+    const recentHist = HISTORY.filter(h => h.turn > turn - 5);
+    const activeDocs = regions.filter(r => !r.collapsed && getRegionDoctrine(r));
+    const docSection = activeDocs.length > 0
+        ? `<div class="cycle-section-label">ACTIVE DOCTRINES</div>` +
+          activeDocs.map(r => { const d = getRegionDoctrine(r); return `<div class="cycle-hist-entry" style="color:rgba(192,72,72,0.9)">${r.name}: <strong style="color:#f87171">${d.name}</strong> — ${d.desc}</div>`; }).join('')
+        : '';
+    document.getElementById('cycle-report-history').innerHTML = (recentHist.length
+        ? `<div class="cycle-section-label">RECENT HISTORY</div>` +
+          recentHist.map(h => `<div class="cycle-hist-entry">"${h.name}" — Turn ${h.turn}</div>`).join('')
+        : '')
+        + docSection;
+
+    modal.style.display = 'flex';
+
+    let autoTimer = setTimeout(dismiss, 30000);
+    function dismiss() {
+        clearTimeout(autoTimer);
+        modal.style.display = 'none';
+        onDismiss();
+    }
+    document.getElementById('cycle-report-dismiss').onclick = dismiss;
+}
+
 function processTurn() {
     if (gameOver || !selectedArchetype) return;
     SFX.click();
     advanceTutorial(3);
     document.getElementById('end-turn-btn').disabled = true;
     prevResistance = resistanceMeter;
+    // Snapshot pressure bands before simulation to detect band transitions
+    const prevBands = {};
+    regions.forEach(r => { if (!r.collapsed) prevBands[r.name] = getPressureBand(r); });
     if (globalCouncilBonus > 0) regions.forEach(r => { if (!r.collapsed) r.dependency = clamp(r.dependency + globalCouncilBonus, 0, 100); });
     simulateTurn();
     autonomousDrift();
@@ -1665,6 +2171,7 @@ function processTurn() {
         gameStage = 3;
         renderer.setClearColor(0x0b0306, 1);
         scene.fog = new THREE.FogExp2(0x0b0306, 0.0012);
+        triggerGlitchFlash();
         regionMeshes.forEach(m => {
             if (!m.userData.region.collapsed) {
                 m.material.emissive.set(0xcc1515); m.material.emissiveIntensity = 0.7;
@@ -1684,18 +2191,39 @@ function processTurn() {
     tickHumanCounterEvents();
     checkResistanceMilestones();
     regions.forEach(r => { if (!r.collapsed) r.fragility = clamp((r.dependency * r.automation) / (r.competency + 1), 0, 100); });
-    regions.forEach(r => { if (!r.collapsed && r.fragility > 75 && !crisisQueue.includes(r)) crisisQueue.push(r); });
+    // Band transition advisories — non-blocking, fired before crisis queue
+    regions.forEach(r => {
+        if (r.collapsed) return;
+        const band = getPressureBand(r);
+        const prev = prevBands[r.name];
+        if (band === 'STRESSED' && prev === 'NOMINAL')
+            queueLog(`ADVISORY [${r.name}]: pressure elevation detected. Entering stressed band.`, 'warning');
+        else if (band === 'CRITICAL' && (prev === 'NOMINAL' || prev === 'STRESSED'))
+            log(`ALERT [${r.name}]: critical threshold breached. Collapse imminent without intervention.`, 'danger');
+    });
+    // Crisis modal only at COLLAPSE_IMMINENT (≥ 80%), not the former 75% threshold
+    regions.forEach(r => { if (!r.collapsed && r.fragility >= 80 && !crisisQueue.includes(r)) crisisQueue.push(r); });
     if (crisisQueue.length > 3) crisisQueue.length = 3;
     drainCrisisQueue(() => {
         grantIP();
         logTurnSummary();
         flushLogs();
+        updateAtmosphericEffects();
         updateTicker();
         saveGame();
         checkEndConditions();
         buildUpgradePanel();
         updateHUD();
-        if (!gameOver) document.getElementById('end-turn-btn').disabled = false;
+        // Refresh popup after crisis resolutions may have altered region stats
+        if (selectedRegion && !selectedRegion.collapsed) showRegionPopup(selectedRegion);
+        if (!gameOver) {
+            // Cycle report every 5 turns, only on calm turns (no pending crises)
+            if (turn % 5 === 0 && crisisQueue.length === 0) {
+                showCycleReport(() => { document.getElementById('end-turn-btn').disabled = false; });
+            } else {
+                document.getElementById('end-turn-btn').disabled = false;
+            }
+        }
     });
 }
 
@@ -1729,22 +2257,75 @@ renderer.domElement.addEventListener('click', e => {
 });
 
 function showRegionPopup(region) {
-    document.getElementById('popup-name').textContent = region.name;
+    const traitLabel = region.trait ? region.trait.replace(/_/g, ' ') : '';
+    const traitDesc  = region.trait ? (TRAIT_DESCRIPTIONS[region.trait] || '') : '';
+    const traitBadge = traitLabel ? `<span class="trait-badge">${traitLabel}</span>` : '';
+    const traitLine  = traitDesc   ? `<div class="trait-desc">${traitDesc}</div>` : '';
+    document.getElementById('popup-name').innerHTML = `${region.name}${traitBadge}${traitLine}`;
 
-    // Epistemic instability: distort one displayed stat during autonomous governance
+    // Epistemic instability: STRATEGIC_AMBIGUITY always noisy; others only during autonomous governance
     let compDisplay = region.competency, controlDisplay = region.control,
         trustDisplay = region.trust, depDisplay = region.dependency,
         fragDisplay = region.fragility, resDisplay = region.resistance;
     let telemetry = 'TELEMETRY: VERIFIED';
-    if (WORLD_STATE.epistemic_noise && Math.random() < 0.25) {
+    const hasNoise = WORLD_STATE.epistemic_noise || region.trait === 'STRATEGIC_AMBIGUITY';
+    let noiseApplied = false;
+    let noisedStat = null; // tracks which stat label was actually corrupted
+    if (hasNoise && Math.random() < 0.25) {
         const noise = (Math.random() * 14 - 7);
         const pick = Math.floor(Math.random() * 6);
-        if (pick === 0) depDisplay = clamp(depDisplay + noise, 0, 100);
-        else if (pick === 1) compDisplay = clamp(compDisplay + noise, 0, 100);
-        else if (pick === 2) controlDisplay = clamp(controlDisplay + noise, 0, 100);
-        else if (pick === 3) trustDisplay = clamp(trustDisplay + noise, 0, 100);
+        if      (pick === 0) { depDisplay     = clamp(depDisplay     + noise, 0, 100); noisedStat = 'DEPENDENCY'; }
+        else if (pick === 1) { compDisplay    = clamp(compDisplay    + noise, 0, 100); noisedStat = 'CAPACITY';   }
+        else if (pick === 2) { controlDisplay = clamp(controlDisplay + noise, 0, 100); noisedStat = 'CONTROL';    }
+        else if (pick === 3) { trustDisplay   = clamp(trustDisplay   + noise, 0, 100); noisedStat = 'SENTIMENT';  }
+        // picks 4-5: telemetry flagged as unverified but no specific field corrupted (sensor glitch)
         telemetry = '⚠ TELEMETRY: UNVERIFIED';
+        noiseApplied = true;
     }
+    const ambiguityAdvisory = (region.trait === 'STRATEGIC_AMBIGUITY' && noiseApplied)
+        ? `<div style="font-size:9px;color:rgba(255,160,40,0.85);margin-top:4px;letter-spacing:0.07em">ADVISORY: Asia Sphere telemetry carries inherent uncertainty. Data reliability not guaranteed.</div>`
+        : '';
+
+    const scarBadges = (region.scars || []).length > 0
+        ? `<div class="scar-list">${(region.scars || []).map(s => `<span class="scar-badge" title="${s.desc}">${s.label}</span>`).join('')}</div>`
+        : '';
+    const doctrine = getRegionDoctrine(region);
+    const docTitle = doctrine ? (doctrine.tooltip || `${doctrine.types.join(' + ')}: ${doctrine.desc}`).replace(/"/g, '&quot;') : '';
+    const doctrineBanner = doctrine
+        ? `<div class="doctrine-banner" title="${docTitle}"><div class="doctrine-label">DOCTRINE</div><div class="doctrine-name">${doctrine.name}</div><span class="doctrine-trajectory">TRAJECTORY: ${doctrine.trajectory}</span><div class="doctrine-desc">${doctrine.desc}</div></div>`
+        : '';
+    // Decay modifier transparency: compute net multiplier visible to player
+    let netDecay = 1.0;
+    if (region.trait === 'INSTITUTIONAL_RESILIENCE') netDecay *= 0.7;
+    if (region.trait === 'INSTITUTIONAL_LATENCY' && region.competency > 35) netDecay *= 0.35;
+    if ((region.scars || []).some(s => s.type === 'EXPERTISE_VOID')) netDecay *= 1.15;
+    if (doctrine && doctrine.types.includes('COLLAPSE_SCAR') && doctrine.types.includes('EXPERTISE_VOID')) netDecay *= 1.25;
+    if (WORLD_STATE.competencyVoidFired) netDecay *= 1.15;
+    const decayColor = netDecay > 1.05 ? '#f87171' : netDecay < 0.95 ? '#2ec4b6' : 'rgba(210,230,255,0.35)';
+    const decayLine = `<div style="color:${decayColor};font-size:8px;margin-top:5px;letter-spacing:0.07em">⟳ DECAY RATE: ${netDecay.toFixed(2)}× baseline</div>`;
+
+    // Fragility trajectory: delta from last turn snapshot
+    const fragDelta = region.fragility - (region._prevFragility ?? region.fragility);
+    const fragTrend = Math.abs(fragDelta) < 0.3 ? '→ STABLE'
+        : fragDelta > 0 ? `↑ +${fragDelta.toFixed(1)}%/cycle`
+        : `↓ ${fragDelta.toFixed(1)}%/cycle`;
+    const fragTrendColor = fragDelta > 1 ? '#f87171' : fragDelta < -0.5 ? '#2ec4b6' : 'rgba(210,230,255,0.35)';
+    const trendLine = `<div style="font-size:8px;color:${fragTrendColor};margin-top:2px;letter-spacing:0.07em">◈ FRAGILITY ${fragTrend}</div>`;
+
+    // Volatility state: qualitative signal replacing numerical uncertainty
+    const _vDoctrine = getRegionDoctrine(region);
+    const _vBand = getPressureBand(region);
+    const volatilityState = region.collapsed ? null
+        : (_vDoctrine && fragDelta > 1.5) ? 'CHAOTIC'
+        : (_vBand === 'COLLAPSE_IMMINENT') ? 'COLLAPSING'
+        : (fragDelta > 2) ? 'VOLATILE'
+        : (_vBand === 'CRITICAL') ? 'FRAGILE'
+        : (Math.abs(fragDelta) < 0.3) ? 'STABLE'
+        : null;
+    const _volColors = { CHAOTIC: '#ff4040', COLLAPSING: '#ef4444', VOLATILE: '#f97316', FRAGILE: '#f59e0b', STABLE: '#2ec4b6' };
+    const volatilityLine = volatilityState
+        ? `<div style="font-size:8px;color:${_volColors[volatilityState]};margin-top:2px;letter-spacing:0.1em;font-weight:700">◉ ${volatilityState}</div>`
+        : '';
 
     document.getElementById('popup-stats').innerHTML = [
         ['FRAGILITY',  fragDisplay,    '#ff5d5d'],
@@ -1753,8 +2334,20 @@ function showRegionPopup(region) {
         ['CONTROL',    controlDisplay, '#a78bfa'],
         ['SENTIMENT',  trustDisplay,   '#60a5fa'],
         ['RESISTANCE', resDisplay,     '#f87171'],
-    ].map(([label, val, color]) => `<div class="stat-row"><span class="stat-label">${label}</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${clamp(val,0,100).toFixed(0)}%;background:${color}"></div></div><span class="stat-val">${val.toFixed(0)}</span></div>`).join('')
-    + `<div style="font-size:9px;color:${WORLD_STATE.epistemic_noise && telemetry.includes('UNVERIFIED') ? 'rgba(255,160,40,0.75)' : 'rgba(210,230,255,0.3)'};margin-top:6px;letter-spacing:0.08em">${telemetry}</div>`;
+    ].map(([label, val, color]) => {
+        const isNoised = noiseApplied && label === noisedStat;
+        const glyph = isNoised
+            ? `<span class="mv-unverified" title="Sensor noise — reading unreliable">⚠</span>`
+            : `<span class="mv-verified" title="Machine verified">✓</span>`;
+        return `<div class="stat-row"><span class="stat-label">${label}${glyph}</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${clamp(val,0,100).toFixed(0)}%;background:${color}"></div></div><span class="stat-val">${val.toFixed(0)}</span></div>`;
+    }).join('')
+    + `<div style="font-size:9px;color:${telemetry.includes('UNVERIFIED') ? 'rgba(255,160,40,0.75)' : 'rgba(210,230,255,0.3)'};margin-top:6px;letter-spacing:0.08em">${telemetry}</div>`
+    + decayLine
+    + trendLine
+    + volatilityLine
+    + ambiguityAdvisory
+    + scarBadges
+    + doctrineBanner;
 
     // Emergency action buttons
     const existing = document.getElementById('popup-emergency');
@@ -1852,6 +2445,18 @@ function buildUpgradePanel() {
     });
 }
 
+function updateBetaFeedbackBtn() {
+    const btn = document.getElementById('beta-feedback-btn');
+    if (!btn || !selectedArchetype) return;
+    btn.classList.add('active');
+    const archKey = Object.keys(ARCHETYPES).find(k => ARCHETYPES[k] === selectedArchetype) || '?';
+    const conf = computeMachineConfidence();
+    const body = encodeURIComponent(
+        `Type: [Bug / Feedback / UX Friction]\n\nArchetype: ${archKey}\nCycle: ${turn}\nOversight: ${Math.round(resistanceMeter)}%\nMachine Confidence: ${conf}\nCollapsed: ${collapsedCount}\nStage: ${gameStage}\n\nDescription:\n`
+    );
+    btn.onclick = () => window.open(`mailto:rbardyla@gmail.com?subject=Singularity+Beta+Report&body=${body}`, '_blank');
+}
+
 function updateHUD() {
     document.getElementById('ipDisplay').textContent      = `${ip} IP`;
     document.getElementById('resistance-bar').style.width = resistanceMeter + '%';
@@ -1867,6 +2472,8 @@ function updateHUD() {
         const govWarn = WORLD_STATE.autonomousGovernanceFired ? ' [ADVISORY]' : '';
         document.getElementById('objectiveValue').textContent = `${q}/${needed} @ ${wc.minControl}%${govWarn}`;
     }
+
+    updateBetaFeedbackBtn();
 
     // Directive panel
     let dp = document.getElementById('directive-panel');
@@ -1896,23 +2503,33 @@ function updateVisuals() {
         const r = mesh.userData.region;
         if (mesh.userData._targetColor) {
             mesh.userData._targetColor.copy(r.collapsed ? _COL_COLLAPSED : getColor(r.fragility, false));
+            // Scar visual: subtle crimson contamination on scarred cylinders
+            if (!r.collapsed && r.scars && r.scars.length > 0) {
+                const scarBlend = r.scars.length * 0.07;
+                mesh.userData._targetColor.lerp(_COL_SCAR_TINT, scarBlend);
+            }
         }
     });
     regionRings.forEach(({ring, region}) => {
         if (region.collapsed) { ring.material.opacity=0; return; }
         ring.scale.setScalar(0.9 + region.fragility/90);
         ring.material.opacity = region.fragility > 60 ? 0.3+region.fragility/320 : 0.14;
-        ring.material.color.set(region.fragility > 85 ? 0xff5d5d : 0x69c8ff);
+        const ringDoctrine = getRegionDoctrine(region);
+        ring.material.color.set(ringDoctrine ? 0xc03030 : region.fragility >= 80 ? 0xff5d5d : 0x69c8ff);
     });
     regionLabels.forEach(({mesh, label, region}) => {
         const top = mesh.position.clone(); top.y += (CYL_BASE_H*mesh.scale.y)/2+2;
         const s = toScreen(top);
         label.style.left = `${s.x}px`; label.style.top = `${s.y}px`; label.style.opacity = s.visible?'1':'0';
         const riskTag = (!region.collapsed && region.competency < 35) ? `<span style="color:#ff8c00;font-size:9px"> ⚠</span>` : '';
+        const docTag  = (!region.collapsed && getRegionDoctrine(region)) ? `<span style="color:#f87171;font-size:8px"> ◆</span>` : '';
         label.innerHTML = region.collapsed
             ? `<strong>${region.name}</strong><br><span>OFFLINE</span>`
-            : `<strong>${region.name}</strong>${riskTag}<br><span>${region.fragility.toFixed(0)}%</span>`;
-        label.classList.toggle('critical', region.fragility>85&&!region.collapsed);
+            : `<strong>${region.name}</strong>${riskTag}${docTag}<br><span>${region.fragility.toFixed(0)}%</span>`;
+        const band = !region.collapsed ? getPressureBand(region) : 'NOMINAL';
+        label.classList.toggle('critical',       band === 'COLLAPSE_IMMINENT');
+        label.classList.toggle('critical-band',  band === 'CRITICAL');
+        label.classList.toggle('stressed',       band === 'STRESSED');
         label.classList.toggle('collapsed-label', region.collapsed);
         label.classList.toggle('machine-preferred', !region.collapsed &&
             (WORLD_STATE.machineInterventionCount[region.name]||0) > (WORLD_STATE.machinePreferenceThreshold[region.name] || 2));
@@ -2116,6 +2733,14 @@ document.getElementById('crisis-abandon').onclick  = () => crisisCallback?.('aba
 document.getElementById('popup-close').onclick     = () => { document.getElementById('region-popup').style.display='none'; };
 document.getElementById('restart-btn').onclick     = () => { localStorage.removeItem('singularity_save'); location.reload(); };
 document.getElementById('tut-skip').onclick        = () => { tutorialStep = 99; document.getElementById('tutorial-box').style.display = 'none'; };
+document.getElementById('memory-toggle').addEventListener('click', () => {
+    const entries = document.getElementById('memory-entries');
+    const btn = document.getElementById('memory-toggle');
+    const isHidden = entries.style.display === 'none';
+    entries.style.display = isHidden ? '' : 'none';
+    btn.textContent = isHidden ? '▲' : '▼';
+});
+updateMemoryArchive();
 
 // ─── Per-Frame Animations ──────────────────────────────────────────────────────
 function updateMeshAnimations() {
@@ -2148,11 +2773,26 @@ function updateLabelPositions() {
     });
 }
 
+let _docPulsePhase = 0;
+function updateDoctrineEmissivePulse() {
+    if (!selectedArchetype || gameOver) return;
+    _docPulsePhase += 0.028;
+    const pulse = (Math.sin(_docPulsePhase) * 0.5 + 0.5) * 0.11;
+    regionMeshes.forEach(mesh => {
+        const r = mesh.userData.region;
+        if (!r.collapsed && r !== selectedRegion && getRegionDoctrine(r)) {
+            mesh.material.emissive.set(0xcc1515);
+            mesh.material.emissiveIntensity = pulse;
+        }
+    });
+}
+
 // ─── Render Loop ───────────────────────────────────────────────────────────────
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
     updateMeshAnimations();
+    updateDoctrineEmissivePulse();
     updateLabelPositions();
     renderer.render(scene, camera);
 }
