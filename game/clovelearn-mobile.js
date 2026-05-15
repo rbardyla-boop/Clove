@@ -19,6 +19,16 @@
     document.body.prepend(el);
 }());
 
+// Portrait overlay — JS backup for Android Chrome where CSS orientation query can lag
+function syncRotateOverlay() {
+    var overlay = document.getElementById('rotate-overlay');
+    if (!overlay) return;
+    overlay.style.display = (window.innerHeight > window.innerWidth) ? 'flex' : 'none';
+}
+syncRotateOverlay();
+window.addEventListener('resize', syncRotateOverlay);
+window.addEventListener('orientationchange', function () { setTimeout(syncRotateOverlay, 120); });
+
 // Attempt hardware orientation lock (works in Chrome on Android when fullscreen/PWA)
 function tryLockLandscape() {
     if (screen.orientation && screen.orientation.lock) {

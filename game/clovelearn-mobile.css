@@ -34,15 +34,20 @@
     #rotate-overlay { display: flex; }
 }
 
-/* ── Mobile Landscape (phones ≤ 500px tall, e.g. Pixel 9) ─────────────────── */
+/* ── Global: push archive above event log (log: bottom 44px + max-height 130px = 174px) ── */
+#memory-archive { bottom: 185px; }
+
+/* ── Mobile Landscape (phones ≤ 500px tall, e.g. Pixel 9 / Pixel 6) ──────── */
 @media (max-height: 500px) and (orientation: landscape) {
 
-    /* HUD */
+    /* HUD — capped height so end-turn button is never pushed off-screen by nav bar */
     #hud {
         width: 175px;
         top: 8px; left: 8px;
         padding: 10px 11px;
         border-radius: 14px;
+        max-height: calc(100% - 16px - env(safe-area-inset-bottom, 0px));
+        overflow-y: auto;
     }
     .hud-title       { font-size: 8px; margin-bottom: 7px; }
     .hud-row         { font-size: 11px; margin-bottom: 5px; }
@@ -53,12 +58,12 @@
     #end-turn-btn    { margin-top: 9px; padding: 8px 6px; font-size: 10px; border-radius: 8px; }
     #mute-btn        { font-size: 12px; margin-top: 2px; }
 
-    /* Sidebar */
+    /* Sidebar — height accounts for nav bar */
     #sidebar {
         width: 200px;
         right: 8px; top: 8px;
         padding: 12px 11px;
-        height: calc(100% - 16px);
+        height: calc(100% - 16px - env(safe-area-inset-bottom, 0px));
         border-radius: 16px;
     }
     #sidebar h2      { font-size: 9px; margin-bottom: 3px; }
@@ -70,10 +75,10 @@
     .upg-cost        { font-size: 11px; top: 8px; right: 9px; }
     .upg-desc        { font-size: 9px; }
 
-    /* Event log — adjusted for new panel widths */
+    /* Event log — sits above ticker + nav bar */
     #log {
         left: 8px;
-        bottom: 30px;
+        bottom: calc(30px + env(safe-area-inset-bottom, 0px));
         width: calc(100% - 16px - 208px);
         max-height: 80px;
         padding: 8px 10px;
@@ -83,10 +88,10 @@
     #logLines   { font-size: 10px; max-height: 52px; }
 
     /* Footer */
-    #footer { bottom: 30px; right: 214px; font-size: 9px; }
+    #footer { bottom: calc(30px + env(safe-area-inset-bottom, 0px)); right: 214px; font-size: 9px; }
 
-    /* News ticker */
-    #ticker          { height: 22px; }
+    /* News ticker — extends into safe area with padding so text stays above nav bar */
+    #ticker          { height: calc(22px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
     #ticker-label    { font-size: 8px; padding: 0 9px; }
     #ticker-content  { font-size: 10px; }
 
@@ -144,10 +149,13 @@
     #boot-lines   { font-size: 11px; min-height: 70px; margin-bottom: 14px; }
 
     /* Tutorial */
-    #tutorial-box { bottom: 90px; width: min(280px, 80vw); padding: 14px 16px; }
+    #tutorial-box { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); width: min(280px, 80vw); padding: 14px 16px; }
     #tut-title    { font-size: 12px; }
     #tut-body     { font-size: 11px; }
 
     /* Zero-day picker */
     #zero-day-box { width: min(80vw, 320px); padding: 18px; max-height: 80vh; }
+
+    /* Machine Memory Archive — no room on phones */
+    #memory-archive { display: none; }
 }
