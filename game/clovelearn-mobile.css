@@ -69,7 +69,7 @@
         letter-spacing: 0.03em;
     }
     #hud > .hud-row span:first-child {
-        color: rgba(210,230,255,0.4);
+        color: var(--ink-mute);
         font-size: 9px;
         margin-right: 3px;
         letter-spacing: 0.06em;
@@ -142,9 +142,9 @@
         top: calc(10px + env(safe-area-inset-top, 0px));
         right: 16px;
         background: none;
-        border: 1px solid rgba(210,230,255,0.12);
-        border-radius: 8px;
-        color: rgba(210,230,255,0.5);
+        border: 1px solid var(--hairline);
+        border-radius: 1px;
+        color: var(--ink-dim);
         font-size: 16px;
         cursor: pointer;
         min-width: 44px;
@@ -161,9 +161,9 @@
         top: calc(env(safe-area-inset-top, 0px) + 6px);
         right: 12px;
         z-index: 22;
-        background: rgba(4,12,26,0.94);
+        background: var(--surface);
         border: 1px solid var(--accent-dim);
-        border-radius: 8px;
+        border-radius: 1px;
         color: var(--accent);
         font-size: 10px;
         font-weight: 700;
@@ -174,6 +174,7 @@
         min-width: 44px;
         align-items: center;
         gap: 4px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
     }
 
     /* Backdrop behind open sidebar */
@@ -238,10 +239,11 @@
         left: 8px; right: 8px;
         top: auto;
         width: auto;
-        border-radius: 18px;
+        border-radius: 2px;
         max-height: 52vh;
         overflow-y: auto;
         z-index: 30;
+        box-shadow: none;
     }
     #popup-close { min-width: 44px; min-height: 44px; top: 6px; right: 8px; font-size: 16px; }
     #popup-name  { font-size: 15px; margin-bottom: 14px; padding-right: 36px; }
@@ -253,7 +255,7 @@
     #crisis-box {
         width: min(96vw, 440px);
         padding: 20px 18px;
-        border-radius: 20px;
+        border-radius: 2px;
         max-height: 90vh;
         overflow-y: auto;
     }
@@ -264,9 +266,9 @@
         padding: 14px 10px;
         font-size: 12px;
         min-height: 52px;
-        border-radius: 12px;
+        border-radius: 1px;
     }
-    #crisis-ai-gov { padding: 14px 10px; min-height: 52px; font-size: 12px; }
+    #crisis-ai-gov { padding: 14px 10px; min-height: 52px; font-size: 12px; border-radius: 1px; }
 
     /* ── Cycle report: scrollable, condensed ─────────────────────────────── */
     #cycle-report-box {
@@ -274,7 +276,8 @@
         max-height: 82vh;
         overflow-y: auto;
         padding: 20px 16px;
-        border-radius: 16px;
+        border-radius: 2px;
+        box-shadow: none;
     }
     #cycle-report-header { font-size: 8px; }
     #cycle-report-turn   { font-size: 12px; margin-bottom: 14px; }
@@ -291,8 +294,8 @@
         min-height: 52px;
         position: sticky;
         bottom: 0;
-        background: rgba(4,12,28,0.99);
-        border-radius: 10px;
+        background: rgba(8,11,16,0.99);
+        border-radius: 1px;
     }
 
     /* ── Archetype select screen ─────────────────────────────────────────── */
@@ -308,11 +311,11 @@
         padding: 12px 14px;
         font-size: 12px;
         min-height: 52px;
-        border-radius: 10px;
+        border-radius: 1px;
         flex: unset;
     }
     .arch-tab small       { font-size: 10px; margin-top: 2px; }
-    #archetype-detail     { padding: 18px 16px; margin-bottom: 16px; min-height: 0; }
+    #archetype-detail     { padding: 18px 16px; margin-bottom: 16px; min-height: 0; border-radius: 2px; }
     .arch-name            { font-size: 22px; }
     .arch-subtitle        { font-size: 13px; }
     .arch-desc            { font-size: 13px; line-height: 1.55; }
@@ -321,7 +324,7 @@
         padding: 16px;
         font-size: 14px;
         min-height: 56px;
-        border-radius: 12px;
+        border-radius: 1px;
     }
 
     /* ── Boot screen ─────────────────────────────────────────────────────── */
@@ -333,7 +336,8 @@
     #end-box {
         padding: 28px 20px;
         max-width: 94vw;
-        border-radius: 20px;
+        border-radius: 2px;
+        box-shadow: none;
     }
     #end-title    { font-size: 24px; margin-bottom: 12px; }
     #end-subtitle { font-size: 13px; line-height: 1.5; }
@@ -343,9 +347,9 @@
         padding: 16px;
         font-size: 14px;
         min-height: 52px;
-        border-radius: 12px;
+        border-radius: 1px;
     }
-    #feedback-btn { min-height: 44px; padding: 10px 22px; font-size: 11px; }
+    #feedback-btn { min-height: 44px; padding: 10px 22px; font-size: 11px; border-radius: 1px; }
 
     /* ── Tutorial box ────────────────────────────────────────────────────── */
     #tutorial-box {
@@ -354,15 +358,16 @@
         width: auto;
         transform: none;
         padding: 16px 18px;
+        border-radius: 2px;
     }
     #tut-title { font-size: 14px; }
     #tut-body  { font-size: 12px; }
-    #tut-skip  { min-height: 44px; padding: 10px 18px; font-size: 11px; }
+    #tut-skip  { min-height: 44px; padding: 10px 18px; font-size: 11px; border-radius: 1px; }
 
     /* ── Zero-day picker ─────────────────────────────────────────────────── */
-    #zero-day-box { width: 92vw; max-height: 78vh; padding: 20px 18px; }
-    .zero-day-target-btn { padding: 16px 14px; min-height: 52px; }
-    .zero-day-close-btn  { padding: 14px; min-height: 44px; }
+    #zero-day-box { width: 92vw; max-height: 78vh; padding: 20px 18px; border-radius: 2px; }
+    .zero-day-target-btn { padding: 16px 14px; min-height: 52px; border-radius: 1px; }
+    .zero-day-close-btn  { padding: 14px; min-height: 44px; border-radius: 1px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -372,21 +377,23 @@
 
     /* HUD — capped height so end-turn button never pushed off-screen */
     #hud {
-        width: 175px;
+        width: 170px;
         top: 8px; left: 8px;
         padding: 10px 11px;
-        border-radius: 14px;
+        border-radius: 2px;
         max-height: calc(100% - 16px - env(safe-area-inset-bottom, 0px));
         overflow-y: auto;
+        box-shadow: none;
+        backdrop-filter: none;
     }
     .hud-title      { font-size: 8px; margin-bottom: 7px; }
     .hud-row        { font-size: 11px; margin-bottom: 5px; }
     .hud-label      { font-size: 9px; margin-bottom: 4px; }
     #resistance-row { margin-top: 7px; padding-top: 7px; }
-    #resistance-bar-bg { height: 6px; }
+    #resistance-bar-bg { height: 5px; }
     #resistance-pct { font-size: 10px; }
-    #end-turn-btn   { margin-top: 9px; padding: 8px 6px; font-size: 10px; border-radius: 8px; }
-    #mute-btn       { font-size: 12px; margin-top: 2px; }
+    #end-turn-btn   { margin-top: 9px; padding: 8px 6px; font-size: 10px; border-radius: 1px; }
+    #mute-btn       { font-size: 11px; margin-top: 2px; }
 
     /* Sidebar — fixed height accounting for nav bar */
     #sidebar {
@@ -394,13 +401,15 @@
         right: 8px; top: 8px;
         padding: 12px 11px;
         height: calc(100% - 16px - env(safe-area-inset-bottom, 0px));
-        border-radius: 16px;
+        border-radius: 2px;
+        box-shadow: none;
+        backdrop-filter: none;
     }
     #sidebar h2      { font-size: 9px; margin-bottom: 3px; }
     #select-hint     { font-size: 10px; margin-bottom: 6px; }
     #selected-label  { font-size: 11px; margin-bottom: 8px; }
     .tier-header     { font-size: 8px; margin: 10px 0 4px; }
-    .upgrade-btn     { padding: 8px 9px; margin-bottom: 5px; border-radius: 8px; }
+    .upgrade-btn     { padding: 8px 9px; margin-bottom: 5px; border-radius: 1px; }
     .upg-name        { font-size: 11px; }
     .upg-cost        { font-size: 11px; top: 8px; right: 9px; }
     .upg-desc        { font-size: 9px; }
@@ -412,7 +421,9 @@
         width: calc(100% - 16px - 208px);
         max-height: 80px;
         padding: 8px 10px;
-        border-radius: 12px;
+        border-radius: 2px;
+        box-shadow: none;
+        backdrop-filter: none;
     }
     .log-title { font-size: 9px; margin-bottom: 5px; }
     #logLines  { font-size: 10px; max-height: 52px; }
@@ -426,7 +437,7 @@
     #ticker-content { font-size: 10px; }
 
     /* Region popup */
-    #region-popup { left: 192px; top: 8px; width: 200px; padding: 12px 13px; border-radius: 14px; }
+    #region-popup { left: 185px; top: 8px; width: 200px; padding: 12px 13px; border-radius: 2px; box-shadow: none; }
     #popup-name   { font-size: 12px; margin-bottom: 8px; }
     .stat-label   { font-size: 9px; width: 60px; }
     .stat-val     { font-size: 9px; }
@@ -443,11 +454,11 @@
     .arch-tab {
         padding: 7px 10px; font-size: 10px;
         flex: 1 0 calc(33.3% - 4px); min-width: 0;
-        border-radius: 9px;
+        border-radius: 1px;
     }
     .arch-tab small { font-size: 8px; margin-top: 2px; }
     #archetype-detail {
-        padding: 14px 16px; border-radius: 14px;
+        padding: 14px 16px; border-radius: 2px;
         min-height: 0; margin-bottom: 12px;
     }
     .arch-name       { font-size: 18px; margin-bottom: 2px; }
@@ -455,20 +466,20 @@
     .arch-difficulty { font-size: 9px; margin-bottom: 8px; }
     .arch-desc       { font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
     .arch-stats      { font-size: 10px; gap: 2px; }
-    #deploy-btn      { padding: 12px; font-size: 12px; border-radius: 11px; }
+    #deploy-btn      { padding: 12px; font-size: 12px; border-radius: 1px; }
 
     /* Crisis modal — stack buttons vertically for thumb reach */
     #crisis-box {
         width: min(92vw, 360px);
-        padding: 16px 18px; border-radius: 18px;
+        padding: 16px 18px; border-radius: 2px;
     }
     #crisis-region-name { font-size: 18px; }
     #crisis-message     { font-size: 12px; margin-bottom: 14px; }
     #crisis-buttons     { flex-direction: column; gap: 7px; }
-    #crisis-buttons button { padding: 10px 8px; font-size: 10px; }
+    #crisis-buttons button { padding: 10px 8px; font-size: 10px; border-radius: 1px; }
 
     /* End screen */
-    #end-box    { padding: 24px 28px; max-width: min(85vw, 480px); border-radius: 22px; }
+    #end-box    { padding: 24px 28px; max-width: min(85vw, 480px); border-radius: 2px; box-shadow: none; }
     #end-title  { font-size: 22px; margin-bottom: 10px; }
     #end-subtitle { font-size: 13px; }
     #end-history  { max-height: 100px; }

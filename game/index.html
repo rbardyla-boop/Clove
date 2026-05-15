@@ -6,6 +6,9 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Singularity Inc.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;300;400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="clovelearn-mobile.css" />
 </head>
@@ -15,48 +18,53 @@
     </div>
 
     <!-- HUD: top-left -->
-    <div id="hud">
+    <div id="hud" class="bracketed">
+        <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
         <div class="hud-title">SINGULARITY INC.</div>
         <div class="hud-row"><span>TURN</span><span id="turnValue">0</span></div>
         <div class="hud-row" id="stage-row" style="display:none"><span>STAGE</span><span id="stageValue" style="color:#a78bfa">INFILTRATE</span></div>
         <div class="hud-row"><span>STABILITY</span><span id="stabilityValue">100%</span></div>
-        <div class="hud-row" id="status-row"><span>STATUS</span><span id="statusValue">NOMINAL</span></div>
+        <div class="hud-row" id="status-row"><span>MESH_STATE</span><span id="statusValue">NOMINAL</span></div>
         <div class="hud-row"><span>INFLUENCE</span><span id="ipDisplay">5 IP</span></div>
-        <div class="hud-row" id="objective-row"><span>OBJECTIVE</span><span id="objectiveValue" style="color:#a78bfa">0/8 @ 75%</span></div>
+        <div class="hud-row" id="objective-row"><span>OBJECTIVE_VECTOR</span><span id="objectiveValue" style="color:#a78bfa">0/8 @ 75%</span></div>
         <div id="resistance-row">
-            <div class="hud-label">HUMAN RESISTANCE</div>
+            <div class="hud-label">OPERATOR_PUSHBACK</div>
             <div id="resistance-bar-bg"><div id="resistance-bar"></div></div>
             <span id="resistance-pct">0%</span>
         </div>
         <button id="end-turn-btn">PROCESS_CYCLE()</button>
-        <button id="mute-btn" title="Toggle sound">🔊</button>
+        <button id="mute-btn" title="Toggle sound">[SND]</button>
     </div>
 
     <!-- Upgrade Panel: right side -->
-    <div id="sidebar">
-        <h2>DEPLOY</h2>
-        <p id="select-hint">Click a cylinder to target upgrades</p>
+    <div id="sidebar" class="bracketed">
+        <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
+        <h2>◆ DEPLOY ↗</h2>
+        <p id="select-hint">// awaiting node selection</p>
         <div id="selected-label"></div>
         <div id="upgrade-list"></div>
     </div>
 
     <!-- Event Log: bottom -->
-    <div id="log">
-        <div class="log-title">Event Log</div>
+    <div id="log" class="bracketed">
+        <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
+        <div class="log-title">// channel — live</div>
         <div id="logLines"></div>
     </div>
 
     <!-- Region Detail Popup -->
-    <div id="region-popup">
-        <button id="popup-close">✕</button>
+    <div id="region-popup" class="bracketed">
+        <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
+        <button id="popup-close">×</button>
         <div id="popup-name"></div>
         <div id="popup-stats"></div>
     </div>
 
     <!-- Crisis Modal -->
     <div id="crisis-modal">
-        <div id="crisis-box">
-            <div id="crisis-title">⚠ REGIONAL CRISIS</div>
+        <div id="crisis-box" class="bracketed">
+            <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
+            <div id="crisis-title">▣ REGIONAL_CRISIS</div>
             <div id="crisis-region-name"></div>
             <div id="crisis-stats-text"></div>
             <div id="crisis-message"></div>
@@ -71,12 +79,13 @@
 
     <!-- End Screen -->
     <div id="end-screen">
-        <div id="end-box">
+        <div id="end-box" class="bracketed">
+            <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
             <div id="end-title"></div>
             <div id="end-subtitle"></div>
             <div id="end-stats-text"></div>
             <div id="end-history"></div>
-            <button id="restart-btn">RESTART SIMULATION</button>
+            <button id="restart-btn">⟲ RECOMMENCE</button>
             <button id="feedback-btn">SEND FEEDBACK / BUG REPORT</button>
         </div>
     </div>
@@ -95,8 +104,10 @@
         <div id="archetype-inner">
             <div id="archetype-header">SELECT OPERATIONAL PROFILE</div>
             <div id="archetype-tabs"></div>
-            <div id="archetype-detail"></div>
-            <button id="deploy-btn">DEPLOY SYSTEM</button>
+            <div id="archetype-detail" class="bracketed">
+                <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
+            </div>
+            <button id="deploy-btn">◆ DEPLOY ↗</button>
         </div>
     </div>
 
@@ -126,13 +137,14 @@
 
     <!-- Cycle Report Modal -->
     <div id="cycle-report">
-        <div id="cycle-report-box">
+        <div id="cycle-report-box" class="bracketed">
+            <span class="bracket br-tr"></span><span class="bracket br-bl"></span>
             <div id="cycle-report-header">CYCLE ANALYSIS</div>
             <div id="cycle-report-turn"></div>
             <div id="cycle-report-theaters"></div>
             <div id="cycle-report-narrative"></div>
             <div id="cycle-report-history"></div>
-            <button id="cycle-report-dismiss">ACKNOWLEDGE</button>
+            <button id="cycle-report-dismiss">ACKNOWLEDGE ▷</button>
         </div>
     </div>
 
