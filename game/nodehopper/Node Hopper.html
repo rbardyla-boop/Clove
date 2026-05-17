@@ -214,6 +214,26 @@
     pointer-events: none;
   }
   .brand-corner b { color: var(--cyan); font-weight: 500; }
+
+  /* Mobile */
+  @media (max-width: 520px) {
+    .hud { padding: 8px 10px; gap: 5px; font-size: 9px; letter-spacing: 0.1em; }
+    .hud-cluster { gap: 5px; }
+    .hud-cell { padding: 4px 7px; min-width: 0; gap: 1px; }
+    .hud-cell .label { font-size: 7px; letter-spacing: 0.18em; }
+    .hud-cell .value { font-size: 12px; letter-spacing: 0.06em; }
+    .life-pip { width: 7px; height: 7px; margin-right: 2px; }
+    .card-title { font-size: 32px; }
+    #chamber-card .card-title { font-size: 20px; }
+    .card-inner { min-width: 0; padding: 24px 20px; }
+    #chamber-card .card-inner { padding: 16px 24px; }
+    #gameover-card .card-inner { padding: 28px 20px; }
+    .stats-row { gap: 12px; }
+    .stats-row .stat .value { font-size: 20px; }
+    .card-help { display: none; }
+    #touch-ui { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+    .brand-corner { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -316,7 +336,7 @@
 
 <div class="brand-corner"><b>NODE HOPPER</b> · v1.0 · clovelearn.io</div>
 
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="audio.js"></script>
 <script src="chambers.js"></script>
 <script src="render-helpers.js"></script>

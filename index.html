@@ -152,12 +152,32 @@
             letter-spacing: 0.06em; margin-top: 8px;
         }
 
+        /* Arcade card */
+        .card-arcade {
+            border-color: rgba(192,57,43,0.22);
+            grid-column: span 2;
+        }
+        .card-arcade:hover {
+            border-color: rgba(192,57,43,0.55);
+            box-shadow: 0 24px 60px rgba(192,57,43,0.10);
+        }
+        .card-arcade .card-tag {
+            font-size: 9px; letter-spacing: 0.18em; color: #e03030;
+            background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.25);
+            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
+        }
+        .card-arcade .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
+        .card-arcade .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
+        .card-arcade .card-cta { color: #e03030; }
+
         /* Mobile */
         @media (max-width: 580px) {
             .cards { grid-template-columns: 1fr; max-width: 420px; }
             .card { padding: 28px 24px; }
+            .card-arcade { grid-column: span 1; }
             .card-game .card-title,
             .card-learn .card-title,
+            .card-arcade .card-title,
             .card-mindmachine .card-title,
             .card-nodehopper .card-title { font-size: 20px; }
         }
@@ -167,6 +187,16 @@
     <div class="container">
         <p class="eyebrow">Welcome</p>
         <div class="cards">
+
+            <a class="card card-arcade" href="game/Arcade/index.html">
+                <span class="card-tag">MINI ARCADE · 6 GAMES</span>
+                <div class="card-title">OPERATOR'S DECK</div>
+                <div class="card-subtitle">
+                    Six cognitive training games in one session: physics puzzle, block unlocker, pattern cure, 2048, focus serpent, and memory match.
+                </div>
+                <div class="card-divider"></div>
+                <span class="card-cta">ENTER ARCADE</span>
+            </a>
 
             <a class="card card-game" href="game/index.html">
                 <span class="card-tag">FREE GAME</span>
