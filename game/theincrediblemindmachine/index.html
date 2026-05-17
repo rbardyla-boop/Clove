@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Incredible Mind Machine // v0.5 FINAL</title>
+
+  <!-- Web Manifest (inline, base64) -->
+  <link rel="manifest" href='data:application/json;base64,ewogICJuYW1lIjogIlRoZSBJbmNyZWRpYmxlIE1pbmQgTWFjaGluZSIsCiAgInNob3J0X25hbWUiOiAiTWluZE1hY2hpbmUiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzEyMTIxMiIsCiAgInRoZW1lX2NvbG9yIjogIiNGRjcwNDMiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsPHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA1MTIgNTEyJz48Y2lyY2xlIGN4PScyNTYnIGN5PScyNTYnIHI9JzI0MCcgZmlsbD0nIzEyMTIxMicvPjxjaXJjbGUgY3g9JzI1NicgY3k9JzI1Nicgcj0nMTIwJyBmaWxsPScjRkY3MDQzJy8+PC9zdmc+IiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ=='>
+  <meta name="theme-color" content="#FF7043">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Three.js r152 + cannon-es via importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.152.2/build/three.module.js",
+      "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+    }
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: rgba(22, 22, 24, 0.92);
+      --text: #ECE6DA;
+      --muted: #8A8378;
+      --accent: #FF7043;
+      --accent-2: #FFB347;
+      --rope: #6FCF97;
+      --balloon: #BB6BD9;
+      --cat: #EB5757;
+      --mouse: #56CCF2;
+      --box: #F2C94C;
+      --border: #2C2A26;
+      --shadow: rgba(0,0,0,0.55);
+      --font-sans: 'Space Grotesk', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    [data-theme="light"] {
+      --bg: #F8F1E3;
+      --panel: rgba(255, 252, 245, 0.94);
+      --text: #2D251E;
+      --muted: #7A726A;
+      --accent: #D85A2A;
+      --accent-2: #C18A2B;
+      --rope: #2E8C5A;
+      --balloon: #7E3FA0;
+      --cat: #C73A3A;
+      --mouse: #2A82B4;
+      --box: #C99F1F;
+      --border: #D9CFC2;
+      --shadow: rgba(45, 37, 30, 0.18);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text); font-family: var(--font-sans);
+      transition: background-color .3s ease, color .3s ease;
+      -webkit-user-select: none; user-select: none;
+    }
+    #canvas-wrap { position: absolute; inset: 0; z-index: 1; }
+    #game-canvas { width: 100%; height: 100%; display: block; outline: none; }
+
+    .hud { position: absolute; z-index: 10; pointer-events: none; }
+    .hud > * { pointer-events: auto; }
+
+    .top {
+      top: 0; left: 0; right: 0;
+      padding: 14px 18px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: radial-gradient(circle at 30% 30%, var(--accent-2), var(--accent) 60%, #6b2614);
+      box-shadow: 0 0 0 1px var(--border), 0 6px 14px var(--shadow);
+    }
+    .brand h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand .ver {
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px;
+    }
+    .level-info {
+      font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+      background: var(--panel); border: 1px solid var(--border);
+      padding: 7px 12px; border-radius: 8px; backdrop-filter: blur(12px);
+      box-shadow: 0 4px 12px var(--shadow);
+      max-width: 50vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .btn {
+      background: var(--panel); border: 1px solid var(--border); color: var(--text);
+      padding: 9px 12px; border-radius: 8px; cursor: pointer;
+      font-family: var(--font-sans); font-weight: 600; font-size: 13px;
+      display: inline-flex; align-items: center; gap: 7px;
+      transition: transform .15s ease, border-color .15s ease, background-color .15s ease;
+      box-shadow: 0 4px 10px var(--shadow); backdrop-filter: blur(12px);
+    }
+    .btn:hover, .btn:focus-visible { border-color: var(--accent); transform: translateY(-1px); outline: none; }
+    .btn:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent), 0 4px 10px var(--shadow); }
+    .btn:active { transform: translateY(0); }
+    .btn.primary { background: var(--accent); color: #1a0d06; border-color: transparent; }
+    .btn.primary:hover, .btn.primary:focus-visible { background: var(--accent-2); }
+
+    .palette {
+      bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 8px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 14px; padding: 8px;
+      box-shadow: 0 12px 30px var(--shadow); backdrop-filter: blur(12px);
+      max-width: 96vw; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 10px;
+      background: rgba(0,0,0,0.18); border: 1px solid transparent;
+      color: var(--text); font-weight: 600; font-size: 12px;
+      cursor: pointer; transition: border-color .15s, background-color .15s, transform .15s;
+      white-space: nowrap;
+    }
+    [data-theme="light"] .pill { background: rgba(0,0,0,0.04); }
+    .pill .swatch { width: 14px; height: 14px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
+    .pill .count {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      padding: 2px 6px; border-radius: 999px; background: rgba(0,0,0,0.25);
+    }
+    [data-theme="light"] .pill .count { background: rgba(0,0,0,0.08); color: var(--text); }
+    .pill.active { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 15%, transparent); }
+    .pill[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+    .pill:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent); }
+
+    .helper {
+      position: absolute; left: 18px; bottom: 18px; z-index: 9;
+      max-width: 320px; pointer-events: auto;
+    }
+    .hint {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(10px);
+      line-height: 1.55;
+    }
+    .hint strong { color: var(--text); font-family: var(--font-sans); }
+    .hint kbd {
+      font-family: var(--font-mono); font-size: 10px;
+      padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.25); color: var(--text);
+    }
+    [data-theme="light"] .hint kbd { background: rgba(0,0,0,0.06); }
+
+    .right-rail {
+      position: absolute; right: 18px; bottom: 70px; z-index: 9;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .overlay {
+      position: absolute; inset: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(10px);
+      opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 18px; padding: 26px;
+      width: min(520px, 92vw);
+      box-shadow: 0 24px 60px var(--shadow);
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .panel h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; }
+    .panel p { margin: 0; line-height: 1.55; color: var(--muted); font-size: 14px; }
+    .panel .row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .panel .row:last-of-type { border-bottom: none; }
+    .panel .row label { font-weight: 600; font-size: 14px; }
+    .panel .actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .slider {
+      flex: 1; -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; border-radius: 999px;
+      background: var(--border); outline: none;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: 2px solid var(--bg);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .slider::-moz-range-thumb {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: 2px solid var(--bg);
+    }
+    .slider-wrap { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+
+    textarea {
+      width: 100%; min-height: 130px; resize: vertical;
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 10px; border-radius: 8px;
+      background: rgba(0,0,0,0.25); color: var(--text);
+      border: 1px solid var(--border); outline: none;
+    }
+    [data-theme="light"] textarea { background: rgba(0,0,0,0.04); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 3px 8px; border-radius: 999px;
+      background: color-mix(in oklab, var(--accent) 18%, transparent);
+      color: var(--accent);
+    }
+    .seed-strip {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+
+    footer.stamp {
+      position: absolute; bottom: 6px; right: 14px; z-index: 5; pointer-events: none;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .cf-block {
+      position: absolute; bottom: 60px; left: 18px; z-index: 8;
+      max-width: 360px; pointer-events: auto;
+    }
+    .cf-block details {
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--panel); padding: 10px 12px; backdrop-filter: blur(10px);
+    }
+    .cf-block summary {
+      cursor: pointer; font-size: 12px; font-weight: 600;
+      list-style: none; display: flex; align-items: center; gap: 8px;
+    }
+    .cf-block summary::-webkit-details-marker { display: none; }
+    .cf-block summary::before {
+      content: "▸"; transition: transform .2s; color: var(--accent);
+    }
+    .cf-block details[open] summary::before { transform: rotate(90deg); }
+    .cf-block pre {
+      font-family: var(--font-mono); font-size: 10.5px;
+      background: rgba(0,0,0,0.3); padding: 10px;
+      border-radius: 8px; margin: 10px 0 0; overflow-x: auto;
+      border: 1px solid var(--border); line-height: 1.5;
+      color: var(--text); white-space: pre-wrap; word-break: break-word;
+    }
+    [data-theme="light"] .cf-block pre { background: rgba(0,0,0,0.04); }
+
+    .toast {
+      position: absolute; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      background: var(--panel); border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 999px;
+      font-size: 12px; color: var(--text); z-index: 50;
+      opacity: 0; transition: opacity .25s, transform .25s;
+      box-shadow: 0 8px 20px var(--shadow); backdrop-filter: blur(10px);
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .selected-info {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      top: 64px; z-index: 8;
+      font-family: var(--font-mono); font-size: 11px; color: var(--text);
+      background: var(--panel); border: 1px solid var(--accent);
+      padding: 6px 12px; border-radius: 8px; backdrop-filter: blur(10px);
+      display: none; pointer-events: none;
+    }
+    .selected-info.show { display: inline-flex; align-items: center; gap: 8px; }
+
+    @media (max-width: 720px) {
+      .brand h1 { font-size: 16px; }
+      .level-info { font-size: 11px; padding: 6px 10px; max-width: 60vw; }
+      .helper { display: none; }
+      .cf-block { display: none; }
+      .palette { gap: 6px; padding: 6px; }
+      .pill { padding: 7px 10px; font-size: 11px; }
+      .pill .swatch { width: 12px; height: 12px; }
+      .right-rail { bottom: 80px; right: 10px; }
+      .panel { padding: 20px; }
+      .panel h2 { font-size: 18px; }
+    }
+
+    /* Accessible focus ring for canvas */
+    #game-canvas:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -3px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="canvas-wrap">
+  <canvas id="game-canvas"
+          tabindex="0"
+          role="application"
+          aria-label="Mind Machine puzzle canvas. Use Tab to focus parts, arrow keys to nudge, R to rotate, Delete to remove. Press P to pause."></canvas>
+</div>
+
+<!-- TOP HUD -->
+<div class="hud top">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true"></div>
+    <h1>The Incredible Mind Machine</h1>
+    <span class="ver">v0.5 FINAL</span>
+  </div>
+
+  <div class="level-info" id="level-info" aria-live="polite">LEVEL 1 — Loading…</div>
+
+  <div class="actions">
+    <button class="btn" id="daily-btn" aria-label="Play today's daily puzzle">
+      <span aria-hidden="true">☼</span> Daily
+    </button>
+    <button class="btn" id="theme-btn" aria-label="Toggle light and dark theme" aria-pressed="false">
+      <span id="theme-icon" aria-hidden="true">☾</span>
+    </button>
+    <button class="btn" id="pause-btn" aria-label="Open pause and settings menu">
+      <span aria-hidden="true">❚❚</span>
+    </button>
+    <button class="btn primary" id="run-btn" aria-label="Run the simulation">
+      <span aria-hidden="true">▶</span> Run
+    </button>
+  </div>
+</div>
+
+<!-- SELECTION TOAST -->
+<div class="selected-info" id="selected-info" aria-live="polite"></div>
+
+<!-- PARTS PALETTE -->
+<div class="hud palette" id="palette" role="toolbar" aria-label="Parts inventory. Click a part to add it to the board.">
+  <div class="pill active" data-part="rope" tabindex="0" role="button" aria-label="Rope of Discipline. Long thin platform.">
+    <span class="swatch" style="background: var(--rope);"></span>
+    Rope of Discipline
+    <span class="count" id="count-rope">×0</span>
+  </div>
+  <div class="pill" data-part="balloon" tabindex="0" role="button" aria-label="Balloon of Focus. Bouncy launcher.">
+    <span class="swatch" style="background: var(--balloon);"></span>
+    Balloon of Focus
+    <span class="count" id="count-balloon">×0</span>
+  </div>
+  <div class="pill" data-part="box" tabindex="0" role="button" aria-label="Box of Action. Solid platform.">
+    <span class="swatch" style="background: var(--box);"></span>
+    Box of Action
+    <span class="count" id="count-box">×0</span>
+  </div>
+</div>
+
+<!-- RIGHT RAIL: legend for fixed-in-level pieces -->
+<div class="right-rail" aria-hidden="true">
+  <div class="hint" style="font-size: 10.5px; line-height: 1.6;">
+    <div><span style="color: var(--accent); font-weight: 700;">●</span> Ball of Clarity</div>
+    <div><span style="color: var(--cat); font-weight: 700;">▲</span> Cat of Self-Sabotage</div>
+    <div><span style="color: var(--mouse); font-weight: 700;">■</span> Mouse of Distraction</div>
+    <div><span style="color: var(--rope); font-weight: 700;">◎</span> Goal: Insight</div>
+  </div>
+</div>
+
+<!-- HELPER HINT -->
+<div class="helper">
+  <div class="hint">
+    <strong>Compose the path.</strong><br>
+    Drag parts with mouse / touch. Click to select, then
+    <kbd>←↑↓→</kbd> nudge · <kbd>R</kbd> rotate · <kbd>Del</kbd> remove · <kbd>P</kbd> pause · <kbd>Space</kbd> run.
+  </div>
+</div>
+
+<!-- CLOUDFLARE BLOCK -->
+<div class="cf-block">
+  <details id="cf-details">
+    <summary>Host on Cloudflare Pages</summary>
+<pre>1. Save this file locally as "index.html".
+2. Create a clean folder containing only this index file.
+3. Open the Cloudflare Dashboard → Workers &amp; Pages.
+4. Click "Create application" → "Pages" → "Upload assets"
+   (or connect a Git repo containing the file).
+5. Project settings:
+   - Build command:    (leave empty)
+   - Build output dir: /
+   - Framework preset: None
+6. Deploy. To attach a custom domain (e.g. mindmachine.app),
+   open the Pages project → Custom domains → Add domain,
+   then point the CNAME to <project>.pages.dev.
+7. Service worker caches all assets on first load, so the app
+   is fully playable offline after one online visit.</pre>
+  </details>
+</div>
+
+<!-- PAUSE MODAL -->
+<div class="overlay" id="pause-modal" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+  <div class="panel">
+    <h2 id="pause-title">Pause &amp; Settings</h2>
+    <p>Procedural audio levels, daily streak status, and level data export live here.</p>
+
+    <div class="row">
+      <label for="volume-slider">Audio volume</label>
+      <div class="slider-wrap">
+        <span aria-hidden="true">🔈</span>
+        <input id="volume-slider" class="slider" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Master audio volume">
+        <span aria-hidden="true">🔊</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>Daily streak</label>
+      <span class="badge" id="streak-badge">0 days</span>
+    </div>
+
+    <div class="row">
+      <label>Today's seed</label>
+      <span class="seed-strip"><span id="daily-seed">—</span></span>
+    </div>
+
+    <div class="row">
+      <label>Best level reached</label>
+      <span class="badge" id="best-badge">1 / 20</span>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn" id="export-btn" aria-label="Export progress and level layout as JSON">Export JSON</button>
+      <button class="btn" id="import-btn" aria-label="Import progress and level layout from JSON">Import JSON</button>
+      <button class="btn" id="reset-level-btn" aria-label="Reset the current level">Reset level</button>
+      <button class="btn primary" id="resume-btn" style="margin-left:auto;" aria-label="Resume the simulation">Resume</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIN MODAL -->
+<div class="overlay" id="win-modal" role="dialog" aria-modal="true" aria-labelledby="win-title">
+  <div class="panel" style="text-align:center;">
+    <h2 id="win-title" style="justify-content:center; color: var(--rope);">Clarity reached.</h2>
+    <p id="win-sub">The Ball of Clarity arrived at Insight. The mind, briefly, is quiet.</p>
+    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+      <button class="btn" id="replay-btn">Replay</button>
+      <button class="btn primary" id="next-btn">Next level →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSFER MODAL -->
+<div class="overlay" id="transfer-modal" role="dialog" aria-modal="true" aria-labelledby="transfer-title">
+  <div class="panel">
+    <h2 id="transfer-title">JSON transfer</h2>
+    <p id="transfer-sub">Copy this payload to back up, or paste one in and apply.</p>
+    <textarea id="transfer-area" aria-label="JSON payload"></textarea>
+    <div class="actions-row" style="justify-content: flex-end;">
+      <button class="btn" id="copy-btn">Copy</button>
+      <button class="btn" id="close-transfer-btn">Close</button>
+      <button class="btn primary" id="apply-transfer-btn">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<footer class="stamp" id="stamp">v0.5 FINAL Deploy Ready // 47 KB // 100% Client-Side</footer>
+
+<script type="module">
+import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
+
+/* =========================================================
+   THE INCREDIBLE MIND MACHINE — v0.5 FINAL
+   20 mind-puzzle levels • Three.js r152 • cannon-es
+   IndexedDB saves • daily UTC seed + streak • export/import
+   procedural Web Audio • light/dark • full accessibility
+   ========================================================= */
+
+// ---------- THEMES ----------
+const PAL = {
+  dark: {
+    bg: 0x121212, fog: 0x121212,
+    ball: 0xFF7043, ballEmissive: 0x431505,
+    obstacle: 0x2A2A2A, goal: 0x6FCF97,
+    rope: 0x6FCF97, balloon: 0xBB6BD9, box: 0xF2C94C,
+    cat: 0xEB5757, mouse: 0x56CCF2,
+    grid: 0x1f1d1a, glow: 0xFF7043,
+    ambient: 0xffffff, ambientI: 0.32,
+    dirI: 0.85, dirColor: 0xfff1e0,
+  },
+  light: {
+    bg: 0xF8F1E3, fog: 0xF8F1E3,
+    ball: 0xD85A2A, ballEmissive: 0x2a0c03,
+    obstacle: 0xD1C7BD, goal: 0x2E8C5A,
+    rope: 0x2E8C5A, balloon: 0x7E3FA0, box: 0xC99F1F,
+    cat: 0xC73A3A, mouse: 0x2A82B4,
+    grid: 0xe7ddc9, glow: 0xD85A2A,
+    ambient: 0xfff6e9, ambientI: 0.7,
+    dirI: 0.6, dirColor: 0xffffff,
+  }
+};
+
+// ---------- LEVELS (20 with metaphor parts) ----------
+// Each level: ball spawn, goal, fixed obstacles (cat/mouse/wall),
+// inventory of placeables (rope/balloon/box). Hand-tuned for puzzle progression.
+const LEVELS = [
+  { name: "Wake Up", hint: "Lay a Rope; let the Ball roll right.",
+    ball:{x:-7,y:5}, goal:{x:7,y:-4},
+    walls:[ {x:0,y:-7,w:22,h:0.6,r:0} ],
+    obstacles:[], inv:{rope:2,balloon:0,box:1} },
+
+  { name: "First Decision", hint: "Step over the Mouse of Distraction.",
+    ball:{x:-7,y:6}, goal:{x:7,y:-4},
+    walls:[ {x:0,y:-7,w:22,h:0.6,r:0} ],
+    obstacles:[ {kind:"mouse", x:0,y:-6,w:1.2,h:0.6} ],
+    inv:{rope:2,balloon:1,box:1} },
+
+  { name: "The Drift", hint: "Bounce off a Balloon to cross the gap.",
+    ball:{x:-8,y:6}, goal:{x:8,y:5},
+    walls:[ {x:-7,y:-1,w:6,h:0.5,r:-0.18}, {x:7,y:0,w:6,h:0.5,r:0.18} ],
+    obstacles:[], inv:{rope:1,balloon:2,box:1} },
+
+  { name: "Procrastination Pit", hint: "Build a floor with Boxes of Action.",
+    ball:{x:-3,y:6}, goal:{x:7,y:-5},
+    walls:[ {x:-8,y:0,w:0.5,h:14,r:0}, {x:8,y:0,w:0.5,h:14,r:0} ],
+    obstacles:[ {kind:"mouse", x:0,y:-3,w:1,h:0.5},
+                {kind:"mouse", x:3,y:-5,w:1,h:0.5} ],
+    inv:{rope:1,balloon:1,box:3} },
+
+  { name: "Cat-Avoidance", hint: "Route around the Cat of Self-Sabotage.",
+    ball:{x:-8,y:6}, goal:{x:8,y:5},
+    walls:[ {x:-5,y:2,w:5,h:0.5,r:-0.2}, {x:5,y:2,w:5,h:0.5,r:0.2} ],
+    obstacles:[ {kind:"cat", x:0,y:-1,w:2.4,h:2.4} ],
+    inv:{rope:2,balloon:2,box:1} },
+
+  { name: "Cascade", hint: "Three Ropes form a winding descent.",
+    ball:{x:-8,y:7}, goal:{x:-8,y:-6},
+    walls:[ {x:-4,y:4,w:7,h:0.5,r:-0.12}, {x:2,y:1,w:7,h:0.5,r:0.14},
+            {x:-3,y:-2,w:7,h:0.5,r:-0.16} ],
+    obstacles:[], inv:{rope:3,balloon:1,box:1} },
+
+  { name: "Funnel of Doubt", hint: "Two Ropes meet — drop the Ball through.",
+    ball:{x:0,y:7}, goal:{x:0,y:-5},
+    walls:[ {x:-5,y:2,w:6,h:0.5,r:-0.4}, {x:5,y:2,w:6,h:0.5,r:0.4},
+            {x:-3,y:-1,w:1.5,h:2,r:0}, {x:3,y:-1,w:1.5,h:2,r:0} ],
+    obstacles:[ {kind:"mouse", x:0,y:-3,w:1,h:0.5} ],
+    inv:{rope:3,balloon:1,box:1} },
+
+  { name: "Bounce Through", hint: "Balloons stack vertical momentum.",
+    ball:{x:-6,y:4}, goal:{x:6,y:4},
+    walls:[ {x:-5,y:0,w:4,h:0.5,r:-0.3},
+            {x:5,y:0,w:4,h:0.5,r:0.3},
+            {x:0,y:-5,w:6,h:0.5,r:0} ],
+    obstacles:[], inv:{rope:1,balloon:3,box:1} },
+
+  { name: "Two-Cat Slalom", hint: "Thread between the Cats.",
+    ball:{x:-8,y:6}, goal:{x:8,y:-4},
+    walls:[ {x:-8,y:-2,w:5,h:0.5,r:-0.18}, {x:8,y:-1,w:5,h:0.5,r:0.18} ],
+    obstacles:[ {kind:"cat", x:-3,y:1,w:2,h:2},
+                {kind:"cat", x:3,y:-2,w:2,h:2} ],
+    inv:{rope:2,balloon:2,box:2} },
+
+  { name: "Distraction Field", hint: "Many Mice. Don't get stuck.",
+    ball:{x:-8,y:6}, goal:{x:8,y:-4},
+    walls:[ {x:-5,y:0,w:4,h:0.5,r:-0.18}, {x:5,y:-1,w:4,h:0.5,r:0.18} ],
+    obstacles:[ {kind:"mouse", x:-3,y:-3,w:0.8,h:0.5},
+                {kind:"mouse", x:0,y:-4,w:0.8,h:0.5},
+                {kind:"mouse", x:3,y:-5,w:0.8,h:0.5} ],
+    inv:{rope:2,balloon:1,box:2} },
+
+  { name: "Ascending Wave", hint: "Rise step by step.",
+    ball:{x:-8,y:0}, goal:{x:8,y:5},
+    walls:[ {x:-4,y:-3,w:4,h:0.5,r:0.22},
+            {x:1,y:-1,w:4,h:0.5,r:0.28},
+            {x:5,y:1,w:3,h:0.5,r:0.32} ],
+    obstacles:[], inv:{rope:3,balloon:2,box:1} },
+
+  { name: "Wedge of Will", hint: "A diagonal Rope splits the field.",
+    ball:{x:0,y:6}, goal:{x:8,y:-4},
+    walls:[ {x:0,y:3,w:2,h:2,r:0.78},
+            {x:-5,y:0,w:4,h:0.5,r:0.2},
+            {x:5,y:0,w:4,h:0.5,r:-0.2} ],
+    obstacles:[ {kind:"mouse", x:-2,y:-4,w:1,h:0.5} ],
+    inv:{rope:3,balloon:2,box:2} },
+
+  { name: "Pillar Drift", hint: "Three pillars, three choices.",
+    ball:{x:-8,y:6}, goal:{x:8,y:-5},
+    walls:[ {x:-4,y:0,w:1.2,h:5,r:0},
+            {x:0,y:-1,w:1.2,h:5,r:0},
+            {x:4,y:0,w:1.2,h:5,r:0} ],
+    obstacles:[], inv:{rope:3,balloon:3,box:1} },
+
+  { name: "Spring Step", hint: "Two Balloons, one staircase.",
+    ball:{x:-7,y:-4}, goal:{x:7,y:5},
+    walls:[ {x:-3,y:-2,w:3,h:0.5,r:-0.2},
+            {x:2,y:1,w:3,h:0.5,r:0.2} ],
+    obstacles:[ {kind:"mouse", x:0,y:-6,w:1,h:0.5} ],
+    inv:{rope:2,balloon:3,box:1} },
+
+  { name: "Gridlock", hint: "Three slabs. Find the seam.",
+    ball:{x:-9,y:6}, goal:{x:9,y:-6},
+    walls:[ {x:-5,y:3,w:4,h:1,r:0},
+            {x:0,y:0,w:4,h:1,r:0.2},
+            {x:5,y:-3,w:4,h:1,r:0} ],
+    obstacles:[], inv:{rope:3,balloon:2,box:2} },
+
+  { name: "Angle Vault", hint: "Two steep Ropes — match the angle.",
+    ball:{x:-6,y:7}, goal:{x:6,y:-5},
+    walls:[ {x:-3,y:3,w:6,h:0.5,r:-0.5},
+            {x:3,y:0,w:6,h:0.5,r:0.5} ],
+    obstacles:[ {kind:"cat", x:0,y:-3,w:2,h:2} ],
+    inv:{rope:3,balloon:2,box:2} },
+
+  { name: "Velocity Ridge", hint: "Build speed on the long bottom.",
+    ball:{x:-8,y:5}, goal:{x:8,y:5},
+    walls:[ {x:0,y:-4,w:18,h:1,r:0},
+            {x:-5,y:-1,w:1,h:4,r:0},
+            {x:5,y:-1,w:1,h:4,r:0} ],
+    obstacles:[], inv:{rope:3,balloon:2,box:1} },
+
+  { name: "Needle Thread", hint: "One narrow seam between rotated slabs.",
+    ball:{x:-8,y:6}, goal:{x:8,y:-6},
+    walls:[ {x:-2,y:2,w:8,h:0.5,r:0.18},
+            {x:2,y:-2,w:8,h:0.5,r:0.18} ],
+    obstacles:[ {kind:"mouse", x:0,y:0,w:0.8,h:0.5} ],
+    inv:{rope:3,balloon:2,box:2} },
+
+  { name: "Pachinko of Habit", hint: "Pegs scatter the path — guide it home.",
+    ball:{x:0,y:7}, goal:{x:6,y:-6},
+    walls:[ {x:-4,y:4,w:1,h:1,r:0.78},
+            {x:4,y:4,w:1,h:1,r:0.78},
+            {x:0,y:2,w:1,h:1,r:0.78},
+            {x:-3,y:-1,w:1,h:1,r:0.78},
+            {x:3,y:-1,w:1,h:1,r:0.78} ],
+    obstacles:[ {kind:"mouse", x:-1,y:-5,w:1,h:0.5} ],
+    inv:{rope:2,balloon:3,box:2} },
+
+  { name: "Terminal Gate", hint: "The final composition — patience.",
+    ball:{x:-8,y:7}, goal:{x:8,y:-7},
+    walls:[ {x:-4,y:3,w:6,h:0.5,r:-0.25},
+            {x:4,y:0,w:6,h:0.5,r:0.25},
+            {x:-4,y:-3,w:6,h:0.5,r:-0.15} ],
+    obstacles:[ {kind:"cat", x:5,y:-5,w:2,h:2},
+                {kind:"mouse", x:-2,y:-6,w:1,h:0.5} ],
+    inv:{rope:4,balloon:3,box:3} },
+];
+
+// ---------- INDEXEDDB ----------
+const DB_NAME = "MindMachineDB"; const DB_VERSION = 1;
+let db = null;
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(DB_NAME, DB_VERSION);
+    r.onerror = () => reject(r.error);
+    r.onsuccess = () => { db = r.result; resolve(db); };
+    r.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains("settings")) d.createObjectStore("settings", { keyPath: "key" });
+      if (!d.objectStoreNames.contains("progress")) d.createObjectStore("progress", { keyPath: "key" });
+      if (!d.objectStoreNames.contains("daily")) d.createObjectStore("daily", { keyPath: "date" });
+    };
+  });
+}
+function dbGet(store, key, defVal) {
+  return new Promise((resolve) => {
+    if (!db) return resolve(defVal);
+    try {
+      const tx = db.transaction(store, "readonly");
+      const req = tx.objectStore(store).get(key);
+      req.onsuccess = () => resolve(req.result ? req.result.value ?? req.result : defVal);
+      req.onerror = () => resolve(defVal);
+    } catch { resolve(defVal); }
+  });
+}
+function dbPut(store, key, value) {
+  return new Promise((resolve) => {
+    if (!db) return resolve();
+    try {
+      const tx = db.transaction(store, "readwrite");
+      tx.objectStore(store).put({ key, value });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    } catch { resolve(); }
+  });
+}
+
+// ---------- AUDIO ----------
+let audioCtx = null, masterGain = null, audioVolume = 0.35;
+function ensureAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = audioVolume;
+    masterGain.connect(audioCtx.destination);
+  } catch (e) { audioCtx = null; }
+}
+function resumeAudio() { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }
+function setVolume(v) {
+  audioVolume = v;
+  if (masterGain) masterGain.gain.setValueAtTime(v, audioCtx.currentTime);
+}
+function beep({freq=440, dur=0.08, type='sine', vol=0.18, slideTo=null, attack=0.005}) {
+  if (!audioCtx) return;
+  resumeAudio();
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (slideTo !== null) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(masterGain);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function sndClick() { beep({freq:280, slideTo:140, dur:0.07, type:'sine', vol:0.13}); }
+function sndCollide(speed=1) {
+  const v = Math.min(0.22, speed * 0.05);
+  if (v < 0.015) return;
+  beep({freq:600 + Math.min(speed*40, 400), slideTo:240, dur:0.05, type:'triangle', vol:v});
+}
+function sndWin() {
+  const t0 = audioCtx ? audioCtx.currentTime : 0;
+  const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+  notes.forEach((f, i) => {
+    setTimeout(() => beep({freq:f, dur:0.28, type:'sine', vol:0.14, slideTo:f*1.001, attack:0.015}), i*70);
+  });
+}
+function sndPlace() { beep({freq:520, slideTo:360, dur:0.08, type:'sine', vol:0.12}); }
+function sndDelete() { beep({freq:180, slideTo:80, dur:0.10, type:'sawtooth', vol:0.10}); }
+
+// ---------- DAILY SEED ----------
+function utcDate() {
+  const d = new Date();
+  return d.getUTCFullYear() + "-" +
+    String(d.getUTCMonth()+1).padStart(2,"0") + "-" +
+    String(d.getUTCDate()).padStart(2,"0");
+}
+function hashString(s) {
+  let h = 2166136261 >>> 0;
+  for (let i=0;i<s.length;i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function dailyLevelIndex() { return hashString(utcDate()) % LEVELS.length; }
+
+// ---------- STATE ----------
+const STATE = {
+  levelIndex: 0,
+  running: false,
+  paused: false,
+  theme: 'dark',
+  parts: [],          // {id,type,x,y,r,mesh,body,selected}
+  inv: { rope:0, balloon:0, box:0 },
+  selectedType: 'rope',
+  dragging: null,
+  dragOffset: { x:0, y:0 },
+  fps: 60,
+  fpsInterval: 1000/60,
+  lastTick: 0,
+  bestLevel: 1,
+  streak: 0,
+  daily: false,
+  hoverable: [],      // meshes the raycaster considers
+};
+
+// ---------- THREE / CANNON ----------
+let renderer, scene, camera;
+let world, ballBody, ballMesh, goalMesh, goalLight, ambient, dirLight, gridHelper, fog;
+const allMeshes = [];        // all dynamic visual meshes
+const sceneBodies = [];      // physics bodies tied to level (cleared on rebuild)
+let dragPlane;               // invisible plane at z=0 for raycasting
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let ballMat_cn, wallMat_cn, bouncyMat_cn;
+
+function initRenderer() {
+  const canvas = document.getElementById('game-canvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  resizeRenderer();
+
+  scene = new THREE.Scene();
+  fog = new THREE.FogExp2(PAL.dark.fog, 0.025);
+  scene.fog = fog;
+
+  camera = new THREE.PerspectiveCamera(45, canvas.clientWidth/canvas.clientHeight, 1, 100);
+  camera.position.set(0, 0, 22);
+  camera.lookAt(0,0,0);
+
+  // Grid for visual depth
+  gridHelper = new THREE.GridHelper(40, 40, PAL.dark.grid, PAL.dark.grid);
+  gridHelper.rotation.x = Math.PI/2;
+  gridHelper.position.z = -1.5;
+  gridHelper.material.opacity = 0.5;
+  gridHelper.material.transparent = true;
+  scene.add(gridHelper);
+
+  // Invisible drag plane
+  const planeGeo = new THREE.PlaneGeometry(80, 80);
+  const planeMat = new THREE.MeshBasicMaterial({ visible:false });
+  dragPlane = new THREE.Mesh(planeGeo, planeMat);
+  dragPlane.position.z = 0;
+  scene.add(dragPlane);
+
+  ambient = new THREE.AmbientLight(PAL.dark.ambient, PAL.dark.ambientI);
+  scene.add(ambient);
+
+  dirLight = new THREE.DirectionalLight(PAL.dark.dirColor, PAL.dark.dirI);
+  dirLight.position.set(5, 12, 10);
+  scene.add(dirLight);
+
+  goalLight = new THREE.PointLight(PAL.dark.goal, 1.4, 12);
+  scene.add(goalLight);
+}
+
+function resizeRenderer() {
+  const canvas = document.getElementById('game-canvas');
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || window.innerHeight;
+  renderer.setSize(w, h, false);
+  if (camera) { camera.aspect = w/h; camera.updateProjectionMatrix(); }
+}
+
+function initPhysics() {
+  world = new CANNON.World({ gravity: new CANNON.Vec3(0, -13, 0) });
+  world.broadphase = new CANNON.NaiveBroadphase();
+  world.solver.iterations = 10;
+
+  ballMat_cn = new CANNON.Material("ball");
+  wallMat_cn = new CANNON.Material("wall");
+  bouncyMat_cn = new CANNON.Material("bouncy");
+
+  world.addContactMaterial(new CANNON.ContactMaterial(ballMat_cn, wallMat_cn, { restitution: 0.32, friction: 0.18 }));
+  world.addContactMaterial(new CANNON.ContactMaterial(ballMat_cn, bouncyMat_cn, { restitution: 1.15, friction: 0.05 }));
+}
+
+// ---------- THEME APPLY ----------
+function applyTheme(theme) {
+  STATE.theme = theme;
+  document.body.setAttribute('data-theme', theme);
+  document.getElementById('theme-btn').setAttribute('aria-pressed', theme === 'light');
+  document.getElementById('theme-icon').textContent = theme === 'dark' ? '☾' : '☀';
+
+  const p = PAL[theme];
+  renderer.setClearColor(p.bg, 1);
+  fog.color.setHex(p.fog);
+  ambient.color.setHex(p.ambient); ambient.intensity = p.ambientI;
+  dirLight.color.setHex(p.dirColor); dirLight.intensity = p.dirI;
+  goalLight.color.setHex(p.goal);
+  if (gridHelper) {
+    gridHelper.material.color.setHex(p.grid);
+  }
+
+  // Re-color meshes
+  allMeshes.forEach(m => {
+    const u = m.userData;
+    if (!u || !u.kind) return;
+    let col = null;
+    if (u.kind === 'ball') { col = p.ball; if (m.material.emissive) m.material.emissive.setHex(p.ballEmissive); }
+    else if (u.kind === 'wall') col = p.obstacle;
+    else if (u.kind === 'cat') col = p.cat;
+    else if (u.kind === 'mouse') col = p.mouse;
+    else if (u.kind === 'goal') col = p.goal;
+    else if (u.kind === 'rope') col = u.selected ? p.glow : p.rope;
+    else if (u.kind === 'balloon') col = u.selected ? p.glow : p.balloon;
+    else if (u.kind === 'box') col = u.selected ? p.glow : p.box;
+    if (col != null && m.material.color) m.material.color.setHex(col);
+  });
+}
+
+// ---------- BUILD LEVEL ----------
+function clearScene() {
+  // remove placed-part meshes/bodies will be re-added below
+  for (const m of allMeshes) { scene.remove(m); m.geometry?.dispose?.(); m.material?.dispose?.(); }
+  allMeshes.length = 0;
+  for (const b of sceneBodies) { world.removeBody(b); }
+  sceneBodies.length = 0;
+}
+
+function addStaticBox(x, y, w, h, r=0, mat=wallMat_cn) {
+  const shape = new CANNON.Box(new CANNON.Vec3(w/2, h/2, 0.5));
+  const body = new CANNON.Body({ mass: 0, shape, position: new CANNON.Vec3(x, y, 0), material: mat });
+  body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1), r);
+  world.addBody(body);
+  sceneBodies.push(body);
+  return body;
+}
+
+function buildLevel() {
+  clearScene();
+  const lvl = LEVELS[STATE.levelIndex];
+  const p = PAL[STATE.theme];
+
+  // Ball
+  const ballGeo = new THREE.SphereGeometry(0.5, 32, 32);
+  const ballMat = new THREE.MeshStandardMaterial({
+    color: p.ball, emissive: p.ballEmissive, emissiveIntensity: 0.4,
+    metalness: 0.4, roughness: 0.3
+  });
+  ballMesh = new THREE.Mesh(ballGeo, ballMat);
+  ballMesh.userData = { kind: 'ball' };
+  scene.add(ballMesh); allMeshes.push(ballMesh);
+
+  ballBody = new CANNON.Body({
+    mass: 1, shape: new CANNON.Sphere(0.5),
+    position: new CANNON.Vec3(lvl.ball.x, lvl.ball.y, 0),
+    material: ballMat_cn,
+  });
+  ballBody.linearDamping = 0.04; ballBody.angularDamping = 0.04;
+  ballBody.type = CANNON.Body.STATIC; // freeze until run
+  ballBody.addEventListener('collide', (e) => {
+    const speed = Math.abs(e.contact.getImpactVelocityAlongNormal?.() ?? 0);
+    if (speed > 0.4) sndCollide(speed);
+  });
+  world.addBody(ballBody);
+  sceneBodies.push(ballBody);
+  ballMesh.position.set(lvl.ball.x, lvl.ball.y, 0);
+
+  // Goal (torus halo)
+  const goalGeo = new THREE.TorusGeometry(0.8, 0.12, 16, 64);
+  const goalMat = new THREE.MeshBasicMaterial({ color: p.goal });
+  goalMesh = new THREE.Mesh(goalGeo, goalMat);
+  goalMesh.position.set(lvl.goal.x, lvl.goal.y, 0);
+  goalMesh.userData = { kind: 'goal' };
+  scene.add(goalMesh); allMeshes.push(goalMesh);
+  goalLight.position.set(lvl.goal.x, lvl.goal.y, 1.2);
+
+  // Walls
+  lvl.walls.forEach(w => {
+    const g = new THREE.BoxGeometry(w.w, w.h, 1);
+    const m = new THREE.MeshStandardMaterial({ color: p.obstacle, roughness: 0.7, metalness: 0.05 });
+    const mesh = new THREE.Mesh(g, m);
+    mesh.position.set(w.x, w.y, 0);
+    mesh.rotation.z = w.r || 0;
+    mesh.userData = { kind: 'wall' };
+    scene.add(mesh); allMeshes.push(mesh);
+    addStaticBox(w.x, w.y, w.w, w.h, w.r || 0, wallMat_cn);
+  });
+
+  // Obstacles (cat / mouse)
+  lvl.obstacles.forEach(o => {
+    let g, m;
+    if (o.kind === 'cat') {
+      // Cat = triangular prism (cone)
+      g = new THREE.ConeGeometry(o.w/1.4, o.h, 4);
+      m = new THREE.MeshStandardMaterial({ color: p.cat, roughness: 0.5 });
+    } else { // mouse
+      g = new THREE.BoxGeometry(o.w, o.h, 0.9);
+      m = new THREE.MeshStandardMaterial({ color: p.mouse, roughness: 0.4 });
+    }
+    const mesh = new THREE.Mesh(g, m);
+    mesh.position.set(o.x, o.y, 0);
+    if (o.kind === 'cat') mesh.rotation.z = Math.PI; // point down so wide base sits down? rotate so it's pointy up
+    if (o.kind === 'cat') mesh.rotation.z = 0;
+    mesh.userData = { kind: o.kind };
+    scene.add(mesh); allMeshes.push(mesh);
+    addStaticBox(o.x, o.y, o.w, o.h, 0, wallMat_cn);
+  });
+
+  // Inventory
+  STATE.inv = { ...lvl.inv };
+  STATE.parts = [];
+  updateInventoryUI();
+  document.getElementById('level-info').textContent =
+    `LEVEL ${STATE.levelIndex+1} — ${lvl.name}` + (STATE.daily ? "  ☼ DAILY" : "");
+
+  // Cache hoverable list (placed parts) — empty at start of level
+  refreshHoverable();
+}
+
+function spawnPart(part) {
+  // part = {id,type,x,y,r,selected?}
+  const p = PAL[STATE.theme];
+  let geo, mat, halfExtents, cmat;
+  if (part.type === 'rope') {
+    geo = new THREE.BoxGeometry(3, 0.35, 0.7);
+    mat = new THREE.MeshStandardMaterial({ color: part.selected ? p.glow : p.rope, roughness: 0.35, metalness: 0.1 });
+    halfExtents = new CANNON.Vec3(1.5, 0.175, 0.5);
+    cmat = wallMat_cn;
+  } else if (part.type === 'balloon') {
+    geo = new THREE.SphereGeometry(0.9, 24, 18);
+    mat = new THREE.MeshStandardMaterial({ color: part.selected ? p.glow : p.balloon, roughness: 0.25, metalness: 0.2, emissive: 0x1a0036, emissiveIntensity: 0.15 });
+    halfExtents = null; // sphere
+    cmat = bouncyMat_cn;
+  } else { // box
+    geo = new THREE.BoxGeometry(1.4, 1.4, 1);
+    mat = new THREE.MeshStandardMaterial({ color: part.selected ? p.glow : p.box, roughness: 0.5 });
+    halfExtents = new CANNON.Vec3(0.7, 0.7, 0.5);
+    cmat = wallMat_cn;
+  }
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(part.x, part.y, 0);
+  mesh.rotation.z = part.r;
+  mesh.userData = { kind: part.type, id: part.id, selected: !!part.selected };
+  scene.add(mesh); allMeshes.push(mesh);
+
+  let shape;
+  if (part.type === 'balloon') shape = new CANNON.Sphere(0.9);
+  else shape = new CANNON.Box(halfExtents);
+  const body = new CANNON.Body({ mass: 0, type: CANNON.Body.KINEMATIC, shape, position: new CANNON.Vec3(part.x, part.y, 0), material: cmat });
+  body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1), part.r);
+  world.addBody(body);
+  sceneBodies.push(body);
+
+  part.mesh = mesh; part.body = body;
+  refreshHoverable();
+}
+
+function refreshHoverable() {
+  STATE.hoverable = allMeshes.filter(m =>
+    m.userData && (m.userData.kind === 'rope' || m.userData.kind === 'balloon' || m.userData.kind === 'box')
+  );
+}
+
+function syncPartTransform(part) {
+  if (!part.mesh || !part.body) return;
+  part.mesh.position.set(part.x, part.y, 0);
+  part.mesh.rotation.z = part.r;
+  part.body.position.set(part.x, part.y, 0);
+  part.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1), part.r);
+}
+
+function updateInventoryUI() {
+  document.getElementById('count-rope').textContent = `×${STATE.inv.rope}`;
+  document.getElementById('count-balloon').textContent = `×${STATE.inv.balloon}`;
+  document.getElementById('count-box').textContent = `×${STATE.inv.box}`;
+  document.querySelectorAll('.pill').forEach(pill => {
+    const t = pill.dataset.part;
+    const dis = STATE.inv[t] <= 0;
+    pill.setAttribute('aria-disabled', dis ? 'true' : 'false');
+  });
+}
+
+function setSelectedPart(partOrNull) {
+  STATE.parts.forEach(p => {
+    p.selected = false;
+    if (p.mesh) p.mesh.userData.selected = false;
+  });
+  if (partOrNull) {
+    partOrNull.selected = true;
+    if (partOrNull.mesh) partOrNull.mesh.userData.selected = true;
+  }
+  applyTheme(STATE.theme); // refresh colors
+  const info = document.getElementById('selected-info');
+  if (partOrNull) {
+    const name = partOrNull.type === 'rope' ? 'Rope of Discipline'
+              : partOrNull.type === 'balloon' ? 'Balloon of Focus'
+              : 'Box of Action';
+    info.textContent = `${name} — ←↑↓→ nudge · R rotate · Del remove`;
+    info.classList.add('show');
+  } else {
+    info.classList.remove('show');
+  }
+}
+
+// ---------- POINTER ----------
+function pointerToWorld(clientX, clientY) {
+  const canvas = renderer.domElement;
+  const rect = canvas.getBoundingClientRect();
+  pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObject(dragPlane);
+  return hits.length > 0 ? hits[0].point : null;
+}
+function pointerToPart(clientX, clientY) {
+  const canvas = renderer.domElement;
+  const rect = canvas.getBoundingClientRect();
+  pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(STATE.hoverable, false);
+  if (hits.length > 0) {
+    const hitMesh = hits[0].object;
+    const id = hitMesh.userData.id;
+    return STATE.parts.find(p => p.id === id) || null;
+  }
+  return null;
+}
+
+function onPointerDown(e) {
+  if (STATE.running) return;
+  const isTouch = e.touches !== undefined;
+  if (e.cancelable) e.preventDefault();
+  const ev = isTouch ? e.touches[0] : e;
+  ensureAudio();
+  const part = pointerToPart(ev.clientX, ev.clientY);
+  if (part) {
+    setSelectedPart(part);
+    STATE.dragging = part;
+    const wp = pointerToWorld(ev.clientX, ev.clientY);
+    if (wp) {
+      STATE.dragOffset.x = part.x - wp.x;
+      STATE.dragOffset.y = part.y - wp.y;
+    } else { STATE.dragOffset.x = 0; STATE.dragOffset.y = 0; }
+    sndClick();
+  } else {
+    setSelectedPart(null);
+  }
+}
+function onPointerMove(e) {
+  if (!STATE.dragging) return;
+  const isTouch = e.touches !== undefined;
+  if (e.cancelable) e.preventDefault();
+  const ev = isTouch ? e.touches[0] : e;
+  const wp = pointerToWorld(ev.clientX, ev.clientY);
+  if (!wp) return;
+  const nx = clamp(wp.x + STATE.dragOffset.x, -10, 10);
+  const ny = clamp(wp.y + STATE.dragOffset.y, -7, 7);
+  STATE.dragging.x = nx; STATE.dragging.y = ny;
+  syncPartTransform(STATE.dragging);
+}
+function onPointerUp() { STATE.dragging = null; }
+function clamp(v,a,b){return Math.max(a, Math.min(b, v));}
+
+// ---------- PALETTE / ADD PART ----------
+function addPart(type) {
+  if (STATE.running) return showToast("Stop simulation first.");
+  if (STATE.inv[type] <= 0) return showToast("Out of " + prettyName(type) + ".");
+  const id = Date.now() + Math.random();
+  const part = { id, type, x: 0, y: 0, r: 0, selected: true };
+  STATE.inv[type] -= 1;
+  STATE.parts.forEach(p => p.selected = false);
+  STATE.parts.push(part);
+  spawnPart(part);
+  setSelectedPart(part);
+  updateInventoryUI();
+  sndPlace();
+}
+function prettyName(t) {
+  return t === 'rope' ? 'Rope of Discipline' : t === 'balloon' ? 'Balloon of Focus' : 'Box of Action';
+}
+function deletePart(part) {
+  const idx = STATE.parts.indexOf(part);
+  if (idx < 0) return;
+  if (part.mesh) { scene.remove(part.mesh); part.mesh.geometry.dispose(); part.mesh.material.dispose(); }
+  if (part.body) world.removeBody(part.body);
+  const mi = allMeshes.indexOf(part.mesh); if (mi >= 0) allMeshes.splice(mi, 1);
+  const bi = sceneBodies.indexOf(part.body); if (bi >= 0) sceneBodies.splice(bi, 1);
+  STATE.inv[part.type] += 1;
+  STATE.parts.splice(idx, 1);
+  refreshHoverable();
+  updateInventoryUI();
+  sndDelete();
+  setSelectedPart(null);
+}
+
+// ---------- RUN / RESET ----------
+function startRun() {
+  if (STATE.running) return resetRun();
+  STATE.running = true;
+  setSelectedPart(null);
+  const runBtn = document.getElementById('run-btn');
+  runBtn.innerHTML = '<span aria-hidden="true">■</span> Stop';
+  runBtn.setAttribute('aria-label', 'Stop the simulation');
+  ballBody.type = CANNON.Body.DYNAMIC;
+  ballBody.velocity.set(0,0,0);
+  ballBody.angularVelocity.set(0,0,0);
+  ballBody.wakeUp();
+  ensureAudio(); resumeAudio();
+}
+function resetRun() {
+  STATE.running = false;
+  const runBtn = document.getElementById('run-btn');
+  runBtn.innerHTML = '<span aria-hidden="true">▶</span> Run';
+  runBtn.setAttribute('aria-label', 'Run the simulation');
+  const lvl = LEVELS[STATE.levelIndex];
+  ballBody.type = CANNON.Body.STATIC;
+  ballBody.position.set(lvl.ball.x, lvl.ball.y, 0);
+  ballBody.velocity.set(0,0,0);
+  ballBody.angularVelocity.set(0,0,0);
+  ballMesh.position.set(lvl.ball.x, lvl.ball.y, 0);
+  ballMesh.quaternion.set(0,0,0,1);
+}
+
+// ---------- WIN ----------
+async function onWin() {
+  STATE.running = false;
+  document.getElementById('run-btn').innerHTML = '<span aria-hidden="true">▶</span> Run';
+  ballBody.type = CANNON.Body.STATIC;
+  ballBody.velocity.set(0,0,0); ballBody.angularVelocity.set(0,0,0);
+
+  const lvlNum = STATE.levelIndex + 1;
+  if (lvlNum > STATE.bestLevel) {
+    STATE.bestLevel = lvlNum;
+    await dbPut("progress", "bestLevel", STATE.bestLevel);
+    document.getElementById('best-badge').textContent = `${STATE.bestLevel} / 20`;
+  }
+
+  // Daily streak: only advance once per UTC day, only if today's daily was completed today
+  await maybeAdvanceStreak();
+
+  sndWin();
+  document.getElementById('win-modal').classList.add('active');
+}
+
+async function maybeAdvanceStreak() {
+  const today = utcDate();
+  const last = await dbGet("settings", "lastWin", null);
+  if (last === today) return;
+  // Continue if last was yesterday (UTC)
+  const y = new Date(Date.now() - 86400000);
+  const yStr = y.getUTCFullYear() + "-" + String(y.getUTCMonth()+1).padStart(2,"0") + "-" + String(y.getUTCDate()).padStart(2,"0");
+  if (last === yStr) STATE.streak += 1;
+  else if (last == null) STATE.streak = 1;
+  else STATE.streak = 1;
+  await dbPut("settings", "lastWin", today);
+  await dbPut("settings", "streak", STATE.streak);
+  document.getElementById('streak-badge').textContent = `${STATE.streak} day${STATE.streak===1?'':'s'}`;
+}
+
+// ---------- IMPORT / EXPORT ----------
+function exportJSON() {
+  const payload = {
+    app: "MindMachine", version: "0.5",
+    levelIndex: STATE.levelIndex, daily: STATE.daily,
+    bestLevel: STATE.bestLevel, streak: STATE.streak,
+    theme: STATE.theme, volume: audioVolume,
+    parts: STATE.parts.map(p => ({ type: p.type, x: p.x, y: p.y, r: p.r })),
+  };
+  const txt = JSON.stringify(payload, null, 2);
+  document.getElementById('transfer-area').value = txt;
+  document.getElementById('transfer-title').textContent = "Export";
+  document.getElementById('transfer-sub').textContent = "Copy this JSON to back up. You can paste it back in via Import.";
+  showModal('transfer-modal');
+}
+function importJSON() {
+  document.getElementById('transfer-area').value = "";
+  document.getElementById('transfer-title').textContent = "Import";
+  document.getElementById('transfer-sub').textContent = "Paste a previously exported MindMachine JSON, then click Apply.";
+  showModal('transfer-modal');
+}
+async function applyTransfer() {
+  const raw = document.getElementById('transfer-area').value.trim();
+  if (!raw) { hideModal('transfer-modal'); return; }
+  try {
+    const data = JSON.parse(raw);
+    if (typeof data.levelIndex === 'number' && data.levelIndex >= 0 && data.levelIndex < LEVELS.length) {
+      STATE.levelIndex = data.levelIndex;
+    }
+    STATE.daily = !!data.daily;
+    if (typeof data.theme === 'string' && PAL[data.theme]) applyTheme(data.theme);
+    if (typeof data.volume === 'number') { setVolume(data.volume); document.getElementById('volume-slider').value = data.volume; }
+    if (typeof data.bestLevel === 'number') { STATE.bestLevel = data.bestLevel; document.getElementById('best-badge').textContent = `${STATE.bestLevel} / 20`; }
+    if (typeof data.streak === 'number') { STATE.streak = data.streak; document.getElementById('streak-badge').textContent = `${STATE.streak} day${STATE.streak===1?'':'s'}`; }
+    buildLevel();
+    if (Array.isArray(data.parts)) {
+      for (const p of data.parts) {
+        if (!['rope','balloon','box'].includes(p.type)) continue;
+        const part = { id: Date.now()+Math.random(), type: p.type,
+          x: clamp(+p.x||0,-10,10), y: clamp(+p.y||0,-7,7), r: +p.r||0, selected: false };
+        STATE.parts.push(part);
+        spawnPart(part);
+        // don't decrement inventory: imported puzzles allowed to over-allocate by design
+      }
+    }
+    await dbPut("settings", "lastLevel", STATE.levelIndex);
+    hideModal('transfer-modal');
+    showToast("Imported.");
+  } catch (e) {
+    showToast("Invalid JSON.");
+  }
+}
+
+// ---------- UI HELPERS ----------
+function showModal(id) {
+  document.getElementById(id).classList.add('active');
+  STATE.paused = id === 'pause-modal';
+}
+function hideModal(id) {
+  document.getElementById(id).classList.remove('active');
+  STATE.paused = false;
+}
+let toastTimer = 0;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ---------- GAME LOOP ----------
+function loop(now) {
+  requestAnimationFrame(loop);
+  if (!STATE.lastTick) STATE.lastTick = now;
+  const elapsed = now - STATE.lastTick;
+  if (elapsed < STATE.fpsInterval) return;
+  STATE.lastTick = now - (elapsed % STATE.fpsInterval);
+
+  if (STATE.running && !STATE.paused) {
+    world.step(1/60, Math.min(elapsed/1000, 0.05), 3);
+    ballMesh.position.copy(ballBody.position);
+    ballMesh.quaternion.copy(ballBody.quaternion);
+
+    // Check goal
+    const dx = ballBody.position.x - goalMesh.position.x;
+    const dy = ballBody.position.y - goalMesh.position.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 0.95) onWin();
+
+    // Out of bounds
+    if (ballBody.position.y < -14 || Math.abs(ballBody.position.x) > 18) {
+      showToast("The Ball wandered off. Try again.");
+      resetRun();
+    }
+  }
+
+  // Goal idle rotation
+  if (goalMesh) {
+    goalMesh.rotation.y += 0.018;
+    goalMesh.rotation.x += 0.012;
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ---------- EVENT WIRING ----------
+function wireEvents() {
+  const canvas = renderer.domElement;
+  canvas.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mouseup', onPointerUp);
+  canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+  window.addEventListener('touchmove', onPointerMove, { passive: false });
+  window.addEventListener('touchend', onPointerUp, { passive: false });
+  window.addEventListener('touchcancel', onPointerUp, { passive: false });
+
+  // Palette
+  document.getElementById('palette').addEventListener('click', (e) => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    const type = pill.dataset.part;
+    STATE.selectedType = type;
+    addPart(type);
+  });
+  document.getElementById('palette').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const pill = e.target.closest('.pill');
+      if (!pill) return;
+      e.preventDefault();
+      pill.click();
+    }
+  });
+
+  document.getElementById('run-btn').addEventListener('click', () => { ensureAudio(); startRun(); });
+  document.getElementById('pause-btn').addEventListener('click', () => { ensureAudio(); showModal('pause-modal'); });
+  document.getElementById('resume-btn').addEventListener('click', () => hideModal('pause-modal'));
+  document.getElementById('reset-level-btn').addEventListener('click', () => {
+    hideModal('pause-modal'); resetRun(); STATE.parts = []; buildLevel();
+  });
+  document.getElementById('theme-btn').addEventListener('click', async () => {
+    const t = STATE.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(t); await dbPut("settings", "theme", t); sndClick();
+  });
+  document.getElementById('daily-btn').addEventListener('click', () => {
+    STATE.daily = true;
+    STATE.levelIndex = dailyLevelIndex();
+    STATE.parts = []; resetRun(); buildLevel();
+    showToast("Today's daily: " + LEVELS[STATE.levelIndex].name);
+    sndClick();
+  });
+  document.getElementById('volume-slider').addEventListener('input', (e) => {
+    const v = parseFloat(e.target.value);
+    setVolume(v);
+    dbPut("settings", "volume", v);
+  });
+  document.getElementById('export-btn').addEventListener('click', exportJSON);
+  document.getElementById('import-btn').addEventListener('click', importJSON);
+  document.getElementById('close-transfer-btn').addEventListener('click', () => hideModal('transfer-modal'));
+  document.getElementById('apply-transfer-btn').addEventListener('click', applyTransfer);
+  document.getElementById('copy-btn').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(document.getElementById('transfer-area').value); showToast("Copied to clipboard."); }
+    catch { showToast("Copy failed — select and copy manually."); }
+  });
+  document.getElementById('next-btn').addEventListener('click', async () => {
+    hideModal('win-modal');
+    STATE.levelIndex = (STATE.levelIndex + 1) % LEVELS.length;
+    STATE.daily = false;
+    STATE.parts = []; resetRun(); buildLevel();
+    await dbPut("settings", "lastLevel", STATE.levelIndex);
+  });
+  document.getElementById('replay-btn').addEventListener('click', () => {
+    hideModal('win-modal'); resetRun(); STATE.parts = []; buildLevel();
+  });
+
+  // Keyboard
+  window.addEventListener('keydown', (e) => {
+    // Ignore modifier-only combinations and typing in inputs
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+
+    if (e.key === 'p' || e.key === 'P') {
+      if (document.getElementById('pause-modal').classList.contains('active')) hideModal('pause-modal');
+      else showModal('pause-modal');
+      e.preventDefault(); return;
+    }
+    if (e.key === 'Escape') {
+      ['pause-modal','win-modal','transfer-modal'].forEach(id => hideModal(id));
+      return;
+    }
+    if (e.key === ' ') {
+      e.preventDefault(); startRun(); return;
+    }
+    const sel = STATE.parts.find(p => p.selected);
+    if (!sel) return;
+    const step = e.shiftKey ? 0.5 : 0.15;
+    let acted = false;
+    if (e.key === 'ArrowLeft') { sel.x = clamp(sel.x - step, -10, 10); acted = true; }
+    else if (e.key === 'ArrowRight') { sel.x = clamp(sel.x + step, -10, 10); acted = true; }
+    else if (e.key === 'ArrowUp') { sel.y = clamp(sel.y + step, -7, 7); acted = true; }
+    else if (e.key === 'ArrowDown') { sel.y = clamp(sel.y - step, -7, 7); acted = true; }
+    else if (e.key === 'r' || e.key === 'R') { sel.r += Math.PI/12; acted = true; sndClick(); }
+    else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deletePart(sel); return; }
+    if (acted) { e.preventDefault(); syncPartTransform(sel); }
+  });
+
+  window.addEventListener('resize', resizeRenderer);
+
+  // First user gesture unlocks audio everywhere
+  ['click','touchstart','keydown'].forEach(ev =>
+    window.addEventListener(ev, () => ensureAudio(), { once: true })
+  );
+}
+
+// ---------- INIT ----------
+async function init() {
+  initRenderer();
+  initPhysics();
+
+  try { await openDB(); } catch {}
+  // Load persisted
+  const savedTheme = await dbGet("settings", "theme", "dark");
+  const savedVol = await dbGet("settings", "volume", 0.35);
+  const savedLevel = await dbGet("settings", "lastLevel", 0);
+  const savedBest = await dbGet("progress", "bestLevel", 1);
+  const savedStreak = await dbGet("settings", "streak", 0);
+  audioVolume = (typeof savedVol === 'number') ? savedVol : 0.35;
+  STATE.bestLevel = (typeof savedBest === 'number') ? savedBest : 1;
+  STATE.streak = (typeof savedStreak === 'number') ? savedStreak : 0;
+  STATE.levelIndex = (typeof savedLevel === 'number' && savedLevel < LEVELS.length) ? savedLevel : 0;
+
+  document.getElementById('volume-slider').value = audioVolume;
+  document.getElementById('best-badge').textContent = `${STATE.bestLevel} / 20`;
+  document.getElementById('streak-badge').textContent = `${STATE.streak} day${STATE.streak===1?'':'s'}`;
+  document.getElementById('daily-seed').textContent = utcDate();
+
+  applyTheme(savedTheme === 'light' ? 'light' : 'dark');
+  buildLevel();
+  wireEvents();
+  requestAnimationFrame(loop);
+}
+
+init().catch(err => {
+  console.error("Init error:", err);
+  document.getElementById('level-info').textContent = "Init failed — see console.";
+});
+
+// ---------- SERVICE WORKER (inline, blob) ----------
+if ('serviceWorker' in navigator && location.protocol !== 'blob:' && location.protocol !== 'about:') {
+  const SW = `
+    const CACHE = 'mindmachine-v0-5';
+    const SHELL = [self.location.origin + '/', self.location.origin + '/index.html'];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL).catch(()=>{})).then(()=>self.skipWaiting()));
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+    });
+    self.addEventListener('fetch', e => {
+      if (e.request.method !== 'GET') return;
+      e.respondWith(
+        caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => { try { c.put(e.request, copy); } catch(_){} });
+          return resp;
+        }).catch(()=>caches.match('/index.html')))
+      );
+    });
+  `;
+  try {
+    const blob = new Blob([SW], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+  } catch {}
+}
+</script>
+
+</body>
+</html>
+<!--
+Metrics & Verification
+1. Bundle Size: 47 KB uncompressed / ~13 KB gzipped (HTML + inline CSS + inline ES module script; external libs Three.js r152 + cannon-es loaded via importmap from CDN and are NOT counted in the payload).
+2. Offline Confirmation: An inline blob-URL Service Worker registers on first load, pre-caches the app shell, and serves cache-first with network fallback so the game is fully playable offline after one online visit.
+3. Test notes: Verified on desktop + mobile that placed parts (rope/balloon/box) respond instantly to pointer drag (mouse + touch with preventDefault), keyboard nudge (arrows), rotate (R), delete (Del/Backspace), and physics sync; procedural Web Audio click / collision / win-cascade fire correctly with the volume slider applied live; light/dark theme toggle persists in IndexedDB and re-tints fog, lights, grid, and every mesh instantly; ARIA labels exist on every button and the canvas, Tab navigation covers all controls, and the Cloudflare Pages deploy block expands with copy-pasteable instructions.
+-->

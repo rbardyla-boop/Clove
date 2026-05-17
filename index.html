@@ -44,7 +44,8 @@
         }
 
         .cards {
-            display: flex; gap: 20px; width: 100%; max-width: 780px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 20px; width: 100%; max-width: 780px;
         }
 
         .card {
@@ -100,6 +101,40 @@
         .card-learn .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; color: #e6edff; line-height: 1.2; }
         .card-learn .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
 
+        /* Mind Machine card */
+        .card-mindmachine {
+            border-color: rgba(255,112,67,0.18);
+        }
+        .card-mindmachine:hover {
+            border-color: rgba(255,112,67,0.5);
+            box-shadow: 0 24px 60px rgba(255,112,67,0.08);
+        }
+        .card-mindmachine .card-tag {
+            font-size: 9px; letter-spacing: 0.18em; color: #FF7043;
+            background: rgba(255,112,67,0.1); border: 1px solid rgba(255,112,67,0.2);
+            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
+        }
+        .card-mindmachine .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
+        .card-mindmachine .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
+        .card-mindmachine .card-cta { color: #FF7043; }
+
+        /* Node Hopper card */
+        .card-nodehopper {
+            border-color: rgba(64,250,255,0.18);
+        }
+        .card-nodehopper:hover {
+            border-color: rgba(64,250,255,0.5);
+            box-shadow: 0 24px 60px rgba(64,250,255,0.08);
+        }
+        .card-nodehopper .card-tag {
+            font-size: 9px; letter-spacing: 0.18em; color: #40faff;
+            background: rgba(64,250,255,0.1); border: 1px solid rgba(64,250,255,0.2);
+            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
+        }
+        .card-nodehopper .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
+        .card-nodehopper .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
+        .card-nodehopper .card-cta { color: #40faff; }
+
         .card-divider {
             width: 100%; height: 1px;
             background: rgba(86,163,253,0.07);
@@ -119,10 +154,12 @@
 
         /* Mobile */
         @media (max-width: 580px) {
-            .cards { flex-direction: column; max-width: 420px; }
+            .cards { grid-template-columns: 1fr; max-width: 420px; }
             .card { padding: 28px 24px; }
             .card-game .card-title,
-            .card-learn .card-title { font-size: 20px; }
+            .card-learn .card-title,
+            .card-mindmachine .card-title,
+            .card-nodehopper .card-title { font-size: 20px; }
         }
     </style>
 </head>
@@ -149,6 +186,26 @@
                 </div>
                 <div class="card-divider"></div>
                 <span class="card-cta">VISIT SITE</span>
+            </a>
+
+            <a class="card card-mindmachine" href="game/theincrediblemindmachine/index.html">
+                <span class="card-tag">PUZZLE GAME</span>
+                <div class="card-title">MIND MACHINE</div>
+                <div class="card-subtitle">
+                    A physics puzzle about clarity and obstacles. Guide the Ball of Clarity to Insight.
+                </div>
+                <div class="card-divider"></div>
+                <span class="card-cta">PLAY NOW</span>
+            </a>
+
+            <a class="card card-nodehopper" href="game/nodehopper/Node Hopper.html">
+                <span class="card-tag">ARCADE GAME</span>
+                <div class="card-title">NODE HOPPER</div>
+                <div class="card-subtitle">
+                    A neon platformer. Collect data nodes, dodge hazards, flip gravity. Survive the kernel panic.
+                </div>
+                <div class="card-divider"></div>
+                <span class="card-cta">PLAY NOW</span>
             </a>
 
         </div>

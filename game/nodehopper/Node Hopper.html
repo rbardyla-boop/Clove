@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<title>Node Hopper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cyan: #40faff;
+    --pink: #ff66cc;
+    --gold: #fff066;
+    --red:  #ff3a5c;
+    --magenta: #c060ff;
+    --ink: #c8f7ff;
+    --inkDim: #6c8e9c;
+    --bg: #05060c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden;
+    background: var(--bg); color: var(--ink); font-family: 'JetBrains Mono', monospace;
+    -webkit-user-select: none; user-select: none; touch-action: none; }
+  canvas#canvas { display: block; position: fixed; inset: 0; width: 100%; height: 100%; }
+
+  /* Subtle scanline overlay for extra cyberpunk grit */
+  .scanlines {
+    position: fixed; inset: 0; pointer-events: none; z-index: 4;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.018) 0,
+      rgba(255,255,255,0.018) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: screen;
+  }
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none; z-index: 3;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.7) 100%);
+  }
+
+  /* HUD bars */
+  .hud {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: stretch;
+    padding: 14px 18px; gap: 10px; z-index: 5; pointer-events: none;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .hud-cluster { display: flex; gap: 10px; }
+  .hud-cell {
+    background: rgba(8, 12, 22, 0.7);
+    border: 1px solid rgba(64, 250, 255, 0.32);
+    padding: 8px 14px;
+    min-width: 90px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex; flex-direction: column; gap: 2px;
+    box-shadow: 0 0 18px rgba(64,250,255,0.08), inset 0 0 12px rgba(64,250,255,0.04);
+  }
+  .hud-cell .label { color: var(--inkDim); font-size: 9px; letter-spacing: 0.32em; }
+  .hud-cell .value { color: var(--ink); font-size: 16px; font-weight: 700; letter-spacing: 0.12em; }
+  .hud-cell.accent .value { color: var(--gold); text-shadow: 0 0 10px rgba(255,240,102,0.5); }
+  .hud-cell.score   .value { color: var(--cyan); text-shadow: 0 0 10px rgba(64,250,255,0.45); }
+  .hud-cell.danger  .value { color: var(--red); }
+  .life-pip {
+    display: inline-block; width: 10px; height: 10px;
+    background: var(--cyan);
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    margin-right: 4px;
+    filter: drop-shadow(0 0 5px var(--cyan));
+  }
+
+  /* Cards (centered overlays) */
+  .card {
+    position: fixed; inset: 0; z-index: 10;
+    display: none; align-items: center; justify-content: center;
+  }
+  .card.show { display: flex; }
+  .card-inner {
+    background: rgba(6, 9, 16, 0.88);
+    border: 1px solid rgba(64, 250, 255, 0.4);
+    padding: 40px 56px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(64, 250, 255, 0.12),
+                inset 0 0 30px rgba(64, 250, 255, 0.04);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    position: relative;
+    min-width: 360px;
+    max-width: 92vw;
+  }
+  .card-inner::before, .card-inner::after {
+    content: ''; position: absolute; width: 18px; height: 18px;
+    border: 1.5px solid var(--cyan);
+  }
+  .card-inner::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .card-inner::after  { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .card-eyebrow { color: var(--cyan); font-size: 10px; letter-spacing: 0.5em; margin-bottom: 14px; }
+  .card-title   {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 56px; letter-spacing: 0.04em; font-weight: 700;
+    margin: 0 0 6px 0;
+    color: var(--ink);
+    text-shadow: 0 0 24px rgba(64, 250, 255, 0.45);
+  }
+  .card-sub { color: var(--inkDim); font-size: 11px; letter-spacing: 0.32em; margin-bottom: 28px; }
+  .card-cta {
+    display: inline-block;
+    padding: 12px 28px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-shadow: 0 0 10px rgba(64, 250, 255, 0.4);
+    box-shadow: 0 0 18px rgba(64, 250, 255, 0.15), inset 0 0 12px rgba(64, 250, 255, 0.06);
+    transition: all 0.15s ease;
+  }
+  .card-cta:hover { background: rgba(64, 250, 255, 0.1); transform: translateY(-1px); }
+  .card-cta:active { transform: translateY(0); }
+  .card-help { color: var(--inkDim); font-size: 10px; letter-spacing: 0.24em; margin-top: 24px; }
+  .card-help kbd {
+    display: inline-block; padding: 3px 8px;
+    border: 1px solid rgba(64, 250, 255, 0.4);
+    color: var(--cyan); font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.08em;
+    margin: 0 3px;
+    background: rgba(64, 250, 255, 0.04);
+  }
+
+  /* Chamber card — short flash */
+  #chamber-card .card-inner { padding: 24px 44px; min-width: 280px; }
+  #chamber-card .card-title { font-size: 32px; }
+  #chamber-card .card-eyebrow { margin-bottom: 8px; }
+
+  /* Clear card — tiny corner pop */
+  #clear-card { justify-content: center; align-items: center; }
+  #clear-card .card-inner {
+    padding: 18px 36px; min-width: 220px;
+    border-color: var(--gold);
+    box-shadow: 0 0 40px rgba(255, 240, 102, 0.25);
+  }
+  #clear-card .card-inner::before, #clear-card .card-inner::after { border-color: var(--gold); }
+  #clear-card .card-eyebrow { color: var(--gold); }
+  #clear-card .card-title { font-size: 28px; color: var(--gold); text-shadow: 0 0 24px rgba(255,240,102,0.5); }
+  #clear-card .clear-bonus { color: var(--gold); font-size: 14px; letter-spacing: 0.2em; margin-top: 6px; }
+
+  /* Stats row in game over */
+  .stats-row { display: flex; gap: 28px; justify-content: center; margin: 18px 0 28px; }
+  .stats-row .stat .label { color: var(--inkDim); font-size: 10px; letter-spacing: 0.32em; }
+  .stats-row .stat .value { font-size: 28px; color: var(--cyan); text-shadow: 0 0 16px rgba(64,250,255,0.4); margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .stats-row .stat.best .value { color: var(--gold); text-shadow: 0 0 16px rgba(255,240,102,0.5); }
+
+  /* Title overlay specifics */
+  #title-card .title-mark {
+    display: inline-flex; align-items: center; gap: 16px;
+    margin-bottom: 6px;
+  }
+  #title-card .title-glyph {
+    width: 48px; height: 48px;
+    display: inline-block;
+    background: var(--cyan);
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    filter: drop-shadow(0 0 18px var(--cyan));
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.9; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+  .meta-row {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    color: var(--inkDim); font-size: 10px; letter-spacing: 0.3em;
+    margin-top: 14px;
+  }
+  .meta-row span { padding: 4px 10px; border: 1px solid rgba(108, 142, 156, 0.3); }
+
+  /* Touch UI */
+  #touch-ui {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 14px 18px;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 6; pointer-events: none;
+  }
+  .touch-grp { display: flex; gap: 12px; pointer-events: auto; }
+  .touch-btn {
+    width: 72px; height: 72px;
+    border: 1.5px solid rgba(64, 250, 255, 0.4);
+    background: rgba(8, 12, 22, 0.55);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; -webkit-user-select: none;
+    box-shadow: 0 0 14px rgba(64, 250, 255, 0.1);
+    backdrop-filter: blur(6px);
+  }
+  .touch-btn:active { background: rgba(64, 250, 255, 0.15); }
+  #btn-jump { width: 96px; height: 96px; border-color: rgba(255, 240, 102, 0.5); color: var(--gold); }
+
+  /* Tiny corner brand */
+  .brand-corner {
+    position: fixed; bottom: 14px; left: 18px; z-index: 5;
+    color: var(--inkDim); font-size: 9px; letter-spacing: 0.4em;
+    pointer-events: none;
+  }
+  .brand-corner b { color: var(--cyan); font-weight: 500; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<!-- HUD -->
+<div class="hud">
+  <div class="hud-cluster">
+    <div class="hud-cell score">
+      <div class="label">SCORE</div>
+      <div class="value" id="hud-score">000000</div>
+    </div>
+    <div class="hud-cell accent">
+      <div class="label">BEST</div>
+      <div class="value" id="hud-best">000000</div>
+    </div>
+  </div>
+  <div class="hud-cluster">
+    <div class="hud-cell">
+      <div class="label">CHAMBER</div>
+      <div class="value"><span id="hud-chamber">01</span> <span id="hud-total" style="color:var(--inkDim); font-size: 11px;">×1</span></div>
+    </div>
+    <div class="hud-cell danger">
+      <div class="label">LIVES</div>
+      <div class="value" id="hud-lives"><span class="life-pip"></span><span class="life-pip"></span><span class="life-pip"></span></div>
+    </div>
+    <div class="hud-cell" style="min-width:0">
+      <div class="label">SYS</div>
+      <div class="value" id="hud-mute" style="font-size:11px;">AUDIO</div>
+    </div>
+  </div>
+</div>
+
+<!-- Title card -->
+<div class="card show" id="title-card">
+  <div class="card-inner">
+    <div class="title-mark">
+      <span class="title-glyph"></span>
+    </div>
+    <div class="card-eyebrow">CLOVELEARN · ARCADE</div>
+    <h1 class="card-title">NODE&nbsp;HOPPER</h1>
+    <div class="card-sub">SURVIVE THE GAUNTLET · COLLECT THE NODES</div>
+    <button class="card-cta" id="title-start">▶  INITIATE</button>
+    <div class="card-help">
+      <kbd>←</kbd><kbd>→</kbd> MOVE &nbsp;·&nbsp; <kbd>SPACE</kbd> JUMP &nbsp;·&nbsp; <kbd>R</kbd> RESPAWN &nbsp;·&nbsp; <kbd>M</kbd> MUTE
+    </div>
+    <div class="meta-row">
+      <span>3 LIVES</span>
+      <span>12 CHAMBERS</span>
+      <span>RANDOM ORDER</span>
+      <span>NO SAVE</span>
+    </div>
+  </div>
+</div>
+
+<!-- Chamber intro card -->
+<div class="card" id="chamber-card">
+  <div class="card-inner">
+    <div class="card-eyebrow" id="chamber-card-num">CHAMBER 01</div>
+    <h2 class="card-title" id="chamber-card-name">BOOT SEQUENCE</h2>
+  </div>
+</div>
+
+<!-- Chamber clear card -->
+<div class="card" id="clear-card">
+  <div class="card-inner">
+    <div class="card-eyebrow">▲  NODES ACQUIRED</div>
+    <h2 class="card-title">CHAMBER CLEAR</h2>
+    <div class="clear-bonus" id="clear-bonus">+150</div>
+  </div>
+</div>
+
+<!-- Game over card -->
+<div class="card" id="gameover-card">
+  <div class="card-inner">
+    <div class="card-eyebrow" style="color: var(--red);">▼  KERNEL TERMINATED</div>
+    <h2 class="card-title">GAME OVER</h2>
+    <div class="stats-row">
+      <div class="stat"><div class="label">SCORE</div><div class="value" id="go-score">0</div></div>
+      <div class="stat best"><div class="label">BEST</div><div class="value" id="go-best">0</div></div>
+      <div class="stat"><div class="label">CLEARED</div><div class="value" id="go-cleared">0</div></div>
+    </div>
+    <button class="card-cta" id="go-restart">↻  REINITIATE</button>
+    <div class="card-help"><kbd>SPACE</kbd> OR CLICK TO RUN IT BACK</div>
+  </div>
+</div>
+
+<!-- Touch controls -->
+<div id="touch-ui">
+  <div class="touch-grp">
+    <div class="touch-btn" id="btn-left">◀</div>
+    <div class="touch-btn" id="btn-right">▶</div>
+  </div>
+  <div class="touch-grp">
+    <div class="touch-btn" id="btn-jump">▲</div>
+  </div>
+</div>
+
+<div class="brand-corner"><b>NODE HOPPER</b> · v1.0 · clovelearn.io</div>
+
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="audio.js"></script>
+<script src="chambers.js"></script>
+<script src="render-helpers.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
