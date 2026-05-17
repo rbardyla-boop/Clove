@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Welcome</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
-            width: 100%; height: 100%; overflow: hidden;
+            width: 100%; min-height: 100%; overflow-x: hidden;
             background: #060d1a;
             font-family: Inter, system-ui, sans-serif;
             color: #e6edff;
@@ -31,10 +31,11 @@
 
         .container {
             position: relative; z-index: 1;
-            width: 100%; height: 100%;
+            width: 100%; min-height: 100dvh;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            gap: 20px; padding: 24px;
+            gap: 20px;
+            padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
         }
 
         .eyebrow {
@@ -172,8 +173,9 @@
 
         /* Mobile */
         @media (max-width: 580px) {
-            .cards { grid-template-columns: 1fr; max-width: 420px; }
-            .card { padding: 28px 24px; }
+            .container { gap: 14px; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); }
+            .cards { grid-template-columns: 1fr; max-width: 420px; gap: 14px; }
+            .card { padding: 22px 18px; border-radius: 16px; }
             .card-arcade { grid-column: span 1; }
             .card-game .card-title,
             .card-learn .card-title,
@@ -239,7 +241,7 @@
             </a>
 
         </div>
-        <p class="footer-note">Both free. No accounts. No ads.</p>
+        <p class="footer-note">All free. No accounts. No ads.</p>
     </div>
 </body>
 </html>
