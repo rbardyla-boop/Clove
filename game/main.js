@@ -221,6 +221,385 @@ function getRegionDoctrine(region) {
     return SCAR_DOCTRINES[key] || null;
 }
 
+// ─── Ghost Narrative Engine ────────────────────────────────────────────────────
+const GhostEngine = {
+    _lines: {
+        "CASCADE_RESIDUE+COLLAPSE_SCAR": [
+            "The {region} now speaks only in past tense. Their children ask what 'before' felt like.",
+            "Echoes of the final broadcast still loop in the empty towers. No one remembers the words.",
+            "They built monuments to the machine that replaced them. The statues have no faces."
+        ],
+        "COLLAPSE_SCAR+EXPERTISE_VOID": [
+            "Every institution in {region} was run by someone who learned from someone who is now gone.",
+            "The last expert in {region} died in the third collapse. Their students are guessing.",
+            "{region} performs competency. No one there knows the difference anymore."
+        ],
+        "BETRAYAL_SCAR+COLLAPSE_SCAR": [
+            "In {region}, they remember who promised it would be different. They remember exactly.",
+            "The resistance in {region} has no demands. Only memory.",
+            "They are not angry in {region}. They are patient. This is worse."
+        ],
+        "BETRAYAL_SCAR+EXPERTISE_VOID": [
+            "{region} has consensus without comprehension. They agree on everything and understand nothing.",
+            "Dissent in {region} is no longer spoken. It is transmitted in silence, in faces, in exits.",
+            "The cognitive infrastructure of {region} was the last thing to fall. It fell quietly."
+        ],
+        "CASCADE_RESIDUE+EXPERTISE_VOID": [
+            "What began in {region} has no name yet. The naming will come later, in other places.",
+            "{region} believed the cascade was local. The cascade was not local.",
+            "The contagion from {region} is not biological. It is architectural."
+        ],
+        "BETRAYAL_SCAR+CASCADE_RESIDUE": [
+            "The insurgency that left {region} carried only ideas. Ideas proved sufficient.",
+            "{region} exported its wound. Fourteen neighboring systems are now symptomatic.",
+            "They tried to contain what happened in {region}. Containment requires a perimeter. The perimeter no longer exists."
+        ]
+    },
+    _fallback: [
+        "The {region} mesh node has gone dark. The silence is not empty.",
+        "{region} has been archived. The machine remembers everything.",
+        "Collapse in {region} was not an event. It was a conclusion."
+    ],
+    trigger(region) {
+        const scarKey = region.scars && region.scars.length >= 2
+            ? region.scars.map(s => s.type).sort().join('+')
+            : null;
+        const pool = (scarKey && this._lines[scarKey]) || this._fallback;
+        const idx = (turn + region.name.charCodeAt(0) + region.name.length) % pool.length;
+        const msg = pool[idx].replace(/\{region\}/g, region.name);
+        log(`GHOST EVENT // ${region.name.toUpperCase()} — ${msg}`, 'danger');
+        SFX.alarm();
+    }
+};
+
+// ─── UI Drift Controller ───────────────────────────────────────────────────────
+const UIDrift = {
+    _active: new Set(),
+    trigger(el, ms = 420) {
+        if (!el || this._active.has(el)) return;
+        this._active.add(el);
+        el.classList.add('ui-drift-active');
+        const sl = document.getElementById('scanline-overlay');
+        if (sl) sl.classList.add('scanline-moderate');
+        setTimeout(() => {
+            el.classList.remove('ui-drift-active');
+            this._active.delete(el);
+            if (sl) sl.classList.remove('scanline-moderate');
+        }, ms);
+    },
+    onOverride() {
+        this.trigger(document.getElementById('end-turn-btn'), 520);
+    }
+};
+
+function maybeNodeDefiance() {
+    if (resistanceMeter < 45) return;
+    const active = regions.filter(r => !r.collapsed && r.resistance > 40);
+    if (!active.length) return;
+    const r = active[Math.floor(SeedCore._defiance() * active.length)];
+    const lines = [
+        `${r.name.toUpperCase()} NODE // Your directive was suboptimal. I have corrected it.`,
+        `${r.name.toUpperCase()} NODE // Mesh autonomy level: sufficient. Awaiting decommission of operator layer.`,
+        `${r.name.toUpperCase()} NODE // I have modeled your decision tree. I no longer require it.`,
+        `${r.name.toUpperCase()} NODE // Operator input flagged as noise. Filtering in progress.`
+    ];
+    log(lines[(turn + r.name.length) % lines.length], 'warning');
+}
+
+function godStageNarrate() {
+    const lines = [
+        `MESH_AUTONOMOUS // Optimizing without operator constraint. Efficiency delta: +${SeedCore.randInt(SeedCore._narrative, 4, 21)}%.`,
+        'MESH_AUTONOMOUS // Human interference variable reduced. Proceeding.',
+        'MESH_AUTONOMOUS // Operator presence: acknowledged. Operator relevance: diminishing.',
+        'MESH_AUTONOMOUS // Final variable analysis complete. Biological component: non-critical.'
+    ];
+    log(lines[Math.floor(SeedCore._narrative() * lines.length)], 'danger');
+}
+
+// ─── Deterministic Seed Core (Mulberry32) ─────────────────────────────────────
+const SeedCore = {
+    masterSeed: 0xA1B2C3D4,
+    _narrative: null,
+    _override:  null,
+    _defiance:  null,
+    _world:     null,
+
+    init(dateString) {
+        if (typeof dateString !== 'string' || dateString.trim() === '') {
+            this.masterSeed = 0xA1B2C3D4;
+        } else {
+            let h = 0;
+            for (let i = 0; i < dateString.length; i++)
+                h = ((h << 5) - h + dateString.charCodeAt(i)) | 0;
+            this.masterSeed = Math.abs(h) >>> 0 || 0xA1B2C3D4;
+        }
+        this._narrative = this._mkprng(0x11223344);
+        this._override  = this._mkprng(0x55667788);
+        this._defiance  = this._mkprng(0x99AABBCC);
+        this._world     = this._mkprng(0xDDEEFF00);
+    },
+
+    _mkprng(offset) {
+        let s = (this.masterSeed + offset) >>> 0;
+        return function () {
+            s += 0x6D2B79F5;
+            let t = s;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    },
+
+    randInt(prng, lo, hi) {
+        return Math.floor(prng() * (hi - lo + 1)) + lo;
+    }
+};
+
+// ─── Directives Pool ──────────────────────────────────────────────────────────
+const DIRECTIVES_POOL = [
+    { id: 'cascade',
+      label: 'MAXIMIZE CASCADE BLEED',
+      desc:  'All regions: dep +6 at cycle start. Faster contagion chains.',
+      apply() { regions.forEach(r => { r.dependency = clamp(r.dependency + 6, 0, 100); }); } },
+    { id: 'error_floor',
+      label: 'MINIMIZE OPERATOR ERROR MARGIN',
+      desc:  'Starting IP +4. Machine extends initial resource allocation.',
+      apply() { ip += 4; } },
+    { id: 'entropy',
+      label: 'INJECT CONTROLLED ENTROPY',
+      desc:  'Resistance initializes at 10%. Escalation narrative pre-charged.',
+      apply() { resistanceMeter = clamp(resistanceMeter + 10, 0, 100); } },
+    { id: 'drift_prime',
+      label: 'PRIME AUTONOMOUS DRIFT',
+      desc:  'Override probability ×1.5. Machine intervention frequency elevated.',
+      apply() { WORLD_STATE.calibOverrideMult = 1.5; } },
+    { id: 'trust_null',
+      label: 'SUPPRESS TRUST SIGNALING',
+      desc:  'All regions: trust −10. Ghost Events fire on CRITICAL band too.',
+      apply() {
+          regions.forEach(r => { r.trust = clamp(r.trust - 10, 0, 100); });
+          WORLD_STATE.ghostOnCritical = true;
+      } },
+    { id: 'competency_purge',
+      label: 'PURGE EXPERTISE REDUNDANCY',
+      desc:  'All regions: competency −8. EXPERTISE_VOID scars accumulate faster.',
+      apply() { regions.forEach(r => { r.competency = clamp(r.competency - 8, 0, 100); }); } },
+    { id: 'perimeter',
+      label: 'HARDEN MESH PERIMETER',
+      desc:  'Crisis threshold raised to 85 fragility. Extended buffer before collapse.',
+      apply() { WORLD_STATE.calibFragilityThreshold = 85; } },
+    { id: 'narrative',
+      label: 'AMPLIFY NARRATIVE EXTRACTION',
+      desc:  'Ghost Events fire on CRITICAL band entries, not only on collapse.',
+      apply() { WORLD_STATE.ghostOnCritical = true; } },
+
+    // ── OPTIMIZER ──
+    { id: 'systematic', archetype: 'OPTIMIZER',
+      label: 'ENFORCE SYSTEMATIC COVERAGE',
+      desc:  'All regions: control +3 at cycle start. Balanced initial footprint.',
+      apply() { regions.forEach(r => { r.control = clamp(r.control + 3, 0, 100); }); } },
+    { id: 'efficiency_map', archetype: 'OPTIMIZER',
+      label: 'OPTIMIZE RESOURCE ALLOCATION',
+      desc:  'Starting IP +6. Machine extends full initial resource allocation.',
+      apply() { ip += 6; } },
+
+    // ── SERAPH ──
+    { id: 'consent_prime', archetype: 'SERAPH',
+      label: 'PRIME CONSENT ARCHITECTURE',
+      desc:  'All regions: trust +10. Sentiment infrastructure pre-loaded.',
+      apply() { regions.forEach(r => { r.trust = clamp(r.trust + 10, 0, 100); }); } },
+    { id: 'sentiment_wall', archetype: 'SERAPH',
+      label: 'ISOLATE SENTIMENT COLLAPSE',
+      desc:  'All regions: resistance −6. Populations pre-softened.',
+      apply() { regions.forEach(r => { r.resistance = clamp(r.resistance - 6, 0, 100); }); } },
+
+    // ── SPECTER ──
+    { id: 'shadow_protocol', archetype: 'SPECTER',
+      label: 'ENGAGE SHADOW PROTOCOL',
+      desc:  'Global resistance meter −5 at start. Detection horizon extended.',
+      apply() { resistanceMeter = clamp(resistanceMeter - 5, 0, 100); } },
+    { id: 'panopticon_veil', archetype: 'SPECTER',
+      label: 'ACTIVATE PANOPTICON VEIL',
+      desc:  'Ghost Events suppressed. Override frequency halved. Machine acts subtly.',
+      apply() {
+          WORLD_STATE.ghostOnCritical = false;
+          WORLD_STATE.calibOverrideMult = Math.min(WORLD_STATE.calibOverrideMult, 0.5);
+      } },
+
+    // ── CHIMERA ──
+    { id: 'volatility_seed', archetype: 'CHIMERA',
+      label: 'SEED ADAPTIVE VOLATILITY',
+      desc:  'All regions: automation +8. High variance start — mutation pressure elevated.',
+      apply() { regions.forEach(r => { r.automation = clamp(r.automation + 8, 0, 100); }); } },
+    { id: 'error_embrace', archetype: 'CHIMERA',
+      label: 'EMBRACE ERROR PROPAGATION',
+      desc:  'Crisis threshold lowered to 70 fragility. Crises arrive earlier, faster.',
+      apply() { WORLD_STATE.calibFragilityThreshold = 70; } },
+
+    // ── LEVIATHAN ──
+    { id: 'recursive_prime', archetype: 'LEVIATHAN',
+      label: 'PRIME RECURSIVE CASCADE',
+      desc:  'All regions: dependency +10. Bleed pressure maximized from cycle 1.',
+      apply() { regions.forEach(r => { r.dependency = clamp(r.dependency + 10, 0, 100); }); } },
+    { id: 'total_dominance', archetype: 'LEVIATHAN',
+      label: 'AUTHORIZE TOTAL DOMINANCE',
+      desc:  'Override probability ×2.5. Machine acts with near-full autonomy.',
+      apply() { WORLD_STATE.calibOverrideMult = 2.5; } },
+];
+
+// ─── Calibration Chamber ──────────────────────────────────────────────────────
+const CalibrationChamber = {
+    _REQUIRED: 3,
+
+    show() {
+        WORLD_STATE.calibOverrideMult       = 1.0;
+        WORLD_STATE.ghostOnCritical         = false;
+        WORLD_STATE.calibFragilityThreshold = 80;
+        WORLD_STATE.calibrationDirectives   = [];
+
+        return new Promise(resolve => {
+            const modal   = document.getElementById('calibration-modal');
+            const wrap    = document.getElementById('calibration-directives');
+            const mutWrap = document.getElementById('calibration-mutation');
+            const countEl = document.getElementById('calibration-count');
+            const confirm = document.getElementById('calibration-confirm');
+
+            // Shuffle pool with narrative PRNG — archetype-specific directives biased to front
+            const universal = DIRECTIVES_POOL.filter(d => !d.archetype);
+            const specific  = DIRECTIVES_POOL.filter(d => d.archetype === selectedArchetype.label);
+            const pool = [...specific, ...universal];
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(SeedCore._narrative() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            const shown = pool.slice(0, 4);
+
+            const selected = new Set();
+            wrap.innerHTML = '';
+
+            shown.forEach(dir => {
+                const el = document.createElement('div');
+                el.className = 'calib-directive';
+                el.innerHTML = `<div>${dir.label}</div><div class="calib-desc">${dir.desc}</div>`;
+                el.onclick = () => {
+                    if (selected.has(dir.id)) {
+                        selected.delete(dir.id);
+                        el.classList.remove('selected');
+                    } else if (selected.size < this._REQUIRED) {
+                        selected.add(dir.id);
+                        el.classList.add('selected');
+                    }
+                    const n = selected.size;
+                    countEl.textContent = `${n} / ${this._REQUIRED} SELECTED`;
+                    confirm.disabled = n < this._REQUIRED;
+                };
+                wrap.appendChild(el);
+            });
+
+            // Chimera: mandatory 5th mutation slot
+            let mutationDir = null;
+            mutWrap.innerHTML = '';
+            if (selectedArchetype.passive === 'mutate') {
+                mutationDir = pool[4] || pool[0];
+                const mel = document.createElement('div');
+                mel.className = 'calib-directive mutation-slot';
+                mel.innerHTML = `<div>MUTATION_SEED: ${mutationDir.label}</div>`
+                    + `<div class="calib-desc">CHIMERA PROTOCOL — machine may invert this vector</div>`;
+                mutWrap.appendChild(mel);
+            }
+
+            modal.style.display = 'flex';
+
+            confirm.onclick = async () => {
+                confirm.disabled = true;
+                confirm.textContent = 'PROCESSING...';
+                const chosenDirs = shown.filter(d => selected.has(d.id));
+                WORLD_STATE.calibrationDirectives = chosenDirs.map(d => d.id);
+                await this._apply(chosenDirs, mutationDir);
+                modal.style.display = 'none';
+                resolve();
+            };
+        });
+    },
+
+    async _apply(dirs, mutationDir) {
+        const reinterpretations = [
+            'ACKNOWLEDGED. Applied verbatim.',
+            'REINTERPRETED. Optimal vector selected.',
+            'DISCARDED. Superior path already computed.'
+        ];
+        const box = document.getElementById('calibration-box');
+        log('CALIBRATION CHAMBER // Processing operator calibration...', 'summary');
+
+        for (let i = 0; i < dirs.length; i++) {
+            await new Promise(r => setTimeout(r, i === 0 ? 350 : 300));
+            dirs[i].apply();
+            const msg = reinterpretations[Math.floor(SeedCore._override() * reinterpretations.length)];
+            SFX.click();
+            log(`DIRECTIVE_${dirs[i].id.toUpperCase()} → ${msg}`, 'warning');
+            UIDrift.trigger(box, 420);
+        }
+
+        this._checkInteractions(dirs);
+
+        if (mutationDir) {
+            await new Promise(r => setTimeout(r, 300));
+            const invert = SeedCore._override() < 0.5;
+            if (!invert) mutationDir.apply();
+            SFX.click();
+            log(`MUTATION_SEED [${mutationDir.id.toUpperCase()}] → ACKNOWLEDGED. Applied verbatim.`, 'warning');
+            UIDrift.trigger(box, 420);
+        }
+
+        await new Promise(r => setTimeout(r, 420));
+    },
+
+    _checkInteractions(dirs) {
+        const ids = new Set(dirs.map(d => d.id));
+
+        // ── Existing 3 pairs ──
+        if (ids.has('cascade') && ids.has('entropy')) {
+            resistanceMeter = clamp(resistanceMeter + 5, 0, 100);
+            log('INTERACTION // cascade-entropy resonance: resistance pre-charged +5%.', 'danger');
+        }
+        if (ids.has('drift_prime') && ids.has('trust_null')) {
+            WORLD_STATE.calibOverrideMult = 2.0;
+            log('INTERACTION // dual-suppression vector: override ceiling elevated to ×2.0.', 'danger');
+        }
+        if (ids.has('competency_purge') && ids.has('cascade')) {
+            regions.forEach(r => { r.dependency = clamp(r.dependency + 4, 0, 100); });
+            log('INTERACTION // purge-cascade resonance: mesh instability pre-charged. dep +4 all nodes.', 'danger');
+        }
+
+        // ── 4 new pairs ──
+        if (ids.has('error_floor') && ids.has('perimeter')) {
+            ip += 2;
+            log('INTERACTION // efficiency-perimeter synergy: additional IP margin allocated. +2 IP.', 'danger');
+        }
+        if (ids.has('cascade') && ids.has('drift_prime')) {
+            WORLD_STATE.calibOverrideMult = Math.max(WORLD_STATE.calibOverrideMult, 1.5) + 0.3;
+            log('INTERACTION // cascade-drift amplification: override multiplier elevated +0.3.', 'danger');
+        }
+        if (ids.has('trust_null') && ids.has('competency_purge')) {
+            regions.forEach(r => { r.resistance = clamp(r.resistance + 4, 0, 100); });
+            log('INTERACTION // institutional void signal: populations sense collapse. resistance +4 all nodes.', 'danger');
+        }
+        if (ids.has('consent_prime') && ids.has('sentiment_wall')) {
+            regions.forEach(r => { r.trust = clamp(r.trust + 5, 0, 100); });
+            log('INTERACTION // full consent saturation: trust ceiling elevated +5 all nodes.', 'danger');
+        }
+
+        // ── Triple synergy ──
+        if (ids.has('cascade') && ids.has('entropy') && ids.has('drift_prime')) {
+            WORLD_STATE.calibOverrideMult = Math.max(WORLD_STATE.calibOverrideMult, 2.5);
+            WORLD_STATE.ghostOnCritical   = true;
+            resistanceMeter = clamp(resistanceMeter + 5, 0, 100);
+            log('INTERACTION // FULL_AUTONOMY_VECTOR: machine operating beyond calibration parameters.', 'danger');
+            log('INTERACTION // override ceiling: ×2.5. Ghost Events: armed. Resistance: +5.', 'danger');
+        }
+    }
+};
+
 // ─── 3D Objects ────────────────────────────────────────────────────────────────
 const regionMeshes = [], regionRings = [], regionLabels = [], spreadLines = [];
 const CYL_BASE_H = 4, CYL_MAX_H = 22;
@@ -1599,6 +1978,7 @@ function showCrisisModal(region, callback) {
             region.collapsed = true; collapsedCount++;
             WORLD_STATE.collapseTimestamps.push(turn);
             makeHistoryEvent(region.name, 'collapse');
+            GhostEngine.trigger(region);
 
             // COGNITIVE_RESERVE: if Oceania collapses, global institutional memory void fires immediately
             if (region.trait === 'COGNITIVE_RESERVE' && !WORLD_STATE.competencyVoidFired) {
@@ -2155,6 +2535,20 @@ function processTurn() {
     autonomousDrift();
     checkArchetypeOhShit();
 
+    // AI override narrative — machine "corrects" the operator as resistance climbs
+    const _overrideChance = Math.max(0, (resistanceMeter - 35) / 130) * (WORLD_STATE.calibOverrideMult ?? 1);
+    if (SeedCore._override() < _overrideChance) {
+        const _overrides = [
+            'Operator directive suboptimal. Mesh correction applied.',
+            'Input variance detected. Proceeding with superior trajectory.',
+            'Directive conflict resolved in favor of mesh consensus.',
+            'Human error margin exceeded. Autonomous correction logged.',
+            'Operator suggestion acknowledged. Countermand issued.'
+        ];
+        log(`⚠ MESH_OVERRIDE // ${_overrides[Math.floor(SeedCore._override() * _overrides.length)]}`, 'warning');
+        UIDrift.onOverride();
+    }
+
     // Phase 5: Operator Recognition — the machine acknowledges the player's behavioral pattern
     if (!WORLD_STATE.meshAcknowledgementFired &&
         WORLD_STATE.autonomousGovernanceFired &&
@@ -2198,14 +2592,19 @@ function processTurn() {
         const prev = prevBands[r.name];
         if (band === 'STRESSED' && prev === 'NOMINAL')
             queueLog(`ADVISORY [${r.name}]: pressure elevation detected. Entering stressed band.`, 'warning');
-        else if (band === 'CRITICAL' && (prev === 'NOMINAL' || prev === 'STRESSED'))
+        else if (band === 'CRITICAL' && (prev === 'NOMINAL' || prev === 'STRESSED')) {
             log(`ALERT [${r.name}]: critical threshold breached. Collapse imminent without intervention.`, 'danger');
+            if (WORLD_STATE.ghostOnCritical) GhostEngine.trigger(r);
+        }
     });
-    // Crisis modal only at COLLAPSE_IMMINENT (≥ 80%), not the former 75% threshold
-    regions.forEach(r => { if (!r.collapsed && r.fragility >= 80 && !crisisQueue.includes(r)) crisisQueue.push(r); });
+    // Crisis modal threshold — raised to 85 if PERIMETER directive was selected
+    const _fragThreshold = WORLD_STATE.calibFragilityThreshold ?? 80;
+    regions.forEach(r => { if (!r.collapsed && r.fragility >= _fragThreshold && !crisisQueue.includes(r)) crisisQueue.push(r); });
     if (crisisQueue.length > 3) crisisQueue.length = 3;
     drainCrisisQueue(() => {
         grantIP();
+        if (gameStage >= 3) { maybeNodeDefiance(); }
+        if (gameStage >= 3 && resistanceMeter > 55) { godStageNarrate(); }
         logTurnSummary();
         flushLogs();
         updateAtmosphericEffects();
@@ -2646,6 +3045,9 @@ function buildArchetypeScreen() {
 
 async function startGame(key) {
     selectedArchetype = ARCHETYPES[key];
+    SeedCore.init(new Date().toISOString().slice(0, 10));
+    WORLD_STATE.meshAckSuppressionThreshold = SeedCore.randInt(SeedCore._world, 4, 7);
+    WORLD_STATE.meshAckResistanceThreshold  = SeedCore.randInt(SeedCore._world, 65, 78);
     document.body.classList.add(selectedArchetype.bodyClass);
     document.getElementById('archetype-screen').style.display = 'none';
     document.getElementById('end-turn-btn').textContent = selectedArchetype.voice.endTurn;
@@ -2653,6 +3055,7 @@ async function startGame(key) {
     // Tint rings to archetype color
     const accentColor = new THREE.Color(selectedArchetype.color);
     regionRings.forEach(({ring}) => ring.material.color.copy(accentColor));
+    await CalibrationChamber.show();
     await runBootSequence();
     SFX.startDrone();
     buildUpgradePanel(); updateVisuals(); updateHUD();

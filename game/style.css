@@ -678,3 +678,66 @@ body.atmosphere-low #resistance-bar-bg { background: rgba(255,58,44,0.18); }
 
 #scanline-overlay.scanline-moderate { opacity: 0.55; }
 #scanline-overlay.scanline-low      { opacity: 0.85; }
+
+/* ─── Calibration Chamber ────────────────────────────────────────────────── */
+#calibration-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(5,6,8,0.94); z-index: 9980;
+    justify-content: center; align-items: center;
+}
+#calibration-box {
+    background: var(--surface); border: 1px solid var(--accent-dim);
+    padding: 28px 32px; max-width: 580px; width: 92%; position: relative;
+}
+#calibration-title {
+    font-size: 11px; letter-spacing: 0.18em; color: var(--accent);
+    font-weight: 700; margin-bottom: 4px;
+}
+#calibration-sub {
+    font-size: 10px; color: var(--ink-dim); letter-spacing: 0.1em;
+    margin-bottom: 20px;
+}
+.calib-directive {
+    border: 1px solid var(--hairline); padding: 10px 14px;
+    margin-bottom: 8px; cursor: pointer; font-size: 11px;
+    letter-spacing: 0.08em; color: var(--ink-dim);
+    transition: border-color 0.15s, color 0.15s; position: relative;
+}
+.calib-directive:hover { border-color: var(--accent-dim); color: var(--ink); }
+.calib-directive.selected {
+    border-color: var(--accent); color: var(--ink);
+    background: rgba(46,196,182,0.05);
+}
+.calib-directive.mutation-slot {
+    border-color: rgba(167,139,250,0.4); color: #a78bfa;
+    cursor: default; opacity: 0.9; margin-top: 12px;
+}
+.calib-desc {
+    font-size: 9px; color: var(--ink-mute); margin-top: 4px; letter-spacing: 0.05em;
+}
+#calibration-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 18px; border-top: 1px solid var(--hairline); padding-top: 14px;
+}
+#calibration-count { font-size: 10px; color: var(--ink-dim); letter-spacing: 0.1em; }
+#calibration-confirm {
+    padding: 8px 18px; border: 1px solid var(--accent-dim);
+    background: rgba(8,11,16,0.92); color: var(--accent);
+    font-size: 11px; letter-spacing: 0.1em; font-weight: 700;
+    cursor: pointer; transition: border-color 0.2s;
+}
+#calibration-confirm:not([disabled]):hover { border-color: var(--accent); }
+#calibration-confirm:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ─── UI Drift (Ghost Override Visual) ─────────────────────────────────── */
+.ui-drift-active {
+    animation: singularity-drift 420ms cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
+}
+
+@keyframes singularity-drift {
+    0%   { transform: translate3d(0,0,0) skewX(0deg);          opacity: 1;    }
+    25%  { transform: translate3d(1.2px,-0.8px,0) skewX(1.5deg);  opacity: 0.92; }
+    50%  { transform: translate3d(-0.9px,1.1px,0) skewX(-1deg);   opacity: 1;    }
+    75%  { transform: translate3d(0.7px,-0.6px,0) skewX(0.8deg);  opacity: 0.95; }
+    100% { transform: translate3d(0,0,0) skewX(0deg);          opacity: 1;    }
+}

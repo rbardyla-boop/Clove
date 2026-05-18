@@ -31,6 +31,9 @@
         animation: none !important;
         border-color: rgba(249,115,22,0.72) !important;
     }
+
+    /* UI Drift: skip on touch devices */
+    .ui-drift-active { animation: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
