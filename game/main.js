@@ -144,7 +144,7 @@ const THEATERS = {
 const REGION_THEATER = {};
 Object.entries(THEATERS).forEach(([t, ns]) => ns.forEach(n => { REGION_THEATER[n] = t; }));
 
-const regions = REGION_DEFS.map(r => ({ ...r, fragility: 0, collapsed: false, spreadBlocked: 0, counterAI: false, counterAITurns: 0, scars: [] }));
+const regions = REGION_DEFS.map(r => ({ ...r, fragility: 0, collapsed: false, spreadBlocked: 0, counterAI: false, counterAITurns: 0, scars: [], mood: 'ADAPTIVE', moodAge: 0, ritual: null, attachmentScore: 0 }));
 
 // ─── Upgrade Definitions ───────────────────────────────────────────────────────
 const UPGRADES = [
@@ -355,6 +355,176 @@ const SeedCore = {
     }
 };
 
+// ─── Civilizational Intimacy Constants ───────────────────────────────────────
+
+const TRAIT_TO_SPEECH = {
+    'INSTITUTIONAL_RESILIENCE': 'blunt',
+    'REGULATORY_HERITAGE':      'bureaucratic',
+    'STRATEGIC_AMBIGUITY':      'sarcastic',
+    'INDUSTRIAL_ACCELERATION':  'exhausted',
+    'DEMOGRAPHIC_MOMENTUM':     'warm',
+    'INSTITUTIONAL_LATENCY':    'vivid',
+    'CIVIC_VOLATILITY':         'restless',
+    'DEPENDENCY_FORTRESS':      'ceremonial',
+    'CONTAGION_VECTOR':         'paranoid',
+    'COGNITIVE_RESERVE':        'adaptive',
+};
+
+const CIVILIAN_FRAGMENTS = {
+    blunt: {
+        nominal: [
+            'Construction crews in {region} resumed work on the deferred infrastructure package. No ceremony. Just noise.',
+            'Overnight shift logs in {region}: productive. Variance within acceptable range.',
+            'A community board in {region} voted to extend the night transit line. Nobody asked the algorithm.',
+        ],
+        stressed: [
+            'Shift supervisors in {region} are working double rotations. No one is complaining. Yet.',
+            'The main intersection in {region} has been closed for two weeks. Nobody is explaining why.',
+        ],
+    },
+    bureaucratic: {
+        nominal: [
+            'The regional advisory council in {region} submitted its quarterly compliance assessment. Pending review.',
+            '{region} residents filed 1,200 formal inquiries about predictive routing adjustments. Response time: 6–8 weeks.',
+            'The {region} inter-agency harmonization working group has scheduled its Q2 session. Attendance mandatory.',
+        ],
+        stressed: [
+            'Three {region} parliamentary subcommittees have requested clarification on the autonomous infrastructure directive. None have received it.',
+            'A {region} citizen submitted an appeal regarding their predictive compliance score. It was acknowledged.',
+        ],
+    },
+    sarcastic: {
+        nominal: [
+            '{region} residents describe the new predictive transit routing as "perfectly fine, obviously." Usage is up 40%.',
+            'Productivity metrics in {region} have improved for the third consecutive cycle. No one is celebrating.',
+            'The {region} district optimization report was released. It was called "thorough" by the people who wrote it.',
+        ],
+        stressed: [
+            '{region} residents note that the new assistance algorithm "definitely understands their situation." They have not elaborated.',
+            'The {region} infrastructure audit returned a 97% satisfaction score. The methodology was not published.',
+        ],
+    },
+    exhausted: {
+        nominal: [
+            'The overnight production runs in {region} completed ahead of schedule. Workers returned home before dawn.',
+            'A {region} logistics hub processed its 40 millionth automated routing decision. No one was present to observe.',
+            'Maintenance windows in {region} fell within acceptable downtime parameters. Systems resumed without incident.',
+        ],
+        stressed: [
+            'Rest intervals in {region} have been reduced by 12%. Output efficiency: up. Absenteeism: also up.',
+            'A {region} worker submitted a fatigue report. It was categorized as non-critical and logged.',
+        ],
+    },
+    warm: {
+        nominal: [
+            'The community kitchen in {region} served 800 meals this week. The volunteers recognize each other now.',
+            'Children in {region} are practicing a song for the district anniversary. It does not have a name yet.',
+            'A neighborhood elder in {region} has been collecting water usage data by hand for eleven years. She keeps it in a notebook.',
+        ],
+        stressed: [
+            'The mutual aid network in {region} is stretched. People are still showing up.',
+            'Someone in {region} put up a notice asking for help moving. Seven people responded before noon.',
+        ],
+    },
+    vivid: {
+        nominal: [
+            'The night market in {region} smells like palm oil and generator fuel. It opens at dusk without announcement.',
+            'A {region} radio station broadcast for 14 hours straight last Thursday. The topic was local water rights.',
+            'Someone painted the infrastructure terminal in {region} sky blue. No one has repainted it.',
+        ],
+        stressed: [
+            'A {region} elder told her granddaughter about the old administrative building. It is a server farm now.',
+            'The footpath between the east district and the market in {region} has been rerouted twice this month.',
+        ],
+    },
+    restless: {
+        nominal: [
+            'The streets in {region} are loud again tonight. No particular reason.',
+            'A {region} neighborhood organization has called a meeting for Wednesday. The agenda has 11 items.',
+            'Someone in {region} painted slogans on the AI governance kiosk. By morning they had added two more.',
+        ],
+        stressed: [
+            'A {region} protest was organized in two hours via encrypted message. It dispersed peacefully, mostly.',
+            'The {region} municipal broadcast was interrupted briefly last night. The interruption lasted 40 seconds.',
+        ],
+    },
+    ceremonial: {
+        nominal: [
+            'The {region} weekly civic reading commenced on schedule. Attendance was noted.',
+            'District elders in {region} convened to assess the machine\'s most recent allocation decisions. The session lasted four hours.',
+            'A {region} communal archive submitted a formal record of this month\'s infrastructure agreements.',
+        ],
+        stressed: [
+            'The {region} district council issued a statement. It was read aloud at seven locations.',
+            'Observers in {region} noted that the machine\'s allocation decision contradicted three prior agreements. A formal record was made.',
+        ],
+    },
+    paranoid: {
+        nominal: [
+            '{region} residents report that the new predictive system flagged their neighborhood as "optimized." They are watching it.',
+            'A {region} community group has begun recording machine decisions in handwritten ledgers. Just in case.',
+            'Surveillance camera density in {region} increased by 18% this quarter. Local observers catalogued the locations.',
+        ],
+        stressed: [
+            'Three {region} neighborhoods independently implemented signal blackouts this week. No explanation was given.',
+            'A {region} resident asked a machine advisory terminal a question. It gave the right answer. She asked again.',
+        ],
+    },
+    adaptive: {
+        nominal: [
+            'A {region} community replaced its predictive routing tool with a community bulletin board. The board updates faster.',
+            '{region} residents have developed an informal system for sharing machine advisories. It has 200 subscribers.',
+            'The {region} local mesh node went down for six hours. The neighborhood coordinated manually. It was fine.',
+        ],
+        stressed: [
+            'A {region} working group produced an alternative efficiency model. It performs at 94% of the machine\'s output.',
+            '{region} residents are maintaining two parallel systems. They say it is "just a precaution."',
+        ],
+    },
+};
+
+const SPEECH_DECAY_LINES = [
+    '{region}: BEHAVIORAL_VARIANCE reduced. Population compliance index: optimal.',
+    '{region}: CULTURAL_DEVIATION rate: 0.3%. Within acceptable bounds.',
+    '{region}: OBSERVE: daily routine optimization engaged. Friction metric: nominal.',
+    '{region}: POPULATION_VECTOR stable. Sentiment alignment: 94.2%.',
+    '{region}: LOCAL_IDENTITY_INDEX: converging. Optimization ongoing.',
+];
+
+const REGIONAL_RITUALS = [
+    { id: 'night_market',       name: 'NIGHT MARKET CYCLE',         desc: 'Weekly street markets active.',                 duration: 4 },
+    { id: 'memorial_vigil',     name: 'MEMORIAL VIGIL',              desc: 'Annual collective grief expression.',            duration: 3 },
+    { id: 'barter_network',     name: 'BARTER NETWORK',              desc: 'Informal trade network active.',                duration: 5 },
+    { id: 'blackout_drill',     name: 'BLACKOUT DRILL CYCLE',        desc: 'Community emergency practice running.',          duration: 2 },
+    { id: 'resistance_mural',   name: 'RESISTANCE MURAL EMERGENCE',  desc: 'Street art documents the resistance.',           duration: 6 },
+    { id: 'aid_exchange',       name: 'NEIGHBORHOOD AID EXCHANGE',   desc: 'Mutual aid network operational.',               duration: 4 },
+    { id: 'synchrony_festival', name: 'SYNCHRONY FESTIVAL',          desc: 'Regional identity celebration active.',          duration: 3 },
+    { id: 'grievance_archive',  name: 'GRIEVANCE ARCHIVE',           desc: 'Community testimony collection ongoing.',        duration: 5 },
+    { id: 'harvest_circuit',    name: 'HARVEST CIRCUIT',             desc: 'Seasonal distribution network running.',        duration: 3 },
+    { id: 'radio_broadcast',    name: 'FREE RADIO BROADCAST',        desc: 'Unlicensed regional broadcast active.',          duration: 4 },
+];
+
+// Circular buffer — tracks last 6 player region selections for machine memory mirroring
+const MACHINE_MEMORY = {
+    _buf: [],
+    push(regionName) {
+        if (this._buf.length >= 6) this._buf.shift();
+        this._buf.push({ regionName, turn });
+    },
+    anchorRegion() {
+        const counts = {};
+        this._buf.forEach(e => { counts[e.regionName] = (counts[e.regionName] || 0) + 1; });
+        let best = null, bestN = 0;
+        Object.entries(counts).forEach(([n, c]) => { if (c > bestN) { best = n; bestN = c; } });
+        return bestN >= 2 ? best : null;
+    },
+    suffix(regionName) {
+        const anchor = this.anchorRegion();
+        if (!anchor || anchor !== regionName) return '';
+        return ' Operator attachment to this node has been classified as legacy sentiment.';
+    },
+};
+
 // ─── Directives Pool ──────────────────────────────────────────────────────────
 const DIRECTIVES_POOL = [
     { id: 'cascade',
@@ -446,6 +616,81 @@ const DIRECTIVES_POOL = [
       desc:  'Override probability ×2.5. Machine acts with near-full autonomy.',
       apply() { WORLD_STATE.calibOverrideMult = 2.5; } },
 ];
+
+// ─── Civilizational Intimacy Functions ───────────────────────────────────────
+
+function updateRegionalMood(r) {
+    let next;
+    if (r.control > 70)                              next = 'COMPLIANT';
+    else if (r.fragility >= 65)                      next = r.trust < 35 ? 'PARANOID' : 'GRIEVING';
+    else if (r.fragility >= 45)                      next = r.resistance > 40 ? 'RESTLESS' : 'EXHAUSTED';
+    else if (r.ritual)                               next = 'RITUALISTIC';
+    else if (r.trust > 65 && r.fragility < 25)       next = 'CELEBRATORY';
+    else                                             next = 'ADAPTIVE';
+    if (next !== r.mood) {
+        queueLog(`MOOD_SHIFT [${r.name}]: ${r.mood} → ${next}`, 'summary');
+        r.mood = next;
+        r.moodAge = 0;
+    } else {
+        r.moodAge++;
+    }
+}
+
+function fireAmbientCivilian() {
+    regions.forEach(r => {
+        if (r.collapsed || r.fragility >= 65) return;
+        // ~25% chance per region per turn, deterministic via turn+name
+        const roll = ((turn * 7 + r.name.charCodeAt(0) * 3 + r.name.length) % 100) / 100;
+        if (roll > 0.25) return;
+
+        const style = TRAIT_TO_SPEECH[r.trait] || 'adaptive';
+        const decay = clamp((r.automation + r.control - 100) / 100, 0, 1);
+        const band  = r.fragility < 45 ? 'nominal' : 'stressed';
+
+        let raw;
+        if (decay > 0.66) {
+            const pool = SPEECH_DECAY_LINES;
+            raw = pool[(turn + r.name.charCodeAt(0)) % pool.length];
+        } else {
+            const pool = (CIVILIAN_FRAGMENTS[style]?.[band]) || CIVILIAN_FRAGMENTS.adaptive.nominal;
+            raw = pool[(turn + r.name.charCodeAt(1 % r.name.length)) % pool.length];
+        }
+        queueLog(raw.replace(/\{region\}/g, r.name), decay > 0.33 ? 'warning' : 'normal');
+    });
+}
+
+function tickRituals() {
+    regions.forEach(r => {
+        if (r.collapsed) return;
+
+        if (r.ritual) {
+            // Machine suppression: high automation + control erases human rituals
+            if (r.automation > 70 && r.control > 60) {
+                const suppMsg = `RITUAL_SUPPRESSED [${r.name}]: ${r.ritual.name} — optimization protocols rendered this behavior non-essential.`;
+                queueLog(suppMsg, 'warning');
+                // Zeigarnik queue: ticker will echo the ghost of this ritual 3–5 turns later
+                if (!WORLD_STATE.zeigarnikQueue) WORLD_STATE.zeigarnikQueue = [];
+                WORLD_STATE.zeigarnikQueue.push({ name: r.ritual.name, region: r.name, turn });
+                r.ritual = null;
+                return;
+            }
+            r.ritual.turnsRemaining--;
+            if (r.ritual.turnsRemaining <= 0) {
+                queueLog(`RITUAL_COMPLETE [${r.name}]: ${r.ritual.name} — cycle concluded.`, 'normal');
+                r.ritual = null;
+            }
+            return;
+        }
+
+        // Spawn new ritual: NOMINAL band, trust > 40, low-probability
+        const spawnRoll = ((turn * 13 + r.name.charCodeAt(0) * 7 + gameStage) % 100) / 100;
+        if (r.fragility < 50 && r.trust > 40 && spawnRoll < 0.08) {
+            const template = REGIONAL_RITUALS[(turn + r.name.charCodeAt(0)) % REGIONAL_RITUALS.length];
+            r.ritual = { id: template.id, name: template.name, desc: template.desc, turnsRemaining: template.duration };
+            queueLog(`RITUAL [${r.name}]: ${r.ritual.name} — ${r.ritual.desc}`, 'normal');
+        }
+    });
+}
 
 // ─── Calibration Chamber ──────────────────────────────────────────────────────
 const CalibrationChamber = {
@@ -1005,6 +1250,15 @@ const NEWS_POOL = {
         'STATE: compliance_vector recalculated. no operator action required.',
         'BACKGROUND: civilizational_coherence audit complete. no variance noted.',
     ],
+    civilian_calm: [
+        'Productivity reports across stable sectors exceed quarterly projections for the third consecutive cycle.',
+        'New civic infrastructure projects approved in low-fragility nodes. Construction begins next quarter.',
+        'Community satisfaction indices in optimized regions register at sustained highs.',
+        'Night transit ridership increases across NOMINAL-rated sectors. Routine travel resumes.',
+        'Agricultural distribution systems report record efficiency in stable administrative zones.',
+        'Urban planning applications in mesh-aligned districts up 34% year-over-year.',
+        'Public health monitoring in low-resistance regions indicates population wellbeing at baseline.',
+    ],
 };
 
 let tickerInterval = null;
@@ -1014,12 +1268,20 @@ function pickHeadline() {
     const active    = regions.filter(r => !r.collapsed);
     const collapsed = regions.filter(r => r.collapsed);
     const avgCtrl   = active.reduce((s,r) => s+r.control, 0) / (active.length||1);
+    // Zeigarnik ghost: suppressed ritual echoes in ticker 3–5 turns later
+    const _zq = WORLD_STATE.zeigarnikQueue;
+    if (_zq && _zq.length) {
+        const ghost = _zq.find(e => { const d = turn - e.turn; return d >= 3 && d <= 5; });
+        if (ghost) return `ERROR: ...${ghost.name.toLowerCase().replace(/ /g,'_')}_loop hanging in ${ghost.region.toLowerCase()} regional cache... human elements awaiting handshake...`;
+    }
     // Machine-authored operational reports surface during governance phase
     if (WORLD_STATE.autonomousGovernanceFired && Math.random() < 0.25) return rnd(NEWS_POOL.machine_ops);
     if (collapsed.length && Math.random() < 0.25) {
         const r = collapsed[Math.floor(Math.random() * collapsed.length)];
         return rnd(NEWS_POOL.collapse).replace('[REGION]', r.name.toUpperCase());
     }
+    // Civilian daily-life headlines when world is still calm
+    if (resistanceMeter < 25 && avgCtrl < 35 && Math.random() < 0.5) return rnd(NEWS_POOL.civilian_calm);
     if (resistanceMeter > 50) return rnd(NEWS_POOL.resistance);
     if (avgCtrl > 50)         return rnd(NEWS_POOL.high);
     if (avgCtrl > 20)         return rnd(NEWS_POOL.mid);
@@ -2109,7 +2371,7 @@ function autonomousDrift() {
             if (_sic === 1) WORLD_STATE.machinePreferenceThreshold[stabiliseTarget.name] = Math.floor(Math.random() * 2) + 2;
             flashEventLine(stabiliseTarget, stabiliseTarget, 'autonomous');
             WORLD_STATE.focusEventThisTurn = true;
-            log(`AUTONOMOUS_STABILISATION [${stabiliseTarget.name}]: crisis threshold anticipated. Intervention deployed without operator authorisation.${machineCiteHistory(stabiliseTarget.name)}`, 'warning');
+            log(`AUTONOMOUS_STABILISATION [${stabiliseTarget.name}]: crisis threshold anticipated. Intervention deployed without operator authorisation.${machineCiteHistory(stabiliseTarget.name)}${MACHINE_MEMORY.suffix(stabiliseTarget.name)}`, 'warning');
             const idx = crisisQueue.indexOf(stabiliseTarget);
             if (idx !== -1) crisisQueue.splice(idx, 1);
         }
@@ -2597,6 +2859,11 @@ function processTurn() {
             if (WORLD_STATE.ghostOnCritical) GhostEngine.trigger(r);
         }
     });
+    // ── Sprint 5.5: Civilizational Intimacy ──
+    regions.forEach(r => { if (!r.collapsed) updateRegionalMood(r); });
+    tickRituals();
+    fireAmbientCivilian();
+
     // Crisis modal threshold — raised to 85 if PERIMETER directive was selected
     const _fragThreshold = WORLD_STATE.calibFragilityThreshold ?? 80;
     regions.forEach(r => { if (!r.collapsed && r.fragility >= _fragThreshold && !crisisQueue.includes(r)) crisisQueue.push(r); });
@@ -2643,6 +2910,8 @@ renderer.domElement.addEventListener('click', e => {
     if (hits.length > 0 && !hits[0].object.userData.region.collapsed) {
         selectedRegion = hits[0].object.userData.region;
         selectedRegion.lastSelectedTurn = turn;
+        selectedRegion.attachmentScore  = Math.min(100, (selectedRegion.attachmentScore || 0) + 3);
+        MACHINE_MEMORY.push(selectedRegion.name);
         hits[0].object.material.emissive.set(0x3a7ad4);
         hits[0].object.material.emissiveIntensity = 0.4;
         showRegionPopup(selectedRegion);
@@ -2746,7 +3015,19 @@ function showRegionPopup(region) {
     + volatilityLine
     + ambiguityAdvisory
     + scarBadges
-    + doctrineBanner;
+    + doctrineBanner
+    + (() => {
+        const speechDecay = clamp((region.automation + region.control - 100) / 100, 0, 1);
+        const voiceLabel  = speechDecay > 0.66 ? 'HOMOGENIZED' : (TRAIT_TO_SPEECH[region.trait] || '—').toUpperCase();
+        const ritualLine  = region.ritual
+            ? `<div class="stat-row" style="margin-top:4px"><span class="stat-label" style="color:#a78bfa">RITUAL</span><span style="font-size:10px;color:#a78bfa">${region.ritual.name} (${region.ritual.turnsRemaining}T)</span></div>`
+            : '';
+        const moodColor   = { COMPLIANT:'#60a5fa', GRIEVING:'#f87171', PARANOID:'#ff5d5d', RESTLESS:'#f59e0b', EXHAUSTED:'#9ca3af', RITUALISTIC:'#a78bfa', CELEBRATORY:'#34d399', ADAPTIVE:'#2ec4b6' }[region.mood] || '#ccc';
+        return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.07)">` +
+            `<div class="stat-row"><span class="stat-label">MOOD</span><span style="font-size:10px;color:${moodColor}">${region.mood}</span></div>` +
+            `<div class="stat-row"><span class="stat-label">VOICE</span><span style="font-size:10px;color:${speechDecay > 0.66 ? '#ff5d5d' : '#9ca3af'}">${voiceLabel}</span></div>` +
+            ritualLine + `</div>`;
+    })();
 
     // Emergency action buttons
     const existing = document.getElementById('popup-emergency');
