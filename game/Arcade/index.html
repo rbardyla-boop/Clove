@@ -150,8 +150,14 @@
     border-bottom: 1px solid var(--hair);
     margin: 0 -24px;
     padding: 0 24px;
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
   }
   .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tabs:hover {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
   .tab-btn {
     background: none; border: none;
     padding: 14px 18px;
@@ -1302,6 +1308,7 @@ tabs.forEach(tab => {
     document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
     tab.setAttribute('aria-selected', 'true');
+    tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     const target = tab.getAttribute('data-target');
     document.getElementById(`panel-${target}`).classList.add('active');
     if (target === 'unblock')   initUnblock();
@@ -1480,26 +1487,39 @@ const U_SIZE = 540, U_COLS = 6;
 const uGrid = U_SIZE / U_COLS;
 let unblockBlocks = [], selectedBlock = null, unblockMoves = 0, dragOffset = 0, unblockWon = false;
 
+// Three hand-verified solvable base layouts (6×6, CORE on row 2, exit right side at x≥4)
+const UNBLOCK_BASES = [
+  // Layout 0: CORE mid-left, vertical blocker at col 3 (slide it down to free path)
+  [
+    { id:0, x:1, y:2, w:2, h:1, isTarget:true, label:'CORE' },
+    { id:1, x:3, y:0, w:1, h:3 },
+    { id:2, x:0, y:3, w:3, h:1 },
+    { id:3, x:4, y:3, w:1, h:2 },
+    { id:4, x:4, y:0, w:2, h:1 },
+    { id:5, x:0, y:4, w:1, h:2 },
+  ],
+  // Layout 1: CORE far-left, blocker at col 2 (move horizontal guard right, then drop blocker)
+  [
+    { id:0, x:0, y:2, w:2, h:1, isTarget:true, label:'CORE' },
+    { id:1, x:2, y:0, w:1, h:3 },
+    { id:2, x:3, y:0, w:3, h:1 },
+    { id:3, x:0, y:0, w:2, h:1 },
+    { id:4, x:0, y:3, w:3, h:1 },
+    { id:5, x:4, y:1, w:2, h:1 },
+  ],
+  // Layout 2: CORE mid-right, blocker at col 4 (slide blocker down past row 2, then exit)
+  [
+    { id:0, x:2, y:2, w:2, h:1, isTarget:true, label:'CORE' },
+    { id:1, x:4, y:1, w:1, h:3 },
+    { id:2, x:0, y:0, w:3, h:1 },
+    { id:3, x:3, y:0, w:1, h:2 },
+    { id:4, x:0, y:1, w:2, h:1 },
+    { id:5, x:1, y:3, w:3, h:1 },
+  ],
+];
 function unblockCoreSolvable(blocks) {
-  // BFS sliding only the CORE block left/right — fast enough (<2000 states on a 6×6 grid)
-  const encode = (x) => String(x);
-  const queue = [blocks.find(b => b.id === 0).x];
-  const seen = new Set([queue[0]]);
-  while (queue.length) {
-    const cx = queue.shift();
-    if (cx >= 4) return true;          // CORE reached exit column
-    for (const d of [-1, 1]) {
-      const nx = cx + d;
-      if (nx < 0 || nx + 2 > U_COLS) continue;
-      // Check if moving CORE to nx collides with any other block on row 2
-      if (blocks.some(b => b.id !== 0 &&
-          nx < b.x + b.w && nx + 2 > b.x &&
-          2 < b.y + b.h && 3 > b.y)) continue;
-      const k = encode(nx);
-      if (!seen.has(k)) { seen.add(k); queue.push(nx); }
-    }
-  }
-  return false;
+  // kept for reference but no longer called
+  return true;
 }
 
 function initUnblock() {
@@ -1508,30 +1528,22 @@ function initUnblock() {
   unblockMoves = 0; unblockWon = false; selectedBlock = null;
   document.getElementById('unblock-moves').textContent = '0';
   document.getElementById('overlay-unblock').classList.remove('active');
-  // Base layout: core block on row 2 (the goal row)
-  unblockBlocks = [
-    { id: 0, x: 1, y: 2, w: 2, h: 1, isTarget: true, label: 'CORE' },
-    { id: 1, x: 3, y: 0, w: 1, h: 3, isTarget: false },
-    { id: 2, x: 0, y: 3, w: 3, h: 1, isTarget: false },
-    { id: 3, x: 4, y: 3, w: 1, h: 2, isTarget: false },
-    { id: 4, x: 4, y: 0, w: 2, h: 1, isTarget: false },
-    { id: 5, x: 0, y: 4, w: 1, h: 2, isTarget: false }
-  ];
+  // Cycle through 3 hand-verified base layouts based on current seed
+  const base = UNBLOCK_BASES[currentSeed % UNBLOCK_BASES.length];
+  unblockBlocks = base.map(b => ({ ...b }));
+  // Add procedural variety — never span or land on row 2 (CORE's row)
   const proceduralCount = Math.floor(rng() * 3) + 1;
   for (let i = 0; i < proceduralCount; i++) {
-    let rx = Math.floor(rng() * 5);
-    let ry = Math.floor(rng() * 5);
-    if (ry === 2) ry = 5;
     const isH = rng() > 0.5;
+    const rx = Math.floor(rng() * 5);
+    const ry = Math.floor(rng() * 5);
     const candidate = { id: 10 + i, x: rx, y: ry, w: isH ? 2 : 1, h: isH ? 1 : 2, isTarget: false };
     if (candidate.x + candidate.w > U_COLS) continue;
     if (candidate.y + candidate.h > U_COLS) continue;
+    if (candidate.y <= 2 && candidate.y + candidate.h > 2) continue; // no span over row 2
+    if (candidate.y === 2) continue;                                  // no block on row 2
     if (unblockBlocks.some(b => candidate.x < b.x + b.w && candidate.x + candidate.w > b.x && candidate.y < b.y + b.h && candidate.y + candidate.h > b.y)) continue;
     unblockBlocks.push(candidate);
-  }
-  // Validate: if procedural blocks seal the CORE's exit, drop them
-  if (!unblockCoreSolvable(unblockBlocks)) {
-    unblockBlocks = unblockBlocks.filter(b => b.id < 10);
   }
   drawUnblock();
 }
