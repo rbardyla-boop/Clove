@@ -511,6 +511,15 @@
       <button class="tab-btn"        role="tab" aria-selected="false" data-target="c2048"><span class="tab-idx">04</span>Clarity 2048</button>
       <button class="tab-btn"        role="tab" aria-selected="false" data-target="serpent"><span class="tab-idx">05</span>Focus Serpent</button>
       <button class="tab-btn"        role="tab" aria-selected="false" data-target="match"><span class="tab-idx">06</span>Mind Match</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="stacker"><span class="tab-idx">07</span>Clarity Stacker</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="mine"><span class="tab-idx">08</span>Mine the Mind</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="rally"><span class="tab-idx">09</span>Discipline Rally</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="break"><span class="tab-idx">10</span>Break the Overwhelm</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="push"><span class="tab-idx">11</span>Push Procrastination</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="switch"><span class="tab-idx">12</span>Switch Off Numbness</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="scorch"><span class="tab-idx">13</span>Scorched Mind</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="asteroids"><span class="tab-idx">14</span>Clear the Noise</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-target="invaders"><span class="tab-idx">15</span>Hold the Line</button>
     </nav>
   </div>
 </header>
@@ -742,6 +751,347 @@
     </div>
   </div>
 
+  <!-- 7. CLARITY STACKER -->
+  <div id="panel-stacker" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.07 / OVERFLOW GRID</span>
+        <canvas id="canvas-stacker" class="canvas-2d" width="400" height="540" aria-label="Tetris-style stacking puzzle"></canvas>
+        <div class="overlay" id="overlay-stacker">
+          <span class="overlay-tag">Overload dissipated</span>
+          <h3>STACK BREATHABLE</h3>
+          <p><em>You packed the chaos and cleared it clean. The overload is gone. Keep breathing.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetStacker(true)">Next Cycle</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · OVERLOAD PROCESSING</div>
+          <h2>CLARITY STACKER</h2>
+        </div>
+        <p class="meta-description">Processing a continuous stream of incoming thoughts. Sort cascading fragments before the stack overflows.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Matrix Seed</span><span class="val" id="stacker-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Lines Cleared</span><span class="val accent" id="stacker-lines">0 / 5</span></div>
+          <div class="stat-row"><span class="lbl">Score</span><span class="val gold" id="stacker-score">0</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetStacker(false)">Purge Grid</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li><kbd>A</kbd> / <kbd>D</kbd> or arrows to shift incoming fragments.</li>
+            <li><kbd>W</kbd> or up arrow to rotate topology.</li>
+            <li><kbd>S</kbd> or down arrow to accelerate drop.</li>
+            <li>Complete contiguous horizontal rows to discharge them.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 8. MINE THE MIND -->
+  <div id="panel-mine" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.08 / NEURAL MINEFIELD</span>
+        <canvas id="canvas-mine" class="canvas-2d" width="540" height="540" aria-label="Minesweeper neural field"></canvas>
+        <div class="overlay" id="overlay-mine">
+          <span class="overlay-tag">Subconscious secured</span>
+          <h3>TRIGGERS CONTAINED</h3>
+          <p><em>Every buried trigger mapped, none detonated. The field is safe. You did that.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetMine(true)">Next Layer</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · TRIGGER MAPPING</div>
+          <h2>MINE THE MIND</h2>
+        </div>
+        <p class="meta-description">Scanning your neural field to isolate buried emotional triggers without detonating them. Logic first.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Neural Zone</span><span class="val" id="mine-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Safe Cells Left</span><span class="val accent" id="mine-left">0</span></div>
+          <div class="stat-row"><span class="lbl">Triggers Flagged</span><span class="val gold" id="mine-flags">0 / 12</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetMine(false)">Regenerate Terrain</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li>Click to evaluate cells. Numbers show adjacent trigger count.</li>
+            <li><kbd>Shift</kbd>+Click or right-click to flag suspected triggers.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 9. DISCIPLINE RALLY -->
+  <div id="panel-rally" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.09 / ATTENTION RALLY</span>
+        <canvas id="canvas-rally" class="canvas-2d" width="540" height="540" aria-label="Pong attention boundary game"></canvas>
+        <div class="overlay" id="overlay-rally">
+          <span class="overlay-tag">Focus sustained</span>
+          <h3>BOUNDARY HELD</h3>
+          <p><em>Five distractions deflected. You maintained complete presence. That's the work.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetRally(true)">Increase Velocity</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · ATTENTION BOUNDARY</div>
+          <h2>DISCIPLINE RALLY</h2>
+        </div>
+        <p class="meta-description">Maintaining a baseline barrier to intercept rapid attention-hijack impulses before they breach your focus.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Rally Profile</span><span class="val" id="rally-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Saves</span><span class="val accent" id="rally-score">0 / 5</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetRally(false)">Re-centre Boundary</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li>Move mouse / touch or use <kbd>W</kbd> / <kbd>S</kbd> to position your shield.</li>
+            <li>Intercept the impulse node before it breaks your right boundary.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 10. BREAK THE OVERWHELM -->
+  <div id="panel-break" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.10 / ANXIETY ARRAY</span>
+        <canvas id="canvas-break" class="canvas-2d" width="540" height="540" aria-label="Breakout anxiety shattering game"></canvas>
+        <div class="overlay" id="overlay-break">
+          <span class="overlay-tag">Overwhelm shattered</span>
+          <h3>ARRAY DEMOLISHED</h3>
+          <p><em>The dense structure of anxieties broke apart. The structure cracked before you did.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetBreak(true)">Next Barrier</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · ANXIETY FRAGMENTATION</div>
+          <h2>BREAK THE OVERWHELM</h2>
+        </div>
+        <p class="meta-description">Fragmenting monumental anxiety structures. Bounce a focal point to chip away at heavy mental block segments.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Anxiety Density</span><span class="val" id="break-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Fragments Left</span><span class="val accent" id="break-count">0</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetBreak(false)">Re-architect Barrier</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li>Mouse / touch or <kbd>A</kbd> / <kbd>D</kbd> to track your intention node.</li>
+            <li>Bounce the energy node upward to dismantle the array.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 11. PUSH PROCRASTINATION -->
+  <div id="panel-push" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.11 / OBLIGATION MATRIX</span>
+        <canvas id="canvas-push" class="canvas-2d" width="540" height="540" aria-label="Sokoban obligation-pushing puzzle"></canvas>
+        <div class="overlay" id="overlay-push">
+          <span class="overlay-tag">Obligations anchored</span>
+          <h3>DECISIONS LOCKED</h3>
+          <p><em>All core obligations nested in their activation slots. Things are moving now.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetPush(true)">Advance Logistics</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · TASK ACTIVATION</div>
+          <h2>PUSH PROCRASTINATION</h2>
+        </div>
+        <p class="meta-description">Strategic allocation of heavy responsibility cores. Push the obligations into their execution zones — then they're done.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Layout Profile</span><span class="val" id="push-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Energy Spent</span><span class="val accent" id="push-moves">0</span></div>
+          <div class="stat-row"><span class="lbl">Anchored</span><span class="val gold" id="push-done">0 / 3</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetPush(false)">Reinitialise Matrix</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li>Arrows or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move.</li>
+            <li>Push orange burden nodes into dashed anchor zones.</li>
+            <li>Nodes cannot be pulled back. Avoid corners.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 12. SWITCH OFF NUMBNESS -->
+  <div id="panel-switch" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.12 / PATHWAY RESET</span>
+        <canvas id="canvas-switch" class="canvas-2d" width="540" height="540" aria-label="Lights Out pathway reset puzzle"></canvas>
+        <div class="overlay" id="overlay-switch">
+          <span class="overlay-tag">Awareness restored</span>
+          <h3>PATHWAYS DARK</h3>
+          <p><em>Logic clusters synchronised to absolute system clarity. The noise went quiet.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetSwitch(true)">Next Network</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · PATHWAY REACTIVATION</div>
+          <h2>SWITCH OFF NUMBNESS</h2>
+        </div>
+        <p class="meta-description">Reactivating cold mental pathways. Reconfigure cross-linked triggers until all processing elements go dark.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Neural Config</span><span class="val" id="switch-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Active Inversions</span><span class="val accent" id="switch-clicks">0</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetSwitch(false)">Scramble Channels</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li>Click a node to invert its state.</li>
+            <li>Each click also inverts its 4 orthogonal neighbours.</li>
+            <li>Clear every node to achieve total dark reset.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 13. SCORCHED MIND -->
+  <div id="panel-scorch" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.13 / INNER CRITIC FIELD</span>
+        <canvas id="canvas-scorch" class="canvas-2d" width="600" height="500" aria-label="Scorched Earth artillery duel against inner critic"></canvas>
+        <div class="overlay" id="overlay-scorch">
+          <span class="overlay-tag">Inner critic silenced</span>
+          <h3>COUNTER-THOUGHT LANDED</h3>
+          <p><em>You calibrated and fired. The destructive loop is quiet. That took precision.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetScorch(true)">Next Duel</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · COGNITIVE REBUTTAL</div>
+          <h2>SCORCHED MIND</h2>
+        </div>
+        <p class="meta-description">A turn-based duel against your inner critic. Calibrate angle, power, and timing to silence opposing thought-patterns across shifting terrain.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Battlefield</span><span class="val" id="scorch-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Turn</span><span class="val accent" id="scorch-turn">Yours</span></div>
+          <div class="stat-row"><span class="lbl">Wind</span><span class="val" id="scorch-wind">→ 0.0</span></div>
+          <div class="stat-row"><span class="lbl">Angle / Power</span><span class="val gold" id="scorch-ap">45° / 50</span></div>
+          <div class="stat-row"><span class="lbl">Your HP</span><span class="val" id="scorch-hp1">100</span></div>
+          <div class="stat-row"><span class="lbl">Critic HP</span><span class="val accent" id="scorch-hp2">100</span></div>
+        </div>
+        <button class="btn-action" id="scorch-fire-btn">Fire Counter-Thought</button>
+        <button class="btn-action secondary" onclick="resetScorch(false)">Reset Battlefield</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li><kbd>A</kbd> / <kbd>D</kbd> adjust angle. <kbd>W</kbd> / <kbd>S</kbd> adjust power.</li>
+            <li><kbd>Space</kbd> or Fire button to launch counter-thought.</li>
+            <li>Wind shifts each turn. Reduce critic HP to 0 to win.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 14. CLEAR THE NOISE (Asteroids) -->
+  <div id="panel-asteroids" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.14 / INTRUSIVE THOUGHT FIELD</span>
+        <canvas id="canvas-asteroids" class="canvas-2d" width="540" height="540" aria-label="Asteroids — clear intrusive thought fragments"></canvas>
+        <div class="overlay" id="overlay-asteroids">
+          <span class="overlay-tag">Mental static cleared</span>
+          <h3>SIGNAL RESTORED</h3>
+          <p><em>Every intrusive fragment destroyed. The signal is yours again. Good flying.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetAsteroids(true)">Next Wave</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · INTRUSIVE THOUGHT CLEARANCE</div>
+          <h2>CLEAR THE NOISE</h2>
+        </div>
+        <p class="meta-description">Your ship is focus. The asteroids are intrusive thought fragments. Clear them all before they consume the field.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Wave Seed</span><span class="val" id="ast-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Fragments Left</span><span class="val accent" id="ast-left">0</span></div>
+          <div class="stat-row"><span class="lbl">Lives</span><span class="val gold" id="ast-lives">3</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetAsteroids(false)">Restart Field</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li><kbd>A</kbd> / <kbd>D</kbd> or arrows to rotate. <kbd>W</kbd> or up to thrust.</li>
+            <li><kbd>Space</kbd> to fire. Field wraps at all edges.</li>
+            <li>Large fragments split into smaller ones on impact.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 15. HOLD THE LINE (Space Invaders) -->
+  <div id="panel-invaders" class="game-panel" role="tabpanel">
+    <div class="game-layout">
+      <div class="canvas-container">
+        <span class="canvas-frame-tag">CH.15 / SIGNAL DEFENCE</span>
+        <canvas id="canvas-invaders" class="canvas-2d" width="540" height="540" aria-label="Space Invaders — defend your signal"></canvas>
+        <div class="overlay" id="overlay-invaders">
+          <span class="overlay-tag">Signal defended</span>
+          <h3>EVERY WAVE HELD</h3>
+          <p><em>The external noise didn't break through. Your voice is still here. That matters.</em></p>
+          <div class="multiplier-badge">+1 STREAK</div>
+          <button class="btn-action inline" onclick="resetInvaders(true)">Next Wave</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-eyebrow">DRILL · SIGNAL DEFENCE</div>
+          <h2>HOLD THE LINE</h2>
+        </div>
+        <p class="meta-description">The invaders are external criticism and noise. Your cannon is your voice. Defend the signal before they reach the bottom.</p>
+        <div class="game-stats-box">
+          <div class="stat-row"><span class="lbl">Wave Profile</span><span class="val" id="inv-seed">#0000</span></div>
+          <div class="stat-row"><span class="lbl">Invaders Left</span><span class="val accent" id="inv-left">32</span></div>
+          <div class="stat-row"><span class="lbl">Score</span><span class="val gold" id="inv-score">0</span></div>
+        </div>
+        <button class="btn-action secondary" onclick="resetInvaders(false)">Reset Defence</button>
+        <div class="directives">
+          <div class="directives-label">DIRECTIVES</div>
+          <ul>
+            <li><kbd>A</kbd> / <kbd>D</kbd> or arrows to move your cannon.</li>
+            <li><kbd>Space</kbd> to fire. Touch: tap canvas to shoot, swipe to move.</li>
+            <li>Destroy all invaders before they reach the ground.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -944,11 +1294,20 @@ tabs.forEach(tab => {
     tab.setAttribute('aria-selected', 'true');
     const target = tab.getAttribute('data-target');
     document.getElementById(`panel-${target}`).classList.add('active');
-    if (target === 'unblock') initUnblock();
-    if (target === 'mario')   initMario();
-    if (target === 'c2048')   init2048();
-    if (target === 'serpent') initSerpent();
-    if (target === 'match')   initMatch();
+    if (target === 'unblock')   initUnblock();
+    if (target === 'mario')     initMario();
+    if (target === 'c2048')     init2048();
+    if (target === 'serpent')   initSerpent();
+    if (target === 'match')     initMatch();
+    if (target === 'stacker')   initStacker();
+    if (target === 'mine')      initMine();
+    if (target === 'rally')     initRally();
+    if (target === 'break')     initBreak();
+    if (target === 'push')      initPush();
+    if (target === 'switch')    initSwitch();
+    if (target === 'scorch')    initScorch();
+    if (target === 'asteroids') initAsteroids();
+    if (target === 'invaders')  initInvaders();
     if (target === 'imm' && immRenderer) {
       const c = document.getElementById('imm-canvas');
       immCamera.aspect = c.clientWidth / c.clientHeight;
@@ -958,11 +1317,20 @@ tabs.forEach(tab => {
   });
 });
 window.renderAllCanvases = function() {
-  if (document.getElementById('panel-unblock').classList.contains('active')) drawUnblock();
-  if (document.getElementById('panel-mario').classList.contains('active'))   drawMario();
-  if (document.getElementById('panel-c2048').classList.contains('active'))   draw2048();
-  if (document.getElementById('panel-serpent').classList.contains('active')) drawSerpent();
-  if (document.getElementById('panel-match').classList.contains('active'))   drawMatch();
+  if (document.getElementById('panel-unblock').classList.contains('active'))   drawUnblock();
+  if (document.getElementById('panel-mario').classList.contains('active'))     drawMario();
+  if (document.getElementById('panel-c2048').classList.contains('active'))     draw2048();
+  if (document.getElementById('panel-serpent').classList.contains('active'))   drawSerpent();
+  if (document.getElementById('panel-match').classList.contains('active'))     drawMatch();
+  if (document.getElementById('panel-stacker').classList.contains('active'))   drawStacker();
+  if (document.getElementById('panel-mine').classList.contains('active'))      drawMine();
+  if (document.getElementById('panel-rally').classList.contains('active'))     drawRally();
+  if (document.getElementById('panel-break').classList.contains('active'))     drawBreak();
+  if (document.getElementById('panel-push').classList.contains('active'))      drawPush();
+  if (document.getElementById('panel-switch').classList.contains('active'))    drawSwitch();
+  if (document.getElementById('panel-scorch').classList.contains('active'))    drawScorch();
+  if (document.getElementById('panel-asteroids').classList.contains('active')) drawAsteroids();
+  if (document.getElementById('panel-invaders').classList.contains('active'))  drawInvaders();
 };
 
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }

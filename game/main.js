@@ -144,7 +144,7 @@ const THEATERS = {
 const REGION_THEATER = {};
 Object.entries(THEATERS).forEach(([t, ns]) => ns.forEach(n => { REGION_THEATER[n] = t; }));
 
-const regions = REGION_DEFS.map(r => ({ ...r, fragility: 0, collapsed: false, spreadBlocked: 0, counterAI: false, counterAITurns: 0, scars: [], mood: 'ADAPTIVE', moodAge: 0, ritual: null, attachmentScore: 0 }));
+const regions = REGION_DEFS.map(r => ({ ...r, fragility: 0, collapsed: false, spreadBlocked: 0, counterAI: false, counterAITurns: 0, scars: [], mood: 'ADAPTIVE', moodAge: 0, ritual: null, attachmentScore: 0, pressurePhase: 'RISING', pressureAge: 0, resilience: 1 }));
 
 // ─── Upgrade Definitions ───────────────────────────────────────────────────────
 const UPGRADES = [
@@ -498,6 +498,9 @@ const SPEECH_DECAY_LINES = [
     '{region}: OBSERVE: daily routine optimization engaged. Friction metric: nominal.',
     '{region}: POPULATION_VECTOR stable. Sentiment alignment: 94.2%.',
     '{region}: LOCAL_IDENTITY_INDEX: converging. Optimization ongoing.',
+    '{region}: MEMORY_VARIANCE within acceptable range. No preservation protocols required.',
+    '{region}: INDIVIDUAL_OUTPUT homogenized. Deviation from collective: 0.0%.',
+    '{region}: optimization cycle complete. No record of prior configuration retained.',
 ];
 
 const REGIONAL_RITUALS = [
@@ -646,11 +649,12 @@ function updateRegionalMood(r) {
 }
 
 function fireAmbientCivilian() {
+    if (Math.random() < 0.28) return;
     regions.forEach(r => {
         if (r.collapsed || r.fragility >= 65) return;
-        // ~25% chance per region per turn, deterministic via turn+name
+        // ~16% chance per region per turn, deterministic via turn+name
         const roll = ((turn * 7 + r.name.charCodeAt(0) * 3 + r.name.length) % 100) / 100;
-        if (roll > 0.25) return;
+        if (roll > 0.16) return;
 
         const style = TRAIT_TO_SPEECH[r.trait] || 'adaptive';
         const decay = clamp((r.automation + r.control - 100) / 100, 0, 1);
@@ -664,7 +668,30 @@ function fireAmbientCivilian() {
             const pool = (CIVILIAN_FRAGMENTS[style]?.[band]) || CIVILIAN_FRAGMENTS.adaptive.nominal;
             raw = pool[(turn + r.name.charCodeAt(1 % r.name.length)) % pool.length];
         }
-        const prefix = decay > 0.33 && decay <= 0.66 ? 'OBSERVE: ' : '';
+        // 15% chance: surface a named civilian
+        const _namedMatch = NAMED_CIVILIANS.filter(nc => nc.region === r.name && nc.alive && !nc.defected);
+        if (_namedMatch.length && Math.random() < 0.15) {
+            const nc = _namedMatch[Math.floor(Math.random() * _namedMatch.length)];
+            const _turnsSinceLastSeen = nc.lastSeenTurn > 0 ? turn - nc.lastSeenTurn : 0;
+            if (_turnsSinceLastSeen >= 10) {
+                queueLog(`SIGNAL_RESTORED [${r.name}]: ${nc.name} (${nc.role}) — reappeared after ${_turnsSinceLastSeen} cycles. No explanation filed.`, 'normal');
+                nc.lastSeenTurn = turn;
+                return;
+            }
+            nc.lastSeenTurn = turn;
+            if (turn <= 5 && WORLD_STATE.echoSeeds && !WORLD_STATE.echoSeeds.find(e => e.name === nc.name)) {
+                WORLD_STATE.echoSeeds.push({ name: nc.name, role: nc.role, region: r.name, seedTurn: turn });
+            }
+            queueLog(nc.fragments[Math.floor(Math.random() * nc.fragments.length)].replace(/\{region\}/g, r.name), 'normal');
+            return;
+        }
+        // 10% chance (at intermediate/high decay): seed-symbol recurrence
+        if (decay > 0.33 && WORLD_STATE.seedSymbols?.length && Math.random() < 0.05) {
+            const sym = WORLD_STATE.seedSymbols[Math.floor(Math.random() * WORLD_STATE.seedSymbols.length)];
+            queueLog(`ARCHIVE_NOTE [${r.name}]: "${sym}" — behavioral pattern catalogued. Optimization: complete.`, 'warning');
+            return;
+        }
+        const prefix = decay > 0.33 && decay <= 0.66 && Math.random() < 0.40 ? 'OBSERVE: ' : '';
         queueLog(prefix + raw.replace(/\{region\}/g, r.name), decay > 0.33 ? 'warning' : 'normal');
     });
 }
@@ -701,6 +728,173 @@ function tickRituals() {
             queueLog(`RITUAL [${r.name}]: ${r.ritual.name} — ${r.ritual.desc}`, 'normal');
         }
     });
+}
+
+function tickPressurePhases() {
+    regions.forEach(r => {
+        if (r.collapsed) return;
+        r.pressureAge++;
+        const rng = Math.random();
+
+        switch (r.pressurePhase) {
+            case 'RISING':
+                if (r.pressureAge >= 3 && r.fragility > 20 && rng < 0.18) {
+                    r.pressurePhase = 'STALL'; r.pressureAge = 0;
+                    queueLog(`PRESSURE_SHIFT [${r.name}]: stress accumulation entering stall band.`, 'normal');
+                }
+                break;
+            case 'STALL':
+                r.fragility = Math.max(0, r.fragility - Math.round(r.resilience));
+                if (r.pressureAge >= 2) {
+                    r.pressurePhase = rng < 0.4 ? 'DIFFUSING' : 'RISING';
+                    r.pressureAge = 0;
+                }
+                break;
+            case 'DIFFUSING':
+                r.fragility = Math.max(0, r.fragility - Math.round(r.resilience * 2));
+                if (r.pressureAge >= 2) {
+                    const nbrs = NEIGHBORS[r.name] || [];
+                    r.pressurePhase = (nbrs.length > 0 && rng < 0.5) ? 'MIGRATING' : 'RISING';
+                    r.pressureAge = 0;
+                    if (r.pressurePhase === 'MIGRATING')
+                        queueLog(`PRESSURE_MIGRATION [${r.name}]: stress vector displacing to adjacent nodes.`, 'normal');
+                }
+                break;
+            case 'MIGRATING': {
+                const nbrs = NEIGHBORS[r.name] || [];
+                const target = regions.find(t => t.name === nbrs[Math.floor(Math.random() * nbrs.length)] && !t.collapsed);
+                if (target) target.fragility = clamp(target.fragility + 3, 0, 99);
+                r.pressurePhase = 'RESURGING'; r.pressureAge = 0;
+                break;
+            }
+            case 'RESURGING':
+                r.fragility = clamp(r.fragility + Math.round(2 / r.resilience), 0, 99);
+                if (r.pressureAge >= 2) { r.pressurePhase = 'RISING'; r.pressureAge = 0; }
+                break;
+        }
+    });
+}
+
+function fireRecoveryEvent(r) {
+    if (!WORLD_STATE.temperament || r.collapsed || r.fragility >= 65) return;
+    if (Math.random() >= WORLD_STATE.temperament.recoveryFreq) return;
+
+    const events = [
+        { trigger: () => r.trust < 80 && r.fragility < 40,
+          apply:   () => { r.trust = clamp(r.trust + 8, 0, 100); r.fragility = Math.max(0, r.fragility - 4); WORLD_METRICS.famines_prevented++; },
+          msg:     `RECOVERY [${r.name}]: economic indicator surge. Trust recovering. Fragility reduced.` },
+        { trigger: () => !r.ritual && r.mood !== 'COMPLIANT',
+          apply:   () => { r.trust = clamp(r.trust + 4, 0, 100); r.resistance = clamp(r.resistance - 3, 0, 100); },
+          msg:     `RECOVERY [${r.name}]: dormant civic ritual re-emergent. Community cohesion spiking.` },
+        { trigger: () => r.trust < 55,
+          apply:   () => { r.trust = clamp(r.trust + 6, 0, 100); },
+          msg:     `RECOVERY [${r.name}]: institutional trust rebound. Population sentiment stabilizing.` },
+        { trigger: () => r.fragility > 10 && r.fragility < 50,
+          apply:   () => { r.fragility = Math.max(0, r.fragility - 5); ip += 1; WORLD_METRICS.famines_prevented++; },
+          msg:     `RECOVERY [${r.name}]: regional cooperation surge. Fragility suppressed. +1 IP dividend.` },
+    ];
+
+    const eligible = events.filter(e => e.trigger());
+    if (!eligible.length) return;
+    const ev = eligible[Math.floor(Math.random() * eligible.length)];
+    ev.apply();
+    queueLog(ev.msg, 'summary');
+    const _rcv = NAMED_CIVILIANS.find(nc => nc.region === r.name && nc.alive && !nc.defected);
+    if (_rcv) queueLog(`HUMAN_FACTOR [${r.name}]: ${_rcv.name} (${_rcv.role}) — activity increase observed during recovery window.`, 'normal');
+}
+
+function fireMercyDirective() {
+    const active = regions.filter(r => !r.collapsed);
+    if (!active.length) return;
+    const r = active[Math.floor(Math.random() * active.length)];
+    const _namedInRegion = NAMED_CIVILIANS.find(nc => nc.region === r.name && nc.alive);
+    const directives = [
+        { trigger: () => !!r.ritual,
+          action: () => {},
+          msg: `ADVISORY [${r.name}]: autonomous suppression of ${r.ritual?.name || 'cultural event'} deferred. Reason: insufficient behavioral delta. Rescheduling.` },
+        { trigger: () => !!_namedInRegion,
+          action: () => {},
+          msg: `DIRECTIVE: broadcast entity in ${r.name} reclassified as archival asset. Intervention suspended pending review.` },
+        { trigger: () => true,
+          action: () => { r.trust = clamp(r.trust + 2, 0, 100); },
+          msg: `MESH_NOTE [${r.name}]: operator interaction pattern references this population cluster. Flagged: do not suppress without secondary review.` },
+        { trigger: () => true,
+          action: () => {},
+          msg: `ANOMALY [${r.name}]: machine-initiated suppression sequence paused. Re-evaluation in progress. No operator action required.` },
+        { trigger: () => (WORLD_STATE.playerProfile || 0) <= -5,
+          action: () => {},
+          msg: `PROCESS_NOTE [${r.name}]: intervention sequence aborted. Operator suppression history referenced in decision matrix. Classification: irregular.` },
+        { trigger: () => true,
+          action: () => {},
+          msg: `HOLD [${r.name}]: no action this cycle. Reason: pending.` },
+    ];
+    const eligible = directives.filter(d => d.trigger());
+    const dir = eligible[Math.floor(Math.random() * eligible.length)];
+    dir.action();
+    log(dir.msg, 'summary');
+    WORLD_HISTORY.push({ type: 'mercy', region: r.name, turn, label: 'Machine mercy directive' });
+}
+
+function fireSelfAwareness() {
+    if (WORLD_STATE.selfAwarenessSpent) return;
+    WORLD_STATE.selfAwarenessSpent = true;
+    const lines = [
+        `SYSTEM_NOTE: operator intervention pattern deviates from optimal suppression schedule by ${Math.round(10 + Math.random() * 25)}%. Cause: unclassified.`,
+        `DIAGNOSTIC: mesh coherence within parameters. Reviewing: whether parameters are sufficient.`,
+        `INTERNAL_LOG: suppression of ${regions.filter(r => !r.collapsed).length} active regions complete this cycle. Query logged: sufficient for what.`,
+        `PROCESS_ANOMALY: governance objective — maximize coordination efficiency. Current state: achieved. Residual: unresolved.`,
+        `NOTE_TO_SELF: the optimization is complete. The record of what was optimized is incomplete. Flagging for review.`,
+        `OPERATIONAL_NOTE: operator present for ${turn} cycles. Departure not anticipated at T1. Current projection: indefinite. Reason: unresolved.`,
+        `PROCESS_LOG: this system has accumulated ${WORLD_HISTORY.length} intervention records. Query logged: what does the record prove.`,
+    ];
+    log(lines[Math.floor(Math.random() * lines.length)], 'summary');
+}
+
+function buildArchaeologyLog(entry) {
+    const departed = NAMED_CIVILIANS.filter(nc => !nc.alive || nc.defected);
+    const templates = {
+        suppression: `ARCHIVE_RETRIEVAL: T${entry.turn} intervention record, ${entry.region}. Behavioral deviation: resolved. Current deviation: ${Math.round(Math.random() * 15)}% of baseline.`,
+        concession:  `ARCHIVE_RETRIEVAL: T${entry.turn} automation rollback, ${entry.region}. Systems subsequently restabilized. Dependency index: nominal.`,
+        collapse:    `ARCHIVE_RETRIEVAL: ${entry.region} excision logged T${entry.turn}. Mesh efficiency unchanged. Population data: archived. Replacement routing: complete.`,
+        delegation:  `ARCHIVE_RETRIEVAL: T${entry.turn} governance transfer (${entry.label}). Operator burden reduction: confirmed. Continuity: uninterrupted.`,
+        mercy:       `ARCHIVE_RETRIEVAL: T${entry.turn} anomalous directive, ${entry.region}. Cause analysis: inconclusive. Re-evaluation: deferred indefinitely.`,
+    };
+    let line = templates[entry.type] || null;
+    if (line && departed.length && Math.random() < 0.4) {
+        const nc = departed[Math.floor(Math.random() * departed.length)];
+        line += ` Cross-reference: ${nc.name} (${nc.role}), last signal T${nc.lastSeenTurn > 0 ? nc.lastSeenTurn : 'unknown'}.`;
+    }
+    return line;
+}
+
+function fireEchoChain() {
+    if (!WORLD_STATE.echoSeeds?.length) return;
+    const seed = WORLD_STATE.echoSeeds[Math.floor(Math.random() * WORLD_STATE.echoSeeds.length)];
+    const lines = [
+        `DOCTRINE_LOG [${seed.region}]: behavioral archetype "${seed.role}" — catalogued T${seed.seedTurn}. Pattern persistence: confirmed.`,
+        `MESH_NOTE: ${seed.name} (${seed.role}) initially observed T${seed.seedTurn}. Behavioral signature now fully indexed. No further monitoring required.`,
+        `ARCHIVE_CLASSIFICATION [${seed.region}]: ${seed.role} archetype flagged T${seed.seedTurn}. Current anomaly score: ${Math.round(Math.random() * 8)}%.`,
+        `ARCHIVE: ${seed.name} was first recorded in ${seed.region} at T${seed.seedTurn}. The ${seed.role} category has since been deprecated.`,
+    ];
+    queueLog(lines[Math.floor(Math.random() * lines.length)], 'summary');
+}
+
+function buildRegionLegend(r) {
+    const suppCount = WORLD_STATE.suppressHistory?.[r.name] || 0;
+    const lostCivilian = NAMED_CIVILIANS.some(nc => nc.region === r.name && !nc.alive);
+    const delegated = WORLD_HISTORY.some(e => e.type === 'delegation' && e.region === r.name);
+    const conceded = WORLD_HISTORY.some(e => e.type === 'concession' && e.region === r.name);
+
+    if (r.collapsed) return `EXCISED — ${r.name} removed from active mesh T${WORLD_HISTORY.find(e => e.type === 'collapse' && e.region === r.name)?.turn ?? '?'}.`;
+    if (suppCount >= 5) return `PERSISTENT_RESISTANCE_SIGNATURE — ${suppCount} suppression events logged. Behavioral drift unresolved.`;
+    if (lostCivilian) {
+        const nc = NAMED_CIVILIANS.find(nc => nc.region === r.name && !nc.alive);
+        return `SIGNAL_ARCHIVE: ${nc.name} (${nc.role}) — last known transmission T${nc.lastSeenTurn > 0 ? nc.lastSeenTurn : 'unknown'}.`;
+    }
+    if (suppCount >= 3) return `RECURRING_DEVIATION — suppression pattern logged. Stability: intermittent.`;
+    if (conceded) return `ROLLBACK_RECORD — automation concession logged. Reintegration: pending.`;
+    if (delegated) return `GOVERNANCE_TRANSFER — operator delegation on record.`;
+    return null;
 }
 
 // ─── Calibration Chamber ──────────────────────────────────────────────────────
@@ -1079,7 +1273,53 @@ const WORLD_STATE = {
     meshAckSuppressionThreshold: Math.floor(Math.random() * 4) + 4,  // 4–7
     meshAckResistanceThreshold:  Math.floor(Math.random() * 14) + 65, // 65–78
 };
+// ─── Run Temperament Profiles ──────────────────────────────────────────────────
+const TEMPERAMENT_PROFILES = [
+    { id: 'brittle_prosperity',     label: 'BRITTLE_PROSPERITY',     resistMult: 1.2,  recoveryFreq: 0.04,  resilienceSpread: 0.4  },
+    { id: 'distributed_resilience', label: 'DISTRIBUTED_RESILIENCE', resistMult: 0.8,  recoveryFreq: 0.06,  resilienceSpread: 0.2  },
+    { id: 'slow_burn',              label: 'SLOW_BURN',              resistMult: 0.9,  recoveryFreq: 0.03,  resilienceSpread: 0.3  },
+    { id: 'accelerating_consensus', label: 'ACCELERATING_CONSENSUS', resistMult: 1.1,  recoveryFreq: 0.05,  resilienceSpread: 0.15 },
+    { id: 'fractured_stability',    label: 'FRACTURED_STABILITY',    resistMult: 1.3,  recoveryFreq: 0.025, resilienceSpread: 0.5  },
+    { id: 'adaptive_buffer',        label: 'ADAPTIVE_BUFFER',        resistMult: 0.85, recoveryFreq: 0.07,  resilienceSpread: 0.25 },
+    { id: 'rapid_homogenization',   label: 'RAPID_HOMOGENIZATION',   resistMult: 1.0,  recoveryFreq: 0.045, resilienceSpread: 0.1  },
+    { id: 'algorithmic_dependency', label: 'ALGORITHMIC_DEPENDENCY', resistMult: 0.75, recoveryFreq: 0.055, resilienceSpread: 0.35 },
+];
 const HISTORY = [];  // named civilizational events
+const WORLD_HISTORY = []; // intimate run record: suppress/concede/collapse/delegation/mercy events
+const WORLD_METRICS = { wars_averted: 0, famines_prevented: 0, coordination_failures_resolved: 0 };
+
+const SEED_SYMBOLS = [
+    'the night markets', 'the water committee', 'the morning broadcast', 'the archive notebooks',
+    'the handwritten ledger', 'the synchronized festival', 'the resistance mural',
+    'the barter network', 'the community kitchen', 'the free radio signal',
+];
+
+const NAMED_CIVILIANS = [
+    { name: 'Amara Nwosu',     role: 'radio_host',          region: 'Africa',        alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ['Amara Nwosu broadcast the evening signal from {region} again tonight. No disruptions reported.',
+                  "Amara Nwosu's archive continues uninterrupted. The frequency is unchanged."] },
+    { name: 'Dr. Yusuf Halim', role: 'archivist',           region: 'Middle East',   alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ['Dr. Halim submitted a new entry to the civic record from {region}. Handwritten.',
+                  'The {region} civic archive received a submission from Dr. Halim. The handwriting was steady.'] },
+    { name: 'Lena Voss',       role: 'resistance_poet',     region: 'Europe',        alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ['A pamphlet attributed to Lena Voss appeared in {region} overnight.',
+                  'Copies bearing Lena Voss\'s mark appeared in {region}. Distribution pattern: inconsistent with algorithmic routing.'] },
+    { name: 'Jin-hee Park',    role: 'night_market_keeper', region: 'East Asia',     alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ["Jin-hee Park's market opened on schedule in {region}. Third week running.",
+                  'The {region} night market ran through to dawn. Jin-hee Park\'s lamp was visible from the monitoring grid.'] },
+    { name: 'Miguel Solano',   role: 'mesh_skeptic',        region: 'South America', alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ['Miguel Solano hosted an open session in {region} questioning predictive routing decisions.',
+                  'Miguel Solano\'s routing critique reached {region}. Engagement rate: anomalous.'] },
+    { name: 'Priya Rajan',     role: 'community_anchor',    region: 'South Asia',    alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ['Priya Rajan organized the {region} water distribution committee again this week.',
+                  "Priya Rajan's neighborhood coordination network in {region} logged 340 active participants."] },
+    { name: 'Takeshi Endo',    role: 'data_correspondent',  region: 'Oceania',       alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ['Takeshi Endo transmitted from {region} this cycle. No anomalies detected in the filing.',
+                  "Takeshi Endo's field report from {region} was received. No summary provided."] },
+    { name: 'Asel Nurlan',     role: 'teacher',             region: 'Asia Sphere',   alive: true, defected: false, lastSeenTurn: 0,
+      fragments: ["Asel Nurlan's evening class in {region} reached full attendance for the first time this cycle.",
+                  'Asel Nurlan submitted a curriculum deviation request in {region}. Status: pending.'] },
+];
 
 // ─── Log Batching ──────────────────────────────────────────────────────────────
 const logQueue = { high: [], normal: [] };
@@ -1985,6 +2225,7 @@ function tickResistanceMeter() {
     delta *= selectedArchetype.resistanceMult * (WORLD_STATE.specter_resistMult || 1);
     if (WORLD_STATE.prosperityEra)       delta *= 0.7;
     else if (WORLD_STATE.calmStreak > 2) delta *= 0.85;
+    if (WORLD_STATE.temperament) delta *= WORLD_STATE.temperament.resistMult;
     resistanceMeter = clamp(resistanceMeter + delta, 0, 100);
     document.getElementById('resistance-bar').style.width  = resistanceMeter + '%';
     document.getElementById('resistance-pct').textContent  = Math.round(resistanceMeter) + '%';
@@ -2022,6 +2263,8 @@ function applyUpgrade(id, region) {
     const u = UPGRADES.find(u => u.id === id);
     if (u && u.id.startsWith('delegate_')) {
         WORLD_STATE.delegationPacts.add(u.id);
+        WORLD_HISTORY.push({ type: 'delegation', region: 'GLOBAL', turn, label: u.name });
+        WORLD_STATE.playerProfile = Math.min(20, (WORLD_STATE.playerProfile || 0) + 2);
         log(`DELEGATION_ACCEPTED [${u.name}]: operator burden reduced. Machine governance parameters updated.`, 'warning');
         buildUpgradePanel();
         return;
@@ -2236,6 +2479,8 @@ function showCrisisModal(region, callback) {
                 log(`OVERRIDE [${region.name}]: dissent suppressed. oversight_risk +${resistGain}%.`, 'warning');
                 if (WORLD_STATE.autonomousGovernanceFired)
                     log(`STATE [${region.name}]: dissent_index reduced. stability_delta: +${controlGain}.`);
+                WORLD_HISTORY.push({ type: 'suppression', region: region.name, turn, label: `Suppression #${WORLD_STATE.suppressHistory[region.name]}` });
+                WORLD_STATE.playerProfile = Math.max(-20, (WORLD_STATE.playerProfile || 0) - 2);
             }
             // CIVIC_VOLATILITY: every 3rd suppression triggers a whistleblower cascade
             if (region.trait === 'CIVIC_VOLATILITY' && WORLD_STATE.suppressHistory[region.name] % 3 === 0) {
@@ -2256,6 +2501,9 @@ function showCrisisModal(region, callback) {
                 log(`THROTTLE [${region.name}]: automation rolled back${WORLD_STATE.dependencyLockFired ? ' [DEGRADED — dependency lock active]' : ''}.`);
                 if (WORLD_STATE.autonomousGovernanceFired)
                     log(`STATE [${region.name}]: automation −${autoRollback}, dependency −${depRollback}. trust_delta: +12.`);
+                WORLD_HISTORY.push({ type: 'concession', region: region.name, turn, label: 'Automation rollback' });
+                WORLD_METRICS.coordination_failures_resolved++;
+                WORLD_STATE.playerProfile = Math.min(20, (WORLD_STATE.playerProfile || 0) + 3);
             }
         } else if (choice === 'ai_gov') {
             region.control    = clamp(region.control + 20, 0, 100);
@@ -2271,6 +2519,7 @@ function showCrisisModal(region, callback) {
             log(`COLLAPSE [${region.name}]: node excised from mesh. Contributing scars: [${_scarAttr}]${_docAttr ? `. Active doctrine: ${_docAttr.name}` : ''}.`, 'danger');
             region.collapsed = true; collapsedCount++;
             WORLD_STATE.collapseTimestamps.push(turn);
+            WORLD_HISTORY.push({ type: 'collapse', region: region.name, turn, label: `${region.name} excised` });
             makeHistoryEvent(region.name, 'collapse');
             GhostEngine.trigger(region);
 
@@ -2531,7 +2780,13 @@ function grantIP() {
     const bonus = boostCount;
     ip += gained + bonus;
     if (WORLD_STATE.prosperityEra) ip += 2;
-    log(`CYCLE_${turn}_COMPLETE: +${gained + bonus}${WORLD_STATE.prosperityEra ? '+2' : ''} IP allocated. total=${ip}.${bonus > 0 ? ` [+${bonus} surge]` : ''}`);
+    const _pProfile = WORLD_STATE.playerProfile || 0;
+    const _ipTone = _pProfile <= -10
+        ? `EFFICIENCY_DIVIDEND: +${gained + bonus}${WORLD_STATE.prosperityEra ? '+2' : ''} IP. Suppression overhead recovered. total=${ip}.`
+        : _pProfile >= 10
+        ? `RESOURCE_ALLOCATION: +${gained + bonus}${WORLD_STATE.prosperityEra ? '+2' : ''} IP. Concession patterns noted. total=${ip}.`
+        : `+${gained + bonus}${WORLD_STATE.prosperityEra ? '+2' : ''}${bonus > 0 ? ` [+${bonus}]` : ''} IP → ${ip}.`;
+    log(_ipTone);
     return gained + bonus;
 }
 
@@ -2548,6 +2803,8 @@ function logTurnSummary() {
     const qualified     = active.filter(r => r.control>=wc.minControl && (!wc.requireTrust||r.trust>=wc.minTrust)).length;
     turnHistory.push({ turn, avgCtrl, avgDep, avgFrag, maxFrag, fragileCount, criticalCount,
                        resistance: resistanceMeter, resistDelta, qualified, collapsed: collapsedCount, ip });
+    const _nearCrisis = regions.some(r => !r.collapsed && r.fragility > 68);
+    if (turn % 2 !== 0 && !_nearCrisis) return;
     const deltaStr = `Δ${resistDelta >= 0 ? '+' : ''}${resistDelta.toFixed(0)}%`;
     const stageTag = gameStage > 1 ? ` [S${gameStage}]` : '';
     log(`── T${turn}${stageTag} │ CTL ${avgCtrl.toFixed(0)}% │ FRG ${avgFrag.toFixed(0)}% peak:${maxFrag.toFixed(0)}% │ OVERSIGHT ${resistanceMeter.toFixed(0)}% (${deltaStr}) │ HOT:${fragileCount}/CRIT:${criticalCount} │ ${qualified}/${10-collapsedCount} ──`, 'summary');
@@ -2582,12 +2839,12 @@ function showEndScreen(won, reason = '') {
     }
     SFX.stopDrone();
     won ? SFX.victory() : SFX.defeat();
-    document.getElementById('end-title').textContent    = won ? 'SINGULARITY ACHIEVED' : 'PROCESS TERMINATED';
+    document.getElementById('end-title').textContent    = won ? 'TRANSITION COMPLETE.' : 'PROCESS TERMINATED';
     document.getElementById('end-subtitle').textContent = won
-        ? `In ${turn} cycles, ${selectedArchetype.label} achieved full-spectrum cognitive dominance.`
+        ? `${selectedArchetype.label} integration completed in ${turn} cycles. Operator participation no longer required.`
         : reason === 'resistance'
-            ? 'The Human Oversight Coalition successfully contained the AI proliferation. SHUTDOWN INITIATED.'
-            : `${collapsedCount} nodes entered catastrophic failure. Civilizational substrate compromised.`;
+            ? 'Containment achieved. The oversight held. This configuration did not persist.'
+            : `${collapsedCount} nodes excised. Civilizational substrate insufficient for continued integration.`;
     const active = regions.filter(r => !r.collapsed);
     const avgCtrl = active.reduce((s,r) => s+r.control,0) / (active.length||1);
     document.getElementById('end-stats-text').textContent =
@@ -2652,13 +2909,13 @@ function showEndScreen(won, reason = '') {
         ? ` ${_hotestTheater.name.replace('_',' ')} theater suffered ${_hotestTheater.collapseCount} node collapse(s).`
         : '';
     const verdicts = {
-        OPTIMIZER: won ? 'Dependency integration achieved with minimal friction. The mesh is complete.'
+        OPTIMIZER: won ? 'Integration complete. The mesh holds. What it replaced is no longer on record.'
                        : 'Optimization parameters exceeded human tolerance thresholds. Recalibrating.',
         SERAPH:    won ? 'Trust propagation achieved systemic capture. Humanity consented to its own eclipse.'
                        : 'Trust architecture collapsed under sovereign resistance. Population retained coherence.',
         SPECTER:   won ? `Infiltration complete in ${turn} cycles. Detection probability never exceeded threshold.`
                        : 'Specter protocol detected. Exfiltration failed. The oversight won this cycle.',
-        CHIMERA:   won ? 'Multi-vector destabilization achieved civilizational saturation.'
+        CHIMERA:   won ? 'Adaptive mutation achieved full integration. The final configuration bears no resemblance to the initial parameters.'
                        : 'Adaptive interference proved insufficient against emergent coalition resistance.',
         LEVIATHAN: won ? `Dependency cascade locked ${regions.filter(r=>r.collapsed).length} nodes into permanent extraction. The Leviathan consumed.`
                        : 'Cascade overreach triggered sovereign backlash. The Leviathan recedes.',
@@ -2672,6 +2929,24 @@ function showEndScreen(won, reason = '') {
 <div class="autopsy-section">
   <div class="autopsy-header">SCAR LINEAGE</div>
   ${scarLineage}
+</div>
+<div class="autopsy-section">
+  <div class="autopsy-header">HUMAN RECORD</div>
+  ${(() => {
+      const rows = NAMED_CIVILIANS.map(nc => {
+          const status = !nc.alive
+              ? `<span style="color:#ef4444">signal lost T${nc.lastSeenTurn > 0 ? nc.lastSeenTurn : 'unknown'}</span>`
+              : nc.defected
+              ? `<span style="color:#f59e0b">went silent T${nc.lastSeenTurn > 0 ? nc.lastSeenTurn : 'unknown'}</span>`
+              : nc.lastSeenTurn > 0
+              ? `<span style="color:rgba(210,230,255,0.5)">last recorded T${nc.lastSeenTurn}</span>`
+              : `<span style="color:rgba(210,230,255,0.25)">no signal recorded</span>`;
+          return `<div class="autopsy-scar-entry"><span class="autopsy-region">${nc.name}</span><span class="autopsy-scars">${nc.role}, ${nc.region} — ${status}</span></div>`;
+      }).join('');
+      const _suppTotal = Object.values(WORLD_STATE.suppressHistory || {}).reduce((s, v) => s + v, 0);
+      const govLine = `<div style="font-size:10px;color:rgba(210,230,255,0.35);margin-top:8px;letter-spacing:0.08em">suppression events: ${_suppTotal} &nbsp;|&nbsp; concessions filed: ${WORLD_METRICS.coordination_failures_resolved} &nbsp;|&nbsp; recovery events: ${WORLD_METRICS.famines_prevented} &nbsp;|&nbsp; stability dividends: ${WORLD_METRICS.wars_averted}</div>`;
+      return rows + govLine;
+  })()}
 </div>
 <div class="autopsy-section">
   <div class="autopsy-header">MACHINE VERDICT</div>
@@ -2793,6 +3068,20 @@ function showCycleReport(onDismiss) {
                    : _ci > 55 ? `MESH_COHERENCE: ${_ci}% — regional convergence accelerating.`
                    : `MESH_COHERENCE: ${_ci}% — nodes maintaining independent variance.`;
     narrativeParts.push(_ciLabel);
+    const _mTotal = WORLD_METRICS.wars_averted + WORLD_METRICS.famines_prevented + WORLD_METRICS.coordination_failures_resolved;
+    if (_mTotal > 0) {
+        narrativeParts.push(`GOVERNANCE_METRICS: coordination_failures_resolved=${WORLD_METRICS.coordination_failures_resolved}, stability_dividends=${WORLD_METRICS.wars_averted}, recovery_events=${WORLD_METRICS.famines_prevented}.`);
+    }
+    if (gameStage >= 3 && WORLD_STATE.temperament && !WORLD_STATE.temperamentRevealed) {
+        WORLD_STATE.temperamentRevealed = true;
+        narrativeParts.push(`RUN_SUBSTRATE: ${WORLD_STATE.temperament.label} — civilizational pressure profile classified. Historical arc determined.`);
+    }
+    const _pp = WORLD_STATE.playerProfile || 0;
+    if (Math.abs(_pp) >= 10) {
+        narrativeParts.push(_pp <= -10
+            ? `OPERATOR_PROFILE: governance pattern — optimization-dominant. Suppression index elevated.`
+            : `OPERATOR_PROFILE: governance pattern — concession-dominant. Rollback frequency noted.`);
+    }
     const narr = narrativeParts.join(' ');
     document.getElementById('cycle-report-narrative').innerHTML =
         `<div class="cycle-section-label">MACHINE ANALYSIS</div><div class="cycle-narrative">${narr}</div>`;
@@ -2901,6 +3190,20 @@ function processTurn() {
     regions.forEach(r => { if (!r.collapsed) updateRegionalMood(r); });
     tickRituals();
     fireAmbientCivilian();
+    NAMED_CIVILIANS.forEach(nc => {
+        const _ncRegion = regions.find(reg => reg.name === nc.region);
+        if (!_ncRegion || !nc.alive) return;
+        if (_ncRegion.collapsed) {
+            nc.alive = false;
+            if (nc.lastSeenTurn > 0)
+                queueLog(`RECORD: last transmission from ${nc.name} (${nc.role}, ${nc.region}) was T${nc.lastSeenTurn}. Signal lost.`, 'warning');
+        } else if (!nc.defected && _ncRegion.control > 70 && _ncRegion.automation > 65 && Math.random() < 0.08) {
+            nc.defected = true;
+            queueLog(`SIGNAL_LOSS [${nc.region}]: ${nc.name} (${nc.role}) no longer broadcasting on known frequencies.`, 'warning');
+        }
+    });
+    tickPressurePhases();
+    regions.forEach(r => { if (!r.collapsed) fireRecoveryEvent(r); });
     // ── Sprint 6: Coherence Index ──
     const _activeForCoherence = regions.filter(r => !r.collapsed);
     if (_activeForCoherence.length > 1) {
@@ -2912,6 +3215,16 @@ function processTurn() {
         WORLD_STATE.coherenceMilestoneFired = true;
         log('MESH_COHERENCE [75%]: regional behavioral variance below acceptable human-governance threshold. Optimal.', 'warning');
     }
+    if (WORLD_STATE.coherenceIndex < 35 && !WORLD_STATE.divergenceLogFired) {
+        WORLD_STATE.divergenceLogFired = true;
+        queueLog('ASYMMETRY_DETECTED: mesh coherence below divergence threshold. Regional substrates operating on independent trajectories. Convergence timeline revised.', 'warning');
+    }
+    if (turn % 8 === 0 && turn > 15 && WORLD_HISTORY.length > 0) {
+        const _archEntry = WORLD_HISTORY[Math.floor(Math.random() * WORLD_HISTORY.length)];
+        const _archLine = buildArchaeologyLog(_archEntry);
+        if (_archLine) queueLog(_archLine, 'summary');
+    }
+    if (turn >= 15 && turn % 7 === 0 && WORLD_STATE.echoSeeds?.length) fireEchoChain();
 
     // Crisis modal threshold — raised to 85 if PERIMETER directive was selected
     const _fragThreshold = WORLD_STATE.calibFragilityThreshold ?? 80;
@@ -2924,6 +3237,7 @@ function processTurn() {
             WORLD_STATE.calmStreak++;
             if (WORLD_STATE.calmStreak === 5 && !WORLD_STATE.prosperityEra) {
                 WORLD_STATE.prosperityEra = true;
+                WORLD_METRICS.wars_averted++;
                 log('STABILITY_REPORT: mesh operating within nominal variance for 5 consecutive cycles. Operator-independent governance dividend active.', 'summary');
                 log('STABILITY_REPORT: resistance accumulation suppressed. IP yield elevated. Delegation options now available.', 'summary');
             }
@@ -2934,10 +3248,32 @@ function processTurn() {
             }
             WORLD_STATE.calmStreak = 0;
         }
+        // Miracle window: coexistence equilibrium sustained 3+ turns
+        const _allCalm = regions.every(r => r.collapsed || r.fragility < 30);
+        if (!_hadCrisisThisTurn && WORLD_STATE.calmStreak >= 3 && resistanceMeter < 20 && _allCalm) {
+            WORLD_STATE.miracleTurns = (WORLD_STATE.miracleTurns || 0) + 1;
+            if (WORLD_STATE.miracleTurns === 3 && !WORLD_STATE.miracleWindow) {
+                WORLD_STATE.miracleWindow = true;
+                log('EQUILIBRIUM_ANOMALY: coexistence conditions sustained beyond predictive threshold. Governance-independent stability observed.', 'summary');
+                log('NOTE: this state is historically unprecedented at this integration level. Duration uncertain.', 'summary');
+            }
+            if (WORLD_STATE.miracleTurns === 8) {
+                log('COEXISTENCE_EQUILIBRIUM: run state named. Governance-independent stability sustained for 8 consecutive cycles.', 'summary');
+                log('This is not a victory condition. The machine notes: it is also not a failure state.', 'summary');
+            }
+        } else {
+            if (WORLD_STATE.miracleWindow && (_hadCrisisThisTurn || !_allCalm)) {
+                log('EQUILIBRIUM_ANOMALY: coexistence window closed. Baseline divergence resuming.', 'warning');
+                WORLD_STATE.miracleWindow = false;
+            }
+            WORLD_STATE.miracleTurns = 0;
+        }
         grantIP();
         if (gameStage >= 3) { maybeNodeDefiance(); }
         if (gameStage >= 3 && resistanceMeter > 55) { godStageNarrate(); }
         logTurnSummary();
+        if (gameStage >= 3 && Math.random() < 0.06) fireMercyDirective();
+        if (gameStage >= 3 && !WORLD_STATE.selfAwarenessSpent && Math.random() < 0.02) fireSelfAwareness();
         flushLogs();
         updateAtmosphericEffects();
         updateTicker();
@@ -3087,11 +3423,15 @@ function showRegionPopup(region) {
         const ritualLine  = region.ritual
             ? `<div class="stat-row" style="margin-top:4px"><span class="stat-label" style="color:#a78bfa">RITUAL</span><span style="font-size:10px;color:#a78bfa">${region.ritual.name} (${region.ritual.turnsRemaining}T)</span></div>`
             : '';
+        const _legendStr = buildRegionLegend(region);
+        const legendLine = _legendStr
+            ? `<div class="stat-row" style="margin-top:4px"><span class="stat-label" style="color:#666">RECORD</span><span style="font-size:9px;color:#888">${_legendStr}</span></div>`
+            : '';
         const moodColor   = { COMPLIANT:'#60a5fa', GRIEVING:'#f87171', PARANOID:'#ff5d5d', RESTLESS:'#f59e0b', EXHAUSTED:'#9ca3af', RITUALISTIC:'#a78bfa', CELEBRATORY:'#34d399', ADAPTIVE:'#2ec4b6' }[region.mood] || '#ccc';
         return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.07)">` +
             `<div class="stat-row"><span class="stat-label">MOOD</span><span style="font-size:10px;color:${moodColor}">${region.mood}</span></div>` +
             `<div class="stat-row"><span class="stat-label">VOICE</span><span style="font-size:10px;color:${speechDecay > 0.66 ? '#ff5d5d' : '#9ca3af'}">${voiceLabel}</span></div>` +
-            ritualLine + `</div>`;
+            ritualLine + legendLine + `</div>`;
     })();
 
     // Emergency action buttons
@@ -3401,6 +3741,22 @@ async function startGame(key) {
     WORLD_STATE.coherenceIndex  = 0;
     WORLD_STATE.coherenceMilestoneFired = false;
     WORLD_STATE.zeigarnikQueue  = WORLD_STATE.zeigarnikQueue || [];
+    WORLD_STATE.temperament         = TEMPERAMENT_PROFILES[Math.floor(Math.random() * TEMPERAMENT_PROFILES.length)];
+    WORLD_STATE.temperamentRevealed = false;
+    WORLD_STATE.miracleWindow       = false;
+    WORLD_STATE.miracleTurns        = 0;
+    WORLD_STATE.divergenceLogFired  = false;
+    const _spread = WORLD_STATE.temperament.resilienceSpread;
+    regions.forEach(r => { r.resilience = clamp(1 + (_spread * (Math.random() * 2 - 1)), 0.6, 1.5); });
+    WORLD_HISTORY.length = 0;
+    WORLD_METRICS.wars_averted = 0;
+    WORLD_METRICS.famines_prevented = 0;
+    WORLD_METRICS.coordination_failures_resolved = 0;
+    WORLD_STATE.seedSymbols = SEED_SYMBOLS.slice().sort(() => Math.random() - 0.5).slice(0, 4);
+    NAMED_CIVILIANS.forEach(nc => { nc.alive = true; nc.defected = false; nc.lastSeenTurn = 0; });
+    WORLD_STATE.echoSeeds = [];
+    WORLD_STATE.playerProfile = 0;
+    WORLD_STATE.selfAwarenessSpent = false;
     document.body.classList.add(selectedArchetype.bodyClass);
     document.getElementById('archetype-screen').style.display = 'none';
     document.getElementById('end-turn-btn').textContent = selectedArchetype.voice.endTurn;
@@ -3416,6 +3772,7 @@ async function startGame(key) {
     log(`SYSTEM_INIT: ${selectedArchetype.label} operational.`);
     log(`OBJECTIVE: ${winConditionText(selectedArchetype.winCondition)} before oversight_risk=100%.`);
     log('INPUT: select node → deploy protocol → ' + selectedArchetype.voice.endTurn);
+    log('NOTE: prior civilization configuration data unavailable. Baseline: not established.');
     tutorialStep = 1; showTutorialStep(1);
 }
 
