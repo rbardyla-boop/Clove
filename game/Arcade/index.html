@@ -1002,6 +1002,14 @@
           <div class="stat-row"><span class="lbl">Your HP</span><span class="val" id="scorch-hp1">100</span></div>
           <div class="stat-row"><span class="lbl">Critic HP</span><span class="val accent" id="scorch-hp2">100</span></div>
         </div>
+        <div class="game-stats-box" style="margin-top:8px">
+          <div class="stat-row"><span class="lbl">Weapon</span><span class="val gold" id="scorch-weapon">SHELL</span></div>
+        </div>
+        <div style="display:flex;gap:4px;margin:6px 0 2px">
+          <button class="btn-action secondary" id="wb-shell" onclick="scorchSelectWeapon('shell')" style="flex:1;padding:8px 4px;font-size:10px">SHELL</button>
+          <button class="btn-action secondary" id="wb-nuke" onclick="scorchSelectWeapon('nuke')" style="flex:1;padding:8px 4px;font-size:10px" disabled>NUKE [1HIT]</button>
+          <button class="btn-action secondary" id="wb-cluster" onclick="scorchSelectWeapon('cluster')" style="flex:1;padding:8px 4px;font-size:10px" disabled>CLUSTER [2HIT]</button>
+        </div>
         <button class="btn-action" id="scorch-fire-btn">Fire Counter-Thought</button>
         <button class="btn-action secondary" onclick="resetScorch(false)">Reset Battlefield</button>
         <div class="directives">
@@ -1010,6 +1018,8 @@
             <li><kbd>A</kbd> / <kbd>D</kbd> adjust angle. <kbd>W</kbd> / <kbd>S</kbd> adjust power.</li>
             <li><kbd>Space</kbd> or Fire button to launch counter-thought.</li>
             <li>Wind shifts each turn. Reduce critic HP to 0 to win.</li>
+            <li>Hit the critic to unlock <strong>Nuke</strong> (1 hit) and <strong>Cluster</strong> (2 hits).</li>
+            <li>Cluster splits at apex into 3 sub-shells. Nuke carves a massive crater.</li>
           </ul>
         </div>
       </aside>
@@ -1470,6 +1480,28 @@ const U_SIZE = 540, U_COLS = 6;
 const uGrid = U_SIZE / U_COLS;
 let unblockBlocks = [], selectedBlock = null, unblockMoves = 0, dragOffset = 0, unblockWon = false;
 
+function unblockCoreSolvable(blocks) {
+  // BFS sliding only the CORE block left/right — fast enough (<2000 states on a 6×6 grid)
+  const encode = (x) => String(x);
+  const queue = [blocks.find(b => b.id === 0).x];
+  const seen = new Set([queue[0]]);
+  while (queue.length) {
+    const cx = queue.shift();
+    if (cx >= 4) return true;          // CORE reached exit column
+    for (const d of [-1, 1]) {
+      const nx = cx + d;
+      if (nx < 0 || nx + 2 > U_COLS) continue;
+      // Check if moving CORE to nx collides with any other block on row 2
+      if (blocks.some(b => b.id !== 0 &&
+          nx < b.x + b.w && nx + 2 > b.x &&
+          2 < b.y + b.h && 3 > b.y)) continue;
+      const k = encode(nx);
+      if (!seen.has(k)) { seen.add(k); queue.push(nx); }
+    }
+  }
+  return false;
+}
+
 function initUnblock() {
   rng = randomSeed(currentSeed + 2);
   document.getElementById('unblock-seed').textContent = '#' + String(currentSeed % 10000).padStart(4, '0');
@@ -1496,6 +1528,10 @@ function initUnblock() {
     if (candidate.y + candidate.h > U_COLS) continue;
     if (unblockBlocks.some(b => candidate.x < b.x + b.w && candidate.x + candidate.w > b.x && candidate.y < b.y + b.h && candidate.y + candidate.h > b.y)) continue;
     unblockBlocks.push(candidate);
+  }
+  // Validate: if procedural blocks seal the CORE's exit, drop them
+  if (!unblockCoreSolvable(unblockBlocks)) {
+    unblockBlocks = unblockBlocks.filter(b => b.id < 10);
   }
   drawUnblock();
 }
@@ -1640,13 +1676,15 @@ function initMario() {
   document.getElementById('mario-score').textContent = '0';
   document.getElementById('overlay-mario').classList.remove('active');
   marioMatrix = Array(M_ROWS).fill().map(() => Array(M_COLS).fill(null));
-  for (let r = 5; r < M_ROWS; r++) {
+  for (let r = 7; r < M_ROWS; r++) {          // top 7 rows stay clear (was 5)
     for (let c = 0; c < M_COLS; c++) {
-      if (rng() > 0.65) {
+      if (pathogenCount >= 8) break;           // hard cap: max 8 viruses
+      if (rng() > 0.80) {                      // ~20% density (was 35%)
         marioMatrix[r][c] = { type: 'virus', color: PATHO[Math.floor(rng() * 3)] };
         pathogenCount++;
       }
     }
+    if (pathogenCount >= 8) break;
   }
   document.getElementById('mario-count').textContent = pathogenCount;
   spawnPill();
@@ -2340,20 +2378,28 @@ window.addEventListener('keydown', e => {
    =========================================================== */
 const canvasMine = document.getElementById('canvas-mine');
 const ctxMine    = canvasMine.getContext('2d');
-const M_SIZE = 9, M_CELL = 60, M_BOMBS = 12;
-let mineField = [], mineWon = false, mineFlags = 0;
+const M_SIZE = 9, MN_CELL = 60, M_BOMBS = 12;
+let mineField = [], mineWon = false, mineFlags = 0, mineReady = false;
 
 function initMine() {
   rng = randomSeed(currentSeed + 8);
   document.getElementById('mine-seed').textContent = '#' + String(currentSeed % 10000).padStart(4,'0');
-  mineWon = false; mineFlags = 0;
+  mineWon = false; mineFlags = 0; mineReady = false;
   document.getElementById('overlay-mine').classList.remove('active');
-  canvasMine.width = canvasMine.height = M_SIZE * M_CELL;
+  canvasMine.width = canvasMine.height = M_SIZE * MN_CELL;
+  // Mines placed on first click — first click is always safe
   mineField = Array(M_SIZE).fill(null).map(() => Array(M_SIZE).fill(null).map(() => ({ mine: false, revealed: false, flagged: false, count: 0 })));
+  updateMineCount(); drawMine();
+}
+function mineFirstClick(fr, fc) {
+  if (mineReady) return;
+  mineReady = true;
+  const safe = new Set();
+  for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) safe.add(`${fr+i},${fc+j}`);
   let placed = 0;
   while (placed < M_BOMBS) {
     const r = Math.floor(rng() * M_SIZE), c = Math.floor(rng() * M_SIZE);
-    if (!mineField[r][c].mine) { mineField[r][c].mine = true; placed++; }
+    if (!mineField[r][c].mine && !safe.has(`${r},${c}`)) { mineField[r][c].mine = true; placed++; }
   }
   for (let r = 0; r < M_SIZE; r++) for (let c = 0; c < M_SIZE; c++) {
     if (mineField[r][c].mine) continue;
@@ -2363,7 +2409,6 @@ function initMine() {
     }
     mineField[r][c].count = cnt;
   }
-  updateMineCount(); drawMine();
 }
 function resetMine(next) { if (next) currentSeed++; updateGlobalUI(); initMine(); }
 
@@ -2384,26 +2429,26 @@ function drawMine() {
   const NUM_COLORS = ['', '#5a84be','#27ae60','#d4a843','#c0392b','#9b59b6','#e67e22','#ffffff','#94a3b8'];
   for (let r = 0; r < M_SIZE; r++) for (let c = 0; c < M_SIZE; c++) {
     const cell = mineField[r][c];
-    const px = c * M_CELL, py = r * M_CELL;
+    const px = c * MN_CELL, py = r * MN_CELL;
     if (cell.revealed) {
-      ctxMine.fillStyle = '#0f0f1f'; ctxMine.fillRect(px, py, M_CELL - 1, M_CELL - 1);
+      ctxMine.fillStyle = '#0f0f1f'; ctxMine.fillRect(px, py, MN_CELL - 1, MN_CELL - 1);
       if (cell.mine) {
-        ctxMine.fillStyle = '#c0392b'; ctxMine.beginPath(); ctxMine.arc(px + M_CELL/2, py + M_CELL/2, 14, 0, Math.PI*2); ctxMine.fill();
+        ctxMine.fillStyle = '#c0392b'; ctxMine.beginPath(); ctxMine.arc(px + MN_CELL/2, py + MN_CELL/2, 14, 0, Math.PI*2); ctxMine.fill();
       } else if (cell.count > 0) {
         ctxMine.fillStyle = NUM_COLORS[cell.count];
         ctxMine.font = 'bold 20px "DM Mono", monospace';
         ctxMine.textAlign = 'center'; ctxMine.textBaseline = 'middle';
-        ctxMine.fillText(cell.count, px + M_CELL/2, py + M_CELL/2);
+        ctxMine.fillText(cell.count, px + MN_CELL/2, py + MN_CELL/2);
       }
     } else {
       ctxMine.fillStyle = cell.flagged ? '#8b1a0a' : '#16162a';
-      ctxMine.fillRect(px, py, M_CELL - 1, M_CELL - 1);
+      ctxMine.fillRect(px, py, MN_CELL - 1, MN_CELL - 1);
       ctxMine.strokeStyle = 'rgba(255,255,255,0.06)'; ctxMine.lineWidth = 1;
-      ctxMine.strokeRect(px + 0.5, py + 0.5, M_CELL - 2, M_CELL - 2);
+      ctxMine.strokeRect(px + 0.5, py + 0.5, MN_CELL - 2, MN_CELL - 2);
       if (cell.flagged) {
         ctxMine.fillStyle = '#d4a843'; ctxMine.font = 'bold 18px sans-serif';
         ctxMine.textAlign = 'center'; ctxMine.textBaseline = 'middle';
-        ctxMine.fillText('⚑', px + M_CELL/2, py + M_CELL/2);
+        ctxMine.fillText('⚑', px + MN_CELL/2, py + MN_CELL/2);
       }
     }
   }
@@ -2411,8 +2456,8 @@ function drawMine() {
 function mineClickHandler(e, isFlag) {
   if (mineWon) return;
   const rect = canvasMine.getBoundingClientRect();
-  const cx = Math.floor((e.clientX - rect.left) * (canvasMine.width / rect.width) / M_CELL);
-  const cy = Math.floor((e.clientY - rect.top)  * (canvasMine.height / rect.height) / M_CELL);
+  const cx = Math.floor((e.clientX - rect.left) * (canvasMine.width / rect.width) / MN_CELL);
+  const cy = Math.floor((e.clientY - rect.top)  * (canvasMine.height / rect.height) / MN_CELL);
   if (cx < 0 || cx >= M_SIZE || cy < 0 || cy >= M_SIZE) return;
   if (isFlag || e.shiftKey) {
     if (!mineField[cy][cx].revealed) {
@@ -2420,6 +2465,7 @@ function mineClickHandler(e, isFlag) {
       mineFlags += mineField[cy][cx].flagged ? 1 : -1; soundClick();
     }
   } else if (!mineField[cy][cx].flagged) {
+    mineFirstClick(cy, cx);
     if (mineField[cy][cx].mine) { soundFail(); initMine(); return; }
     mineField[cy][cx].revealed = true; mineRevealFlood(cx, cy); soundClick();
   }
@@ -2602,6 +2648,8 @@ function initPush() {
   canvasPush.width = canvasPush.height = PK_COLS * PK_CELL;
   pushMap = Array(PK_COLS).fill(null).map(() => Array(PK_COLS).fill('#'));
   for (let r = 1; r < PK_COLS - 1; r++) for (let c = 1; c < PK_COLS - 1; c++) pushMap[r][c] = ' ';
+
+  // Reverse generation: start solved, scramble outward — guarantees solvability
   const used = new Set();
   const slot = () => {
     for (let t = 0; t < 60; t++) {
@@ -2610,12 +2658,38 @@ function initPush() {
     }
     return { r: 4, c: 4 };
   };
+
+  // Place boxes on their targets (solved state)
   pushTargets = [];
+  const boxes = [];
   for (let i = 0; i < 3; i++) {
-    const t = slot(); pushTargets.push({ x: t.c, y: t.r });
-    const b = slot(); pushMap[b.r][b.c] = 'B';
+    const t = slot();
+    pushTargets.push({ x: t.c, y: t.r });
+    boxes.push({ x: t.c, y: t.r });
   }
-  const ps = slot(); pushPlayer = { x: ps.c, y: ps.r };
+  // Player adjacent to first box
+  let playerPos = { x: boxes[0].x + 1, y: boxes[0].y };
+  if (playerPos.x >= PK_COLS - 1) playerPos = { x: boxes[0].x - 1, y: boxes[0].y };
+
+  // Un-push: scramble boxes away from solved state
+  const dirs = [{dx:0,dy:1},{dx:0,dy:-1},{dx:1,dy:0},{dx:-1,dy:0}];
+  const steps = 12 + Math.floor(rng() * 7);
+  for (let s = 0; s < steps; s++) {
+    const bi    = Math.floor(rng() * 3);
+    const box   = boxes[bi];
+    const d     = dirs[Math.floor(rng() * 4)];
+    const pull  = { x: box.x - d.dx, y: box.y - d.dy };   // where player stands to push
+    const dest  = { x: box.x + d.dx, y: box.y + d.dy };   // where box ends up
+    const ok    = (p) => p.x > 0 && p.x < PK_COLS-1 && p.y > 0 && p.y < PK_COLS-1;
+    const free  = (p) => ok(p) && !boxes.some(b => b.x === p.x && b.y === p.y);
+    if (free(pull) && free(dest)) {
+      box.x = dest.x; box.y = dest.y;
+      playerPos = pull;
+    }
+  }
+
+  boxes.forEach(b => { pushMap[b.y][b.x] = 'B'; });
+  pushPlayer = { x: playerPos.x, y: playerPos.y };
   drawPush();
 }
 function resetPush(next) { if (next) currentSeed++; updateGlobalUI(); initPush(); }
@@ -2751,12 +2825,20 @@ let scorchTerrain = [], scorchTank1 = null, scorchTank2 = null;
 let scorchAngle = 45, scorchPower = 50, scorchWind = 0, scorchTurn = 1;
 let scorchProjectile = null, scorchParticles = [], scorchWon = false, scorchGameOver = false;
 let scorchAnimReq = null;
+let scorchWeapon = 'shell', scorchHits = 0, scorchFlight = 0, scorchPrevCriticHp = 100;
+let scorchSubProjectiles = [];
+const SC_WEAPONS = {
+  shell:   { label: 'SHELL',   R: 32, baseDmg: 75,  falloff: 1.4, isCluster: false },
+  nuke:    { label: 'NUKE',    R: 65, baseDmg: 100, falloff: 0.9, isCluster: false },
+  cluster: { label: 'CLUSTER', R: 20, baseDmg: 50,  falloff: 1.8, isCluster: true  },
+};
 
 function initScorch() {
   rng = randomSeed(currentSeed + 13);
   document.getElementById('scorch-seed').textContent = '#' + String(currentSeed % 10000).padStart(4,'0');
-  scorchWon = false; scorchGameOver = false; scorchProjectile = null; scorchParticles = [];
-  scorchAngle = 45; scorchPower = 50; scorchTurn = 1;
+  scorchWon = false; scorchGameOver = false; scorchProjectile = null; scorchParticles = []; scorchSubProjectiles = [];
+  scorchAngle = 45; scorchPower = 50; scorchTurn = 1; scorchFlight = 0;
+  scorchWeapon = 'shell'; scorchHits = 0; scorchPrevCriticHp = 100;
   scorchWind = (rng() - 0.5) * 0.12;
   document.getElementById('overlay-scorch').classList.remove('active');
   scorchTerrain = new Array(SC_W);
@@ -2770,7 +2852,7 @@ function initScorch() {
   const x1 = 50 + Math.floor(rng() * 50), x2 = SC_W - 100 - Math.floor(rng() * 50);
   scorchTank1 = { x: x1, y: scorchTerrain[x1], hp: 100, isPlayer: true };
   scorchTank2 = { x: x2, y: scorchTerrain[x2], hp: 100, isPlayer: false, aiAngle: 135, aiPower: 50 };
-  updateScorchUI(); drawScorch();
+  updateScorchUI(); updateScorchWeaponUI(); drawScorch();
 }
 function resetScorch(next) { if (next) currentSeed++; updateGlobalUI(); if (scorchAnimReq) { cancelAnimationFrame(scorchAnimReq); scorchAnimReq = null; } initScorch(); }
 
@@ -2819,11 +2901,18 @@ function drawScorch() {
     ctxScorch.stroke(); ctxScorch.setLineDash([]);
   }
   if (scorchProjectile) {
-    ctxScorch.fillStyle = '#d4a843';
-    ctxScorch.beginPath(); ctxScorch.arc(scorchProjectile.x, scorchProjectile.y, 4, 0, Math.PI*2); ctxScorch.fill();
-    ctxScorch.fillStyle = 'rgba(212,168,67,0.25)';
-    ctxScorch.beginPath(); ctxScorch.arc(scorchProjectile.x, scorchProjectile.y, 9, 0, Math.PI*2); ctxScorch.fill();
+    const isNuke = scorchProjectile.weapon === 'nuke';
+    ctxScorch.fillStyle = isNuke ? '#e03030' : '#d4a843';
+    ctxScorch.beginPath(); ctxScorch.arc(scorchProjectile.x, scorchProjectile.y, isNuke ? 6 : 4, 0, Math.PI*2); ctxScorch.fill();
+    ctxScorch.fillStyle = isNuke ? 'rgba(224,48,48,0.25)' : 'rgba(212,168,67,0.25)';
+    ctxScorch.beginPath(); ctxScorch.arc(scorchProjectile.x, scorchProjectile.y, isNuke ? 14 : 9, 0, Math.PI*2); ctxScorch.fill();
   }
+  scorchSubProjectiles.forEach(sp => {
+    ctxScorch.fillStyle = '#e88030';
+    ctxScorch.beginPath(); ctxScorch.arc(sp.x, sp.y, 3, 0, Math.PI*2); ctxScorch.fill();
+    ctxScorch.fillStyle = 'rgba(232,128,48,0.2)';
+    ctxScorch.beginPath(); ctxScorch.arc(sp.x, sp.y, 7, 0, Math.PI*2); ctxScorch.fill();
+  });
   scorchParticles.forEach(p => {
     ctxScorch.fillStyle = p.color; ctxScorch.globalAlpha = Math.max(0, p.life / p.maxLife);
     ctxScorch.beginPath(); ctxScorch.arc(p.x, p.y, p.r, 0, Math.PI*2); ctxScorch.fill();
@@ -2845,13 +2934,64 @@ function drawScorch() {
     ctxScorch.fillText(scorchTurn === 1 ? 'YOUR TURN' : 'CRITIC TURN', SC_W - 69, 20);
   }
 }
+function scorchSelectWeapon(w) {
+  const needed = w === 'nuke' ? 1 : w === 'cluster' ? 2 : 0;
+  if (scorchHits < needed) return;
+  scorchWeapon = w;
+  updateScorchWeaponUI();
+}
+function updateScorchWeaponUI() {
+  const el = document.getElementById('scorch-weapon');
+  if (el) el.textContent = SC_WEAPONS[scorchWeapon].label;
+  ['shell', 'nuke', 'cluster'].forEach(w => {
+    const btn = document.getElementById('wb-' + w);
+    if (!btn) return;
+    const needed = w === 'nuke' ? 1 : w === 'cluster' ? 2 : 0;
+    const locked = scorchHits < needed;
+    btn.disabled = locked;
+    btn.textContent = SC_WEAPONS[w].label + (locked ? ' [' + needed + 'HIT]' : '');
+    btn.style.opacity = locked ? '0.3' : (w === scorchWeapon ? '1' : '0.6');
+    btn.style.outline = w === scorchWeapon ? '2px solid #d4a843' : '';
+  });
+}
+function scorchMoveShell(shell) {
+  const prevVy = shell.vy;
+  shell.vy += 0.18; shell.vx += scorchWind;
+  shell.x += shell.vx; shell.y += shell.vy;
+  if (shell.x < 0) { shell.x = 0; shell.vx = Math.abs(shell.vx); }
+  else if (shell.x > SC_W) { shell.x = SC_W; shell.vx = -Math.abs(shell.vx); }
+  if (shell.weapon === 'cluster' && prevVy < 0 && shell.vy >= 0) {
+    const spd = Math.hypot(shell.vx, shell.vy);
+    const baseAng = Math.atan2(shell.vy, shell.vx);
+    [-0.55, 0, 0.55].forEach(da => {
+      const a = baseAng + da;
+      scorchSubProjectiles.push({ x: shell.x, y: shell.y, vx: Math.cos(a)*spd*0.85, vy: Math.sin(a)*spd*0.85, weapon: 'shell' });
+      scorchFlight++;
+    });
+    return 'split';
+  }
+  if (shell.y > SC_H + 40) return 'done';
+  if (shell.y >= 0) {
+    const xi = Math.floor(shell.x);
+    if (xi >= 0 && xi < SC_W && shell.y >= scorchTerrain[xi]) { scorchExplode(shell.x, shell.y, shell.weapon); return 'done'; }
+    for (const t of [scorchTank1, scorchTank2]) {
+      if (t && t.hp > 0) {
+        const d2 = (shell.x-t.x)**2 + (shell.y-(t.y-10))**2;
+        if (d2 < 18*18) { scorchExplode(shell.x, shell.y, shell.weapon); return 'done'; }
+      }
+    }
+  }
+  return 'flying';
+}
 function scorchFireProjectile() {
   if (scorchProjectile || scorchGameOver) return;
   const t = scorchTurn === 1 ? scorchTank1 : scorchTank2;
   if (!t || t.hp <= 0) return;
   const ang = (scorchTurn === 1 ? scorchAngle : (180 - scorchTank2.aiAngle)) * Math.PI / 180;
   const v   = (scorchTurn === 1 ? scorchPower : scorchTank2.aiPower) * 0.18;
-  scorchProjectile = { x: t.x + Math.cos(ang)*22, y: (t.y-14) - Math.sin(ang)*22, vx: Math.cos(ang)*v, vy: -Math.sin(ang)*v };
+  const wep = scorchTurn === 1 ? scorchWeapon : 'shell';
+  scorchProjectile = { x: t.x + Math.cos(ang)*22, y: (t.y-14) - Math.sin(ang)*22, vx: Math.cos(ang)*v, vy: -Math.sin(ang)*v, weapon: wep };
+  scorchFlight = 1; scorchSubProjectiles = [];
   soundClick(); playTone(220, 'sawtooth', 0.18, 0.10);
   if (!scorchAnimReq) scorchStep();
 }
@@ -2861,25 +3001,20 @@ function scorchStep() {
   scorchParticles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.life--; });
   scorchParticles = scorchParticles.filter(p => p.life > 0);
   if (scorchProjectile) {
-    scorchProjectile.vy += 0.18; scorchProjectile.vx += scorchWind;
-    scorchProjectile.x  += scorchProjectile.vx; scorchProjectile.y += scorchProjectile.vy;
-    if (scorchProjectile.x < -20 || scorchProjectile.x > SC_W+20 || scorchProjectile.y > SC_H+40) { scorchProjectile = null; scorchEndTurn(); }
-    else if (scorchProjectile.y >= 0) {
-      const xi = Math.floor(scorchProjectile.x);
-      if (xi >= 0 && xi < SC_W && scorchProjectile.y >= scorchTerrain[xi]) { scorchExplode(scorchProjectile.x, scorchProjectile.y); scorchProjectile = null; scorchEndTurn(); }
-      else for (const t of [scorchTank1, scorchTank2]) {
-        if (t && t.hp > 0) {
-          const d2 = (scorchProjectile.x-t.x)**2 + (scorchProjectile.y-(t.y-10))**2;
-          if (d2 < 18*18) { scorchExplode(scorchProjectile.x, scorchProjectile.y); scorchProjectile = null; scorchEndTurn(); break; }
-        }
-      }
-    }
+    const res = scorchMoveShell(scorchProjectile);
+    if (res === 'split') { scorchFlight--; scorchProjectile = null; }
+    else if (res === 'done') { scorchProjectile = null; scorchFlight--; if (scorchFlight === 0) scorchEndTurn(); }
+  }
+  for (let i = scorchSubProjectiles.length - 1; i >= 0; i--) {
+    const res = scorchMoveShell(scorchSubProjectiles[i]);
+    if (res === 'done' || res === 'split') { scorchSubProjectiles.splice(i, 1); scorchFlight--; if (scorchFlight === 0) scorchEndTurn(); }
   }
   drawScorch();
-  if (!scorchProjectile && scorchParticles.length === 0) { cancelAnimationFrame(scorchAnimReq); scorchAnimReq = null; }
+  if (!scorchProjectile && scorchSubProjectiles.length === 0 && scorchParticles.length === 0) { cancelAnimationFrame(scorchAnimReq); scorchAnimReq = null; }
 }
-function scorchExplode(ex, ey) {
-  const R = 32;
+function scorchExplode(ex, ey, weapon) {
+  const w = SC_WEAPONS[weapon] || SC_WEAPONS.shell;
+  const R = w.R, baseDmg = w.baseDmg, falloff = w.falloff;
   for (let x = Math.max(0,Math.floor(ex-R)); x < Math.min(SC_W,Math.floor(ex+R)); x++) {
     const dy = Math.sqrt(Math.max(0, R*R-(x-ex)**2));
     if (scorchTerrain[x] >= ey-dy && scorchTerrain[x] <= ey+dy) scorchTerrain[x] = Math.min(SC_H, ey+dy);
@@ -2888,17 +3023,24 @@ function scorchExplode(ex, ey) {
   [scorchTank1, scorchTank2].forEach(t => {
     if (!t || t.hp <= 0) return;
     const d = Math.hypot(t.x-ex, (t.y-10)-ey);
-    if (d < R+12) t.hp = Math.max(0, t.hp - Math.max(8, 75 - d*1.4));
+    if (d < R+12) t.hp = Math.max(0, t.hp - Math.max(8, baseDmg - d*falloff));
   });
   [scorchTank1, scorchTank2].forEach(t => { if (t) t.y = scorchTerrain[Math.max(0, Math.min(SC_W-1, t.x))]; });
   const pc = ['#d4a843','#c0392b','#e03030','#7c2d12','#ffffff'];
-  for (let i = 0; i < 28; i++) {
+  const pCount = weapon === 'nuke' ? 55 : 28;
+  for (let i = 0; i < pCount; i++) {
     const a = Math.random()*Math.PI*2, s = 1+Math.random()*5;
     scorchParticles.push({ x: ex, y: ey, vx: Math.cos(a)*s, vy: Math.sin(a)*s-2, r: 1+Math.random()*3, color: pc[Math.floor(Math.random()*pc.length)], life: 30+Math.floor(Math.random()*20), maxLife: 45 });
   }
   playTone(80,'sawtooth',0.4,0.18); setTimeout(()=>playTone(140,'square',0.2,0.08),60);
 }
 function scorchEndTurn() {
+  if (scorchGameOver) return;
+  if (scorchTurn === 1 && scorchTank2 && scorchTank2.hp < scorchPrevCriticHp) {
+    scorchHits++;
+    updateScorchWeaponUI();
+  }
+  scorchPrevCriticHp = scorchTank2 ? scorchTank2.hp : 0;
   updateScorchUI();
   if (scorchTank2.hp <= 0 && !scorchGameOver) {
     scorchGameOver = true; scorchWon = true; drawScorch();

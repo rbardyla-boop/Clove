@@ -68,6 +68,8 @@ const CHAMBERS = [
 
   // ── 03 · Spike Garden ──────────────────────────────────
   // Spike pits replace open pits, one platform for relief.
+  // Bridge platform at row 13 (cols 18-23) lets player reach
+  // the far-right node at row 14 col 25 over the 12-cell spike run.
   {
     name: "SPIKE GARDEN",
     grid: [
@@ -84,7 +86,7 @@ const CHAMBERS = [
       "#..............................#",
       "#............N.................#",
       "#..........=====...............#",
-      "#..............................#",
+      "#.................======.......#",
       "#.....N..................N.....#",
       "#..............................#",
       "#..P...........................#",
