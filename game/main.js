@@ -3773,6 +3773,17 @@ async function startGame(key) {
     log(`OBJECTIVE: ${winConditionText(selectedArchetype.winCondition)} before oversight_risk=100%.`);
     log('INPUT: select node → deploy protocol → ' + selectedArchetype.voice.endTurn);
     log('NOTE: prior civilization configuration data unavailable. Baseline: not established.');
+    // Guaranteed civilian introductions — player meets them before the system does
+    const _introNcs = NAMED_CIVILIANS.filter(nc => nc.name === 'Amara Nwosu' || nc.name === 'Jin-hee Park');
+    _introNcs.forEach(nc => {
+        const _r = regions.find(r => r.name === nc.region);
+        if (_r && !_r.collapsed) {
+            log(nc.fragments[0].replace(/\{region\}/g, nc.region));
+            nc.lastSeenTurn = 1;
+            if (WORLD_STATE.echoSeeds && !WORLD_STATE.echoSeeds.find(e => e.name === nc.name))
+                WORLD_STATE.echoSeeds.push({ name: nc.name, role: nc.role, region: nc.region, seedTurn: 1 });
+        }
+    });
     tutorialStep = 1; showTutorialStep(1);
 }
 
