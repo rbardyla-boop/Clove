@@ -144,20 +144,23 @@
   .btn-icon:active { transform: scale(0.97); }
 
   /* ===================== TABS ===================== */
-  .nav-tabs {
-    display: flex; gap: 0; overflow-x: auto; white-space: nowrap;
-    scrollbar-width: none;
+  .nav-tabs-wrapper {
+    display: flex; align-items: stretch;
     border-bottom: 1px solid var(--hair);
     margin: 0 -24px;
+  }
+  .nav-tabs {
+    display: flex; gap: 0; overflow-x: auto; white-space: nowrap;
+    scrollbar-width: none; flex: 1;
     padding: 0 24px;
-    mask-image: linear-gradient(to right, black 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
   }
   .nav-tabs::-webkit-scrollbar { display: none; }
-  .nav-tabs:hover {
-    mask-image: none;
-    -webkit-mask-image: none;
+  .tab-scroll-btn {
+    background: var(--bg2); border: none; border-bottom: none;
+    color: var(--txt3); font-size: 20px; padding: 0 12px; cursor: pointer;
+    flex-shrink: 0; line-height: 1; transition: color 0.15s;
   }
+  .tab-scroll-btn:hover { color: var(--red); }
   .tab-btn {
     background: none; border: none;
     padding: 14px 18px;
@@ -510,23 +513,27 @@
         </div>
       </div>
     </div>
-    <nav class="nav-tabs" role="tablist" id="arcade-tabs" aria-label="Arcade missions">
-      <button class="tab-btn active" role="tab" aria-selected="true"  data-target="imm"><span class="tab-idx">01</span>Mind Machine</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="unblock"><span class="tab-idx">02</span>Unblock</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="mario"><span class="tab-idx">03</span>Pathogen Cure</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="c2048"><span class="tab-idx">04</span>Clarity 2048</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="serpent"><span class="tab-idx">05</span>Focus Serpent</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="match"><span class="tab-idx">06</span>Mind Match</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="stacker"><span class="tab-idx">07</span>Clarity Stacker</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="mine"><span class="tab-idx">08</span>Mine the Mind</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="rally"><span class="tab-idx">09</span>Discipline Rally</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="break"><span class="tab-idx">10</span>Break the Overwhelm</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="push"><span class="tab-idx">11</span>Push Procrastination</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="switch"><span class="tab-idx">12</span>Switch Off Numbness</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="scorch"><span class="tab-idx">13</span>Scorched Mind</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="asteroids"><span class="tab-idx">14</span>Clear the Noise</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" data-target="invaders"><span class="tab-idx">15</span>Hold the Line</button>
-    </nav>
+    <div class="nav-tabs-wrapper">
+      <button class="tab-scroll-btn" id="tab-prev" aria-label="Scroll tabs left" style="display:none">&#8249;</button>
+      <nav class="nav-tabs" role="tablist" id="arcade-tabs" aria-label="Arcade missions">
+        <button class="tab-btn active" role="tab" aria-selected="true"  data-target="imm"><span class="tab-idx">01</span>Mind Machine</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="unblock"><span class="tab-idx">02</span>Unblock</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="mario"><span class="tab-idx">03</span>Pathogen Cure</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="c2048"><span class="tab-idx">04</span>Clarity 2048</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="serpent"><span class="tab-idx">05</span>Focus Serpent</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="match"><span class="tab-idx">06</span>Mind Match</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="stacker"><span class="tab-idx">07</span>Clarity Stacker</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="mine"><span class="tab-idx">08</span>Mine the Mind</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="rally"><span class="tab-idx">09</span>Discipline Rally</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="break"><span class="tab-idx">10</span>Break the Overwhelm</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="push"><span class="tab-idx">11</span>Push Procrastination</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="switch"><span class="tab-idx">12</span>Switch Off Numbness</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="scorch"><span class="tab-idx">13</span>Scorched Mind</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="asteroids"><span class="tab-idx">14</span>Clear the Noise</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-target="invaders"><span class="tab-idx">15</span>Hold the Line</button>
+      </nav>
+      <button class="tab-scroll-btn" id="tab-next" aria-label="Scroll tabs right">&#8250;</button>
+    </div>
   </div>
 </header>
 
@@ -612,7 +619,7 @@
     <div class="game-layout">
       <div class="canvas-container">
         <span class="canvas-frame-tag">CH.03 / PATHOGEN FIELD</span>
-        <canvas id="canvas-mario" class="canvas-2d" width="432" height="540" aria-label="Pathogen matching field"></canvas>
+        <canvas id="canvas-mario" class="canvas-2d" width="512" height="780" aria-label="Pathogen matching field"></canvas>
         <div class="overlay" id="overlay-mario">
           <span class="overlay-tag">Pathogens neutralized</span>
           <h3>FIELD STERILIZED</h3>
@@ -1016,6 +1023,16 @@
           <button class="btn-action secondary" id="wb-nuke" onclick="scorchSelectWeapon('nuke')" style="flex:1;padding:8px 4px;font-size:10px" disabled>NUKE [1HIT]</button>
           <button class="btn-action secondary" id="wb-cluster" onclick="scorchSelectWeapon('cluster')" style="flex:1;padding:8px 4px;font-size:10px" disabled>CLUSTER [2HIT]</button>
         </div>
+        <div style="display:flex;gap:4px;margin:6px 0 2px;align-items:center">
+          <span style="color:var(--txt3);font-size:10px;letter-spacing:1px;flex:1">ANGLE</span>
+          <button class="btn-action secondary" style="padding:6px 10px;min-width:0" onclick="scorchAdjAngle(-5)">−5°</button>
+          <button class="btn-action secondary" style="padding:6px 10px;min-width:0" onclick="scorchAdjAngle(5)">+5°</button>
+        </div>
+        <div style="display:flex;gap:4px;margin:2px 0 6px;align-items:center">
+          <span style="color:var(--txt3);font-size:10px;letter-spacing:1px;flex:1">POWER</span>
+          <button class="btn-action secondary" style="padding:6px 10px;min-width:0" onclick="scorchAdjPower(-5)">−5</button>
+          <button class="btn-action secondary" style="padding:6px 10px;min-width:0" onclick="scorchAdjPower(5)">+5</button>
+        </div>
         <button class="btn-action" id="scorch-fire-btn">Fire Counter-Thought</button>
         <button class="btn-action secondary" onclick="resetScorch(false)">Reset Battlefield</button>
         <div class="directives">
@@ -1333,6 +1350,18 @@ tabs.forEach(tab => {
     }
   });
 });
+const navTabs = document.getElementById('arcade-tabs');
+const tabPrev = document.getElementById('tab-prev');
+const tabNext = document.getElementById('tab-next');
+function updateTabArrows() {
+  tabPrev.style.display = navTabs.scrollLeft > 10 ? '' : 'none';
+  tabNext.style.display = navTabs.scrollLeft < navTabs.scrollWidth - navTabs.clientWidth - 10 ? '' : 'none';
+}
+tabPrev.addEventListener('click', () => { navTabs.scrollBy({ left: -220, behavior: 'smooth' }); setTimeout(updateTabArrows, 320); });
+tabNext.addEventListener('click', () => { navTabs.scrollBy({ left: 220, behavior: 'smooth' }); setTimeout(updateTabArrows, 320); });
+navTabs.addEventListener('scroll', updateTabArrows);
+window.addEventListener('resize', updateTabArrows);
+setTimeout(updateTabArrows, 100);
 window.renderAllCanvases = function() {
   if (document.getElementById('panel-unblock').classList.contains('active'))   drawUnblock();
   if (document.getElementById('panel-mario').classList.contains('active'))     drawMario();
@@ -1677,7 +1706,7 @@ window.addEventListener('touchend', unblockUp);
    =========================================================== */
 const canvasMario = document.getElementById('canvas-mario');
 const ctxMario = canvasMario.getContext('2d');
-const M_COLS = 8, M_ROWS = 12, M_CELL = 432 / M_COLS;
+const M_COLS = 8, M_ROWS = 12, M_CELL = 64;
 let marioMatrix = [], currentPill = null, marioScore = 0, pathogenCount = 0, marioInterval = null, marioWon = false;
 const PATHO = ['#c0392b', '#d4a843', '#5a84be']; // red gold blue
 
@@ -1720,7 +1749,7 @@ function pillOffset(rot) {
 }
 function drawMario() {
   const isLight = currentTheme === 'light';
-  const W = 432, H = 540;
+  const W = canvasMario.width, H = canvasMario.height;
   ctxMario.clearRect(0, 0, W, H);
   ctxMario.fillStyle = isLight ? '#ecebe5' : '#0a0a12';
   ctxMario.fillRect(0, 0, W, H);
@@ -2384,6 +2413,16 @@ window.addEventListener('keydown', e => {
   else h = false;
   if (h) { e.preventDefault(); drawStacker(); }
 });
+let stackTX = 0, stackTY = 0;
+canvasStacker.addEventListener('touchstart', e => { e.preventDefault(); stackTX = e.touches[0].clientX; stackTY = e.touches[0].clientY; }, { passive: false });
+canvasStacker.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!document.getElementById('panel-stacker').classList.contains('active') || stackerWon || !stackerPiece) return;
+  const dx = e.changedTouches[0].clientX - stackTX, dy = e.changedTouches[0].clientY - stackTY;
+  if (Math.abs(dx) < 15 && Math.abs(dy) < 15) { stkRotate(); drawStacker(); }
+  else if (Math.abs(dx) > Math.abs(dy)) { stkMove(dx > 0 ? 1 : -1, 0); drawStacker(); }
+  else if (dy > 40) { stkMove(0, 1); drawStacker(); }
+}, { passive: false });
 
 /* ===========================================================
    8. MINE THE MIND (Minesweeper)
@@ -2771,6 +2810,15 @@ canvasPush.addEventListener('click', e => {
   if (Math.abs(ddx) > Math.abs(ddy)) movePush(Math.sign(ddx), 0);
   else if (ddy !== 0) movePush(0, Math.sign(ddy));
 });
+let pushTX = 0, pushTY = 0;
+canvasPush.addEventListener('touchstart', e => { e.preventDefault(); pushTX = e.touches[0].clientX; pushTY = e.touches[0].clientY; }, { passive: false });
+canvasPush.addEventListener('touchend', e => {
+  e.preventDefault();
+  const dx = e.changedTouches[0].clientX - pushTX, dy = e.changedTouches[0].clientY - pushTY;
+  if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+  if (Math.abs(dx) > Math.abs(dy)) movePush(dx > 0 ? 1 : -1, 0);
+  else movePush(0, dy > 0 ? 1 : -1);
+}, { passive: false });
 
 /* ===========================================================
    12. SWITCH OFF NUMBNESS (Lights Out)
@@ -3087,6 +3135,16 @@ window.addEventListener('keydown', e => {
   else h = false;
   if (h) { e.preventDefault(); updateScorchUI(); drawScorch(); }
 });
+function scorchAdjAngle(d) {
+  if (scorchTurn !== 1 || scorchProjectile || scorchGameOver) return;
+  scorchAngle = Math.max(0, Math.min(180, scorchAngle + d));
+  updateScorchUI(); drawScorch();
+}
+function scorchAdjPower(d) {
+  if (scorchTurn !== 1 || scorchProjectile || scorchGameOver) return;
+  scorchPower = Math.max(5, Math.min(100, scorchPower + d));
+  updateScorchUI(); drawScorch();
+}
 
 /* ===========================================================
    14. CLEAR THE NOISE (Asteroids)
