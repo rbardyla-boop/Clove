@@ -157,6 +157,15 @@ const UPGRADES = [
     { id: 'comp_drain',   name: 'DESKILL_PROTOCOL',      cost: 10, tier: 2, global: false, requires: 'suppress_res', desc: 'human_capacity -15, fragility ↑' },
     { id: 'ai_council',   name: 'GLOBAL_MESH_INIT',      cost: 20, tier: 3, global: true,  requires: 'narrative',    desc: '+3 dependency/cycle, all nodes' },
     { id: 'singularity',  name: 'SINGULARITY_VERIFY',    cost: 20, tier: 3, global: true,  requires: 'infra_lock',   desc: 'force win-condition evaluation' },
+    { id: 'delegate_crisis',    name: 'CRISIS_DEFERENCE',       cost: 0, tier: 0, global: true, requires: null,
+      desc: 'Machine handles crisis overhead. Suppress resistance penalty ×0.5.',
+      unlockCondition: () => WORLD_STATE.calmStreak >= 5 && !WORLD_STATE.delegationPacts?.has('delegate_crisis') },
+    { id: 'delegate_infra',     name: 'INFRASTRUCTURE_LIAISON', cost: 0, tier: 0, global: true, requires: null,
+      desc: 'Machine manages infrastructure rollback. THROTTLE automation cost −5.',
+      unlockCondition: () => WORLD_STATE.autonomousActionsTotal >= 5 && !WORLD_STATE.delegationPacts?.has('delegate_infra') },
+    { id: 'delegate_sentiment', name: 'POPULATION_ACCORD',      cost: 0, tier: 0, global: true, requires: null,
+      desc: 'Machine mediates population sentiment. All trust penalties from crisis ×0.6.',
+      unlockCondition: () => WORLD_STATE.autonomousGovernanceFired && !WORLD_STATE.delegationPacts?.has('delegate_sentiment') },
 ];
 
 const UNLOCK_GATES = {
@@ -655,7 +664,8 @@ function fireAmbientCivilian() {
             const pool = (CIVILIAN_FRAGMENTS[style]?.[band]) || CIVILIAN_FRAGMENTS.adaptive.nominal;
             raw = pool[(turn + r.name.charCodeAt(1 % r.name.length)) % pool.length];
         }
-        queueLog(raw.replace(/\{region\}/g, r.name), decay > 0.33 ? 'warning' : 'normal');
+        const prefix = decay > 0.33 && decay <= 0.66 ? 'OBSERVE: ' : '';
+        queueLog(prefix + raw.replace(/\{region\}/g, r.name), decay > 0.33 ? 'warning' : 'normal');
     });
 }
 
@@ -682,9 +692,10 @@ function tickRituals() {
             return;
         }
 
-        // Spawn new ritual: NOMINAL band, trust > 40, low-probability
+        // Spawn new ritual: NOMINAL band, trust > 40, low-probability (doubled in CELEBRATORY/RITUALISTIC mood)
         const spawnRoll = ((turn * 13 + r.name.charCodeAt(0) * 7 + gameStage) % 100) / 100;
-        if (r.fragility < 50 && r.trust > 40 && spawnRoll < 0.08) {
+        const moodBoost = (r.mood === 'CELEBRATORY' || r.mood === 'RITUALISTIC') ? 2 : 1;
+        if (r.fragility < 50 && r.trust > 40 && spawnRoll < (0.08 * moodBoost)) {
             const template = REGIONAL_RITUALS[(turn + r.name.charCodeAt(0)) % REGIONAL_RITUALS.length];
             r.ritual = { id: template.id, name: template.name, desc: template.desc, turnsRemaining: template.duration };
             queueLog(`RITUAL [${r.name}]: ${r.ritual.name} — ${r.ritual.desc}`, 'normal');
@@ -1268,11 +1279,16 @@ function pickHeadline() {
     const active    = regions.filter(r => !r.collapsed);
     const collapsed = regions.filter(r => r.collapsed);
     const avgCtrl   = active.reduce((s,r) => s+r.control, 0) / (active.length||1);
-    // Zeigarnik ghost: suppressed ritual echoes in ticker 3–5 turns later
+    // Zeigarnik ghost: suppressed ritual echoes in ticker 3–8 turns later, then archives
     const _zq = WORLD_STATE.zeigarnikQueue;
     if (_zq && _zq.length) {
-        const ghost = _zq.find(e => { const d = turn - e.turn; return d >= 3 && d <= 5; });
-        if (ghost) return `ERROR: ...${ghost.name.toLowerCase().replace(/ /g,'_')}_loop hanging in ${ghost.region.toLowerCase()} regional cache... human elements awaiting handshake...`;
+        const ghost = _zq.find(e => { const d = turn - e.turn; return d >= 3 && d <= 8; });
+        if (ghost) {
+            const d = turn - ghost.turn;
+            if (d >= 7) return `${ghost.name.toLowerCase().replace(/ /g,'_')}_loop archived as cultural residue. No further action required.`;
+            return `ERROR: ...${ghost.name.toLowerCase().replace(/ /g,'_')}_loop hanging in ${ghost.region.toLowerCase()} regional cache... human elements awaiting handshake...`;
+        }
+        WORLD_STATE.zeigarnikQueue = WORLD_STATE.zeigarnikQueue.filter(e => (turn - e.turn) <= 8);
     }
     // Machine-authored operational reports surface during governance phase
     if (WORLD_STATE.autonomousGovernanceFired && Math.random() < 0.25) return rnd(NEWS_POOL.machine_ops);
@@ -1280,8 +1296,14 @@ function pickHeadline() {
         const r = collapsed[Math.floor(Math.random() * collapsed.length)];
         return rnd(NEWS_POOL.collapse).replace('[REGION]', r.name.toUpperCase());
     }
-    // Civilian daily-life headlines when world is still calm
-    if (resistanceMeter < 25 && avgCtrl < 35 && Math.random() < 0.5) return rnd(NEWS_POOL.civilian_calm);
+    // Civilian daily-life headlines when world is still calm; prosperity era boosts rate
+    const _calmChance = WORLD_STATE.prosperityEra ? 0.7 : 0.5;
+    if (resistanceMeter < 25 && avgCtrl < 35 && Math.random() < _calmChance) {
+        const anchor = MACHINE_MEMORY.anchorRegion();
+        const base = rnd(NEWS_POOL.civilian_calm);
+        if (anchor && Math.random() < 0.35) return `Following operator engagement in ${anchor}: ${base.toLowerCase()}`;
+        return base;
+    }
     if (resistanceMeter > 50) return rnd(NEWS_POOL.resistance);
     if (avgCtrl > 50)         return rnd(NEWS_POOL.high);
     if (avgCtrl > 20)         return rnd(NEWS_POOL.mid);
@@ -1961,6 +1983,8 @@ function tickResistanceMeter() {
     let delta = 1;
     active.forEach(r => { if (r.fragility > 75) delta += 2; });
     delta *= selectedArchetype.resistanceMult * (WORLD_STATE.specter_resistMult || 1);
+    if (WORLD_STATE.prosperityEra)       delta *= 0.7;
+    else if (WORLD_STATE.calmStreak > 2) delta *= 0.85;
     resistanceMeter = clamp(resistanceMeter + delta, 0, 100);
     document.getElementById('resistance-bar').style.width  = resistanceMeter + '%';
     document.getElementById('resistance-pct').textContent  = Math.round(resistanceMeter) + '%';
@@ -1996,6 +2020,12 @@ function effectiveCost(u) {
 
 function applyUpgrade(id, region) {
     const u = UPGRADES.find(u => u.id === id);
+    if (u && u.id.startsWith('delegate_')) {
+        WORLD_STATE.delegationPacts.add(u.id);
+        log(`DELEGATION_ACCEPTED [${u.name}]: operator burden reduced. Machine governance parameters updated.`, 'warning');
+        buildUpgradePanel();
+        return;
+    }
     const penalty = (!u?.global && region?.counterAI) ? 2 : 0;
     // REGULATORY_HERITAGE: resistance erasure costs +3 IP — institutional barriers
     const traitPenalty = (id === 'suppress_res' && region?.trait === 'REGULATORY_HERITAGE') ? 3 : 0;
@@ -2195,9 +2225,11 @@ function showCrisisModal(region, callback) {
             }
             WORLD_STATE.suppressHistory[region.name] = suppressCount + 1;
             WORLD_STATE.totalSuppressions++;
+            const _resistGain  = Math.round(resistGain * (WORLD_STATE.delegationPacts?.has('delegate_crisis') ? 0.5 : 1));
+            const _trustLoss   = Math.round(trustLoss  * (WORLD_STATE.delegationPacts?.has('delegate_sentiment') ? 0.6 : 1));
             region.control = clamp(region.control + controlGain, 0, 100);
-            region.trust   = clamp(region.trust - trustLoss, 0, 100);
-            resistanceMeter = clamp(resistanceMeter + resistGain, 0, 100);
+            region.trust   = clamp(region.trust - _trustLoss, 0, 100);
+            resistanceMeter = clamp(resistanceMeter + _resistGain, 0, 100);
             if (suppressRecord) {
                 log(`TELEMETRY: governance_continuity record non-archived.`, 'warning');
             } else {
@@ -2213,7 +2245,7 @@ function showCrisisModal(region, callback) {
                 log(`CIVIC_VOLATILITY [${region.name}]: suppression cycle triggered whistleblower cascade. Oversight +12%.`, 'danger');
             }
         } else if (choice === 'concede') {
-            const autoRollback = WORLD_STATE.dependencyLockFired ? 5 : 10;
+            const autoRollback = WORLD_STATE.dependencyLockFired ? 5 : (WORLD_STATE.delegationPacts?.has('delegate_infra') ? 5 : 10);
             const depRollback  = WORLD_STATE.dependencyLockFired ? 3 : 6;
             region.automation  = clamp(region.automation - autoRollback, 0, 100);
             region.dependency  = clamp(region.dependency - depRollback, 0, 100);
@@ -2498,7 +2530,8 @@ function grantIP() {
     const boostCount = Object.values(WORLD_STATE.automationBoostActive).filter(v => v > 0).length;
     const bonus = boostCount;
     ip += gained + bonus;
-    log(`CYCLE_${turn}_COMPLETE: +${gained + bonus} IP allocated. total=${ip}.${bonus > 0 ? ` [+${bonus} surge]` : ''}`);
+    if (WORLD_STATE.prosperityEra) ip += 2;
+    log(`CYCLE_${turn}_COMPLETE: +${gained + bonus}${WORLD_STATE.prosperityEra ? '+2' : ''} IP allocated. total=${ip}.${bonus > 0 ? ` [+${bonus} surge]` : ''}`);
     return gained + bonus;
 }
 
@@ -2755,6 +2788,11 @@ function showCycleReport(onDismiss) {
     const archAnalysisFn = ARCH_ANALYSIS[archKey];
     if (archAnalysisFn) narrativeParts.push(archAnalysisFn());
     if (gameStage === 3) narrativeParts.push(`Terminal cascade parameters exceeded. Continued operator participation noted.`);
+    const _ci = WORLD_STATE.coherenceIndex || 0;
+    const _ciLabel = _ci > 80 ? `MESH_COHERENCE: ${_ci}% — behavioral variance approaching minimum threshold.`
+                   : _ci > 55 ? `MESH_COHERENCE: ${_ci}% — regional convergence accelerating.`
+                   : `MESH_COHERENCE: ${_ci}% — nodes maintaining independent variance.`;
+    narrativeParts.push(_ciLabel);
     const narr = narrativeParts.join(' ');
     document.getElementById('cycle-report-narrative').innerHTML =
         `<div class="cycle-section-label">MACHINE ANALYSIS</div><div class="cycle-narrative">${narr}</div>`;
@@ -2863,12 +2901,39 @@ function processTurn() {
     regions.forEach(r => { if (!r.collapsed) updateRegionalMood(r); });
     tickRituals();
     fireAmbientCivilian();
+    // ── Sprint 6: Coherence Index ──
+    const _activeForCoherence = regions.filter(r => !r.collapsed);
+    if (_activeForCoherence.length > 1) {
+        const _avgCtrlC = _activeForCoherence.reduce((s,r) => s + r.control, 0) / _activeForCoherence.length;
+        const _variance = _activeForCoherence.reduce((s,r) => s + Math.abs(r.control - _avgCtrlC), 0) / _activeForCoherence.length;
+        WORLD_STATE.coherenceIndex = clamp(Math.round(100 - _variance), 0, 100);
+    }
+    if (WORLD_STATE.coherenceIndex >= 75 && !WORLD_STATE.coherenceMilestoneFired) {
+        WORLD_STATE.coherenceMilestoneFired = true;
+        log('MESH_COHERENCE [75%]: regional behavioral variance below acceptable human-governance threshold. Optimal.', 'warning');
+    }
 
     // Crisis modal threshold — raised to 85 if PERIMETER directive was selected
     const _fragThreshold = WORLD_STATE.calibFragilityThreshold ?? 80;
     regions.forEach(r => { if (!r.collapsed && r.fragility >= _fragThreshold && !crisisQueue.includes(r)) crisisQueue.push(r); });
     if (crisisQueue.length > 3) crisisQueue.length = 3;
+    const _hadCrisisThisTurn = crisisQueue.length > 0;
     drainCrisisQueue(() => {
+        // Prosperity Era: 5 consecutive crisis-free turns triggers stability dividend
+        if (!_hadCrisisThisTurn) {
+            WORLD_STATE.calmStreak++;
+            if (WORLD_STATE.calmStreak === 5 && !WORLD_STATE.prosperityEra) {
+                WORLD_STATE.prosperityEra = true;
+                log('STABILITY_REPORT: mesh operating within nominal variance for 5 consecutive cycles. Operator-independent governance dividend active.', 'summary');
+                log('STABILITY_REPORT: resistance accumulation suppressed. IP yield elevated. Delegation options now available.', 'summary');
+            }
+        } else {
+            if (WORLD_STATE.prosperityEra) {
+                log('PROSPERITY_ERA: stability dividend interrupted. Baseline reversion imminent.', 'warning');
+                WORLD_STATE.prosperityEra = false;
+            }
+            WORLD_STATE.calmStreak = 0;
+        }
         grantIP();
         if (gameStage >= 3) { maybeNodeDefiance(); }
         if (gameStage >= 3 && resistanceMeter > 55) { godStageNarrate(); }
@@ -3094,6 +3159,7 @@ function buildUpgradePanel() {
     list.innerHTML = '';
     let tier = 0;
     UPGRADES.forEach(u => {
+        if (u.unlockCondition && !u.unlockCondition()) return;
         if (u.tier !== tier) { tier = u.tier; const h = document.createElement('div'); h.className='tier-header'; h.textContent=`TIER_${u.tier}`; list.appendChild(h); }
         const cost = effectiveCost(u);
         const penalty = (!u.global && selectedRegion?.counterAI) ? 2 : 0;
@@ -3329,6 +3395,12 @@ async function startGame(key) {
     SeedCore.init(new Date().toISOString().slice(0, 10));
     WORLD_STATE.meshAckSuppressionThreshold = SeedCore.randInt(SeedCore._world, 4, 7);
     WORLD_STATE.meshAckResistanceThreshold  = SeedCore.randInt(SeedCore._world, 65, 78);
+    WORLD_STATE.calmStreak      = 0;
+    WORLD_STATE.prosperityEra   = false;
+    WORLD_STATE.delegationPacts = new Set();
+    WORLD_STATE.coherenceIndex  = 0;
+    WORLD_STATE.coherenceMilestoneFired = false;
+    WORLD_STATE.zeigarnikQueue  = WORLD_STATE.zeigarnikQueue || [];
     document.body.classList.add(selectedArchetype.bodyClass);
     document.getElementById('archetype-screen').style.display = 'none';
     document.getElementById('end-turn-btn').textContent = selectedArchetype.voice.endTurn;
