@@ -2221,7 +2221,7 @@ canvasMatch.addEventListener('click', (e) => {
    =========================================================== */
 const canvasStacker = document.getElementById('canvas-stacker');
 const ctxStacker    = canvasStacker.getContext('2d');
-const S_ROWS = 13, S_COLS = 10, S_CELL = 40;
+const STK_ROWS = 13, STK_COLS = 10, STK_CELL = 40;
 let stackerGrid = [], stackerPiece = null, stackerLines = 0, stackerScore = 0,
     stackerInterval = null, stackerWon = false;
 const S_SHAPES = [
@@ -2242,9 +2242,9 @@ function initStacker() {
   document.getElementById('stacker-lines').textContent = '0 / 5';
   document.getElementById('stacker-score').textContent = '0';
   document.getElementById('overlay-stacker').classList.remove('active');
-  canvasStacker.width  = S_COLS * S_CELL;
-  canvasStacker.height = S_ROWS * S_CELL;
-  stackerGrid = Array(S_ROWS).fill(null).map(() => Array(S_COLS).fill(null));
+  canvasStacker.width  = STK_COLS * STK_CELL;
+  canvasStacker.height = STK_ROWS * STK_CELL;
+  stackerGrid = Array(STK_ROWS).fill(null).map(() => Array(STK_COLS).fill(null));
   spawnStackerPiece();
   clearInterval(stackerInterval);
   stackerInterval = setInterval(updateStacker, 650);
@@ -2260,21 +2260,21 @@ function drawStacker() {
   const dark = '#0a0a12';
   ctxStacker.fillStyle = dark; ctxStacker.fillRect(0, 0, canvasStacker.width, canvasStacker.height);
   ctxStacker.strokeStyle = 'rgba(255,255,255,0.04)'; ctxStacker.lineWidth = 1;
-  for (let r = 1; r < S_ROWS; r++) { ctxStacker.beginPath(); ctxStacker.moveTo(0, r * S_CELL); ctxStacker.lineTo(canvasStacker.width, r * S_CELL); ctxStacker.stroke(); }
-  for (let c = 1; c < S_COLS; c++) { ctxStacker.beginPath(); ctxStacker.moveTo(c * S_CELL, 0); ctxStacker.lineTo(c * S_CELL, canvasStacker.height); ctxStacker.stroke(); }
-  for (let r = 0; r < S_ROWS; r++) for (let c = 0; c < S_COLS; c++) {
+  for (let r = 1; r < STK_ROWS; r++) { ctxStacker.beginPath(); ctxStacker.moveTo(0, r * STK_CELL); ctxStacker.lineTo(canvasStacker.width, r * STK_CELL); ctxStacker.stroke(); }
+  for (let c = 1; c < STK_COLS; c++) { ctxStacker.beginPath(); ctxStacker.moveTo(c * STK_CELL, 0); ctxStacker.lineTo(c * STK_CELL, canvasStacker.height); ctxStacker.stroke(); }
+  for (let r = 0; r < STK_ROWS; r++) for (let c = 0; c < STK_COLS; c++) {
     if (stackerGrid[r][c]) {
       ctxStacker.fillStyle = stackerGrid[r][c];
-      ctxStacker.fillRect(c * S_CELL + 2, r * S_CELL + 2, S_CELL - 4, S_CELL - 4);
-      ctxStacker.strokeStyle = 'rgba(255,255,255,0.18)'; ctxStacker.strokeRect(c * S_CELL + 2.5, r * S_CELL + 2.5, S_CELL - 5, S_CELL - 5);
+      ctxStacker.fillRect(c * STK_CELL + 2, r * STK_CELL + 2, STK_CELL - 4, STK_CELL - 4);
+      ctxStacker.strokeStyle = 'rgba(255,255,255,0.18)'; ctxStacker.strokeRect(c * STK_CELL + 2.5, r * STK_CELL + 2.5, STK_CELL - 5, STK_CELL - 5);
     }
   }
   if (stackerPiece) {
     ctxStacker.fillStyle = stackerPiece.c;
     stackerPiece.m.forEach((row, r) => row.forEach((v, c) => {
       if (v) {
-        ctxStacker.fillRect((stackerPiece.x + c) * S_CELL + 2, (stackerPiece.y + r) * S_CELL + 2, S_CELL - 4, S_CELL - 4);
-        ctxStacker.strokeStyle = 'rgba(255,255,255,0.25)'; ctxStacker.strokeRect((stackerPiece.x + c) * S_CELL + 2.5, (stackerPiece.y + r) * S_CELL + 2.5, S_CELL - 5, S_CELL - 5);
+        ctxStacker.fillRect((stackerPiece.x + c) * STK_CELL + 2, (stackerPiece.y + r) * STK_CELL + 2, STK_CELL - 4, STK_CELL - 4);
+        ctxStacker.strokeStyle = 'rgba(255,255,255,0.25)'; ctxStacker.strokeRect((stackerPiece.x + c) * STK_CELL + 2.5, (stackerPiece.y + r) * STK_CELL + 2.5, STK_CELL - 5, STK_CELL - 5);
       }
     }));
   }
@@ -2306,7 +2306,7 @@ function stkValid(dx, dy, m) {
   return m.every((row, r) => row.every((v, c) => {
     if (!v) return true;
     const nx = stackerPiece.x + c + dx, ny = stackerPiece.y + r + dy;
-    return nx >= 0 && nx < S_COLS && ny >= 0 && ny < S_ROWS && !stackerGrid[ny][nx];
+    return nx >= 0 && nx < STK_COLS && ny >= 0 && ny < STK_ROWS && !stackerGrid[ny][nx];
   }));
 }
 function stkLock() {
@@ -2315,9 +2315,9 @@ function stkLock() {
   }));
 }
 function stkClearLines() {
-  for (let r = S_ROWS - 1; r >= 0; r--) {
+  for (let r = STK_ROWS - 1; r >= 0; r--) {
     if (stackerGrid[r].every(v => v !== null)) {
-      stackerGrid.splice(r, 1); stackerGrid.unshift(Array(S_COLS).fill(null));
+      stackerGrid.splice(r, 1); stackerGrid.unshift(Array(STK_COLS).fill(null));
       stackerLines++; stackerScore += Math.floor(100 * streakMult); soundMatch(); r++;
     }
   }
