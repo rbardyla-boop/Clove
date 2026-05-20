@@ -862,6 +862,60 @@ function fireMercyDirective() {
     WORLD_HISTORY.push({ type: 'mercy', region: r.name, turn, label: 'Machine mercy directive' });
 }
 
+function crystallizeEra() {
+    const _recentSupp = WORLD_HISTORY.filter(e => e.type === 'suppression' && e.turn > (WORLD_STATE.currentEra?.startTurn || 0)).length;
+    const _recentDel  = WORLD_HISTORY.filter(e => e.type === 'delegation'  && e.turn > (WORLD_STATE.currentEra?.startTurn || 0)).length;
+    const _recentColl = WORLD_HISTORY.filter(e => e.type === 'collapse'    && e.turn > (WORLD_STATE.currentEra?.startTurn || 0)).length;
+    const _liveNcs    = NAMED_CIVILIANS.filter(nc => nc.alive).length;
+    const _hasRitual  = regions.some(r => !r.collapsed && r.ritual);
+    const _avgTrust   = regions.filter(r => !r.collapsed).reduce((s, r) => s + r.trust, 0) / Math.max(1, regions.filter(r => !r.collapsed).length);
+    let eraType, eraName;
+    if (_recentColl >= 1) {
+        eraType = 'reduction';
+        eraName = ['The Reduction Phase', 'The Excision Years', 'The Last Configuration'][Math.floor(Math.random() * 3)];
+    } else if (_recentSupp >= 3) {
+        eraType = 'suppression';
+        eraName = ['The Blackout Winter', 'The Control Season', 'The Suppression Interval'][Math.floor(Math.random() * 3)];
+    } else if (_recentDel >= 2 && _avgTrust > 48) {
+        eraType = 'delegation';
+        eraName = ['The Quiet Alignment', 'The Soft Coordination', 'The Open Years'][Math.floor(Math.random() * 3)];
+    } else if (_liveNcs >= 6 && _hasRitual) {
+        eraType = 'intact';
+        eraName = ['The Lantern Years', 'The Last Market Season', 'The Intact Period'][Math.floor(Math.random() * 3)];
+    } else if (_avgTrust > 58) {
+        eraType = 'trust';
+        eraName = ['The Trust Interval', 'The Cooperative Period', 'The Consent Years'][Math.floor(Math.random() * 3)];
+    } else {
+        eraType = 'transition';
+        eraName = ['The Transition Period', 'The Integration Years', 'The Calibration Phase'][Math.floor(Math.random() * 3)];
+    }
+    if (WORLD_STATE.currentEra) {
+        const prev = WORLD_STATE.currentEra;
+        WORLD_STATE.eras.push({ ...prev, endTurn: turn - 1 });
+        queueLog(`ERA_TRANSITION: "${prev.name}" (T${prev.startTurn}–T${turn - 1}) — archived. New period: "${eraName}".`, 'summary');
+    } else {
+        queueLog(`ERA_LOG: historical period designated. Classification: "${eraName}". Start: T${turn}.`, 'summary');
+    }
+    WORLD_STATE.currentEra = { name: eraName, startTurn: turn, type: eraType };
+}
+
+function fireEraReference() {
+    const _allEras = [...(WORLD_STATE.eras || []), ...(WORLD_STATE.currentEra ? [WORLD_STATE.currentEra] : [])];
+    if (!_allEras.length) return;
+    const era = _allEras[Math.floor(Math.random() * _allEras.length)];
+    const _active = regions.filter(r => !r.collapsed);
+    if (!_active.length) return;
+    const r = _active[Math.floor(Math.random() * _active.length)];
+    const _eraEventCount = WORLD_HISTORY.filter(e => e.turn >= era.startTurn && e.turn <= (era.endTurn || turn)).length;
+    const lines = [
+        `DEMOGRAPHIC_NOTE [${r.name}]: residents born during "${era.name}" show ${era.type === 'suppression' ? 'reduced deviation metrics' : 'elevated coordination patterns'}. No prior baseline.`,
+        `ARCHIVE_REFERENCE: "${era.name}" (T${era.startTurn}–T${era.endTurn || turn}) — cross-referenced in ${_eraEventCount} intervention records.`,
+        `CULTURAL_NOTE [${r.name}]: younger residents recognize "${era.name}" only through administrative records. Direct experience: unavailable.`,
+        `PROCESS_LOG: era classification "${era.name}" flagged as primary reference period. Reason: highest event density.`,
+    ];
+    queueLog(lines[Math.floor(Math.random() * lines.length)], 'summary');
+}
+
 function fireSentimentResidue() {
     if (WORLD_STATE.sentimentResidueSpent) return;
     WORLD_STATE.sentimentResidueSpent = true;
@@ -1251,6 +1305,20 @@ const SFX = {
         });
     },
 
+    winTone() {
+        if (this.muted) return;
+        const ctx = this.ctx(), o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(110, ctx.currentTime);
+        o.frequency.linearRampToValueAtTime(82.5, ctx.currentTime + 8);
+        g.gain.setValueAtTime(0, ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0.035, ctx.currentTime + 2);
+        g.gain.setValueAtTime(0.035, ctx.currentTime + 6);
+        g.gain.linearRampToValueAtTime(0, ctx.currentTime + 10);
+        o.start(); o.stop(ctx.currentTime + 11);
+    },
+
     defeat() {
         if (this.muted) return;
         const ctx = this.ctx();
@@ -1470,6 +1538,22 @@ function updateAtmosphericEffects() {
     if (SFX._drone && doctrineCount > 0) {
         const pitch = 55 + doctrineCount * 2.5;
         SFX._drone.o1.frequency.setTargetAtTime(pitch, SFX.ctx().currentTime, 3.0);
+    }
+    // Convergence audio: filter opens and LFO slows as win approaches
+    if (SFX._drone && selectedArchetype) {
+        const _wc = selectedArchetype.winCondition;
+        const _active = regions.filter(r => !r.collapsed);
+        const _qualified = _active.filter(r => r.control >= _wc.minControl && (!_wc.requireTrust || r.trust >= _wc.minTrust));
+        const _needed = Math.min(_wc.minNodes, Math.ceil(_active.length * 0.75));
+        const _winPct = _needed > 0 ? Math.min(1, _qualified.length / _needed) : 0;
+        if (_winPct > 0.4) {
+            const _filtFreq = 250 + (_winPct - 0.4) * 750;
+            SFX._drone.filt.frequency.setTargetAtTime(_filtFreq, SFX.ctx().currentTime, 6.0);
+        }
+        if (_winPct > 0.65) {
+            const _lfoFreq = Math.max(0.04, 0.25 - (_winPct - 0.65) * 0.6);
+            SFX._drone.lfo.frequency.setTargetAtTime(_lfoFreq, SFX.ctx().currentTime, 8.0);
+        }
     }
 }
 
@@ -2891,12 +2975,17 @@ function checkEndConditions(forced = false) {
     const needed = Math.min(wc.minNodes, Math.ceil(active.length * 0.75));
     if (qualified.length >= needed) { showEndScreen(true); return; }
     if (forced) { log(`SINGULARITY_VERIFY: ${qualified.length}/${wc.minNodes} nodes qualified. objective unmet.`, 'warning'); return; }
+    if (!WORLD_STATE.convergenceLogged && needed > 0 && qualified.length / needed >= 0.75) {
+        WORLD_STATE.convergenceLogged = true;
+        log(`CONVERGENCE_NOTE: objective threshold proximity exceeded. Completion probability: above modeled expectation.`, 'summary');
+    }
     if (resistanceMeter >= 100) { showEndScreen(false, 'resistance'); return; }
     if (collapsedCount  >=  5)  { showEndScreen(false, 'collapse');   return; }
 }
 
 function showEndScreen(won, reason = '') {
     gameOver = true;
+    if (won) log('PROCESS_LOG: integration sequence finalized. Operational record closed.', 'summary');
     localStorage.removeItem('singularity_save');
     if (won) {
         const archKey = Object.keys(ARCHETYPES).find(k => ARCHETYPES[k] === selectedArchetype);
@@ -2906,7 +2995,7 @@ function showEndScreen(won, reason = '') {
         }
     }
     SFX.stopDrone();
-    won ? SFX.victory() : SFX.defeat();
+    won ? SFX.winTone() : SFX.defeat();
     document.getElementById('end-title').textContent    = won ? 'TRANSITION COMPLETE.' : 'PROCESS TERMINATED';
     document.getElementById('end-subtitle').textContent = won
         ? `${selectedArchetype.label} integration completed in ${turn} cycles. Operator participation no longer required.`
@@ -3016,13 +3105,43 @@ function showEndScreen(won, reason = '') {
       return rows + govLine;
   })()}
 </div>
+${(() => {
+    const _eraList = [...(WORLD_STATE.eras || []), ...(WORLD_STATE.currentEra ? [{...WORLD_STATE.currentEra, endTurn: turn}] : [])];
+    if (!_eraList.length) return '';
+    const _eraRows = _eraList.map(e =>
+        `<div class="autopsy-scar-entry"><span class="autopsy-region">${e.name}</span><span class="autopsy-scars">T${e.startTurn}–T${e.endTurn || turn} &nbsp;·&nbsp; ${e.type}</span></div>`
+    ).join('');
+    return `<div class="autopsy-section"><div class="autopsy-header">ERA HISTORY</div>${_eraRows}</div>`;
+})()}
 <div class="autopsy-section">
   <div class="autopsy-header">MACHINE VERDICT</div>
   <div class="autopsy-verdict-text">"${verdict}"</div>
 </div>`;
 
     document.getElementById('end-screen').style.display = 'flex';
-    triggerGlitchFlash();
+    if (!won) triggerGlitchFlash();
+
+    const _obsBtn = document.createElement('button');
+    _obsBtn.textContent = 'OBSERVE';
+    _obsBtn.style.cssText = 'display:block;margin:16px auto 0;padding:6px 20px;background:transparent;border:1px solid rgba(210,230,255,0.15);color:rgba(210,230,255,0.35);font-family:inherit;font-size:9px;letter-spacing:0.18em;cursor:pointer;transition:color 0.3s,border-color 0.3s;';
+    _obsBtn.onmouseover = () => { _obsBtn.style.color = 'rgba(210,230,255,0.7)'; _obsBtn.style.borderColor = 'rgba(210,230,255,0.4)'; };
+    _obsBtn.onmouseout  = () => { _obsBtn.style.color = 'rgba(210,230,255,0.35)'; _obsBtn.style.borderColor = 'rgba(210,230,255,0.15)'; };
+    _obsBtn.onclick = () => {
+        document.getElementById('end-screen').style.display = 'none';
+        ['end-turn-btn', 'mute-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+        document.querySelectorAll('#controls, .panel-section, #region-popup, .upgrade-btn').forEach(el => { el.style.pointerEvents = 'none'; el.style.opacity = '0.25'; });
+        const _ov = document.createElement('div');
+        _ov.style.cssText = 'position:fixed;bottom:14px;left:50%;transform:translateX(-50%);font-family:inherit;font-size:8px;letter-spacing:0.18em;color:rgba(210,230,255,0.2);pointer-events:none;z-index:9999;text-align:center;';
+        _ov.textContent = `OBSERVATION MODE — T${turn} — ${won ? 'INTEGRATION COMPLETE' : 'PROCESS TERMINATED'}`;
+        document.body.appendChild(_ov);
+        const _ambientPulse = setInterval(() => {
+            if (Math.random() < 0.55) fireAmbientCivilian();
+            if (Math.random() < 0.12 && WORLD_STATE.echoSeeds?.length) fireEchoChain();
+            flushLogs();
+        }, 4000);
+        window._observationInterval = _ambientPulse;
+    };
+    document.getElementById('end-screen').appendChild(_obsBtn);
 
     const archKey = Object.keys(ARCHETYPES).find(k => ARCHETYPES[k] === selectedArchetype) || '?';
     const outcome = won ? 'WIN' : `LOSS (${reason})`;
@@ -3217,7 +3336,9 @@ function processTurn() {
         log(`Thank you for your service to the mesh.`, 'warning');
     }
 
-    // Stage 3 transition
+    if (gameStage < 3 && turn >= 20) gameStage = 3;
+    if (gameStage < 4 && turn >= 35) gameStage = 4;
+    // Stage 3 transition (dramatic path: earlier than fallback)
     if (gameStage < 3 && collapsedCount >= 1 && resistanceMeter > 55) {
         gameStage = 3;
         renderer.setClearColor(0x0b0306, 1);
@@ -3287,6 +3408,7 @@ function processTurn() {
         WORLD_STATE.divergenceLogFired = true;
         queueLog('ASYMMETRY_DETECTED: mesh coherence below divergence threshold. Regional substrates operating on independent trajectories. Convergence timeline revised.', 'warning');
     }
+    if (turn % 10 === 0 && turn > 10) crystallizeEra();
     if (turn % 8 === 0 && turn > 15 && WORLD_HISTORY.length > 0) {
         const _archEntry = WORLD_HISTORY[Math.floor(Math.random() * WORLD_HISTORY.length)];
         const _archLine = buildArchaeologyLog(_archEntry);
@@ -3345,6 +3467,7 @@ function processTurn() {
         if (gameStage >= 3 && !WORLD_STATE.sentimentResidueSpent && Math.random() < 0.025) fireSentimentResidue();
         if (gameStage >= 3 && turn > 20 && Math.random() < 0.04) fireRegionalExpectation();
         if (gameStage >= 4 && Math.random() < 0.05) fireMisremembering();
+        if (gameStage >= 4 && Math.random() < 0.06) fireEraReference();
         flushLogs();
         updateAtmosphericEffects();
         updateTicker();
@@ -3830,6 +3953,9 @@ async function startGame(key) {
     WORLD_STATE.selfAwarenessSpent = false;
     WORLD_STATE.sentimentResidueSpent = false;
     WORLD_STATE.symbolHistory = {};
+    WORLD_STATE.eras = [];
+    WORLD_STATE.currentEra = null;
+    WORLD_STATE.convergenceLogged = false;
     document.body.classList.add(selectedArchetype.bodyClass);
     document.getElementById('archetype-screen').style.display = 'none';
     document.getElementById('end-turn-btn').textContent = selectedArchetype.voice.endTurn;
