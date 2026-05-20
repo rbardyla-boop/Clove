@@ -456,8 +456,9 @@ html, body {
 }
 
 /* ─── Machine Memory Archive ─────────────────────────────────────────────────── */
+/* Sits ABOVE the event-log box (log = bottom:44 + max-height:130 + padding ≈ 200px). */
 #memory-archive {
-    position: fixed; bottom: 130px; left: 12px; width: 270px;
+    position: fixed; bottom: 260px; left: 16px; width: 270px;
     background: var(--surface); border: 1px solid rgba(239,68,68,0.2);
     border-radius: 2px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; z-index: 80;
 }
