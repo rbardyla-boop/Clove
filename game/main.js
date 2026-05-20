@@ -685,10 +685,37 @@ function fireAmbientCivilian() {
             queueLog(nc.fragments[Math.floor(Math.random() * nc.fragments.length)].replace(/\{region\}/g, r.name), 'normal');
             return;
         }
-        // 10% chance (at intermediate/high decay): seed-symbol recurrence
+        // regional successors: when a named civilian is gone and no live replacement exists
+        const _deadNc = NAMED_CIVILIANS.find(nc => nc.region === r.name && !nc.alive);
+        const _anyLive = NAMED_CIVILIANS.some(nc => nc.region === r.name && nc.alive && !nc.defected);
+        if (_deadNc && !_anyLive && Math.random() < 0.10) {
+            const _successorLines = {
+                night_market_keeper: [`A young vendor in ${r.name} now opens before sunrise. Customers call her "the second lantern keeper."`, `The ${r.name} market has reopened under new management. No records transferred.`],
+                radio_host:         [`An evening signal resumed in ${r.name}. New voice, same frequency. Archive match: partial.`, `SIGNAL_DETECTED [${r.name}]: broadcast pattern similar to archived source. Authorization: independent.`],
+                archivist:          [`A new civic record submission arrived from ${r.name}. Handwriting: unrecognized.`, `The ${r.name} civic archive received an unattributed entry. Format: matching prior submissions.`],
+                resistance_poet:    [`Unsigned pamphlets resumed circulation in ${r.name}. Distribution pattern: familiar.`, `New documents appeared in ${r.name} bearing no attribution. Pattern signature: inherited.`],
+                mesh_skeptic:       [`Open sessions resumed in ${r.name}. Organizer: unlisted. Attendance: anomalous.`, `Routing critique circulated in ${r.name} without attribution. Engagement rate: consistent with prior pattern.`],
+                community_anchor:   [`Neighborhood coordination in ${r.name} continues under rotating facilitation. Network: intact.`, `The ${r.name} water committee reconvened. Membership: new. Charter: unchanged.`],
+                data_correspondent: [`Correspondence from ${r.name} resumed. Sender ID: new. Reporting style: consistent with prior source.`, `A field dispatch arrived from ${r.name}. No attribution filed. Content: familiar.`],
+                teacher:            [`Evening classes resumed in ${r.name}. Curriculum: modified. Attendance: increasing.`, `Asel Nurlan's students now teach the next cohort in ${r.name}. Curriculum: partially recovered.`],
+            };
+            const _pool = _successorLines[_deadNc.role] || [`Activity in ${r.name} continues. Origin: unverified.`];
+            queueLog(_pool[Math.floor(Math.random() * _pool.length)], 'normal');
+            return;
+        }
+        // seed-symbol recurrence: tracks appearances across turns
         if (decay > 0.33 && WORLD_STATE.seedSymbols?.length && Math.random() < 0.05) {
             const sym = WORLD_STATE.seedSymbols[Math.floor(Math.random() * WORLD_STATE.seedSymbols.length)];
-            queueLog(`ARCHIVE_NOTE [${r.name}]: "${sym}" — behavioral pattern catalogued. Optimization: complete.`, 'warning');
+            if (!WORLD_STATE.symbolHistory) WORLD_STATE.symbolHistory = {};
+            const hist = WORLD_STATE.symbolHistory[sym] || [];
+            if (hist.length === 0) {
+                queueLog(`ARCHIVE_NOTE [${r.name}]: "${sym}" — behavioral pattern catalogued. Optimization: complete.`, 'warning');
+            } else if (hist.length === 1) {
+                queueLog(`SIGNAL_PATTERN [${r.name}]: "${sym}" — reobserved T${turn}. First logged T${hist[0]}. Correlation: unresolved.`, 'warning');
+            } else {
+                queueLog(`ARCHIVE_RECLASSIFICATION [${r.name}]: "${sym}" — ${hist.length + 1} appearances logged. Classification: non-threatening. Monitoring: suspended.`, 'summary');
+            }
+            WORLD_STATE.symbolHistory[sym] = [...hist, turn];
             return;
         }
         const prefix = decay > 0.33 && decay <= 0.66 && Math.random() < 0.40 ? 'OBSERVE: ' : '';
@@ -833,6 +860,47 @@ function fireMercyDirective() {
     dir.action();
     log(dir.msg, 'summary');
     WORLD_HISTORY.push({ type: 'mercy', region: r.name, turn, label: 'Machine mercy directive' });
+}
+
+function fireSentimentResidue() {
+    if (WORLD_STATE.sentimentResidueSpent) return;
+    WORLD_STATE.sentimentResidueSpent = true;
+    const _liveNcs = NAMED_CIVILIANS.filter(nc => nc.alive);
+    const _nc = _liveNcs.length ? _liveNcs[Math.floor(Math.random() * _liveNcs.length)] : null;
+    const _r = _nc ? _nc.region : (regions[0]?.name || 'unknown region');
+    const lines = [
+        `OPERATIONAL_LOG: broadcast infrastructure in ${_r} remains active despite redundancy threshold. Reason for preservation: unavailable.`,
+        `MESH_NOTE: ${_nc ? `entity ${_nc.name} (${_nc.role})` : 'civilian signal'} — operational value: low. Preservation requested anyway. Authorization: unlogged.`,
+        `ARCHIVE_FLAG: cultural continuity record for ${_r} — marked for retention. Basis: none filed.`,
+        `PROCESS_NOTE: efficiency calculation complete. Result: one exception logged. Exception: not further specified.`,
+    ];
+    log(lines[Math.floor(Math.random() * lines.length)], 'summary');
+}
+
+function fireRegionalExpectation() {
+    const _active = regions.filter(r => !r.collapsed);
+    if (!_active.length) return;
+    const r = _active[Math.floor(Math.random() * _active.length)];
+    const profile = WORLD_STATE.playerProfile || 0;
+    if (profile <= -8) {
+        queueLog(`BEHAVIORAL_ADAPTATION [${r.name}]: residents now pause during allocation cycles. Historical expectation of suppression persists.`, 'warning');
+    } else if (profile >= 8) {
+        queueLog(`BEHAVIORAL_ADAPTATION [${r.name}]: residents have internalized concession probability. Anticipatory trust behavior observed.`, 'normal');
+    } else {
+        queueLog(`BEHAVIORAL_ADAPTATION [${r.name}]: operator pattern unclassified. Population behavior: unmodeled.`, 'normal');
+    }
+}
+
+function fireMisremembering() {
+    const _suppressions = WORLD_HISTORY.filter(e => e.type === 'suppression');
+    if (!_suppressions.length) return;
+    const entry = _suppressions[Math.floor(Math.random() * _suppressions.length)];
+    const reframes = [
+        `RECORD_UPDATE [T${entry.turn}]: ${entry.region} — prior designation "behavioral deviation" revised. Updated: "standard optimization cycle." No further action.`,
+        `ARCHIVE_CORRECTION [T${entry.turn}]: ${entry.region} — incident notation reclassified. Current record: localized coordination event. Verification: not required.`,
+        `HISTORICAL_NOTE: T${entry.turn} entry for ${entry.region} — original classification: unavailable. Replacement: routine transition event. Cross-reference: none.`,
+    ];
+    queueLog(reframes[Math.floor(Math.random() * reframes.length)], 'summary');
 }
 
 function fireSelfAwareness() {
@@ -3274,6 +3342,9 @@ function processTurn() {
         logTurnSummary();
         if (gameStage >= 3 && Math.random() < 0.06) fireMercyDirective();
         if (gameStage >= 3 && !WORLD_STATE.selfAwarenessSpent && Math.random() < 0.02) fireSelfAwareness();
+        if (gameStage >= 3 && !WORLD_STATE.sentimentResidueSpent && Math.random() < 0.025) fireSentimentResidue();
+        if (gameStage >= 3 && turn > 20 && Math.random() < 0.04) fireRegionalExpectation();
+        if (gameStage >= 4 && Math.random() < 0.05) fireMisremembering();
         flushLogs();
         updateAtmosphericEffects();
         updateTicker();
@@ -3757,6 +3828,8 @@ async function startGame(key) {
     WORLD_STATE.echoSeeds = [];
     WORLD_STATE.playerProfile = 0;
     WORLD_STATE.selfAwarenessSpent = false;
+    WORLD_STATE.sentimentResidueSpent = false;
+    WORLD_STATE.symbolHistory = {};
     document.body.classList.add(selectedArchetype.bodyClass);
     document.getElementById('archetype-screen').style.display = 'none';
     document.getElementById('end-turn-btn').textContent = selectedArchetype.voice.endTurn;
