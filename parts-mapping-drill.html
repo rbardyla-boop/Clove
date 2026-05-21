@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#08080f">
+  <meta name="theme-color" content="#060d1a">
 <meta property="og:title" content="PARTS MAPPING • OPERATOR'S DECK">
 <meta property="og:description" content="IFS-inspired drill. Identify the activated part, understand its job, find what it protects, write from Self.">
 <meta property="og:image" content="https://clovelearn.io/ogimage.jpg">
@@ -13,7 +13,7 @@
   <title>PARTS MAPPING • OPERATOR'S DECK</title>
   <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--pur:#9333ea;--pur2:#a855f7;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+:root{--bg:#060d1a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--pur:#9333ea;--pur2:#a855f7;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
 body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
 .app{max-width:480px;margin:0 auto}
 /* NAV */
@@ -107,6 +107,9 @@ input[type=text]{min-height:44px}
 *:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
 textarea:focus-visible,input:focus-visible{outline:2px solid var(--gld);outline-offset:0}
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="app">
@@ -262,7 +265,7 @@ textarea:focus-visible,input:focus-visible{outline:2px solid var(--gld);outline-
     <div class="self-msg" id="sum_message"></div>
   </div>
 
-  <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid var(--gld);border-radius:0 10px 10px 0">
+  <div style="margin:20px 0 10px;padding:14px;background:#060d1a;border-left:3px solid var(--gld);border-radius:0 10px 10px 0">
     <div style="color:var(--gld);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
     <a href="stuck-points-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">STUCK POINTS &#x2192;</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Beliefs locked by trauma? Examine the evidence</span></a>
     <a href="thought-interceptor.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">THOUGHT INTERCEPTOR &#x2192;</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Catch the distortions this part is generating</span></a>
@@ -298,7 +301,7 @@ function charUpdate(el,id){var d=document.getElementById(id);if(d)d.textContent=
 function btn(id,enabled){var b=document.getElementById(id);if(b)b.disabled=!enabled}
 function loadEntries(){try{return JSON.parse(localStorage.getItem('od_partsmap_v1'))||[]}catch(e){return[]}}
 function saveEntries(arr){try{localStorage.setItem('od_partsmap_v1',JSON.stringify(arr.slice(0,200)))}catch(e){}}
-function goBack(){window.location.href='./?tab=more'}
+function goBack(){window.location.href='./deck.html?tab=tools'}
 
 function setProgress(n){document.getElementById('progressFill').style.width=Math.min((n-1)/6*100,100)+'%'}
 
@@ -375,7 +378,10 @@ function printSheet(){
     +'.box{border:1px solid #ddd;border-radius:5px;padding:12px;min-height:60px;white-space:pre-wrap;font-size:11px;line-height:1.65;color:#222}'
     +'.msg-box{border:2px solid #9333ea;border-radius:6px;padding:14px;background:#faf5ff;font-size:12px;color:#5b21b6;line-height:1.7}'
     +'.footer{margin-top:36px;padding-top:12px;border-top:1px solid #eee;font-size:9px;color:#aaa;text-align:center}'
-    +'@media print{body{padding:20px}}</style></head><body>'
+    +'@media print{body{padding:20px}}</style>  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head><body>'
     +'<h1>PARTS MAP</h1>'
     +'<div class="sub">Internal Family Systems \u2014 Parts Mapping Drill</div>'
     +'<div class="meta">'+esc(last.date)+'</div>'
@@ -432,7 +438,7 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 
 <div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from Internal Family Systems (Schwartz, 1995). Not a substitute for professional IFS therapy.</div>
-<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:#111118;border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD &#x2192;</span></a></div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./deck.html?tab=home" style="display:inline-block;background:#111118;border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD &#x2192;</span></a></div>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>

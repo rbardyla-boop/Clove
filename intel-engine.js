@@ -20,7 +20,7 @@
     { key: 'od_mindfulness_full', label: 'MINDFULNESS',        href: 'mindfulness-drill-full.html' },
     { key: 'od_act_v1',           label: 'ACT',                href: 'act-drill.html' },
     { key: 'od_cbt_records',      label: 'CBT',                href: 'cbt-drill.html' },
-    { key: 'od_dm_v1',            label: 'DEAR MAN',           href: 'dear-man.html' },
+    { key: 'od_dm_v1',            label: 'DEAR MAN',           href: 'dear-man-drill.html' },
     { key: 'od_chain_analysis',   label: 'CHAIN ANALYSIS',     href: 'chain-analysis-drill.html' },
     { key: 'od_rsd',              label: 'RSD SHIELD',         href: 'rsd-shield-drill.html' },
     { key: 'od_values_records',   label: 'VALUES',             href: 'values-drill.html' },

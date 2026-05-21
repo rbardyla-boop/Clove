@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CloveLearn · Your Journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ---------- Tokens (matched to index.html) ---------- */
+    :root {
+      --bg: #060d1a;
+      --bg-card: rgba(10, 18, 36, 0.78);
+      --bg-card-strong: rgba(12, 22, 42, 0.92);
+      --ink: #e6edff;
+      --ink-dim: rgba(210, 230, 255, 0.62);
+      --ink-faint: rgba(210, 230, 255, 0.32);
+      --line: rgba(96, 165, 250, 0.14);
+      --line-strong: rgba(96, 165, 250, 0.34);
+      --teal: #2ec4b6;
+      --blue: #60a5fa;
+      --grad: linear-gradient(95deg, #60a5fa 0%, #2ec4b6 100%);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background: var(--bg);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Animated background grid (lifted from index.html) */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(46, 196, 182, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(46, 196, 182, 0.045) 1px, transparent 1px);
+      background-size: 48px 48px;
+      animation: grid-drift 22s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Soft radial glow behind the card */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 20%; left: 50%;
+      width: 720px; height: 720px;
+      transform: translateX(-50%);
+      background: radial-gradient(circle at center, rgba(46,196,182,0.10) 0%, rgba(96,165,250,0.06) 35%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(20px);
+    }
+    @keyframes grid-drift {
+      from { background-position: 0 0; }
+      to   { background-position: 48px 48px; }
+    }
+
+    /* ---------- Layout ---------- */
+    .app {
+      position: relative; z-index: 1;
+      min-height: 100dvh;
+      display: flex; flex-direction: column;
+      padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* ---------- Top bar / progress ---------- */
+    .topbar {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 22px;
+      min-height: 32px;
+    }
+    .back-btn {
+      width: 32px; height: 32px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      color: var(--ink-dim);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .back-btn:hover { border-color: var(--line-strong); color: var(--ink); }
+    .back-btn:disabled { opacity: 0; pointer-events: none; }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    .progress-wrap { flex: 1; display: flex; align-items: center; gap: 12px; }
+    .progress-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(96, 165, 250, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--grad);
+      border-radius: 999px;
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 0 12px rgba(46,196,182,0.35);
+    }
+    .progress-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      white-space: nowrap;
+    }
+
+    /* ---------- Screen container ---------- */
+    .stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: screenIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .screen.active { display: flex; }
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- Typography ---------- */
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 18px;
+    }
+    h1.title {
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      font-weight: 600;
+      text-wrap: balance;
+      margin-bottom: 12px;
+    }
+    h1.title.big {
+      font-size: 38px;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+    .lede {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--ink-dim);
+      text-wrap: pretty;
+      margin-bottom: 28px;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--ink-faint);
+      letter-spacing: 0.04em;
+    }
+
+    .body-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .center-wrap {
+      flex: 1;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      align-items: center;
+    }
+    .center-wrap .title, .center-wrap .lede { text-align: center; }
+    .center-wrap .lede { max-width: 380px; }
+
+    /* ---------- Glass card ---------- */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+    }
+
+    /* ---------- Option lists ---------- */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      font-size: 15px;
+      color: var(--ink);
+    }
+    .option:hover { border-color: var(--line-strong); background: rgba(96,165,250,0.05); }
+    .option.selected {
+      border-color: var(--teal);
+      background: rgba(46, 196, 182, 0.08);
+      box-shadow: 0 0 0 1px rgba(46,196,182,0.4) inset;
+    }
+    .option-check {
+      width: 20px; height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid var(--line-strong);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .option.radio .option-check { border-radius: 999px; }
+    .option.selected .option-check {
+      background: var(--teal);
+      border-color: var(--teal);
+    }
+    .option.selected .option-check::after {
+      content: '';
+      width: 10px; height: 10px;
+      background: var(--bg);
+      mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='black' d='M6.5 11.5l-3-3 1-1 2 2 5-5 1 1z'/></svg>") center/contain no-repeat;
+      -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='black' d='M6.5 11.5l-3-3 1-1 2 2 5-5 1 1z'/></svg>") center/contain no-repeat;
+    }
+    .option.radio.selected .option-check::after {
+      mask: none; -webkit-mask: none;
+      width: 8px; height: 8px;
+      background: var(--bg);
+      border-radius: 999px;
+    }
+    .option-label { flex: 1; }
+    .option-sub { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+
+    /* Chip grid (for emojis / compact picks) */
+    .chip-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    .chip {
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.015);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 24px;
+      gap: 4px;
+    }
+    .chip .chip-label {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .chip:hover { border-color: var(--line-strong); }
+    .chip.selected {
+      border-color: var(--teal);
+      background: rgba(46,196,182,0.08);
+      transform: scale(1.04);
+    }
+    .chip.selected .chip-label { color: var(--teal); }
+
+    /* ---------- Slider ---------- */
+    .slider-wrap {
+      padding: 24px;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+    .slider-value {
+      display: flex; align-items: baseline; justify-content: center;
+      gap: 8px; margin-bottom: 20px;
+    }
+    .slider-value .num {
+      font-size: 56px; font-weight: 700; letter-spacing: -0.04em;
+      background: var(--grad);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-variant-numeric: tabular-nums;
+    }
+    .slider-value .unit {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--ink-dim);
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(to right, var(--teal) var(--p,50%), rgba(96,165,250,0.18) var(--p,50%));
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      background: #fff;
+      border: 3px solid var(--teal);
+      cursor: grab;
+      box-shadow: 0 0 14px rgba(46,196,182,0.6);
+      transition: transform 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+    input[type="range"]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      border-radius: 999px;
+      background: #fff;
+      border: 3px solid var(--teal);
+      cursor: grab;
+      box-shadow: 0 0 14px rgba(46,196,182,0.6);
+    }
+    .slider-axis {
+      display: flex; justify-content: space-between;
+      margin-top: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-faint);
+      letter-spacing: 0.1em;
+    }
+
+    /* ---------- Buttons ---------- */
+    .cta-row {
+      margin-top: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+      padding-bottom: 4px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 10px;
+      padding: 17px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      border-radius: 14px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary {
+      background: var(--grad);
+      color: var(--bg);
+      box-shadow: 0 12px 36px rgba(46,196,182,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 16px 44px rgba(46,196,182,0.35); }
+    .btn-primary:disabled {
+      opacity: 0.35; cursor: not-allowed;
+      transform: none; box-shadow: none;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--ink-dim);
+      border: 1px solid var(--line);
+    }
+    .btn-secondary:hover { color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost {
+      background: none; color: var(--ink-faint);
+      padding: 10px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      width: auto;
+      align-self: center;
+    }
+    .btn-ghost:hover { color: var(--ink-dim); }
+
+    /* ---------- Insight cards (mirror-back screens) ---------- */
+    .insight {
+      padding: 28px 24px;
+      background: linear-gradient(180deg, rgba(46,196,182,0.06) 0%, rgba(96,165,250,0.04) 100%);
+      border: 1px solid rgba(46,196,182,0.22);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .insight::before {
+      content: '';
+      position: absolute; top: -1px; left: -1px; right: -1px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(46,196,182,0.6), transparent);
+    }
+    .insight .quote-mark {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: var(--teal);
+      margin-bottom: 12px;
+    }
+    .insight .insight-text {
+      font-size: 18px;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      text-wrap: pretty;
+    }
+    .insight .insight-text em {
+      font-style: normal;
+      color: var(--teal);
+      font-weight: 500;
+    }
+    .insight-stats {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .stat {
+      padding: 16px;
+      background: rgba(6,14,30,0.6);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .stat .stat-num {
+      font-size: 28px; font-weight: 700;
+      background: var(--grad);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat .stat-label {
+      font-size: 11px; color: var(--ink-faint);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ---------- Breathing circle ---------- */
+    .breath-stage {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 36px;
+    }
+    .breath-orb {
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 4s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    }
+    .breath-orb::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(46,196,182,0.35) 0%, rgba(96,165,250,0.15) 50%, transparent 80%);
+      filter: blur(8px);
+    }
+    .breath-orb::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid rgba(46,196,182,0.55);
+      box-shadow: 0 0 60px rgba(46,196,182,0.35), inset 0 0 30px rgba(46,196,182,0.15);
+    }
+    .breath-phase {
+      position: relative; z-index: 1;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+    }
+    .breath-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+
+    /* ---------- Plan reveal ---------- */
+    .plan-week {
+      padding: 18px;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .plan-week + .plan-week { margin-top: 10px; }
+    .plan-week .week-num {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(46,196,182,0.08);
+      border: 1px solid rgba(46,196,182,0.22);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--teal);
+    }
+    .plan-week .week-title {
+      font-size: 14px; font-weight: 500; color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .plan-week .week-sub {
+      font-size: 11px; color: var(--ink-faint);
+      letter-spacing: 0.02em;
+    }
+    .plan-week .week-min {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-faint);
+      letter-spacing: 0.08em;
+    }
+
+    /* ---------- Loading dots / build sequence ---------- */
+    .build-log {
+      list-style: none;
+      display: flex; flex-direction: column;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+    .build-log li {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--ink-faint);
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: all 0.5s ease;
+    }
+    .build-log li.done {
+      opacity: 1; transform: translateX(0);
+      color: var(--ink-dim);
+    }
+    .build-log li.active {
+      opacity: 1; transform: translateX(0);
+      color: var(--teal);
+    }
+    .build-log .dot {
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--line-strong);
+      flex-shrink: 0;
+    }
+    .build-log li.done .dot { background: var(--teal); }
+    .build-log li.active .dot {
+      background: var(--teal);
+      animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(46,196,182,0.6); }
+      50% { box-shadow: 0 0 0 6px rgba(46,196,182,0); }
+    }
+
+    /* ---------- Text input ---------- */
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1.5;
+      resize: vertical;
+      transition: all 0.2s ease;
+    }
+    textarea { min-height: 110px; }
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--teal);
+      background: rgba(46,196,182,0.04);
+    }
+    textarea::placeholder, input::placeholder { color: var(--ink-faint); }
+
+    /* ---------- Summary dashboard ---------- */
+    .summary-hero {
+      padding: 32px 24px;
+      background: linear-gradient(180deg, rgba(46,196,182,0.08), rgba(96,165,250,0.04));
+      border: 1px solid rgba(46,196,182,0.25);
+      border-radius: 22px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .summary-hero .num-big {
+      font-size: 72px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      background: var(--grad);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .summary-hero .num-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+    }
+    .summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .summary-cell {
+      padding: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .summary-cell .cell-label {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.14em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .summary-cell .cell-value {
+      font-size: 14px;
+      color: var(--ink);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+    .summary-cell.span2 { grid-column: span 2; }
+
+    .tools-row {
+      display: flex; flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .tool-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(96,165,250,0.08);
+      border: 1px solid rgba(96,165,250,0.2);
+      color: var(--blue);
+    }
+
+    /* ---------- Confetti ---------- */
+    .confetti-host {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 8px; height: 8px;
+      background: var(--teal);
+      animation: fall 2.6s ease-in forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ---------- Misc ---------- */
+    .small-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--ink-faint);
+      margin-top: 14px;
+    }
+    .small-row svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 18px 0;
+    }
+
+    .glyph {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: rgba(46,196,182,0.08);
+      border: 1px solid rgba(46,196,182,0.25);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 22px;
+    }
+    .glyph svg { width: 26px; height: 26px; color: var(--teal); }
+    .center-wrap .glyph { margin: 0 0 22px; }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(46,196,182,0.08);
+      border: 1px solid rgba(46,196,182,0.22);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 16px;
+      align-self: flex-start;
+    }
+    .pill .pill-dot { width: 5px; height: 5px; border-radius: 999px; background: var(--teal); }
+    .center-wrap .pill { align-self: center; }
+
+    /* ---------- Mobile tweaks ---------- */
+    @media (max-width: 420px) {
+      h1.title { font-size: 26px; }
+      h1.title.big { font-size: 32px; }
+      .chip-grid { grid-template-columns: repeat(4, 1fr); }
+      .breath-orb { width: 180px; height: 180px; }
+      .summary-hero .num-big { font-size: 58px; }
+    }
+
+    /* Resume banner */
+    .resume-banner {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 16px;
+      background: var(--bg-card-strong);
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      z-index: 50;
+      animation: slideUp 0.4s ease both;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    .resume-banner button {
+      background: none; border: none; cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--teal);
+      padding: 6px 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Top bar -->
+    <div class="topbar">
+      <button class="back-btn" id="backBtn" aria-label="Go back" disabled>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
+      </button>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-meta" id="progressMeta">01 · 12 MIN</div>
+      </div>
+    </div>
+
+    <!-- Stage -->
+    <div class="stage" id="stage"></div>
+  </div>
+
+  <div class="confetti-host" id="confettiHost"></div>
+
+  <script>
+    // ============================================================
+    //  CloveLearn Onboarding
+    //  Single-file, 30 screens, save/resume, dynamic plan
+    // ============================================================
+
+    const STORAGE_KEY = 'clovelearn_onboarding_v1';
+
+    // ---------------- Answer factory (single source of truth for defaults) ----------------
+    function initialAnswers() {
+      return {
+        challenges: [], otherChallenge: '',
+        goals: [], learningStyle: [],
+        mood: null, energy: null, sleep: null, focus: null, stress: null,
+        dailyMinutes: 15, sessionLen: null, bestTime: null,
+        ageRange: null, avoid: [], avoidOther: '',
+        firstName: '', streak: 7, reminderTime: null,
+        gratitude: '', commitment: null, moodAfter: null,
+      };
+    }
+
+    // ---------------- State ----------------
+    const state = {
+      step: 0,
+      answers: initialAnswers()
+    };
+
+    // ---------------- Persistence ----------------
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+    }
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_) { return null; }
+    }
+    function clearSave() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    }
+
+    // ---------------- Screens definition ----------------
+    // Each screen is a function that returns { el, init?, canAdvance? }
+    // We render lazily on navigation to keep DOM lean and animations fresh.
+
+    const screens = [
+      // ---- 1. Welcome
+      () => screenTemplate({
+        center: true,
+        eyebrow: null,
+        body: `
+          <div class="glyph">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <span class="pill"><span class="pill-dot"></span>CLOVELEARN · ONBOARDING</span>
+          <h1 class="title big">A calm space to build your mind.</h1>
+          <p class="lede">Over the next ten to twelve minutes, we'll learn how you think, where you'd like to grow, and shape a 30-day path that's only yours.</p>
+        `,
+        cta: { label: 'Begin', primary: true },
+      }),
+
+      // ---- 2. What to expect
+      () => screenTemplate({
+        center: true,
+        eyebrow: 'How this works',
+        body: `
+          <h1 class="title">Three quiet rooms.<br/>One personal plan.</h1>
+          <p class="lede">First, we listen. Then, we reflect what we heard back to you. Finally, we build a path you can actually keep — small, daily, kind.</p>
+          <div style="display:flex; gap:8px; margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.16em; color:var(--ink-faint);">
+            <span style="color:var(--teal);">DISCOVER</span><span>·</span>
+            <span>REFLECT</span><span>·</span>
+            <span>COMMIT</span>
+          </div>
+        `,
+        cta: { label: 'I have 12 minutes', primary: true },
+      }),
+
+      // ---- 3. Challenges (multi)
+      () => screenMulti({
+        eyebrow: 'Discover · 01',
+        title: 'What\'s been hardest lately?',
+        lede: 'Pick anything that resonates. There are no wrong answers — and we won\'t judge what you choose.',
+        key: 'challenges',
+        min: 1,
+        options: [
+          { v: 'anxiety',     label: 'Overthinking & anxiety' },
+          { v: 'focus',       label: 'Trouble staying focused' },
+          { v: 'motivation',  label: 'Low motivation or energy' },
+          { v: 'sleep',       label: 'Sleep feels off' },
+          { v: 'overwhelm',   label: 'Emotional overwhelm' },
+          { v: 'lonely',      label: 'Feeling disconnected' },
+          { v: 'stuck',       label: 'Feeling stuck or unsure' },
+        ],
+      }),
+
+      // ---- 4. Daily minutes slider
+      () => screenSlider({
+        eyebrow: 'Discover · 02',
+        title: 'How many minutes a day, honestly?',
+        lede: 'A small habit you actually keep beats a perfect one you don\'t. Be realistic — you can change this later.',
+        key: 'dailyMinutes',
+        min: 5, max: 45, step: 5,
+        unit: 'min / day',
+        labels: ['5', '45'],
+      }),
+
+      // ---- 5. Goals (multi)
+      () => screenMulti({
+        eyebrow: 'Discover · 03',
+        title: 'Where do you want to grow?',
+        lede: 'Choose up to four. We\'ll build your plan around these first.',
+        key: 'goals',
+        min: 1, max: 4,
+        options: [
+          { v: 'calm',        label: 'Feel calmer day-to-day' },
+          { v: 'focus',       label: 'Sharper focus & attention' },
+          { v: 'sleep',       label: 'Better sleep' },
+          { v: 'resilience',  label: 'Bounce back from setbacks' },
+          { v: 'compassion',  label: 'Be kinder to myself' },
+          { v: 'confidence',  label: 'Steadier confidence' },
+          { v: 'connect',     label: 'Connect more deeply' },
+          { v: 'purpose',     label: 'Find more meaning' },
+        ],
+      }),
+
+      // ---- 6. Mood (chip)
+      () => screenChip({
+        eyebrow: 'Discover · 04',
+        title: 'How do you feel right now?',
+        lede: 'Just this moment. We\'ll check in like this often — it\'s how we know what\'s working.',
+        key: 'mood',
+        options: [
+          { v: 1, emoji: '😞', label: 'Heavy' },
+          { v: 2, emoji: '😕', label: 'Low' },
+          { v: 3, emoji: '😐', label: 'Neutral' },
+          { v: 4, emoji: '🙂', label: 'Good' },
+          { v: 5, emoji: '😊', label: 'Bright' },
+        ],
+      }),
+
+      // ---- 7. Energy
+      () => screenChip({
+        eyebrow: 'Discover · 05',
+        title: 'And your energy?',
+        lede: 'Mind and body talk to each other. Energy shapes what kind of session will help today.',
+        key: 'energy',
+        options: [
+          { v: 1, emoji: '🪫', label: 'Drained' },
+          { v: 2, emoji: '😴', label: 'Tired' },
+          { v: 3, emoji: '🌤️', label: 'Steady' },
+          { v: 4, emoji: '⚡', label: 'Strong' },
+          { v: 5, emoji: '🔥', label: 'Charged' },
+        ],
+      }),
+
+      // ---- 8. Sleep quality
+      () => screenChip({
+        eyebrow: 'Discover · 06',
+        title: 'How\'s your sleep been this week?',
+        lede: 'Sleep is one of the strongest signals of mental health. Be honest — it stays with you.',
+        key: 'sleep',
+        options: [
+          { v: 1, emoji: '🌑', label: 'Rough' },
+          { v: 2, emoji: '🌒', label: 'Light' },
+          { v: 3, emoji: '🌓', label: 'Mixed' },
+          { v: 4, emoji: '🌔', label: 'Decent' },
+          { v: 5, emoji: '🌕', label: 'Restful' },
+        ],
+      }),
+
+      // ---- 9. Mirror back #1
+      () => screenInsight({
+        eyebrow: 'A moment to reflect',
+        title: 'Already, I\'m noticing something.',
+        text: () => buildFirstMirror(),
+        stats: () => [
+          { num: state.answers.challenges.length || '1', label: 'focus areas' },
+          { num: state.answers.dailyMinutes + 'm', label: 'daily window' },
+        ],
+        cta: 'Keep going',
+      }),
+
+      // ---- 10. Learning style (multi)
+      () => screenMulti({
+        eyebrow: 'Discover · 07',
+        title: 'How do you learn best?',
+        lede: 'Pick a couple. We\'ll lean into these formats and quietly avoid the ones that drain you.',
+        key: 'learningStyle',
+        min: 1, max: 3,
+        options: [
+          { v: 'audio',     label: 'Audio — voice-led practices' },
+          { v: 'reading',   label: 'Reading — short essays & guides' },
+          { v: 'video',     label: 'Watching — calm video walkthroughs' },
+          { v: 'journal',   label: 'Writing — journaling prompts' },
+          { v: 'interact',  label: 'Doing — interactive exercises' },
+          { v: 'quiz',      label: 'Quizzes — short check-ins' },
+        ],
+      }),
+
+      // ---- 11. Best time of day (radio)
+      () => screenRadio({
+        eyebrow: 'Discover · 08',
+        title: 'When do you want to practice?',
+        lede: 'We\'ll gently remind you — not nag. You can change this anytime.',
+        key: 'bestTime',
+        options: [
+          { v: 'morning', label: 'First thing in the morning', sub: 'Set the tone before the day starts.' },
+          { v: 'midday',  label: 'A midday reset',             sub: 'Cut through the noise of the workday.' },
+          { v: 'evening', label: 'Wind down at night',         sub: 'Help your mind close the day.' },
+          { v: 'flex',    label: 'No fixed time — I\'ll choose', sub: 'Flexible reminders.' },
+        ],
+      }),
+
+      // ---- 12. Session length (radio)
+      () => screenRadio({
+        eyebrow: 'Discover · 09',
+        title: 'Short sessions or longer ones?',
+        lede: 'A single rhythm we\'ll start with. We\'ll adjust as we learn what fits you.',
+        key: 'sessionLen',
+        options: [
+          { v: 'short',  label: '3–5 minutes', sub: 'Pocket-sized. Almost frictionless.' },
+          { v: 'medium', label: '8–12 minutes', sub: 'Deeper, still doable on a busy day.' },
+          { v: 'long',   label: '15–20 minutes', sub: 'A real sit-down practice.' },
+          { v: 'mixed',  label: 'Mixed — surprise me', sub: 'We\'ll vary it by your energy.' },
+        ],
+      }),
+
+      // ---- 13. Focus difficulty
+      () => screenChip({
+        eyebrow: 'Discover · 10',
+        title: 'How hard is it to focus right now?',
+        lede: 'Be honest. Mental fog is a signal, not a flaw.',
+        key: 'focus',
+        options: [
+          { v: 1, emoji: '🌫️', label: 'Foggy' },
+          { v: 2, emoji: '☁️', label: 'Cloudy' },
+          { v: 3, emoji: '🌤️', label: 'Mixed' },
+          { v: 4, emoji: '🌞', label: 'Clear' },
+          { v: 5, emoji: '🔭', label: 'Sharp' },
+        ],
+      }),
+
+      // ---- 14. Stress level
+      () => screenChip({
+        eyebrow: 'Discover · 11',
+        title: 'And your stress, in general?',
+        lede: 'There\'s no right level. We just want a baseline so you can watch it shift.',
+        key: 'stress',
+        options: [
+          { v: 1, emoji: '🌊', label: 'Calm' },
+          { v: 2, emoji: '🍃', label: 'Light' },
+          { v: 3, emoji: '🌪️', label: 'Choppy' },
+          { v: 4, emoji: '⛈️', label: 'Heavy' },
+          { v: 5, emoji: '🔥', label: 'Burning' },
+        ],
+      }),
+
+      // ---- 15. Age range
+      () => screenRadio({
+        eyebrow: 'Discover · 12 (optional)',
+        title: 'Roughly, how old are you?',
+        lede: 'This helps us choose language and examples that land. Skip if you\'d rather not.',
+        key: 'ageRange',
+        optional: true,
+        options: [
+          { v: '<18',    label: 'Under 18' },
+          { v: '18-24',  label: '18 – 24' },
+          { v: '25-34',  label: '25 – 34' },
+          { v: '35-44',  label: '35 – 44' },
+          { v: '45-54',  label: '45 – 54' },
+          { v: '55+',    label: '55 or older' },
+        ],
+      }),
+
+      // ---- 16. Topics to avoid
+      () => screenMulti({
+        eyebrow: 'Discover · 13',
+        title: 'Anything you\'d like us to avoid?',
+        lede: 'We\'ll keep these out of your daily lessons. You can always update this later.',
+        key: 'avoid',
+        min: 0,
+        optional: true,
+        options: [
+          { v: 'trauma',     label: 'Trauma-specific content' },
+          { v: 'griefdeath', label: 'Grief & loss' },
+          { v: 'eating',     label: 'Food & eating' },
+          { v: 'body',       label: 'Body image' },
+          { v: 'religion',   label: 'Religious framing' },
+          { v: 'none',       label: 'Nothing — I\'m open to it all' },
+        ],
+      }),
+
+      // ---- 17. Name (text)
+      () => screenText({
+        eyebrow: 'A small thing',
+        title: 'What should we call you?',
+        lede: 'First name, nickname, or whatever feels right. We\'ll use it once or twice — never to flatter.',
+        key: 'firstName',
+        placeholder: 'Your name',
+        optional: true,
+        maxLen: 32,
+      }),
+
+      // ---- 18. Mirror back #2 — synthesis
+      () => screenInsight({
+        eyebrow: 'Pause · synthesis',
+        title: () => `Here's what I heard${state.answers.firstName ? ', ' + escapeHtml(state.answers.firstName) : ''}.`,
+        text: () => buildSecondMirror(),
+        stats: () => [
+          { num: primaryGoalLabel(), label: 'primary intention' },
+          { num: sessionLenLabel(), label: 'session shape' },
+        ],
+        cta: 'Now — a tiny exercise',
+      }),
+
+      // ---- 19. Breathing exercise
+      () => screenBreathing(),
+
+      // ---- 20. Mood re-check (small win)
+      () => screenChip({
+        eyebrow: 'After the breath',
+        title: 'How are you, now?',
+        lede: 'Even a small shift counts. Notice it without forcing anything.',
+        key: 'moodAfter',
+        options: [
+          { v: 1, emoji: '😞', label: 'Heavy' },
+          { v: 2, emoji: '😕', label: 'Low' },
+          { v: 3, emoji: '😐', label: 'Neutral' },
+          { v: 4, emoji: '🙂', label: 'Good' },
+          { v: 5, emoji: '😊', label: 'Bright' },
+        ],
+      }),
+
+      // ---- 21. Gratitude prompt
+      () => screenText({
+        eyebrow: 'Micro-exercise · gratitude',
+        title: 'Name one small thing from today.',
+        lede: 'Something that went okay. A bite of food, a quiet moment, a message from someone. One sentence is enough.',
+        key: 'gratitude',
+        placeholder: 'One small thing was…',
+        textarea: true,
+        optional: true,
+        maxLen: 200,
+      }),
+
+      // ---- 22. Commitment level (radio)
+      () => screenRadio({
+        eyebrow: 'Commit · 01',
+        title: 'What kind of consistency feels true to you?',
+        lede: 'No wrong answer. Choose the one you can keep on your worst week, not your best.',
+        key: 'commitment',
+        options: [
+          { v: 'gentle',  label: 'Gentle — a few days a week',  sub: 'When life allows. Soft start.' },
+          { v: 'steady',  label: 'Steady — most days',          sub: 'A reliable rhythm.' },
+          { v: 'daily',   label: 'Daily — I want the streak',   sub: 'Show up every day.' },
+        ],
+      }),
+
+      // ---- 23. Streak goal slider
+      () => screenSlider({
+        eyebrow: 'Commit · 02',
+        title: 'Your first streak goal.',
+        lede: 'Not forever — just the first runway. Most people who hit this number keep going naturally.',
+        key: 'streak',
+        min: 3, max: 30, step: 1,
+        unit: 'days in a row',
+        labels: ['3', '30'],
+      }),
+
+      // ---- 24. Reminder time (radio)
+      () => screenRadio({
+        eyebrow: 'Commit · 03',
+        title: 'When should we nudge you?',
+        lede: 'One quiet reminder a day. We\'ll find the right time based on your answers — confirm or change it.',
+        key: 'reminderTime',
+        options: [
+          { v: '07:00', label: '7:00 AM',  sub: 'Before the day picks up speed.' },
+          { v: '09:00', label: '9:00 AM',  sub: 'Mid-morning intentional pause.' },
+          { v: '12:30', label: '12:30 PM', sub: 'A midday reset.' },
+          { v: '18:00', label: '6:00 PM',  sub: 'On the way home from the day.' },
+          { v: '21:30', label: '9:30 PM',  sub: 'Wind down before sleep.' },
+          { v: 'none',  label: 'No reminders for now', sub: 'I\'ll open the app on my own.' },
+        ],
+      }),
+
+      // ---- 25. Privacy reassurance
+      () => screenTemplate({
+        center: true,
+        eyebrow: 'A note on privacy',
+        body: `
+          <div class="glyph">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <h1 class="title">What you shared stays with you.</h1>
+          <p class="lede">Your answers live on this device. We use them to shape your path — not to sell, share, or target you. You can delete everything at any time.</p>
+        `,
+        cta: { label: 'Understood', primary: true },
+      }),
+
+      // ---- 26. Building plan (animated log)
+      () => screenBuilding(),
+
+      // ---- 27. Plan reveal — overview
+      () => screenPlanReveal(),
+
+      // ---- 28. Tools & toolshed assignment
+      () => screenTemplate({
+        center: false,
+        eyebrow: 'Your toolshed',
+        body: `
+          <h1 class="title">Three tools, picked for you.</h1>
+          <p class="lede">You'll start with these. More unlock as you build the habit — but these are enough on their own.</p>
+          <div id="toolsList" style="display:flex; flex-direction:column; gap:10px;"></div>
+        `,
+        afterMount: (root) => renderTools(root.querySelector('#toolsList')),
+        cta: { label: 'Looks good', primary: true },
+      }),
+
+      // ---- 29. Promise / commitment screen
+      () => screenTemplate({
+        center: true,
+        eyebrow: 'One more thing',
+        body: `
+          <h1 class="title big">A small promise.</h1>
+          <p class="lede" id="promiseLede">If you can show up for ${state.answers.dailyMinutes} minutes a day, ${state.answers.streak} days in a row — we'll show up too. With short, kind, useful practice. No streaks weaponized against you. No shame if you miss a day.</p>
+          <div class="insight" style="margin-top:8px; text-align:left;">
+            <div class="quote-mark">— THE AGREEMENT</div>
+            <div class="insight-text">"I'll give it <em>${state.answers.streak} days</em>. If it doesn't change something, I owe nothing."</div>
+          </div>
+        `,
+        cta: { label: 'I agree — let\'s begin', primary: true },
+      }),
+
+      // ---- 30. Done — celebrate + summary
+      () => screenDone(),
+    ];
+
+    const TOTAL = screens.length;
+
+    // ---------------- Render helpers ----------------
+    function el(tag, attrs={}, ...children) {
+      const e = document.createElement(tag);
+      for (const k in attrs) {
+        if (k === 'class') e.className = attrs[k];
+        else if (k === 'style') e.setAttribute('style', attrs[k]);
+        else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+        else if (attrs[k] === true) e.setAttribute(k, '');
+        else if (attrs[k] !== false && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      }
+      for (const c of children) {
+        if (c == null || c === false) continue;
+        if (typeof c === 'string') e.insertAdjacentHTML('beforeend', c);
+        else e.appendChild(c);
+      }
+      return e;
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+
+    function screenTemplate({ center, eyebrow, body, cta, secondaryCta, canAdvance, afterMount }) {
+      const wrap = el('div', { class: 'screen' });
+      const inner = el('div', { class: center ? 'center-wrap' : 'body-wrap' });
+      const html = `
+        ${eyebrow ? `<div class="eyebrow">${eyebrow}</div>` : ''}
+        ${body || ''}
+      `;
+      inner.insertAdjacentHTML('beforeend', html);
+      wrap.appendChild(inner);
+
+      if (cta) {
+        const row = el('div', { class: 'cta-row' });
+        const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+        btn.innerHTML = cta.label + ' <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+        row.appendChild(btn);
+        if (secondaryCta) {
+          const sb = el('button', { class: 'btn btn-ghost' }, secondaryCta.label);
+          row.appendChild(sb);
+        }
+        wrap.appendChild(row);
+        if (canAdvance) {
+          const checkBtn = () => btn.disabled = !canAdvance();
+          checkBtn();
+          wrap.addEventListener('cl:update', checkBtn);
+        }
+      }
+      if (afterMount) afterMount(wrap);
+      return wrap;
+    }
+
+    function screenMulti({ eyebrow, title, lede, key, options, min=0, max=Infinity, optional=false }) {
+      if (!Array.isArray(state.answers[key])) state.answers[key] = [];
+      const selected = new Set(state.answers[key]);
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+      body.insertAdjacentHTML('beforeend', `
+        <div class="eyebrow">${eyebrow}</div>
+        <h1 class="title">${title}</h1>
+        <p class="lede">${lede}</p>
+      `);
+      const list = el('div', { class: 'options' });
+      options.forEach(opt => {
+        const li = el('div', { class: 'option' + (selected.has(opt.v) ? ' selected' : '') });
+        li.innerHTML = `<div class="option-check"></div><div class="option-label">${opt.label}</div>`;
+        li.addEventListener('click', () => {
+          if (selected.has(opt.v)) {
+            selected.delete(opt.v);
+          } else {
+            if (selected.size >= max) return;
+            selected.add(opt.v);
+          }
+          state.answers[key] = [...selected];
+          li.classList.toggle('selected', selected.has(opt.v));
+          // toggle all 'none of the above' / mutually exclusive 'none'
+          if (opt.v === 'none' && selected.has('none')) {
+            // clear others
+            selected.clear(); selected.add('none');
+            state.answers[key] = ['none'];
+            list.querySelectorAll('.option').forEach((node, i) => {
+              node.classList.toggle('selected', options[i].v === 'none');
+            });
+          } else if (selected.has('none') && opt.v !== 'none') {
+            selected.delete('none');
+            state.answers[key] = [...selected];
+            list.querySelectorAll('.option').forEach((node, i) => {
+              if (options[i].v === 'none') node.classList.remove('selected');
+            });
+          }
+          save();
+          wrap.dispatchEvent(new Event('cl:update'));
+        });
+        list.appendChild(li);
+      });
+      body.appendChild(list);
+      if (max < Infinity) {
+        body.insertAdjacentHTML('beforeend', `<div class="hint" style="margin-top:14px;">Up to ${max} choices.</div>`);
+      }
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      row.appendChild(btn);
+      if (optional) {
+        const sb = el('button', { class: 'btn btn-ghost', onclick: () => goNext() }, 'Skip for now');
+        row.appendChild(sb);
+      }
+      wrap.appendChild(row);
+      const check = () => btn.disabled = !(optional || selected.size >= min);
+      check();
+      wrap.addEventListener('cl:update', check);
+      return wrap;
+    }
+
+    function screenRadio({ eyebrow, title, lede, key, options, optional=false }) {
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+      body.insertAdjacentHTML('beforeend', `
+        <div class="eyebrow">${eyebrow}</div>
+        <h1 class="title">${title}</h1>
+        <p class="lede">${lede}</p>
+      `);
+      const list = el('div', { class: 'options' });
+      options.forEach(opt => {
+        const li = el('div', { class: 'option radio' + (state.answers[key] === opt.v ? ' selected' : '') });
+        li.innerHTML = `<div class="option-check"></div>
+          <div class="option-label">${opt.label}${opt.sub ? `<div class="option-sub">${opt.sub}</div>` : ''}</div>`;
+        li.addEventListener('click', () => {
+          state.answers[key] = opt.v;
+          list.querySelectorAll('.option').forEach(n => n.classList.remove('selected'));
+          li.classList.add('selected');
+          save();
+          wrap.dispatchEvent(new Event('cl:update'));
+        });
+        list.appendChild(li);
+      });
+      body.appendChild(list);
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      row.appendChild(btn);
+      if (optional) {
+        const sb = el('button', { class: 'btn btn-ghost', onclick: () => goNext() }, 'Skip for now');
+        row.appendChild(sb);
+      }
+      wrap.appendChild(row);
+      const check = () => btn.disabled = !(optional || state.answers[key] != null);
+      check();
+      wrap.addEventListener('cl:update', check);
+      return wrap;
+    }
+
+    function screenChip({ eyebrow, title, lede, key, options }) {
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+      body.insertAdjacentHTML('beforeend', `
+        <div class="eyebrow">${eyebrow}</div>
+        <h1 class="title">${title}</h1>
+        <p class="lede">${lede}</p>
+      `);
+      const grid = el('div', { class: 'chip-grid' });
+      options.forEach(opt => {
+        const c = el('div', { class: 'chip' + (state.answers[key] === opt.v ? ' selected' : '') });
+        c.innerHTML = `<div>${opt.emoji}</div><div class="chip-label">${opt.label}</div>`;
+        c.addEventListener('click', () => {
+          state.answers[key] = opt.v;
+          grid.querySelectorAll('.chip').forEach(n => n.classList.remove('selected'));
+          c.classList.add('selected');
+          save();
+          wrap.dispatchEvent(new Event('cl:update'));
+          // small auto-advance after a beat
+          setTimeout(() => goNext(), 460);
+        });
+        grid.appendChild(c);
+      });
+      body.appendChild(grid);
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      row.appendChild(btn);
+      wrap.appendChild(row);
+      const check = () => btn.disabled = state.answers[key] == null;
+      check();
+      wrap.addEventListener('cl:update', check);
+      return wrap;
+    }
+
+    function screenSlider({ eyebrow, title, lede, key, min, max, step, unit, labels }) {
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+      body.insertAdjacentHTML('beforeend', `
+        <div class="eyebrow">${eyebrow}</div>
+        <h1 class="title">${title}</h1>
+        <p class="lede">${lede}</p>
+      `);
+
+      const val = state.answers[key] ?? Math.round((min + max) / 2);
+      state.answers[key] = val;
+
+      const sw = el('div', { class: 'slider-wrap' });
+      sw.innerHTML = `
+        <div class="slider-value">
+          <div class="num" id="sliderNum">${val}</div>
+          <div class="unit">${unit}</div>
+        </div>
+        <input id="sliderInput" type="range" min="${min}" max="${max}" step="${step}" value="${val}" />
+        <div class="slider-axis"><span>${labels[0]}</span><span>${labels[1]}</span></div>
+      `;
+      body.appendChild(sw);
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      row.appendChild(btn);
+      wrap.appendChild(row);
+
+      requestAnimationFrame(() => {
+        const input = sw.querySelector('#sliderInput');
+        const num = sw.querySelector('#sliderNum');
+        const updateFill = () => {
+          const v = +input.value;
+          const pct = ((v - min) / (max - min)) * 100;
+          input.style.setProperty('--p', pct + '%');
+          num.textContent = v;
+          state.answers[key] = v;
+          save();
+        };
+        input.addEventListener('input', updateFill);
+        updateFill();
+      });
+      return wrap;
+    }
+
+    function screenText({ eyebrow, title, lede, key, placeholder, textarea, optional, maxLen }) {
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+      body.insertAdjacentHTML('beforeend', `
+        <div class="eyebrow">${eyebrow}</div>
+        <h1 class="title">${title}</h1>
+        <p class="lede">${lede}</p>
+      `);
+      const tag = textarea ? 'textarea' : 'input';
+      const field = el(tag, {
+        type: 'text',
+        placeholder: placeholder || '',
+        maxlength: maxLen || 200,
+      });
+      field.value = state.answers[key] || '';
+      field.addEventListener('input', () => {
+        state.answers[key] = field.value.trim();
+        save();
+        wrap.dispatchEvent(new Event('cl:update'));
+      });
+      body.appendChild(field);
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      row.appendChild(btn);
+      if (optional) {
+        const sb = el('button', { class: 'btn btn-ghost', onclick: () => goNext() }, 'Skip');
+        row.appendChild(sb);
+      }
+      wrap.appendChild(row);
+      const check = () => btn.disabled = !(optional || (state.answers[key] && state.answers[key].length > 0));
+      check();
+      wrap.addEventListener('cl:update', check);
+      return wrap;
+    }
+
+    function screenInsight({ eyebrow, title, text, stats, cta }) {
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+      const computedTitle = typeof title === 'function' ? title() : title;
+      const computedText = typeof text === 'function' ? text() : text;
+      const computedStats = typeof stats === 'function' ? stats() : stats;
+      body.insertAdjacentHTML('beforeend', `
+        <div class="eyebrow">${eyebrow}</div>
+        <h1 class="title">${computedTitle}</h1>
+      `);
+      const ins = el('div', { class: 'insight' });
+      ins.innerHTML = `
+        <div class="quote-mark">— REFLECTION</div>
+        <div class="insight-text">${computedText}</div>
+        ${computedStats ? `<div class="insight-stats">
+          ${computedStats.map(s => `<div class="stat"><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`).join('')}
+        </div>` : ''}
+      `;
+      body.appendChild(ins);
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+      btn.innerHTML = (cta || 'Continue') + ' <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      row.appendChild(btn);
+      wrap.appendChild(row);
+      return wrap;
+    }
+
+    // ---- Breathing ----
+    function screenBreathing() {
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap', style: 'gap:0;' });
+      body.insertAdjacentHTML('beforeend', `
+        <div class="eyebrow" style="text-align:center;">Micro-exercise · breath</div>
+        <h1 class="title" style="text-align:center;">Box breathing.</h1>
+        <p class="lede" style="text-align:center; max-width: 360px; margin-left:auto; margin-right:auto;">Follow the orb for four rounds. In, hold, out, hold. Your nervous system will do the rest.</p>
+      `);
+      const stage = el('div', { class: 'breath-stage' });
+      stage.innerHTML = `
+        <div class="breath-orb" id="breathOrb">
+          <div class="breath-phase" id="breathPhase">Ready</div>
+        </div>
+        <div class="breath-counter" id="breathCounter">Tap begin · 4 rounds · about 60s</div>
+      `;
+      body.appendChild(stage);
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const begin = el('button', { class: 'btn btn-primary' });
+      begin.innerHTML = 'Begin · 60 seconds';
+      const skip  = el('button', { class: 'btn btn-ghost' }, 'Skip the exercise');
+      row.appendChild(begin); row.appendChild(skip);
+      wrap.appendChild(row);
+
+      let running = false;
+      let timeoutHandles = [];
+      const orb = () => stage.querySelector('#breathOrb');
+      const phase = () => stage.querySelector('#breathPhase');
+      const counter = () => stage.querySelector('#breathCounter');
+
+      const cleanup = () => {
+        running = false;
+        timeoutHandles.forEach(t => clearTimeout(t));
+        timeoutHandles = [];
+        if (orb()) {
+          orb().style.transition = 'transform 0.6s ease';
+          orb().style.transform = 'scale(1)';
+        }
+      };
+
+      begin.addEventListener('click', () => {
+        if (running) return;
+        running = true;
+        begin.style.display = 'none';
+        skip.textContent = 'Continue';
+        const o = orb(); const p = phase(); const c = counter();
+        const rounds = 4;
+        const inhale = 4000, hold1 = 2000, exhale = 6000, hold2 = 1000;
+
+        const run = (round) => {
+          if (!running) return;
+          if (round > rounds) {
+            p.textContent = 'Breathe naturally';
+            c.textContent = 'Nicely done · feel that?';
+            o.style.transition = 'transform 1s ease';
+            o.style.transform = 'scale(1)';
+            return;
+          }
+          c.textContent = `Round ${round} of ${rounds}`;
+          // Inhale
+          p.textContent = 'Inhale';
+          o.style.transition = `transform ${inhale}ms cubic-bezier(0.45, 0.05, 0.55, 0.95)`;
+          o.style.transform = 'scale(1.55)';
+          timeoutHandles.push(setTimeout(() => {
+            if (!running) return;
+            p.textContent = 'Hold';
+            timeoutHandles.push(setTimeout(() => {
+              if (!running) return;
+              p.textContent = 'Exhale';
+              o.style.transition = `transform ${exhale}ms cubic-bezier(0.45, 0.05, 0.55, 0.95)`;
+              o.style.transform = 'scale(0.85)';
+              timeoutHandles.push(setTimeout(() => {
+                if (!running) return;
+                p.textContent = 'Pause';
+                timeoutHandles.push(setTimeout(() => run(round + 1), hold2));
+              }, exhale));
+            }, hold1));
+          }, inhale));
+        };
+        run(1);
+      });
+      skip.addEventListener('click', () => { cleanup(); goNext(); });
+      wrap.addEventListener('cl:leave', cleanup);
+      return wrap;
+    }
+
+    // ---- Building plan (animated log) ----
+    function screenBuilding() {
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'center-wrap' });
+      body.innerHTML = `
+        <div class="eyebrow">Building · please wait</div>
+        <h1 class="title">Composing your 30-day path…</h1>
+        <p class="lede">We're matching your answers to practices that fit. This takes about ten seconds.</p>
+        <ul class="build-log" id="buildLog" style="text-align:left; align-self: stretch; max-width: 360px; margin: 16px auto 0;">
+          <li><span class="dot"></span> Analyzing your focus areas</li>
+          <li><span class="dot"></span> Matching to ${state.answers.dailyMinutes}-minute sessions</li>
+          <li><span class="dot"></span> Selecting tools you'll actually like</li>
+          <li><span class="dot"></span> Pacing four weeks of practice</li>
+          <li><span class="dot"></span> Filtering anything you asked us to avoid</li>
+          <li><span class="dot"></span> Finalizing your path</li>
+        </ul>
+      `;
+      wrap.appendChild(body);
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext(), disabled: true });
+      btn.innerHTML = 'Reveal my path';
+      row.appendChild(btn);
+      wrap.appendChild(row);
+
+      // Animate sequentially
+      const items = body.querySelectorAll('.build-log li');
+      let i = 0;
+      const step = () => {
+        if (i > 0) items[i-1].classList.replace('active', 'done');
+        if (i < items.length) {
+          items[i].classList.add('active');
+          i++;
+          setTimeout(step, 1100 + Math.random() * 400);
+        } else {
+          btn.disabled = false;
+        }
+      };
+      setTimeout(step, 250);
+      return wrap;
+    }
+
+    // ---- Plan reveal ----
+    function screenPlanReveal() {
+      const plan = buildPlan();
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+      body.innerHTML = `
+        <div class="eyebrow">Your path · 4 weeks</div>
+        <h1 class="title">${state.answers.firstName ? escapeHtml(state.answers.firstName) + ', ' : ''}here's your path.</h1>
+        <p class="lede">Light to start. Then we add depth as you build a baseline. You can re-plan anytime.</p>
+        <div>
+          ${plan.weeks.map((w, idx) => `
+            <div class="plan-week">
+              <div class="week-num">W${idx+1}</div>
+              <div>
+                <div class="week-title">${w.title}</div>
+                <div class="week-sub">${w.sub}</div>
+              </div>
+              <div class="week-min">${w.min}m</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      wrap.appendChild(body);
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => goNext() });
+      btn.innerHTML = 'Show me the tools <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      row.appendChild(btn);
+      wrap.appendChild(row);
+      return wrap;
+    }
+
+    function renderTools(host) {
+      const tools = buildTools();
+      tools.forEach(t => {
+        const card = el('div', { class: 'option' });
+        card.style.cursor = 'default';
+        card.innerHTML = `
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(46,196,182,0.08);border:1px solid rgba(46,196,182,0.22);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${t.icon}</div>
+          <div>
+            <div class="option-label" style="font-weight:500;">${t.name}</div>
+            <div class="option-sub" style="margin-top:4px;">${t.why}</div>
+          </div>
+        `;
+        host.appendChild(card);
+      });
+    }
+
+    // ---- Final / Done ----
+    function screenDone() {
+      const plan = buildPlan();
+      const tools = buildTools();
+      const wrap = el('div', { class: 'screen' });
+      const body = el('div', { class: 'body-wrap' });
+
+      const greeting = state.answers.firstName ? `Welcome in, ${escapeHtml(state.answers.firstName)}.` : 'Welcome in.';
+      body.innerHTML = `
+        <div class="eyebrow">Day · 00</div>
+        <h1 class="title big">${greeting}</h1>
+
+        <div class="summary-hero">
+          <div class="num-big">${state.answers.streak}</div>
+          <div class="num-label">day starter streak</div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-cell">
+            <div class="cell-label">Daily</div>
+            <div class="cell-value">${state.answers.dailyMinutes} min · ${state.answers.bestTime ? labelForTime(state.answers.bestTime) : 'flexible'}</div>
+          </div>
+          <div class="summary-cell">
+            <div class="cell-label">Sessions</div>
+            <div class="cell-value">${sessionLenLabel()}</div>
+          </div>
+          <div class="summary-cell span2">
+            <div class="cell-label">Primary intentions</div>
+            <div class="cell-value">${primaryGoalsLabels()}</div>
+          </div>
+          <div class="summary-cell span2">
+            <div class="cell-label">Your tools</div>
+            <div class="tools-row">${tools.map(t => `<span class="tool-tag">${t.name}</span>`).join('')}</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:4px;">
+          <div class="eyebrow" style="margin-bottom:10px;">Today's first practice · ${plan.first.min} min</div>
+          <div style="font-size:17px; line-height:1.4; font-weight:500;">${plan.first.title}</div>
+          <div style="font-size:13px; color:var(--ink-dim); margin-top:6px; line-height:1.5;">${plan.first.desc}</div>
+        </div>
+      `;
+      wrap.appendChild(body);
+
+      const row = el('div', { class: 'cta-row' });
+      const btn = el('button', { class: 'btn btn-primary', onclick: () => beginDashboard() });
+      btn.innerHTML = 'Begin Day 01 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+      const reset = el('button', { class: 'btn btn-ghost', onclick: () => {
+        if (confirm('Restart onboarding from the beginning? Your answers will be cleared.')) {
+          clearSave();
+          state.step = 0;
+          Object.assign(state.answers, initialAnswers());
+          renderScreen();
+        }
+      }}, 'Start over');
+      row.appendChild(btn); row.appendChild(reset);
+      wrap.appendChild(row);
+
+      // confetti once
+      setTimeout(burstConfetti, 350);
+      return wrap;
+    }
+
+    // ---------------- Plan generation (dynamic) ----------------
+    function buildPlan() {
+      const g = state.answers.goals || [];
+      const min = state.answers.dailyMinutes || 15;
+
+      const goalWeekMap = {
+        calm:       { title: 'Settle the system',    sub: 'Breath, body scans, longer exhales.' },
+        focus:      { title: 'Train attention',      sub: 'Single-task drills & open-monitor sits.' },
+        sleep:      { title: 'Wind-down ritual',     sub: 'Evening practices + sleep hygiene cues.' },
+        resilience: { title: 'Sit with discomfort',  sub: 'Short stress inoculation practices.' },
+        compassion: { title: 'Self-kindness',        sub: 'Loving-kindness & inner-critic work.' },
+        confidence: { title: 'Quiet confidence',     sub: 'Body-led grounding, values clarity.' },
+        connect:    { title: 'Connect deeply',       sub: 'Listening prompts & gratitude letters.' },
+        purpose:    { title: 'Find your throughline',sub: 'Journal prompts on what matters most.' },
+      };
+
+      const picks = g.slice(0, 4);
+      if (picks.length === 0) picks.push('calm');
+
+      const weeks = [];
+      weeks.push({ ...(goalWeekMap[picks[0]] || goalWeekMap.calm), min });
+      weeks.push({ ...(goalWeekMap[picks[1] || picks[0]] || goalWeekMap.focus), min });
+      weeks.push({ ...(goalWeekMap[picks[2] || picks[0]] || goalWeekMap.resilience), min: min + 2 });
+      weeks.push({ title: 'Integrate', sub: 'Mix your favorites · the habit, not the streak.', min });
+
+      // First-day practice
+      const firstByGoal = {
+        calm:       { title: 'Four rounds of box-breath', desc: 'A gentle re-entry to the practice you just tried.' },
+        focus:      { title: 'Single-point attention', desc: 'Pick one object. Notice it without commentary.' },
+        sleep:      { title: 'Body scan, head to feet', desc: 'A guided wind-down to release the day.' },
+        resilience: { title: 'Name three sensations', desc: 'Anchor to the body when feelings get loud.' },
+        compassion: { title: 'A letter to your past self', desc: 'Three sentences. No editing.' },
+        confidence: { title: 'Two-minute grounding', desc: 'Feet, breath, gaze. Steadier in 120 seconds.' },
+        connect:    { title: 'Send one quiet thank-you', desc: 'A short message to someone overlooked.' },
+        purpose:    { title: 'One sentence on what matters', desc: 'Finish: "Right now, what matters is…"' },
+      };
+      const first = firstByGoal[picks[0]] || firstByGoal.calm;
+      first.min = Math.min(min, state.answers.sessionLen === 'short' ? 5 : (state.answers.sessionLen === 'long' ? 15 : 8));
+
+      return { weeks, first };
+    }
+
+    function buildTools() {
+      const styles = state.answers.learningStyle || [];
+      const all = [
+        { id: 'breath',  name: 'Breath Room',     icon: '◯',  why: 'Two-minute paced breathing for any moment.' },
+        { id: 'journal', name: 'Quiet Journal',   icon: '✎',  why: 'Daily one-question prompts. No streak-shaming.' },
+        { id: 'focus',   name: 'Focus Pulse',     icon: '◐',  why: 'Three-minute attention drills you can repeat.' },
+        { id: 'audio',   name: 'Voice Practice',  icon: '◊',  why: 'Audio-led sits and body scans.' },
+        { id: 'scan',    name: 'Body Scan',       icon: '☼',  why: 'A guided sweep — head to feet.' },
+        { id: 'check',   name: 'Mood Check',      icon: '⌁',  why: 'Sixty-second daily check-in.' },
+      ];
+      const styleToTools = {
+        audio:    ['audio', 'scan', 'breath'],
+        reading:  ['journal', 'check', 'breath'],
+        video:    ['focus', 'scan', 'breath'],
+        journal:  ['journal', 'check', 'breath'],
+        interact: ['focus', 'breath', 'check'],
+        quiz:     ['check', 'journal', 'breath'],
+      };
+      const ids = new Set();
+      styles.forEach(s => (styleToTools[s] || []).forEach(id => ids.add(id)));
+      if (ids.size < 3) ['breath','journal','check'].forEach(id => ids.add(id));
+      return all.filter(t => ids.has(t.id)).slice(0, 3);
+    }
+
+    function primaryGoalLabel() {
+      const labels = {
+        calm: 'Calm', focus: 'Focus', sleep: 'Sleep',
+        resilience: 'Resilience', compassion: 'Kindness',
+        confidence: 'Confidence', connect: 'Connection', purpose: 'Meaning',
+      };
+      const g = state.answers.goals || [];
+      return labels[g[0]] || 'Calm';
+    }
+    function primaryGoalsLabels() {
+      const labels = {
+        calm: 'Calm', focus: 'Focus', sleep: 'Sleep',
+        resilience: 'Resilience', compassion: 'Self-kindness',
+        confidence: 'Confidence', connect: 'Connection', purpose: 'Meaning',
+      };
+      const g = (state.answers.goals || []).slice(0, 3).map(k => labels[k] || k);
+      return g.join(' · ') || 'Calm';
+    }
+    function sessionLenLabel() {
+      return ({
+        short: '3–5 min',
+        medium: '8–12 min',
+        long: '15–20 min',
+        mixed: 'Mixed lengths',
+      })[state.answers.sessionLen] || `${state.answers.dailyMinutes} min`;
+    }
+    function labelForTime(t) {
+      const map = {
+        '07:00':'7 AM', '09:00':'9 AM', '12:30':'12:30 PM',
+        '18:00':'6 PM', '21:30':'9:30 PM', 'morning':'mornings',
+        'midday':'midday', 'evening':'evenings', 'flex':'flexible', 'none':'no reminders'
+      };
+      return map[t] || t;
+    }
+
+    function buildFirstMirror() {
+      const c = state.answers.challenges || [];
+      const min = state.answers.dailyMinutes;
+      const challengeNames = {
+        anxiety: 'overthinking', focus: 'a wandering mind', motivation: 'low fuel',
+        sleep: 'restless sleep', overwhelm: 'feeling overrun', lonely: 'feeling distant', stuck: 'feeling stuck'
+      };
+      const named = c.map(k => challengeNames[k]).filter(Boolean);
+      const first = named[0] || 'something subtle';
+      const rest  = named.length > 1 ? `, plus <em>${named.slice(1).join('</em>, <em>')}</em>` : '';
+      return `You came in with <em>${first}</em>${rest}. And you're willing to give it <em>${min} minutes</em> a day. That's not nothing — that's the whole game.`;
+    }
+    function buildSecondMirror() {
+      const goal = primaryGoalLabel().toLowerCase();
+      const len  = sessionLenLabel();
+      const time = state.answers.bestTime ? labelForTime(state.answers.bestTime) : 'whenever fits';
+      return `Your through-line is <em>${goal}</em>. We'll meet you in <em>${len}</em> sessions, ideally in the <em>${time}</em>. The rest of your answers? They're the texture — we'll use them to keep it kind, never clinical.`;
+    }
+
+    // ---------------- Navigation ----------------
+    const stage = document.getElementById('stage');
+    const progressFill = document.getElementById('progressFill');
+    const progressMeta = document.getElementById('progressMeta');
+    const backBtn = document.getElementById('backBtn');
+
+    function renderScreen() {
+      // Tell previous screen to clean up
+      const prev = stage.querySelector('.screen');
+      if (prev) prev.dispatchEvent(new Event('cl:leave'));
+      stage.innerHTML = '';
+
+      const factory = screens[state.step];
+      const node = factory();
+      node.classList.add('active');
+      stage.appendChild(node);
+
+      // Update chrome
+      const pct = ((state.step) / (TOTAL - 1)) * 100;
+      progressFill.style.width = pct + '%';
+      const minutesLeft = Math.max(1, Math.round(((TOTAL - state.step) / TOTAL) * 12));
+      progressMeta.textContent = `${String(state.step + 1).padStart(2,'0')} · ${minutesLeft} MIN LEFT`;
+
+      backBtn.disabled = state.step === 0 || state.step === TOTAL - 1;
+
+      // Persist step
+      save();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    function goNext() {
+      if (state.step < TOTAL - 1) {
+        state.step++;
+        renderScreen();
+      }
+    }
+    function goBack() {
+      if (state.step > 0) {
+        state.step--;
+        renderScreen();
+      }
+    }
+    backBtn.addEventListener('click', goBack);
+
+    // Keyboard nav
+    window.addEventListener('keydown', (e) => {
+      if (e.target.matches('input, textarea')) return;
+      if (e.key === 'ArrowLeft') goBack();
+      if (e.key === 'Enter') {
+        const btn = stage.querySelector('.btn-primary:not([disabled])');
+        if (btn) btn.click();
+      }
+    });
+
+    // ---------------- Confetti ----------------
+    function burstConfetti() {
+      const host = document.getElementById('confettiHost');
+      const colors = ['#2ec4b6', '#60a5fa', '#e6edff', '#2ec4b6'];
+      for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.top = (-Math.random() * 20) + '%';
+        p.style.background = colors[i % colors.length];
+        p.style.opacity = 0.85;
+        p.style.transform = `rotate(${Math.random()*360}deg)`;
+        p.style.animationDelay = (Math.random() * 0.6) + 's';
+        p.style.animationDuration = (2 + Math.random() * 1.4) + 's';
+        if (i % 3 === 0) p.style.borderRadius = '999px';
+        host.appendChild(p);
+        setTimeout(() => p.remove(), 4500);
+      }
+    }
+
+    // ---------------- Dashboard transition ----------------
+    function beginDashboard() {
+      const finished = { ...state, completedAt: new Date().toISOString() };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(finished)); } catch (_) {}
+      document.body.style.transition = 'opacity 0.7s ease';
+      document.body.style.opacity = '0';
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <div class="app" style="justify-content:center;align-items:center;text-align:center;">
+            <div class="eyebrow">Day · 01</div>
+            <div class="glyph" style="margin:0 auto 22px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <h1 class="title big" style="max-width:400px;margin:0 auto 14px;">Your path is set. Your practice starts now.</h1>
+            <p class="lede" style="max-width:360px;margin:0 auto 32px;">Everything you built is ready. Step into your CloveLearn hub and begin Day 01.</p>
+            <div class="cta-row" style="max-width:360px;margin:0 auto;">
+              <a href="../growth-plan.html" class="btn btn-primary" style="text-decoration:none;">
+                Enter CloveLearn
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+              </a>
+            </div>
+          </div>
+        `;
+        document.body.style.transition = 'opacity 0.5s ease';
+        document.body.style.opacity = '1';
+      }, 700);
+    }
+
+    // ---------------- Boot ----------------
+    function boot() {
+      const stored = load();
+      if (stored && stored.step > 0 && stored.step < TOTAL - 1) {
+        // Show resume banner
+        Object.assign(state.answers, stored.answers || {});
+        const banner = el('div', { class: 'resume-banner' });
+        banner.innerHTML = `
+          <span>Pick up where you left off?</span>
+          <button id="resumeYes">RESUME</button>
+          <button id="resumeNo" style="color:var(--ink-faint);">START OVER</button>
+        `;
+        document.body.appendChild(banner);
+        banner.querySelector('#resumeYes').addEventListener('click', () => {
+          state.step = stored.step;
+          banner.remove();
+          renderScreen();
+        });
+        banner.querySelector('#resumeNo').addEventListener('click', () => {
+          clearSave();
+          state.step = 0;
+          Object.assign(state.answers, initialAnswers());
+          banner.remove();
+          renderScreen();
+        });
+        // Render initial screen behind banner so it doesn't look empty
+        renderScreen();
+      } else {
+        renderScreen();
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>

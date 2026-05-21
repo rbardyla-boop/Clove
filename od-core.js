@@ -363,7 +363,7 @@
   // Canonical back-to-deck navigation.
   if (typeof g.odBack !== 'function') {
     g.odBack = function() {
-      window.location.href = './?tab=tools';
+      window.location.href = './deck.html?tab=tools';
     };
   }
 

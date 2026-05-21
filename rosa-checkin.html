@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#08080f">
+<meta name="theme-color" content="#060d1a">
 <meta property="og:title" content="STATUS CHECK • OPERATOR'S DECK">
 <meta property="og:description" content="Randomized operational status assessment. Indirect behavioral probes. No rehearsed answers. 90 seconds.">
 <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
@@ -15,7 +15,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
+  --bg:#060d1a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;
   --red:#c0392b;--gld:#d4a843;--grn:#27ae60;--orn:#d46427;
   --dim:#8a8a8a;--dim2:#777;--dim3:#333;--dim4:#1c1c24;
 }
@@ -138,13 +138,16 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .3s ease-out}
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="app">
 
 <!-- NAV -->
 <nav class="nav-bar">
-  <a class="nav-back" href="./?tab=home">← DECK</a>
+  <a class="nav-back" href="deck.html">← DECK</a>
   <div class="nav-info">
     <div class="nav-tag">OPERATOR'S DECK</div>
     <div class="nav-name">STATUS CHECK</div>
@@ -167,7 +170,7 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
   </div>
   <div class="intro-cta">
     <button class="btn-start" onclick="startRosa()">BEGIN CHECK-IN →</button>
-    <button class="intro-skip" onclick="location.href='./?tab=home'">SKIP — GO TO DECK</button>
+    <button class="intro-skip" onclick="location.href='deck.html'">SKIP — GO TO DECK</button>
   </div>
 </div>
 
@@ -221,7 +224,7 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
     </div>
 
     <div class="r-cta">
-      <button class="btn-done" onclick="location.href='./?tab=home'">DRAW A CARD →</button>
+      <button class="btn-done" onclick="location.href='deck.html'">DRAW A CARD →</button>
       <button class="btn-ghost" onclick="location.href='mood-trends.html'">VIEW TRENDS</button>
       <button class="btn-ghost" onclick="startRosa()">RUN AGAIN</button>
     </div>

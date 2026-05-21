@@ -7,14 +7,14 @@
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#08080f">
+<meta name="theme-color" content="#060d1a">
 <meta property="og:title" content="SYSTEM CHECK • OPERATOR'S DECK">
 <meta property="og:description" content="Full diagnostic on your localStorage data. Integrity, storage, health check.">
 <link rel="canonical" href="https://clovelearn.io/system-check.html">
 <title>SYSTEM CHECK • OPERATOR'S DECK</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+:root{--bg:#060d1a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
 body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
 .app{max-width:480px;margin:0 auto}
 
@@ -112,6 +112,9 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 /* ORPHAN KEYS */
 .orphan-tag{display:inline-block;background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.15);border-radius:4px;padding:2px 6px;font-size:7px;font-family:monospace;letter-spacing:.5px;color:var(--gld);margin:2px}
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="app">
@@ -145,7 +148,7 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 <script>
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
 function showToast(msg,bg){var old=document.querySelector('.toast');if(old)old.remove();var t=document.createElement('div');t.className='toast';if(bg)t.style.background=bg;t.textContent=msg;document.body.appendChild(t);setTimeout(function(){if(t.parentNode)t.remove()},2500)}
-function goBack(){window.location.href='./?tab=more'}
+function goBack(){window.location.href='./deck.html?tab=tools'}
 
 // ── KEY REGISTRY ──────────────────────────────────────────────
 // Every known OD localStorage key, its expected type, and source page.
@@ -511,12 +514,12 @@ function render(results, issues, totalBytes, okCount, warnCount, errCount, empty
   h += '</div>';
 
   // NEXT STEP block
-  h += '<div style="margin:0 16px 10px;padding:14px;background:#08080f;border-left:3px solid var(--gld);border-radius:0 10px 10px 0">';
+  h += '<div style="margin:0 16px 10px;padding:14px;background:#060d1a;border-left:3px solid var(--gld);border-radius:0 10px 10px 0">';
   h += '<div style="color:var(--gld);font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>';
   h += '<a href="toolshed.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s">';
   h += '<span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">TOOL SHED →</span><br>';
   h += '<span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Export your data. See all session counts.</span></a>';
-  h += '<a href="./?tab=more" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s">';
+  h += '<a href="./deck.html?tab=tools" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s">';
   h += '<span style="color:var(--gld);font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">BACK TO DECK →</span><br>';
   h += '<span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Return to the Operator\'s Deck</span></a>';
   h += '</div>';

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#08080f">
+    <meta name="theme-color" content="#060d1a">
 <meta property="og:title" content="ACT DRILL • OPERATOR'S DECK">
 <meta property="og:description" content="Values + committed action. Six steps. Defusion technique included. Pick what matters, move toward it.">
 <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
@@ -12,7 +12,7 @@
     <title>ACT DRILL • OPERATOR'S DECK</title>
     <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+:root{--bg:#060d1a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a6fa5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
 body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
 .app{max-width:480px;margin:0 auto}
 /* NAV */
@@ -121,6 +121,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 @keyframes tout{from{opacity:1}to{opacity:0}}
     *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body data-od-shape="torus">
 <div class="app" role="main">
@@ -287,7 +290,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
         <div class="action-highlight" id="sum_action"></div>
     </div>
 
-    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+    <div style="margin:20px 0 10px;padding:14px;background:#060d1a;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
       <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
       <a href="dear-man-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DEAR MAN \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Need to communicate a boundary? Script it</span></a><a href="safety-plan-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">SAFETY PLAN \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Build your crisis plan while you\'re thinking clearly</span></a>
     </div>
@@ -341,7 +344,7 @@ function charUpdate(el,id){const d=document.getElementById(id);if(d)d.textConten
 function btn(id,enabled){const b=document.getElementById(id);if(b)b.disabled=!enabled}
 function loadEntries(){try{return JSON.parse(localStorage.getItem('od_act_v1'))||[]}catch(e){return[]}}
 function saveEntries(arr){try{localStorage.setItem('od_act_v1',JSON.stringify(arr.slice(0,200)))}catch(e){}}
-function goBack(){window.location.href='./?tab=more'}
+function goBack(){window.location.href='./deck.html?tab=tools'}
 
 // PROGRESS
 function setProgress(n){document.getElementById('progressFill').style.width=Math.min((n-1)/7*100,100)+'%'}
@@ -448,7 +451,10 @@ function printSheet(){
     .tag{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700}
     .footer{margin-top:36px;padding-top:12px;border-top:1px solid #eee;font-size:9px;color:#aaa;text-align:center}
     @media print{body{padding:20px}}*:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
-</style></head><body>
+</style>  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head><body>
     <h1>ACT DRILL</h1>
     <div class="sub">Acceptance & Commitment Therapy — Values Compass</div>
     <div class="meta">${last.date}</div>
@@ -516,7 +522,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 
 <div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from Acceptance and Commitment Therapy (Hayes et al., 2012). Not a substitute for professional ACT.</div>
-<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./deck.html?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>

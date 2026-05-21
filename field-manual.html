@@ -7,7 +7,7 @@
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#08080f">
+<meta name="theme-color" content="#060d1a">
 <meta property="og:title" content="FIELD MANUAL • OPERATOR'S DECK">
 <meta property="og:description" content="Evidence-based knowledge library. Learn the science behind every drill. 41 micro-lessons. Zero data collection.">
 <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
@@ -15,7 +15,7 @@
 <title>FIELD MANUAL • OPERATOR'S DECK</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#08080f;--bg2:#0d0d14;--bg3:#111118;--bg4:#1a1a22;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--pur:#9333ea;--acc:#e67e22;--txt:#ddd;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+:root{--bg:#060d1a;--bg2:#0d0d14;--bg3:#111118;--bg4:#1a1a22;--red:#c0392b;--grn:#27ae60;--gld:#d4a843;--blu:#4a6fa5;--pur:#9333ea;--acc:#e67e22;--txt:#ddd;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
 body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 .app{max-width:480px;margin:0 auto;padding-bottom:100px}
 
@@ -169,12 +169,15 @@ body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSys
 *:focus-visible{outline:2px solid var(--gld);outline-offset:2px;border-radius:4px}
 input:focus-visible{outline:2px solid var(--gld);outline-offset:0}
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="app" role="main">
 
 <div class="nav-bar" role="navigation" aria-label="Page navigation">
-  <button class="nav-back" onclick="window.location.href='./?tab=more'" aria-label="Back to deck">&#8592; DECK</button>
+  <button class="nav-back" onclick="window.location.href='./deck.html?tab=tools'" aria-label="Back to deck">&#8592; DECK</button>
   <div class="nav-info">
     <div class="nav-tag">OPERATOR&#8217;S DECK</div>
     <div class="nav-name">FIELD MANUAL</div>
@@ -300,7 +303,7 @@ var DOMAINS=[
      quote:'The design was built on the understanding that human beings are bad at stopping things that feel good, especially when nothing in the environment tells them to stop.',
      quoteSource:'Ryan Bardyla, Dancing With The Devil',
      source:'Harris, T. (2016). How Technology is Hijacking Your Mind. Center for Humane Technology.',
-     drill:{name:'CARD: THE SCREEN AT MIDNIGHT',href:'./?tab=home',icon:'\u25C8'},
+     drill:{name:'CARD: THE SCREEN AT MIDNIGHT',href:'./deck.html?tab=home',icon:'\u25C8'},
      book:{title:'Dancing With The Devil',author:'Ryan Bardyla'}}
   ]
 },
@@ -430,7 +433,7 @@ var DOMAINS=[
      quote:'Presence is a choice I make against my own biology.',
      quoteSource:'Ryan Bardyla, Mathematics of the Heart',
      source:'Lyubomirsky, S. (2011). Hedonic adaptation to positive and negative experiences. In S. Folkman (Ed.), Oxford Handbook of Stress, Health, and Coping.',
-     drill:{name:'CARD: THE WATCH ON YOUR WRIST',href:'./?tab=home',icon:'\u2665'},
+     drill:{name:'CARD: THE WATCH ON YOUR WRIST',href:'./deck.html?tab=home',icon:'\u2665'},
      book:{title:'Mathematics of the Heart',author:'Ryan Bardyla'}},
     {id:'i7',name:'THE NEUROLOGICAL BRUISE: RSD DEEP DIVE',
      one:'RSD is not sensitivity. It is a misfiring threat-detection system treating social evaluation as physical danger.',
@@ -892,7 +895,7 @@ function render(){
   h+='<div class="next-step">';
   h+='<div class="ns-tag">NEXT STEP?</div>';
   h+='<a href="toolshed.html" rel="noopener">\uD83D\uDEE0 TOOL SHED</a>';
-  h+='<a href="./?tab=more">\u2663 BACK TO DECK</a>';
+  h+='<a href="./deck.html?tab=tools">\u2663 BACK TO DECK</a>';
   h+='</div>';
 
   // Attribution

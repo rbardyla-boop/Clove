@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#08080f">
+<meta name="theme-color" content="#060d1a">
 <meta property="og:title" content="SAFETY PLAN • OPERATOR'S DECK">
 <meta property="og:description" content="Build your safety plan before the crisis. Warning signs, coping strategies, contacts, reasons for living.">
 <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
@@ -12,7 +12,7 @@
 <title>SAFETY PLAN • OPERATOR'S DECK</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#2c5282;--acc2:#3b6ba5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
+:root{--bg:#060d1a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--acc:#2c5282;--acc2:#3b6ba5;--red:#c0392b;--gld:#d4a843;--grn:#27ae60;--dim:#8a8a8a;--dim2:#777;--dim3:#333}
 body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px}
 .app{max-width:480px;margin:0 auto}
 .nav-bar{background:#000;border-bottom:3px solid var(--acc);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
@@ -95,12 +95,15 @@ textarea{min-height:90px}
 @media print{body{background:#fff!important;color:#000!important;padding:20px}:root{--bg:#fff;--bg2:#f5f5f5;--bg3:#eee;--acc:#2c5282;--dim:#666;--dim2:#999;--dim3:#ccc}.nav-bar,.progress-bar,.step-counter,.btn-next,.btn-back-step,.btn-save,.btn-new,.btn-print,.add-btn,.remove-btn,.past-section,.toast,.pe-actions{display:none!important}.step{display:block!important;border-bottom:1px solid #ddd;margin-bottom:16px;padding-bottom:16px}.step-title{color:#000!important}.sb-content{color:#333!important}.reason-highlight{border-color:#2c5282;color:#2c5282;background:#f0f5ff}.summary-block{border:1px solid #ddd;break-inside:avoid}}
 *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="app" role="main">
 
 <div class="nav-bar" role="navigation" aria-label="Page navigation">
-  <button class="nav-back" onclick="window.location.href='./?tab=more'" aria-label="Go back to deck">← DECK</button>
+  <button class="nav-back" onclick="window.location.href='./deck.html?tab=tools'" aria-label="Go back to deck">← DECK</button>
   <div class="nav-info">
     <div class="nav-tag">OPERATOR'S DECK • RECOVERY TOOL</div>
     <div class="nav-name">SAFETY PLAN</div>
@@ -227,7 +230,7 @@ textarea{min-height:90px}
   <div id="summaryContent"></div>
   <div class="step-acts">
     <button class="btn-new" onclick="startFresh()">NEW PLAN</button>
-    <div style="margin:20px 0 10px;padding:14px;background:#08080f;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
+    <div style="margin:20px 0 10px;padding:14px;background:#060d1a;border-left:3px solid #d4a843;border-radius:0 10px 10px 0">
       <div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px">NEXT STEP?</div>
       <a href="red-protocol.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">RED PROTOCOL \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Practice the crisis containment sequence now</span></a><a href="stuck-points-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">STUCK POINTS \u2192</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Challenge the beliefs underneath the crisis</span></a>
     </div>
@@ -435,7 +438,7 @@ goStep(1);
 </script>
 
 <div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Adapted from the Stanley-Brown Safety Planning Intervention (Stanley & Brown, 2012).</div>
-<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./deck.html?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>

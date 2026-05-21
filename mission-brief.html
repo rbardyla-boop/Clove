@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#08080f">
+<meta name="theme-color" content="#060d1a">
 <title>MISSION BRIEF • OPERATOR'S DECK</title>
 <style>
-:root{--bg:#08080f;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a80c4;--gld:#d4a843;--red:#c0392b;--grn:#27ae60;--txt:#fff;--dim:#8a8a8a;--dim2:#777}
+:root{--bg:#060d1a;--bg2:#0d0d18;--bg3:#111120;--bg4:#15151f;--blu:#4a80c4;--gld:#d4a843;--red:#c0392b;--grn:#27ae60;--txt:#fff;--dim:#8a8a8a;--dim2:#777}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{height:100%}
 body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;min-height:100dvh;-webkit-font-smoothing:antialiased}
@@ -128,12 +128,15 @@ body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSys
 @keyframes tout{from{opacity:1}to{opacity:0}}
 *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="app" role="main">
 
   <div class="nav-bar" role="navigation" aria-label="Page navigation">
-    <button class="nav-back" onclick="window.location.href='./?tab=more'">← DECK</button>
+    <button class="nav-back" onclick="window.location.href='./deck.html?tab=tools'">← DECK</button>
     <div class="nav-info">
       <div class="nav-tag">OPERATOR'S DECK</div>
       <div class="nav-name">MISSION BRIEF</div>
@@ -575,7 +578,10 @@ section{margin-bottom:20px}
 .footer{margin-top:24px;font-size:7.5pt;color:#888;text-align:center;font-family:'Courier New',monospace;letter-spacing:1px;border-top:1px solid #eee;padding-top:14px}
 @media print{body{padding:16px}.pt-box{page-break-inside:avoid}}
 *:focus-visible{outline:2px solid #d4a843;outline-offset:2px;border-radius:4px}textarea:focus-visible,input:focus-visible{outline:2px solid #d4a843;outline-offset:0}
-</style></head><body>
+</style>  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head><body>
 <div class="tag">OPERATOR'S DECK — THERAPIST SEARCH BRIEF</div>
 <h1>Mission Brief</h1>
 <div class="id-line">${esc(currentBriefId||'')}</div>
@@ -696,8 +702,8 @@ buildModalityGrid();
 goStep(1);
 renderPast();
 </script>
-<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="./?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Brief is locked — let the Deck assign the first objective</span></a></div>
-<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
+<div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="./deck.html?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Brief is locked — let the Deck assign the first objective</span></a></div>
+<div style="max-width:480px;margin:20px auto 0;padding:0 16px 20px;text-align:center"><a href="./deck.html?tab=home" style="display:inline-block;background:var(--bg2,#111118);border:1px solid rgba(212,168,67,.2);border-radius:10px;padding:12px 24px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:2px">DRAW A CARD →</span></a></div>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
 <script src="od-core.js"></script>
