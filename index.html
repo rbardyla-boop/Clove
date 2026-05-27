@@ -210,7 +210,7 @@
                 <span class="card-cta">PLAY NOW</span>
             </a>
 
-            <a class="card card-learn" href="onboarding/onboarding.html">
+            <a class="card card-learn" href="onboarding/onboarding.html" onclick="try{var d=JSON.parse(localStorage.getItem('clovelearn_onboarding_v1')||'null');if(d&&d.completedAt){event.preventDefault();location.href='growth-plan.html';}}catch(e){}">
                 <span class="card-tag">MENTAL HEALTH</span>
                 <div class="card-title">CloveLEarn</div>
                 <div class="card-subtitle">

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>(function(){try{var d=JSON.parse(localStorage.getItem('clovelearn_onboarding_v1')||'null');if(d&&d.completedAt)window.location.replace('../growth-plan.html');}catch(e){}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CloveLearn · Your Journey</title>
@@ -726,6 +727,148 @@
       .chip-grid { grid-template-columns: repeat(4, 1fr); }
       .breath-orb { width: 180px; height: 180px; }
       .summary-hero .num-big { font-size: 58px; }
+    }
+
+    /* ---------- Personalization Receipt (post-onboarding carousel) ---------- */
+    .receipt-slide {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: screenIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .receipt-slide.active { display: flex; }
+
+    .receipt-time {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      background: var(--grad);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin: 18px 0 8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .receipt-body {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--ink-dim);
+      margin-bottom: 20px;
+      text-wrap: pretty;
+    }
+    .receipt-session-card {
+      padding: 20px;
+      background: linear-gradient(180deg, rgba(46,196,182,0.06) 0%, rgba(96,165,250,0.04) 100%);
+      border: 1px solid rgba(46,196,182,0.22);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .receipt-session-card::before {
+      content: '';
+      position: absolute; top: -1px; left: -1px; right: -1px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(46,196,182,0.6), transparent);
+    }
+    .receipt-session-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 10px;
+    }
+    .receipt-session-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 6px;
+      line-height: 1.25;
+    }
+    .receipt-session-desc {
+      font-size: 13px;
+      color: var(--ink-dim);
+      line-height: 1.5;
+    }
+    .receipt-note {
+      font-size: 12px;
+      color: var(--ink-faint);
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+    .receipt-bridge {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink-dim);
+      text-wrap: pretty;
+      margin-bottom: 18px;
+    }
+    .receipt-week-preview {
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-bottom: 28px;
+    }
+    .receipt-week-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .receipt-week-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .receipt-week-sub {
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-top: 2px;
+    }
+    .receipt-spacer { flex: 1; min-height: 24px; }
+    .receipt-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 4px;
+    }
+    .receipt-dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rdot {
+      width: 32px; height: 32px;
+      border-radius: 999px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+    }
+    .rdot::after {
+      content: '';
+      display: block;
+      width: 6px; height: 6px;
+      border-radius: 999px;
+      background: var(--line-strong);
+      transition: all 0.25s ease;
+    }
+    .rdot.active::after {
+      background: var(--teal);
+      box-shadow: 0 0 8px rgba(46,196,182,0.5);
+      width: 18px;
+      border-radius: 3px;
+    }
+    #receipt-next {
+      width: auto;
+      padding: 10px 20px;
+      font-size: 13px;
+      letter-spacing: 0.02em;
     }
 
     /* Resume banner */
@@ -1957,6 +2100,200 @@
       }
     }
 
+    // ---------------- Personalization Receipt ----------------
+    const RECEIPT_REMINDER = {
+      '07:00': '7:00 AM', '09:00': '9:00 AM',
+      '12:30': '12:30 PM', '18:00': '6:00 PM', '21:30': '9:30 PM'
+    };
+
+    const RECEIPT_STYLE_LABELS = {
+      audio: 'Voice-led', reading: 'Text-based', video: 'Guided walkthrough',
+      journal: 'Written prompts', interact: 'Interactive', quiz: 'Self-check'
+    };
+
+    const RECEIPT_CHALLENGE_BRIDGE = {
+      anxiety:    'Anxiety quiets when attention has somewhere to go. Your first week gives it a target.',
+      focus:      'Attention is a muscle. Your first week is the gym.',
+      motivation: 'Motivation follows action, not the other way around. Your first week removes the activation cost.',
+      sleep:      'Sleep improves when the nervous system has a wind-down signal. Your first week installs one.',
+      overwhelm:  'Overwhelm is unprocessed input. Your first week builds a filter.',
+      lonely:     'Connection starts with showing up for yourself. Your first week does that.',
+      stuck:      'Stuck means the next step is unclear. Your first week clarifies it.',
+    };
+
+    const RECEIPT_WEEK_MAP = {
+      calm:       { title: 'Settle the system',      sub: 'Breath, body scans, longer exhales.' },
+      focus:      { title: 'Train attention',         sub: 'Single-task drills & open-monitor sits.' },
+      sleep:      { title: 'Wind-down ritual',        sub: 'Evening practices + sleep hygiene cues.' },
+      resilience: { title: 'Sit with discomfort',    sub: 'Short stress inoculation practices.' },
+      compassion: { title: 'Self-kindness',           sub: 'Loving-kindness & inner-critic work.' },
+      confidence: { title: 'Quiet confidence',        sub: 'Body-led grounding, values clarity.' },
+      connect:    { title: 'Connect deeply',          sub: 'Listening prompts & gratitude letters.' },
+      purpose:    { title: 'Find your throughline',   sub: 'Journal prompts on what matters most.' },
+    };
+
+    const RECEIPT_FIRST_SESSION = {
+      calm:       { title: 'Four rounds of box-breath',      desc: 'A gentle re-entry to the practice you just tried.' },
+      focus:      { title: 'Single-point attention',         desc: 'Pick one object. Notice it without commentary.' },
+      sleep:      { title: 'Body scan, head to feet',        desc: 'A guided wind-down to release the day.' },
+      resilience: { title: 'Name three sensations',          desc: 'Anchor to the body when feelings get loud.' },
+      compassion: { title: 'A letter to your past self',     desc: 'Three sentences. No editing.' },
+      confidence: { title: 'Two-minute grounding',           desc: 'Feet, breath, gaze. Steadier in 120 seconds.' },
+      connect:    { title: 'Send one quiet thank-you',       desc: 'A short message to someone overlooked.' },
+      purpose:    { title: 'One sentence on what matters',   desc: 'Finish: "Right now, what matters is…"' },
+    };
+
+    function buildReceiptSlide1(a) {
+      const displayTime = RECEIPT_REMINDER[a.reminderTime];
+      const canNotify = displayTime && typeof Notification !== 'undefined' && Notification.permission !== 'granted';
+
+      if (!displayTime) {
+        return `
+          <div class="receipt-slide active" id="rslide-0">
+            <div class="eyebrow">Reminder</div>
+            <h1 class="title">No reminder set.</h1>
+            <p class="receipt-body">Your practice opens whenever you do. You can add a time later from your profile.</p>
+            <div class="receipt-spacer"></div>
+          </div>`;
+      }
+
+      return `
+        <div class="receipt-slide active" id="rslide-0">
+          <div class="eyebrow">Reminder</div>
+          <h1 class="title">Set for ${escapeHtml(displayTime)}.</h1>
+          <div class="receipt-time">${escapeHtml(displayTime)}</div>
+          <p class="receipt-body">Show up then. Or don't — it'll be here.</p>
+          ${canNotify ? `
+            <button id="btn-notify" class="btn btn-secondary" style="margin-bottom:12px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              Enable browser reminder
+            </button>` : ''}
+          <div class="receipt-spacer"></div>
+        </div>`;
+    }
+
+    function buildReceiptSlide2(a) {
+      const goal = (a.goals || ['calm'])[0];
+      const style = (a.learningStyle || [])[0];
+      const session = RECEIPT_FIRST_SESSION[goal] || RECEIPT_FIRST_SESSION.calm;
+      const styleLabel = RECEIPT_STYLE_LABELS[style] || '';
+      const dur = a.sessionLen === 'short' ? '3–5 min' : (a.sessionLen === 'long' ? '15–20 min' : '8–12 min');
+      const meta = [styleLabel, dur].filter(Boolean).join(' · ');
+
+      // Sessions for calm/sleep/resilience are naturally audio-friendly (breath/body-scan)
+      const audioNatural = ['calm', 'sleep', 'resilience'];
+      const styleNote = (style === 'audio' && !audioNatural.includes(goal))
+        ? `<p class="receipt-note">Your audio preference is built into your toolshed — voice-led practices start Day 2.</p>`
+        : '';
+
+      return `
+        <div class="receipt-slide" id="rslide-1">
+          <div class="eyebrow">First Practice</div>
+          <h1 class="title">Day 01 is ready.</h1>
+          <div class="receipt-session-card">
+            <div class="receipt-session-meta">${escapeHtml(meta)}</div>
+            <div class="receipt-session-title">${escapeHtml(session.title)}</div>
+            <div class="receipt-session-desc">${escapeHtml(session.desc)}</div>
+          </div>
+          ${styleNote}
+          <div class="receipt-spacer"></div>
+        </div>`;
+    }
+
+    function buildReceiptSlide3(a) {
+      const goal = (a.goals || ['calm'])[0];
+      const challenge = (a.challenges || [])[0];
+      const bridgeText = RECEIPT_CHALLENGE_BRIDGE[challenge]
+        || 'Your first week starts where it will do the most good.';
+      const week = RECEIPT_WEEK_MAP[goal] || RECEIPT_WEEK_MAP.calm;
+
+      return `
+        <div class="receipt-slide" id="rslide-2">
+          <div class="eyebrow">Why This Path</div>
+          <h1 class="title">Week 1 has a reason.</h1>
+          <p class="receipt-bridge">${escapeHtml(bridgeText)}</p>
+          <div class="receipt-week-preview">
+            <div class="receipt-week-label">Week 1</div>
+            <div class="receipt-week-title">${escapeHtml(week.title)}</div>
+            <div class="receipt-week-sub">${escapeHtml(week.sub)}</div>
+          </div>
+          <div class="cta-row" style="margin-top:0;">
+            <a href="../growth-plan.html" class="btn btn-primary" style="text-decoration:none;">
+              Enter CloveLearn
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+            </a>
+          </div>
+        </div>`;
+    }
+
+    function buildReceiptHTML(a) {
+      const SLIDE_LABELS = ['Step 1 of 3: Reminder', 'Step 2 of 3: First Practice', 'Step 3 of 3: Why This Path'];
+      const dots = SLIDE_LABELS.map((lbl, i) =>
+        `<button class="rdot${i === 0 ? ' active' : ''}" data-slide="${i}" aria-label="${lbl}"></button>`
+      ).join('');
+
+      try { localStorage.setItem('cl_receipt_shown', new Date().toISOString()); } catch (_) {}
+
+      return `
+        <div class="app" style="justify-content:flex-start;">
+          ${buildReceiptSlide1(a)}
+          ${buildReceiptSlide2(a)}
+          ${buildReceiptSlide3(a)}
+          <div class="receipt-nav">
+            <div class="receipt-dots" role="tablist" aria-label="Progress">${dots}</div>
+            <button id="receipt-next" class="btn btn-secondary">Next →</button>
+          </div>
+        </div>`;
+    }
+
+    function initReceipt() {
+      let current = 0;
+      const slides = document.querySelectorAll('.receipt-slide');
+      const dots   = document.querySelectorAll('.rdot');
+      const nextBtn = document.getElementById('receipt-next');
+
+      function goTo(idx) {
+        if (idx < 0 || idx >= slides.length) return;
+        slides[current].classList.remove('active');
+        dots[current].classList.remove('active');
+        current = idx;
+        slides[current].classList.add('active');
+        dots[current].classList.add('active');
+        if (nextBtn) nextBtn.style.display = current === slides.length - 1 ? 'none' : '';
+      }
+
+      if (nextBtn) nextBtn.addEventListener('click', () => goTo(current + 1));
+      dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+
+      let touchStartX = 0;
+      document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+      document.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 50) goTo(current + (dx < 0 ? 1 : -1));
+      }, { passive: true });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight') goTo(current + 1);
+        if (e.key === 'ArrowLeft')  goTo(current - 1);
+      });
+
+      const notifyBtn = document.getElementById('btn-notify');
+      if (notifyBtn) {
+        notifyBtn.addEventListener('click', async () => {
+          notifyBtn.disabled = true;
+          const perm = await Notification.requestPermission().catch(() => 'denied');
+          if (perm === 'granted') {
+            notifyBtn.textContent = 'Reminder enabled ✓';
+            try { localStorage.setItem('cl_notify_granted', '1'); } catch (_) {}
+          } else {
+            notifyBtn.remove();
+          }
+        });
+      }
+    }
+
     // ---------------- Dashboard transition ----------------
     function beginDashboard() {
       const finished = { ...state, completedAt: new Date().toISOString() };
@@ -1964,27 +2301,10 @@
       document.body.style.transition = 'opacity 0.7s ease';
       document.body.style.opacity = '0';
       setTimeout(() => {
-        document.body.innerHTML = `
-          <div class="app" style="justify-content:center;align-items:center;text-align:center;">
-            <div class="eyebrow">Day · 01</div>
-            <div class="glyph" style="margin:0 auto 22px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-            </div>
-            <h1 class="title big" style="max-width:400px;margin:0 auto 14px;">Your path is set. Your practice starts now.</h1>
-            <p class="lede" style="max-width:360px;margin:0 auto 32px;">Everything you built is ready. Step into your CloveLearn hub and begin Day 01.</p>
-            <div class="cta-row" style="max-width:360px;margin:0 auto;">
-              <a href="../growth-plan.html" class="btn btn-primary" style="text-decoration:none;">
-                Enter CloveLearn
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-              </a>
-            </div>
-          </div>
-        `;
+        document.body.innerHTML = buildReceiptHTML(finished.answers);
         document.body.style.transition = 'opacity 0.5s ease';
         document.body.style.opacity = '1';
+        initReceipt();
       }, 700);
     }
 
