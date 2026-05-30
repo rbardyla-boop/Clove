@@ -329,24 +329,36 @@ const CHAMBERS = [
   },
 ];
 
-// Sanity check: warn on malformed chambers
-CHAMBERS.forEach((c, i) => {
-  if (c.grid.length !== CHAMBER_H) {
-    console.warn(`Chamber ${i} (${c.name}) has ${c.grid.length} rows, expected ${CHAMBER_H}`);
-  }
-  let spawnCount = 0, nodeCount = 0;
-  c.grid.forEach((row, r) => {
-    if (row.length !== CHAMBER_W) {
-      console.warn(`Chamber ${i} (${c.name}) row ${r} width ${row.length}: "${row}"`);
+// ─── Chamber validation (runs once at load) ───────────────
+// Catches malformed data before it can silently create a broken level.
+(function validateChambers() {
+  const LEGAL = new Set(['.', '#', '^', 'D', '=', 'G', 'M', 'N', 'P']);
+  let problems = 0;
+  CHAMBERS.forEach((c, i) => {
+    const tag = `Chamber ${i} "${c.name}"`;
+    if (c.grid.length !== CHAMBER_H) {
+      console.error(`${tag}: ${c.grid.length} rows, expected ${CHAMBER_H}`); problems++;
     }
-    for (const ch of row) {
-      if (ch === 'P') spawnCount++;
-      if (ch === 'N') nodeCount++;
-    }
+    let spawns = 0, nodes = 0;
+    c.grid.forEach((row, r) => {
+      if (row.length !== CHAMBER_W) {
+        console.error(`${tag}: row ${r} has ${row.length} cols, expected ${CHAMBER_W} — "${row}"`); problems++;
+      }
+      for (let col = 0; col < row.length; col++) {
+        const ch = row[col];
+        if (!LEGAL.has(ch)) {
+          console.error(`${tag}: illegal char "${ch}" at row ${r}, col ${col}`); problems++;
+        }
+        if (ch === 'P') spawns++;
+        if (ch === 'N') nodes++;
+      }
+    });
+    if (spawns !== 1) { console.error(`${tag}: ${spawns} spawn(s) (P), expected exactly 1`); problems++; }
+    if (nodes < 1)   { console.error(`${tag}: no nodes (N), expected at least 1`); problems++; }
   });
-  if (spawnCount !== 1) console.warn(`Chamber ${i} has ${spawnCount} spawns`);
-  if (nodeCount === 0) console.warn(`Chamber ${i} has no nodes`);
-});
+  if (problems === 0) console.info('Node Hopper: all chambers passed validation.');
+  else console.error(`Node Hopper: ${problems} chamber validation problem(s).`);
+})();
 
 window.CHAMBERS = CHAMBERS;
 window.CHAMBER_W = CHAMBER_W;

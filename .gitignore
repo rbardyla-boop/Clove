@@ -1,3 +1,9 @@
+# Vendor bundles too large for git
+scripts/tesseract-core/
+semantic/transformers.min.js
+semantic/benefit-embeddings.json
+
+
 # ── Deployment excludes ──────────────────────────────────────────
 # Wrangler respects .gitignore when running `wrangler pages deploy`
 # None of these should ever be served from Cloudflare Pages.
