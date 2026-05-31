@@ -19,3 +19,15 @@ atip/
 
 # Node artifacts (if electron-app deps ever get installed locally)
 node_modules/
+
+# ── Neon Circuit Room Authority (Phase 1b+) ─────────────────────
+# Wrangler local dev state for the authority Worker + DO
+workers/arcade/.wrangler/
+workers/arcade/node_modules/
+workers/arcade/.env
+workers/arcade/.dev.vars
+
+# Local DO SQLite storage (when running with --local)
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

@@ -1,0 +1,19 @@
+{
+  "name": "neon-arcade-mesh",
+  "version": "0.1.0-phase1b",
+  "private": true,
+  "description": "Neon Circuit Room Authority Mesh — Phase 1b (Durable Object + WebSocket Hibernation)",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

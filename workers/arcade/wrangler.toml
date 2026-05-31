@@ -1,0 +1,26 @@
+# Neon Circuit Room Authority Mesh — Phase 1b
+# Worker + Durable Object for serverless room/cabinet authority
+# This is a separate project from the static Cloudflare Pages site.
+
+name = "neon-arcade-mesh"
+main = "src/index.ts"
+compatibility_date = "2026-05-31"
+
+# Durable Object binding for the room authority
+[durable_objects]
+bindings = [
+  { name = "ARCADE_ROOM", class_name = "ArcadeRoom" }
+]
+
+# SQLite-backed Durable Objects (recommended for new classes)
+# See Cloudflare docs on new_sqlite_classes migrations
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ArcadeRoom"]
+
+# Local development settings
+[vars]
+ENVIRONMENT = "development"
+
+# Production would override with real environment variables if needed later
+# (e.g., for future D1/R2 integration — explicitly out of scope for 1b)

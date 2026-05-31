@@ -1,0 +1,218 @@
+/* ============================================================
+   NEON CIRCUIT ARCADE — Level 1 Main Floor (Phase 1c shell)
+   Visual language ported from the design mockup; trimmed to the
+   floor + Pulse Tap. No tickets / mobile joystick / gameplay styles.
+   ============================================================ */
+:root{
+  /* surfaces (dark indoor) */
+  --void:#080411;
+  --void-2:#0f0822;
+  --panel:#160c2b;
+  --panel-2:#1f1140;
+  --panel-3:#2a1a55;
+  --line:rgba(177,74,255,.22);
+  --line-strong:rgba(177,74,255,.45);
+
+  /* neon accents */
+  --pink:#ff2d95;
+  --cyan:#19e3ff;
+  --violet:#b14aff;
+  --gold:#ffd23f;
+  --good:#3df58b;
+  --danger:#ff5a5a;
+
+  /* text */
+  --text:#f3ecff;
+  --muted:#9d8fc4;
+  --muted-2:#6b5e91;
+
+  /* type */
+  --font-display:'Bungee', system-ui, sans-serif;
+  --font-ui:'Chakra Petch', system-ui, sans-serif;
+
+  /* radius */
+  --r-sm:8px; --r-md:14px; --r-lg:22px; --r-pill:999px;
+
+  /* glow shadows */
+  --glow-pink:0 0 14px rgba(255,45,149,.55), 0 0 36px rgba(255,45,149,.25);
+  --glow-cyan:0 0 14px rgba(25,227,255,.55), 0 0 36px rgba(25,227,255,.25);
+  --glow-gold:0 0 14px rgba(255,210,63,.55), 0 0 30px rgba(255,210,63,.3);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:var(--font-ui);
+  background:var(--void);
+  color:var(--text);
+  overflow:hidden;
+  user-select:none;
+  -webkit-user-select:none;
+}
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none;}
+#app{position:fixed;inset:0;overflow:hidden;}
+
+/* ============================================================
+   ARCADE FLOOR SCENE (faux-3D)
+   ============================================================ */
+.scene{position:absolute;inset:0;overflow:hidden;
+  background:
+    radial-gradient(120% 80% at 50% 8%, rgba(177,74,255,.20), transparent 60%),
+    radial-gradient(90% 60% at 18% 30%, rgba(255,45,149,.16), transparent 55%),
+    radial-gradient(90% 60% at 82% 30%, rgba(25,227,255,.16), transparent 55%),
+    linear-gradient(180deg,#0c0620 0%, #0a0518 48%, #060310 100%);
+}
+.ceiling{position:absolute;top:0;left:0;right:0;height:18%;
+  background:linear-gradient(180deg, rgba(177,74,255,.18), transparent);}
+.ceiling::before{content:"";position:absolute;top:7%;left:8%;right:8%;height:5px;border-radius:99px;
+  background:linear-gradient(90deg,var(--pink),var(--violet),var(--cyan));
+  box-shadow:0 0 24px rgba(177,74,255,.7);opacity:.85;animation:hue 8s linear infinite;}
+@keyframes hue{to{filter:hue-rotate(360deg);}}
+
+.floor{position:absolute;left:-30%;right:-30%;bottom:-2%;height:62%;
+  transform:perspective(520px) rotateX(68deg);transform-origin:bottom center;
+  background-image:
+    linear-gradient(transparent 0, transparent calc(100% - 2px), rgba(25,227,255,.55) 100%),
+    linear-gradient(90deg, transparent 0, transparent calc(100% - 2px), rgba(255,45,149,.45) 100%);
+  background-size:64px 64px, 64px 64px;
+  animation:floorscroll 4s linear infinite;
+  mask-image:linear-gradient(180deg, transparent, #000 35%);}
+@keyframes floorscroll{to{background-position:0 64px, 0 0;}}
+.floor-glow{position:absolute;left:0;right:0;bottom:38%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),var(--pink),transparent);
+  box-shadow:0 0 30px var(--cyan);opacity:.7;}
+
+.wall-sign{position:absolute;top:13%;left:50%;transform:translateX(-50%);
+  font-family:var(--font-display);font-weight:400;font-size:clamp(20px,5vw,46px);letter-spacing:1px;
+  color:#fff;text-shadow:var(--glow-pink);white-space:nowrap;opacity:.9;}
+.wall-sign .c{color:var(--cyan);text-shadow:var(--glow-cyan);}
+.wall-tag{position:absolute;top:calc(13% + clamp(34px,7vw,64px));left:50%;transform:translateX(-50%);
+  font-size:clamp(9px,1.8vw,13px);letter-spacing:5px;color:var(--muted);text-transform:uppercase;font-weight:400;}
+
+/* ---- arcade cabinets row ---- */
+.cabinets{position:absolute;left:0;right:0;bottom:13%;height:46%;
+  display:flex;align-items:flex-end;justify-content:center;gap:clamp(10px,3vw,40px);padding:0 16px;}
+.cab{position:relative;width:clamp(96px,17vw,168px);height:clamp(150px,26vw,250px);
+  border-radius:16px 16px 6px 6px;flex:0 0 auto;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:2px solid var(--cab,#b14aff);
+  box-shadow:0 0 0 1px rgba(0,0,0,.5), 0 0 22px -2px var(--cab,#b14aff), inset 0 -30px 40px -20px #000;
+  transition:transform .25s, box-shadow .25s, border-color .25s, opacity .25s;}
+.cab.powered{cursor:pointer;}
+.cab.powered:hover{transform:translateY(-6px);}
+.cab.selected{transform:translateY(-10px) scale(1.04);
+  box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 40px var(--cab),0 14px 30px rgba(0,0,0,.6);}
+.cab .marquee{position:absolute;top:8px;left:8px;right:8px;height:20px;border-radius:6px;
+  background:var(--cab);color:#0a0518;font-family:var(--font-display);
+  font-size:clamp(6px,1.2vw,9px);display:flex;align-items:center;justify-content:center;
+  letter-spacing:.5px;box-shadow:0 0 14px var(--cab);text-align:center;overflow:hidden;}
+.cab .screen{position:absolute;top:34px;left:10px;right:10px;height:42%;border-radius:6px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 2px, transparent 2px 4px),
+    radial-gradient(circle at 50% 40%, color-mix(in srgb,var(--cab) 60%, #000), #07030f 80%);
+  border:1px solid rgba(255,255,255,.12);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;font-size:clamp(16px,4vw,30px);}
+.cab .screen .ico{filter:drop-shadow(0 0 8px var(--cab));}
+.cab .panel{position:absolute;bottom:8px;left:8px;right:8px;height:26%;border-radius:6px;
+  background:linear-gradient(180deg,var(--panel-3),var(--panel));
+  display:flex;align-items:center;justify-content:center;gap:6px;}
+.cab .btn-dot{width:9px;height:9px;border-radius:50%;background:var(--cab);box-shadow:0 0 8px var(--cab);}
+.cab .occ[hidden]{display:none;}
+.cab .occ{position:absolute;top:-12px;right:-6px;font-size:9px;font-weight:700;letter-spacing:.5px;
+  background:var(--gold);color:#1a0f00;padding:3px 7px;border-radius:99px;box-shadow:var(--glow-gold);
+  text-transform:uppercase;max-width:120%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cab .status-led{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);
+  font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--good);white-space:nowrap;}
+
+/* occupied by someone else -> gold "in use" */
+.cab.busy{border-color:var(--gold);box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 30px -2px var(--gold),inset 0 -30px 40px -20px #000;}
+.cab.busy .status-led{color:var(--gold);}
+/* occupied by you -> green "you're on" */
+.cab.mine{border-color:var(--good);box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 34px -2px var(--good),inset 0 -30px 40px -20px #000;}
+.cab.mine .occ{background:var(--good);box-shadow:0 0 14px rgba(61,245,139,.6);}
+.cab.mine .status-led{color:var(--good);}
+
+/* unpowered placeholder cabinets (floor identity only, not interactive) */
+.cab.coming-soon{opacity:.5;filter:saturate(.6);}
+.cab.coming-soon .status-led{color:var(--muted-2);}
+
+/* interact prompt */
+.interact{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:20;
+  display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:opacity .25s;}
+.interact .key{display:inline-flex;align-items:center;gap:8px;background:rgba(8,4,17,.8);
+  border:1.5px solid var(--cyan);border-radius:var(--r-pill);padding:8px 16px;
+  box-shadow:var(--glow-cyan);font-weight:600;font-size:14px;letter-spacing:.5px;color:var(--text);
+  animation:floaty 1.8s ease-in-out infinite;}
+.interact .key:active{transform:scale(.96);}
+.interact .key:disabled{border-color:var(--gold);box-shadow:0 0 14px rgba(255,210,63,.4);
+  color:var(--gold);cursor:not-allowed;animation:none;}
+.interact .kbd{font-family:var(--font-display);font-size:12px;background:var(--cyan);color:#04141a;
+  border-radius:6px;padding:2px 7px;}
+.interact .kbd[hidden]{display:none;}
+.interact .target{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+@keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+
+/* ============================================================
+   HUD (top bar)
+   ============================================================ */
+.hud-top{position:absolute;top:0;left:0;right:0;z-index:30;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:max(12px,env(safe-area-inset-top)) 14px 0;gap:8px;}
+
+.player-chip{display:flex;align-items:center;gap:9px;background:rgba(15,8,34,.72);
+  backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:var(--r-pill);
+  padding:6px 14px 6px 6px;transition:border-color .2s, transform .15s;}
+.player-chip:active{transform:scale(.96);}
+.player-chip:hover{border-color:var(--pink);}
+.chip-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;
+  background:var(--ac,#19e3ff);box-shadow:0 0 12px var(--ac,#19e3ff);display:grid;place-items:center;
+  font-family:var(--font-display);font-size:12px;color:#04141a;}
+.chip-meta{display:flex;flex-direction:column;line-height:1.1;text-align:left;}
+.chip-meta .nm{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;}
+.chip-meta .st{font-size:9.5px;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;}
+
+.brand{position:absolute;left:50%;top:14px;transform:translateX(-50%);text-align:center;pointer-events:none;}
+.brand .logo{font-family:var(--font-display);font-size:17px;letter-spacing:.5px;color:#fff;text-shadow:var(--glow-pink);}
+.brand .logo .c{color:var(--cyan);text-shadow:var(--glow-cyan);}
+.brand .sub{font-size:8px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-top:1px;}
+
+/* connection status pill (replaces tickets HUD for 1c) */
+.status-pill{display:flex;align-items:center;gap:8px;background:rgba(15,8,34,.72);
+  backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:var(--r-pill);
+  padding:8px 14px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
+.status-pill .dot{width:9px;height:9px;border-radius:50%;background:var(--good);
+  box-shadow:0 0 8px var(--good);flex:0 0 auto;}
+.status-pill .dot.off{background:var(--muted-2);box-shadow:none;animation:pulse-off 1.2s ease-in-out infinite;}
+@keyframes pulse-off{0%,100%{opacity:.45;}50%{opacity:1;}}
+.status-pill .txt{font-variant-numeric:tabular-nums;}
+
+/* ============================================================
+   INTERACT ACTION (bottom-right)
+   ============================================================ */
+.action-cluster{position:absolute;right:14px;bottom:max(18px,env(safe-area-inset-bottom));z-index:30;}
+.act-btn{position:relative;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));border:2px solid var(--cyan);
+  box-shadow:var(--glow-cyan);transition:transform .12s, border-color .2s, box-shadow .2s, opacity .2s;}
+.act-btn:active{transform:scale(.9);}
+.act-btn:disabled{border-color:var(--gold);box-shadow:0 0 14px rgba(255,210,63,.4);opacity:.7;cursor:not-allowed;}
+.act-btn .ic{font-size:24px;}
+.act-btn .kbd-mini{position:absolute;bottom:-2px;right:-2px;font-family:var(--font-display);font-size:8px;
+  background:var(--cyan);color:#04141a;border-radius:5px;padding:1px 4px;}
+
+/* ============================================================
+   HINT TOAST
+   ============================================================ */
+.hint-toast{position:absolute;bottom:22%;left:50%;transform:translateX(-50%) translateY(8px);z-index:40;
+  background:rgba(15,8,34,.92);border:1px solid var(--line-strong);border-radius:var(--r-pill);
+  padding:9px 18px;font-size:12px;color:var(--text);opacity:0;pointer-events:none;
+  transition:opacity .3s, transform .3s;white-space:nowrap;}
+.hint-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media (max-width:560px){
+  .brand{display:none;}
+  .cabinets{bottom:16%;gap:14px;}
+  .act-btn{width:58px;height:58px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .ceiling::before,.floor,.interact .key,.status-pill .dot.off{animation:none;}
+}
