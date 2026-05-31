@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse Tap — Occupancy Authority Test (Phase 1b)</title>
+  <style>
+    :root {
+      --void:#080411; --panel:#160c2b; --panel-2:#1f1140; --panel-3:#2a1a55;
+      --pink:#ff2d95; --cyan:#19e3ff; --gold:#ffd23f; --good:#3df58b; --danger:#ff5a5a;
+      --text:#f3ecff; --muted:#9d8fc4; --line:rgba(177,74,255,.22);
+      --font-display:'Bungee', system-ui, sans-serif; --font-ui:'Chakra Petch', system-ui, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--void); color:var(--text);
+      font-family:var(--font-ui); padding:24px; line-height:1.4;
+    }
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+    .title{font-family:var(--font-display);font-size:28px;letter-spacing:1px}
+    .title .c{color:var(--cyan)}
+    .subtitle{font-size:13px;color:var(--muted);margin-top:4px}
+    .player{font-size:12px;background:rgba(255,255,255,.06);padding:4px 10px;border-radius:999px;border:1px solid var(--line)}
+    /* === Validation-only Identity Banner (Phase 1b proof quality) === */
+    .identity-banner{
+      background:rgba(15,8,34,.85);border:2px solid var(--cyan);
+      border-radius:10px;padding:12px 16px;margin:0 auto 20px;max-width:620px;
+      font-size:13px;display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;
+    }
+    .identity-banner.warn{border-color:var(--danger);background:rgba(40,8,12,.85)}
+    .identity-banner .k{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px}
+    .identity-banner .v{font-family:ui-monospace,monospace;font-size:13px;color:#fff}
+    .identity-banner .row{display:flex;align-items:baseline;gap:6px}
+    .identity-banner .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--good);margin-right:4px}
+    .identity-banner .status-dot.off{background:#555}
+    .log-tools{display:flex;gap:8px;align-items:center;margin:12px auto 0;max-width:620px}
+    .log-tools button{font-size:11px;padding:4px 10px}
+    #log{min-height:180px}
+    .cab{
+      width:220px;height:300px;border-radius:16px 16px 6px 6px;
+      background:linear-gradient(180deg,var(--panel-2),var(--panel));
+      border:3px solid var(--pink);box-shadow:0 0 0 1px #000,0 0 40px -8px var(--pink);
+      position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      margin:0 auto 32px;
+    }
+    .cab.busy{border-color:var(--gold);box-shadow:0 0 0 1px #000,0 0 40px -4px var(--gold)}
+    .marquee{
+      position:absolute;top:16px;left:16px;right:16px;height:28px;
+      background:var(--pink);color:#0a0518;font-family:var(--font-display);
+      font-size:13px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;
+    }
+    .cab.busy .marquee{background:var(--gold);color:#1a0f00}
+    .screen{
+      width:160px;height:110px;background:#07030f;border:1px solid rgba(255,255,255,.15);
+      display:flex;align-items:center;justify-content:center;font-size:42px;margin-top:40px;
+    }
+    .status{
+      margin-top:20px;font-size:13px;text-transform:uppercase;letter-spacing:2px;
+    }
+    .status.free{color:var(--good)}
+    .status.busy{color:var(--gold)}
+    .occ-badge{
+      position:absolute;top:-14px;right:-8px;font-size:10px;font-weight:700;
+      background:var(--gold);color:#1a0f00;padding:2px 9px;border-radius:999px;
+      box-shadow:0 0 12px var(--gold);
+    }
+    .controls{display:flex;gap:12px;justify-content:center;margin-top:12px}
+    button{
+      font-family:var(--font-ui);font-size:14px;padding:10px 22px;border-radius:8px;
+      border:2px solid var(--cyan);background:rgba(25,227,255,.1);color:var(--text);cursor:pointer;
+    }
+    button:disabled{opacity:.4;cursor:not-allowed;border-color:#444}
+    .log{
+      background:#0a0518;border:1px solid var(--line);padding:12px;font-size:12px;
+      font-family:ui-monospace,monospace;max-width:620px;margin:24px auto 0;
+      white-space:pre-wrap;line-height:1.35;
+    }
+    .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+    .row{display:flex;gap:32px;justify-content:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="title">PULSE TAP <span class="c">OCCUPANCY</span></div>
+      <div class="subtitle">Phase 1b — Room Authority Mesh validation (IMPLEMENTED / UNVALIDATED)</div>
+    </div>
+  </div>
+
+  <!-- Prominent Player Identity Banner for proof quality -->
+  <div id="identity-banner" class="identity-banner">
+    <div class="row"><span class="k">Player ID</span> <span id="banner-pid" class="v">—</span></div>
+    <div class="row"><span class="k">Source</span> <span id="banner-source" class="v">—</span></div>
+    <div class="row"><span class="k">Status</span> <span id="banner-status" class="v"><span class="status-dot off"></span><span id="banner-status-text">disconnected</span></span></div>
+    <div class="row"><span class="k">Room Rev</span> <span id="banner-room-rev" class="v">—</span></div>
+    <div class="row"><span class="k">Pulse Occupied By</span> <span id="banner-occupied-by" class="v">—</span></div>
+    <div class="row"><span class="k">Pulse Rev</span> <span id="banner-pulse-rev" class="v">—</span></div>
+  </div>
+  <div id="collision-warning" style="display:none;max-width:620px;margin:-12px auto 16px;color:var(--danger);font-size:12px;text-align:center">
+    ⚠️ WARNING: The Player ID shown above appears identical to what you may be using in the other tab.<br>
+    Use different <code>?id=alpha</code> and <code>?id=bravo</code> values for a valid proof.
+  </div>
+
+  <div class="row">
+    <!-- The one machine we care about -->
+    <div>
+      <div id="cab" class="cab">
+        <div class="marquee">PULSE TAP</div>
+        <div class="screen">⚡</div>
+        <div id="status" class="status free">FREE</div>
+        <div id="occ" class="occ-badge" style="display:none"></div>
+      </div>
+
+      <div class="controls">
+        <button id="btn-occupy">OCCUPY</button>
+        <button id="btn-release" disabled>RELEASE</button>
+      </div>
+      <div class="hint">Open this page in a second tab/browser using different <code>?id=</code> values for a valid proof.</div>
+    </div>
+  </div>
+
+  <div class="log-tools">
+    <button id="btn-copy-log" type="button">Copy Log</button>
+    <span style="font-size:11px;color:var(--muted)">Rich validation log — copy this after running the 8-point gate</span>
+  </div>
+  <div id="log" class="log" style="user-select:text;-webkit-user-select:text"></div>
+
+  <script type="module">
+    import { NeonCircuitRoomClient } from './neon-circuit-room-client.js';
+
+    // === Query param handling for clean two-client validation ===
+    const params = new URLSearchParams(location.search);
+    const explicitWs = params.get('ws');
+    const explicitId = params.get('id'); // e.g. alpha / bravo
+
+    // DOM refs
+    const cabEl = document.getElementById('cab');
+    const statusEl = document.getElementById('status');
+    const occEl = document.getElementById('occ');
+    const btnOccupy = document.getElementById('btn-occupy');
+    const btnRelease = document.getElementById('btn-release');
+    const logEl = document.getElementById('log');
+    const banner = document.getElementById('identity-banner');
+    const collisionWarning = document.getElementById('collision-warning');
+
+    // Banner elements
+    const bPid = document.getElementById('banner-pid');
+    const bSource = document.getElementById('banner-source');
+    const bStatusText = document.getElementById('banner-status-text');
+    const bStatusDot = document.querySelector('#banner-status .status-dot');
+    const bRoomRev = document.getElementById('banner-room-rev');
+    const bOccupiedBy = document.getElementById('banner-occupied-by');
+    const bPulseRev = document.getElementById('banner-pulse-rev');
+
+    // Rich validation log
+    let logEntries = [];
+
+    function logStructured(entry) {
+      const ts = new Date().toISOString().split('T')[1].slice(0, 12);
+      const line = `[${ts}] ${entry.dir || '•'} ${entry.type || ''} | ${entry.machineId || ''} | occBy=${entry.occupiedBy ?? '-'} rev=${entry.rev ?? entry.currentRev ?? '-'} ${entry.reason ? 'reason=' + entry.reason : ''}`;
+      logEntries.push(line);
+      logEl.textContent = logEntries.join('\n');
+      // Auto-scroll to bottom
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function log(msg) {
+      // Legacy simple log still works for quick notes
+      const time = new Date().toLocaleTimeString();
+      const line = `[${time}] ${msg}`;
+      logEntries.push(line);
+      logEl.textContent = logEntries.join('\n');
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Copy log support
+    document.getElementById('btn-copy-log').onclick = () => {
+      const text = logEl.textContent || logEntries.join('\n');
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = event.target.textContent;
+        event.target.textContent = 'Copied!';
+        setTimeout(() => { event.target.textContent = orig; }, 1200);
+      }).catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    };
+
+    // === Create client with explicit identity override when ?id= is present ===
+    const clientOptions = {
+      wsUrl: explicitWs || undefined,
+    };
+
+    if (explicitId) {
+      // This overrides localStorage for the test session only — critical for proof quality
+      clientOptions.playerIdOverride = `test-${explicitId}`;
+    }
+
+    const client = new NeonCircuitRoomClient({
+      ...clientOptions,
+      onState: (state) => {
+        const m = state.machines?.pulse;
+        if (!m) return;
+
+        renderMachine(m);
+        renderBanner(state);
+        logStructured({
+          dir: '←',
+          type: 'room_state',
+          machineId: 'pulse',
+          occupiedBy: m.occupiedBy,
+          rev: m.rev,
+        });
+      },
+      onDenied: (info) => {
+        logStructured({
+          dir: '←',
+          type: 'occupy_denied',
+          machineId: info.machineId,
+          reason: info.reason,
+          currentRev: info.currentRev,
+        });
+        log(`DENIED: ${info.reason} (machine=${info.machineId})`);
+      },
+      onError: (e) => {
+        logStructured({ dir: '•', type: 'error', reason: JSON.stringify(e) });
+        log(`ERROR: ${JSON.stringify(e)}`);
+      },
+      onConnected: ({ playerId }) => {
+        logStructured({ dir: '•', type: 'ws_open', occupiedBy: playerId });
+        log(`Connected as ${playerId} (source: ${client.getPlayerIdSource()})`);
+        renderBanner(null);
+      }
+    });
+
+    // Patch websocket close/error for richer logging (validation only)
+    const origConnect = client.connect.bind(client);
+    client.connect = function patchedConnect() {
+      origConnect();
+      // After connect, monkey-patch the internal ws for close/error visibility
+      const check = setInterval(() => {
+        if (client.ws) {
+          const realClose = client.ws.onclose;
+          client.ws.onclose = (ev) => {
+            logStructured({ dir: '•', type: 'ws_close', reason: ev.code + ' ' + ev.reason });
+            if (realClose) realClose.call(client.ws, ev);
+          };
+          const realErr = client.ws.onerror;
+          client.ws.onerror = (ev) => {
+            logStructured({ dir: '•', type: 'ws_error' });
+            if (realErr) realErr.call(client.ws, ev);
+          };
+          clearInterval(check);
+        }
+      }, 50);
+    };
+
+    function renderMachine(m) {
+      const isMine = m.occupiedBy === client.getPlayerId();
+      const isOccupied = !!m.occupiedBy;
+
+      cabEl.classList.toggle('busy', isOccupied);
+      statusEl.textContent = isOccupied ? 'BUSY' : 'FREE';
+      statusEl.className = `status ${isOccupied ? 'busy' : 'free'}`;
+
+      if (isOccupied) {
+        occEl.textContent = m.occupiedBy.slice(0, 12);
+        occEl.style.display = 'block';
+      } else {
+        occEl.style.display = 'none';
+      }
+
+      btnOccupy.disabled = isOccupied;
+      btnRelease.disabled = !isMine;
+    }
+
+    function renderBanner(state) {
+      const pid = client.getPlayerId();
+      bPid.textContent = pid;
+      bSource.textContent = client.getPlayerIdSource() + (client.isUsingPlayerIdOverride() ? ' (override)' : '');
+
+      bStatusText.textContent = client.isConnected ? 'connected' : 'disconnected';
+      bStatusDot.classList.toggle('off', !client.isConnected);
+
+      const m = state?.machines?.pulse || client.getCurrentMachineState('pulse');
+
+      bRoomRev.textContent = state?.rev ?? (m?.rev ?? '—');
+      bOccupiedBy.textContent = m?.occupiedBy ? m.occupiedBy.slice(0, 14) : '—';
+      bPulseRev.textContent = m?.rev ?? '—';
+
+      // Simple manual collision visibility aid
+      // We cannot perfectly detect other tabs, but we can make the current identity extremely obvious
+      // and show a warning if the user is likely using the default generated ID in both tabs.
+      const looksLikeDefaultGenerated = pid.startsWith('player_') && !client.isUsingPlayerIdOverride();
+      if (looksLikeDefaultGenerated) {
+        banner.classList.add('warn');
+        collisionWarning.style.display = 'block';
+      } else {
+        banner.classList.remove('warn');
+        collisionWarning.style.display = 'none';
+      }
+    }
+
+    // Outbound action logging
+    btnOccupy.onclick = () => {
+      logStructured({ dir: '→', type: 'occupy_machine', machineId: 'pulse' });
+      log('Requesting occupy...');
+      client.occupy('pulse');
+    };
+
+    btnRelease.onclick = () => {
+      logStructured({ dir: '→', type: 'release_machine', machineId: 'pulse' });
+      log('Requesting release...');
+      client.release('pulse');
+    };
+
+    // Boot
+    logStructured({ dir: '•', type: 'harness_boot', reason: `id=${explicitId || 'none'}` });
+    log('Phase 1b occupancy test starting (IMPLEMENTED / UNVALIDATED)...');
+
+    if (explicitId) {
+      log(`Using explicit identity override: test-${explicitId}`);
+    } else {
+      log('No ?id= override — falling back to localStorage (risk of colliding with other tab)');
+    }
+
+    client.connect();
+
+    // Initial banner render
+    setTimeout(() => renderBanner(null), 100);
+
+    // Periodic banner refresh (for connection state)
+    setInterval(() => {
+      if (client) renderBanner(null);
+    }, 2000);
+  </script>
+</body>
+</html>
