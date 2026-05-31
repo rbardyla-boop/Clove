@@ -117,6 +117,7 @@
   }
   resize();
   window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => { resetTouch(); setTimeout(resize, 200); });
 
   // ─── Coordinate helper: grid (col, row) -> world (x, y) center ───
   // row 0 is top. World y up. tile center = (col + 0.5, H - row - 0.5)
@@ -228,7 +229,7 @@
     grp.add(halo); grp.add(core);
     grp.position.set(x, y, 0);
     world.add(grp);
-    return { x, y, w: 0.7, h: 0.7, type: 'hazard', mesh: grp, dir, halo, core, baseY: y };
+    return { x, y, w: 0.5, h: 0.5, type: 'hazard', mesh: grp, dir, halo, core, baseY: y };
   }
 
   // ─── Player ────────────────────────────────────────────
@@ -319,8 +320,10 @@
     player.coyote = 0;
     player.jumpBuffer = 0;
     player.squash = 1; player.stretch = 1;
+    player.jumpHeld = false;
     player.mesh.visible = true;
     player.mesh.scale.set(1, 1, 1);
+    resetTouch();
   }
 
   // AABB overlap
@@ -487,32 +490,43 @@
 
   // ─── Touch controls ────────────────────────────────────
   const touch = { left: false, right: false, jump: false, jumpPressed: false };
+  function resetTouch() {
+    touch.left = false; touch.right = false; touch.jump = false; touch.jumpPressed = false;
+  }
   function bindButton(id, key) {
     const el = document.getElementById(id);
     if (!el) return;
     const press = (e) => {
       e.preventDefault();
+      if (e.pointerId != null && el.setPointerCapture) {
+        try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      }
       touch[key] = true;
       if (key === 'jump') touch.jumpPressed = true;
       SFX.resume();
       if (game.state === 'title' || game.state === 'gameover') startRun();
     };
     const release = (e) => { e.preventDefault(); touch[key] = false; };
-    el.addEventListener('touchstart', press, { passive: false });
-    el.addEventListener('touchend', release, { passive: false });
-    el.addEventListener('touchcancel', release, { passive: false });
-    el.addEventListener('mousedown', press);
-    el.addEventListener('mouseup', release);
-    el.addEventListener('mouseleave', release);
+    // Pointer events subsume mouse + touch + pen, so separate touch/mouse
+    // handlers are not needed. setPointerCapture keeps the release bound to
+    // this button even if the finger slides off before lifting.
+    el.addEventListener('pointerdown', press);
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+    el.addEventListener('pointerleave', release);
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
   bindButton('btn-left', 'left');
   bindButton('btn-right', 'right');
   bindButton('btn-jump', 'jump');
 
-  // Show touch UI on touch devices
-  if ('ontouchstart' in window) {
+  // Show touch UI on touch / coarse-pointer devices
+  const coarse = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
+  if (coarse) {
     document.getElementById('touch-ui').style.display = 'flex';
   }
+  // Clear held movement if the window loses focus (alt-tab, app switch).
+  window.addEventListener('blur', resetTouch);
 
   // ─── Game state machine ───────────────────────────────
   let audioMuted = false;
@@ -634,6 +648,13 @@
 
   // ─── Update loop ──────────────────────────────────────
   let last = performance.now() / 1000;
+  // dt is clamped to 0.033 below (the real tunneling safeguard). This also
+  // resets the clock on tab re-focus so resume produces no catch-up step,
+  // and clears any held movement while the tab is hidden.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) resetTouch();
+    else last = performance.now() / 1000;
+  });
   function frame() {
     const now = performance.now() / 1000;
     let dt = now - last;
@@ -727,10 +748,11 @@
       SFX.jump();
     }
 
-    // Jump cut on release
-    if (!input.jump && player.vy * (player.grav === 1 ? 1 : -1) > 0) {
+    // Jump cut on release — edge-triggered (fires once, on held→released)
+    if (player.jumpHeld && !input.jump && player.vy * (player.grav === 1 ? 1 : -1) > 0) {
       player.vy *= PHYS.JUMP_CUT;
     }
+    player.jumpHeld = input.jump;
 
     // Gravity
     player.vy -= PHYS.GRAVITY * player.grav * dt;

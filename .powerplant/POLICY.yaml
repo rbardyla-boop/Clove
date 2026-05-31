@@ -1,0 +1,48 @@
+projectId: clovelearn_v3_final_deploy-ccc7d674
+includePaths:
+  - '*.html'
+  - '*.js'
+  - '*.css'
+  - '*.json'
+  - 'anchor/**'
+  - 'docs/**'
+  - 'articles/**'
+  - 'tests/**'
+  - 'game/Arcade/**'
+  - 'game/nodehopper/**'
+  - 'game/theincrediblemindmachine/**'
+excludePaths:
+  - '**/.git/**'
+  - '**/node_modules/**'
+  - 'scripts/**'
+  - 'semantic/transformers.min.js'
+  - 'semantic/benefit-embeddings.json'
+  - 'game/three.min.js'
+  - 'game/topojson-client.min.js'
+  - 'game/main.js'
+  - 'electron-app/**'
+  - .env
+  - .env.*
+  - '**/*.key'
+  - '**/*.pem'
+  - '**/.venv/**'
+  - '**/venv/**'
+  - '**/__pycache__/**'
+  - '**/.pytest_cache/**'
+  - 'atip/**'
+denyIfPresentAfterCopy:
+  - .env
+  - .git
+allowedReadPaths:
+  - README.md
+  - .powerplant/POLICY.yaml
+  - .powerplant/VERIFY.yaml
+  - 'docs/**'
+  - 'tests/**'
+  - 'game/Arcade/**'
+  - 'game/nodehopper/**'
+  - 'game/theincrediblemindmachine/**'
+allowedWritePaths:
+  - 'tests/POWERPLANT_AUDIT.md'
+  - 'docs/POWERPLANT_DOGFOOD_NOTES.md'
+  - '.powerplant/**'

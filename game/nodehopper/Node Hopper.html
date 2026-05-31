@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover" />
 <title>Node Hopper</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -46,6 +46,9 @@
     position: fixed; top: 0; left: 0; right: 0;
     display: flex; justify-content: space-between; align-items: stretch;
     padding: 14px 18px; gap: 10px; z-index: 5; pointer-events: none;
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
     letter-spacing: 0.18em; text-transform: uppercase;
   }
@@ -187,6 +190,9 @@
     display: none;
     position: fixed; bottom: 0; left: 0; right: 0;
     padding: 14px 18px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
     justify-content: space-between;
     align-items: flex-end;
     z-index: 6; pointer-events: none;

@@ -1,0 +1,42 @@
+# VERIFY.yaml — check execution constraints:
+#
+#   Commands run as plain subprocesses (no shell). The command string is split on
+#   whitespace — e.g. "npm test" → ["npm", "test"]. Shell features are NOT
+#   supported: no &&, ||, pipes, redirection, quoting, or expansion.
+#
+#   Only PATH is forwarded to the subprocess. Tools must be installed system-wide
+#   (e.g. npm, python3, go, cargo). Shell builtins like "source" will not work.
+#   Use "python3 -m pytest" instead of bare "pytest" for portability.
+#
+checks:
+  nodehopper-js-syntax:
+    command: node --check game/nodehopper/game.js
+    required: true
+
+  nodehopper-chambers-syntax:
+    command: node --check game/nodehopper/chambers.js
+    required: true
+
+  nodehopper-render-syntax:
+    command: node --check game/nodehopper/render-helpers.js
+    required: true
+
+  nodehopper-audio-syntax:
+    command: node --check game/nodehopper/audio.js
+    required: true
+
+  # Advisory: checks presence of "Node" string in nodehopper HTML entry point.
+  # NOTE: actual file is "Node Hopper.html" (space in name); shell quoting is not
+  # supported in VERIFY.yaml commands, so this check targets index.html which does
+  # not exist. It will fail silently — intended as a dogfood finding for path support.
+  html-presence:
+    command: grep Node game/nodehopper/index.html
+    required: false
+
+  static-syntax-sw:
+    command: node --check sw.js
+    required: false
+
+  static-syntax-stt:
+    command: node --check stt-worker.js
+    required: false

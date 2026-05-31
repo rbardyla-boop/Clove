@@ -1317,12 +1317,37 @@ function triggerWinCelebration(container) {
 /* ===========================================================
    TAB ROUTER
    =========================================================== */
+// ── Lifecycle: stop every game's running loop. Safe anytime — clearInterval(null)
+//    is a no-op, and each game's init() re-arms its own loop on (re)entry.
+function stopActiveGameLoops() {
+  clearInterval(marioInterval);
+  clearInterval(serpentInterval);
+  clearInterval(stackerInterval);
+  clearInterval(rallyInterval);
+  clearInterval(breakInterval);
+  clearInterval(astInterval);
+  clearInterval(invInterval);
+  clearInterval(immTimerInterval);
+  if (scorchAnimReq) { cancelAnimationFrame(scorchAnimReq); scorchAnimReq = null; }
+}
+// ── Lifecycle: safely resume whichever panel is active (full re-init = no stale delta).
+function resumeActiveGame() {
+  const map = { unblock: initUnblock, mario: initMario, c2048: init2048, serpent: initSerpent,
+                match: initMatch, stacker: initStacker, mine: initMine, rally: initRally,
+                break: initBreak, push: initPush, switch: initSwitch, scorch: initScorch,
+                asteroids: initAsteroids, invaders: initInvaders };
+  for (const key in map) {
+    const panel = document.getElementById('panel-' + key);
+    if (panel && panel.classList.contains('active')) { map[key](); break; }
+  }
+}
 const tabs = document.querySelectorAll('#arcade-tabs .tab-btn');
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     soundClick();
     tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
     document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
+    stopActiveGameLoops();
     tab.classList.add('active');
     tab.setAttribute('aria-selected', 'true');
     tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
@@ -1456,6 +1481,8 @@ function buildIMMLevel() {
 }
 function animateIMM() {
   requestAnimationFrame(animateIMM);
+  const immPanel = document.getElementById('panel-imm');
+  if (document.hidden || !(immPanel && immPanel.classList.contains('active'))) return;
   if (immIsRunning) {
     immWorld.step(1/60);
     immNodes.forEach(n => {
@@ -1504,6 +1531,10 @@ window.addEventListener('resize', () => {
   immCamera.aspect = c.clientWidth / c.clientHeight;
   immCamera.updateProjectionMatrix();
   immRenderer.setSize(c.clientWidth, c.clientHeight);
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopActiveGameLoops();
+  else resumeActiveGame();
 });
 setTimeout(initIMM, 400);
 
