@@ -1,0 +1,13 @@
+{
+  "name": "neon-hiveworld-sim",
+  "version": "0.0.0-v0",
+  "private": true,
+  "type": "module",
+  "description": "Neon Circuit HiveWorld v0 — local protocol simulator / proof harness (NOT a production economy).",
+  "scripts": {
+    "test": "node --test ../../tests/hiveworld/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

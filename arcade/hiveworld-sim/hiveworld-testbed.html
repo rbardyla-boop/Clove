@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Neon Circuit · HiveWorld v0 — Sideband Radio Fabric (local simulator)</title>
+<meta name="description" content="Local protocol simulator and proof harness for the Neon Circuit HiveWorld Sideband CRDT Log. Not a production economy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05030c; --panel:#0c0820; --panel-2:#120b2e; --ink:#e7e3ff; --muted:#8a83b8;
+    --line:#241a4d; --accent:#ff2d95; --ok:#3df58b; --warn:#ffd23f; --bad:#ff4d6d;
+    --c-ephemeral:#19e3ff; --c-persistent:#3df58b; --c-authoritative:#ff2d95;
+    --c-validated:#ffd23f; --c-proposal:#b14aff;
+    --ui:'Chakra Petch',system-ui,sans-serif; --mono:'Share Tech Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #1a0b3e 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #06243a 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:var(--ui); line-height:1.45;
+    background-attachment:fixed;
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.5}
+  .hw-top{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+    padding:14px 20px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(18,11,46,.9), rgba(12,8,32,.6))}
+  .hw-title{font-weight:700;letter-spacing:.5px;font-size:18px}
+  .hw-title b{color:var(--accent);text-shadow:0 0 14px rgba(255,45,149,.6)}
+  .hw-title small{display:block;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  .hw-stats{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-family:var(--mono);font-size:12px}
+  .stat .k{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block}
+  .stat .v{font-size:15px;color:var(--ink)}
+  .badge{padding:6px 12px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;border:1px solid}
+  .badge.warn{color:var(--warn);border-color:rgba(255,210,63,.5);background:rgba(255,210,63,.08)}
+  .badge.ok{color:var(--ok);border-color:rgba(61,245,139,.5);background:rgba(61,245,139,.08)}
+  .badge.bad{color:var(--bad);border-color:rgba(255,77,109,.5);background:rgba(255,77,109,.08)}
+
+  .hw-grid{position:relative;z-index:1;display:grid;grid-template-columns:248px 1fr 360px;gap:14px;padding:14px 20px 40px}
+  @media (max-width:1100px){.hw-grid{grid-template-columns:1fr}}
+  .panel{background:linear-gradient(180deg, var(--panel-2), var(--panel));border:1px solid var(--line);
+    border-radius:14px;padding:14px;box-shadow:0 10px 40px -20px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.03)}
+  .panel h2{margin:0 0 10px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;gap:8px}
+  .panel h2::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .grp{margin-bottom:16px}
+  .grp .lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .btnrow{display:flex;flex-wrap:wrap;gap:6px}
+  button.act, select.act{font-family:var(--ui);font-size:12px;color:var(--ink);cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 10px;transition:.12s}
+  button.act:hover{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent), 0 0 18px -6px var(--accent);transform:translateY(-1px)}
+  button.act:active{transform:translateY(0)}
+  button.act.bad:hover{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad),0 0 18px -6px var(--bad)}
+  button.act.go:hover{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok),0 0 18px -6px var(--ok)}
+  select.act{appearance:none;padding-right:24px}
+  .selrow{display:flex;gap:6px;margin-bottom:6px}
+  .selrow select{flex:1}
+
+  /* spectrum */
+  .spectrum{display:flex;gap:6px;align-items:flex-end;height:140px;padding:8px 4px 0;
+    background:linear-gradient(180deg, rgba(0,0,0,.35), transparent);
+    border-radius:10px;border:1px solid var(--line);position:relative;overflow:hidden}
+  .spectrum::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 28px)}
+  .chan{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%}
+  .chan .bar-wrap{width:100%;flex:1;display:flex;align-items:flex-end;justify-content:center}
+  .chan .bar{width:62%;min-height:2px;border-radius:4px 4px 0 0;transition:height .15s ease, opacity .3s}
+  .chan .cnt{font-family:var(--mono);font-size:11px;color:var(--ink)}
+  .chan .nm{font-size:8.5px;letter-spacing:.3px;color:var(--muted);text-align:center;writing-mode:horizontal-tb;
+    white-space:nowrap;transform:rotate(-32deg);transform-origin:center;height:14px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:10px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+  /* rooms + cabinets */
+  .rooms{display:flex;flex-direction:column;gap:10px}
+  .room{border:1px solid var(--line);border-radius:10px;padding:10px;background:rgba(0,0,0,.2)}
+  .room .rhead{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;margin-bottom:8px}
+  .room .rhead .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .room.off .rhead .dot{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+  .room.off{opacity:.7}
+  .cabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .cab{border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center;background:var(--panel)}
+  .cab .ico{font-size:20px;display:block}
+  .cab .cn{font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .cab .occ{font-family:var(--mono);font-size:10px;margin-top:4px;color:var(--ok)}
+  .cab.busy{border-color:var(--accent);box-shadow:inset 0 0 18px -8px var(--accent)}
+  .cab.busy .occ{color:var(--accent)}
+
+  .slots{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow:auto}
+  .slot{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:11px;
+    border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:rgba(0,0,0,.2)}
+  .slot .tag{font-size:9px;padding:2px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px}
+  .tag.active{color:var(--ok);background:rgba(61,245,139,.12)}
+  .tag.expired{color:var(--muted);background:rgba(138,131,184,.12)}
+  .tag.suspended{color:var(--bad);background:rgba(255,77,109,.14)}
+
+  /* agents */
+  .agents{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow:auto}
+  .agent{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;
+    padding:7px 9px;cursor:pointer;background:rgba(0,0,0,.18);transition:.12s}
+  .agent:hover{border-color:var(--accent)}
+  .agent.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent), inset 0 0 22px -10px var(--accent)}
+  .agent .av{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-family:var(--mono);
+    font-size:11px;color:#06030f;font-weight:700}
+  .agent .meta{flex:1;min-width:0}
+  .agent .id{font-family:var(--mono);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .agent .sub{font-size:10px;color:var(--muted)}
+  .agent .flags{display:flex;gap:4px;font-size:9px}
+  .pill{padding:1px 6px;border-radius:999px;border:1px solid var(--line)}
+  .pill.role{color:var(--c-validated)}
+  .pill.off{color:var(--bad);border-color:rgba(255,77,109,.5)}
+  .pill.on{color:var(--ok);border-color:rgba(61,245,139,.4)}
+  .pill.div{color:var(--warn);border-color:rgba(255,210,63,.4)}
+
+  .seldet{font-family:var(--mono);font-size:12px}
+  .seldet .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line)}
+  .inv{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .inv .g{font-size:10px;padding:3px 7px;border-radius:6px;border:1px solid var(--line);color:var(--c-persistent)}
+
+  .streams{display:grid;grid-template-rows:1fr auto;gap:10px}
+  .ticker{font-family:var(--mono);font-size:11px;max-height:240px;overflow:auto;display:flex;flex-direction:column-reverse;gap:2px}
+  .ev{display:flex;gap:7px;padding:2px 0;border-bottom:1px solid rgba(36,26,77,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ev .t{color:var(--muted)}
+  .ev .sb{font-size:9px;padding:0 5px;border-radius:4px}
+  .rejlist{max-height:150px;overflow:auto;font-family:var(--mono);font-size:11px}
+  .rej{display:flex;gap:7px;padding:2px 0;color:var(--bad)}
+  .rej .why{color:var(--warn)}
+
+  .hw-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);z-index:5;
+    background:var(--panel-2);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;
+    font-family:var(--mono);font-size:12px;opacity:0;transition:.25s;pointer-events:none;max-width:80vw;
+    box-shadow:0 0 30px -8px var(--accent)}
+  .hw-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .hw-toast.bad{border-color:var(--bad);box-shadow:0 0 30px -8px var(--bad)}
+  .hw-toast.ok{border-color:var(--ok);box-shadow:0 0 30px -8px var(--ok)}
+  .hint{font-size:10px;color:var(--muted);margin-top:6px}
+</style>
+</head>
+<body>
+  <header class="hw-top">
+    <div class="hw-title">NEON <b>CIRCUIT</b> · HIVEWORLD <b>v0</b>
+      <small>sideband radio fabric — local protocol simulator</small>
+    </div>
+    <span class="badge warn" title="This is a proof harness, not a shippable product">⚠ local sim · NOT a production economy · no real crypto / cash-out</span>
+    <div class="hw-stats">
+      <div class="stat"><span class="k">tick</span><span class="v" id="s-tick">0</span></div>
+      <div class="stat"><span class="k">fabric</span><span class="v" id="s-fabric">0</span></div>
+      <div class="stat"><span class="k">rejected</span><span class="v" id="s-rej">0</span></div>
+      <div class="stat"><span class="k">state hash</span><span class="v" id="s-fp">—</span></div>
+      <span class="badge ok" id="s-converge">converged</span>
+    </div>
+  </header>
+
+  <main class="hw-grid">
+    <!-- CONTROLS -->
+    <aside class="panel hw-controls" aria-label="Controls">
+      <h2>Controls</h2>
+
+      <div class="grp">
+        <div class="lbl">World</div>
+        <div class="btnrow">
+          <button class="act" data-action="spawn-agent">+ Agent</button>
+          <button class="act" data-action="spawn-mod">+ Moderator</button>
+          <button class="act" data-action="create-room">+ Room</button>
+          <button class="act" data-action="advance">⏩ Advance 5t</button>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="lbl">Target</div>
+        <div class="selrow">
+          <select class="act" id="sel-room" aria-label="Target room"></select>
+          <select class="act" id="sel-cab" aria-label="Target cabinet"></select>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="lbl">Active agent</div>
+        <div class="btnrow">
+          <button class="act" data-action="join-room">Join room</button>
+          <button class="act go" data-action="occupy">Occupy</button>
+          <button class="act" data-action="release">Release</button>
+          <button class="act go" data-action="play-round">▶ Play round</button>
+          <button class="act" data-action="lease-slot">Lease slot</button>
+          <button class="act" data-action="place-object">Place obj</button>
+          <button class="act" data-action="grant-credits">+50 credits</button>
+          <button class="act" data-action="buy-equip-good">Buy+equip good</button>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="lbl">Faults &amp; attacks</div>
+        <div class="btnrow">
+          <button class="act bad" data-action="toggle-online">Disconnect ⇄</button>
+          <button class="act bad" data-action="room-outage">Room outage ⇄</button>
+          <button class="act bad" data-action="mal-busy">Steal cabinet</button>
+          <button class="act bad" data-action="mal-transfer">Transfer good</button>
+          <button class="act bad" data-action="mal-forge">Forge event</button>
+          <button class="act bad" data-action="mal-suspend">Illegal suspend</button>
+        </div>
+        <div class="hint">Attacks are expected to be REJECTED — watch the rejected feed.</div>
+      </div>
+
+      <div class="grp">
+        <div class="lbl">Scenarios &amp; report</div>
+        <div class="selrow">
+          <select class="act" id="sel-scenario" aria-label="Canned scenario">
+            <option value="quickStart">quickStart</option>
+            <option value="occupancyConflict">occupancyConflict</option>
+            <option value="baseStationFailureRecovery">baseStationFailureRecovery</option>
+            <option value="maliciousCabinetSteal">maliciousCabinetSteal</option>
+            <option value="disconnectReplayConverge">disconnectReplayConverge</option>
+            <option value="meshChurn">meshChurn (400t)</option>
+          </select>
+        </div>
+        <div class="btnrow">
+          <button class="act go" data-action="run-scenario">Run scenario</button>
+          <button class="act" data-action="replay">Replay log</button>
+          <button class="act" data-action="export">Export JSON</button>
+          <button class="act" data-action="reset">Reset</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER -->
+    <section class="hw-center" style="display:flex;flex-direction:column;gap:14px">
+      <div class="panel">
+        <h2>Sideband radio spectrum</h2>
+        <div class="spectrum" id="spectrum" role="img" aria-label="Per-sideband activity spectrum"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="panel">
+        <h2>Rooms &amp; cabinets</h2>
+        <div class="rooms" id="rooms"></div>
+      </div>
+      <div class="panel">
+        <h2>World-space slots</h2>
+        <div class="slots" id="slots"></div>
+      </div>
+    </section>
+
+    <!-- SIDE -->
+    <aside class="hw-side" style="display:flex;flex-direction:column;gap:14px">
+      <div class="panel">
+        <h2>Agents &amp; nodes</h2>
+        <div class="agents" id="agents"></div>
+      </div>
+      <div class="panel">
+        <h2>Selected node</h2>
+        <div class="seldet" id="seldet"></div>
+      </div>
+      <div class="panel streams">
+        <div>
+          <h2>Event stream (radio traffic)</h2>
+          <div class="ticker" id="ticker"></div>
+        </div>
+        <div>
+          <h2>Rejected / refused</h2>
+          <div class="rejlist" id="rejlist"></div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="hw-toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./hiveworld-debug.mjs"></script>
+</body>
+</html>

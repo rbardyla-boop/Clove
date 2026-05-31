@@ -1,0 +1,193 @@
+/**
+ * Event envelope: the unit that travels the Sideband CRDT Log.
+ *
+ * One event_type maps to exactly one sideband (EVENT_SPECS) so a malformed or
+ * malicious event that puts, say, an `occupy_cabinet` on the `market` sideband
+ * is rejected structurally. Semantic/authority checks (is the cabinet free? is
+ * the actor a moderator?) live in the reducers, not here.
+ *
+ * FORBIDDEN_EVENT_TYPES are recognised on purpose: v0 must be able to *receive*
+ * a transfer/cashout/stake attempt and visibly REJECT it, proving the economy is
+ * internal-only. They are never applied.
+ */
+import { hashContent, makeEventId, mockSign, mockVerify, canonicalStringify } from './hash.mjs';
+import { isKnownSideband } from './sidebands.mjs';
+
+/** event_type -> the single sideband it is allowed on. */
+export const EVENT_SPECS = Object.freeze({
+  // discovery
+  agent_announce:   { sideband: 'discovery' },
+  room_announce:    { sideband: 'discovery' },
+  // presence
+  presence_ping:    { sideband: 'presence' },
+  // occupancy
+  occupy_cabinet:   { sideband: 'occupancy' },
+  release_cabinet:  { sideband: 'occupancy' },
+  cabinet_timeout:  { sideband: 'occupancy' },
+  // object_state
+  lock_object:      { sideband: 'object_state' },
+  unlock_object:    { sideband: 'object_state' },
+  // ar_anchor
+  set_ar_anchor:    { sideband: 'ar_anchor' },
+  // asset_sync / cosmetics
+  equip_good:       { sideband: 'asset_sync' },
+  unequip_good:     { sideband: 'asset_sync' },
+  // agent_intent (proposal only)
+  agent_intent:     { sideband: 'agent_intent' },
+  // market (internal economy)
+  grant_credits:    { sideband: 'market' },
+  spend_credits:    { sideband: 'market' },
+  mint_bound_good:  { sideband: 'market' },
+  // moderation
+  suspend_slot:     { sideband: 'moderation' },
+  suspend_object:   { sideband: 'moderation' },
+  // event_log (durable)
+  finish_round:     { sideband: 'event_log' },
+  lease_slot:       { sideband: 'event_log' },
+  renew_slot:       { sideband: 'event_log' },
+  expire_slot:      { sideband: 'event_log' },
+  place_object:     { sideband: 'event_log' },
+  remove_object:    { sideband: 'event_log' },
+  // weather
+  weather_set:      { sideband: 'weather' },
+});
+
+/**
+ * Economy actions that v0 must explicitly refuse. They are valid *shapes* (so we
+ * can test rejection) but are never applied to state. This is the whole point of
+ * "internal-only, no cash-out / no resale / no staking / no yield".
+ */
+export const FORBIDDEN_EVENT_TYPES = Object.freeze(new Set([
+  'transfer_good',
+  'transfer_forbidden_test',
+  'cashout_credits',
+  'withdraw_credits',
+  'stake_credits',
+  'yield_credits',
+  'list_for_resale',
+  'sell_good',
+  'token_trade',
+]));
+
+export function isForbiddenType(type) {
+  return FORBIDDEN_EVENT_TYPES.has(type);
+}
+
+export function isKnownType(type) {
+  return isForbiddenType(type) || Object.prototype.hasOwnProperty.call(EVENT_SPECS, type);
+}
+
+/**
+ * Build a signed event. `prevEvent` is the actor's previous event (its source
+ * chain head) or null for genesis. The returned object is frozen so nothing
+ * downstream can mutate protocol content in place.
+ */
+export function createEvent({
+  actorId,
+  eventType,
+  sideband,
+  roomId = null,
+  cellId = null,
+  payload = {},
+  logicalTick,
+  prevEvent = null,
+  seq = 0,
+}) {
+  const prevHash = prevEvent ? prevEvent.content_hash : null;
+  const content = {
+    logical_tick: logicalTick,
+    actor_id: actorId,
+    room_id: roomId,
+    cell_id: cellId,
+    sideband,
+    event_type: eventType,
+    payload,
+    prev_hash: prevHash,
+    seq,
+  };
+  const contentHash = hashContent(content);
+  return Object.freeze({
+    event_id: makeEventId(actorId, seq, contentHash),
+    logical_tick: logicalTick,
+    timestamp: logicalTick, // mirror; logical_tick is the canonical clock
+    actor_id: actorId,
+    room_id: roomId,
+    cell_id: cellId,
+    sideband,
+    event_type: eventType,
+    payload,
+    prev_hash: prevHash,
+    seq,
+    signature: mockSign(actorId, contentHash),
+    content_hash: contentHash,
+  });
+}
+
+/** Recompute the content hash for an event exactly as createEvent did. */
+export function recomputeContentHash(ev) {
+  return hashContent({
+    logical_tick: ev.logical_tick,
+    actor_id: ev.actor_id,
+    room_id: ev.room_id,
+    cell_id: ev.cell_id,
+    sideband: ev.sideband,
+    event_type: ev.event_type,
+    payload: ev.payload,
+    prev_hash: ev.prev_hash,
+    seq: ev.seq,
+  });
+}
+
+/**
+ * Structural validation of one envelope (no world context required).
+ * Returns { ok, reason }. Reason is a stable machine string.
+ */
+const VALIDATED = new WeakSet(); // memoize successful validation of frozen events
+
+export function validateEnvelope(ev) {
+  if (!ev || typeof ev !== 'object') return { ok: false, reason: 'malformed' };
+  // Frozen, content-addressed events never change validity; tampered copies are
+  // always NEW objects, so this memo is sound and skips re-hashing on re-delivery.
+  if (VALIDATED.has(ev)) return { ok: true, reason: null };
+  if (typeof ev.actor_id !== 'string' || !ev.actor_id) return { ok: false, reason: 'missing_actor' };
+  if (typeof ev.event_type !== 'string') return { ok: false, reason: 'missing_event_type' };
+  if (typeof ev.sideband !== 'string') return { ok: false, reason: 'missing_sideband' };
+  if (typeof ev.logical_tick !== 'number' || !Number.isFinite(ev.logical_tick)) {
+    return { ok: false, reason: 'bad_tick' };
+  }
+  if (!isKnownSideband(ev.sideband)) return { ok: false, reason: 'unknown_sideband' };
+  if (!isKnownType(ev.event_type)) return { ok: false, reason: 'unknown_event_type' };
+
+  if (isForbiddenType(ev.event_type)) {
+    // Recognised but never permitted in v0.
+    return { ok: false, reason: 'forbidden_event_type' };
+  }
+
+  const spec = EVENT_SPECS[ev.event_type];
+  if (ev.sideband !== spec.sideband) return { ok: false, reason: 'sideband_mismatch' };
+
+  // Content integrity: the hash must match the content, and the (mock) signature
+  // must match the actor + hash. Tampering with any field breaks one of these.
+  if (recomputeContentHash(ev) !== ev.content_hash) return { ok: false, reason: 'bad_content_hash' };
+  if (ev.event_id !== makeEventId(ev.actor_id, ev.seq, ev.content_hash)) {
+    return { ok: false, reason: 'bad_event_id' };
+  }
+  if (!mockVerify(ev.actor_id, ev.content_hash, ev.signature)) return { ok: false, reason: 'bad_signature' };
+
+  VALIDATED.add(ev);
+  return { ok: true, reason: null };
+}
+
+/** Compact summary used in reports and the UI event stream. */
+export function summarizeEvent(ev) {
+  return {
+    event_id: ev.event_id,
+    tick: ev.logical_tick,
+    actor: ev.actor_id,
+    sideband: ev.sideband,
+    type: ev.event_type,
+    room: ev.room_id,
+    cell: ev.cell_id,
+    payload: canonicalStringify(ev.payload),
+  };
+}
