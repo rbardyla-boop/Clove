@@ -1,0 +1,91 @@
+/* ============================================================
+   SIGNAL SPRINT — local cabinet mini-game (Phase 1g)
+   Reuses the :root design variables from neon-circuit.css.
+   Local session feedback only — tickets are server-authoritative.
+   ============================================================ */
+.ssg-overlay{position:fixed;inset:0;z-index:80;display:none;
+  background:rgba(6,3,14,.86);backdrop-filter:blur(10px);
+  align-items:center;justify-content:center;
+  padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));}
+.ssg-overlay.show{display:flex;animation:ssg-fade .2s ease;}
+@keyframes ssg-fade{from{opacity:0;}to{opacity:1;}}
+
+.ssg-panel{width:min(560px,100%);display:flex;flex-direction:column;overflow:hidden;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1.5px solid var(--line-strong);border-radius:var(--r-lg);
+  box-shadow:0 0 50px -10px var(--ssg-accent);}
+
+.ssg-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line);}
+.ssg-title{font-family:var(--font-display);font-size:20px;color:#fff;}
+.ssg-title span{color:var(--ssg-accent);}
+.ssg-leave{font-size:12px;color:var(--muted);border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:6px 12px;}
+.ssg-leave:hover{border-color:var(--danger);color:var(--danger);}
+
+.ssg-hud{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);}
+.ssg-cell{background:var(--void-2);padding:10px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ssg-cell .k{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.ssg-cell .v{font-family:var(--font-display);font-size:18px;color:#fff;font-variant-numeric:tabular-nums;}
+
+.ssg-stage{position:relative;height:min(360px,54vh);overflow:hidden;cursor:pointer;
+  background:linear-gradient(180deg, rgba(25,227,255,.05), transparent 55%), var(--void-2);
+  touch-action:none;}
+.ssg-lanes{position:absolute;inset:0;}
+.ssg-lane{position:absolute;top:0;bottom:0;width:0;
+  border-left:1px dashed rgba(255,255,255,.10);transform:translateX(-50%);}
+.ssg-band{position:absolute;left:0;right:0;bottom:0;height:14%;
+  background:linear-gradient(0deg, color-mix(in oklab, var(--ssg-accent) 22%, transparent), transparent);
+  border-top:1px solid color-mix(in oklab, var(--ssg-accent) 55%, transparent);}
+.ssg-rider{position:absolute;bottom:5%;left:50%;width:34px;height:34px;
+  transform:translate(-50%,0);border-radius:9px;background:var(--ssg-accent);
+  box-shadow:0 0 22px -2px var(--ssg-accent);transition:left .09s cubic-bezier(.16,1,.3,1);will-change:left;}
+.ssg-ent{position:absolute;top:-6%;width:26px;height:26px;border-radius:50%;
+  transform:translate(-50%,-50%);will-change:top;}
+.ssg-ent.pulse{background:radial-gradient(circle,#eafff9,var(--cyan));box-shadow:0 0 16px -1px var(--cyan);}
+.ssg-ent.noise{background:repeating-conic-gradient(var(--danger) 0 25%, #2a0c16 0 50%);opacity:.85;border-radius:6px;}
+.ssg-ent.caught{transition:transform .12s, opacity .12s;transform:translate(-50%,-50%) scale(1.7);opacity:0;}
+
+.ssg-ready,.ssg-grade{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;text-align:center;padding:18px;
+  background:rgba(8,4,17,.72);}
+.ssg-ready[hidden],.ssg-grade[hidden]{display:none;}
+.ssg-big{font-family:var(--font-display);font-size:34px;color:#fff;}
+.ssg-ready p{font-size:12.5px;color:var(--muted);line-height:1.6;}
+
+.ssg-btn{font-family:var(--font-display);font-size:14px;letter-spacing:.5px;padding:12px 24px;
+  border-radius:var(--r-md);background:var(--ssg-accent);color:#04141a;
+  box-shadow:0 0 20px -4px var(--ssg-accent);transition:transform .12s;}
+.ssg-btn:active{transform:scale(.96);}
+.ssg-btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);box-shadow:none;}
+.ssg-btn.ghost:hover{border-color:var(--text);color:var(--text);}
+
+.ssg-grade-letter{font-family:var(--font-display);font-size:72px;line-height:1;color:var(--ssg-accent);
+  text-shadow:0 0 30px var(--ssg-accent);}
+.ssg-grade-rows{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);}
+.ssg-grade-rows b{color:#fff;font-variant-numeric:tabular-nums;}
+.ssg-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px;}
+
+/* On-screen steering pads (mobile) — keyboard works on desktop too. */
+.ssg-pads{display:flex;gap:1px;background:var(--line);}
+.ssg-pad{flex:1;background:var(--void-2);color:var(--ssg-accent);font-size:20px;
+  padding:14px 0;transition:background .12s;}
+.ssg-pad:active{background:color-mix(in oklab, var(--ssg-accent) 18%, var(--void-2));}
+
+.ssg-feedback{height:34px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:13px;letter-spacing:1px;opacity:0;transition:opacity .12s;}
+.ssg-feedback.show{opacity:1;}
+.ssg-feedback.pulse{color:var(--good);}
+.ssg-feedback.noise{color:var(--danger);}
+
+/* Server-authoritative ticket award states */
+.ssg-award{margin-top:10px;font-size:14px;letter-spacing:.4px;min-height:18px;font-weight:600;}
+.ssg-award.submitting{color:var(--ssg-accent,#19e3ff);opacity:.85;}
+.ssg-award.accepted{color:#3df58b;text-shadow:0 0 12px rgba(61,245,139,.45);}
+.ssg-award.rejected{color:#ff4d6d;}
+
+@media (prefers-reduced-motion:reduce){
+  .ssg-overlay.show{animation:none;}
+  .ssg-rider,.ssg-ent.caught{transition:none;}
+}

@@ -8,35 +8,44 @@
  *
  * Ticket/round authority is the SAME code the production DO uses
  * (./src/round-authority.mjs) — no divergence on the new logic. Occupancy is a
- * faithful, minimal re-implementation of the Phase-1b DO rules for transport
+ * faithful, minimal re-implementation of the Phase-1b/1g DO rules for transport
  * parity only; production occupancy authority remains the DO (unchanged).
+ *
+ * Phase 1g: multiple ticketed cabinets (pulse + signal), each with independent
+ * one-occupant-per-machine occupancy, and shared round/ticket authority.
  */
 import { WebSocketServer } from 'ws';
 import {
   createTicketState, startRound, submitRound, expirePlayerRounds, getBalance,
 } from './src/round-authority.mjs';
-import { cabinetCatalogPayload, prizeCatalogPayload } from './src/catalog.mjs';
+import { cabinetCatalogPayload, prizeCatalogPayload, ticketedMachineIds } from './src/catalog.mjs';
 import { redeemPrize, equipCosmetic, unequipCosmetic, getInventory, getEquips, publicCosmeticState } from './src/prize-authority.mjs';
 import { getLedger } from './src/ledger.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const ROOM_ID = 'main';
-const MACHINE_ID = 'pulse';
+const PULSE_ID = 'pulse'; // canonical machine used for back-compat room_state.rev / ticket_state
 
-const machine = { machineId: MACHINE_ID, occupiedBy: null, occupiedSince: null, rev: 0 };
+// One occupancy machine per live, ticket-enabled cabinet (pulse + signal).
+const machines = {};
+for (const machineId of ticketedMachineIds()) {
+  machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
+}
 let ticketState = createTicketState();
 const sockets = new Map(); // ws -> { playerId }
 
 const send = (ws, payload) => { try { ws.send(JSON.stringify(payload)); } catch { /* closing */ } };
 const broadcast = (payload) => { for (const ws of sockets.keys()) send(ws, payload); };
-const roomStatePayload = () => ({ t: 'room_state', roomId: ROOM_ID, machines: { [MACHINE_ID]: { ...machine } }, rev: machine.rev });
+const machinesSnapshot = () => Object.fromEntries(Object.entries(machines).map(([id, m]) => [id, { ...m }]));
+const roomStatePayload = () => ({ t: 'room_state', roomId: ROOM_ID, machines: machinesSnapshot(), rev: machines[PULSE_ID].rev });
 const broadcastRoomState = () => broadcast(roomStatePayload());
 
 function ticketStatePayload() {
   const lp = ticketState.lastPublic;
+  const pulse = machines[PULSE_ID];
   return {
-    t: 'ticket_state', roomId: ROOM_ID, machineId: MACHINE_ID,
-    occupied: machine.occupiedBy !== null, occupiedBy: machine.occupiedBy,
+    t: 'ticket_state', roomId: ROOM_ID, machineId: PULSE_ID,
+    occupied: pulse.occupiedBy !== null, occupiedBy: pulse.occupiedBy,
     lastScore: lp ? lp.score : null, lastGrade: lp ? lp.grade : null,
     lastAwardBy: lp ? lp.playerId : null, lastAwardAmount: lp ? lp.awarded : null,
   };
@@ -49,13 +58,42 @@ function sendInventory(ws, playerId) {
   send(ws, { t: 'inventory_state', playerId, items: getInventory(ticketState, playerId), equips: getEquips(ticketState, playerId) });
 }
 
-function releaseIfOwner(playerId) {
-  if (machine.occupiedBy !== playerId) return;
-  machine.occupiedBy = null;
-  machine.occupiedSince = null;
-  machine.rev += 1;
-  ticketState = expirePlayerRounds(ticketState, playerId);
-  broadcastRoomState();
+function releaseAll(playerId) {
+  let released = false;
+  for (const m of Object.values(machines)) {
+    if (m.occupiedBy === playerId) {
+      m.occupiedBy = null;
+      m.occupiedSince = null;
+      m.rev += 1;
+      released = true;
+    }
+  }
+  if (released) {
+    ticketState = expirePlayerRounds(ticketState, playerId);
+    broadcastRoomState();
+    broadcast(ticketStatePayload());
+  }
+}
+
+// Shared round-start / round-submit handlers (one per cabinet, message-type only differs).
+function handleRoundStart(ws, d, playerId, startedType, rejectedType) {
+  if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
+  const machine = machines[d.machineId];
+  const roundId = `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  const res = startRound(ticketState, { machineId: d.machineId, occupantId: machine ? machine.occupiedBy : null, playerId, roundId, now: Date.now() });
+  ticketState = res.state;
+  if (!res.ok) return send(ws, { t: rejectedType, machineId: d.machineId, reason: res.reason });
+  send(ws, { t: startedType, roomId: ROOM_ID, ...res.started });
+}
+function handleRoundSubmit(ws, d, playerId, acceptedType, rejectedType) {
+  if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
+  const machine = machines[d.machineId];
+  const res = submitRound(ticketState, { payload: d, senderId: playerId, occupantId: machine ? machine.occupiedBy : null, now: Date.now() });
+  ticketState = res.state;
+  if (!res.ok) return send(ws, { t: rejectedType, roundId: d.roundId, machineId: d.machineId, reason: res.reason });
+  send(ws, { t: acceptedType, roundId: d.roundId, machineId: d.machineId, awarded: res.awarded, balance: res.balance, grade: d.grade, score: d.score });
+  send(ws, { t: 'ticket_balance', playerId, balance: res.balance });
+  broadcast({ t: 'ticket_awarded', roomId: ROOM_ID, ...res.publicAward });
   broadcast(ticketStatePayload());
 }
 
@@ -82,44 +120,35 @@ wss.on('connection', (ws) => {
         break;
       }
       case 'occupy_machine': {
-        if (d.machineId !== MACHINE_ID) return send(ws, { t: 'occupy_denied', machineId: d.machineId, reason: 'invalid' });
+        const machine = machines[d.machineId];
+        if (!machine) return send(ws, { t: 'occupy_denied', machineId: d.machineId, reason: 'invalid' });
         if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
-        if (typeof d.rev === 'number' && d.rev !== machine.rev) return send(ws, { t: 'occupy_denied', machineId: MACHINE_ID, reason: 'stale_rev', currentRev: machine.rev });
-        if (machine.occupiedBy !== null) return send(ws, { t: 'occupy_denied', machineId: MACHINE_ID, reason: 'busy' });
+        if (typeof d.rev === 'number' && d.rev !== machine.rev) return send(ws, { t: 'occupy_denied', machineId: d.machineId, reason: 'stale_rev', currentRev: machine.rev });
+        if (machine.occupiedBy !== null) return send(ws, { t: 'occupy_denied', machineId: d.machineId, reason: 'busy' });
         machine.occupiedBy = playerId;
         machine.occupiedSince = Date.now();
         machine.rev += 1;
         broadcastRoomState();
-        send(ws, { t: 'machine_occupied', machineId: MACHINE_ID, playerId, occupiedSince: machine.occupiedSince, rev: machine.rev });
+        send(ws, { t: 'machine_occupied', machineId: d.machineId, playerId, occupiedSince: machine.occupiedSince, rev: machine.rev });
         break;
       }
       case 'release_machine': {
-        if (d.machineId !== MACHINE_ID) return;
+        const machine = machines[d.machineId];
+        if (!machine) return;
         if (!playerId || machine.occupiedBy !== playerId) return send(ws, { t: 'error', code: 'not_owner', message: 'only occupant' });
-        releaseIfOwner(playerId);
-        break;
-      }
-      case 'heartbeat': break;
-      case 'pulse_round_start': {
-        if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
-        const roundId = `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-        const res = startRound(ticketState, { machineId: d.machineId, occupantId: machine.occupiedBy, playerId, roundId, now: Date.now() });
-        ticketState = res.state;
-        if (!res.ok) return send(ws, { t: 'pulse_round_rejected', machineId: d.machineId, reason: res.reason });
-        send(ws, { t: 'pulse_round_started', roomId: ROOM_ID, ...res.started });
-        break;
-      }
-      case 'pulse_round_submit': {
-        if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
-        const res = submitRound(ticketState, { payload: d, senderId: playerId, occupantId: machine.occupiedBy, now: Date.now() });
-        ticketState = res.state;
-        if (!res.ok) return send(ws, { t: 'pulse_round_rejected', roundId: d.roundId, machineId: d.machineId, reason: res.reason });
-        send(ws, { t: 'pulse_round_accepted', roundId: d.roundId, machineId: d.machineId, awarded: res.awarded, balance: res.balance, grade: d.grade, score: d.score });
-        send(ws, { t: 'ticket_balance', playerId, balance: res.balance });
-        broadcast({ t: 'ticket_awarded', roomId: ROOM_ID, ...res.publicAward });
+        machine.occupiedBy = null;
+        machine.occupiedSince = null;
+        machine.rev += 1;
+        ticketState = expirePlayerRounds(ticketState, playerId);
+        broadcastRoomState();
         broadcast(ticketStatePayload());
         break;
       }
+      case 'heartbeat': break;
+      case 'pulse_round_start': handleRoundStart(ws, d, playerId, 'pulse_round_started', 'pulse_round_rejected'); break;
+      case 'pulse_round_submit': handleRoundSubmit(ws, d, playerId, 'pulse_round_accepted', 'pulse_round_rejected'); break;
+      case 'signal_sprint_round_start': handleRoundStart(ws, d, playerId, 'signal_sprint_round_started', 'signal_sprint_round_rejected'); break;
+      case 'signal_sprint_round_submit': handleRoundSubmit(ws, d, playerId, 'signal_sprint_round_accepted', 'signal_sprint_round_rejected'); break;
       case 'ticket_balance_request': {
         if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         send(ws, { t: 'ticket_balance', playerId, balance: getBalance(ticketState, playerId) });
@@ -182,7 +211,7 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     const meta = sockets.get(ws);
     sockets.delete(ws);
-    if (meta?.playerId) { releaseIfOwner(meta.playerId); ticketState = expirePlayerRounds(ticketState, meta.playerId); }
+    if (meta?.playerId) { releaseAll(meta.playerId); ticketState = expirePlayerRounds(ticketState, meta.playerId); }
   });
 });
 

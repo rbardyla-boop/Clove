@@ -24,7 +24,7 @@ export function getLedger(state, playerId) {
  * If an entry with the same ledger_id already exists for the player, this is a
  * no-op (added=false) — that is the duplicate-protection guarantee.
  */
-export function appendLedger(state, { playerId, eventType, delta, balanceAfter, source, refId, cabinetId = null, prizeId = null, summary, now }) {
+export function appendLedger(state, { playerId, eventType, delta, balanceAfter, source, refId, cabinetId = null, cabinetType = null, prizeId = null, summary, now }) {
   const ledgerId = makeLedgerId(eventType, refId);
   const existing = state.ledger[playerId] || [];
   if (existing.some((e) => e.ledger_id === ledgerId)) {
@@ -39,6 +39,7 @@ export function appendLedger(state, { playerId, eventType, delta, balanceAfter, 
     balance_after: balanceAfter,
     source,
     cabinet_id: cabinetId,
+    cabinet_type: cabinetType,
     prize_id: prizeId,
     public_safe_summary: summary,
   };
