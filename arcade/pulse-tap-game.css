@@ -1,6 +1,6 @@
 /* ============================================================
    PULSE TAP — local cabinet mini-game (Phase 1d)
-   Reuses the :root design tokens from neon-circuit.css.
+   Reuses the :root design variables from neon-circuit.css.
    Local session feedback only — no economy UI.
    ============================================================ */
 .ptg-overlay{position:fixed;inset:0;z-index:80;display:none;
@@ -67,3 +67,9 @@
 .ptg-feedback.miss{color:var(--danger);}
 
 @media (prefers-reduced-motion:reduce){.ptg-overlay.show{animation:none;}}
+
+/* Phase 1e — server-authoritative ticket award states */
+.ptg-award { margin-top: 10px; font-size: 14px; letter-spacing: .4px; min-height: 18px; font-weight: 600; }
+.ptg-award.submitting { color: var(--ptg-accent, #ff2d95); opacity: .85; }
+.ptg-award.accepted { color: #3df58b; text-shadow: 0 0 12px rgba(61, 245, 139, .45); }
+.ptg-award.rejected { color: #ff4d6d; }

@@ -22,7 +22,7 @@ const MAX_SCALE = 1.0; // pulse start size (× base ring)
 const END_SCALE = 0.18; // pulse end size
 const TARGET_SCALE = 0.4; // fixed target ring
 
-export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = {}) {
+export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {} } = {}) {
   let root = null;
   let raf = 0;
   let isOpen = false;
@@ -34,6 +34,8 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
   let beatMs = BEAT_MS_START;
   let beatHandled = false;
   let hits = 0, misses = 0, streak = 0, best = 0;
+  let ticketBalance = 0;          // server-authoritative; shown for display only
+  let submittedThisRound = false; // double-submit guard (server also rejects dups)
 
   const $ = (f) => root.querySelector(`[data-f="${f}"]`);
   const screen = (name) => root.querySelector(`[data-screen="${name}"]`);
@@ -53,6 +55,7 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
           <div class="ptg-cell"><span class="k">Hits</span><span class="v" data-f="hits">0</span></div>
           <div class="ptg-cell"><span class="k">Streak</span><span class="v" data-f="streak">0</span></div>
           <div class="ptg-cell"><span class="k">Accuracy</span><span class="v" data-f="acc">—</span></div>
+          <div class="ptg-cell"><span class="k">Tickets</span><span class="v" data-f="bal">0</span></div>
         </div>
         <div class="ptg-stage" data-act="tap" tabindex="0" aria-label="Tap when the ring meets the target">
           <div class="ptg-target"></div>
@@ -70,6 +73,7 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
               <span>Best streak <b data-f="gstreak">0</b></span>
               <span>Hits <b data-f="ghits">0</b></span>
             </div>
+            <div class="ptg-award" data-f="award" aria-live="polite">—</div>
             <div class="ptg-actions">
               <button class="ptg-btn" type="button" data-act="again">↻ Play again</button>
               <button class="ptg-btn ghost" type="button" data-act="leave">Leave cabinet</button>
@@ -125,6 +129,22 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
     fb.className = 'ptg-feedback show ' + kind;
   }
 
+  function setAward(kind, text) {
+    if (!root) return; // game overlay not built (e.g. a non-occupant got a reject)
+    const el = $('award');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'ptg-award ' + kind;
+  }
+
+  function setBalanceUI(n) {
+    ticketBalance = n;
+    if (root) {
+      const b = $('bal');
+      if (b) b.textContent = n;
+    }
+  }
+
   function tap() {
     if (phase !== 'playing' || beatHandled) return;
     beatHandled = true;
@@ -178,9 +198,12 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
     roundStart = beatStart = performance.now();
     beatHandled = false;
     lastHud = 0;
+    submittedThisRound = false;
     showScreen('play');
     updateHud();
     root.querySelector('.ptg-stage').focus();
+    // Ask the server to register this round (issues the authoritative round id).
+    onRoundStart();
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
@@ -189,11 +212,28 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
     phase = 'grade';
     cancelAnimationFrame(raf);
     const acc = accuracy();
-    $('grade').textContent = grade(acc, best);
+    const g = grade(acc, best);
+    $('grade').textContent = g;
     $('gacc').textContent = acc + '%';
     $('gstreak').textContent = best;
     $('ghits').textContent = hits;
     showScreen('grade');
+
+    // Tickets are SERVER-authoritative. Submit the result and wait for the
+    // server's award; the client never finalizes tickets on its own.
+    const result = {
+      grade: g,
+      accuracy: acc,
+      hits,
+      bestStreak: best,
+      score: hits * 100 + best * 25,
+      durationMs: Math.round(performance.now() - roundStart),
+    };
+    if (!submittedThisRound) {
+      submittedThisRound = true;
+      setAward('submitting', 'submitting…');
+      onRoundSubmit(result);
+    }
   }
 
   return {
@@ -206,6 +246,8 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
       root.querySelector('.ptg-target').style.transform = `translate(-50%,-50%) scale(${TARGET_SCALE})`;
       root.querySelector('.ptg-pulse').style.transform = `translate(-50%,-50%) scale(${MAX_SCALE})`;
       $('fb').className = 'ptg-feedback';
+      setBalanceUI(ticketBalance);
+      setAward('', '—');
       root.classList.add('show');
     },
     close() {
@@ -217,6 +259,18 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {} } = 
     },
     isOpen() {
       return isOpen;
+    },
+    // ---- server-authoritative ticket hooks (called by the floor) ----
+    setBalance(n) {
+      setBalanceUI(n);
+    },
+    roundAccepted({ awarded = 0, balance = ticketBalance } = {}) {
+      setBalanceUI(balance);
+      setAward('accepted', `+${awarded} tickets · balance ${balance}`);
+    },
+    roundRejected({ reason = 'rejected' } = {}) {
+      submittedThisRound = false; // allow a retry via Play again
+      setAward('rejected', `not counted: ${reason}`);
     },
   };
 }

@@ -44,6 +44,9 @@ const hint = el('hint');
 let pulse = { occupiedBy: null, rev: null };
 let connected = false;
 let hintTimer = 0;
+let currentRoundId = null; // server-issued round id for the in-progress round
+let myTickets = 0;         // server-authoritative ticket balance for this session
+let lastReject = null;     // last round-rejection reason (test introspection)
 
 // ---- build the cabinet row once ----
 el('cabinets').innerHTML = CABINETS.map((c) => `
@@ -122,6 +125,11 @@ function renderStatus() {
     : 'connecting';
 }
 
+function renderTickets() {
+  const n = el('ticketCount');
+  if (n) n.textContent = myTickets;
+}
+
 function renderFloor() {
   const mine = isMine();
   const busy = isBusyByOther();
@@ -183,6 +191,13 @@ const client = new NeonCircuitRoomClient({
     connected = false;
     renderStatus();
   },
+  // ---- Phase 1e: server-authoritative tickets ----
+  onRoundStarted: (msg) => { currentRoundId = msg.roundId; },
+  onRoundAccepted: (msg) => { myTickets = msg.balance; game.roundAccepted(msg); renderTickets(); },
+  onRoundRejected: (msg) => { lastReject = msg.reason; game.roundRejected(msg); toast(`round not counted: ${msg.reason}`); },
+  onTicketBalance: (msg) => { myTickets = msg.balance; game.setBalance(msg.balance); renderTickets(); },
+  onTicketAwarded: (msg) => { if (msg.playerId !== myId()) toast(`${shorten(msg.playerId)} won ${msg.awarded} tickets`); },
+  onTicketState: () => { /* public cabinet/last-score; occupancy already drives renderFloor */ },
 });
 
 // Local-only Pulse Tap mini-game. Leaving the cabinet routes through the existing
@@ -190,6 +205,15 @@ const client = new NeonCircuitRoomClient({
 const game = createPulseTapGame({
   accent: '#ff2d95',
   onLeave: () => client.release(PULSE_ID),
+  onRoundStart: () => client.startPulseRound(PULSE_ID),
+  onRoundSubmit: (result) => {
+    if (!currentRoundId) {
+      game.roundRejected({ reason: 'round not registered' });
+      return;
+    }
+    client.submitPulseRound({ roundId: currentRoundId, machineId: PULSE_ID, ...result });
+    currentRoundId = null; // one submit per server-registered round
+  },
 });
 
 // ---- bindings ----
@@ -215,4 +239,15 @@ setInterval(() => {
 // ---- boot: show identity immediately (instant join), then connect ----
 renderIdentity();
 renderFloor();
+renderTickets();
 client.connect();
+
+// Test-only hook (gated by ?test=1): lets the two-client browser validation drive
+// the server-authoritative ticket path for BOTH clients. It only invokes existing
+// client REQUEST methods — it never grants tickets or moves authority client-side.
+if (params.get('test') === '1') {
+  window.__neon = {
+    client,
+    state: () => ({ playerId: myId(), roundId: currentRoundId, tickets: myTickets, lastReject }),
+  };
+}
