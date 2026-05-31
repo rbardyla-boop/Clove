@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-labelledby="title desc" font-family="'Chakra Petch', system-ui, sans-serif">
+  <title id="title">Neon Circuit Arcade — World Map</title>
+  <desc id="desc">Static planning reference. Eight zones across two levels plus one hidden zone, showing portal, escalator, and hidden-seam adjacency. Derived from WORLD_BIBLE.md; extends the v0 index.html prototype. Not a runtime feature.</desc>
+
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Bungee&amp;family=Chakra+Petch:wght@400;500;600;700&amp;display=swap');
+      .disp { font-family: 'Bungee', system-ui, sans-serif; }
+      .ui   { font-family: 'Chakra Petch', system-ui, sans-serif; }
+      .node-title { font-size: 19px; letter-spacing: .5px; }
+      .node-sub   { font-size: 12px; letter-spacing: .4px; }
+      .chip-txt   { font-size: 10.5px; letter-spacing: 1px; font-weight: 700; }
+      .conn-txt   { font-size: 11px; letter-spacing: .6px; font-weight: 600; }
+      .legend-h   { font-size: 12.5px; letter-spacing: 1.5px; font-weight: 700; }
+      .legend-i   { font-size: 12px; }
+      .meta-i     { font-size: 12.5px; letter-spacing: .3px; }
+    </style>
+
+    <!-- background gradient: void to void-2 (token palette) -->
+    <radialGradient id="bg" cx="50%" cy="38%" r="80%">
+      <stop offset="0%"  stop-color="#0f0822"/>
+      <stop offset="70%" stop-color="#0a0617"/>
+      <stop offset="100%" stop-color="#080411"/>
+    </radialGradient>
+
+    <!-- faint floor grid echoing the v0 scrolling floor -->
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="rgba(177,74,255,0.07)" stroke-width="1"/>
+    </pattern>
+
+    <!-- neon glow filters (one per accent) -->
+    <filter id="gl-cyan"   x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#19e3ff" flood-opacity="0.9"/></filter>
+    <filter id="gl-pink"   x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ff2d95" flood-opacity="0.9"/></filter>
+    <filter id="gl-violet" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#b14aff" flood-opacity="0.9"/></filter>
+    <filter id="gl-gold"   x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ffd23f" flood-opacity="0.92"/></filter>
+    <filter id="gl-green"  x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#3df58b" flood-opacity="0.85"/></filter>
+    <filter id="gl-red"    x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ff5a5a" flood-opacity="0.88"/></filter>
+    <filter id="gl-lime"   x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#b6ff3f" flood-opacity="0.85"/></filter>
+    <filter id="gl-soft"   x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#b14aff" flood-opacity="0.5"/></filter>
+  </defs>
+
+  <!-- ===================== BACKDROP ===================== -->
+  <rect x="0" y="0" width="1200" height="900" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="900" fill="url(#grid)"/>
+
+  <!-- ===================== HEADER ===================== -->
+  <text x="600" y="44" text-anchor="middle" class="disp" font-size="30" fill="#19e3ff" filter="url(#gl-cyan)">NEON CIRCUIT</text>
+  <text x="600" y="44" text-anchor="middle" class="disp" font-size="30" fill="#19e3ff" opacity="0.0">NEON CIRCUIT</text>
+  <text x="600" y="68" text-anchor="middle" class="ui" font-size="13" letter-spacing="6" fill="#ff2d95" filter="url(#gl-pink)">— WORLD MAP —</text>
+
+  <!-- ===================== CONNECTORS (drawn under nodes) ===================== -->
+  <!-- Main(600,340) <-> Cosmic(600,120) : ESCALATOR -->
+  <line x1="600" y1="288" x2="600" y2="166" stroke="#19e3ff" stroke-width="3" stroke-dasharray="3 7" stroke-linecap="round" opacity="0.85" filter="url(#gl-cyan)"/>
+  <!-- Main <-> Retro : portal -->
+  <line x1="480" y1="340" x2="315" y2="340" stroke="#b14aff" stroke-width="2.6" opacity="0.9" filter="url(#gl-soft)"/>
+  <!-- Main <-> Hyper : portal -->
+  <line x1="720" y1="340" x2="885" y2="340" stroke="#b14aff" stroke-width="2.6" opacity="0.9" filter="url(#gl-soft)"/>
+  <!-- Main <-> Prize : portal -->
+  <line x1="565" y1="392" x2="520" y2="514" stroke="#b14aff" stroke-width="2.6" opacity="0.9" filter="url(#gl-soft)"/>
+  <!-- Main <-> Raceway : portal -->
+  <line x1="660" y1="392" x2="800" y2="514" stroke="#b14aff" stroke-width="2.6" opacity="0.9" filter="url(#gl-soft)"/>
+  <!-- Retro(210,340) <-> Rhythm(210,560) : portal -->
+  <line x1="210" y1="386" x2="210" y2="514" stroke="#b14aff" stroke-width="2.6" opacity="0.9" filter="url(#gl-soft)"/>
+  <!-- Prize(520,560) <-> Backroom(520,770) : HIDDEN SEAM -->
+  <line x1="520" y1="606" x2="520" y2="724" stroke="#3df58b" stroke-width="2.2" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- connector labels -->
+  <g class="ui" text-anchor="middle">
+    <rect x="548" y="244" width="104" height="20" rx="10" fill="#0f0822" stroke="rgba(25,227,255,.45)"/>
+    <text x="600" y="258" class="conn-txt" fill="#19e3ff">escalator &#9650;&#9660;</text>
+
+    <rect x="476" y="654" width="88" height="20" rx="10" fill="#0a0612" stroke="rgba(61,245,139,.4)"/>
+    <text x="520" y="668" class="conn-txt" fill="#3df58b" opacity="0.85">hidden seam</text>
+  </g>
+
+  <!-- ===================== NODES ===================== -->
+
+  <!-- COSMIC LOUNGE (L2) — violet — v2 -->
+  <g>
+    <rect x="495" y="74" width="210" height="92" rx="16" fill="#140a28" stroke="#b14aff" stroke-width="2.4" filter="url(#gl-violet)"/>
+    <rect x="495" y="74" width="6" height="92" rx="3" fill="#b14aff"/>
+    <text x="600" y="116" text-anchor="middle" class="disp node-title" fill="#f3ecff">COSMIC LOUNGE</text>
+    <text x="600" y="138" text-anchor="middle" class="ui node-sub" fill="#9d8fc4">Level 2 · chill · social</text>
+    <g><rect x="640" y="82" width="54" height="18" rx="9" fill="rgba(177,74,255,.18)" stroke="rgba(177,74,255,.55)"/><text x="667" y="95" text-anchor="middle" class="ui chip-txt" fill="#b14aff">V2</text></g>
+  </g>
+
+  <!-- RETRO ALLEY — green — v1 -->
+  <g>
+    <rect x="105" y="294" width="210" height="92" rx="16" fill="#140a28" stroke="#3df58b" stroke-width="2.4" filter="url(#gl-green)"/>
+    <rect x="105" y="294" width="6" height="92" rx="3" fill="#3df58b"/>
+    <text x="210" y="336" text-anchor="middle" class="disp node-title" fill="#f3ecff">RETRO ALLEY</text>
+    <text x="210" y="358" text-anchor="middle" class="ui node-sub" fill="#9d8fc4">CRT · 8-bit classics</text>
+    <g><rect x="250" y="302" width="54" height="18" rx="9" fill="rgba(61,245,139,.16)" stroke="rgba(61,245,139,.5)"/><text x="277" y="315" text-anchor="middle" class="ui chip-txt" fill="#3df58b">V1</text></g>
+  </g>
+
+  <!-- MAIN FLOOR (hub, L1) — cyan + pink accent — v0 LOCKED -->
+  <g>
+    <rect x="480" y="288" width="240" height="104" rx="18" fill="#160c2b" stroke="#19e3ff" stroke-width="3" filter="url(#gl-cyan)"/>
+    <rect x="480" y="288" width="7" height="104" rx="3.5" fill="#ff2d95" filter="url(#gl-pink)"/>
+    <text x="600" y="332" text-anchor="middle" class="disp node-title" font-size="21" fill="#f3ecff">MAIN FLOOR</text>
+    <text x="600" y="356" text-anchor="middle" class="ui node-sub" fill="#19e3ff">Level 1 · the hub</text>
+    <g><rect x="640" y="298" width="68" height="19" rx="9.5" fill="rgba(25,227,255,.16)" stroke="rgba(25,227,255,.6)"/><text x="674" y="311.5" text-anchor="middle" class="ui chip-txt" fill="#19e3ff">V0 · LOCKED</text></g>
+  </g>
+
+  <!-- HYPER COURT — lime — v1 -->
+  <g>
+    <rect x="885" y="294" width="210" height="92" rx="16" fill="#140a28" stroke="#b6ff3f" stroke-width="2.4" filter="url(#gl-lime)"/>
+    <rect x="885" y="294" width="6" height="92" rx="3" fill="#b6ff3f"/>
+    <text x="990" y="336" text-anchor="middle" class="disp node-title" fill="#f3ecff">HYPER COURT</text>
+    <text x="990" y="358" text-anchor="middle" class="ui node-sub" fill="#9d8fc4">sports · head-to-head</text>
+    <g><rect x="1030" y="302" width="54" height="18" rx="9" fill="rgba(182,255,63,.16)" stroke="rgba(182,255,63,.5)"/><text x="1057" y="315" text-anchor="middle" class="ui chip-txt" fill="#b6ff3f">V1</text></g>
+  </g>
+
+  <!-- RHYTHM REACTOR — pink — v2 -->
+  <g>
+    <rect x="105" y="514" width="210" height="92" rx="16" fill="#140a28" stroke="#ff2d95" stroke-width="2.4" filter="url(#gl-pink)"/>
+    <rect x="105" y="514" width="6" height="92" rx="3" fill="#ff2d95"/>
+    <text x="210" y="556" text-anchor="middle" class="disp node-title" fill="#f3ecff">RHYTHM REACTOR</text>
+    <text x="210" y="578" text-anchor="middle" class="ui node-sub" fill="#9d8fc4">music · shared beat</text>
+    <g><rect x="250" y="522" width="54" height="18" rx="9" fill="rgba(255,45,149,.16)" stroke="rgba(255,45,149,.5)"/><text x="277" y="535" text-anchor="middle" class="ui chip-txt" fill="#ff2d95">V2</text></g>
+  </g>
+
+  <!-- PRIZE BAZAAR — GOLD (reward zone, gold justified) — v1 -->
+  <g>
+    <rect x="415" y="514" width="210" height="92" rx="16" fill="#140a28" stroke="#ffd23f" stroke-width="2.4" filter="url(#gl-gold)"/>
+    <rect x="415" y="514" width="6" height="92" rx="3" fill="#ffd23f"/>
+    <text x="520" y="556" text-anchor="middle" class="disp node-title" fill="#fff4cf">PRIZE BAZAAR</text>
+    <text x="520" y="578" text-anchor="middle" class="ui node-sub" fill="#d9c79a">rewards · the ticket sink</text>
+    <g><rect x="560" y="522" width="54" height="18" rx="9" fill="rgba(255,210,63,.16)" stroke="rgba(255,210,63,.55)"/><text x="587" y="535" text-anchor="middle" class="ui chip-txt" fill="#ffd23f">V1</text></g>
+  </g>
+
+  <!-- CIRCUIT RACEWAY — racing red — v2 -->
+  <g>
+    <rect x="715" y="514" width="210" height="92" rx="16" fill="#140a28" stroke="#ff5a5a" stroke-width="2.4" filter="url(#gl-red)"/>
+    <rect x="715" y="514" width="6" height="92" rx="3" fill="#ff5a5a"/>
+    <text x="820" y="556" text-anchor="middle" class="disp node-title" fill="#f3ecff">CIRCUIT RACEWAY</text>
+    <text x="820" y="578" text-anchor="middle" class="ui node-sub" fill="#9d8fc4">speed · time trials</text>
+    <g><rect x="860" y="522" width="54" height="18" rx="9" fill="rgba(255,90,90,.16)" stroke="rgba(255,90,90,.5)"/><text x="887" y="535" text-anchor="middle" class="ui chip-txt" fill="#ff5a5a">V2</text></g>
+  </g>
+
+  <!-- THE BACKROOM — hidden / discovery-gated — later -->
+  <g opacity="0.92">
+    <rect x="415" y="724" width="210" height="92" rx="16" fill="#0a0612" stroke="#3df58b" stroke-width="2" stroke-dasharray="6 6" opacity="0.85" filter="url(#gl-green)"/>
+    <!-- glitch echoes -->
+    <text x="522" y="766" text-anchor="middle" class="disp node-title" fill="#ff5a5a" opacity="0.35">THE BACKROOM</text>
+    <text x="518" y="766" text-anchor="middle" class="disp node-title" fill="#19e3ff" opacity="0.3">THE BACKROOM</text>
+    <text x="520" y="766" text-anchor="middle" class="disp node-title" fill="#cfeede" opacity="0.92">THE BACKROOM</text>
+    <text x="520" y="788" text-anchor="middle" class="ui node-sub" fill="#6b8f7c">??? · found, not signposted</text>
+    <g><rect x="555" y="732" width="62" height="18" rx="9" fill="rgba(61,245,139,.12)" stroke="rgba(61,245,139,.4)"/><text x="586" y="745" text-anchor="middle" class="ui chip-txt" fill="#3df58b" opacity="0.9">HIDDEN</text></g>
+  </g>
+
+  <!-- ===================== LEGEND (top-left): connector types ===================== -->
+  <g>
+    <rect x="22" y="78" width="252" height="158" rx="14" fill="rgba(22,12,43,0.72)" stroke="rgba(177,74,255,0.28)"/>
+    <text x="40" y="104" class="ui legend-h" fill="#9d8fc4">CONNECTIONS</text>
+
+    <line x1="40" y1="124" x2="84" y2="124" stroke="#b14aff" stroke-width="2.6"/>
+    <text x="96" y="128" class="ui legend-i" fill="#f3ecff">portal · door</text>
+
+    <line x1="40" y1="150" x2="84" y2="150" stroke="#19e3ff" stroke-width="3" stroke-dasharray="3 7" stroke-linecap="round"/>
+    <text x="96" y="154" class="ui legend-i" fill="#f3ecff">escalator (L1 &#8596; L2)</text>
+
+    <line x1="40" y1="176" x2="84" y2="176" stroke="#3df58b" stroke-width="2.2" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.6"/>
+    <text x="96" y="180" class="ui legend-i" fill="#f3ecff">hidden seam (gated)</text>
+
+    <rect x="40" y="198" width="14" height="14" rx="3" fill="rgba(255,210,63,.18)" stroke="#ffd23f"/>
+    <text x="64" y="209" class="ui legend-i" fill="#d9c79a">gold = reward / prize only</text>
+  </g>
+
+  <!-- ===================== METADATA PANEL (top-right): version waves ===================== -->
+  <g>
+    <rect x="900" y="78" width="282" height="178" rx="14" fill="rgba(22,12,43,0.72)" stroke="rgba(25,227,255,0.25)"/>
+    <text x="920" y="104" class="ui legend-h" fill="#9d8fc4">EXPANSION WAVES</text>
+
+    <circle cx="926" cy="128" r="5" fill="#19e3ff" filter="url(#gl-cyan)"/>
+    <text x="940" y="132" class="ui meta-i" fill="#19e3ff">v0 locked: Main Floor only</text>
+
+    <circle cx="926" cy="158" r="5" fill="#ff2d95" filter="url(#gl-pink)"/>
+    <text x="940" y="162" class="ui meta-i" fill="#f3ecff">v1 expansion: Retro Alley /</text>
+    <text x="940" y="180" class="ui meta-i" fill="#f3ecff">Hyper Court / Prize Bazaar</text>
+
+    <circle cx="926" cy="206" r="5" fill="#b14aff" filter="url(#gl-violet)"/>
+    <text x="940" y="210" class="ui meta-i" fill="#f3ecff">v2 expansion: Raceway /</text>
+    <text x="940" y="228" class="ui meta-i" fill="#f3ecff">Rhythm Reactor / Cosmic Lounge</text>
+
+    <circle cx="926" cy="246" r="5" fill="#3df58b" filter="url(#gl-green)"/>
+    <text x="940" y="250" class="ui meta-i" fill="#cfeede">Later: Backroom</text>
+  </g>
+
+  <!-- ===================== FOOTER ===================== -->
+  <text x="600" y="868" text-anchor="middle" class="ui" font-size="12" letter-spacing="0.4" fill="#6b5e91">Static planning reference · derived from WORLD_BIBLE.md · extends v0 index.html — not a runtime feature</text>
+</svg>
