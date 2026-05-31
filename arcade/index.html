@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Neon Circuit Arcade</title>
+<meta name="description" content="Neon Circuit Arcade — Level 1 Main Floor. Walk up to cabinets and play. Pulse Tap is live, with real shared occupancy.">
+<meta name="theme-color" content="#080411">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./neon-circuit.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== ARCADE FLOOR SCENE ===================== -->
+  <main class="scene" aria-label="Neon Circuit Arcade — Level 1 Main Floor">
+    <div class="ceiling" aria-hidden="true"></div>
+    <h1 class="wall-sign">NEON <span class="c">CIRCUIT</span></h1>
+    <p class="wall-tag">— level 1 · main floor —</p>
+    <div class="floor" aria-hidden="true"></div>
+    <div class="floor-glow" aria-hidden="true"></div>
+
+    <div class="cabinets" id="cabinets"><!-- cabinets injected by neon-circuit-floor.js --></div>
+
+    <div class="interact" id="interactPrompt" role="status" aria-live="polite">
+      <button class="key" id="interactKey" type="button">
+        <span class="kbd" id="interactKbd">E</span>
+        <span id="interactLabel">Tap to Play</span>
+      </button>
+      <div class="target" id="interactTarget">PULSE TAP</div>
+    </div>
+  </main>
+
+  <!-- ===================== HUD TOP ===================== -->
+  <header class="hud-top">
+    <button class="player-chip" id="playerChip" type="button" title="Your arcade identity">
+      <span class="chip-av" id="chipAv"></span>
+      <span class="chip-meta">
+        <span class="nm" id="chipName">connecting…</span>
+        <span class="st" id="chipSub">instant join · no login</span>
+      </span>
+    </button>
+
+    <div class="brand" aria-hidden="true">
+      <div class="logo">NEON <span class="c">CIRCUIT</span></div>
+      <div class="sub">virtual arcade</div>
+    </div>
+
+    <div class="status-pill" id="statusPill" role="status" aria-live="polite" title="Room authority connection">
+      <span class="dot off" id="statusDot"></span>
+      <span class="txt" id="statusTxt">connecting</span>
+    </div>
+  </header>
+
+  <!-- ===================== INTERACT ACTION ===================== -->
+  <div class="action-cluster">
+    <button class="act-btn" id="interactBtn" type="button" title="Interact (E)">
+      <span class="ic" id="actIco">⚡</span>
+      <span class="kbd-mini">E</span>
+    </button>
+  </div>
+
+  <div class="hint-toast" id="hint" role="status" aria-live="polite"></div>
+</div>
+
+<script type="module" src="./neon-circuit-floor.js"></script>
+</body>
+</html>
