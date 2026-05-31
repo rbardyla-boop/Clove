@@ -36,6 +36,16 @@ export class NeonCircuitRoomClient {
     this.onTicketBalance = options.onTicketBalance || (() => {});
     this.onTicketAwarded = options.onTicketAwarded || (() => {});
     this.onTicketState = options.onTicketState || (() => {});
+    // Phase 1f arcade-loop callbacks
+    this.onCabinetCatalog = options.onCabinetCatalog || (() => {});
+    this.onPrizeCatalog = options.onPrizeCatalog || (() => {});
+    this.onTicketLedger = options.onTicketLedger || (() => {});
+    this.onInventoryState = options.onInventoryState || (() => {});
+    this.onPrizeRedeemed = options.onPrizeRedeemed || (() => {});
+    this.onPrizeRejected = options.onPrizeRejected || (() => {});
+    this.onCosmeticEquipped = options.onCosmeticEquipped || (() => {});
+    this.onCosmeticUnequipped = options.onCosmeticUnequipped || (() => {});
+    this.onCosmeticState = options.onCosmeticState || (() => {});
 
     this.ws = null;
     this.roomId = "main";
@@ -86,6 +96,11 @@ export class NeonCircuitRoomClient {
         this.onConnected({ playerId: this.playerId });
         // Reconnect support: pull authoritative ticket balance + cabinet state.
         this.requestTicketBalance();
+        // Phase 1f: refresh catalogs, inventory and ledger on (re)connect.
+        this.requestCabinetCatalog();
+        this.requestPrizeCatalog();
+        this.requestInventory();
+        this.requestTicketLedger();
       };
 
       this.ws.onmessage = (event) => {
@@ -193,6 +208,42 @@ export class NeonCircuitRoomClient {
         this.onTicketState(msg);
         break;
       }
+      case "cabinet_catalog": {
+        this.onCabinetCatalog(msg);
+        break;
+      }
+      case "prize_catalog": {
+        this.onPrizeCatalog(msg);
+        break;
+      }
+      case "ticket_ledger": {
+        this.onTicketLedger(msg);
+        break;
+      }
+      case "inventory_state": {
+        this.onInventoryState(msg);
+        break;
+      }
+      case "prize_redeemed": {
+        this.onPrizeRedeemed(msg);
+        break;
+      }
+      case "prize_rejected": {
+        this.onPrizeRejected(msg);
+        break;
+      }
+      case "cosmetic_equipped": {
+        this.onCosmeticEquipped(msg);
+        break;
+      }
+      case "cosmetic_unequipped": {
+        this.onCosmeticUnequipped(msg);
+        break;
+      }
+      case "cosmetic_state": {
+        this.onCosmeticState(msg);
+        break;
+      }
     }
   }
 
@@ -239,6 +290,31 @@ export class NeonCircuitRoomClient {
   /** Request the current authoritative ticket balance for this session. */
   requestTicketBalance() {
     this.send({ t: "ticket_balance_request" });
+  }
+
+  // ==================== Phase 1f: arcade loop (catalog / prizes / cosmetics) ====================
+
+  requestCabinetCatalog() {
+    this.send({ t: "cabinet_catalog_request" });
+  }
+  requestPrizeCatalog() {
+    this.send({ t: "prize_catalog_request" });
+  }
+  requestTicketLedger() {
+    this.send({ t: "ticket_ledger_request" });
+  }
+  requestInventory() {
+    this.send({ t: "inventory_request" });
+  }
+  /** Redeem a prize with arcade tickets. The server computes cost + validates. */
+  redeemPrize(prizeId) {
+    this.send({ t: "prize_redeem", prizeId });
+  }
+  equipCosmetic(prizeId) {
+    this.send({ t: "cosmetic_equip", prizeId });
+  }
+  unequipCosmetic({ slot, prizeId } = {}) {
+    this.send({ t: "cosmetic_unequip", slot, prizeId });
   }
 
   getCurrentMachineState(machineId = "pulse") {

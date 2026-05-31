@@ -17,6 +17,9 @@ const { chromium } = require('playwright');
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8787/arcade/ws';
+// Unique per-run ids so the test is deterministic even against a PERSISTENT
+// Durable Object (balances/inventory survive across runs by design).
+const RUN = Date.now().toString(36);
 const url = (id) => `${BASE}/arcade/index.html?test=1&id=${id}&ws=${encodeURIComponent(WS)}`;
 
 let failures = 0;
@@ -40,8 +43,8 @@ const cabMine = (c) => c.page.evaluate(() => document.querySelector('.cab[data-i
 
 const browser = await chromium.launch({ headless: true });
 try {
-  const A = await newClient(browser, 'alpha');
-  const B = await newClient(browser, 'bravo');
+  const A = await newClient(browser, `a${RUN}`);
+  const B = await newClient(browser, `b${RUN}`);
   check('A and B both connect to the room', true);
 
   // A occupies the cabinet
@@ -106,6 +109,45 @@ try {
   // base B=12 + floor(1225/750)=1 + acc<90 -> 0 => 13
   check('B earns its own tickets independently (13)', (await tickets(B)) === 13);
   check('A balance unchanged by B activity (still 20)', (await tickets(A)) === 20);
+
+  // ── Phase 1f: prize counter / cosmetics loop ──────────────────────────────
+  const balA = (c) => c.page.evaluate(() => window.__neon.state().balance);
+
+  // A redeems a low-cost prize (founder-badge-local, cost 10) and equips it.
+  await A.page.evaluate(() => window.__neon.client.redeemPrize('founder-badge-local'));
+  await A.page.waitForFunction(() => window.__neon.state().inventory.some((i) => i.prize_id === 'founder-badge-local'), null, { timeout: 8000 });
+  check('A redeems founder-badge-local (server subtracts 10 → balance 10)', (await balA(A)) === 10);
+
+  await A.page.evaluate(() => window.__neon.client.equipCosmetic('founder-badge-local'));
+  await A.page.waitForFunction(() => window.__neon.state().equips.badge === 'founder-badge-local', null, { timeout: 8000 });
+  check('A equips the badge', (await A.page.evaluate(() => window.__neon.state().equips.badge)) === 'founder-badge-local');
+
+  // B sees A's PUBLIC equipped cosmetic, but not A's private balance/ledger.
+  const aId = await A.page.evaluate(() => window.__neon.state().playerId);
+  await B.page.waitForFunction((aid) => window.__neon.state().publicCosmetics[aid]?.badge, aId, { timeout: 8000 });
+  const bSeesA = await B.page.evaluate((aid) => window.__neon.state().publicCosmetics[aid].badge.display_name, aId);
+  check("B sees A's public badge (Founder Badge)", bSeesA === 'Founder Badge');
+  const bView = await B.page.evaluate(() => JSON.stringify(window.__neon.state().publicCosmetics));
+  check("B's view of A leaks no balance/ledger", !/balance|ledger|redemption/i.test(bView));
+
+  // B cannot equip an item it does not own.
+  await B.page.evaluate(() => window.__neon.client.equipCosmetic('pulse-jacket'));
+  await B.page.waitForFunction(() => window.__neon.state().lastPrizeReject === 'not_owned', null, { timeout: 8000 });
+  check('B cannot equip an unowned item', (await B.page.evaluate(() => window.__neon.state().lastPrizeReject)) === 'not_owned');
+
+  // B spends its OWN tickets (13 → 3); A's balance is untouched (per-session isolation).
+  await B.page.evaluate(() => window.__neon.client.redeemPrize('founder-badge-local'));
+  await B.page.waitForFunction(() => window.__neon.state().balance === 3, null, { timeout: 8000 });
+  check('B redeems with its own tickets (B 13 → 3)', (await balA(B)) === 3);
+  check("A's balance untouched by B's redemption (still 10)", (await balA(A)) === 10);
+
+  // A reconnects → server restores balance, inventory and equipped cosmetic.
+  await A.page.reload({ waitUntil: 'load' });
+  await A.page.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
+  await A.page.waitForFunction(() => document.getElementById('statusTxt')?.textContent.includes('live'), null, { timeout: 8000 });
+  await A.page.waitForFunction(() => window.__neon.state().inventory.some((i) => i.prize_id === 'founder-badge-local'), null, { timeout: 8000 });
+  check('A reconnect restores balance (10)', (await balA(A)) === 10);
+  check('A reconnect restores equipped badge', (await A.page.evaluate(() => window.__neon.state().equips.badge)) === 'founder-badge-local');
 
   const allErrors = [...A.errors, ...B.errors];
   check('no console / page errors', allErrors.length === 0);

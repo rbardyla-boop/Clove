@@ -13,6 +13,7 @@
  */
 import { NeonCircuitRoomClient } from './neon-circuit-room-client.js';
 import { createPulseTapGame } from './pulse-tap-game.js';
+import { createPrizeCounter } from './prize-counter.js';
 
 const PULSE_ID = 'pulse';
 const CABINETS = [
@@ -47,6 +48,11 @@ let hintTimer = 0;
 let currentRoundId = null; // server-issued round id for the in-progress round
 let myTickets = 0;         // server-authoritative ticket balance for this session
 let lastReject = null;     // last round-rejection reason (test introspection)
+let prizeCounter = null;   // Phase 1f Prize Counter panel (assigned below)
+let myInventory = [];      // Phase 1f: owned cosmetics (for test introspection)
+let myEquips = {};         // Phase 1f: equipped slots
+let publicCosmetics = {};  // Phase 1f: others' safe public equips
+let lastPrizeReject = null;// Phase 1f: last prize/equip rejection reason
 
 // ---- build the cabinet row once ----
 el('cabinets').innerHTML = CABINETS.map((c) => `
@@ -179,6 +185,7 @@ const client = new NeonCircuitRoomClient({
     connected = true;
     renderIdentity();
     renderFloor();
+    prizeCounter?.setSelfId(myId());
   },
   onState: (s) => {
     const m = s.machines && s.machines.pulse;
@@ -195,9 +202,19 @@ const client = new NeonCircuitRoomClient({
   onRoundStarted: (msg) => { currentRoundId = msg.roundId; },
   onRoundAccepted: (msg) => { myTickets = msg.balance; game.roundAccepted(msg); renderTickets(); },
   onRoundRejected: (msg) => { lastReject = msg.reason; game.roundRejected(msg); toast(`round not counted: ${msg.reason}`); },
-  onTicketBalance: (msg) => { myTickets = msg.balance; game.setBalance(msg.balance); renderTickets(); },
+  onTicketBalance: (msg) => { myTickets = msg.balance; game.setBalance(msg.balance); prizeCounter?.setBalance(msg.balance); renderTickets(); },
   onTicketAwarded: (msg) => { if (msg.playerId !== myId()) toast(`${shorten(msg.playerId)} won ${msg.awarded} tickets`); },
   onTicketState: () => { /* public cabinet/last-score; occupancy already drives renderFloor */ },
+  // ---- Phase 1f: arcade loop (catalog / prizes / cosmetics) ----
+  onCabinetCatalog: (m) => { prizeCounter?.setZones(m.zones || []); },
+  onPrizeCatalog: (m) => { prizeCounter?.setPrizes(m.prizes || []); },
+  onInventoryState: (m) => { myInventory = m.items || []; myEquips = m.equips || {}; prizeCounter?.setInventory(m.items || [], m.equips || {}); },
+  onTicketLedger: (m) => { prizeCounter?.setLedger(m.entries || []); },
+  onPrizeRedeemed: (m) => { myTickets = m.balance; prizeCounter?.setBalance(m.balance); prizeCounter?.redeemed(m); renderTickets(); },
+  onPrizeRejected: (m) => { lastPrizeReject = m.reason; prizeCounter?.redeemRejected(m); toast(`prize: ${m.reason}`); },
+  onCosmeticEquipped: () => { prizeCounter?.cosmeticFeedback('Equipped \u2713', 'ok'); },
+  onCosmeticUnequipped: () => { prizeCounter?.cosmeticFeedback('Unequipped', ''); },
+  onCosmeticState: (m) => { publicCosmetics = m.equipped || {}; prizeCounter?.setPublicCosmetics(m.equipped || {}); },
 });
 
 // Local-only Pulse Tap mini-game. Leaving the cabinet routes through the existing
@@ -215,6 +232,16 @@ const game = createPulseTapGame({
     currentRoundId = null; // one submit per server-registered round
   },
 });
+
+// Phase 1f: Prize Counter panel. It only forwards intent; the server validates,
+// computes cost, and owns balances/inventory.
+prizeCounter = createPrizeCounter({
+  onRedeem: (prizeId) => client.redeemPrize(prizeId),
+  onEquip: (prizeId) => client.equipCosmetic(prizeId),
+  onUnequip: ({ slot }) => client.unequipCosmetic({ slot }),
+});
+const prizeBtn = el('prizeBtn');
+if (prizeBtn) prizeBtn.addEventListener('click', () => (prizeCounter.isOpen() ? prizeCounter.close() : prizeCounter.open()));
 
 // ---- bindings ----
 pulseCab.addEventListener('click', activate);
@@ -248,6 +275,6 @@ client.connect();
 if (params.get('test') === '1') {
   window.__neon = {
     client,
-    state: () => ({ playerId: myId(), roundId: currentRoundId, tickets: myTickets, lastReject }),
+    state: () => ({ playerId: myId(), roundId: currentRoundId, tickets: myTickets, balance: myTickets, lastReject, inventory: myInventory, equips: myEquips, publicCosmetics, lastPrizeReject }),
   };
 }

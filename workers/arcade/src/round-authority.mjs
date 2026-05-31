@@ -10,6 +10,7 @@
  * clients never grant themselves tickets.
  */
 import { computeTickets, validateScorePayload, LIMITS } from './tickets.mjs';
+import { appendLedger } from './ledger.mjs';
 
 /** Cabinets that award tickets in Phase 1e. */
 export const TICKETED_MACHINES = Object.freeze(new Set(['pulse']));
@@ -20,6 +21,10 @@ export function createTicketState() {
     rounds: {},     // roundId  -> { roundId, machineId, playerId, startedAt, expiresAt, status }
     submitted: {},  // roundId  -> true (dedup guard against double-award)
     lastPublic: null, // { machineId, playerId, score, grade, awarded, at } — safe to broadcast
+    ledger: {},     // playerId  -> [ ledger entries ]        (Phase 1f, private)
+    inventory: {},  // playerId  -> { prizeId -> entitlement } (Phase 1f, session-bound)
+    equips: {},     // playerId  -> { slot -> prizeId }        (Phase 1f)
+    redemptions: {},// redemptionId -> true                    (Phase 1f dedup)
   };
 }
 
@@ -31,6 +36,10 @@ export function ensureTicketState(maybe) {
     rounds: maybe.rounds || {},
     submitted: maybe.submitted || {},
     lastPublic: maybe.lastPublic || null,
+    ledger: maybe.ledger || {},
+    inventory: maybe.inventory || {},
+    equips: maybe.equips || {},
+    redemptions: maybe.redemptions || {},
   };
 }
 
@@ -93,13 +102,19 @@ export function submitRound(state, { payload, senderId, occupantId, now }) {
   // Server computes the award. Any payload.tickets is ignored entirely.
   const awarded = computeTickets({ grade: payload.grade, score: payload.score, accuracy: payload.accuracy });
   const balance = getBalance(state, round.playerId) + awarded;
-  const next = {
+  let next = {
     ...state,
     balances: { ...state.balances, [round.playerId]: balance },
     rounds: { ...state.rounds, [round.roundId]: { ...round, status: 'submitted' } },
     submitted: { ...state.submitted, [round.roundId]: true },
     lastPublic: { machineId: round.machineId, playerId: round.playerId, score: payload.score, grade: payload.grade, awarded, at: now },
   };
+  // Ledger: one tickets_awarded entry per round (deduped by round id).
+  next = appendLedger(next, {
+    playerId: round.playerId, eventType: 'tickets_awarded', delta: awarded, balanceAfter: balance,
+    source: round.machineId, refId: round.roundId, cabinetId: round.machineId,
+    summary: `earned ${awarded} tickets at ${round.machineId}`, now,
+  }).state;
   return {
     state: next,
     ok: true,

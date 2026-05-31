@@ -1,0 +1,51 @@
+/* Neon Circuit — Prize Counter (Phase 1f). Reuses the arcade neon palette. */
+.pc-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  background:rgba(5,3,12,.72);backdrop-filter:blur(6px);padding:18px}
+.pc-overlay.show{display:flex}
+.pc-panel{width:min(1040px,96vw);max-height:90vh;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#120b2e,#0c0820);border:1px solid #2a1d57;border-radius:16px;
+  box-shadow:0 30px 80px -30px #000, inset 0 1px 0 rgba(255,255,255,.04);color:#e7e3ff;overflow:hidden;
+  font-family:'Chakra Petch',system-ui,sans-serif}
+.pc-head{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #241a4d;
+  background:linear-gradient(180deg,rgba(255,45,149,.10),transparent)}
+.pc-title{font-weight:700;letter-spacing:.5px;font-size:18px}
+.pc-title span{color:#ff2d95;text-shadow:0 0 14px rgba(255,45,149,.6)}
+.pc-title .pc-zone-tag{font-style:normal;font-size:10px;color:#8a83b8;border:1px solid #2a1d57;border-radius:999px;padding:2px 8px;margin-left:6px;text-transform:uppercase;letter-spacing:1px}
+.pc-bal{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:16px;color:#ffd23f;
+  border:1px solid rgba(255,210,63,.4);border-radius:999px;padding:5px 14px;background:rgba(255,210,63,.08)}
+.pc-close{background:#0c0820;border:1px solid #2a1d57;color:#e7e3ff;border-radius:9px;width:34px;height:34px;cursor:pointer;font-size:14px}
+.pc-close:hover{border-color:#ff2d95;box-shadow:0 0 0 1px #ff2d95}
+.pc-body{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:16px;overflow:auto}
+@media (max-width:820px){.pc-body{grid-template-columns:1fr}}
+.pc-col h3{margin:0 0 8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a83b8}
+.pc-col h3:not(:first-child){margin-top:16px}
+.pc-list{display:flex;flex-direction:column;gap:8px}
+.pc-card{border:1px solid #241a4d;border-radius:10px;padding:10px;background:rgba(0,0,0,.22)}
+.pc-card.owned{opacity:.7}
+.pc-card.equipped{border-color:#3df58b;box-shadow:inset 0 0 18px -8px #3df58b}
+.pc-card-main{display:flex;align-items:center;gap:8px}
+.pc-name{font-weight:600}
+.pc-rar,.pc-slot{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#8a83b8;border:1px solid #2a1d57;border-radius:5px;padding:1px 6px}
+.pc-desc{font-size:11px;color:#8a83b8;margin:6px 0}
+.pc-btn{font-family:inherit;font-size:12px;color:#06030f;font-weight:700;background:#ff2d95;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;transition:.12s}
+.pc-btn:hover:not(:disabled){box-shadow:0 0 16px -4px #ff2d95;transform:translateY(-1px)}
+.pc-btn:disabled{background:#3a2f55;color:#8a83b8;cursor:not-allowed}
+.pc-btn.ghost{background:transparent;border:1px solid #3df58b;color:#3df58b}
+.pc-need{display:block;font-size:10px;color:#ffd23f;margin-top:4px}
+.pc-empty{font-size:12px;color:#6f6796;font-style:italic;padding:6px 0}
+.pc-ledger{display:flex;flex-direction:column;gap:3px;font-family:'Share Tech Mono',monospace;font-size:11px}
+.pc-led{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid rgba(36,26,77,.5)}
+.pc-led-sum{flex:1;color:#cfc9f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-led-delta{font-weight:700}
+.pc-led.pos .pc-led-delta{color:#3df58b}
+.pc-led.neg .pc-led-delta{color:#ff9f43}
+.pc-other{display:flex;gap:8px;font-size:12px;border:1px solid #241a4d;border-radius:8px;padding:7px 9px;background:rgba(0,0,0,.2)}
+.pc-other-id{font-family:'Share Tech Mono',monospace;color:#19e3ff}
+.pc-other-items{margin-left:auto;color:#cfc9f5}
+.pc-zone{display:flex;flex-direction:column;border:1px solid #241a4d;border-radius:8px;padding:7px 9px;margin-bottom:6px;background:rgba(0,0,0,.2)}
+.pc-zone b{font-size:12px}
+.pc-zone span{font-size:10px;color:#8a83b8}
+.pc-feedback{min-height:20px;padding:8px 18px;font-family:'Share Tech Mono',monospace;font-size:12px;opacity:0;transition:.2s;border-top:1px solid #241a4d}
+.pc-feedback.show{opacity:1}
+.pc-feedback.ok{color:#3df58b}
+.pc-feedback.bad{color:#ff4d6d}
