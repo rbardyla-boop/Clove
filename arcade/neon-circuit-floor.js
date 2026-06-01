@@ -25,6 +25,8 @@ import { createChallengeBoard } from './challenge-board.js';
 // the server catalog (loadAndActivateImportedCabinet) — not hand-wired here.
 import { mountAdapter, loadAndMountImported, loadAndActivateImportedCabinet } from './cabinet-adapter-runtime.js';
 import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
+// Phase 2a: room selection (the lobby forwards intent; the server is the authority).
+import { createArcadeLobby } from './arcade-lobby.js';
 
 // Powered (playable) cabinets, keyed by their occupancy machine id. The room
 // authority drives free/yours/in-use; the catalog confirms they are live.
@@ -42,6 +44,7 @@ const COMING_SOON = [
 const params = new URLSearchParams(location.search);
 const wsParam = params.get('ws');
 const idParam = params.get('id'); // alpha / bravo -> test-alpha / test-bravo (validation only)
+const roomParam = params.get('room'); // Phase 2a: which room to join (default main-floor)
 
 const el = (id) => document.getElementById(id);
 const interactKey = el('interactKey');
@@ -59,6 +62,9 @@ const hint = el('hint');
 
 let connected = false;
 let hintTimer = 0;
+let lobby = null;             // Phase 2a Arcade Lobby panel (assigned below)
+let currentRoomId = null;     // Phase 2a: the room this client is bound to
+let lastRoomReject = null;    // Phase 2a: last room-join rejection reason (test introspection)
 let focused = 'pulse';        // which powered cabinet the interact bar / keyboard targets
 let currentRoundId = null;        // server-issued Pulse Tap round id
 let currentSignalRoundId = null;  // server-issued Signal Sprint round id
@@ -189,6 +195,19 @@ function renderStatus() {
     : 'connecting';
 }
 
+// Phase 2a: the current-room chip (opens the lobby). Falls back to the raw room id
+// until the room list arrives with display names.
+function roomDisplayName(roomId) {
+  const r = (lobby?.getRooms() || []).find((x) => x.room_id === roomId);
+  return r ? r.display_name : (roomId || '—');
+}
+function renderRoomChip() {
+  const btn = el('roomBtn');
+  if (!btn) return;
+  const label = btn.querySelector('[data-f="roomName"]');
+  if (label) label.textContent = roomDisplayName(currentRoomId);
+}
+
 function renderTickets() {
   const n = el('ticketCount');
   if (n) n.textContent = myTickets;
@@ -268,9 +287,16 @@ function renderFloor() {
 const client = new NeonCircuitRoomClient({
   wsUrl: wsParam || undefined,
   playerIdOverride: idParam ? `test-${idParam}` : null,
-  onConnected: () => {
+  roomId: roomParam, // Phase 2a: bind to the selected room (default main-floor)
+  onConnected: ({ roomId } = {}) => {
     connected = true;
+    currentRoomId = roomId || client.getRoomId();
+    // Phase 2a: a (re)connect or room switch starts a fresh room-scoped session.
+    // The server re-sends this room's balance/inventory/ledger/challenge/feed on
+    // join, which overwrites the per-room UI vars; clear transient round ids here.
+    currentRoundId = currentSignalRoundId = currentGridRoundId = null;
     renderIdentity();
+    renderRoomChip();
     renderFloor();
     prizeCounter?.setSelfId(myId());
     challengeBoard?.setSelfId(myId());
@@ -279,7 +305,17 @@ const client = new NeonCircuitRoomClient({
     client.requestChallengeProgress();
     client.requestAchievementState();
     client.requestEventFeed();
+    // Phase 2a: refresh the lobby's room list + current-room highlight.
+    client.requestRoomList();
+    lobby?.setConnection(true);
+    lobby?.setCurrentRoom(currentRoomId);
   },
+  // ---- Phase 2a: lobby / multi-room ----
+  onRoomList: (m) => { lobby?.setRooms(m.rooms || []); lobby?.setCurrentRoom(currentRoomId); },
+  onRoomJoined: (m) => { currentRoomId = (m.room && m.room.room_id) || currentRoomId; renderRoomChip(); lobby?.setCurrentRoom(currentRoomId); },
+  onRoomJoinRejected: (m) => { lastRoomReject = m.reason; lobby?.showRejection(m.reason, m.roomId); toast(`room: ${m.reason}`); },
+  onRoomLeft: () => {},
+  onRoomPopulation: (m) => { lobby?.setPopulation(m.roomId, m.population); },
   onState: (s) => {
     if (!s.machines) return;
     for (const c of POWERED) {
@@ -295,6 +331,7 @@ const client = new NeonCircuitRoomClient({
   onError: () => {
     connected = false;
     renderStatus();
+    lobby?.setConnection(false);
   },
   // ---- Pulse Tap (Phase 1e) ----
   onRoundStarted: (msg) => { currentRoundId = msg.roundId; },
@@ -452,6 +489,21 @@ challengeBoard = createChallengeBoard({
 const challengeBtn = el('challengeBtn');
 if (challengeBtn) challengeBtn.addEventListener('click', () => (challengeBoard.isOpen() ? challengeBoard.close() : challengeBoard.open()));
 
+// Phase 2a: Arcade Lobby. Switching rooms reconnects to the selected room (the
+// client bumps a connection generation so stale old-room messages are ignored),
+// and onConnected re-pulls all room-scoped state for the new room.
+lobby = createArcadeLobby({
+  onSwitch: (roomId) => {
+    if (roomId === currentRoomId) return;
+    toast(`switching to ${roomDisplayName(roomId)}…`);
+    lobby.close();
+    client.switchRoom(roomId);
+  },
+  onRefresh: () => client.requestRoomList(),
+});
+const roomBtn = el('roomBtn');
+if (roomBtn) roomBtn.addEventListener('click', () => (lobby.isOpen() ? lobby.close() : lobby.open()));
+
 // ---- bindings ----
 for (const c of POWERED) {
   cabs[c.id].el.addEventListener('click', () => { focused = c.id; activate(c.id); });
@@ -475,7 +527,10 @@ setInterval(() => {
 }, 1500);
 
 // ---- boot: show identity immediately (instant join), then connect ----
+currentRoomId = client.getRoomId(); // Phase 2a: default/selected room before connect
+lobby?.setCurrentRoom(currentRoomId);
 renderIdentity();
+renderRoomChip();
 renderFloor();
 renderTickets();
 client.connect();
@@ -488,6 +543,8 @@ if (params.get('test') === '1') {
     client,
     state: () => ({
       playerId: myId(),
+      roomId: currentRoomId,
+      lastRoomReject,
       roundId: currentRoundId,
       signalRoundId: currentSignalRoundId,
       gridRoundId: currentGridRoundId,
@@ -512,6 +569,11 @@ if (params.get('test') === '1') {
     renderState: (cabinet) => cabinetRenderState(cabinet),
     fixtureLifecycle: [],
     fixtureMount: null,
+    // Phase 2a: multi-room introspection for browser validation.
+    roomId: () => currentRoomId,
+    rooms: () => (lobby ? lobby.getRooms() : []),
+    switchRoom: (roomId) => client.switchRoom(roomId),
+    requestRoomList: () => client.requestRoomList(),
   };
 
   // Phase 1k: dynamically load + mount the test-only sample import fixture

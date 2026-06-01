@@ -1,13 +1,19 @@
 /**
- * Neon Arcade Mesh Worker — Phase 1b
+ * Neon Arcade Mesh Worker — Phase 2a (Multi-Room Arcade Lobby)
  *
- * Entry point for the room authority WebSocket gateway.
- * Routes /arcade/ws connections to the ArcadeRoom Durable Object.
+ * Entry point for the arcade authority WebSocket gateway. Routes /arcade/ws
+ * connections to the single ArcadeRoom Durable Object, which hosts MULTIPLE rooms
+ * as isolated state namespaces. A client connects with `?room=<id>` (informational)
+ * and selects its room through the lobby join protocol; the DO is the authority for
+ * room validation + binding (see arcade-room.ts handleJoin). One shared DO keeps
+ * cross-room population aggregation + room isolation simple for the configured room
+ * set; per-room DO sharding is a future scaling step.
  *
  * This Worker is intentionally minimal. All authority logic lives inside the DO.
  */
 
 import { ArcadeRoom } from "./arcade-room";
+import { resolveRoomId, ROOM_IDS } from "./rooms.mjs";
 
 export interface Env {
   ARCADE_ROOM: DurableObjectNamespace;
@@ -17,44 +23,30 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // Only handle the WebSocket upgrade path for Phase 1b
     if (url.pathname === "/arcade/ws") {
-      console.log("[Worker] Received WebSocket upgrade request for /arcade/ws");
-
-      // Always route "main" room in Phase 1b.
-      // Later phases can parse ?room=xxx or path segments.
-      const roomId = "main";
-      const id = env.ARCADE_ROOM.idFromName(roomId);
+      // Resolve the (optional, untrusted) room hint for defense-in-depth + logging.
+      // The DO is the authority for binding; an explicit invalid room is rejected
+      // there with room_join_rejected. All rooms share one DO instance ("arcade").
+      const hint = resolveRoomId(url.searchParams.get("room"));
+      console.log(`[Worker] WS upgrade /arcade/ws (room hint: ${hint.roomId}${hint.fallback ? " — fell back from invalid" : ""})`);
+      const id = env.ARCADE_ROOM.idFromName("arcade");
       const stub = env.ARCADE_ROOM.get(id);
-
       try {
-        // Forward the upgrade request to the Durable Object
-        const response = await stub.fetch(request);
-        console.log("[Worker] DO responded with status:", response.status);
-        return response;
+        return await stub.fetch(request);
       } catch (err) {
         console.error("[Worker] Error forwarding to DO:", err);
         return new Response("DO fetch failed", { status: 500 });
       }
     }
 
-    // Simple health check / info for debugging
     if (url.pathname === "/arcade/health") {
       return new Response(
-        JSON.stringify({
-          ok: true,
-          service: "neon-arcade-mesh",
-          phase: "1b",
-          room: "main",
-          machine: "pulse",
-        }),
+        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "2a", rooms: ROOM_IDS }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
 
-    return new Response("Neon Circuit Room Authority — Phase 1b only", {
-      status: 404,
-    });
+    return new Response("Neon Circuit Arcade — Room Authority", { status: 404 });
   },
 };
 
