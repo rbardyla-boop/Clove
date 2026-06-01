@@ -249,10 +249,29 @@ export function roomHealthLifecycle({ seed = 'p2c-health' } = {}) {
   return { sim, report: sim.report() };
 }
 
+// ── 11. roomRecommendationShowcase (v0.4 presence UX) ────────────────────────────
+// Three healthy rooms with different populations so the pure recommendation helpers
+// (core/phase1/room-recommend.mjs) have a clear, deterministic picture: main-floor
+// busy (pop 5), neon-training (training profile) lightly populated (pop 1),
+// late-night-circuit empty (pop 0). Rooms report heartbeats only; recommendations are
+// derived purely from the resulting public presence list (see the test).
+export function roomRecommendationShowcase({ seed = 'p2d-reco' } = {}) {
+  const sim = new HiveSimulator({ seed, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  const train = sim.addRoom({ id: 'neon-training', name: 'Neon Training' });
+  const late = sim.addRoom({ id: 'late-night-circuit', name: 'Late Night Circuit' });
+  sim.publish(main.announce(0)); sim.publish(train.announce(0)); sim.publish(late.announce(0));
+  sim.publish(main.heartbeat(2, { population: 5 }));
+  sim.publish(train.heartbeat(2, { population: 1 }));
+  sim.publish(late.heartbeat(2, { population: 0 }));
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
-  multiRoomIsolation, roomHealthLifecycle,
+  multiRoomIsolation, roomHealthLifecycle, roomRecommendationShowcase,
 });
 
 export function runPhase1Scenario(name, opts) {
