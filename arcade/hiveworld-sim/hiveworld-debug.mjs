@@ -13,6 +13,10 @@ import { SIDEBANDS, SIDEBAND_NAMES } from './core/sidebands.mjs';
 import { createEvent } from './core/events.mjs';
 import { simulatePulseTapRound } from './core/pulse-tap.mjs';
 import { runScenario } from './scenarios/canned.mjs';
+// Phase 1 arcade parity (v0.1)
+import { PHASE1_SCENARIOS, runPhase1Scenario, RESULTS } from './scenarios/phase1.mjs';
+import { CABINETS } from './core/phase1/catalog.mjs';
+import { cabinetRenderState, adapterStateFor } from './core/phase1/adapters.mjs';
 
 const CABS = [
   { id: 'pulse', ico: '⚡' },
@@ -45,8 +49,9 @@ class HiveDebug {
 
   init() {
     this.sim = new HiveSimulator({ seed: 'ui-' + Date.now() });
-    this.agentN = 0; this.roomN = 0; this.slotN = 0; this.goodN = 0; this.objN = 0;
+    this.agentN = 0; this.roomN = 0; this.slotN = 0; this.goodN = 0; this.objN = 0; this.p1RoundN = 0;
     this.lastSlotByAgent = {};
+    this.refreshPhase1Select();
     for (const sb of SIDEBAND_NAMES) this.energy[sb] = 0;
 
     // seed a small world so the page is alive on load
@@ -125,6 +130,11 @@ class HiveDebug {
         case 'replay': this.replay(); break;
         case 'export': this.exportReport(); break;
         case 'run-scenario': this.runScenario(); break;
+        case 'p1-play': this.p1Play(a); break;
+        case 'p1-redeem': this.p1Redeem(a); break;
+        case 'p1-equip': this.p1Equip(a); break;
+        case 'p1-claim': this.p1Claim(a); break;
+        case 'run-phase1': this.runPhase1Scenario(); break;
         case 'reset': this.init(); break;
       }
     } catch (err) {
@@ -257,6 +267,105 @@ class HiveDebug {
     this.toast('ran ' + name + ' → converged: ' + r.desyncReport.finalConverged + ' · rejected: ' + r.rejectedEvents.length, r.desyncReport.finalConverged ? 'ok' : 'bad');
   }
 
+  // ── Phase 1 arcade parity (v0.1) ──────────────────────────────────────────
+  refreshPhase1Select() {
+    const sel = $('sel-p1-scenario');
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (const name of Object.keys(PHASE1_SCENARIOS)) {
+      const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o);
+    }
+  }
+
+  p1Cab() { const s = $('sel-p1-cab'); return s ? s.value : 'pulse'; }
+  p1Kind() { return { pulse: 'pulse', signal: 'signal', grid: 'grid' }[this.p1Cab()]; }
+
+  /** Occupy → start → submit → release a full server-authoritative arcade round. */
+  p1Play(a) {
+    const room = this.selRoom(); const machine = this.p1Cab();
+    if (!room) { this.toast('create/select a room first', 'bad'); return; }
+    const rid = `r-${a.id}-${this.p1RoundN++}`;
+    const result = { ...RESULTS[this.p1Kind()], roundId: rid };
+    this.pub(a.occupy(room, machine, this.sim.nextTick()));
+    this.pub(a.startArcadeRound(room, machine, rid, this.sim.nextTick()));
+    this.pub(a.submitArcadeRound(room, machine, result, this.sim.nextTick()));
+    this.pub(a.release(room, machine, this.sim.nextTick()));
+    const bal = this.world().arcade.balances[a.id] || 0;
+    this.toast(`${a.id} played ${machine} → balance ${bal} tickets`, 'ok');
+  }
+
+  p1Redeem(a) {
+    const r = this.pub(a.redeemArcadePrize('founder-badge-local', `rd-${a.id}-${this.p1RoundN++}`, this.sim.nextTick()));
+    const owned = this.world().arcade.inventory[a.id]?.['founder-badge-local'];
+    this.toast(owned ? `${a.id} redeemed Founder Badge (−10)` : `redeem refused: ${this.applyReasonFor(r.event?.event_id) || 'insufficient_tickets'} (play rounds first)`, owned ? 'ok' : 'bad');
+  }
+
+  p1Equip(a) {
+    this.pub(a.equipCosmetic('founder-badge-local', this.sim.nextTick()));
+    const eq = this.world().arcade.equips[a.id]?.badge;
+    this.toast(eq === 'founder-badge-local' ? `${a.id} equipped Founder Badge` : 'equip refused — redeem it first', eq ? 'ok' : 'bad');
+  }
+
+  p1Claim(a) {
+    this.pub(a.claimChallenge('grid-rookie', this.sim.nextTick()));
+    const claimed = this.world().arcade.challengeProgress[a.id]?.['grid-rookie']?.reward_claimed;
+    this.toast(claimed ? `${a.id} claimed Grid Rookie badge` : 'claim refused — complete a Neon Grid round first', claimed ? 'ok' : 'bad');
+  }
+
+  runPhase1Scenario() {
+    const name = $('sel-p1-scenario').value;
+    const { sim } = runPhase1Scenario(name, {});
+    this.sim = sim;
+    this.activeId = [...sim.agents.keys()][0];
+    this.agentN = sim.agents.size; this.roomN = sim.rooms.size; this.slotN = 9000; this.goodN = 9000; this.objN = 9000; this.p1RoundN = 9000;
+    this.lastSlotByAgent = {};
+    for (const sb of SIDEBAND_NAMES) this.energy[sb] = sim.sidebandTraffic[sb] ? 1 : 0;
+    this.refreshRoomSelect();
+    const r = sim.report();
+    this.toast(`ran ${name} → converged: ${r.desyncReport.finalConverged} · rejected: ${r.rejectedEvents.length}`, r.desyncReport.finalConverged ? 'ok' : 'bad');
+  }
+
+  renderPhase1(w) {
+    const host = $('p1-arcade');
+    if (!host) return;
+    const arcade = w.arcade || {};
+    const activated = new Set(['neon_grid']); // the catalog activates the imported Neon Grid
+    const STATE_COLOR = { playable: 'var(--ok,#3df58b)', unavailable: 'var(--bad,#ff5d73)', coming_soon: 'var(--muted)' };
+    const cabs = CABINETS.map((c) => {
+      const rs = cabinetRenderState(c, { activated });
+      return `<div class="cab" style="text-align:left;border-color:${STATE_COLOR[rs] || 'var(--line)'}">
+        <div style="font-weight:600">${c.display_name}</div>
+        <div style="color:var(--muted);font-size:11px">${c.cabinet_type} · ${c.adapter_mode}</div>
+        <div style="font-size:11px;color:${STATE_COLOR[rs] || 'var(--ink)'}">${rs} · ${adapterStateFor(c, { activated })}</div>
+      </div>`;
+    }).join('');
+
+    const a = this.agent();
+    let agentBlock = '<div class="hint">no agent selected</div>';
+    if (a) {
+      const bal = arcade.balances?.[a.id] || 0;
+      const inv = Object.values(arcade.inventory?.[a.id] || {});
+      const prog = Object.values(arcade.challengeProgress?.[a.id] || {});
+      const done = prog.filter((p) => p.completed);
+      agentBlock = `
+        <div class="row"><span>agent</span><span>${short(a.id)}</span></div>
+        <div class="row"><span>tickets</span><span>${bal}</span></div>
+        <div class="row"><span>inventory</span><span>${inv.length ? inv.map((i) => i.display_name).join(', ') : '—'}</span></div>
+        <div class="row"><span>challenges</span><span>${done.length}/${prog.length} done${done.some((p) => p.reward_claimed) ? ' · ' + done.filter((p) => p.reward_claimed).length + ' claimed' : ''}</span></div>`;
+    }
+
+    const feed = (arcade.feed || []).slice(-12).reverse();
+    const feedBlock = feed.length
+      ? feed.map((e) => `<div class="ev"><span class="t">t${e.tick}</span><span style="color:var(--muted)">${e.event_type}</span><span>${e.summary}</span></div>`).join('')
+      : '<div class="hint">no arcade events yet — play a round or run a Phase 1 scenario</div>';
+
+    host.innerHTML = `
+      <div class="cabs" style="grid-template-columns:repeat(3,1fr)">${cabs}</div>
+      <div class="seldet" style="margin-top:10px">${agentBlock}</div>
+      <div style="margin-top:10px;color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase">Public event feed</div>
+      <div class="ticker">${feedBlock}</div>`;
+  }
+
   // ── derived state ─────────────────────────────────────────────────────────
   world() {
     if (!this._foldTick || this._foldTick !== this.sim.canonicalLog.size + ':' + this.sim.tick) {
@@ -326,6 +435,7 @@ class HiveDebug {
     this.renderSelected(w);
     this.renderTicker();
     this.renderRejects();
+    this.renderPhase1(w);
   }
 
   renderRooms(w) {

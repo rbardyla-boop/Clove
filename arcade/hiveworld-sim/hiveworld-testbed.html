@@ -229,6 +229,30 @@
           <button class="act" data-action="reset">Reset</button>
         </div>
       </div>
+
+      <div class="grp">
+        <div class="lbl">Phase 1 arcade parity (v0.1)</div>
+        <div class="selrow">
+          <select class="act" id="sel-p1-cab" aria-label="Phase 1 cabinet">
+            <option value="pulse">Pulse Tap</option>
+            <option value="signal">Signal Sprint</option>
+            <option value="grid">Neon Grid</option>
+          </select>
+        </div>
+        <div class="btnrow">
+          <button class="act go" data-action="p1-play">▶ Play arcade round</button>
+          <button class="act" data-action="p1-redeem">Redeem founder badge</button>
+          <button class="act" data-action="p1-equip">Equip badge</button>
+          <button class="act" data-action="p1-claim">Claim grid-rookie</button>
+        </div>
+        <div class="selrow">
+          <select class="act" id="sel-p1-scenario" aria-label="Phase 1 scenario"></select>
+        </div>
+        <div class="btnrow">
+          <button class="act go" data-action="run-phase1">Run Phase 1 scenario</button>
+        </div>
+        <div class="hint">Server-authoritative rounds award tickets; the catalog activates Neon Grid through the adapter path.</div>
+      </div>
     </aside>
 
     <!-- CENTER -->
@@ -245,6 +269,10 @@
       <div class="panel">
         <h2>World-space slots</h2>
         <div class="slots" id="slots"></div>
+      </div>
+      <div class="panel">
+        <h2>Phase 1 arcade — cabinets, tickets, challenges, feed</h2>
+        <div class="p1" id="p1-arcade"></div>
       </div>
     </section>
 

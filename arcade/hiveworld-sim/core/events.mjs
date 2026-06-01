@@ -50,6 +50,18 @@ export const EVENT_SPECS = Object.freeze({
   remove_object:    { sideband: 'event_log' },
   // weather
   weather_set:      { sideband: 'weather' },
+  // ── Phase 1 arcade parity (v0.1) ──────────────────────────────────────────
+  // discovery: the catalog announce
+  cabinet_catalog:        { sideband: 'discovery' },
+  // event_log: authoritative round lifecycle + challenge claims
+  arcade_round_start:     { sideband: 'event_log' },
+  arcade_round_submit:    { sideband: 'event_log' },
+  arcade_claim_challenge: { sideband: 'event_log' },
+  // market: prize redemption (validated economy)
+  arcade_redeem:          { sideband: 'market' },
+  // asset_sync: cosmetic / badge equip
+  arcade_equip:           { sideband: 'asset_sync' },
+  arcade_unequip:         { sideband: 'asset_sync' },
 });
 
 /**

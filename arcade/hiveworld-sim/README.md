@@ -1,10 +1,19 @@
-# Neon Circuit HiveWorld — v0 Simulator / Testbed
+# Neon Circuit HiveWorld — v0 / v0.1 Simulator / Testbed
 
 A **local, zero-dependency protocol simulator** for the Neon Circuit HiveWorld
 Sideband CRDT Log. This is a **proof harness, not a product** — no real crypto,
 no money, no cash-out, no resale, no staking, no land ownership, no network.
 
-Full write-up: [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
+**v0.1 — Phase 1 arcade parity:** the simulator now mirrors the real Phase 1
+arcade (three cabinets, server-authoritative rounds, ticket formulas, ledger,
+Prize Counter, Challenge Board, achievements, public feed, Cabinet Frame Contract,
+Adapter SDK / dynamic import loader). The ported, self-contained product semantics
+live in [`core/phase1/`](core/phase1/) and the arcade fold reducers in
+[`core/reducers/arcade.mjs`](core/reducers/arcade.mjs). It **mirrors** the product;
+it never bridges into the production Worker/DO and is never deployed.
+
+Full write-ups: [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
+· [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
 
 ## Layout
 

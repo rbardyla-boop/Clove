@@ -88,6 +88,41 @@ export class PlayerAgentNode extends HiveNode {
     return this.emit({ eventType: 'agent_intent', sideband: 'agent_intent', payload: { intent: intentName, ...detail }, tick });
   }
 
+  // ── Phase 1 arcade parity (v0.1) ────────────────────────────────────────────
+  announceCabinetCatalog(tick, cabinetIds = []) {
+    return this.emit({ eventType: 'cabinet_catalog', sideband: 'discovery', payload: { cabinetIds }, tick });
+  }
+  /** Ask the authority to register a round (validated against occupancy). */
+  startArcadeRound(roomId, machineId, roundId, tick) {
+    return this.emit({ eventType: 'arcade_round_start', sideband: 'event_log', roomId, payload: { machineId, roundId }, tick });
+  }
+  /** Submit a finished round result (server computes the award; client estimate ignored). */
+  submitArcadeRound(roomId, machineId, result, tick) {
+    return this.emit({ eventType: 'arcade_round_submit', sideband: 'event_log', roomId, payload: { machineId, ...result }, tick });
+  }
+  redeemArcadePrize(prizeId, redemptionId, tick) {
+    return this.emit({ eventType: 'arcade_redeem', sideband: 'market', payload: { prizeId, redemptionId }, tick });
+  }
+  equipCosmetic(prizeId, tick) {
+    return this.emit({ eventType: 'arcade_equip', sideband: 'asset_sync', payload: { prizeId }, tick });
+  }
+  unequipCosmetic(slot, tick) {
+    return this.emit({ eventType: 'arcade_unequip', sideband: 'asset_sync', payload: { slot }, tick });
+  }
+  claimChallenge(challengeId, tick) {
+    return this.emit({ eventType: 'arcade_claim_challenge', sideband: 'event_log', payload: { challengeId }, tick });
+  }
+
+  arcadeBalance(ctx = DEFAULT_CTX) {
+    return this.view(ctx).state.arcade.balances[this.id] || 0;
+  }
+  arcadeInventory(ctx = DEFAULT_CTX) {
+    return Object.values(this.view(ctx).state.arcade.inventory[this.id] || {});
+  }
+  arcadeProgress(ctx = DEFAULT_CTX) {
+    return this.view(ctx).state.arcade.challengeProgress[this.id] || {};
+  }
+
   credits(ctx = DEFAULT_CTX) {
     return this.view(ctx).state.economy.credits[this.id] || 0;
   }

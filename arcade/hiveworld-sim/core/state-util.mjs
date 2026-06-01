@@ -6,6 +6,7 @@
  * hold past snapshots without them changing underfoot.
  */
 import { canonicalStringify, hashString } from './hash.mjs';
+import { createArcade } from './phase1/round-authority.mjs';
 
 export function createInitialState() {
   return {
@@ -26,6 +27,7 @@ export function createInitialState() {
     eventLog: [],         // durable world events (round results, slot lifecycle)
     intents: {},          // actorId -> { type, payload, tick }       (proposals only)
     moderationLog: [],    // { tick, actor, action, target }
+    arcade: createArcade(), // Phase 1 arcade parity (v0.1): rounds/tickets/ledger/prizes/challenges/feed
   };
 }
 
@@ -68,6 +70,7 @@ export function stateFingerprint(state) {
     weather: state.weather,
     eventLog: state.eventLog,
     moderationLog: state.moderationLog,
+    arcade: state.arcade,
   };
   return hashString(canonicalStringify(view));
 }

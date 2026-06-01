@@ -11,6 +11,7 @@ import * as slots from './slots.mjs';
 import * as economy from './economy.mjs';
 import * as assets from './assets.mjs';
 import * as ambient from './ambient.mjs';
+import * as arcade from './arcade.mjs';
 
 export const HANDLERS = Object.freeze({
   // discovery
@@ -48,6 +49,14 @@ export const HANDLERS = Object.freeze({
   remove_object: slots.remove_object,
   // weather
   weather_set: ambient.weather_set,
+  // Phase 1 arcade parity (v0.1)
+  cabinet_catalog: arcade.cabinet_catalog,
+  arcade_round_start: arcade.arcade_round_start,
+  arcade_round_submit: arcade.arcade_round_submit,
+  arcade_claim_challenge: arcade.arcade_claim_challenge,
+  arcade_redeem: arcade.arcade_redeem,
+  arcade_equip: arcade.arcade_equip,
+  arcade_unequip: arcade.arcade_unequip,
 });
 
 export function getHandler(eventType) {
