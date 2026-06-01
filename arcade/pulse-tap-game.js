@@ -12,7 +12,12 @@
  *    messages anywhere; leaving the cabinet routes through the floor's existing path.
  *
  * createPulseTapGame({ accent, onLeave }) -> { open, close, isOpen }
+ *
+ * Phase 1i: the panel is mounted inside a Cabinet Frame that preserves the
+ * game's native logical size (360x640) and uniformly scales it to fit.
  */
+import { createCabinetFrame } from './cabinet-frame.js';
+
 const ROUND_MS = 30000;
 const BEAT_MS_START = 850;
 const BEAT_MS_MIN = 560;
@@ -23,7 +28,8 @@ const END_SCALE = 0.18; // pulse end size
 const TARGET_SCALE = 0.4; // fixed target ring
 
 export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {} } = {}) {
-  let root = null;
+  let root = null;   // the .ptg-panel, mounted inside the cabinet frame
+  let frame = null;  // cabinet frame runtime (owns the modal overlay + scaling)
   let raf = 0;
   let isOpen = false;
   let lastHud = 0;
@@ -41,11 +47,14 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
   const screen = (name) => root.querySelector(`[data-screen="${name}"]`);
 
   function build() {
+    // The panel IS the root now; the cabinet frame owns the modal overlay and
+    // scales this panel uniformly within the declared native box (360x640).
     root = document.createElement('div');
-    root.className = 'ptg-overlay';
+    root.className = 'ptg-panel';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-label', 'Pulse Tap mini-game');
     root.style.setProperty('--ptg-accent', accent);
     root.innerHTML = `
-      <div class="ptg-panel" role="dialog" aria-label="Pulse Tap mini-game">
         <div class="ptg-head">
           <div class="ptg-title">PULSE <span>TAP</span></div>
           <button class="ptg-leave" type="button" data-act="leave">✕ Leave</button>
@@ -80,9 +89,11 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
             </div>
           </div>
         </div>
-        <div class="ptg-feedback" data-f="fb"></div>
-      </div>`;
-    document.body.appendChild(root);
+        <div class="ptg-feedback" data-f="fb"></div>`;
+
+    // Mount the panel inside the cabinet frame (preserves native size + aspect).
+    frame = createCabinetFrame('pulse_tap', { onLeave });
+    frame.mount(root);
 
     root.addEventListener('click', (e) => {
       const act = e.target.closest('[data-act]')?.dataset.act;
@@ -248,14 +259,14 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
       $('fb').className = 'ptg-feedback';
       setBalanceUI(ticketBalance);
       setAward('', '—');
-      root.classList.add('show');
+      frame.open(); // the cabinet frame shows the modal + applies native-size scaling
     },
     close() {
       if (!root || !isOpen) return;
       isOpen = false;
       phase = 'ready';
       cancelAnimationFrame(raf);
-      root.classList.remove('show');
+      frame.close();
     },
     isOpen() {
       return isOpen;

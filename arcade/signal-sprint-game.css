@@ -3,17 +3,12 @@
    Reuses the :root design variables from neon-circuit.css.
    Local session feedback only — tickets are server-authoritative.
    ============================================================ */
-.ssg-overlay{position:fixed;inset:0;z-index:80;display:none;
-  background:rgba(6,3,14,.86);backdrop-filter:blur(10px);
-  align-items:center;justify-content:center;
-  padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));}
-.ssg-overlay.show{display:flex;animation:ssg-fade .2s ease;}
-@keyframes ssg-fade{from{opacity:0;}to{opacity:1;}}
-
-.ssg-panel{width:min(560px,100%);display:flex;flex-direction:column;overflow:hidden;
+/* Phase 1i: the cabinet frame (cabinet-frame.css) owns the modal overlay and
+   native-size scaling. The panel now fills the native 360x640 stage. */
+.ssg-panel{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;
   background:linear-gradient(180deg,var(--panel-2),var(--panel));
-  border:1.5px solid var(--line-strong);border-radius:var(--r-lg);
-  box-shadow:0 0 50px -10px var(--ssg-accent);}
+  border:1.5px solid var(--line-strong);border-radius:0;
+  box-shadow:inset 0 0 60px -20px var(--ssg-accent);}
 
 .ssg-head{display:flex;align-items:center;justify-content:space-between;
   padding:14px 18px;border-bottom:1px solid var(--line);}
@@ -29,7 +24,7 @@
 .ssg-cell .k{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
 .ssg-cell .v{font-family:var(--font-display);font-size:18px;color:#fff;font-variant-numeric:tabular-nums;}
 
-.ssg-stage{position:relative;height:min(360px,54vh);overflow:hidden;cursor:pointer;
+.ssg-stage{position:relative;flex:1;min-height:0;overflow:hidden;cursor:pointer;
   background:linear-gradient(180deg, rgba(25,227,255,.05), transparent 55%), var(--void-2);
   touch-action:none;}
 .ssg-lanes{position:absolute;inset:0;}
@@ -86,6 +81,5 @@
 .ssg-award.rejected{color:#ff4d6d;}
 
 @media (prefers-reduced-motion:reduce){
-  .ssg-overlay.show{animation:none;}
   .ssg-rider,.ssg-ent.caught{transition:none;}
 }

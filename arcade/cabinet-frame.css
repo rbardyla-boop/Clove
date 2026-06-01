@@ -1,0 +1,38 @@
+/* ============================================================
+   CABINET FRAME — Neon Circuit Phase 1i
+   Standard frame that preserves a game's ORIGINAL size: the native
+   logical box is uniformly scaled (never distorted, never cropped),
+   centered, with letterbox/pillarbox bars. Reuses :root tokens.
+   ============================================================ */
+
+/* The modal overlay supersedes the floor HUD while a cabinet game is open. */
+.cf-overlay{position:fixed;inset:0;z-index:80;display:none;
+  background:rgba(4,2,10,.92);
+  padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));}
+.cf-overlay.show{display:block;animation:cf-fade .18s ease;}
+@keyframes cf-fade{from{opacity:0;}to{opacity:1;}}
+
+/* The available cabinet viewport. The letterbox/pillarbox bars are the dark
+   space left around the centered, scaled game stage. */
+.cf-frame{position:relative;width:100%;height:100%;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  /* subtle bezel so the playfield reads as a cabinet screen */
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,.04), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 2px, transparent 2px 4px);}
+
+/* The native-size game box. transform: scale() keeps a single uniform scale on
+   BOTH axes (no stretch), scaling from the centre so it stays letterboxed. */
+.cf-stage{position:relative;flex:none;transform-origin:center center;
+  transform:scale(var(--game-scale,1));
+  box-shadow:0 0 60px -12px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.06);
+  background:#080411;overflow:hidden;}
+
+/* Debug overlay — only shown with ?frameDebug=1; never affects gameplay/authority. */
+.cf-debug{position:absolute;top:8px;left:8px;z-index:5;pointer-events:none;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;
+  white-space:pre;color:#9affc8;background:rgba(2,8,6,.82);
+  border:1px solid rgba(61,245,139,.45);border-radius:8px;padding:8px 10px;
+  text-shadow:0 0 6px rgba(61,245,139,.5);max-width:70vw;}
+
+@media (prefers-reduced-motion:reduce){.cf-overlay.show{animation:none;}}

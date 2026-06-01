@@ -1,0 +1,143 @@
+/**
+ * Phase 1i — C/D/E. Cabinet frame contract browser validation.
+ *
+ * Opens each active cabinet game at several viewport sizes and asserts the frame
+ * preserves the game's native size + aspect ratio (no stretch, no crop), keeps
+ * the HUD/chrome outside the gameplay safe area, maps input back to native
+ * coordinates, and that the debug overlay data matches the pure frame math.
+ * Also confirms the server round/ticket flow still works inside the frame.
+ *
+ * Run: tests/arcade/run-frame-contract.sh
+ */
+import { createRequire } from 'node:module';
+const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
+const { chromium } = require('playwright');
+import { getContract, computeFrame } from '../../arcade/cabinet-frame-contract.mjs';
+
+const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080';
+const WS = process.env.WS_URL || 'ws://127.0.0.1:8787/arcade/ws';
+const RUN = Date.now().toString(36);
+const url = (id) => `${BASE}/arcade/index.html?test=1&frameDebug=1&id=${id}&ws=${encodeURIComponent(WS)}`;
+
+const VIEWPORTS = [
+  { name: 'mobile-portrait', w: 390, h: 844 },
+  { name: 'mobile-landscape', w: 844, h: 390 },
+  { name: 'tablet-portrait', w: 768, h: 1024 },
+  { name: 'desktop', w: 1280, h: 720 },
+];
+const GAMES = [
+  { machineId: 'pulse', gameId: 'pulse_tap' },
+  { machineId: 'signal', gameId: 'signal_sprint' },
+];
+const ASPECT_TOL = 0.01;
+
+let failures = 0;
+const check = (name, cond) => { console.log(`${cond ? 'ok  ' : 'FAIL'} ${name}`); if (!cond) failures++; };
+
+const browser = await chromium.launch({ headless: true });
+try {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  const isExternalNoise = (t) => /fonts\.(googleapis|gstatic)\.com/.test(t) || /net::ERR_(NETWORK_CHANGED|INTERNET_DISCONNECTED|NAME_NOT_RESOLVED|CONNECTION_)/.test(t);
+  page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+  page.on('console', (m) => { if (m.type() === 'error' && !isExternalNoise(m.text())) errors.push('console: ' + m.text()); });
+
+  await page.goto(url(`solo${RUN}`), { waitUntil: 'load' });
+  await page.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
+  await page.waitForFunction(() => document.getElementById('statusTxt')?.textContent.includes('live'), null, { timeout: 8000 });
+  check('client connects to the room', true);
+
+  for (const vp of VIEWPORTS) {
+    await page.setViewportSize({ width: vp.w, height: vp.h });
+    await page.waitForTimeout(120); // let resize/recalc settle
+
+    for (const g of GAMES) {
+      // Occupy the cabinet (authoritative) → the frame + game open.
+      await page.evaluate((m) => window.__neon.client.occupy(m), g.machineId);
+      await page.waitForFunction((gid) => {
+        const o = document.querySelector(`.cf-overlay[data-game-id="${gid}"]`);
+        return o && o.classList.contains('show') && window.__cabinetFrames && window.__cabinetFrames[gid] && window.__cabinetFrames[gid].debug().scale > 0;
+      }, g.gameId, { timeout: 8000 });
+      // nudge a recalc for the active viewport
+      await page.evaluate((gid) => window.__cabinetFrames[gid].recalc(), g.gameId);
+
+      const tag = `[${vp.name} ${g.gameId}]`;
+      const contract = getContract(g.gameId);
+
+      // C/D: frame root has the contract data attributes + native size.
+      const attrs = await page.evaluate((gid) => {
+        const o = document.querySelector(`.cf-overlay[data-game-id="${gid}"]`);
+        return { nw: +o.dataset.nativeWidth, nh: +o.dataset.nativeHeight, ar: o.dataset.aspectRatio, mode: o.dataset.scaleMode };
+      }, g.gameId);
+      check(`${tag} frame has native size data attributes`, attrs.nw === contract.native_width && attrs.nh === contract.native_height && attrs.mode === 'fit-contain');
+
+      const d = await page.evaluate((gid) => window.__cabinetFrames[gid].debug(), g.gameId);
+
+      // E: aspect ratio preserved (no stretch).
+      const displayAspect = d.displayWidth / d.displayHeight;
+      check(`${tag} aspect ratio preserved (no stretch)`, Math.abs(displayAspect - contract.native_width / contract.native_height) < ASPECT_TOL);
+
+      // E: no crop — display fits inside the frame.
+      check(`${tag} no crop (display fits in frame)`, d.displayWidth <= d.frameWidth + 1 && d.displayHeight <= d.frameHeight + 1 && d.fits);
+
+      // E: debug data matches the pure frame math.
+      const expect = computeFrame({
+        nativeWidth: contract.native_width, nativeHeight: contract.native_height,
+        frameWidth: d.frameWidth, frameHeight: d.frameHeight, scaleMode: contract.scale_mode,
+        allowUpscale: contract.allow_upscale, maxUpscale: contract.max_upscale, minScale: contract.min_scale,
+      });
+      check(`${tag} debug scale matches pure frame math`, Math.abs(expect.scale - d.scale) < 1e-6);
+      check(`${tag} scale within bounds (>0, <= max_upscale)`, d.scale > 0 && d.scale <= contract.max_upscale + 1e-9);
+
+      // E: HUD/chrome is outside the gameplay safe area (chrome above the stage).
+      const rects = await page.evaluate((sel) => {
+        const chrome = document.querySelector(sel.chrome)?.getBoundingClientRect();
+        const stage = document.querySelector(sel.stage)?.getBoundingClientRect();
+        return chrome && stage ? { chromeBottom: chrome.bottom, stageTop: stage.top } : null;
+      }, contract.test_selectors);
+      check(`${tag} HUD/chrome outside gameplay safe area`, !!rects && rects.chromeBottom <= rects.stageTop + 2);
+
+      // C/D: input maps into native coordinates (round-trip via the live runtime).
+      const map = await page.evaluate((gid) => {
+        const f = window.__cabinetFrames[gid];
+        const s = f.nativeToScreenPoint(180, 320);          // native centre → screen
+        const back = f.screenToNativePoint(s.clientX, s.clientY); // → back to native
+        return back;
+      }, g.gameId);
+      check(`${tag} native coordinate mapping round-trips`, Math.abs(map.x - 180) < 0.5 && Math.abs(map.y - 320) < 0.5);
+
+      // Release for the next game (close the frame overlay).
+      await page.evaluate((m) => window.__neon.client.release(m), g.machineId);
+      await page.waitForFunction((gid) => {
+        const o = document.querySelector(`.cf-overlay[data-game-id="${gid}"]`);
+        return !o || !o.classList.contains('show');
+      }, g.gameId, { timeout: 8000 });
+    }
+  }
+
+  // C/D: server round + ticket flow still works INSIDE the frame (desktop).
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.evaluate(() => window.__neon.client.occupy('pulse'));
+  await page.waitForFunction(() => document.querySelector('.cf-overlay[data-game-id="pulse_tap"]')?.classList.contains('show'), null, { timeout: 8000 });
+  const pr = await page.evaluate(async () => { window.__neon.client.startPulseRound('pulse'); await new Promise((r) => setTimeout(r, 250)); return window.__neon.state().roundId; });
+  await page.evaluate((rid) => window.__neon.client.submitPulseRound({ roundId: rid, machineId: 'pulse', grade: 'A', accuracy: 88, hits: 16, bestStreak: 9, score: 1825, durationMs: 30000 }), pr);
+  await page.waitForFunction(() => window.__neon.state().tickets > 0, null, { timeout: 8000 });
+  check('Pulse Tap round start/submit + ticket award works inside the frame', (await page.evaluate(() => window.__neon.state().tickets)) === 20);
+  await page.evaluate(() => window.__neon.client.release('pulse'));
+
+  await page.evaluate(() => window.__neon.client.occupy('signal'));
+  await page.waitForFunction(() => document.querySelector('.cf-overlay[data-game-id="signal_sprint"]')?.classList.contains('show'), null, { timeout: 8000 });
+  const sr = await page.evaluate(async () => { window.__neon.client.startSignalRound('signal'); await new Promise((r) => setTimeout(r, 250)); return window.__neon.state().signalRoundId; });
+  await page.evaluate((rid) => window.__neon.client.submitSignalRound({ roundId: rid, machineId: 'signal', grade: 'A', score: 4200, distance: 1800, pulsesCollected: 42, noiseHits: 6, maxStreak: 14, durationMs: 25000 }), sr);
+  await page.waitForFunction(() => window.__neon.state().tickets >= 44, null, { timeout: 8000 });
+  check('Signal Sprint round start/submit + ticket award works inside the frame', (await page.evaluate(() => window.__neon.state().tickets)) === 44);
+
+  check('no console / page errors', errors.length === 0);
+  if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
+} finally {
+  await browser.close();
+}
+
+console.log(failures === 0 ? '\nFRAME CONTRACT VALIDATION: PASS' : `\nFRAME CONTRACT VALIDATION: ${failures} FAILURE(S)`);
+process.exit(failures === 0 ? 0 : 1);
