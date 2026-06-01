@@ -13,8 +13,16 @@
  * Phase 2d: smart-lobby UX (recommendations, presence-driven sorting, activity
  * summaries, recovery hints) computed PURELY from the public room-presence list via
  * ./room-recommend.mjs — no server change, no private data.
+ *
+ * Phase 2e: each room card surfaces its current scheduled event (name + short kind +
+ * countdown), a next-event preview, and an event-aware warmup hint — all read from the
+ * public `current_event`/`next_event` the server attaches to the room list. Events are
+ * DISPLAY-ONLY: no ticket change, no reward, no economy. Joining stays exactly as before.
  */
-import { roomActivity, recommendRooms, sortRoomsForLobby, roomRecoveryHint } from './room-recommend.mjs';
+import {
+  roomActivity, recommendRooms, sortRoomsForLobby, roomRecoveryHint,
+  roomEventBadge, roomNextEventLabel, roomEventWarmupHint, formatEventCountdown,
+} from './room-recommend.mjs';
 
 export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, onAdmin = () => {} } = {}) {
   let root = null;
@@ -124,12 +132,15 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         const estimated = r.population_is_estimated === true;
         const profileLabel = r.profile_label;
         const activity = roomActivity(r);                 // Phase 2d public-safe activity
-        const hint = isCurrent ? null : roomRecoveryHint(r); // Phase 2d actionable recovery
+        // Phase 2e: event-aware warmup hint takes priority over the plain recovery hint.
+        const hint = isCurrent ? null : (roomEventWarmupHint(r) || roomRecoveryHint(r));
+        const ev = roomEventBadge(r);                     // Phase 2e current scheduled event
+        const nextEv = roomNextEventLabel(r);             // Phase 2e next-event preview
         const popText = `${estimated ? '~' : ''}${r.population}${typeof r.capacity === 'number' ? '/' + r.capacity : ''}`;
         const popTitle = estimated ? `Estimated — ${HEALTH_LABEL[health] || health} room (population not fresh)` : 'Live population';
         const joinLabel = closed ? (STATUS_LABEL[r.status] || 'Unavailable') : (full ? 'Full' : 'Enter →');
         return `
-          <div class="lobby-room${isCurrent ? ' current' : ''}${closed ? ' closed' : ''}${warn ? ' degraded' : ''}" data-room="${r.room_id}" data-health="${health}" data-activity="${activity.level}">
+          <div class="lobby-room${isCurrent ? ' current' : ''}${closed ? ' closed' : ''}${warn ? ' degraded' : ''}" data-room="${r.room_id}" data-health="${health}" data-activity="${activity.level}" data-event="${ev ? ev.kind : 'none'}">
             <div class="lr-top">
               <span class="lr-ico" aria-hidden="true">${THEME_ICON[r.theme] || '🎮'}</span>
               <span class="lr-name">${escapeHtml(r.display_name)}</span>
@@ -138,7 +149,13 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
               ${closed ? `<span class="lr-status">${STATUS_LABEL[r.status] || r.status}</span>` : ''}
               <span class="lr-pop" title="${popTitle}">${popText} <span class="lr-pop-k">players</span></span>
             </div>
+            ${ev ? `<div class="lr-event lr-event-${ev.kind}" title="Scheduled room event (display-only)">
+              <span class="lr-event-k">${escapeHtml(ev.kind_label)}</span>
+              <span class="lr-event-name">${escapeHtml(ev.label)}</span>
+              ${ev.ends_in_ms ? `<span class="lr-event-cd" title="Time left in this event">${escapeHtml(formatEventCountdown(ev.ends_in_ms))} left</span>` : ''}
+            </div>` : ''}
             <div class="lr-desc">${escapeHtml(r.description || '')}</div>
+            ${nextEv ? `<div class="lr-event-next">Next event · ${escapeHtml(nextEv)}</div>` : ''}
             ${hint ? `<div class="lr-warn">${escapeHtml(hint)}</div>` : ''}
             <div class="lr-foot">
               <span class="lr-cabs">${cabs} cabinet${cabs === 1 ? '' : 's'}</span>
@@ -193,8 +210,9 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
     const add = (kind, label, r) => {
       if (!r || seen.has(r.room_id)) return;
       seen.add(r.room_id);
-      chips.push(`<button class="lr-reco lr-reco-${kind}" type="button" data-act="join" data-room="${r.room_id}" title="Join ${escapeHtml(r.display_name)}">
-        <span class="lr-reco-k">${label}</span><span class="lr-reco-name">${escapeHtml(r.display_name)}</span></button>`);
+      const ev = roomEventBadge(r); // Phase 2e: event-aware reco sub-copy (display-only)
+      chips.push(`<button class="lr-reco lr-reco-${kind}" type="button" data-act="join" data-room="${r.room_id}" title="Join ${escapeHtml(r.display_name)}${ev ? ` · ${escapeHtml(ev.label)}` : ''}">
+        <span class="lr-reco-k">${label}</span><span class="lr-reco-name">${escapeHtml(r.display_name)}</span>${ev ? `<span class="lr-reco-ev">${escapeHtml(ev.label)}</span>` : ''}</button>`);
     };
     add('busiest', '🔥 Busiest', busiest);
     add('training', '🎓 New? Try', training);

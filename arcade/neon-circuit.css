@@ -136,6 +136,37 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .cab.coming-soon{opacity:.5;filter:saturate(.6);}
 .cab.coming-soon .status-led{color:var(--muted-2);}
 
+/* Phase 2e — the cabinet featured by the current room event (display-only). It marks
+   the marquee with a "FEATURED" tab; it never changes occupancy, play, or rewards. */
+.cab.featured{box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 30px -2px var(--cyan),inset 0 -30px 40px -20px #000;}
+.cab.featured::before{
+  content:"★ FEATURED";position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  font-family:var(--font-display);font-size:8px;letter-spacing:1.2px;white-space:nowrap;
+  color:#04121a;background:var(--cyan);padding:2px 8px;border-radius:99px;
+  box-shadow:0 0 12px var(--cyan);z-index:3;}
+
+/* Phase 2e — current scheduled room event banner under the wall tag (display-only) */
+.room-event-banner{position:absolute;top:calc(13% + clamp(58px,11vw,100px));left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:min(92vw,560px);
+  padding:6px 14px;border-radius:999px;font-family:var(--font-ui,"Chakra Petch",sans-serif);
+  background:rgba(255,180,93,.08);border:1px solid rgba(255,180,93,.34);
+  box-shadow:0 0 18px -6px rgba(255,180,93,.5);backdrop-filter:blur(3px);z-index:4;}
+.room-event-banner[hidden]{display:none;}
+.room-event-banner .reb-k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  color:#ffb45d;background:rgba(255,180,93,.16);border-radius:999px;padding:2px 9px;}
+.room-event-banner .reb-name{font-size:13px;font-weight:700;color:#ffe4bd;letter-spacing:.3px;}
+.room-event-banner .reb-cd{font-size:11px;font-weight:600;color:#ffd45d;font-variant-numeric:tabular-nums;}
+.room-event-banner .reb-next{font-size:10.5px;color:var(--muted);letter-spacing:.3px;}
+.room-event-banner[data-event="featured_cabinet"]{background:rgba(25,227,255,.07);border-color:rgba(25,227,255,.34);box-shadow:0 0 18px -6px rgba(25,227,255,.5);}
+.room-event-banner[data-event="featured_cabinet"] .reb-k{color:#19e3ff;background:rgba(25,227,255,.16);}
+.room-event-banner[data-event="featured_cabinet"] .reb-name{color:#cdf3ff;}
+.room-event-banner[data-event="training_focus"]{background:rgba(61,245,139,.07);border-color:rgba(61,245,139,.34);box-shadow:0 0 18px -6px rgba(61,245,139,.5);}
+.room-event-banner[data-event="training_focus"] .reb-k{color:#3df58b;background:rgba(61,245,139,.16);}
+.room-event-banner[data-event="training_focus"] .reb-name{color:#c7f7da;}
+.room-event-banner[data-event="late_night_theme"]{background:rgba(177,74,255,.08);border-color:rgba(177,74,255,.34);box-shadow:0 0 18px -6px rgba(177,74,255,.5);}
+.room-event-banner[data-event="late_night_theme"] .reb-k{color:#c79bff;background:rgba(177,74,255,.18);}
+.room-event-banner[data-event="late_night_theme"] .reb-name{color:#e6d6ff;}
+
 /* interact prompt */
 .interact{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:20;
   display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:opacity .25s;
