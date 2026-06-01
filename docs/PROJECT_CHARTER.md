@@ -5,6 +5,59 @@ engineering rule). Newest first.
 
 ---
 
+## ADR-003 — Neon Circuit economic doctrine: lock the shape, defer the numbers
+
+**Date:** 2026-06-01
+**Status:** Accepted
+**Area:** `docs/NEON_CIRCUIT_ECONOMIC_DOCTRINE.md`; builds on ADR-002.
+
+### Context
+The arcade needs a credible closed-loop economy that survives both a bot swarm and a
+compliance audit, without drifting into crypto/tokenomics. Prior framing used
+crypto/agent jargon and over-strong claims ("structurally incapable") for behavior no
+code yet rejects.
+
+### Decision
+Adopt a doctrine with the defensive spine **Play = abundance, Governance = scarcity,
+Creators = contractual royalties, Agents = advisory only**, and **lock the shape while
+deferring every number** to simulator tuning. Captured in
+`docs/NEON_CIRCUIT_ECONOMIC_DOCTRINE.md` as a public manifesto + launch-constraints +
+an auditable enforcement-status map.
+
+**Locked (doctrine):** tickets non-transferable & account-bound; tickets carry zero
+governance weight; no tradable token at launch; creator pay is contractual royalty
+accounting, never yield; agents advise, humans/community approve; absolute ban on
+cash-out, loot boxes, staking, leverage, pay-to-win; Builder Reputation only from
+accepted work; no single metric controls money/governance/payout.
+
+**Open (parameters, deferred to the HiveWorld testbed):** daily ticket-eligible scores
+per cabinet; Proof-of-Rest multiplier range; Player Daily Earning Cap; royalty
+attribution weights; Community Development Pool splits/caps; reputation decay rate.
+
+### Language & honesty discipline
+- Use **"designed not to support"** for product intent; reserve **"enforced at the
+  economy event layer"** for constraints actually rejected in code.
+- The doctrine's §9 map tags every locked claim **ENFORCED (sim)** /
+  **ENFORCED BY ABSENCE** / **DESIGN INTENT**. A claim is promoted to ENFORCED only
+  when its subsystem exists *and* a rejection test exists; production promotion still
+  requires a fresh security/compliance review (ADR-002).
+
+### Enforced today (simulator), unchanged by this ADR
+Ticket/good non-transferability + account-binding, the `FORBIDDEN_EVENT_TYPES`
+boundary (transfer/cashout/stake/yield/resale/token-trade rejected before any
+reducer), internal-only credits (faucet test-mode-gated), bounded spend, and
+advisory-only `agent_intent` (records intent, never authoritative). Builder
+Reputation, Proof-of-Rest, creator royalties, the daily cap, the full advisory gate
+chain, and Sybil resistance are **design intent only** — not yet modeled in code.
+
+### Consequences
+- This is a docs-only decision; no economy subsystem was added or changed
+  (`node --test tests/hiveworld/*.test.mjs` 113/113 still pass).
+- Future economy work has a single source of truth for what is locked vs tunable, and
+  a promotion rule that forbids silent over-claiming.
+
+---
+
 ## ADR-002 — HiveWorld v0 is a bounded simulator, not a product jump
 
 **Date:** 2026-05-31
