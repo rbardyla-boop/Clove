@@ -190,9 +190,35 @@ export function meshChurnPhase1({ seed = 'p1-churn', agents = 10 } = {}) {
   return { sim, report: sim.report() };
 }
 
+// ── 9. multiRoomIsolation (Phase 2 parity) ───────────────────────────────────────
+// Two rooms, fully isolated arcade partitions. A earns + redeems in main-floor and
+// earns separately in neon-training; B occupies a cabinet in main-floor while the
+// same cabinet stays free in neon-training. Nothing carries across rooms.
+export function multiRoomIsolation({ seed = 'p2-rooms' } = {}) {
+  const sim = new HiveSimulator({ seed });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  const train = sim.addRoom({ id: 'neon-training', name: 'Neon Training' });
+  const a = sim.addAgent({ id: 'agent:a', name: 'A' });
+  const b = sim.addAgent({ id: 'agent:b', name: 'B' });
+  sim.publish(main.announce(0)); sim.publish(train.announce(0));
+  sim.publish(a.announce(0)); sim.publish(b.announce(0));
+
+  // A earns + redeems + equips in main-floor.
+  let t = playRound(sim, a, 'main-floor', MACHINE.pulse, 'pulse', 'r-a-m-p', 2); // +20 in main-floor
+  sim.publish(a.redeemArcadePrize('founder-badge-local', 'rd-a-m', t)); t += 1;   // main-floor 20 → 10
+  sim.publish(a.equipCosmetic('founder-badge-local', t)); t += 1;
+  // A earns in neon-training — a SEPARATE partition.
+  t = playRound(sim, a, 'neon-training', MACHINE.signal, 'signal', 'r-a-t-s', t); // +24 in neon-training
+  // B occupies Pulse Tap in main-floor; the same machine is free in neon-training.
+  sim.publish(b.occupy('main-floor', MACHINE.pulse, t)); t += 1;
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
+  multiRoomIsolation,
 });
 
 export function runPhase1Scenario(name, opts) {

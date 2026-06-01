@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { appendFeed, feedPayload, MAX_EVENTS } from '../../arcade/hiveworld-sim/core/phase1/feed.mjs';
-import { createArcade } from '../../arcade/hiveworld-sim/core/phase1/round-authority.mjs';
+import { createArcade, arcadeRoom } from '../../arcade/hiveworld-sim/core/phase1/round-authority.mjs';
 import { feedIsPublicSafe } from '../../arcade/hiveworld-sim/core/phase1/sideband-map.mjs';
 import { threeCabinetTour, reconnectReplayLoop } from '../../arcade/hiveworld-sim/scenarios/phase1.mjs';
 
@@ -17,7 +17,7 @@ test('the feed is bounded to MAX_EVENTS', () => {
 
 test('a played-out scenario feed carries only public-safe summaries (no balance/ledger/inventory)', () => {
   const { report } = threeCabinetTour({});
-  const feed = report.finalWorldState.arcade.feed;
+  const feed = arcadeRoom(report.finalWorldState.arcade, 'room:main').feed;
   assert.ok(feed.length > 0);
   assert.ok(feed.some((e) => e.event_type === 'ticket_award'));
   assert.ok(feed.some((e) => e.event_type === 'challenge_completed'));
@@ -30,5 +30,5 @@ test('the feed survives reconnect/replay within the sim (converges)', () => {
   const { report, divergedAfter } = reconnectReplayLoop({});
   assert.equal(divergedAfter, 0);
   assert.equal(report.desyncReport.finalConverged, true);
-  assert.equal(feedIsPublicSafe(report.finalWorldState.arcade.feed), true);
+  assert.equal(feedIsPublicSafe(arcadeRoom(report.finalWorldState.arcade, 'room:main').feed), true);
 });

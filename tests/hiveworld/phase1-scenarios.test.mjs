@@ -4,8 +4,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PHASE1_SCENARIOS } from '../../arcade/hiveworld-sim/scenarios/phase1.mjs';
+import { arcadeRoom } from '../../arcade/hiveworld-sim/core/phase1/round-authority.mjs';
 
 const A = 'agent:a';
+const MAIN = 'room:main';
+const arc = (report) => arcadeRoom(report.finalWorldState.arcade, MAIN);
 
 test('every Phase 1 scenario converges and is byte-for-byte deterministic', () => {
   for (const [name, fn] of Object.entries(PHASE1_SCENARIOS)) {
@@ -18,7 +21,7 @@ test('every Phase 1 scenario converges and is byte-for-byte deterministic', () =
 
 test('threeCabinetTour: A earns 70 across all three and claims Three Cabinet Tour + Grid Rookie', () => {
   const { report } = PHASE1_SCENARIOS.threeCabinetTour({});
-  const arcade = report.finalWorldState.arcade;
+  const arcade = arc(report);
   assert.equal(arcade.balances[A], 70);
   assert.equal(arcade.challengeProgress[A]['three-cabinet-tour'].reward_claimed, true);
   assert.equal(arcade.challengeProgress[A]['grid-rookie'].reward_claimed, true);
@@ -27,7 +30,7 @@ test('threeCabinetTour: A earns 70 across all three and claims Three Cabinet Tou
 
 test('prizeCounterLoop: combined-balance redeem works; already_owned + prize_disabled rejected', () => {
   const { report } = PHASE1_SCENARIOS.prizeCounterLoop({});
-  const arcade = report.finalWorldState.arcade;
+  const arcade = arc(report);
   assert.equal(arcade.balances[A], 35); // 70 − 35
   assert.ok(Object.values(arcade.inventory[A]).some((i) => i.prize_id === 'pulse-jacket'));
   const reasons = report.rejectedEvents.map((r) => r.reason);
@@ -56,7 +59,7 @@ test('reconnectReplayLoop: B diverges while offline, converges after replay', ()
   const { divergedWhileOffline, divergedAfter, report } = PHASE1_SCENARIOS.reconnectReplayLoop({});
   assert.ok(divergedWhileOffline > 0);
   assert.equal(divergedAfter, 0);
-  assert.equal(report.finalWorldState.arcade.balances[A], 44); // pulse 20 + signal 24
+  assert.equal(arc(report).balances[A], 44); // pulse 20 + signal 24
 });
 
 test('meshChurnPhase1: 10 agents tour three cabinets under faults and still converge', () => {
@@ -66,6 +69,6 @@ test('meshChurnPhase1: 10 agents tour three cabinets under faults and still conv
   // every honest player banked exactly 70 across the three cabinets
   for (const id of report.agents) {
     if (id === 'agent:j') continue; // the last agent also fires a malicious cross-game submit
-    assert.equal(report.finalWorldState.arcade.balances[id], 70, `${id} balance`);
+    assert.equal(arc(report).balances[id], 70, `${id} balance`);
   }
 });

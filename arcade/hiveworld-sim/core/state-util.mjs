@@ -6,7 +6,7 @@
  * hold past snapshots without them changing underfoot.
  */
 import { canonicalStringify, hashString } from './hash.mjs';
-import { createArcade } from './phase1/round-authority.mjs';
+import { createArcadeWorld } from './phase1/round-authority.mjs';
 
 export function createInitialState() {
   return {
@@ -27,7 +27,7 @@ export function createInitialState() {
     eventLog: [],         // durable world events (round results, slot lifecycle)
     intents: {},          // actorId -> { type, payload, tick }       (proposals only)
     moderationLog: [],    // { tick, actor, action, target }
-    arcade: createArcade(), // Phase 1 arcade parity (v0.1): rounds/tickets/ledger/prizes/challenges/feed
+    arcade: createArcadeWorld(), // Phase 2 parity (v0.2): per-room isolated arcade partitions
   };
 }
 

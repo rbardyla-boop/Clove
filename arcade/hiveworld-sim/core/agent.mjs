@@ -12,6 +12,7 @@
  */
 import { HiveNode } from './node.mjs';
 import { DEFAULT_CTX } from './state-util.mjs';
+import { arcadeRoom } from './phase1/round-authority.mjs';
 
 export class PlayerAgentNode extends HiveNode {
   constructor(opts) {
@@ -100,27 +101,30 @@ export class PlayerAgentNode extends HiveNode {
   submitArcadeRound(roomId, machineId, result, tick) {
     return this.emit({ eventType: 'arcade_round_submit', sideband: 'event_log', roomId, payload: { machineId, ...result }, tick });
   }
+  // Prize/equip/claim are scoped to the agent's CURRENT room (Phase 2 parity), so
+  // the reducer credits the right per-room arcade partition.
   redeemArcadePrize(prizeId, redemptionId, tick) {
-    return this.emit({ eventType: 'arcade_redeem', sideband: 'market', payload: { prizeId, redemptionId }, tick });
+    return this.emit({ eventType: 'arcade_redeem', sideband: 'market', roomId: this.currentRoom, payload: { prizeId, redemptionId }, tick });
   }
   equipCosmetic(prizeId, tick) {
-    return this.emit({ eventType: 'arcade_equip', sideband: 'asset_sync', payload: { prizeId }, tick });
+    return this.emit({ eventType: 'arcade_equip', sideband: 'asset_sync', roomId: this.currentRoom, payload: { prizeId }, tick });
   }
   unequipCosmetic(slot, tick) {
-    return this.emit({ eventType: 'arcade_unequip', sideband: 'asset_sync', payload: { slot }, tick });
+    return this.emit({ eventType: 'arcade_unequip', sideband: 'asset_sync', roomId: this.currentRoom, payload: { slot }, tick });
   }
   claimChallenge(challengeId, tick) {
-    return this.emit({ eventType: 'arcade_claim_challenge', sideband: 'event_log', payload: { challengeId }, tick });
+    return this.emit({ eventType: 'arcade_claim_challenge', sideband: 'event_log', roomId: this.currentRoom, payload: { challengeId }, tick });
   }
 
-  arcadeBalance(ctx = DEFAULT_CTX) {
-    return this.view(ctx).state.arcade.balances[this.id] || 0;
+  /** Per-room arcade accessors (default to the agent's current room). */
+  arcadeBalance(ctx = DEFAULT_CTX, roomId = this.currentRoom) {
+    return arcadeRoom(this.view(ctx).state.arcade, roomId).balances[this.id] || 0;
   }
-  arcadeInventory(ctx = DEFAULT_CTX) {
-    return Object.values(this.view(ctx).state.arcade.inventory[this.id] || {});
+  arcadeInventory(ctx = DEFAULT_CTX, roomId = this.currentRoom) {
+    return Object.values(arcadeRoom(this.view(ctx).state.arcade, roomId).inventory[this.id] || {});
   }
-  arcadeProgress(ctx = DEFAULT_CTX) {
-    return this.view(ctx).state.arcade.challengeProgress[this.id] || {};
+  arcadeProgress(ctx = DEFAULT_CTX, roomId = this.currentRoom) {
+    return arcadeRoom(this.view(ctx).state.arcade, roomId).challengeProgress[this.id] || {};
   }
 
   credits(ctx = DEFAULT_CTX) {

@@ -17,6 +17,7 @@ import { runScenario } from './scenarios/canned.mjs';
 import { PHASE1_SCENARIOS, runPhase1Scenario, RESULTS } from './scenarios/phase1.mjs';
 import { CABINETS } from './core/phase1/catalog.mjs';
 import { cabinetRenderState, adapterStateFor } from './core/phase1/adapters.mjs';
+import { arcadeRoom } from './core/phase1/round-authority.mjs';
 
 const CABS = [
   { id: 'pulse', ico: '⚡' },
@@ -290,25 +291,31 @@ class HiveDebug {
     this.pub(a.startArcadeRound(room, machine, rid, this.sim.nextTick()));
     this.pub(a.submitArcadeRound(room, machine, result, this.sim.nextTick()));
     this.pub(a.release(room, machine, this.sim.nextTick()));
-    const bal = this.world().arcade.balances[a.id] || 0;
+    const bal = this.p1Room(a).balances[a.id] || 0;
     this.toast(`${a.id} played ${machine} → balance ${bal} tickets`, 'ok');
+  }
+
+  /** The arcade partition for an agent's current room (Phase 2 per-room isolation). */
+  p1Room(a) {
+    const roomId = (a && a.currentRoom) || this.selRoomSafe() || 'room:main';
+    return arcadeRoom(this.world().arcade, roomId);
   }
 
   p1Redeem(a) {
     const r = this.pub(a.redeemArcadePrize('founder-badge-local', `rd-${a.id}-${this.p1RoundN++}`, this.sim.nextTick()));
-    const owned = this.world().arcade.inventory[a.id]?.['founder-badge-local'];
+    const owned = this.p1Room(a).inventory[a.id]?.['founder-badge-local'];
     this.toast(owned ? `${a.id} redeemed Founder Badge (−10)` : `redeem refused: ${this.applyReasonFor(r.event?.event_id) || 'insufficient_tickets'} (play rounds first)`, owned ? 'ok' : 'bad');
   }
 
   p1Equip(a) {
     this.pub(a.equipCosmetic('founder-badge-local', this.sim.nextTick()));
-    const eq = this.world().arcade.equips[a.id]?.badge;
+    const eq = this.p1Room(a).equips[a.id]?.badge;
     this.toast(eq === 'founder-badge-local' ? `${a.id} equipped Founder Badge` : 'equip refused — redeem it first', eq ? 'ok' : 'bad');
   }
 
   p1Claim(a) {
     this.pub(a.claimChallenge('grid-rookie', this.sim.nextTick()));
-    const claimed = this.world().arcade.challengeProgress[a.id]?.['grid-rookie']?.reward_claimed;
+    const claimed = this.p1Room(a).challengeProgress[a.id]?.['grid-rookie']?.reward_claimed;
     this.toast(claimed ? `${a.id} claimed Grid Rookie badge` : 'claim refused — complete a Neon Grid round first', claimed ? 'ok' : 'bad');
   }
 
@@ -328,7 +335,9 @@ class HiveDebug {
   renderPhase1(w) {
     const host = $('p1-arcade');
     if (!host) return;
-    const arcade = w.arcade || {};
+    const a0 = this.agent();
+    // Phase 2: show the active agent's CURRENT-room arcade partition.
+    const arcade = arcadeRoom(w.arcade || { rooms: {} }, (a0 && a0.currentRoom) || this.selRoomSafe() || 'room:main');
     const activated = new Set(['neon_grid']); // the catalog activates the imported Neon Grid
     const STATE_COLOR = { playable: 'var(--ok,#3df58b)', unavailable: 'var(--bad,#ff5d73)', coming_soon: 'var(--muted)' };
     const cabs = CABINETS.map((c) => {

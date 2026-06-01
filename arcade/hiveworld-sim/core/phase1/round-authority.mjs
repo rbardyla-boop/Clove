@@ -18,6 +18,36 @@ import { appendLedger } from './ledger.mjs';
 import { appendFeed } from './feed.mjs';
 import { recordRoundAccepted } from './challenges.mjs';
 
+/** Default room a room-less arcade event is scoped to (mirrors product main-floor). */
+export const DEFAULT_SIM_ROOM = 'room:main';
+
+/**
+ * Phase 2a/2b parity: the arcade WORLD slice partitions the (single-room) arcade
+ * substate by room id, so tickets/ledger/inventory/challenges/feed are ISOLATED
+ * per room — exactly like the per-room product Durable Objects. `createArcade()`
+ * stays the single-room substate (used by the pure unit tests + each partition).
+ */
+export function createArcadeWorld() {
+  return { rooms: {} };
+}
+
+/**
+ * Read a room's isolated arcade substate from the world slice. PURE — returns a
+ * fresh empty substate for an unseen room (never mutates the world). Reducers run
+ * the pure round/prize/challenge functions on this substate and write the result
+ * back under the same room id, so rooms stay isolated + immutable.
+ */
+export function arcadeRoom(world, roomId) {
+  const id = roomId || DEFAULT_SIM_ROOM;
+  return (world && world.rooms && world.rooms[id]) || createArcade();
+}
+
+/** Immutably write a room's substate back into the world slice. */
+export function withArcadeRoom(world, roomId, sub) {
+  const id = roomId || DEFAULT_SIM_ROOM;
+  return { ...world, rooms: { ...world.rooms, [id]: sub } };
+}
+
 /** The initial arcade state slice (lives inside the world view). */
 export function createArcade() {
   return {

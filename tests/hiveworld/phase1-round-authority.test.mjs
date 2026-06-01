@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { createArcade, startRound, submitRound, getBalance, expireActorRounds } from '../../arcade/hiveworld-sim/core/phase1/round-authority.mjs';
 import { GRID_LIMITS } from '../../arcade/hiveworld-sim/core/phase1/tickets.mjs';
 import { HiveSimulator } from '../../arcade/hiveworld-sim/core/simulator.mjs';
+import { arcadeRoom } from '../../arcade/hiveworld-sim/core/phase1/round-authority.mjs';
 
 const A = 'agent:a';
 const B = 'agent:b';
@@ -91,7 +92,7 @@ test('through the simulator, occupancy (the fold) drives the occupant check', ()
   sim.publish(a.submitArcadeRound('room:main', 'grid', gridResult(), 4));
   sim.advance(1);
   const rep = sim.report();
-  assert.equal(rep.finalWorldState.arcade.balances[A], 26);
-  assert.equal(rep.finalWorldState.arcade.balances[B] || 0, 0);
+  assert.equal(arcadeRoom(rep.finalWorldState.arcade,'room:main').balances[A], 26);
+  assert.equal(arcadeRoom(rep.finalWorldState.arcade,'room:main').balances[B] || 0, 0);
   assert.ok(rep.rejectedEvents.some((r) => r.reason === 'wrong_session'));
 });
