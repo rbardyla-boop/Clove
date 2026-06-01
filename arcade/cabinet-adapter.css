@@ -1,0 +1,11 @@
+/* ============================================================
+   CABINET ADAPTER — Neon Circuit Phase 1j
+   Styling for the unsupported-cabinet state: a cabinet that the
+   server lists as active but for which this client has no valid
+   adapter. It must read as "Unavailable" and be non-interactive.
+   Reuses :root tokens from neon-circuit.css.
+   ============================================================ */
+.cab.unavailable{opacity:.5;filter:saturate(.5) grayscale(.3);cursor:not-allowed;}
+.cab.unavailable .status-led{color:var(--muted-2);}
+.cab.unavailable .occ{display:none !important;}
+.cab.unavailable .marquee{color:var(--muted);}

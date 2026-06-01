@@ -337,6 +337,9 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
     isOpen() {
       return isOpen;
     },
+    getFrame() {
+      return frame; // the cabinet frame runtime (Phase 1i); null until first open()
+    },
     // ---- server-authoritative ticket hooks (called by the floor) ----
     setBalance(n) {
       setBalanceUI(n);

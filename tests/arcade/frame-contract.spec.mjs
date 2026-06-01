@@ -132,6 +132,42 @@ try {
   await page.evaluate((rid) => window.__neon.client.submitSignalRound({ roundId: rid, machineId: 'signal', grade: 'A', score: 4200, distance: 1800, pulsesCollected: 42, noiseHits: 6, maxStreak: 14, durationMs: 25000 }), sr);
   await page.waitForFunction(() => window.__neon.state().tickets >= 44, null, { timeout: 8000 });
   check('Signal Sprint round start/submit + ticket award works inside the frame', (await page.evaluate(() => window.__neon.state().tickets)) === 44);
+  await page.evaluate(() => window.__neon.client.release('signal'));
+
+  // ── Phase 1j: Cabinet Adapter SDK ──────────────────────────────────────────
+  // Both games entered the arcade THROUGH adapters (mounted at boot).
+  check('Pulse Tap is mounted through its adapter', await page.evaluate(() => {
+    const a = window.__neon.adapters.pulse_tap;
+    return !!a && a.ok && a.state === 'playable' && a.adapter.gameId === 'pulse_tap' && !!a.game;
+  }));
+  check('Signal Sprint is mounted through its adapter', await page.evaluate(() => {
+    const a = window.__neon.adapters.signal_sprint;
+    return !!a && a.ok && a.state === 'playable' && !!a.game;
+  }));
+
+  // The adapter exposes the native 360x640 frame + working coordinate mapping.
+  await page.evaluate(() => window.__neon.client.occupy('pulse'));
+  await page.waitForFunction(() => document.querySelector('.cf-overlay[data-game-id="pulse_tap"]')?.classList.contains('show'), null, { timeout: 8000 });
+  const adFrame = await page.evaluate(() => { const d = window.__neon.adapters.pulse_tap.getFrame().debug(); return { nw: d.nativeWidth, nh: d.nativeHeight }; });
+  check('adapter exposes the 360x640 native frame', adFrame.nw === 360 && adFrame.nh === 640);
+  const adRt = await page.evaluate(() => { const a = window.__neon.adapters.pulse_tap; const s = a.nativeToScreenPoint(180, 320); return a.screenToNativePoint(s.clientX, s.clientY); });
+  check('adapter coordinate mapping round-trips', Math.abs(adRt.x - 180) < 0.5 && Math.abs(adRt.y - 320) < 0.5);
+  await page.evaluate(() => window.__neon.client.release('pulse'));
+
+  // An unknown/invalid adapter fails closed: no game, no frame overlay, no crash.
+  const failClosed = await page.evaluate(() => {
+    const r = window.__mountAdapter('totally_unknown_cabinet');
+    return { ok: r.ok, state: r.state, game: r.game, overlay: !!document.querySelector('.cf-overlay[data-game-id="totally_unknown_cabinet"]') };
+  });
+  check('unknown/invalid adapter fails closed (no game, no frame, no crash)', failClosed.ok === false && failClosed.state === 'unavailable' && failClosed.game === null && failClosed.overlay === false);
+
+  // Render-state resolver: active+adapter → playable; coming_soon → not; active+no-adapter → unavailable.
+  const rs = await page.evaluate(() => ({
+    playable: window.__neon.renderState({ cabinet_type: 'pulse_tap', status: 'live', ticket_enabled: true }),
+    soon: window.__neon.renderState({ cabinet_type: 'match', status: 'coming_soon', ticket_enabled: false }),
+    unavailable: window.__neon.renderState({ cabinet_type: 'mysteryX', status: 'live', ticket_enabled: true }),
+  }));
+  check('render-state resolver classifies cabinets correctly', rs.playable === 'playable' && rs.soon === 'coming_soon' && rs.unavailable === 'unavailable');
 
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
