@@ -21,7 +21,7 @@ import { createPrizeCounter } from './prize-counter.js';
 import { createChallengeBoard } from './challenge-board.js';
 // Phase 1j: games enter through adapters (which reference the Phase 1i frame
 // contract); the runtime imports the game factories, so the floor does not.
-import { mountAdapter } from './cabinet-adapter-runtime.js';
+import { mountAdapter, loadAndMountImported } from './cabinet-adapter-runtime.js';
 import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 
 // Powered (playable) cabinets, keyed by their occupancy machine id. The room
@@ -276,7 +276,10 @@ const client = new NeonCircuitRoomClient({
     if (!s.machines) return;
     for (const c of POWERED) {
       const m = s.machines[c.id];
-      if (m) cabs[c.id] = { ...cabs[c.id], occupiedBy: m.occupiedBy, rev: m.rev };
+      if (!m) continue;
+      cabs[c.id] = { ...cabs[c.id], occupiedBy: m.occupiedBy, rev: m.rev };
+      // Phase 1k: route PUBLIC cabinet state to the adapter's onServerState lifecycle hook.
+      cabs[c.id].controller?.fireServerState?.({ machineId: c.id, occupiedBy: m.occupiedBy, rev: m.rev, mine: m.occupiedBy === myId() });
     }
     renderFloor();
   },
@@ -344,6 +347,7 @@ const pulseMount = mountAdapter('pulse_tap', {
 });
 cabs.pulse.game = pulseMount.game;
 cabs.pulse.adapterState = pulseMount.state;
+cabs.pulse.controller = pulseMount;
 
 const signalMount = mountAdapter('signal_sprint', {
   accent: '#19e3ff',
@@ -357,6 +361,7 @@ const signalMount = mountAdapter('signal_sprint', {
 });
 cabs.signal.game = signalMount.game;
 cabs.signal.adapterState = signalMount.state;
+cabs.signal.controller = signalMount;
 
 // Phase 1f: Prize Counter panel. It only forwards intent; the server validates,
 // computes cost, and owns balances/inventory.
@@ -429,9 +434,26 @@ if (params.get('test') === '1') {
       lastChallengeReject,
       lastChallengeReward,
     }),
-    // Phase 1j: adapter introspection for browser validation.
+    // Phase 1j/1k: adapter introspection for browser validation.
     adapters: { pulse_tap: pulseMount, signal_sprint: signalMount },
     adapterState: (cabinetType) => (getAdapter(cabinetType) ? 'has_adapter' : 'no_adapter'),
     renderState: (cabinet) => cabinetRenderState(cabinet),
+    fixtureLifecycle: [],
+    fixtureMount: null,
   };
+
+  // Phase 1k: dynamically load + mount the test-only sample import fixture
+  // (?test=1&adapterFixture=sample-import-game). It is NEVER loaded in production.
+  if (params.get('adapterFixture') === 'sample-import-game') {
+    import('./cabinets/sample-import-game/manifest.mjs').then((m) => {
+      const lifecycle = {};
+      for (const name of ['onMount', 'onUnmount', 'onResize', 'onFocus', 'onBlur', 'onServerState']) {
+        lifecycle[name] = () => window.__neon.fixtureLifecycle.push(name);
+      }
+      return loadAndMountImported(m.sampleImportManifest, { lifecycle }).then((res) => {
+        window.__neon.fixtureMount = res;
+        if (res.ok) res.mount.open(); // mount + show inside the cabinet frame
+      });
+    }).catch((e) => { window.__neon.fixtureMount = { ok: false, reason: 'load_threw', error: String(e && e.message || e) }; });
+  }
 }

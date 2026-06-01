@@ -31,7 +31,7 @@ const SCROLL_PX_START = 230;   // lane px / second
 const SCROLL_PX_MAX = 430;
 const HIT_BAND = 7;            // ± % of stage height where the rider collects
 
-export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {} } = {}) {
+export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {}, onResize = null } = {}) {
   let root = null;   // the .ssg-panel, mounted inside the cabinet frame
   let frame = null;  // cabinet frame runtime (owns the modal overlay + scaling)
   let raf = 0;
@@ -103,7 +103,7 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
         <div class="ssg-feedback" data-f="fb"></div>`;
 
     // Mount the panel inside the cabinet frame (preserves native size + aspect).
-    frame = createCabinetFrame('signal_sprint', { onLeave });
+    frame = createCabinetFrame('signal_sprint', { onLeave, onResize });
     frame.mount(root);
 
     buildLaneGuides();

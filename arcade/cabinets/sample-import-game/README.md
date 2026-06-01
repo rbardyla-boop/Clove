@@ -6,7 +6,7 @@ It demonstrates the safe import path for a cloned/imported arcade game:
 ```
 manifest.mjs   → import manifest (validated by game-import-manifest.mjs)
 adapter.mjs    → cabinet adapter (validated by cabinet-adapter-sdk.mjs)
-sample-game.js → minimal entry_file conforming to the cabinet game interface
+sample-game.mjs → minimal entry_file conforming to the cabinet game interface
 ```
 
 It is intentionally:

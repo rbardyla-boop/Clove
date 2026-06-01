@@ -1,7 +1,7 @@
 /**
  * Signal Sprint cabinet adapter — PURE metadata (Phase 1j). See pulse-tap-adapter.mjs.
  */
-import { registerAdapter } from '../cabinet-adapter-sdk.mjs';
+import { registerBuiltInAdapter } from '../cabinet-adapter-registry.mjs';
 
 export const signalSprintAdapter = Object.freeze({
   gameId: 'signal_sprint',
@@ -22,4 +22,4 @@ export const signalSprintAdapter = Object.freeze({
   clonePolicy: 'preserve_original_size',
 });
 
-registerAdapter(signalSprintAdapter);
+registerBuiltInAdapter(signalSprintAdapter);

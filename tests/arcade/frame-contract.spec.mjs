@@ -169,8 +169,78 @@ try {
   }));
   check('render-state resolver classifies cabinets correctly', rs.playable === 'playable' && rs.soon === 'coming_soon' && rs.unavailable === 'unavailable');
 
-  check('no console / page errors', errors.length === 0);
+  check('no console / page errors (main flow)', errors.length === 0);
   if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
+
+  // ── Phase 1k: dynamic import loader + lifecycle routing + diagnostics ────────
+  // Run on a dedicated page so the test-only fixture is isolated from the main flow.
+  const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const fpage = await ctx2.newPage();
+  const fErrors = [];
+  fpage.on('pageerror', (e) => fErrors.push('pageerror: ' + e.message));
+  fpage.on('console', (m) => { if (m.type() === 'error' && !isExternalNoise(m.text())) fErrors.push('console: ' + m.text()); });
+  await fpage.goto(`${BASE}/arcade/index.html?test=1&frameDebug=1&adapterFixture=sample-import-game&id=fix${RUN}&ws=${encodeURIComponent(WS)}`, { waitUntil: 'load' });
+  await fpage.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
+  await fpage.waitForFunction(() => document.getElementById('statusTxt')?.textContent.includes('live'), null, { timeout: 8000 });
+
+  // E: dynamic loader mounts the sample fixture inside a frame, native size preserved.
+  await fpage.waitForFunction(() => window.__neon.fixtureMount && window.__neon.fixtureMount.ok, null, { timeout: 8000 });
+  check('dynamic import loader loads + mounts the sample fixture', true);
+  const fd = await fpage.evaluate(() => window.__cabinetFrames['sample_import_game'].debug());
+  check('imported fixture frame preserves native 320x480', fd.nativeWidth === 320 && fd.nativeHeight === 480);
+  check('imported fixture fits with no crop + aspect preserved', fd.fits && Math.abs(fd.displayWidth / fd.displayHeight - 320 / 480) < ASPECT_TOL);
+
+  // C: lifecycle routing (onMount + onFocus on open).
+  await fpage.waitForFunction(() => { const l = window.__neon.fixtureLifecycle; return l.includes('onMount') && l.includes('onFocus'); }, null, { timeout: 8000 });
+  check('fixture lifecycle: onMount + onFocus routed on open', true);
+
+  // C: onResize routed on a viewport change.
+  await fpage.setViewportSize({ width: 900, height: 700 });
+  await fpage.waitForFunction(() => window.__neon.fixtureLifecycle.includes('onResize'), null, { timeout: 8000 });
+  check('fixture lifecycle: onResize routed on viewport change', true);
+
+  // C: a lifecycle exception is caught + recorded as an adapter error (no crash).
+  const caught = await fpage.evaluate(() => {
+    const c = window.__cabinetAdapterRuntime.mountImportedGame('sample_import_game', { lifecycle: { onServerState: () => { throw new Error('boom'); } } });
+    c.fireServerState({ public: true });
+    return window.__cabinetAdapterRuntime.adapterErrors().some((e) => /onServerState/.test(e.where));
+  });
+  check('lifecycle exception is caught + recorded (no app crash)', caught);
+
+  // C: clean unmount.
+  await fpage.evaluate(() => window.__neon.fixtureMount.mount.unmount());
+  await fpage.waitForFunction(() => window.__neon.fixtureLifecycle.includes('onUnmount'), null, { timeout: 8000 });
+  check('fixture lifecycle: onUnmount routed on unmount', true);
+
+  // D: diagnostics exposed under test flag, with no private state leak.
+  const d = await fpage.evaluate(() => {
+    const r = window.__cabinetAdapterRuntime;
+    const json = JSON.stringify({ regs: r.registeredAdapters(), mounts: r.mounts(), log: r.lifecycleLog(), unsupported: r.unsupportedCabinets(), errors: r.adapterErrors() });
+    return { has: typeof r === 'object' && typeof r.lifecycleLog === 'function', clean: !/balance|ledger|inventory|redemption/i.test(json) };
+  });
+  check('runtime diagnostics exposed under test flag', d.has);
+  check('diagnostics leak no balance / ledger / inventory', d.clean);
+
+  // D: a failed import fails closed and is reported in diagnostics.
+  const failImp = await fpage.evaluate(async () => {
+    const bad = { manifest_version: 1, game_id: 'evil', source_name: 'e', source_kind: 'x', original_width: 1, original_height: 1, current_width: 1, current_height: 1, aspect_ratio: 1, entry_file: 'game/evil.js', adapter_module: 'game/evil.mjs', authority_mode: 'client_local_only', ticket_mode: 'none', challenge_mode: 'none', forbidden_capabilities: [], requested_capabilities: [], clone_policy: 'preserve_original_size', migration_flag: false };
+    const res = await window.__cabinetAdapterRuntime.loadAndMountImported(bad);
+    return { ok: res.ok, last: window.__cabinetAdapterRuntime.lastImportResult && window.__cabinetAdapterRuntime.lastImportResult.ok };
+  });
+  check('a forbidden/invalid import fails closed + appears in diagnostics', failImp.ok === false && failImp.last === false);
+
+  check('no console / page errors (fixture flow)', fErrors.length === 0);
+  if (fErrors.length) console.log('  fixture errors:', JSON.stringify(fErrors, null, 2));
+  await ctx2.close();
+
+  // D: normal mode (no ?test / ?frameDebug) exposes NO diagnostics globals.
+  const ctx3 = await browser.newContext();
+  const npage = await ctx3.newPage();
+  await npage.goto(`${BASE}/arcade/index.html?id=plain${RUN}&ws=${encodeURIComponent(WS)}`, { waitUntil: 'load' });
+  await npage.waitForTimeout(600);
+  const leak = await npage.evaluate(() => ({ rt: typeof window.__cabinetAdapterRuntime, neon: typeof window.__neon, mount: typeof window.__mountAdapter }));
+  check('normal mode exposes no adapter diagnostics globals', leak.rt === 'undefined' && leak.neon === 'undefined' && leak.mount === 'undefined');
+  await ctx3.close();
 } finally {
   await browser.close();
 }

@@ -6,7 +6,7 @@
  * and clone policy. The browser factory wiring lives in cabinet-adapter-runtime.js
  * (this file stays DOM-free so it can be validated in Node tests).
  */
-import { registerAdapter } from '../cabinet-adapter-sdk.mjs';
+import { registerBuiltInAdapter } from '../cabinet-adapter-registry.mjs';
 
 export const pulseTapAdapter = Object.freeze({
   gameId: 'pulse_tap',
@@ -27,4 +27,4 @@ export const pulseTapAdapter = Object.freeze({
   clonePolicy: 'preserve_original_size',
 });
 
-registerAdapter(pulseTapAdapter);
+registerBuiltInAdapter(pulseTapAdapter);
