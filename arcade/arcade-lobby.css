@@ -175,6 +175,40 @@
 .lobby-diag-row .ld-h { border-radius: 999px; padding: 1px 7px; }
 .lobby-diag-row .ld-num { color: #8a83b8; }
 
+/* Phase 2d — smart-lobby recommendations + activity */
+.lobby-recos { margin: 4px 0 12px; }
+.lr-reco-title {
+  font: 700 10px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.8px;
+  color: #8a83b8; margin-bottom: 6px;
+}
+.lr-reco-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.lr-reco {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  font-family: "Chakra Petch", sans-serif; cursor: pointer;
+  background: rgba(124, 92, 255, 0.12); border: 1px solid rgba(124, 92, 255, 0.45);
+  border-radius: 10px; padding: 7px 12px; color: #e7e3ff;
+  transition: background 150ms ease, border-color 150ms ease, transform 120ms ease;
+}
+.lr-reco:hover { background: rgba(124, 92, 255, 0.24); border-color: #7c5cff; transform: translateY(-1px); }
+.lr-reco-k { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #b8b2e0; }
+.lr-reco-name { font-size: 13px; font-weight: 700; }
+.lr-reco-busiest { border-color: rgba(25, 227, 255, 0.5); background: rgba(25, 227, 255, 0.1); }
+.lr-reco-busiest:hover { border-color: #19e3ff; background: rgba(25, 227, 255, 0.2); }
+.lr-reco-training { border-color: rgba(61, 245, 139, 0.5); background: rgba(61, 245, 139, 0.1); }
+.lr-reco-training:hover { border-color: #3df58b; background: rgba(61, 245, 139, 0.2); }
+
+.lr-activity {
+  font: 700 9px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.6px;
+  border-radius: 999px; padding: 2px 8px; border: 1px solid transparent;
+}
+.lr-activity-busy { color: #19e3ff; background: rgba(25, 227, 255, 0.14); border-color: rgba(25, 227, 255, 0.5); }
+.lr-activity-lively { color: #3df58b; background: rgba(61, 245, 139, 0.12); border-color: rgba(61, 245, 139, 0.45); }
+.lr-activity-active { color: #9cf5c2; background: rgba(61, 245, 139, 0.08); border-color: rgba(61, 245, 139, 0.3); }
+.lr-activity-empty { color: #8a83b8; background: rgba(138, 131, 184, 0.12); border-color: rgba(138, 131, 184, 0.4); }
+.lr-activity-stale, .lr-activity-unknown { color: #ffd45d; background: rgba(255, 212, 93, 0.1); border-color: rgba(255, 212, 93, 0.4); }
+.lr-activity-offline { color: #ff5d73; background: rgba(255, 93, 115, 0.1); border-color: rgba(255, 93, 115, 0.4); }
+.lr-activity-closed, .lr-activity-maintenance { color: #ffb45d; background: rgba(255, 180, 93, 0.1); border-color: rgba(255, 180, 93, 0.4); }
+
 /* current-room chip on the floor HUD */
 .room-chip {
   display: inline-flex;
@@ -193,7 +227,7 @@
 .room-chip .rc-dot { width: 7px; height: 7px; border-radius: 50%; background: #3df58b; box-shadow: 0 0 8px #3df58b; }
 
 @media (prefers-reduced-motion: reduce) {
-  .lobby-room, .lr-join, .room-chip, .lr-health, .lr-profile { transition: none; }
+  .lobby-room, .lr-join, .room-chip, .lr-health, .lr-profile, .lr-reco, .lr-activity { transition: none; }
 }
 @media (max-width: 480px) {
   .lobby-panel { padding: 14px; }

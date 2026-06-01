@@ -9,7 +9,13 @@
  * createArcadeLobby({ onSwitch, onRefresh })
  *   -> { open, close, isOpen, setRooms, setCurrentRoom, setConnection,
  *        setPopulation, showRejection, getRooms }
+ *
+ * Phase 2d: smart-lobby UX (recommendations, presence-driven sorting, activity
+ * summaries, recovery hints) computed PURELY from the public room-presence list via
+ * ./room-recommend.mjs — no server change, no private data.
  */
+import { roomActivity, recommendRooms, sortRoomsForLobby, roomRecoveryHint } from './room-recommend.mjs';
+
 export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, onAdmin = () => {} } = {}) {
   let root = null;
   let open = false;
@@ -51,6 +57,7 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
           </div>
           <div class="lobby-diag" data-f="diag" hidden></div>
         </div>
+        <div class="lobby-recos" data-f="recos" hidden></div>
         <div class="lobby-rooms" data-f="rooms"></div>
         <div class="lobby-err" data-f="err" hidden></div>
         <div class="lobby-adminmsg" data-f="adminmsg" hidden></div>
@@ -96,11 +103,15 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
       : 'Connecting to the arcade…';
     sub.className = 'lobby-sub' + (connected ? ' ok' : '');
 
+    renderRecos();
+
     const host = $('rooms');
     if (!rooms.length) {
       host.innerHTML = '<div class="lobby-empty">No rooms available right now.</div>';
     } else {
-      host.innerHTML = rooms.map((r) => {
+      // Phase 2d: presence-driven order (active healthy first … closed/maint last).
+      // The stored `rooms` array is left untouched (getRooms stays as-received).
+      host.innerHTML = sortRoomsForLobby(rooms).map((r) => {
         const isCurrent = r.room_id === currentRoomId;
         const full = typeof r.capacity === 'number' && r.population >= r.capacity;
         const closed = r.status && r.status !== 'open';
@@ -112,11 +123,13 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         const warn = HEALTH_WARN.has(health);
         const estimated = r.population_is_estimated === true;
         const profileLabel = r.profile_label;
+        const activity = roomActivity(r);                 // Phase 2d public-safe activity
+        const hint = isCurrent ? null : roomRecoveryHint(r); // Phase 2d actionable recovery
         const popText = `${estimated ? '~' : ''}${r.population}${typeof r.capacity === 'number' ? '/' + r.capacity : ''}`;
         const popTitle = estimated ? `Estimated — ${HEALTH_LABEL[health] || health} room (population not fresh)` : 'Live population';
         const joinLabel = closed ? (STATUS_LABEL[r.status] || 'Unavailable') : (full ? 'Full' : 'Enter →');
         return `
-          <div class="lobby-room${isCurrent ? ' current' : ''}${closed ? ' closed' : ''}${warn ? ' degraded' : ''}" data-room="${r.room_id}" data-health="${health}">
+          <div class="lobby-room${isCurrent ? ' current' : ''}${closed ? ' closed' : ''}${warn ? ' degraded' : ''}" data-room="${r.room_id}" data-health="${health}" data-activity="${activity.level}">
             <div class="lr-top">
               <span class="lr-ico" aria-hidden="true">${THEME_ICON[r.theme] || '🎮'}</span>
               <span class="lr-name">${escapeHtml(r.display_name)}</span>
@@ -126,9 +139,10 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
               <span class="lr-pop" title="${popTitle}">${popText} <span class="lr-pop-k">players</span></span>
             </div>
             <div class="lr-desc">${escapeHtml(r.description || '')}</div>
-            ${warn ? `<div class="lr-warn">⚠ This room looks ${HEALTH_LABEL[health] || health}. You can still enter — joining will refresh it.</div>` : ''}
+            ${hint ? `<div class="lr-warn">${escapeHtml(hint)}</div>` : ''}
             <div class="lr-foot">
               <span class="lr-cabs">${cabs} cabinet${cabs === 1 ? '' : 's'}</span>
+              <span class="lr-activity lr-activity-${activity.level}" title="Room activity">${activity.label}</span>
               ${isCurrent
                 ? '<span class="lr-here">● You are here</span>'
                 : `<button class="lr-join" type="button" data-act="join" ${full || closed ? 'disabled' : ''}>${joinLabel}</button>`}
@@ -165,6 +179,29 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         diagEl.hidden = true;
       }
     }
+  }
+
+  // Phase 2d: smart recommendations banner — busiest healthy room, training room,
+  // and a quiet room to revive. Targets are JOINABLE rooms only and never the
+  // current room. Clicking a chip routes the player there (same join intent).
+  function renderRecos() {
+    const el = $('recos');
+    if (!el) return;
+    const { busiest, training, revive } = recommendRooms(rooms, { currentRoomId });
+    const seen = new Set([currentRoomId]);
+    const chips = [];
+    const add = (kind, label, r) => {
+      if (!r || seen.has(r.room_id)) return;
+      seen.add(r.room_id);
+      chips.push(`<button class="lr-reco lr-reco-${kind}" type="button" data-act="join" data-room="${r.room_id}" title="Join ${escapeHtml(r.display_name)}">
+        <span class="lr-reco-k">${label}</span><span class="lr-reco-name">${escapeHtml(r.display_name)}</span></button>`);
+    };
+    add('busiest', '🔥 Busiest', busiest);
+    add('training', '🎓 New? Try', training);
+    add('revive', '✨ Revive', revive);
+    if (!chips.length) { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    el.innerHTML = `<div class="lr-reco-title">Recommended</div><div class="lr-reco-row">${chips.join('')}</div>`;
   }
 
   function currentRoomName() {
