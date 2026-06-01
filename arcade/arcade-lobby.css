@@ -143,6 +143,38 @@
   color: #ffcf9b; font-size: 12px; font-variant-numeric: tabular-nums;
 }
 
+/* Phase 2c — room health, profile label, freshness warning, diagnostics */
+.lr-health {
+  font: 700 9px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.6px;
+  border-radius: 999px; padding: 2px 8px; border: 1px solid transparent;
+}
+.lr-health-healthy { color: #3df58b; background: rgba(61, 245, 139, 0.12); border-color: rgba(61, 245, 139, 0.45); }
+.lr-health-stale { color: #ffd45d; background: rgba(255, 212, 93, 0.12); border-color: rgba(255, 212, 93, 0.45); }
+.lr-health-offline { color: #ff5d73; background: rgba(255, 93, 115, 0.12); border-color: rgba(255, 93, 115, 0.45); }
+.lr-health-unknown { color: #8a83b8; background: rgba(138, 131, 184, 0.12); border-color: rgba(138, 131, 184, 0.4); }
+.lr-health-closed, .lr-health-maintenance { color: #ffb45d; background: rgba(255, 180, 93, 0.12); border-color: rgba(255, 180, 93, 0.45); }
+.lr-profile {
+  font: 700 9px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.6px;
+  color: #19e3ff; background: rgba(25, 227, 255, 0.1); border: 1px solid rgba(25, 227, 255, 0.4);
+  border-radius: 999px; padding: 2px 8px;
+}
+.lobby-room.degraded { border-style: dashed; }
+.lr-warn {
+  margin: 0 0 10px; padding: 6px 10px; border-radius: 8px; font-size: 11.5px;
+  color: #ffe1a6; background: rgba(255, 212, 93, 0.08); border: 1px solid rgba(255, 212, 93, 0.3);
+}
+.lobby-admin-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lobby-diag { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+.lobby-diag-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font: 600 11px "Chakra Petch", sans-serif; color: #b8b2e0;
+  padding: 5px 8px; border-radius: 7px; background: rgba(255, 255, 255, 0.03);
+  font-variant-numeric: tabular-nums;
+}
+.lobby-diag-row .ld-room { font-weight: 700; color: #e7e3ff; min-width: 96px; }
+.lobby-diag-row .ld-h { border-radius: 999px; padding: 1px 7px; }
+.lobby-diag-row .ld-num { color: #8a83b8; }
+
 /* current-room chip on the floor HUD */
 .room-chip {
   display: inline-flex;
@@ -161,7 +193,7 @@
 .room-chip .rc-dot { width: 7px; height: 7px; border-radius: 50%; background: #3df58b; box-shadow: 0 0 8px #3df58b; }
 
 @media (prefers-reduced-motion: reduce) {
-  .lobby-room, .lr-join, .room-chip { transition: none; }
+  .lobby-room, .lr-join, .room-chip, .lr-health, .lr-profile { transition: none; }
 }
 @media (max-width: 480px) {
   .lobby-panel { padding: 14px; }

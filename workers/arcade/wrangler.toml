@@ -10,6 +10,8 @@ compatibility_date = "2026-05-31"
 # Phase 2b: per-room sharding — one ArcadeRoom instance per room (idFromName(roomId)).
 # RoomRegistry is a single coordinator instance that aggregates per-room population
 # and owns admin status overrides for the room-lifecycle tooling.
+# Phase 2c: room DOs report a periodic HEARTBEAT to the registry, which derives
+# per-room health (healthy/stale/offline) + evicts stale population. No new bindings.
 [durable_objects]
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
