@@ -70,6 +70,20 @@ export function getBalance(arcade, actor) {
   return arcade.balances[actor] || 0;
 }
 
+/**
+ * PURE: count rounds still live (status 'active', not past expiry) at `tick`. Used
+ * only for public-safe room HEARTBEAT diagnostics (v0.3) — reads the round registry
+ * without mutating it and exposes no actor ids.
+ */
+export function activeRoundCount(arcade, tick = 0) {
+  if (!arcade || typeof arcade.rounds !== 'object' || arcade.rounds === null) return 0;
+  let n = 0;
+  for (const r of Object.values(arcade.rounds)) {
+    if (r && r.status === 'active' && (typeof r.expiresTick !== 'number' || r.expiresTick >= tick)) n += 1;
+  }
+  return n;
+}
+
 /** Register a new round for the current occupant. Returns { arcade, ok, reason, started }. */
 export function startRound(arcade, { machineId, occupantId, actor, roundId, tick }) {
   const resolved = resolveRulesetByMachine(machineId);

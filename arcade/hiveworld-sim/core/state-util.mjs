@@ -28,6 +28,10 @@ export function createInitialState() {
     intents: {},          // actorId -> { type, payload, tick }       (proposals only)
     moderationLog: [],    // { tick, actor, action, target }
     arcade: createArcadeWorld(), // Phase 2 parity (v0.2): per-room isolated arcade partitions
+    // v0.3 parity: the room-presence coordinator. Mirrors the product RoomRegistry DO —
+    // latest heartbeat per room + admin status overrides + reset generations. Health +
+    // stale-population eviction are DERIVED at query time (rooms.mjs), never folded.
+    roomRegistry: { heartbeats: {}, statusOverrides: {}, generations: {} },
   };
 }
 
@@ -35,6 +39,7 @@ export function createInitialState() {
 export const DEFAULT_CTX = Object.freeze({
   economyTestMode: true, // grants only allowed in test mode
   presenceTtlTicks: 5,   // presence older than this is "stale" for liveness checks
+  adminEnabled: false,   // v0.3: room-admin ops (status/reset) are OFF unless a scenario opts in
 });
 
 /** Return a shallow copy of obj with one key set (no mutation). */
@@ -71,6 +76,7 @@ export function stateFingerprint(state) {
     eventLog: state.eventLog,
     moderationLog: state.moderationLog,
     arcade: state.arcade,
+    roomRegistry: state.roomRegistry,
   };
   return hashString(canonicalStringify(view));
 }

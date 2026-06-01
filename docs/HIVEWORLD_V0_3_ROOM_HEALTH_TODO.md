@@ -1,15 +1,36 @@
-# HiveWorld v0.3 — Room Health Mirror (TODO / deferred)
+# HiveWorld v0.3 — Room Health Mirror
 
-Status: **DEFERRED** to a follow-up session. The product Phase 2c
-(`feat/neon-circuit-phase2c-room-presence-health` @ `ca7a66d`) is complete,
-validated, and committed. This branch (`feat/hiveworld-v0-3-room-health`, from
-`feat/hiveworld-v0-2-multi-room` @ `3476b96`) carries this spec so the simulator
-mirror can be implemented faithfully without re-deriving the product semantics.
+Status: **IMPLEMENTED** on this branch (`feat/hiveworld-v0-3-room-health`). The mirror
+landed on top of this spec: room heartbeats, stale-population eviction, health states,
+room profiles, registry health, admin diagnostics, sideband mapping, and a
+deterministic `roomHealthLifecycle` scenario. Product Phase 2c
+(`feat/neon-circuit-phase2c-room-presence-health` @ `ca7a66d`) was the source of
+truth. This doc is retained as the implementation spec/checklist.
 
 The simulator is intentionally a **mirror, not a bridge** — it never imports or
 talks to the product Worker/DO, and the product never imports the simulator.
 
-## What Phase 2c added to the product (the thing to mirror)
+## Outcome (what shipped)
+
+- `core/phase1/rooms.mjs`: tick TTLs (`ROOM_HEARTBEAT_TTL_TICKS=30`,
+  `ROOM_STALE_TTL_TICKS=90`), `deriveRoomHealth`, `isJoinableHealth`, `roomProfile`,
+  `roomPresenceEntry`/`roomPresenceListPayload`, `roomDiagnosticsEntry`/`List`,
+  `effectiveStatus`/`isRoomStatus`, `canAdmin`, + profile fields.
+- `core/phase1/round-authority.mjs`: `activeRoundCount`.
+- `core/reducers/registry.mjs` (new): `room_heartbeat` / `room_status_set` /
+  `room_reset`, folding the `roomRegistry` slice (heartbeats + statusOverrides +
+  generations); admin ops both-gated (ctx.adminEnabled + room authority).
+- `core/state-util.mjs`: `roomRegistry` slice + fingerprint coverage + `adminEnabled`.
+- `core/events.mjs` / `reducers/index.mjs` / `phase1/sideband-map.mjs`: the three
+  events registered on presence/moderation.
+- `core/room.mjs`: `heartbeat` / `setStatus` / `resetRoom` builders.
+- `scenarios/phase1.mjs`: `roomHealthLifecycle`.
+- Tests: `tests/hiveworld/phase2-room-health.test.mjs` (17) + extended sideband-map
+  (2). Full sim suite **132 green**; UI smoke PASS; deterministic + convergent.
+
+---
+
+## Original spec (retained): what Phase 2c added to the product (the thing to mirror)
 
 Product source of truth: `workers/arcade/src/rooms.mjs`,
 `workers/arcade/src/room-registry.ts`, `workers/arcade/src/arcade-room.ts`, and

@@ -12,6 +12,7 @@ import * as economy from './economy.mjs';
 import * as assets from './assets.mjs';
 import * as ambient from './ambient.mjs';
 import * as arcade from './arcade.mjs';
+import * as registry from './registry.mjs';
 
 export const HANDLERS = Object.freeze({
   // discovery
@@ -57,6 +58,10 @@ export const HANDLERS = Object.freeze({
   arcade_redeem: arcade.arcade_redeem,
   arcade_equip: arcade.arcade_equip,
   arcade_unequip: arcade.arcade_unequip,
+  // v0.3 room presence health
+  room_heartbeat: registry.room_heartbeat,
+  room_status_set: registry.room_status_set,
+  room_reset: registry.room_reset,
 });
 
 export function getHandler(eventType) {

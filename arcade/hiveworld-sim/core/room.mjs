@@ -29,6 +29,29 @@ export class RoomBaseStation extends HiveNode {
     return this.emit({ eventType: 'room_announce', sideband: 'discovery', payload: { roomId: this.id, name: this.name }, tick });
   }
 
+  // ── v0.3 room presence health ──────────────────────────────────────────────
+  /**
+   * Report this room's heartbeat (presence sideband). `population` / connections are
+   * the room's presence view; round + cabinet counts are recomputed authoritatively
+   * by the registry reducer from the canonical fold. Carries NO actor ids.
+   */
+  heartbeat(tick, { population = null, activeConnections = null } = {}) {
+    const payload = {};
+    if (Number.isFinite(population)) payload.population = population;
+    if (Number.isFinite(activeConnections)) payload.activeConnections = activeConnections;
+    return this.emit({ eventType: 'room_heartbeat', sideband: 'presence', roomId: this.id, payload, tick });
+  }
+
+  /** Admin (room authority): set this room's status override. Gated in the reducer. */
+  setStatus(status, tick) {
+    return this.emit({ eventType: 'room_status_set', sideband: 'moderation', roomId: this.id, payload: { status }, tick });
+  }
+
+  /** Admin (room authority): reset this room (wipe arcade partition + occupancy, bump generation). */
+  resetRoom(tick) {
+    return this.emit({ eventType: 'room_reset', sideband: 'moderation', roomId: this.id, payload: {}, tick });
+  }
+
   noteHeartbeat(agentId, tick) {
     this.heartbeats[agentId] = tick;
   }

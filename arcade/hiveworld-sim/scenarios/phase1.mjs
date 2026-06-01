@@ -215,10 +215,44 @@ export function multiRoomIsolation({ seed = 'p2-rooms' } = {}) {
   return { sim, report: sim.report() };
 }
 
+// ── 10. roomHealthLifecycle (v0.3 room presence health) ──────────────────────────
+// Mirrors product Phase 2c. main-floor reports a heartbeat while occupied (so health
+// is observable as healthy→stale→offline purely by advancing the OBSERVER clock —
+// the same way the product derives health from `last_seen_at` vs now). neon-training
+// is put under maintenance by its room authority (both-gated admin). late-night-circuit
+// is heartbeat'd then admin-reset (generation bumps, population evicted). All admin
+// ops run with ctx.adminEnabled = true; a non-authority attempt is rejected (tested).
+export function roomHealthLifecycle({ seed = 'p2c-health' } = {}) {
+  // High staleLockTicks so the room-health flow isn't perturbed by incidental
+  // occupancy stale-lock timeouts at advance().
+  const sim = new HiveSimulator({ seed, ctx: { adminEnabled: true }, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  const train = sim.addRoom({ id: 'neon-training', name: 'Neon Training' });
+  const late = sim.addRoom({ id: 'late-night-circuit', name: 'Late Night Circuit' });
+  const a = sim.addAgent({ id: 'agent:a', name: 'A' });
+  const b = sim.addAgent({ id: 'agent:b', name: 'B' });
+  sim.publish(main.announce(0)); sim.publish(train.announce(0)); sim.publish(late.announce(0));
+  sim.publish(a.announce(0)); sim.publish(b.announce(0));
+
+  // main-floor: A occupies a cabinet, the room reports a heartbeat (population 1).
+  sim.publish(a.occupy('main-floor', MACHINE.pulse, 2));
+  sim.publish(main.heartbeat(3, { population: 1 }));
+
+  // neon-training: room authority sets maintenance (both-gated admin op).
+  sim.publish(train.setStatus('maintenance', 4));
+
+  // late-night-circuit: B occupies + room heartbeats, then admin reset wipes it.
+  sim.publish(b.occupy('late-night-circuit', MACHINE.signal, 5));
+  sim.publish(late.heartbeat(6, { population: 1 }));
+  sim.publish(late.resetRoom(7)); // arcade partition + occupancy wiped, generation → 1
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
-  multiRoomIsolation,
+  multiRoomIsolation, roomHealthLifecycle,
 });
 
 export function runPhase1Scenario(name, opts) {

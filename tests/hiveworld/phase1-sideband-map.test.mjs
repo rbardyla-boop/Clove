@@ -4,10 +4,12 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PHASE1_EVENT_SIDEBAND, PHASE1_PRODUCT_MAP, sidebandForEvent, feedIsPublicSafe } from '../../arcade/hiveworld-sim/core/phase1/sideband-map.mjs';
+import { PHASE1_EVENT_SIDEBAND, PHASE1_PRODUCT_MAP, sidebandForEvent, feedIsPublicSafe, PRIVATE_FIELD_RE } from '../../arcade/hiveworld-sim/core/phase1/sideband-map.mjs';
 import { EVENT_SPECS } from '../../arcade/hiveworld-sim/core/events.mjs';
+import { getHandler } from '../../arcade/hiveworld-sim/core/reducers/index.mjs';
 import { isKnownSideband } from '../../arcade/hiveworld-sim/core/sidebands.mjs';
-import { threeCabinetTour, prizeCounterLoop } from '../../arcade/hiveworld-sim/scenarios/phase1.mjs';
+import { threeCabinetTour, prizeCounterLoop, roomHealthLifecycle } from '../../arcade/hiveworld-sim/scenarios/phase1.mjs';
+import { roomPresenceListPayload } from '../../arcade/hiveworld-sim/core/phase1/rooms.mjs';
 
 test('every mapped arcade event type rides the sideband the fabric assigns it', () => {
   for (const [type, sideband] of Object.entries(PHASE1_EVENT_SIDEBAND)) {
@@ -26,6 +28,27 @@ test('the actual arcade fabric event types are all registered with handlers + kn
 
 test('the conceptual product map references only known sidebands', () => {
   for (const sideband of Object.keys(PHASE1_PRODUCT_MAP)) assert.ok(isKnownSideband(sideband), sideband);
+});
+
+test('v0.3 room-health events ride presence/moderation and have handlers', () => {
+  const expected = { room_heartbeat: 'presence', room_status_set: 'moderation', room_reset: 'moderation' };
+  for (const [type, sb] of Object.entries(expected)) {
+    assert.equal(EVENT_SPECS[type] && EVENT_SPECS[type].sideband, sb, type);
+    assert.equal(sidebandForEvent(type), sb, type);
+    assert.ok(getHandler(type), `${type} has a handler`);
+  }
+});
+
+test('room-health traffic rides presence/moderation; the presence view leaks nothing private', () => {
+  const { report } = roomHealthLifecycle({});
+  const touched = Object.keys(report.sidebandTraffic);
+  for (const sb of touched) assert.ok(isKnownSideband(sb), sb);
+  assert.ok(touched.includes('presence'), 'heartbeats ride presence');
+  assert.ok(touched.includes('moderation'), 'status/reset ride moderation');
+  const reg = report.finalWorldState.roomRegistry;
+  const presenceJson = JSON.stringify(roomPresenceListPayload(reg.heartbeats, reg.statusOverrides, 50));
+  assert.equal(PRIVATE_FIELD_RE.test(presenceJson), false);
+  assert.ok(!/agent:|token/i.test(presenceJson));
 });
 
 test('observed traffic in a scenario only touches expected sidebands; the feed leaks nothing private', () => {

@@ -62,6 +62,12 @@ export const EVENT_SPECS = Object.freeze({
   // asset_sync: cosmetic / badge equip
   arcade_equip:           { sideband: 'asset_sync' },
   arcade_unequip:         { sideband: 'asset_sync' },
+  // ── v0.3 room presence health ──────────────────────────────────────────────
+  // presence: a room reports its own heartbeat (population/health freshness)
+  room_heartbeat:         { sideband: 'presence' },
+  // moderation: admin room-lifecycle ops (both-gated in the reducer)
+  room_status_set:        { sideband: 'moderation' },
+  room_reset:             { sideband: 'moderation' },
 });
 
 /**

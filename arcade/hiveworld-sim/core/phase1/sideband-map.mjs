@@ -28,20 +28,24 @@ export const PHASE1_EVENT_SIDEBAND = Object.freeze({
   arcade_redeem:          'market',
   arcade_equip:           'asset_sync',
   arcade_unequip:         'asset_sync',
+  // v0.3 room presence health
+  room_heartbeat:         'presence',
+  room_status_set:        'moderation',
+  room_reset:             'moderation',
 });
 
 /** Conceptual product-event → sideband mapping (documentation parity). */
 export const PHASE1_PRODUCT_MAP = Object.freeze({
   discovery:     ['cabinet_catalog', 'zone_state'],
-  presence:      ['player_join', 'player_leave', 'reconnect'],
+  presence:      ['player_join', 'player_leave', 'reconnect', 'room_heartbeat'],
   occupancy:     ['cabinet_occupied', 'cabinet_released', 'cabinet_timeout'],
   object_state:  ['cabinet_state', 'frame_contract_state', 'adapter_mount_state'],
   asset_sync:    ['adapter_manifest_loaded', 'frame_contract_loaded', 'cosmetic_equipped'],
   market:        ['ticket_awarded', 'ticket_spent', 'prize_redeemed', 'inventory_state'],
   agent_intent:  ['round_start_requested', 'prize_redeem_requested', 'challenge_reward_claim_requested'],
   event_log:     ['round_accepted', 'round_rejected', 'ledger_entry', 'challenge_completed', 'achievement_unlocked'],
-  moderation:    ['invalid_adapter_rejected', 'forbidden_capability_rejected', 'malformed_event_rejected'],
-  weather:       ['arcade_activity_summary', 'room_mood'],
+  moderation:    ['invalid_adapter_rejected', 'forbidden_capability_rejected', 'malformed_event_rejected', 'room_status_set', 'room_reset'],
+  weather:       ['arcade_activity_summary', 'room_mood', 'room_health'],
 });
 
 export function sidebandForEvent(eventType) {
