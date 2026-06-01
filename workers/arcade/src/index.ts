@@ -1,22 +1,26 @@
 /**
- * Neon Arcade Mesh Worker — Phase 2a (Multi-Room Arcade Lobby)
+ * Neon Arcade Mesh Worker — Phase 2b (per-room DO sharding + registry coordinator)
  *
- * Entry point for the arcade authority WebSocket gateway. Routes /arcade/ws
- * connections to the single ArcadeRoom Durable Object, which hosts MULTIPLE rooms
- * as isolated state namespaces. A client connects with `?room=<id>` (informational)
- * and selects its room through the lobby join protocol; the DO is the authority for
- * room validation + binding (see arcade-room.ts handleJoin). One shared DO keeps
- * cross-room population aggregation + room isolation simple for the configured room
- * set; per-room DO sharding is a future scaling step.
+ * Routes /arcade/ws?room=<id> to a PER-ROOM ArcadeRoom Durable Object instance
+ * (idFromName(roomId)) — each room is its own DO, so rooms scale and stay isolated
+ * by construction. A single RoomRegistry DO coordinates cross-room population +
+ * admin status; room DOs talk to it DO-to-DO (clients never reach it directly).
  *
- * This Worker is intentionally minimal. All authority logic lives inside the DO.
+ * An explicit invalid room id falls back to the default room DO, where the join is
+ * rejected (room_join_rejected: invalid_room). No `?room=` → main-floor.
+ *
+ * All authority logic lives inside the DOs.
  */
 
 import { ArcadeRoom } from "./arcade-room";
+import { RoomRegistry } from "./room-registry";
 import { resolveRoomId, ROOM_IDS } from "./rooms.mjs";
 
 export interface Env {
   ARCADE_ROOM: DurableObjectNamespace;
+  ROOM_REGISTRY: DurableObjectNamespace;
+  ADMIN_ENABLED?: string;
+  ADMIN_TOKEN?: string;
 }
 
 export default {
@@ -24,24 +28,32 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/arcade/ws") {
-      // Resolve the (optional, untrusted) room hint for defense-in-depth + logging.
-      // The DO is the authority for binding; an explicit invalid room is rejected
-      // there with room_join_rejected. All rooms share one DO instance ("arcade").
+      // Resolve the (untrusted) room and shard to its own DO instance. An invalid
+      // explicit room routes to the default DO, which rejects the join.
       const hint = resolveRoomId(url.searchParams.get("room"));
-      console.log(`[Worker] WS upgrade /arcade/ws (room hint: ${hint.roomId}${hint.fallback ? " — fell back from invalid" : ""})`);
-      const id = env.ARCADE_ROOM.idFromName("arcade");
+      const id = env.ARCADE_ROOM.idFromName(hint.roomId);
       const stub = env.ARCADE_ROOM.get(id);
       try {
         return await stub.fetch(request);
       } catch (err) {
-        console.error("[Worker] Error forwarding to DO:", err);
+        console.error("[Worker] Error forwarding to room DO:", err);
         return new Response("DO fetch failed", { status: 500 });
+      }
+    }
+
+    // Public-safe room list over HTTP (the registry coordinator is the authority).
+    if (url.pathname === "/arcade/rooms") {
+      const reg = env.ROOM_REGISTRY.get(env.ROOM_REGISTRY.idFromName("registry"));
+      try {
+        return await reg.fetch("https://reg/registry/list");
+      } catch {
+        return new Response(JSON.stringify({ rooms: [] }), { headers: { "Content-Type": "application/json" } });
       }
     }
 
     if (url.pathname === "/arcade/health") {
       return new Response(
-        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "2a", rooms: ROOM_IDS }),
+        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "2b", rooms: ROOM_IDS, sharded: true }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
@@ -50,5 +62,6 @@ export default {
   },
 };
 
-// Re-export the DO class so wrangler can discover it
+// Re-export the DO classes so wrangler can discover them.
 export { ArcadeRoom } from "./arcade-room";
+export { RoomRegistry } from "./room-registry";

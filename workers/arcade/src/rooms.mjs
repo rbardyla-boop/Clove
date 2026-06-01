@@ -27,8 +27,22 @@ export const ROOMS = Object.freeze([
 
 export const ROOM_IDS = Object.freeze(ROOMS.map((r) => r.room_id));
 
+/** Room admin statuses (Phase 2b). Only `open` accepts new joins. */
+export const ROOM_STATUSES = Object.freeze(['open', 'closed', 'maintenance']);
+export function isRoomStatus(s) { return ROOM_STATUSES.includes(s); }
+/** A room accepts new joins only when its effective status is `open`. */
+export function isJoinableStatus(s) { return s === 'open'; }
+
 export function getRoom(roomId) {
   return ROOMS.find((r) => r.room_id === roomId) || null;
+}
+
+/** The effective status of a room (admin override falls back to the configured status). */
+export function effectiveStatus(roomId, statusOverrides = {}) {
+  const o = statusOverrides[roomId];
+  if (isRoomStatus(o)) return o;
+  const r = getRoom(roomId);
+  return r ? r.status : 'closed';
 }
 export function isValidRoomId(roomId) {
   return typeof roomId === 'string' && ROOM_IDS.includes(roomId);
@@ -70,14 +84,14 @@ export function cabinetSummary() {
  * server supplies it). NEVER includes private player data, ledgers, balances,
  * inventory, challenge state, or raw connection ids.
  */
-export function roomListPayload(populations = {}) {
+export function roomListPayload(populations = {}, statusOverrides = {}) {
   const summary = cabinetSummary();
   return {
     rooms: ROOMS.map((r) => ({
       room_id: r.room_id,
       display_name: r.display_name,
       description: r.description,
-      status: r.status,
+      status: effectiveStatus(r.room_id, statusOverrides),
       capacity: r.capacity,
       population: Math.max(0, Number(populations[r.room_id]) || 0),
       theme: r.theme,
@@ -87,12 +101,12 @@ export function roomListPayload(populations = {}) {
 }
 
 /** Public-safe single-room metadata (for room_joined / room_state). */
-export function roomMetaPayload(roomId, population = 0) {
+export function roomMetaPayload(roomId, population = 0, statusOverrides = {}) {
   const r = getRoom(roomId);
   if (!r) return null;
   return {
     room_id: r.room_id, display_name: r.display_name, description: r.description,
-    status: r.status, capacity: r.capacity, population: Math.max(0, Number(population) || 0),
+    status: effectiveStatus(roomId, statusOverrides), capacity: r.capacity, population: Math.max(0, Number(population) || 0),
     theme: r.theme, ruleset_version: r.ruleset_version, cabinet_summary: cabinetSummary(),
   };
 }

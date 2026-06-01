@@ -65,6 +65,7 @@ let hintTimer = 0;
 let lobby = null;             // Phase 2a Arcade Lobby panel (assigned below)
 let currentRoomId = null;     // Phase 2a: the room this client is bound to
 let lastRoomReject = null;    // Phase 2a: last room-join rejection reason (test introspection)
+let lastRoomAdmin = null;     // Phase 2b: last admin op result (test introspection)
 let focused = 'pulse';        // which powered cabinet the interact bar / keyboard targets
 let currentRoundId = null;        // server-issued Pulse Tap round id
 let currentSignalRoundId = null;  // server-issued Signal Sprint round id
@@ -316,6 +317,9 @@ const client = new NeonCircuitRoomClient({
   onRoomJoinRejected: (m) => { lastRoomReject = m.reason; lobby?.showRejection(m.reason, m.roomId); toast(`room: ${m.reason}`); },
   onRoomLeft: () => {},
   onRoomPopulation: (m) => { lobby?.setPopulation(m.roomId, m.population); },
+  // ---- Phase 2b: room lifecycle admin ----
+  onRoomReset: (m) => { toast(`room ${m.roomId} was reset`); /* server re-sends this room's scoped state */ },
+  onRoomAdminResult: (m) => { lastRoomAdmin = m; lobby?.setAdminResult(m); toast(m.ok ? `admin: ${m.op} ✓` : `admin: ${m.reason}`); },
   onState: (s) => {
     if (!s.machines) return;
     for (const c of POWERED) {
@@ -500,6 +504,11 @@ lobby = createArcadeLobby({
     client.switchRoom(roomId);
   },
   onRefresh: () => client.requestRoomList(),
+  // Phase 2b: forward admin intent only. The server gates by dev flag + token.
+  onAdmin: (op, roomId, status, token) => {
+    if (op === 'reset') client.adminResetRoom(roomId, token);
+    else if (op === 'set_status') client.adminSetRoomStatus(roomId, status, token);
+  },
 });
 const roomBtn = el('roomBtn');
 if (roomBtn) roomBtn.addEventListener('click', () => (lobby.isOpen() ? lobby.close() : lobby.open()));
@@ -545,6 +554,7 @@ if (params.get('test') === '1') {
       playerId: myId(),
       roomId: currentRoomId,
       lastRoomReject,
+      lastRoomAdmin,
       roundId: currentRoundId,
       signalRoundId: currentSignalRoundId,
       gridRoundId: currentGridRoundId,
@@ -569,11 +579,13 @@ if (params.get('test') === '1') {
     renderState: (cabinet) => cabinetRenderState(cabinet),
     fixtureLifecycle: [],
     fixtureMount: null,
-    // Phase 2a: multi-room introspection for browser validation.
+    // Phase 2a/2b: multi-room + admin introspection for browser validation.
     roomId: () => currentRoomId,
     rooms: () => (lobby ? lobby.getRooms() : []),
     switchRoom: (roomId) => client.switchRoom(roomId),
     requestRoomList: () => client.requestRoomList(),
+    adminReset: (roomId, token) => client.adminResetRoom(roomId, token),
+    adminSetStatus: (roomId, status, token) => client.adminSetRoomStatus(roomId, status, token),
   };
 
   // Phase 1k: dynamically load + mount the test-only sample import fixture

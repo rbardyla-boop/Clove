@@ -21,13 +21,19 @@ import { getLedger } from './src/ledger.mjs';
 import { challengeCatalogPayload, getProgress, recordRoundAccepted, recordRedemption, claimReward } from './src/challenges.mjs';
 import { getAchievements } from './src/achievements.mjs';
 import { appendEvent, eventFeedPayload } from './src/events.mjs';
-import { DEFAULT_ROOM_ID, resolveRoomId, roomListPayload, roomMetaPayload, hasCapacity } from './src/rooms.mjs';
+import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMetaPayload, hasCapacity, isRoomStatus, isJoinableStatus, effectiveStatus } from './src/rooms.mjs';
+import { checkAdmin, adminEnabled, isAdminOp } from './src/admin.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const PULSE_ID = 'pulse';
 
-// roomId -> { machines, ticketState } — one isolated partition per room.
+// roomId -> { machines, ticketState } — one isolated partition per room (mirrors a
+// per-room DO). The shim ALSO models the registry coordinator: cross-room
+// populations are computed from all sockets and admin status overrides live here.
 const rooms = {};
+const statusOverrides = {}; // roomId -> 'open'|'closed'|'maintenance' (admin-set)
+// The shim reads the same admin gate as the DO (dev flag + token via env).
+const adminGate = (providedToken) => checkAdmin({ enabled: adminEnabled(process.env), token: process.env.ADMIN_TOKEN, providedToken });
 function room(roomId) {
   let r = rooms[roomId];
   if (!r) {
@@ -89,17 +95,55 @@ function leaveRoomInternal(playerId, roomId) {
   broadcastRoom(roomId, ticketStatePayload(roomId));
 }
 
+// Phase 2b admin: wipe a room's state (the registry coordinator forwards this to
+// the room DO; the shim does it inline). Connected players in that room are reset.
+function adminReset(roomId) {
+  const machines = {};
+  for (const machineId of ticketedMachineIds()) machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
+  rooms[roomId] = { machines, ticketState: createTicketState() };
+  const part = rooms[roomId];
+  broadcastRoom(roomId, { t: 'room_reset', roomId });
+  broadcastRoomState(roomId);
+  broadcastRoom(roomId, ticketStatePayload(roomId));
+  broadcastRoom(roomId, cosmeticStatePayload(roomId));
+  for (const [ws, meta] of sockets) {
+    if (meta.roomId !== roomId || !meta.playerId) continue;
+    send(ws, { t: 'ticket_balance', playerId: meta.playerId, balance: 0 });
+    sendInventory(ws, roomId, meta.playerId);
+    send(ws, { t: 'challenge_progress', playerId: meta.playerId, challenges: getProgress(part.ticketState, meta.playerId) });
+    send(ws, { t: 'achievement_state', playerId: meta.playerId, achievements: getAchievements(part.ticketState, meta.playerId) });
+    send(ws, { t: 'arcade_event_feed', roomId, ...eventFeedPayload(part.ticketState) });
+  }
+}
+
+// Gated admin op (mirrors the registry coordinator's /registry/admin gating).
+function handleAdmin(ws, d) {
+  const gate = adminGate(d.token);
+  if (!gate.ok) return send(ws, { t: 'room_admin_result', ok: false, reason: gate.reason });
+  if (!isAdminOp(d.op)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'unknown_op' });
+  if (!isValidRoomId(d.roomId)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'invalid_room' });
+  if (d.op === 'set_status') {
+    if (!isRoomStatus(d.status)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'invalid_status' });
+    statusOverrides[d.roomId] = d.status;
+    return send(ws, { t: 'room_admin_result', ok: true, op: 'set_status', roomId: d.roomId, status: d.status });
+  }
+  adminReset(d.roomId);
+  return send(ws, { t: 'room_admin_result', ok: true, op: 'reset', roomId: d.roomId });
+}
+
 function handleJoin(ws, rawRoomId, playerId, lobby) {
   if (!playerId) return send(ws, { t: 'error', code: 'missing_player', message: 'playerId required' });
   const resolved = resolveRoomId(rawRoomId);
   if (!resolved.ok && rawRoomId != null && rawRoomId !== '') return send(ws, { t: 'room_join_rejected', roomId: String(rawRoomId), reason: 'invalid_room' });
   const roomId = resolved.roomId;
+  const st = effectiveStatus(roomId, statusOverrides);
+  if (!isJoinableStatus(st)) return send(ws, { t: 'room_join_rejected', roomId, reason: `room_${st}` });
   const prev = sockets.get(ws);
   if (prev && prev.playerId && prev.roomId !== roomId) leaveRoomInternal(prev.playerId, prev.roomId);
   if (!hasCapacity(roomId, distinctPlayers(roomId, playerId))) return send(ws, { t: 'room_join_rejected', roomId, reason: 'room_full' });
   sockets.set(ws, { playerId, roomId });
   const part = room(roomId);
-  if (lobby) send(ws, { t: 'room_joined', room: roomMetaPayload(roomId, roomPopulation(roomId)) });
+  if (lobby) send(ws, { t: 'room_joined', room: roomMetaPayload(roomId, roomPopulation(roomId), statusOverrides) });
   send(ws, roomStatePayload(roomId));
   send(ws, { t: 'ticket_balance', playerId, balance: getBalance(part.ticketState, playerId) });
   send(ws, ticketStatePayload(roomId));
@@ -158,7 +202,8 @@ wss.on('connection', (ws) => {
     const bound = meta && meta.playerId ? meta : null;
 
     switch (d.t) {
-      case 'room_list_request': return void send(ws, { t: 'room_list', ...roomListPayload(populations()) });
+      case 'room_list_request': return void send(ws, { t: 'room_list', ...roomListPayload(populations(), statusOverrides) });
+      case 'room_admin': return void handleAdmin(ws, d);
       case 'join_room': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, false);
       case 'room_join_request': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, true);
       case 'room_leave_request': {
