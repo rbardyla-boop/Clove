@@ -77,6 +77,49 @@ test('a redemption completes First Redemption', () => {
   assert.equal(progressOf(r.state, 'first-redemption').completed, true);
 });
 
+// ── Phase 1l — Neon Grid challenges ─────────────────────────────────────────────
+test('an accepted Neon Grid round completes Grid Rookie', () => {
+  const r = recordRoundAccepted(createTicketState(), { playerId: A, cabinetType: 'neon_grid', mistakes: 5, awarded: 17, now: NOW });
+  assert.equal(progressOf(r.state, 'grid-rookie').completed, true);
+  assert.ok(r.newlyCompleted.some((c) => c.challenge_id === 'grid-rookie'));
+});
+
+test('a low-mistake Neon Grid round completes Clean Grid; a sloppy one does not', () => {
+  const clean = recordRoundAccepted(createTicketState(), { playerId: A, cabinetType: 'neon_grid', mistakes: 2, awarded: 20, now: NOW });
+  assert.equal(progressOf(clean.state, 'clean-grid').completed, true);
+  const sloppy = recordRoundAccepted(createTicketState(), { playerId: A, cabinetType: 'neon_grid', mistakes: 9, awarded: 12, now: NOW });
+  assert.equal(progressOf(sloppy.state, 'grid-rookie').completed, true);
+  assert.equal(progressOf(sloppy.state, 'clean-grid').completed, false);
+});
+
+test('playing all three cabinets completes Three Cabinet Tour (and two completes Two Cabinet Tour)', () => {
+  let state = createTicketState();
+  state = recordRoundAccepted(state, { playerId: A, cabinetType: 'pulse_tap', awarded: 20, now: NOW }).state;
+  assert.equal(progressOf(state, 'three-cabinet-tour').progress, 1);
+  state = recordRoundAccepted(state, { playerId: A, cabinetType: 'signal_sprint', noiseHits: 1, awarded: 24, now: NOW }).state;
+  assert.equal(progressOf(state, 'two-cabinet-tour').completed, true);   // pulse + signal
+  assert.equal(progressOf(state, 'three-cabinet-tour').completed, false); // not the grid yet
+  assert.equal(progressOf(state, 'three-cabinet-tour').progress, 2);
+  state = recordRoundAccepted(state, { playerId: A, cabinetType: 'neon_grid', mistakes: 1, awarded: 26, now: NOW }).state;
+  assert.equal(progressOf(state, 'three-cabinet-tour').completed, true);  // all three
+});
+
+test('Grid Rookie / Three Cabinet Tour claims grant their badges', () => {
+  let state = recordRoundAccepted(createTicketState(), { playerId: A, cabinetType: 'neon_grid', mistakes: 1, awarded: 26, now: NOW }).state;
+  const rookie = claimReward(state, { playerId: A, challengeId: 'grid-rookie', now: NOW + 10 });
+  assert.equal(rookie.ok, true);
+  assert.equal(rookie.achievement.achievement_id, 'grid-rookie');
+  assert.ok(getInventory(rookie.state, A).some((i) => i.prize_id === 'badge-grid-rookie'));
+
+  let s2 = rookie.state;
+  s2 = recordRoundAccepted(s2, { playerId: A, cabinetType: 'pulse_tap', awarded: 20, now: NOW }).state;
+  s2 = recordRoundAccepted(s2, { playerId: A, cabinetType: 'signal_sprint', noiseHits: 1, awarded: 24, now: NOW }).state;
+  const tour = claimReward(s2, { playerId: A, challengeId: 'three-cabinet-tour', now: NOW + 20 });
+  assert.equal(tour.ok, true);
+  assert.equal(tour.achievement.achievement_id, 'circuit-voyager');
+  assert.ok(getInventory(tour.state, A).some((i) => i.prize_id === 'badge-circuit-voyager'));
+});
+
 test('earning 25 tickets total completes Ticket Starter', () => {
   let state = createTicketState();
   state = recordRoundAccepted(state, { playerId: A, cabinetType: 'pulse_tap', awarded: 20, now: NOW }).state;

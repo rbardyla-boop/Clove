@@ -15,6 +15,7 @@ import { getLedger } from '../../workers/arcade/src/ledger.mjs';
 import { redeemPrize } from '../../workers/arcade/src/prize-authority.mjs';
 import { computeTickets } from '../../workers/arcade/src/tickets.mjs';
 import { computeSignalTickets } from '../../workers/arcade/src/signal-sprint.mjs';
+import { computeNeonGridTickets } from '../../workers/arcade/src/neon-grid.mjs';
 
 const NOW = 3_000_000;
 const A = 'player:a';
@@ -22,6 +23,7 @@ const B = 'player:b';
 
 const pulsePayload = (over = {}) => ({ roundId: 'p1', machineId: 'pulse', grade: 'A', score: 1500, accuracy: 85, durationMs: 30000, hits: 14, bestStreak: 8, ...over });
 const signalPayload = (over = {}) => ({ roundId: 's1', machineId: 'signal', cabinetType: 'signal_sprint', rulesetVersion: 'signal-sprint/1', grade: 'A', score: 4200, distance: 1800, pulsesCollected: 42, noiseHits: 6, maxStreak: 14, durationMs: 25000, ...over });
+const gridPayload = (over = {}) => ({ roundId: 'g1', machineId: 'grid', cabinetType: 'neon_grid', rulesetVersion: 'neon-grid-v1', grade: 'A', score: 5000, correctSteps: 40, completedPatterns: 6, mistakes: 2, bestStreak: 18, durationMs: 22000, ...over });
 
 function earnPulse(state, { player = A, roundId = 'p1', now = NOW } = {}) {
   const started = startRound(state, { machineId: 'pulse', occupantId: player, playerId: player, roundId, now });
@@ -31,9 +33,14 @@ function earnSignal(state, { player = A, roundId = 's1', now = NOW } = {}) {
   const started = startRound(state, { machineId: 'signal', occupantId: player, playerId: player, roundId, now });
   return submitRound(started.state, { payload: signalPayload({ roundId }), senderId: player, occupantId: player, now: now + 25000 });
 }
+function earnGrid(state, { player = A, roundId = 'g1', now = NOW } = {}) {
+  const started = startRound(state, { machineId: 'grid', occupantId: player, playerId: player, roundId, now });
+  return submitRound(started.state, { payload: gridPayload({ roundId }), senderId: player, occupantId: player, now: now + 22000 });
+}
 
 const PULSE_AWARD = computeTickets({ grade: 'A', score: 1500, accuracy: 85 });          // 20
 const SIGNAL_AWARD = computeSignalTickets({ grade: 'A', distance: 1800, maxStreak: 14, noiseHits: 6 }); // 16 + 7 + 3 - 2 = 24
+const GRID_AWARD = computeNeonGridTickets({ grade: 'A', completedPatterns: 6, bestStreak: 18, mistakes: 2 }); // 17 + 6 + 3 - 0 = 26
 
 test('a player earns tickets from BOTH cabinets into one shared balance', () => {
   let state = createTicketState();
@@ -89,4 +96,44 @@ test('two players earn independently on the two cabinets (no cross-contamination
   state = earnSignal(state, { player: B, roundId: 'sb' }).state;    // B: 24 (signal)
   assert.equal(getBalance(state, A), PULSE_AWARD);
   assert.equal(getBalance(state, B), SIGNAL_AWARD);
+});
+
+// ── Phase 1l — three-cabinet integration (Neon Grid joins the shared balance) ──
+test('a player earns from ALL THREE cabinets into one shared balance', () => {
+  let state = createTicketState();
+  state = earnPulse(state).state;   // 20
+  state = earnSignal(state).state;  // +24 → 44
+  state = earnGrid(state).state;    // +26 → 70
+  assert.equal(getBalance(state, A), PULSE_AWARD + SIGNAL_AWARD + GRID_AWARD);
+});
+
+test('the ledger records one entry per cabinet including the adapter-loaded Neon Grid', () => {
+  let state = createTicketState();
+  state = earnPulse(state).state;
+  state = earnSignal(state).state;
+  state = earnGrid(state).state;
+  const led = getLedger(state, A);
+  assert.equal(led.length, 3);
+  const gridEntry = led.find((e) => e.cabinet_type === 'neon_grid');
+  assert.ok(gridEntry && gridEntry.source === 'grid' && gridEntry.delta === GRID_AWARD);
+  assert.ok(led.some((e) => e.cabinet_type === 'pulse_tap'));
+  assert.ok(led.some((e) => e.cabinet_type === 'signal_sprint'));
+});
+
+test('the Prize Counter redeems against the COMBINED three-cabinet balance', () => {
+  let state = createTicketState();
+  state = earnPulse(state).state;   // 20
+  state = earnSignal(state).state;  // 44
+  state = earnGrid(state).state;    // 70
+  const redeemed = redeemPrize(state, { prizeId: 'pulse-jacket', playerId: A, now: NOW, redemptionId: 'rd1' }); // cost 35
+  assert.equal(redeemed.ok, true);
+  assert.equal(redeemed.balance, PULSE_AWARD + SIGNAL_AWARD + GRID_AWARD - 35);
+});
+
+test('B cannot submit A’s active Neon Grid round (occupancy + identity preserved)', () => {
+  const started = startRound(createTicketState(), { machineId: 'grid', occupantId: A, playerId: A, roundId: 'g1', now: NOW });
+  const bAttempt = submitRound(started.state, { payload: gridPayload(), senderId: B, occupantId: A, now: NOW + 1000 });
+  assert.equal(bAttempt.ok, false);
+  assert.equal(bAttempt.reason, 'wrong_session');
+  assert.equal(getBalance(bAttempt.state, B), 0);
 });

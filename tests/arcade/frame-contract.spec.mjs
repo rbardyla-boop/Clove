@@ -28,6 +28,7 @@ const VIEWPORTS = [
 const GAMES = [
   { machineId: 'pulse', gameId: 'pulse_tap' },
   { machineId: 'signal', gameId: 'signal_sprint' },
+  { machineId: 'grid', gameId: 'neon_grid' }, // Phase 1l: adapter-loaded cabinet
 ];
 const ASPECT_TOL = 0.01;
 
@@ -47,6 +48,13 @@ try {
   await page.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
   await page.waitForFunction(() => document.getElementById('statusTxt')?.textContent.includes('live'), null, { timeout: 8000 });
   check('client connects to the room', true);
+
+  // Phase 1l: Neon Grid activates from the server catalog through the import path.
+  await page.waitForFunction(() => window.__neon.adapters.neon_grid && window.__neon.adapters.neon_grid.ok, null, { timeout: 8000 });
+  check('Neon Grid is activated through the adapter/import path (server catalog)', await page.evaluate(() => {
+    const a = window.__neon.adapters.neon_grid;
+    return !!a && a.ok && a.state === 'playable' && a.adapter.gameId === 'neon_grid' && !!a.mount && !!a.mount.game;
+  }));
 
   for (const vp of VIEWPORTS) {
     await page.setViewportSize({ width: vp.w, height: vp.h });
@@ -133,6 +141,16 @@ try {
   await page.waitForFunction(() => window.__neon.state().tickets >= 44, null, { timeout: 8000 });
   check('Signal Sprint round start/submit + ticket award works inside the frame', (await page.evaluate(() => window.__neon.state().tickets)) === 44);
   await page.evaluate(() => window.__neon.client.release('signal'));
+
+  // Phase 1l: the adapter-loaded Neon Grid round/ticket flow works inside the frame.
+  await page.evaluate(() => window.__neon.client.occupy('grid'));
+  await page.waitForFunction(() => document.querySelector('.cf-overlay[data-game-id="neon_grid"]')?.classList.contains('show'), null, { timeout: 8000 });
+  const gr = await page.evaluate(async () => { window.__neon.client.startNeonGridRound('grid'); await new Promise((r) => setTimeout(r, 250)); return window.__neon.state().gridRoundId; });
+  await page.evaluate((rid) => window.__neon.client.submitNeonGridRound({ roundId: rid, machineId: 'grid', grade: 'A', score: 5000, correctSteps: 40, completedPatterns: 6, mistakes: 2, bestStreak: 18, durationMs: 22000 }), gr);
+  // neon_grid: base A=17 + pattern min(8,6)=6 + streak(18>=16 → +3) − floor(2/4)=0 = 26 → 44 + 26 = 70
+  await page.waitForFunction(() => window.__neon.state().tickets === 70, null, { timeout: 8000 });
+  check('Neon Grid round start/submit + ticket award works inside the frame', (await page.evaluate(() => window.__neon.state().tickets)) === 70);
+  await page.evaluate(() => window.__neon.client.release('grid'));
 
   // ── Phase 1j: Cabinet Adapter SDK ──────────────────────────────────────────
   // Both games entered the arcade THROUGH adapters (mounted at boot).

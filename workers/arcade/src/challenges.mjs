@@ -17,6 +17,9 @@ import { appendLedger } from './ledger.mjs';
 /** Signal Sprint "clean run" noise ceiling. */
 export const CLEAN_NOISE_MAX = 3;
 
+/** Neon Grid "clean grid" mistake ceiling (Phase 1l). */
+export const CLEAN_GRID_MAX = 2;
+
 /**
  * Challenge catalog. `criteria.metric` is computed from per-session counters the
  * server maintains; `reward` is internal-only (achievement badge and/or a small
@@ -29,6 +32,10 @@ export const CHALLENGES = Object.freeze([
   { challenge_id: 'signal-clean-run', display_name: 'Clean Signal',     description: `Finish a Signal Sprint round with ${CLEAN_NOISE_MAX} or fewer noise hits.`, challenge_type: 'skill', scope: 'session', criteria: { metric: 'signalCleanRounds', target: 1, maxNoise: CLEAN_NOISE_MAX }, reward: { achievement_id: 'clean-signal', ticket_bonus: 0 }, repeatable: false, enabled: true,  public_safe: true, sort_order: 4 },
   { challenge_id: 'first-redemption', display_name: 'Counter Regular',  description: 'Redeem any item at the Prize Counter.',                          challenge_type: 'loop',     scope: 'session', criteria: { metric: 'redemptions', target: 1 },                              reward: { achievement_id: 'counter-regular', ticket_bonus: 0 }, repeatable: false, enabled: true,  public_safe: true, sort_order: 5 },
   { challenge_id: 'ticket-starter',   display_name: 'Ticket Starter',   description: 'Earn at least 25 arcade tickets this session.',                  challenge_type: 'progress', scope: 'session', criteria: { metric: 'ticketsEarned', target: 25 },                           reward: { achievement_id: 'ticket-starter',  ticket_bonus: 0 }, repeatable: false, enabled: true,  public_safe: true, sort_order: 6 },
+  // Phase 1l: Neon Grid challenges (the first adapter-loaded production cabinet).
+  { challenge_id: 'grid-rookie',      display_name: 'Grid Rookie',      description: 'Complete one Neon Grid round.',                                  challenge_type: 'play',     scope: 'session', criteria: { metric: 'gridRounds', target: 1 },                               reward: { achievement_id: 'grid-rookie',     ticket_bonus: 0 }, repeatable: false, enabled: true,  public_safe: true, sort_order: 7 },
+  { challenge_id: 'three-cabinet-tour', display_name: 'Three Cabinet Tour', description: 'Complete a Pulse Tap, Signal Sprint and Neon Grid round this session.', challenge_type: 'play', scope: 'session', criteria: { metric: 'allCabinets', target: 3 },                          reward: { achievement_id: 'circuit-voyager', ticket_bonus: 0 }, repeatable: false, enabled: true,  public_safe: true, sort_order: 8 },
+  { challenge_id: 'clean-grid',       display_name: 'Clean Grid',       description: `Finish a Neon Grid round with ${CLEAN_GRID_MAX} or fewer mistakes.`, challenge_type: 'skill', scope: 'session', criteria: { metric: 'gridCleanRounds', target: 1, maxMistakes: CLEAN_GRID_MAX }, reward: { achievement_id: 'clean-grid',  ticket_bonus: 0 }, repeatable: false, enabled: true,  public_safe: true, sort_order: 9 },
   { challenge_id: 'marathon-soon',    display_name: 'Marathon',         description: 'Coming soon.',                                                   challenge_type: 'progress', scope: 'session', criteria: { metric: 'pulseRounds', target: 50 },                             reward: { achievement_id: null,              ticket_bonus: 0 }, repeatable: false, enabled: false, public_safe: true, sort_order: 99 },
 ]);
 
@@ -46,12 +53,13 @@ export function challengeCatalogPayload() {
 }
 
 function emptyStats() {
-  return { pulseRounds: 0, signalRounds: 0, signalCleanRounds: 0, redemptions: 0, ticketsEarned: 0 };
+  return { pulseRounds: 0, signalRounds: 0, signalCleanRounds: 0, gridRounds: 0, gridCleanRounds: 0, redemptions: 0, ticketsEarned: 0 };
 }
 
 function metricValue(stats, challenge) {
   const m = challenge.criteria.metric;
   if (m === 'bothCabinets') return (stats.pulseRounds > 0 ? 1 : 0) + (stats.signalRounds > 0 ? 1 : 0);
+  if (m === 'allCabinets') return (stats.pulseRounds > 0 ? 1 : 0) + (stats.signalRounds > 0 ? 1 : 0) + (stats.gridRounds > 0 ? 1 : 0);
   return stats[m] || 0;
 }
 
@@ -80,7 +88,9 @@ export function getProgress(state, playerId) {
  * complete (for emitting challenge_completed + a public feed event).
  */
 function applyStats(state, playerId, mutate, now) {
-  const stats = { ...(state.challengeStats[playerId] || emptyStats()) };
+  // Merge over emptyStats() so a stored stats object from before a new counter
+  // existed (e.g. an older session predating gridRounds) still has every field.
+  const stats = { ...emptyStats(), ...(state.challengeStats[playerId] || {}) };
   mutate(stats);
   const challengeStats = { ...state.challengeStats, [playerId]: stats };
 
@@ -109,12 +119,15 @@ function applyStats(state, playerId, mutate, now) {
 }
 
 /** Authoritative: an accepted round bumps round counters + tickets earned. */
-export function recordRoundAccepted(state, { playerId, cabinetType, noiseHits, awarded, now }) {
+export function recordRoundAccepted(state, { playerId, cabinetType, noiseHits, mistakes, awarded, now }) {
   return applyStats(state, playerId, (s) => {
     if (cabinetType === 'pulse_tap') s.pulseRounds += 1;
     else if (cabinetType === 'signal_sprint') {
       s.signalRounds += 1;
       if (Number.isInteger(noiseHits) && noiseHits <= CLEAN_NOISE_MAX) s.signalCleanRounds += 1;
+    } else if (cabinetType === 'neon_grid') {
+      s.gridRounds += 1;
+      if (Number.isInteger(mistakes) && mistakes <= CLEAN_GRID_MAX) s.gridCleanRounds += 1;
     }
     s.ticketsEarned += Math.max(0, awarded || 0);
   }, now);

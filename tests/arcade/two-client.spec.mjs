@@ -216,6 +216,75 @@ try {
   const bViewFinal = await B.page.evaluate(() => JSON.stringify(window.__neon.state().publicCosmetics));
   check('B’s public view of A still leaks no balance/ledger', !/balance|ledger|redemption/i.test(bViewFinal));
 
+  // ── Phase 1l: Neon Grid — the first adapter-loaded production cabinet ───────
+  // State here: B holds Pulse Tap; A is free; A balance 34, B 3.
+  const gridBusy = (c) => c.page.evaluate(() => document.querySelector('.cab[data-id="grid"]').classList.contains('busy'));
+  const gridMine = (c) => c.page.evaluate(() => document.querySelector('.cab[data-id="grid"]').classList.contains('mine'));
+
+  // Neon Grid entered the floor through the adapter/import path (server catalog → registry → mount).
+  await A.page.waitForFunction(() => window.__neon.adapters.neon_grid && window.__neon.adapters.neon_grid.ok, null, { timeout: 8000 });
+  check('Neon Grid is activated through the adapter/import path (not hand-wired)', await A.page.evaluate(() => {
+    const a = window.__neon.adapters.neon_grid;
+    return !!a && a.ok && a.state === 'playable' && a.adapter.gameId === 'neon_grid';
+  }));
+  check('Neon Grid renders as an active/powered cabinet', await A.page.evaluate(() => {
+    const node = document.querySelector('.cab[data-id="grid"]');
+    return !!node && node.classList.contains('powered') && !node.classList.contains('unavailable');
+  }));
+
+  // A occupies Neon Grid while B still holds Pulse Tap → independent occupancy across all three.
+  await A.page.click('.cab[data-id="grid"]');
+  await A.page.waitForFunction(() => document.querySelector('.cab[data-id="grid"]').classList.contains('mine'), null, { timeout: 8000 });
+  check('A occupies Neon Grid', await gridMine(A));
+  check('B still holds Pulse Tap (occupancy independent across all three cabinets)', await cabMine(B));
+
+  // B sees Neon Grid busy and cannot start/submit A's round.
+  await B.page.waitForFunction(() => document.querySelector('.cab[data-id="grid"]').classList.contains('busy'), null, { timeout: 8000 });
+  check('B sees Neon Grid busy', await gridBusy(B) && !(await gridMine(B)));
+  await B.page.evaluate(() => window.__neon.client.startNeonGridRound('grid'));
+  await B.page.waitForFunction(() => window.__neon.state().lastReject === 'not_occupant', null, { timeout: 8000 });
+  await B.page.evaluate(() => window.__neon.client.submitNeonGridRound(
+    { roundId: 'forged-' + Math.random(), machineId: 'grid', grade: 'S', score: 40000, correctSteps: 200, completedPatterns: 60, mistakes: 0, bestStreak: 200, durationMs: 20000 }
+  ));
+  await B.page.waitForTimeout(250);
+  check('B cannot start/submit A’s Neon Grid round', ['not_occupant', 'unknown_round', 'wrong_session'].includes(await lastReject(B)));
+  check('B earns nothing from Neon Grid (still 3)', (await tickets(B)) === 3);
+
+  // A plays a valid Neon Grid round → server-computed award into the SHARED balance.
+  const gRound = await A.page.evaluate(async () => {
+    window.__neon.client.startNeonGridRound('grid');
+    await new Promise((r) => setTimeout(r, 250));
+    return window.__neon.state().gridRoundId;
+  });
+  check('server issued a Neon Grid round id to A', typeof gRound === 'string' && gRound.length > 0);
+  await A.page.evaluate((rid) => window.__neon.client.submitNeonGridRound(
+    { roundId: rid, machineId: 'grid', grade: 'A', score: 5000, correctSteps: 40, completedPatterns: 6, mistakes: 2, bestStreak: 18, durationMs: 22000 }
+  ), gRound);
+  // neon_grid: base A=17 + pattern min(8,6)=6 + streak(18>=16 → +3) − floor(2/4)=0 = 26 → 34 + 26 = 60
+  await A.page.waitForFunction(() => window.__neon.state().tickets === 60, null, { timeout: 8000 });
+  check('A earns server-computed Neon Grid tickets (34 + 26 = 60)', (await tickets(A)) === 60);
+
+  // Ledger records the Neon Grid award alongside Pulse Tap + Signal Sprint.
+  await A.page.evaluate(() => window.__neon.client.requestTicketLedger());
+  await A.page.waitForFunction(() => window.__neon.state().ledger.some((e) => e.cabinet_type === 'neon_grid'), null, { timeout: 8000 });
+  const gridLed = await A.page.evaluate(() => window.__neon.state().ledger.find((e) => e.cabinet_type === 'neon_grid'));
+  check('ledger records the Neon Grid award (source grid, cabinet_type neon_grid)', gridLed && gridLed.source === 'grid' && gridLed.delta === 26);
+  check('ledger has all three cabinet sources', await A.page.evaluate(() => {
+    const t = window.__neon.state().ledger.map((e) => e.cabinet_type);
+    return t.includes('pulse_tap') && t.includes('signal_sprint') && t.includes('neon_grid');
+  }));
+
+  // A redeems a Prize Counter item using the COMBINED balance: pulse-jacket costs
+  // 35 — more than ANY single cabinet's award (pulse 20 / signal 24 / grid 26).
+  await A.page.evaluate(() => window.__neon.client.redeemPrize('pulse-jacket'));
+  await A.page.waitForFunction(() => window.__neon.state().inventory.some((i) => i.prize_id === 'pulse-jacket'), null, { timeout: 8000 });
+  check('A redeems pulse-jacket (35) from the combined balance (60 → 25)', (await balA(A)) === 25);
+
+  // A releases Neon Grid; B sees it free again.
+  await A.page.evaluate(() => window.__neon.client.release('grid'));
+  await B.page.waitForFunction(() => !document.querySelector('.cab[data-id="grid"]').classList.contains('busy'), null, { timeout: 8000 });
+  check('A release of Neon Grid propagates to B', !(await gridBusy(B)));
+
   // ── Phase 1h: Challenge Board, achievements, public event feed ─────────────
   // A has played BOTH cabinets above → Two Cabinet Tour should be complete.
   await A.page.evaluate(() => window.__neon.client.requestChallengeProgress());
@@ -267,6 +336,44 @@ try {
   await B.page.waitForFunction(() => window.__neon.state().lastChallengeReject === 'not_completed', null, { timeout: 8000 });
   check('B cannot claim the reward (server rejects: not_completed)', (await B.page.evaluate(() => window.__neon.state().lastChallengeReject)) === 'not_completed');
 
+  // ── Phase 1l challenges: Grid Rookie + Clean Grid + Three Cabinet Tour ──────
+  // A has now played all three cabinets, so the Neon Grid challenges are complete.
+  await A.page.evaluate(() => window.__neon.client.requestChallengeProgress());
+  await A.page.waitForFunction(() => {
+    const cs = window.__neon.state().challenges || [];
+    const done = (id) => { const c = cs.find((x) => x.challenge_id === id); return c && c.completed; };
+    return done('grid-rookie') && done('clean-grid') && done('three-cabinet-tour');
+  }, null, { timeout: 8000 });
+  check('A completed Grid Rookie, Clean Grid and Three Cabinet Tour (all three cabinets)', true);
+  // Two Cabinet Tour stayed independent of the new Three Cabinet Tour challenge.
+  check('Three Cabinet Tour is a distinct challenge from Two Cabinet Tour', await A.page.evaluate(() => {
+    const cs = window.__neon.state().challenges || [];
+    return cs.some((x) => x.challenge_id === 'two-cabinet-tour') && cs.some((x) => x.challenge_id === 'three-cabinet-tour');
+  }));
+
+  // Claim the Neon Grid challenge rewards (server-authoritative; internal-only badges).
+  await A.page.evaluate(() => window.__neon.client.claimChallengeReward('grid-rookie'));
+  await A.page.waitForFunction(() => window.__neon.state().inventory.some((i) => i.prize_id === 'badge-grid-rookie'), null, { timeout: 8000 });
+  check('A claims Grid Rookie → badge-grid-rookie in inventory', true);
+  await A.page.evaluate(() => window.__neon.client.claimChallengeReward('three-cabinet-tour'));
+  await A.page.waitForFunction(() => window.__neon.state().inventory.some((i) => i.prize_id === 'badge-circuit-voyager'), null, { timeout: 8000 });
+  check('A claims Three Cabinet Tour → badge-circuit-voyager in inventory', true);
+  // A duplicate claim is rejected by the server (no second badge).
+  await A.page.evaluate(() => window.__neon.client.claimChallengeReward('three-cabinet-tour'));
+  await A.page.waitForFunction(() => window.__neon.state().lastChallengeReject === 'already_claimed', null, { timeout: 8000 });
+  check('A duplicate Three Cabinet Tour claim is rejected (already_claimed)', (await A.page.evaluate(() => window.__neon.state().lastChallengeReject)) === 'already_claimed');
+
+  // B sees the Circuit Voyager unlock in the PUBLIC feed (safe summary only); no private leak.
+  await B.page.waitForFunction(() => window.__neon.state().feed.some((e) => e.event_type === 'achievement_unlocked' && /Circuit Voyager/.test(e.summary)), null, { timeout: 8000 });
+  check("B sees A's Circuit Voyager unlock in the public feed", true);
+  const bFeed2 = await B.page.evaluate(() => JSON.stringify(window.__neon.state().feed));
+  check("B's event feed still leaks no balance/ledger", !/balance|ledger|redemption_id/i.test(bFeed2));
+
+  // B cannot claim A's Three Cabinet Tour (B never played Neon Grid).
+  await B.page.evaluate(() => window.__neon.client.claimChallengeReward('three-cabinet-tour'));
+  await B.page.waitForFunction(() => window.__neon.state().lastChallengeReject === 'not_completed', null, { timeout: 8000 });
+  check("B cannot claim A's Three Cabinet Tour (server rejects: not_completed)", (await B.page.evaluate(() => window.__neon.state().lastChallengeReject)) === 'not_completed');
+
   // A reconnects → Challenge Board state (completed + claimed + equipped badge) restored.
   await A.page.reload({ waitUntil: 'load' });
   await A.page.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
@@ -276,6 +383,14 @@ try {
     return c && c.completed && c.reward_claimed;
   }, null, { timeout: 8000 });
   check('A reconnect restores Challenge Board state (completed + claimed)', true);
+  // Phase 1l: the Neon Grid challenge/badge state survives the reconnect too.
+  await A.page.waitForFunction(() => {
+    const c = (window.__neon.state().challenges || []).find((x) => x.challenge_id === 'three-cabinet-tour');
+    return c && c.completed && c.reward_claimed;
+  }, null, { timeout: 8000 });
+  check('A reconnect restores Three Cabinet Tour (completed + claimed)', true);
+  await A.page.waitForFunction(() => window.__neon.state().inventory.some((i) => i.prize_id === 'badge-circuit-voyager'), null, { timeout: 8000 });
+  check('A reconnect restores the Circuit Voyager badge in inventory', true);
   await A.page.waitForFunction(() => window.__neon.state().equips.badge === 'badge-circuit-tourist', null, { timeout: 8000 });
   check('A reconnect restores the equipped achievement badge', true);
 

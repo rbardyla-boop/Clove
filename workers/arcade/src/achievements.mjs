@@ -18,6 +18,10 @@ export const ACHIEVEMENTS = Object.freeze([
   { achievement_id: 'clean-signal',    display_name: 'Clean Signal',    description: 'Finished a Signal Sprint run with almost no noise.', category: 'badge', badge_cosmetic_id: 'badge-clean-signal',    equip_slot: 'badge', public_safe_summary: 'unlocked Clean Signal',    enabled: true },
   { achievement_id: 'counter-regular', display_name: 'Counter Regular', description: 'Redeemed an item at the Prize Counter.',      category: 'badge', badge_cosmetic_id: 'badge-counter-regular', equip_slot: 'badge', public_safe_summary: 'unlocked Counter Regular', enabled: true },
   { achievement_id: 'ticket-starter',  display_name: 'Ticket Starter',  description: 'Earned 25 arcade tickets in a session.',    category: 'badge', badge_cosmetic_id: 'badge-ticket-starter',  equip_slot: 'badge', public_safe_summary: 'unlocked Ticket Starter',  enabled: true },
+  // Phase 1l: Neon Grid badges (the first adapter-loaded production cabinet).
+  { achievement_id: 'grid-rookie',     display_name: 'Grid Rookie',     description: 'Completed your first Neon Grid round.',      category: 'badge', badge_cosmetic_id: 'badge-grid-rookie',     equip_slot: 'badge', public_safe_summary: 'unlocked Grid Rookie',     enabled: true },
+  { achievement_id: 'circuit-voyager', display_name: 'Circuit Voyager', description: 'Played all three arcade cabinets in one session.', category: 'badge', badge_cosmetic_id: 'badge-circuit-voyager', equip_slot: 'badge', public_safe_summary: 'unlocked Circuit Voyager', enabled: true },
+  { achievement_id: 'clean-grid',      display_name: 'Clean Grid',      description: 'Finished a Neon Grid round with almost no mistakes.', category: 'badge', badge_cosmetic_id: 'badge-clean-grid',  equip_slot: 'badge', public_safe_summary: 'unlocked Clean Grid',      enabled: true },
 ]);
 
 export function getAchievement(id) {

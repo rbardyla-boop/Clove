@@ -15,6 +15,7 @@
  */
 import {
   getAdapter, getFactory, setBuiltInFactory, getRegistration, listRegistrations, resolveAdapterForCabinet,
+  enableImportedAdapter,
 } from './cabinet-adapter-registry.mjs';
 import { validateAdapter } from './cabinet-adapter-sdk.mjs';
 import { getContract, registerContract } from './cabinet-frame-contract.mjs';
@@ -133,7 +134,10 @@ export function mountImportedGame(gameId, hooks = {}) {
   const fire = makeFire(gameId, hooks.lifecycle || {}, order);
   let frame; let game;
   try {
-    game = factory();
+    // Phase 1l: a server-authoritative imported game needs its round/leave hooks.
+    // The factory receives the floor-provided game options (the test fixture's
+    // factory ignores them, so this stays backwards-compatible).
+    game = factory(hooks.gameOptions || {});
     frame = createCabinetFrame(gameId, { onLeave: hooks.onLeave || (() => {}), onResize: (geom) => fire('onResize', geom) });
     frame.mount(game && typeof game.getRoot === 'function' ? game.getRoot() : document.createElement('div'));
   } catch (e) {
@@ -173,6 +177,52 @@ export async function loadAndMountImported(manifest, hooks = {}) {
   return { ok: mount.ok, reason: mount.reason, load, mount };
 }
 
+/**
+ * PRODUCTION import path (Phase 1l). Activate + mount an imported cabinet the
+ * SERVER catalog has marked active. This is the full proof chain a real cabinet
+ * follows:
+ *
+ *   server catalog activation
+ *   → load + validate manifest/adapter (fail closed)
+ *   → cabinet_type match
+ *   → enable in the controlled registry
+ *   → resolveAdapterForCabinet (catalog → registry resolution)
+ *   → frame contract preservation + adapter runtime mount
+ *
+ * Fails closed (state 'unavailable') at every step: a cabinet missing from the
+ * catalog, an invalid manifest/adapter, or a cabinet-type mismatch never mounts.
+ * It NEVER activates a cabinet the catalog has not marked active.
+ */
+export async function loadAndActivateImportedCabinet(cabinet, manifest, hooks = {}) {
+  const fail = (reason) => {
+    diag.unsupportedCabinets.push({ cabinetType: cabinet && cabinet.cabinet_type, gameId: manifest && manifest.game_id, reason });
+    return { ok: false, reason, state: 'unavailable', load: null, mount: null, adapter: null };
+  };
+  // 1) the server catalog is the authority — only an active cabinet may activate.
+  if (!cabinet || cabinet.status !== 'live' || cabinet.ticket_enabled !== true) return fail('not_active_in_catalog');
+
+  // 2) load + validate the imported adapter (registers it DISABLED). Fails closed.
+  const load = await loadImportedAdapter(manifest);
+  diag.lastImportResult = load;
+  if (!load.ok) return fail(load.reason);
+
+  // 3) the imported adapter must claim the SAME cabinet type the catalog activated.
+  if (load.adapter.cabinetType !== cabinet.cabinet_type) return fail('cabinet_type_mismatch');
+
+  // 4) the catalog has authorized it → enable it in the controlled registry.
+  const en = enableImportedAdapter(load.adapter.gameId);
+  if (!en.ok) return fail('enable_failed:' + en.reason);
+
+  // 5) confirm the catalog cabinet now RESOLVES to this adapter (catalog → registry).
+  const resolved = resolveAdapterForCabinet(cabinet);
+  if (!resolved || resolved.gameId !== load.adapter.gameId) return fail('resolve_failed');
+
+  // 6) frame contract preservation + adapter runtime mount.
+  const mount = mountImportedGame(load.adapter.gameId, hooks);
+  if (!mount.ok) return fail('mount_failed:' + mount.reason);
+  return { ok: true, reason: null, state: mount.state, load, mount, adapter: load.adapter };
+}
+
 /** Render-state for a server catalog cabinet, with diagnostics for unsupported ones. */
 export function resolveCabinet(cabinet) {
   const adapter = resolveAdapterForCabinet(cabinet);
@@ -195,6 +245,7 @@ if (EXPOSE) {
     mountAdapter,
     mountImportedGame,
     loadAndMountImported,
+    loadAndActivateImportedCabinet,
   };
   window.__mountAdapter = mountAdapter; // back-compat with the Phase 1j browser spec
 }

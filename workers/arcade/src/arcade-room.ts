@@ -205,6 +205,14 @@ export class ArcadeRoom implements DurableObject {
         await this.handleRoundSubmit(ws, data, "signal_sprint_round_accepted", "signal_sprint_round_rejected");
         break;
       }
+      case "neon_grid_round_start": {
+        await this.handleRoundStart(ws, data, "neon_grid_round_started", "neon_grid_round_rejected");
+        break;
+      }
+      case "neon_grid_round_submit": {
+        await this.handleRoundSubmit(ws, data, "neon_grid_round_accepted", "neon_grid_round_rejected");
+        break;
+      }
       case "ticket_balance_request": {
         await this.handleTicketBalanceRequest(ws);
         break;
@@ -491,9 +499,9 @@ export class ArcadeRoom implements DurableObject {
     const cabinetType = cabinet ? cabinet.cabinet_type : null;
     const cabinetLabel = cabinet ? cabinet.display_name : data.machineId;
 
-    // Phase 1h: this accepted round drives challenge progress (server-authoritative).
+    // Phase 1h/1l: this accepted round drives challenge progress (server-authoritative).
     const rec = recordRoundAccepted(this.roomState.ticketState, {
-      playerId, cabinetType, noiseHits: data.noiseHits, awarded: res.awarded, now,
+      playerId, cabinetType, noiseHits: data.noiseHits, mistakes: data.mistakes, awarded: res.awarded, now,
     });
     this.roomState.ticketState = rec.state;
 

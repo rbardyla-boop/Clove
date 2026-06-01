@@ -99,5 +99,20 @@ export function resolveAdapterForCabinet(cabinet) {
   return imp && imp.enabled ? imp.adapter : null;
 }
 
+/**
+ * Enable a previously-registered imported adapter (Phase 1l). The import loader
+ * always registers imported adapters DISABLED; the runtime calls this only after
+ * the SERVER catalog has activated the matching cabinet, so a client adapter can
+ * never make itself playable on its own. Returns { ok, reason }.
+ */
+export function enableImportedAdapter(gameId) {
+  const reg = _imported.get(gameId);
+  if (!reg) return { ok: false, reason: 'not_imported' };
+  if (sdkHasAdapter(reg.adapter.cabinetType)) return { ok: false, reason: 'cannot_shadow_builtin' };
+  if (reg.enabled) return { ok: true, reason: null, already: true };
+  _imported.set(gameId, { ...reg, enabled: true });
+  return { ok: true, reason: null };
+}
+
 /** Test helper: drop an imported registration (never affects built-ins). */
 export function unregisterImported(gameId) { return _imported.delete(gameId); }

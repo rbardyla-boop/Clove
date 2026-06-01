@@ -18,6 +18,7 @@
  */
 import { computeTickets, validateScorePayload, LIMITS } from './tickets.mjs';
 import { computeSignalTickets, validateSignalPayload, SIGNAL_LIMITS } from './signal-sprint.mjs';
+import { computeNeonGridTickets, validateNeonGridPayload, NEON_GRID_LIMITS } from './neon-grid.mjs';
 import { appendLedger } from './ledger.mjs';
 import { getCabinetByMachineId } from './catalog.mjs';
 
@@ -46,6 +47,23 @@ const RULESETS = Object.freeze({
         maxScore: SIGNAL_LIMITS.MAX_SCORE, maxDistance: SIGNAL_LIMITS.MAX_DISTANCE,
         maxPulses: SIGNAL_LIMITS.MAX_PULSES, maxNoiseHits: SIGNAL_LIMITS.MAX_NOISE, maxStreak: SIGNAL_LIMITS.MAX_STREAK,
         minDurationMs: SIGNAL_LIMITS.MIN_DURATION_MS, maxDurationMs: SIGNAL_LIMITS.MAX_DURATION_MS,
+      },
+    }),
+  },
+  // Phase 1l: the first cabinet that enters the floor through the adapter/import
+  // path. Its authority is identical in shape to the hand-wired cabinets above —
+  // the validator + ticket formula are resolved server-side from the catalog.
+  neon_grid: {
+    maxRoundMs: NEON_GRID_LIMITS.MAX_ROUND_MS,
+    validate: validateNeonGridPayload,
+    compute: (p) => computeNeonGridTickets({ grade: p.grade, completedPatterns: p.completedPatterns, bestStreak: p.bestStreak, mistakes: p.mistakes }),
+    startedLimits: () => ({
+      maxDurationMs: NEON_GRID_LIMITS.MAX_DURATION_MS,
+      limits: {
+        maxScore: NEON_GRID_LIMITS.MAX_SCORE, maxCorrectSteps: NEON_GRID_LIMITS.MAX_CORRECT_STEPS,
+        maxCompletedPatterns: NEON_GRID_LIMITS.MAX_PATTERNS, maxMistakes: NEON_GRID_LIMITS.MAX_MISTAKES,
+        maxStreak: NEON_GRID_LIMITS.MAX_STREAK,
+        minDurationMs: NEON_GRID_LIMITS.MIN_DURATION_MS, maxDurationMs: NEON_GRID_LIMITS.MAX_DURATION_MS,
       },
     }),
   },

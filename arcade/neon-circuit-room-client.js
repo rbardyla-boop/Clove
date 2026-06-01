@@ -37,6 +37,10 @@ export class NeonCircuitRoomClient {
     this.onSignalRoundStarted = options.onSignalRoundStarted || (() => {});
     this.onSignalRoundAccepted = options.onSignalRoundAccepted || (() => {});
     this.onSignalRoundRejected = options.onSignalRoundRejected || (() => {});
+    // Phase 1l ticket-flow callbacks (Neon Grid — adapter-loaded cabinet)
+    this.onNeonGridRoundStarted = options.onNeonGridRoundStarted || (() => {});
+    this.onNeonGridRoundAccepted = options.onNeonGridRoundAccepted || (() => {});
+    this.onNeonGridRoundRejected = options.onNeonGridRoundRejected || (() => {});
     this.onTicketBalance = options.onTicketBalance || (() => {});
     this.onTicketAwarded = options.onTicketAwarded || (() => {});
     this.onTicketState = options.onTicketState || (() => {});
@@ -222,6 +226,18 @@ export class NeonCircuitRoomClient {
         this.onSignalRoundRejected(msg);
         break;
       }
+      case "neon_grid_round_started": {
+        this.onNeonGridRoundStarted(msg);
+        break;
+      }
+      case "neon_grid_round_accepted": {
+        this.onNeonGridRoundAccepted(msg);
+        break;
+      }
+      case "neon_grid_round_rejected": {
+        this.onNeonGridRoundRejected(msg);
+        break;
+      }
       case "ticket_balance": {
         this.onTicketBalance(msg);
         break;
@@ -368,6 +384,23 @@ export class NeonCircuitRoomClient {
    */
   submitSignalRound(result) {
     this.send({ t: "signal_sprint_round_submit", cabinetType: "signal_sprint", rulesetVersion: "signal-sprint/1", ...result });
+  }
+
+  // ==================== Phase 1l: Neon Grid (first adapter-loaded cabinet) ====================
+
+  /** Ask the server to register a new Neon Grid round and issue a round id. */
+  startNeonGridRound(machineId = "grid") {
+    this.send({ t: "neon_grid_round_start", machineId });
+  }
+
+  /**
+   * Submit a finished Neon Grid round for server validation + ticket award.
+   * `result` must include { roundId, machineId, grade, score, correctSteps,
+   * completedPatterns, mistakes, bestStreak, durationMs }. The server computes the
+   * final award; any client estimate is ignored.
+   */
+  submitNeonGridRound(result) {
+    this.send({ t: "neon_grid_round_submit", cabinetType: "neon_grid", rulesetVersion: "neon-grid-v1", ...result });
   }
 
   // ==================== Phase 1f: arcade loop (catalog / prizes / cosmetics) ====================

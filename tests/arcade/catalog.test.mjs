@@ -4,8 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CABINETS, PRIZES, ZONES, getCabinet, getPrize, isPlayableCabinet,
-  cabinetCatalogPayload, prizeCatalogPayload, EQUIP_SLOTS,
+  CABINETS, PRIZES, ZONES, getCabinet, getCabinetByMachineId, getPrize, isPlayableCabinet,
+  ticketedMachineIds, cabinetCatalogPayload, prizeCatalogPayload, EQUIP_SLOTS,
 } from '../../workers/arcade/src/catalog.mjs';
 
 test('catalog returns the Pulse Tap cabinet with a stable id + ruleset version', () => {
@@ -29,6 +29,22 @@ test('Pulse Tap is playable; coming_soon cabinets are not', () => {
 test('unknown cabinet is rejected (null) and is not playable', () => {
   assert.equal(getCabinet('does-not-exist'), null);
   assert.equal(isPlayableCabinet('does-not-exist'), false);
+});
+
+test('Phase 1l: Neon Grid is an active, ticketed cabinet with stable id/type/ruleset (machine grid)', () => {
+  const c = getCabinet('neon-grid-01');
+  assert.ok(c);
+  assert.equal(c.cabinet_id, 'neon-grid-01');
+  assert.equal(c.machine_id, 'grid');
+  assert.equal(c.cabinet_type, 'neon_grid');
+  assert.equal(c.ruleset_version, 'neon-grid-v1');
+  assert.equal(c.status, 'live');
+  assert.equal(c.ticket_enabled, true);
+  assert.equal(isPlayableCabinet('neon-grid-01'), true);
+  assert.equal(getCabinetByMachineId('grid'), c);
+  // the room creates one occupancy machine per live ticketed cabinet — grid included
+  assert.ok(ticketedMachineIds().includes('grid'));
+  assert.deepEqual(ticketedMachineIds().sort(), ['grid', 'pulse', 'signal'].sort());
 });
 
 test('cabinet catalog payload is deterministic', () => {
