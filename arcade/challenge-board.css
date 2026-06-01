@@ -1,0 +1,75 @@
+/* ============================================================
+   CHALLENGE BOARD — Neon Circuit Phase 1h
+   Reuses the :root design variables from neon-circuit.css.
+   Retention loop UI only — no economy / money framing.
+   ============================================================ */
+.cb-overlay{position:fixed;inset:0;z-index:85;display:none;
+  background:rgba(6,3,14,.86);backdrop-filter:blur(10px);
+  align-items:center;justify-content:center;
+  padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));}
+.cb-overlay.show{display:flex;animation:cb-fade .2s ease;}
+@keyframes cb-fade{from{opacity:0;}to{opacity:1;}}
+
+.cb-panel{width:min(980px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1.5px solid var(--line-strong);border-radius:var(--r-lg);
+  box-shadow:0 0 50px -10px var(--purple, #b14aff);}
+
+.cb-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line);}
+.cb-title{font-family:var(--font-display);font-size:20px;color:#fff;letter-spacing:.5px;}
+.cb-title span{color:var(--purple, #b14aff);}
+.cb-close{font-size:16px;color:var(--muted);border:1px solid var(--line);border-radius:var(--r-pill);
+  width:34px;height:34px;}
+.cb-close:hover{border-color:var(--danger);color:var(--danger);}
+
+.cb-body{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:1px;background:var(--line);overflow:hidden;flex:1;}
+.cb-col{background:var(--void-2);padding:14px;overflow-y:auto;}
+.cb-col h3{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+
+.cb-list,.cb-feed{display:flex;flex-direction:column;gap:8px;}
+.cb-empty{font-size:12px;color:var(--muted-2);padding:8px 2px;}
+
+.cb-card{border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px;
+  background:rgba(255,255,255,.02);display:flex;flex-direction:column;gap:6px;}
+.cb-card.done{border-color:color-mix(in oklab, var(--good) 45%, var(--line));}
+.cb-card.equipped{border-color:color-mix(in oklab, var(--good) 60%, var(--line));}
+.cb-card-main{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.cb-name{font-weight:700;font-size:13.5px;color:var(--text);}
+.cb-reward{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--gold,#ffd23f);}
+.cb-desc{font-size:11.5px;color:var(--muted);line-height:1.5;}
+.cb-row{display:flex;align-items:center;gap:10px;}
+
+.cb-bar{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;}
+.cb-bar span{display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--cyan,#19e3ff),var(--purple,#b14aff));transition:width .3s var(--ease-out-expo, ease);}
+.cb-prog-num{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:42px;text-align:right;}
+
+.cb-btn{font-family:var(--font-display);font-size:12px;letter-spacing:.5px;padding:7px 14px;
+  border-radius:var(--r-md);background:var(--purple,#b14aff);color:#0a0518;white-space:nowrap;
+  box-shadow:0 0 16px -4px var(--purple,#b14aff);transition:transform .12s;}
+.cb-btn:active{transform:scale(.96);}
+.cb-btn:disabled{opacity:.6;cursor:not-allowed;}
+.cb-claimed{font-size:11px;font-weight:700;color:var(--good,#3df58b);white-space:nowrap;}
+
+.cb-ev{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);line-height:1.45;
+  padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.06);}
+.cb-ev.mine .cb-ev-sum{color:var(--text);}
+.cb-ev-sum{flex:1;}
+.cb-ev-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--cyan,#19e3ff);flex:none;box-shadow:0 0 8px var(--cyan,#19e3ff);}
+.cb-ev-dot[data-k="achievement_unlocked"]{background:var(--gold,#ffd23f);box-shadow:0 0 8px var(--gold,#ffd23f);}
+.cb-ev-dot[data-k="challenge_completed"]{background:var(--good,#3df58b);box-shadow:0 0 8px var(--good,#3df58b);}
+.cb-ev-dot[data-k="cosmetic_equip"]{background:var(--purple,#b14aff);box-shadow:0 0 8px var(--purple,#b14aff);}
+.cb-ev-dot[data-k="prize_redeem"]{background:var(--pink,#ff2d95);box-shadow:0 0 8px var(--pink,#ff2d95);}
+
+.cb-feedback{height:32px;display:flex;align-items:center;justify-content:center;
+  font-size:12.5px;letter-spacing:.4px;opacity:0;transition:opacity .12s;border-top:1px solid var(--line);}
+.cb-feedback.show{opacity:1;}
+.cb-feedback.ok{color:var(--good,#3df58b);}
+.cb-feedback.bad{color:var(--danger,#ff4d6d);}
+
+@media (max-width:760px){
+  .cb-body{grid-template-columns:1fr;overflow-y:auto;}
+  .cb-col{max-height:none;}
+}
+@media (prefers-reduced-motion:reduce){.cb-overlay.show{animation:none;}.cb-bar span{transition:none;}}

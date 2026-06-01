@@ -50,6 +50,16 @@ export class NeonCircuitRoomClient {
     this.onCosmeticEquipped = options.onCosmeticEquipped || (() => {});
     this.onCosmeticUnequipped = options.onCosmeticUnequipped || (() => {});
     this.onCosmeticState = options.onCosmeticState || (() => {});
+    // Phase 1h challenge board / achievements / event feed callbacks
+    this.onChallengeCatalog = options.onChallengeCatalog || (() => {});
+    this.onChallengeProgress = options.onChallengeProgress || (() => {});
+    this.onChallengeCompleted = options.onChallengeCompleted || (() => {});
+    this.onChallengeRewarded = options.onChallengeRewarded || (() => {});
+    this.onChallengeRejected = options.onChallengeRejected || (() => {});
+    this.onAchievementState = options.onAchievementState || (() => {});
+    this.onAchievementUnlocked = options.onAchievementUnlocked || (() => {});
+    this.onArcadeEventFeed = options.onArcadeEventFeed || (() => {});
+    this.onArcadeEvent = options.onArcadeEvent || (() => {});
 
     this.ws = null;
     this.roomId = "main";
@@ -260,6 +270,42 @@ export class NeonCircuitRoomClient {
         this.onCosmeticState(msg);
         break;
       }
+      case "challenge_catalog": {
+        this.onChallengeCatalog(msg);
+        break;
+      }
+      case "challenge_progress": {
+        this.onChallengeProgress(msg);
+        break;
+      }
+      case "challenge_completed": {
+        this.onChallengeCompleted(msg);
+        break;
+      }
+      case "challenge_rewarded": {
+        this.onChallengeRewarded(msg);
+        break;
+      }
+      case "challenge_rejected": {
+        this.onChallengeRejected(msg);
+        break;
+      }
+      case "achievement_state": {
+        this.onAchievementState(msg);
+        break;
+      }
+      case "achievement_unlocked": {
+        this.onAchievementUnlocked(msg);
+        break;
+      }
+      case "arcade_event_feed": {
+        this.onArcadeEventFeed(msg);
+        break;
+      }
+      case "arcade_event": {
+        this.onArcadeEvent(msg);
+        break;
+      }
     }
   }
 
@@ -347,6 +393,25 @@ export class NeonCircuitRoomClient {
   }
   unequipCosmetic({ slot, prizeId } = {}) {
     this.send({ t: "cosmetic_unequip", slot, prizeId });
+  }
+
+  // ==================== Phase 1h: challenge board / achievements / event feed ====================
+
+  requestChallengeCatalog() {
+    this.send({ t: "challenge_catalog_request" });
+  }
+  requestChallengeProgress() {
+    this.send({ t: "challenge_progress_request" });
+  }
+  /** Claim a completed challenge's reward. The server validates + grants. */
+  claimChallengeReward(challengeId) {
+    this.send({ t: "challenge_reward_claim", challengeId });
+  }
+  requestAchievementState() {
+    this.send({ t: "achievement_state_request" });
+  }
+  requestEventFeed() {
+    this.send({ t: "arcade_event_feed_request" });
   }
 
   getCurrentMachineState(machineId = "pulse") {

@@ -8,7 +8,7 @@
  * Phase 1g generalizes the round engine to multiple cabinet types via a small
  * ruleset registry (pulse_tap, signal_sprint). The cabinet type, ruleset version
  * and ticket formula are resolved from the server-authoritative catalog by the
- * round's machine id — clients never choose their own validator or payout.
+ * round's machine id — clients never choose their own validator or ticket award.
  * Pulse Tap behaviour and its ticket formula are unchanged (byte-equivalent):
  * the pulse_tap ruleset delegates to the original ./tickets.mjs functions.
  *
@@ -74,6 +74,10 @@ export function createTicketState() {
     inventory: {},  // playerId  -> { prizeId -> entitlement } (Phase 1f, session-bound)
     equips: {},     // playerId  -> { slot -> prizeId }        (Phase 1f)
     redemptions: {},// redemptionId -> true                    (Phase 1f dedup)
+    challengeStats: {},    // playerId -> { pulseRounds, signalRounds, signalCleanRounds, redemptions, ticketsEarned } (Phase 1h)
+    challengeProgress: {}, // playerId -> { challengeId -> progress entry }  (Phase 1h)
+    achievements: {},      // playerId -> { achievementId -> unlock record } (Phase 1h)
+    events: [],            // bounded room-wide public-safe event feed       (Phase 1h)
   };
 }
 
@@ -89,6 +93,10 @@ export function ensureTicketState(maybe) {
     inventory: maybe.inventory || {},
     equips: maybe.equips || {},
     redemptions: maybe.redemptions || {},
+    challengeStats: maybe.challengeStats || {},
+    challengeProgress: maybe.challengeProgress || {},
+    achievements: maybe.achievements || {},
+    events: Array.isArray(maybe.events) ? maybe.events : [],
   };
 }
 
@@ -146,7 +154,7 @@ export function startRound(state, { machineId, occupantId, playerId, roundId, no
  * Validate + award a submitted round. `senderId` is the socket's authoritative
  * identity (never client-supplied), `occupantId` is the current cabinet holder.
  *
- * The validator + payout are selected from the ROUND's server-recorded cabinet
+ * The validator + ticket award are selected from the ROUND's server-recorded cabinet
  * type, so a client cannot submit a Signal Sprint result against a Pulse Tap
  * round (or vice-versa) to pick a more generous formula.
  */
@@ -175,7 +183,7 @@ export function submitRound(state, { payload, senderId, occupantId, now }) {
     return { state: { ...state, rounds }, ok: false, reason: 'round_expired' };
   }
 
-  // Pick the validator + payout from the round's server-recorded cabinet type.
+  // Pick the validator + ticket award from the round's server-recorded cabinet type.
   const ruleset = RULESETS[round.cabinetType];
   if (!ruleset) return { state, ok: false, reason: 'invalid_cabinet' };
   const v = ruleset.validate(payload);
