@@ -20,6 +20,9 @@ import {
   getBalance,
   pruneExpired,
 } from "./round-authority.mjs";
+import { cabinetCatalogPayload, prizeCatalogPayload } from "./catalog.mjs";
+import { redeemPrize, equipCosmetic, unequipCosmetic, getInventory, getEquips, publicCosmeticState } from "./prize-authority.mjs";
+import { getLedger } from "./ledger.mjs";
 
 export interface MachineState {
   machineId: string;      // "pulse"
@@ -190,6 +193,34 @@ export class ArcadeRoom implements DurableObject {
         await this.handleTicketBalanceRequest(ws);
         break;
       }
+      case "cabinet_catalog_request": {
+        this.send(ws, { t: "cabinet_catalog", roomId: ROOM_ID, ...cabinetCatalogPayload() });
+        break;
+      }
+      case "prize_catalog_request": {
+        this.send(ws, { t: "prize_catalog", ...prizeCatalogPayload() });
+        break;
+      }
+      case "ticket_ledger_request": {
+        await this.handleTicketLedger(ws);
+        break;
+      }
+      case "inventory_request": {
+        await this.handleInventoryRequest(ws);
+        break;
+      }
+      case "prize_redeem": {
+        await this.handlePrizeRedeem(ws, data);
+        break;
+      }
+      case "cosmetic_equip": {
+        await this.handleCosmeticEquip(ws, data);
+        break;
+      }
+      case "cosmetic_unequip": {
+        await this.handleCosmeticUnequip(ws, data);
+        break;
+      }
       default: {
         this.sendError(ws, "unknown_type", `Unknown message type: ${data.t}`);
       }
@@ -257,6 +288,7 @@ export class ArcadeRoom implements DurableObject {
     // Reconnect support: hand the joiner its authoritative ticket balance + public cabinet state.
     this.send(ws, { t: "ticket_balance", playerId, balance: getBalance(this.roomState.ticketState, playerId) });
     this.sendTicketState(ws);
+    this.sendCosmeticState(ws);
   }
 
   private async handleOccupy(
@@ -461,6 +493,102 @@ export class ArcadeRoom implements DurableObject {
     for (const ws of this.sockets.keys()) {
       this.send(ws, payload);
     }
+  }
+
+  // ==================== Arcade Loop: ledger / prizes / cosmetics (Phase 1f) ====================
+
+  private sendInventory(ws: WebSocket, playerId: string): void {
+    this.send(ws, {
+      t: "inventory_state",
+      playerId,
+      items: getInventory(this.roomState.ticketState, playerId),
+      equips: getEquips(this.roomState.ticketState, playerId),
+    });
+  }
+
+  private cosmeticStatePayload(): Record<string, unknown> {
+    return { t: "cosmetic_state", roomId: ROOM_ID, equipped: publicCosmeticState(this.roomState.ticketState) };
+  }
+  private sendCosmeticState(ws: WebSocket): void {
+    this.send(ws, this.cosmeticStatePayload());
+  }
+  private broadcastCosmeticState(): void {
+    this.broadcast(this.cosmeticStatePayload());
+  }
+
+  private async handleTicketLedger(ws: WebSocket): Promise<void> {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    // Owner-only: a player can only ever request their OWN ledger.
+    this.send(ws, { t: "ticket_ledger", playerId, entries: getLedger(this.roomState.ticketState, playerId) });
+  }
+
+  private async handleInventoryRequest(ws: WebSocket): Promise<void> {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    this.sendInventory(ws, playerId);
+  }
+
+  private async handlePrizeRedeem(ws: WebSocket, data: any): Promise<void> {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    const redemptionId = `rd-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const res = redeemPrize(this.roomState.ticketState, { prizeId: data.prizeId, playerId, now: Date.now(), redemptionId });
+    this.roomState.ticketState = res.state;
+    if (!res.ok) {
+      this.send(ws, { t: "prize_rejected", prizeId: data.prizeId, reason: res.reason });
+      return;
+    }
+    await this.persistState();
+    this.send(ws, { t: "prize_redeemed", prizeId: data.prizeId, balance: res.balance, item: res.item });
+    this.send(ws, { t: "ticket_balance", playerId, balance: res.balance });
+    this.sendInventory(ws, playerId);
+    this.send(ws, { t: "ticket_ledger", playerId, entries: getLedger(this.roomState.ticketState, playerId) });
+  }
+
+  private async handleCosmeticEquip(ws: WebSocket, data: any): Promise<void> {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    const res = equipCosmetic(this.roomState.ticketState, { playerId, prizeId: data.prizeId });
+    this.roomState.ticketState = res.state;
+    if (!res.ok) {
+      this.send(ws, { t: "prize_rejected", context: "equip", prizeId: data.prizeId, reason: res.reason });
+      return;
+    }
+    await this.persistState();
+    this.send(ws, { t: "cosmetic_equipped", prizeId: res.prizeId, slot: res.slot });
+    this.sendInventory(ws, playerId);
+    this.broadcastCosmeticState(); // public, privacy-safe
+  }
+
+  private async handleCosmeticUnequip(ws: WebSocket, data: any): Promise<void> {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    const res = unequipCosmetic(this.roomState.ticketState, { playerId, slot: data.slot, prizeId: data.prizeId });
+    this.roomState.ticketState = res.state;
+    if (!res.ok) {
+      this.send(ws, { t: "prize_rejected", context: "unequip", slot: data.slot, reason: res.reason });
+      return;
+    }
+    await this.persistState();
+    this.send(ws, { t: "cosmetic_unequipped", slot: res.slot });
+    this.sendInventory(ws, playerId);
+    this.broadcastCosmeticState();
   }
 
   // ==================== Internal Authority Logic ====================

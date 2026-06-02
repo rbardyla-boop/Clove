@@ -15,6 +15,9 @@ import { WebSocketServer } from 'ws';
 import {
   createTicketState, startRound, submitRound, expirePlayerRounds, getBalance,
 } from './src/round-authority.mjs';
+import { cabinetCatalogPayload, prizeCatalogPayload } from './src/catalog.mjs';
+import { redeemPrize, equipCosmetic, unequipCosmetic, getInventory, getEquips, publicCosmeticState } from './src/prize-authority.mjs';
+import { getLedger } from './src/ledger.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const ROOM_ID = 'main';
@@ -37,6 +40,13 @@ function ticketStatePayload() {
     lastScore: lp ? lp.score : null, lastGrade: lp ? lp.grade : null,
     lastAwardBy: lp ? lp.playerId : null, lastAwardAmount: lp ? lp.awarded : null,
   };
+}
+
+function cosmeticStatePayload() {
+  return { t: 'cosmetic_state', roomId: ROOM_ID, equipped: publicCosmeticState(ticketState) };
+}
+function sendInventory(ws, playerId) {
+  send(ws, { t: 'inventory_state', playerId, items: getInventory(ticketState, playerId), equips: getEquips(ticketState, playerId) });
 }
 
 function releaseIfOwner(playerId) {
@@ -68,6 +78,7 @@ wss.on('connection', (ws) => {
         send(ws, roomStatePayload());
         send(ws, { t: 'ticket_balance', playerId, balance: getBalance(ticketState, playerId) });
         send(ws, ticketStatePayload());
+        send(ws, cosmeticStatePayload());
         break;
       }
       case 'occupy_machine': {
@@ -112,6 +123,56 @@ wss.on('connection', (ws) => {
       case 'ticket_balance_request': {
         if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         send(ws, { t: 'ticket_balance', playerId, balance: getBalance(ticketState, playerId) });
+        break;
+      }
+      case 'cabinet_catalog_request': {
+        send(ws, { t: 'cabinet_catalog', roomId: ROOM_ID, ...cabinetCatalogPayload() });
+        break;
+      }
+      case 'prize_catalog_request': {
+        send(ws, { t: 'prize_catalog', ...prizeCatalogPayload() });
+        break;
+      }
+      case 'ticket_ledger_request': {
+        if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
+        send(ws, { t: 'ticket_ledger', playerId, entries: getLedger(ticketState, playerId) });
+        break;
+      }
+      case 'inventory_request': {
+        if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
+        sendInventory(ws, playerId);
+        break;
+      }
+      case 'prize_redeem': {
+        if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
+        const rid = `rd-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        const res = redeemPrize(ticketState, { prizeId: d.prizeId, playerId, now: Date.now(), redemptionId: rid });
+        ticketState = res.state;
+        if (!res.ok) { send(ws, { t: 'prize_rejected', prizeId: d.prizeId, reason: res.reason }); break; }
+        send(ws, { t: 'prize_redeemed', prizeId: d.prizeId, balance: res.balance, item: res.item });
+        send(ws, { t: 'ticket_balance', playerId, balance: res.balance });
+        sendInventory(ws, playerId);
+        send(ws, { t: 'ticket_ledger', playerId, entries: getLedger(ticketState, playerId) });
+        break;
+      }
+      case 'cosmetic_equip': {
+        if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
+        const res = equipCosmetic(ticketState, { playerId, prizeId: d.prizeId });
+        ticketState = res.state;
+        if (!res.ok) { send(ws, { t: 'prize_rejected', context: 'equip', prizeId: d.prizeId, reason: res.reason }); break; }
+        send(ws, { t: 'cosmetic_equipped', prizeId: res.prizeId, slot: res.slot });
+        sendInventory(ws, playerId);
+        broadcast(cosmeticStatePayload());
+        break;
+      }
+      case 'cosmetic_unequip': {
+        if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
+        const res = unequipCosmetic(ticketState, { playerId, slot: d.slot, prizeId: d.prizeId });
+        ticketState = res.state;
+        if (!res.ok) { send(ws, { t: 'prize_rejected', context: 'unequip', slot: d.slot, reason: res.reason }); break; }
+        send(ws, { t: 'cosmetic_unequipped', slot: res.slot });
+        sendInventory(ws, playerId);
+        broadcast(cosmeticStatePayload());
         break;
       }
       default: send(ws, { t: 'error', code: 'unknown_type', message: `Unknown: ${d.t}` });
