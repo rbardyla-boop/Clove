@@ -70,13 +70,20 @@ export function redeemPrize(state, { prizeId, playerId, now, redemptionId }) {
   };
 }
 
-/** Equip an owned cosmetic. Replaces any prior item in the same slot. */
+/**
+ * Equip an owned cosmetic. Replaces any prior item in the same slot.
+ *
+ * The slot is derived from the OWNED inventory entitlement, so this works for
+ * both Prize Counter cosmetics and Phase 1h achievement badges (which also live
+ * in the inventory) without a second equip path. Ownership is checked first, so
+ * a non-owner can never equip an item — including an achievement badge.
+ */
 export function equipCosmetic(state, { playerId, prizeId }) {
+  const owned = state.inventory[playerId] && state.inventory[playerId][prizeId];
+  if (!owned) return { state, ok: false, reason: 'not_owned' };
   const prize = getPrize(prizeId);
-  if (!prize) return { state, ok: false, reason: 'unknown_prize' };
-  if (!ownsPrize(state, playerId, prizeId)) return { state, ok: false, reason: 'not_owned' };
-  const slot = prize.equip_slot;
-  if (!EQUIP_SLOTS.includes(slot)) return { state, ok: false, reason: 'bad_slot' };
+  const slot = owned.equip_slot || (prize ? prize.equip_slot : null);
+  if (!slot || !EQUIP_SLOTS.includes(slot)) return { state, ok: false, reason: 'bad_slot' };
   const equips = { ...state.equips, [playerId]: { ...(state.equips[playerId] || {}), [slot]: prizeId } };
   return { state: { ...state, equips }, ok: true, reason: null, slot, prizeId };
 }
@@ -103,7 +110,11 @@ export function publicCosmeticState(state) {
     const equipped = {};
     for (const [slot, prizeId] of Object.entries(slots)) {
       const prize = getPrize(prizeId);
-      equipped[slot] = { prize_id: prizeId, display_name: prize ? prize.display_name : prizeId };
+      // Fall back to the owner's inventory entitlement so achievement badges
+      // (not in the Prize Counter catalog) still show a real display name.
+      const owned = state.inventory[playerId] && state.inventory[playerId][prizeId];
+      const display_name = prize ? prize.display_name : (owned ? owned.display_name : prizeId);
+      equipped[slot] = { prize_id: prizeId, display_name };
     }
     if (Object.keys(equipped).length) out[playerId] = equipped;
   }

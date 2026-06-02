@@ -29,8 +29,13 @@ async function newClient(browser, id) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   const errors = [];
+  // Ignore noise that is NOT an app error: the external Google Fonts CDN and
+  // transient browser network blips (e.g. ERR_NETWORK_CHANGED during reloads).
+  // App + same-origin resource errors are still captured.
+  const isExternalNoise = (t) => /fonts\.(googleapis|gstatic)\.com/.test(t)
+    || /net::ERR_(NETWORK_CHANGED|INTERNET_DISCONNECTED|NAME_NOT_RESOLVED|CONNECTION_)/.test(t);
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  page.on('console', (m) => { if (m.type() === 'error' && !isExternalNoise(m.text())) errors.push('console: ' + m.text()); });
   await page.goto(url(id), { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
   await page.waitForFunction(() => document.getElementById('statusTxt')?.textContent.includes('live'), null, { timeout: 8000 });
@@ -210,6 +215,69 @@ try {
   // B’s view still leaks no private balance/ledger of A.
   const bViewFinal = await B.page.evaluate(() => JSON.stringify(window.__neon.state().publicCosmetics));
   check('B’s public view of A still leaks no balance/ledger', !/balance|ledger|redemption/i.test(bViewFinal));
+
+  // ── Phase 1h: Challenge Board, achievements, public event feed ─────────────
+  // A has played BOTH cabinets above → Two Cabinet Tour should be complete.
+  await A.page.evaluate(() => window.__neon.client.requestChallengeProgress());
+  await A.page.waitForFunction(() => {
+    const c = (window.__neon.state().challenges || []).find((x) => x.challenge_id === 'two-cabinet-tour');
+    return c && c.completed && !c.reward_claimed;
+  }, null, { timeout: 8000 });
+  check('A completed Two Cabinet Tour by playing both cabinets', true);
+
+  // A opens the Challenge Board (exercises the panel UI build) and claims via the UI.
+  await A.page.click('#challengeBtn');
+  await A.page.waitForSelector('.cb-overlay.show', { timeout: 8000 });
+  check('A opens the Challenge Board', true);
+  await A.page.waitForSelector('[data-act="claim"][data-cid="two-cabinet-tour"]', { timeout: 8000 });
+  await A.page.click('[data-act="claim"][data-cid="two-cabinet-tour"]');
+
+  await A.page.waitForFunction(() => window.__neon.state().inventory.some((i) => i.prize_id === 'badge-circuit-tourist'), null, { timeout: 8000 });
+  check('A claims the reward → Circuit Tourist badge in inventory', true);
+  await A.page.waitForFunction(() => {
+    const c = window.__neon.state().challenges.find((x) => x.challenge_id === 'two-cabinet-tour');
+    return c && c.reward_claimed;
+  }, null, { timeout: 8000 });
+  check('challenge shows reward_claimed after claim', true);
+
+  // A equips the achievement badge through the Challenge Board UI (existing equip path).
+  await A.page.waitForSelector('[data-act="equip"][data-prize="badge-circuit-tourist"]', { timeout: 8000 });
+  await A.page.click('[data-act="equip"][data-prize="badge-circuit-tourist"]');
+  await A.page.waitForFunction(() => window.__neon.state().equips.badge === 'badge-circuit-tourist', null, { timeout: 8000 });
+  check('A equips the Circuit Tourist achievement badge', (await A.page.evaluate(() => window.__neon.state().equips.badge)) === 'badge-circuit-tourist');
+
+  // B sees A's PUBLIC badge + the achievement unlock in the public feed.
+  const aId2 = await A.page.evaluate(() => window.__neon.state().playerId);
+  await B.page.waitForFunction((aid) => window.__neon.state().publicCosmetics[aid]?.badge?.display_name === 'Circuit Tourist', aId2, { timeout: 8000 });
+  check("B sees A's public Circuit Tourist badge", true);
+  await B.page.waitForFunction(() => window.__neon.state().feed.some((e) => e.event_type === 'achievement_unlocked' && /Circuit Tourist/.test(e.summary)), null, { timeout: 8000 });
+  check("B sees A's achievement unlock in the public feed", true);
+
+  // The public feed/state leaks nothing private. (Match the real private fields:
+  // a challenge id like "first-redemption" is public-safe, so check redemption_id.)
+  const bFeed = await B.page.evaluate(() => JSON.stringify(window.__neon.state().feed));
+  check("B's event feed leaks no balance/ledger", !/balance|ledger|redemption_id/i.test(bFeed));
+
+  // B's own challenge progress is independent (B never played Signal Sprint).
+  const bTour = await B.page.evaluate(() => window.__neon.state().challenges.find((x) => x.challenge_id === 'two-cabinet-tour'));
+  check("B's own Two Cabinet Tour is not complete (independent progress)", !!bTour && !bTour.completed && !bTour.reward_claimed);
+
+  // B cannot claim A's reward (B has not completed it).
+  await B.page.evaluate(() => window.__neon.client.claimChallengeReward('two-cabinet-tour'));
+  await B.page.waitForFunction(() => window.__neon.state().lastChallengeReject === 'not_completed', null, { timeout: 8000 });
+  check('B cannot claim the reward (server rejects: not_completed)', (await B.page.evaluate(() => window.__neon.state().lastChallengeReject)) === 'not_completed');
+
+  // A reconnects → Challenge Board state (completed + claimed + equipped badge) restored.
+  await A.page.reload({ waitUntil: 'load' });
+  await A.page.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
+  await A.page.waitForFunction(() => document.getElementById('statusTxt')?.textContent.includes('live'), null, { timeout: 8000 });
+  await A.page.waitForFunction(() => {
+    const c = (window.__neon.state().challenges || []).find((x) => x.challenge_id === 'two-cabinet-tour');
+    return c && c.completed && c.reward_claimed;
+  }, null, { timeout: 8000 });
+  check('A reconnect restores Challenge Board state (completed + claimed)', true);
+  await A.page.waitForFunction(() => window.__neon.state().equips.badge === 'badge-circuit-tourist', null, { timeout: 8000 });
+  check('A reconnect restores the equipped achievement badge', true);
 
   const allErrors = [...A.errors, ...B.errors];
   check('no console / page errors', allErrors.length === 0);

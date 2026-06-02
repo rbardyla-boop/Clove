@@ -20,9 +20,12 @@ import {
   getBalance,
   pruneExpired,
 } from "./round-authority.mjs";
-import { cabinetCatalogPayload, prizeCatalogPayload, ticketedMachineIds } from "./catalog.mjs";
+import { cabinetCatalogPayload, prizeCatalogPayload, ticketedMachineIds, getCabinetByMachineId } from "./catalog.mjs";
 import { redeemPrize, equipCosmetic, unequipCosmetic, getInventory, getEquips, publicCosmeticState } from "./prize-authority.mjs";
 import { getLedger } from "./ledger.mjs";
+import { challengeCatalogPayload, getProgress, recordRoundAccepted, recordRedemption, claimReward } from "./challenges.mjs";
+import { getAchievements } from "./achievements.mjs";
+import { appendEvent, eventFeedPayload } from "./events.mjs";
 
 export interface MachineState {
   machineId: string;      // "pulse"
@@ -234,6 +237,26 @@ export class ArcadeRoom implements DurableObject {
         await this.handleCosmeticUnequip(ws, data);
         break;
       }
+      case "challenge_catalog_request": {
+        this.send(ws, { t: "challenge_catalog", ...challengeCatalogPayload() });
+        break;
+      }
+      case "challenge_progress_request": {
+        this.handleChallengeProgressRequest(ws);
+        break;
+      }
+      case "challenge_reward_claim": {
+        await this.handleChallengeRewardClaim(ws, data);
+        break;
+      }
+      case "achievement_state_request": {
+        this.handleAchievementStateRequest(ws);
+        break;
+      }
+      case "arcade_event_feed_request": {
+        this.send(ws, { t: "arcade_event_feed", ...eventFeedPayload(this.roomState.ticketState) });
+        break;
+      }
       default: {
         this.sendError(ws, "unknown_type", `Unknown message type: ${data.t}`);
       }
@@ -303,6 +326,10 @@ export class ArcadeRoom implements DurableObject {
     this.send(ws, { t: "ticket_balance", playerId, balance: getBalance(this.roomState.ticketState, playerId) });
     this.sendTicketState(ws);
     this.sendCosmeticState(ws);
+    // Phase 1h reconnect: restore challenge progress, achievements, and the public feed.
+    this.send(ws, { t: "challenge_progress", playerId, challenges: getProgress(this.roomState.ticketState, playerId) });
+    this.send(ws, { t: "achievement_state", playerId, achievements: getAchievements(this.roomState.ticketState, playerId) });
+    this.send(ws, { t: "arcade_event_feed", ...eventFeedPayload(this.roomState.ticketState) });
   }
 
   private async handleOccupy(
@@ -459,7 +486,27 @@ export class ArcadeRoom implements DurableObject {
       this.send(ws, { t: rejectedType, roundId: data.roundId, machineId: data.machineId, reason: res.reason });
       return;
     }
+    const now = Date.now();
+    const cabinet = getCabinetByMachineId(data.machineId);
+    const cabinetType = cabinet ? cabinet.cabinet_type : null;
+    const cabinetLabel = cabinet ? cabinet.display_name : data.machineId;
+
+    // Phase 1h: this accepted round drives challenge progress (server-authoritative).
+    const rec = recordRoundAccepted(this.roomState.ticketState, {
+      playerId, cabinetType, noiseHits: data.noiseHits, awarded: res.awarded, now,
+    });
+    this.roomState.ticketState = rec.state;
+
+    // Public-safe feed: ticket award + any just-completed challenges.
+    const feedEvents = [
+      this.pushEvent({ type: "ticket_award", actorPublicId: playerId, summary: `${playerId} earned ${res.awarded} tickets at ${cabinetLabel}`, source: data.machineId, now }),
+    ];
+    for (const c of rec.newlyCompleted) {
+      feedEvents.push(this.pushEvent({ type: "challenge_completed", actorPublicId: playerId, summary: `${playerId} completed ${c.display_name}`, source: c.challenge_id, now }));
+    }
+
     await this.persistState();
+
     // Private to the owner: round accepted + authoritative balance.
     this.send(ws, {
       t: acceptedType,
@@ -474,6 +521,14 @@ export class ArcadeRoom implements DurableObject {
     // Public broadcast: who won how many (no private balance) + cabinet/last-score state.
     this.broadcast({ t: "ticket_awarded", roomId: ROOM_ID, ...res.publicAward });
     this.broadcastTicketState();
+    // Owner-private challenge signals + public feed events.
+    for (const c of rec.newlyCompleted) {
+      this.send(ws, { t: "challenge_completed", challenge_id: c.challenge_id, display_name: c.display_name });
+    }
+    if (rec.newlyCompleted.length) {
+      this.send(ws, { t: "challenge_progress", playerId, challenges: getProgress(this.roomState.ticketState, playerId) });
+    }
+    for (const ev of feedEvents) this.broadcastEvent(ev);
   }
 
   private async handleTicketBalanceRequest(ws: WebSocket): Promise<void> {
@@ -537,6 +592,81 @@ export class ArcadeRoom implements DurableObject {
     this.broadcast(this.cosmeticStatePayload());
   }
 
+  // ==================== Challenge Board / Achievements / Event Feed (Phase 1h) ====================
+
+  /** Append a public-safe event to the bounded room feed (state mutation only). */
+  private pushEvent(evt: { type: string; actorPublicId: string; summary: string; source?: string | null; now: number }): unknown {
+    const r = appendEvent(this.roomState.ticketState, evt);
+    this.roomState.ticketState = r.state;
+    return r.event;
+  }
+  private broadcastEvent(event: unknown): void {
+    this.broadcast({ t: "arcade_event", event });
+  }
+
+  private handleChallengeProgressRequest(ws: WebSocket): void {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    // Owner-only: a player can only ever request their OWN progress.
+    this.send(ws, { t: "challenge_progress", playerId, challenges: getProgress(this.roomState.ticketState, playerId) });
+  }
+
+  private handleAchievementStateRequest(ws: WebSocket): void {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    this.send(ws, { t: "achievement_state", playerId, achievements: getAchievements(this.roomState.ticketState, playerId) });
+  }
+
+  private async handleChallengeRewardClaim(ws: WebSocket, data: any): Promise<void> {
+    const playerId = this.sockets.get(ws)?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    const now = Date.now();
+    const res = claimReward(this.roomState.ticketState, { playerId, challengeId: data.challengeId, now });
+    this.roomState.ticketState = res.state;
+    if (!res.ok) {
+      this.send(ws, { t: "challenge_rejected", challengeId: data.challengeId, reason: res.reason });
+      return;
+    }
+
+    // Public-safe feed: an achievement unlock (only when a NEW badge was granted).
+    const feedEvents: unknown[] = [];
+    if (res.badge && res.achievement) {
+      feedEvents.push(this.pushEvent({ type: "achievement_unlocked", actorPublicId: playerId, summary: `${playerId} ${res.achievement.public_safe_summary}`, source: res.achievement.achievement_id, now }));
+    }
+
+    await this.persistState();
+
+    // Owner-private: reward result + refreshed private state.
+    if (res.badge && res.achievement) {
+      this.send(ws, { t: "achievement_unlocked", achievement_id: res.achievement.achievement_id, badge: res.badge });
+    }
+    this.send(ws, {
+      t: "challenge_rewarded",
+      challengeId: data.challengeId,
+      badge: res.badge || null,
+      achievement_id: res.achievement ? res.achievement.achievement_id : null,
+      ticketBonus: res.ticketBonus,
+      balance: res.balance,
+    });
+    if (res.ticketBonus > 0) {
+      this.send(ws, { t: "ticket_balance", playerId, balance: res.balance });
+      this.send(ws, { t: "ticket_ledger", playerId, entries: getLedger(this.roomState.ticketState, playerId) });
+    }
+    this.sendInventory(ws, playerId);
+    this.send(ws, { t: "challenge_progress", playerId, challenges: getProgress(this.roomState.ticketState, playerId) });
+    this.send(ws, { t: "achievement_state", playerId, achievements: getAchievements(this.roomState.ticketState, playerId) });
+    for (const ev of feedEvents) this.broadcastEvent(ev);
+  }
+
   private async handleTicketLedger(ws: WebSocket): Promise<void> {
     const playerId = this.sockets.get(ws)?.playerId;
     if (!playerId) {
@@ -562,18 +692,38 @@ export class ArcadeRoom implements DurableObject {
       this.sendError(ws, "no_identity", "Must join with playerId first");
       return;
     }
-    const redemptionId = `rd-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    const res = redeemPrize(this.roomState.ticketState, { prizeId: data.prizeId, playerId, now: Date.now(), redemptionId });
+    const now = Date.now();
+    const redemptionId = `rd-${now.toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const res = redeemPrize(this.roomState.ticketState, { prizeId: data.prizeId, playerId, now, redemptionId });
     this.roomState.ticketState = res.state;
     if (!res.ok) {
       this.send(ws, { t: "prize_rejected", prizeId: data.prizeId, reason: res.reason });
       return;
     }
+
+    // Phase 1h: a redemption drives challenge progress (server-authoritative).
+    const rec = recordRedemption(this.roomState.ticketState, { playerId, now });
+    this.roomState.ticketState = rec.state;
+    const prizeName = res.publicSummary ? res.publicSummary.display_name : data.prizeId;
+    const feedEvents = [
+      this.pushEvent({ type: "prize_redeem", actorPublicId: playerId, summary: `${playerId} redeemed ${prizeName}`, source: "prize-counter", now }),
+    ];
+    for (const c of rec.newlyCompleted) {
+      feedEvents.push(this.pushEvent({ type: "challenge_completed", actorPublicId: playerId, summary: `${playerId} completed ${c.display_name}`, source: c.challenge_id, now }));
+    }
+
     await this.persistState();
     this.send(ws, { t: "prize_redeemed", prizeId: data.prizeId, balance: res.balance, item: res.item });
     this.send(ws, { t: "ticket_balance", playerId, balance: res.balance });
     this.sendInventory(ws, playerId);
     this.send(ws, { t: "ticket_ledger", playerId, entries: getLedger(this.roomState.ticketState, playerId) });
+    for (const c of rec.newlyCompleted) {
+      this.send(ws, { t: "challenge_completed", challenge_id: c.challenge_id, display_name: c.display_name });
+    }
+    if (rec.newlyCompleted.length) {
+      this.send(ws, { t: "challenge_progress", playerId, challenges: getProgress(this.roomState.ticketState, playerId) });
+    }
+    for (const ev of feedEvents) this.broadcastEvent(ev);
   }
 
   private async handleCosmeticEquip(ws: WebSocket, data: any): Promise<void> {
@@ -588,10 +738,15 @@ export class ArcadeRoom implements DurableObject {
       this.send(ws, { t: "prize_rejected", context: "equip", prizeId: data.prizeId, reason: res.reason });
       return;
     }
+    const now = Date.now();
+    const owned = this.roomState.ticketState.inventory[playerId]?.[res.prizeId];
+    const cosmeticName = owned ? owned.display_name : res.prizeId;
+    const ev = this.pushEvent({ type: "cosmetic_equip", actorPublicId: playerId, summary: `${playerId} equipped ${cosmeticName}`, source: res.slot, now });
     await this.persistState();
     this.send(ws, { t: "cosmetic_equipped", prizeId: res.prizeId, slot: res.slot });
     this.sendInventory(ws, playerId);
     this.broadcastCosmeticState(); // public, privacy-safe
+    this.broadcastEvent(ev);
   }
 
   private async handleCosmeticUnequip(ws: WebSocket, data: any): Promise<void> {

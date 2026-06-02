@@ -20,6 +20,7 @@ import { NeonCircuitRoomClient } from './neon-circuit-room-client.js';
 import { createPulseTapGame } from './pulse-tap-game.js';
 import { createSignalSprintGame } from './signal-sprint-game.js';
 import { createPrizeCounter } from './prize-counter.js';
+import { createChallengeBoard } from './challenge-board.js';
 
 // Powered (playable) cabinets, keyed by their occupancy machine id. The room
 // authority drives free/yours/in-use; the catalog confirms they are live.
@@ -64,6 +65,12 @@ let myInventory = [];         // owned cosmetics (test introspection)
 let myEquips = {};            // equipped slots
 let publicCosmetics = {};     // others' safe public equips
 let lastPrizeReject = null;   // last prize/equip rejection reason
+let challengeBoard = null;    // Phase 1h Challenge Board panel (assigned below)
+let myChallenges = [];        // Phase 1h: my challenge progress (test introspection)
+let myAchievements = [];      // Phase 1h: my unlocked achievements
+let myFeed = [];              // Phase 1h: public arcade event feed
+let lastChallengeReject = null;   // Phase 1h: last challenge claim rejection reason
+let lastChallengeReward = null;   // Phase 1h: last challenge reward result
 
 // Per-cabinet authoritative state mirrored from the DO. game is wired below.
 const cabs = {
@@ -239,6 +246,12 @@ const client = new NeonCircuitRoomClient({
     renderIdentity();
     renderFloor();
     prizeCounter?.setSelfId(myId());
+    challengeBoard?.setSelfId(myId());
+    // Phase 1h: pull challenge catalog/progress, achievements and the public feed.
+    client.requestChallengeCatalog();
+    client.requestChallengeProgress();
+    client.requestAchievementState();
+    client.requestEventFeed();
   },
   onState: (s) => {
     if (!s.machines) return;
@@ -274,13 +287,27 @@ const client = new NeonCircuitRoomClient({
   // ---- Phase 1f: arcade loop (catalog / prizes / cosmetics) ----
   onCabinetCatalog: (m) => { prizeCounter?.setZones(m.zones || []); },
   onPrizeCatalog: (m) => { prizeCounter?.setPrizes(m.prizes || []); },
-  onInventoryState: (m) => { myInventory = m.items || []; myEquips = m.equips || {}; prizeCounter?.setInventory(m.items || [], m.equips || {}); },
+  onInventoryState: (m) => {
+    myInventory = m.items || []; myEquips = m.equips || {};
+    prizeCounter?.setInventory(m.items || [], m.equips || {});
+    challengeBoard?.setInventory(m.items || [], m.equips || {});
+  },
   onTicketLedger: (m) => { myLedger = m.entries || []; prizeCounter?.setLedger(m.entries || []); },
   onPrizeRedeemed: (m) => { myTickets = m.balance; prizeCounter?.setBalance(m.balance); prizeCounter?.redeemed(m); renderTickets(); },
   onPrizeRejected: (m) => { lastPrizeReject = m.reason; prizeCounter?.redeemRejected(m); toast(`prize: ${m.reason}`); },
   onCosmeticEquipped: () => { prizeCounter?.cosmeticFeedback('Equipped ✓', 'ok'); },
   onCosmeticUnequipped: () => { prizeCounter?.cosmeticFeedback('Unequipped', ''); },
   onCosmeticState: (m) => { publicCosmetics = m.equipped || {}; prizeCounter?.setPublicCosmetics(m.equipped || {}); },
+  // ---- Phase 1h: challenge board / achievements / event feed ----
+  onChallengeCatalog: (m) => { challengeBoard?.setChallenges(m.challenges || []); },
+  onChallengeProgress: (m) => { myChallenges = m.challenges || []; challengeBoard?.setProgress(m.challenges || []); },
+  onChallengeCompleted: (m) => { toast(`Challenge complete: ${m.display_name}`); },
+  onChallengeRewarded: (m) => { lastChallengeReward = m; if (typeof m.balance === 'number') { myTickets = m.balance; renderTickets(); } challengeBoard?.challengeRewarded(m); },
+  onChallengeRejected: (m) => { lastChallengeReject = m.reason; challengeBoard?.challengeRejected(m); toast(`challenge: ${m.reason}`); },
+  onAchievementState: (m) => { myAchievements = m.achievements || []; },
+  onAchievementUnlocked: (m) => { toast(`Badge unlocked!`); },
+  onArcadeEventFeed: (m) => { myFeed = m.events || []; challengeBoard?.setFeed(m.events || []); },
+  onArcadeEvent: (m) => { if (m.event) { myFeed = [...myFeed, m.event].slice(-50); challengeBoard?.addEvent(m.event); } },
 });
 
 // ---- local mini-games (occupancy-gated; they send no economy messages) ----
@@ -315,6 +342,15 @@ prizeCounter = createPrizeCounter({
 });
 const prizeBtn = el('prizeBtn');
 if (prizeBtn) prizeBtn.addEventListener('click', () => (prizeCounter.isOpen() ? prizeCounter.close() : prizeCounter.open()));
+
+// Phase 1h: Challenge Board panel. Forwards intent only; the server validates
+// completion, grants rewards/badges, and owns the public event feed.
+challengeBoard = createChallengeBoard({
+  onClaim: (challengeId) => client.claimChallengeReward(challengeId),
+  onEquip: (prizeId) => client.equipCosmetic(prizeId),
+});
+const challengeBtn = el('challengeBtn');
+if (challengeBtn) challengeBtn.addEventListener('click', () => (challengeBoard.isOpen() ? challengeBoard.close() : challengeBoard.open()));
 
 // ---- bindings ----
 for (const c of POWERED) {
@@ -362,6 +398,11 @@ if (params.get('test') === '1') {
       equips: myEquips,
       publicCosmetics,
       lastPrizeReject,
+      challenges: myChallenges,
+      achievements: myAchievements,
+      feed: myFeed,
+      lastChallengeReject,
+      lastChallengeReward,
     }),
   };
 }
