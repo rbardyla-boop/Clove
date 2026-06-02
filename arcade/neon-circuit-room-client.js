@@ -29,10 +29,14 @@ export class NeonCircuitRoomClient {
     this.onDenied = options.onDenied || (() => {});
     this.onError = options.onError || (() => {});
     this.onConnected = options.onConnected || (() => {});
-    // Phase 1e ticket-flow callbacks
+    // Phase 1e ticket-flow callbacks (Pulse Tap)
     this.onRoundStarted = options.onRoundStarted || (() => {});
     this.onRoundAccepted = options.onRoundAccepted || (() => {});
     this.onRoundRejected = options.onRoundRejected || (() => {});
+    // Phase 1g ticket-flow callbacks (Signal Sprint)
+    this.onSignalRoundStarted = options.onSignalRoundStarted || (() => {});
+    this.onSignalRoundAccepted = options.onSignalRoundAccepted || (() => {});
+    this.onSignalRoundRejected = options.onSignalRoundRejected || (() => {});
     this.onTicketBalance = options.onTicketBalance || (() => {});
     this.onTicketAwarded = options.onTicketAwarded || (() => {});
     this.onTicketState = options.onTicketState || (() => {});
@@ -196,6 +200,18 @@ export class NeonCircuitRoomClient {
         this.onRoundRejected(msg);
         break;
       }
+      case "signal_sprint_round_started": {
+        this.onSignalRoundStarted(msg);
+        break;
+      }
+      case "signal_sprint_round_accepted": {
+        this.onSignalRoundAccepted(msg);
+        break;
+      }
+      case "signal_sprint_round_rejected": {
+        this.onSignalRoundRejected(msg);
+        break;
+      }
       case "ticket_balance": {
         this.onTicketBalance(msg);
         break;
@@ -290,6 +306,22 @@ export class NeonCircuitRoomClient {
   /** Request the current authoritative ticket balance for this session. */
   requestTicketBalance() {
     this.send({ t: "ticket_balance_request" });
+  }
+
+  // ==================== Phase 1g: Signal Sprint (second ticketed cabinet) ====================
+
+  /** Ask the server to register a new Signal Sprint round and issue a round id. */
+  startSignalRound(machineId = "signal") {
+    this.send({ t: "signal_sprint_round_start", machineId });
+  }
+
+  /**
+   * Submit a finished Signal Sprint round for server validation + ticket award.
+   * `result` must include { roundId, machineId, score, distance, pulsesCollected,
+   * noiseHits, maxStreak, grade, durationMs }. The server computes the final award.
+   */
+  submitSignalRound(result) {
+    this.send({ t: "signal_sprint_round_submit", cabinetType: "signal_sprint", rulesetVersion: "signal-sprint/1", ...result });
   }
 
   // ==================== Phase 1f: arcade loop (catalog / prizes / cosmetics) ====================

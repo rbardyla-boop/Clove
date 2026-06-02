@@ -20,7 +20,7 @@ import {
   getBalance,
   pruneExpired,
 } from "./round-authority.mjs";
-import { cabinetCatalogPayload, prizeCatalogPayload } from "./catalog.mjs";
+import { cabinetCatalogPayload, prizeCatalogPayload, ticketedMachineIds } from "./catalog.mjs";
 import { redeemPrize, equipCosmetic, unequipCosmetic, getInventory, getEquips, publicCosmeticState } from "./prize-authority.mjs";
 import { getLedger } from "./ledger.mjs";
 
@@ -45,7 +45,7 @@ export interface RoomState {
   ticketState: TicketState;
 }
 
-const MACHINE_ID = "pulse";
+const MACHINE_ID = "pulse"; // canonical machine used for back-compat room_state.rev / ticket_state
 const ROOM_ID = "main";
 const STALE_LOCK_MS = 45_000; // 45 seconds without heartbeat from occupant = stale
 
@@ -73,16 +73,15 @@ export class ArcadeRoom implements DurableObject {
   }
 
   private createInitialState(): RoomState {
+    // One occupancy machine per live, ticket-enabled cabinet in the catalog
+    // (Phase 1g: pulse + signal). Occupancy stays one-occupant-per-machine.
+    const machines: Record<string, MachineState> = {};
+    for (const machineId of ticketedMachineIds()) {
+      machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
+    }
     return {
       roomId: ROOM_ID,
-      machines: {
-        [MACHINE_ID]: {
-          machineId: MACHINE_ID,
-          occupiedBy: null,
-          occupiedSince: null,
-          rev: 0,
-        },
-      },
+      machines,
       lastActivity: Date.now(),
       ticketState: createTicketState(),
     };
@@ -115,11 +114,17 @@ export class ArcadeRoom implements DurableObject {
         this.roomState = stored;
       } else {
         this.roomState = this.createInitialState();
-        await this.ctx.storage.put("roomState", this.roomState);
       }
 
-      // Migration-safe: older stored rooms predate tickets.
+      // Migration-safe: older stored rooms predate tickets and/or extra cabinets.
       this.roomState.ticketState = ensureTicketState(this.roomState.ticketState);
+      if (!this.roomState.machines) this.roomState.machines = {};
+      for (const machineId of ticketedMachineIds()) {
+        if (!this.roomState.machines[machineId]) {
+          this.roomState.machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
+        }
+      }
+      await this.ctx.storage.put("roomState", this.roomState);
     });
 
     // Schedule the stale lock cleanup alarm the first time we initialize
@@ -182,11 +187,19 @@ export class ArcadeRoom implements DurableObject {
         break;
       }
       case "pulse_round_start": {
-        await this.handlePulseRoundStart(ws, data);
+        await this.handleRoundStart(ws, data, "pulse_round_started", "pulse_round_rejected");
         break;
       }
       case "pulse_round_submit": {
-        await this.handlePulseRoundSubmit(ws, data);
+        await this.handleRoundSubmit(ws, data, "pulse_round_accepted", "pulse_round_rejected");
+        break;
+      }
+      case "signal_sprint_round_start": {
+        await this.handleRoundStart(ws, data, "signal_sprint_round_started", "signal_sprint_round_rejected");
+        break;
+      }
+      case "signal_sprint_round_submit": {
+        await this.handleRoundSubmit(ws, data, "signal_sprint_round_accepted", "signal_sprint_round_rejected");
         break;
       }
       case "ticket_balance_request": {
@@ -236,10 +249,11 @@ export class ArcadeRoom implements DurableObject {
     const { playerId } = meta;
     this.sockets.delete(ws);
 
-    // If this player owned the machine, release it (authoritative disconnect cleanup)
-    const machine = this.roomState.machines[MACHINE_ID];
-    if (machine.occupiedBy === playerId) {
-      await this.releaseMachineInternal(playerId, "disconnect");
+    // If this player owned ANY machine, release it (authoritative disconnect cleanup)
+    for (const machineId of Object.keys(this.roomState.machines)) {
+      if (this.roomState.machines[machineId].occupiedBy === playerId) {
+        await this.releaseMachineInternal(playerId, "disconnect", machineId);
+      }
     }
 
     // Disconnect always invalidates the player's active round (idempotent).
@@ -297,12 +311,12 @@ export class ArcadeRoom implements DurableObject {
     clientRev: number | undefined,
     playerId?: string
   ): Promise<void> {
-    if (machineId !== MACHINE_ID) {
+    const machine = this.roomState.machines[machineId];
+    if (!machine) {
       this.send(ws, { t: "occupy_denied", machineId, reason: "invalid" });
       return;
     }
 
-    const machine = this.roomState.machines[MACHINE_ID];
     const meta = this.sockets.get(ws);
     const actualPlayerId = playerId ?? meta?.playerId;
 
@@ -351,11 +365,11 @@ export class ArcadeRoom implements DurableObject {
     clientRev: number | undefined,
     playerId?: string
   ): Promise<void> {
-    if (machineId !== MACHINE_ID) {
+    const machine = this.roomState.machines[machineId];
+    if (!machine) {
       return;
     }
 
-    const machine = this.roomState.machines[MACHINE_ID];
     const meta = this.sockets.get(ws);
     const actualPlayerId = playerId ?? meta?.playerId;
 
@@ -375,7 +389,7 @@ export class ArcadeRoom implements DurableObject {
       return;
     }
 
-    await this.releaseMachineInternal(actualPlayerId, "explicit");
+    await this.releaseMachineInternal(actualPlayerId, "explicit", machineId);
   }
 
   private async handleHeartbeat(ws: WebSocket, playerId?: string): Promise<void> {
@@ -390,11 +404,17 @@ export class ArcadeRoom implements DurableObject {
 
   // ==================== Ticket / Round Authority (Phase 1e) ====================
 
-  private currentOccupant(): string | null {
-    return this.roomState.machines[MACHINE_ID].occupiedBy;
+  private currentOccupant(machineId: string): string | null {
+    return this.roomState.machines[machineId]?.occupiedBy ?? null;
   }
 
-  private async handlePulseRoundStart(ws: WebSocket, data: any): Promise<void> {
+  /**
+   * Shared round-start handler for every ticketed cabinet. The cabinet type,
+   * ruleset and round lifetime are resolved server-side (round-authority.mjs)
+   * from the machine id; the only per-cabinet difference here is the message
+   * type names, so Pulse Tap and Signal Sprint cannot diverge in authority.
+   */
+  private async handleRoundStart(ws: WebSocket, data: any, startedType: string, rejectedType: string): Promise<void> {
     const meta = this.sockets.get(ws);
     const playerId = meta?.playerId;
     if (!playerId) {
@@ -405,21 +425,22 @@ export class ArcadeRoom implements DurableObject {
     const roundId = `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     const res = startRound(this.roomState.ticketState, {
       machineId,
-      occupantId: this.currentOccupant(),
+      occupantId: this.currentOccupant(machineId),
       playerId,
       roundId,
       now: Date.now(),
     });
     this.roomState.ticketState = res.state;
     if (!res.ok) {
-      this.send(ws, { t: "pulse_round_rejected", machineId, reason: res.reason });
+      this.send(ws, { t: rejectedType, machineId, reason: res.reason });
       return;
     }
     await this.persistState();
-    this.send(ws, { t: "pulse_round_started", roomId: ROOM_ID, ...res.started });
+    this.send(ws, { t: startedType, roomId: ROOM_ID, ...res.started });
   }
 
-  private async handlePulseRoundSubmit(ws: WebSocket, data: any): Promise<void> {
+  /** Shared round-submit handler for every ticketed cabinet (see handleRoundStart). */
+  private async handleRoundSubmit(ws: WebSocket, data: any, acceptedType: string, rejectedType: string): Promise<void> {
     const meta = this.sockets.get(ws);
     const playerId = meta?.playerId;
     if (!playerId) {
@@ -430,18 +451,18 @@ export class ArcadeRoom implements DurableObject {
     const res = submitRound(this.roomState.ticketState, {
       payload: data,
       senderId: playerId,
-      occupantId: this.currentOccupant(),
+      occupantId: this.currentOccupant(data.machineId),
       now: Date.now(),
     });
     this.roomState.ticketState = res.state;
     if (!res.ok) {
-      this.send(ws, { t: "pulse_round_rejected", roundId: data.roundId, machineId: data.machineId, reason: res.reason });
+      this.send(ws, { t: rejectedType, roundId: data.roundId, machineId: data.machineId, reason: res.reason });
       return;
     }
     await this.persistState();
     // Private to the owner: round accepted + authoritative balance.
     this.send(ws, {
-      t: "pulse_round_accepted",
+      t: acceptedType,
       roundId: data.roundId,
       machineId: data.machineId,
       awarded: res.awarded,
@@ -593,10 +614,10 @@ export class ArcadeRoom implements DurableObject {
 
   // ==================== Internal Authority Logic ====================
 
-  private async releaseMachineInternal(requester: string, reason: string): Promise<void> {
-    const machine = this.roomState.machines[MACHINE_ID];
+  private async releaseMachineInternal(requester: string, reason: string, machineId: string = MACHINE_ID): Promise<void> {
+    const machine = this.roomState.machines[machineId];
 
-    if (machine.occupiedBy !== requester) {
+    if (!machine || machine.occupiedBy !== requester) {
       return; // safety
     }
 
@@ -642,10 +663,12 @@ export class ArcadeRoom implements DurableObject {
   async alarm(): Promise<void> {
     await this.ensureInitialized();
 
-    const machine = this.roomState.machines[MACHINE_ID];
     const now = Date.now();
+    let released = false;
 
-    if (machine.occupiedBy) {
+    for (const machine of Object.values(this.roomState.machines)) {
+      if (!machine.occupiedBy) continue;
+
       // Find the occupant’s last heartbeat
       let occupantLastSeen = 0;
       for (const meta of this.sockets.values()) {
@@ -664,14 +687,16 @@ export class ArcadeRoom implements DurableObject {
 
         // Stale-lock release also invalidates that occupant's active round.
         if (staleOccupant) this.roomState.ticketState = expirePlayerRounds(this.roomState.ticketState, staleOccupant);
+        released = true;
+      }
+    }
 
-        await this.persistState();
-
-        // Only broadcast if there are still active sockets
-        if (this.sockets.size > 0) {
-          await this.broadcastRoomState();
-          this.broadcastTicketState();
-        }
+    if (released) {
+      await this.persistState();
+      // Only broadcast if there are still active sockets
+      if (this.sockets.size > 0) {
+        await this.broadcastRoomState();
+        this.broadcastTicketState();
       }
     }
 

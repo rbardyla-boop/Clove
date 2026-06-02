@@ -149,6 +149,68 @@ try {
   check('A reconnect restores balance (10)', (await balA(A)) === 10);
   check('A reconnect restores equipped badge', (await A.page.evaluate(() => window.__neon.state().equips.badge)) === 'founder-badge-local');
 
+  // ── Phase 1g: second ticketed cabinet (Signal Sprint) + multi-cabinet ─────
+  // State here: B occupies Pulse Tap; A is free (reconnected); A balance 10, B 3.
+  const sigBusy = (c) => c.page.evaluate(() => document.querySelector('.cab[data-id="signal"]').classList.contains('busy'));
+  const sigMine = (c) => c.page.evaluate(() => document.querySelector('.cab[data-id="signal"]').classList.contains('mine'));
+
+  // Signal Sprint cabinet is rendered as an active/powered cabinet.
+  check('Signal Sprint cabinet is present + powered', await A.page.evaluate(() => {
+    const node = document.querySelector('.cab[data-id="signal"]');
+    return !!node && node.classList.contains('powered');
+  }));
+
+  // A occupies Signal Sprint while B still holds Pulse Tap → independent occupancy.
+  await A.page.click('.cab[data-id="signal"]');
+  await A.page.waitForFunction(() => document.querySelector('.cab[data-id="signal"]').classList.contains('mine'), null, { timeout: 8000 });
+  check('A occupies Signal Sprint', await sigMine(A));
+  check('B still holds Pulse Tap (occupancy independent per cabinet)', await cabMine(B));
+
+  // B sees Signal Sprint busy (and cannot occupy/play it).
+  await B.page.waitForFunction(() => document.querySelector('.cab[data-id="signal"]').classList.contains('busy'), null, { timeout: 8000 });
+  check('B sees Signal Sprint busy', await sigBusy(B) && !(await sigMine(B)));
+
+  // B cannot start A's Signal Sprint round (not the occupant).
+  await B.page.evaluate(() => window.__neon.client.startSignalRound('signal'));
+  await B.page.waitForFunction(() => window.__neon.state().lastReject === 'not_occupant', null, { timeout: 8000 });
+  await B.page.evaluate(() => window.__neon.client.submitSignalRound(
+    { roundId: 'forged-' + Math.random(), machineId: 'signal', grade: 'S', score: 19000, distance: 9000, pulsesCollected: 200, noiseHits: 0, maxStreak: 99, durationMs: 25000 }
+  ));
+  await B.page.waitForTimeout(250);
+  check('B cannot start/submit A’s Signal Sprint round', ['not_occupant', 'unknown_round', 'wrong_session'].includes(await lastReject(B)));
+  check('B earns nothing from Signal Sprint (still 3)', (await tickets(B)) === 3);
+
+  // A plays a valid Signal Sprint round → server-computed award into the SHARED balance.
+  const sRound = await A.page.evaluate(async () => {
+    window.__neon.client.startSignalRound('signal');
+    await new Promise((r) => setTimeout(r, 250));
+    return window.__neon.state().signalRoundId;
+  });
+  check('server issued a Signal Sprint round id to A', typeof sRound === 'string' && sRound.length > 0);
+  await A.page.evaluate((rid) => window.__neon.client.submitSignalRound(
+    { roundId: rid, machineId: 'signal', grade: 'A', score: 4200, distance: 1800, pulsesCollected: 42, noiseHits: 6, maxStreak: 14, durationMs: 25000 }
+  ), sRound);
+  // signal: base A=16 + distance floor(1800/250)=7 (cap 8) + streak>=12 → +3 − floor(6/3)=2 = 24
+  await A.page.waitForFunction(() => window.__neon.state().tickets === 34, null, { timeout: 8000 });
+  check('A earns server-computed Signal Sprint tickets (10 + 24 = 34)', (await tickets(A)) === 34);
+  check('A ticket HUD reflects the combined balance', (await A.page.locator('#ticketCount').innerText()).trim() === '34');
+
+  // Ledger records the award from the Signal Sprint cabinet (source + cabinet_type).
+  await A.page.evaluate(() => window.__neon.client.requestTicketLedger());
+  await A.page.waitForFunction(() => window.__neon.state().ledger.some((e) => e.cabinet_type === 'signal_sprint'), null, { timeout: 8000 });
+  const sigLed = await A.page.evaluate(() => window.__neon.state().ledger.find((e) => e.cabinet_type === 'signal_sprint'));
+  check('ledger records the Signal Sprint award (source signal, cabinet_type signal_sprint)', sigLed && sigLed.source === 'signal' && sigLed.delta === 24);
+  check('ledger also still has the Pulse Tap award (both cabinets)', await A.page.evaluate(() => window.__neon.state().ledger.some((e) => e.cabinet_type === 'pulse_tap')));
+
+  // A releases Signal Sprint; B sees it free again.
+  await A.page.evaluate(() => window.__neon.client.release('signal'));
+  await B.page.waitForFunction(() => !document.querySelector('.cab[data-id="signal"]').classList.contains('busy'), null, { timeout: 8000 });
+  check('A release of Signal Sprint propagates to B', !(await sigBusy(B)));
+
+  // B’s view still leaks no private balance/ledger of A.
+  const bViewFinal = await B.page.evaluate(() => JSON.stringify(window.__neon.state().publicCosmetics));
+  check('B’s public view of A still leaks no balance/ledger', !/balance|ledger|redemption/i.test(bViewFinal));
+
   const allErrors = [...A.errors, ...B.errors];
   check('no console / page errors', allErrors.length === 0);
   if (allErrors.length) console.log('  errors:', JSON.stringify(allErrors, null, 2));

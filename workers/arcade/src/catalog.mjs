@@ -45,17 +45,17 @@ export const CABINETS = Object.freeze([
   },
   {
     cabinet_id: 'signal-sprint-01',
-    machine_id: null,
+    machine_id: 'signal',           // Phase 1g occupancy machine (independent from pulse)
     display_name: 'Signal Sprint',
-    cabinet_type: 'sprint',
+    cabinet_type: 'signal_sprint',
     zone_id: 'cabinet_row',
     position_hint: 3,
-    status: 'coming_soon',
-    ticket_enabled: false,
+    status: 'live',
+    ticket_enabled: true,
     min_players: 1,
     max_players: 1,
-    ruleset_version: null,
-    public_description: 'Endless runner cabinet. Coming soon.',
+    ruleset_version: 'signal-sprint/1',
+    public_description: 'Ride the signal lane: collect pulses, dodge the static.',
   },
 ]);
 
@@ -78,6 +78,17 @@ export const ZONES = Object.freeze([
 
 export function getCabinet(cabinetId) {
   return CABINETS.find((c) => c.cabinet_id === cabinetId) || null;
+}
+/** Resolve a cabinet by its occupancy machine id (e.g. 'pulse' / 'signal'). */
+export function getCabinetByMachineId(machineId) {
+  if (typeof machineId !== 'string' || !machineId) return null;
+  return CABINETS.find((c) => c.machine_id === machineId) || null;
+}
+/** Machine ids of live, ticket-enabled cabinets — the set the room can occupy. */
+export function ticketedMachineIds() {
+  return CABINETS
+    .filter((c) => c.status === 'live' && c.ticket_enabled === true && typeof c.machine_id === 'string' && c.machine_id)
+    .map((c) => c.machine_id);
 }
 export function getPrize(prizeId) {
   return PRIZES.find((p) => p.prize_id === prizeId) || null;

@@ -1,24 +1,73 @@
 /**
- * Pulse Tap round + ticket authority — PURE state machine, transport-agnostic.
+ * Round + ticket authority — PURE state machine, transport-agnostic.
  *
  * Owns ONLY tickets + rounds. Cabinet OCCUPANCY remains owned by the Durable
  * Object (Phase 1b, unchanged); the current occupant is passed in as `occupantId`
  * so this module never weakens or duplicates occupancy authority.
+ *
+ * Phase 1g generalizes the round engine to multiple cabinet types via a small
+ * ruleset registry (pulse_tap, signal_sprint). The cabinet type, ruleset version
+ * and ticket formula are resolved from the server-authoritative catalog by the
+ * round's machine id — clients never choose their own validator or payout.
+ * Pulse Tap behaviour and its ticket formula are unchanged (byte-equivalent):
+ * the pulse_tap ruleset delegates to the original ./tickets.mjs functions.
  *
  * All transitions return a NEW state object (no mutation), so the DO can persist
  * the result and the tests can assert on snapshots. The server issues round ids;
  * clients never grant themselves tickets.
  */
 import { computeTickets, validateScorePayload, LIMITS } from './tickets.mjs';
+import { computeSignalTickets, validateSignalPayload, SIGNAL_LIMITS } from './signal-sprint.mjs';
 import { appendLedger } from './ledger.mjs';
+import { getCabinetByMachineId } from './catalog.mjs';
 
-/** Cabinets that award tickets in Phase 1e. */
-export const TICKETED_MACHINES = Object.freeze(new Set(['pulse']));
+/**
+ * Ruleset registry keyed by cabinet_type. Each entry knows how to validate a
+ * submitted result, compute the ticket award, how long a round may live, and the
+ * limits block handed back to the client on round start.
+ */
+const RULESETS = Object.freeze({
+  pulse_tap: {
+    maxRoundMs: LIMITS.MAX_ROUND_MS,
+    validate: validateScorePayload,
+    compute: (p) => computeTickets({ grade: p.grade, score: p.score, accuracy: p.accuracy }),
+    startedLimits: () => ({
+      maxDurationMs: LIMITS.MAX_DURATION_MS,
+      limits: { maxScore: LIMITS.MAX_SCORE, maxAccuracy: LIMITS.MAX_ACCURACY, minDurationMs: LIMITS.MIN_DURATION_MS, maxDurationMs: LIMITS.MAX_DURATION_MS },
+    }),
+  },
+  signal_sprint: {
+    maxRoundMs: SIGNAL_LIMITS.MAX_ROUND_MS,
+    validate: validateSignalPayload,
+    compute: (p) => computeSignalTickets({ grade: p.grade, distance: p.distance, maxStreak: p.maxStreak, noiseHits: p.noiseHits }),
+    startedLimits: () => ({
+      maxDurationMs: SIGNAL_LIMITS.MAX_DURATION_MS,
+      limits: {
+        maxScore: SIGNAL_LIMITS.MAX_SCORE, maxDistance: SIGNAL_LIMITS.MAX_DISTANCE,
+        maxPulses: SIGNAL_LIMITS.MAX_PULSES, maxNoiseHits: SIGNAL_LIMITS.MAX_NOISE, maxStreak: SIGNAL_LIMITS.MAX_STREAK,
+        minDurationMs: SIGNAL_LIMITS.MIN_DURATION_MS, maxDurationMs: SIGNAL_LIMITS.MAX_DURATION_MS,
+      },
+    }),
+  },
+});
+
+/**
+ * Resolve a playable cabinet + its ruleset from a machine id, using the
+ * server-authoritative catalog. Returns null for unknown / coming-soon /
+ * non-ticketed cabinets, or cabinet types with no registered ruleset.
+ */
+function resolveRuleset(machineId) {
+  const cabinet = getCabinetByMachineId(machineId);
+  if (!cabinet || cabinet.status !== 'live' || cabinet.ticket_enabled !== true) return null;
+  const ruleset = RULESETS[cabinet.cabinet_type];
+  if (!ruleset) return null;
+  return { cabinet, ruleset };
+}
 
 export function createTicketState() {
   return {
     balances: {},   // playerId -> integer ticket balance (room/session scoped)
-    rounds: {},     // roundId  -> { roundId, machineId, playerId, startedAt, expiresAt, status }
+    rounds: {},     // roundId  -> { roundId, machineId, cabinetId, cabinetType, rulesetVersion, playerId, startedAt, expiresAt, status }
     submitted: {},  // roundId  -> true (dedup guard against double-award)
     lastPublic: null, // { machineId, playerId, score, grade, awarded, at } — safe to broadcast
     ledger: {},     // playerId  -> [ ledger entries ]        (Phase 1f, private)
@@ -49,13 +98,17 @@ export function getBalance(state, playerId) {
 
 /**
  * Register a new round for the current occupant. The DO supplies a freshly
- * generated roundId and the authoritative occupantId.
+ * generated roundId and the authoritative occupantId. The cabinet type and
+ * ruleset are resolved server-side from the catalog, never from the client.
  */
 export function startRound(state, { machineId, occupantId, playerId, roundId, now }) {
-  if (!TICKETED_MACHINES.has(machineId)) return { state, ok: false, reason: 'invalid_cabinet' };
+  const resolved = resolveRuleset(machineId);
+  if (!resolved) return { state, ok: false, reason: 'invalid_cabinet' };
   if (!playerId) return { state, ok: false, reason: 'no_identity' };
   if (occupantId !== playerId) return { state, ok: false, reason: 'not_occupant' };
   if (typeof roundId !== 'string' || !roundId) return { state, ok: false, reason: 'malformed' };
+  const { cabinet, ruleset } = resolved;
+  const expiresAt = now + ruleset.maxRoundMs;
 
   // Supersede any still-active round this player holds on this machine.
   const rounds = {};
@@ -64,15 +117,27 @@ export function startRound(state, { machineId, occupantId, playerId, roundId, no
       ? { ...r, status: 'expired' }
       : r;
   }
-  rounds[roundId] = { roundId, machineId, playerId, startedAt: now, expiresAt: now + LIMITS.MAX_ROUND_MS, status: 'active' };
+  rounds[roundId] = {
+    roundId,
+    machineId,
+    cabinetId: cabinet.cabinet_id,
+    cabinetType: cabinet.cabinet_type,
+    rulesetVersion: cabinet.ruleset_version,
+    playerId,
+    startedAt: now,
+    expiresAt,
+    status: 'active',
+  };
 
   const started = {
     roundId,
     machineId,
+    cabinetId: cabinet.cabinet_id,
+    cabinetType: cabinet.cabinet_type,
+    rulesetVersion: cabinet.ruleset_version,
     startedAt: now,
-    expiresAt: now + LIMITS.MAX_ROUND_MS,
-    maxDurationMs: LIMITS.MAX_DURATION_MS,
-    limits: { maxScore: LIMITS.MAX_SCORE, maxAccuracy: LIMITS.MAX_ACCURACY, minDurationMs: LIMITS.MIN_DURATION_MS, maxDurationMs: LIMITS.MAX_DURATION_MS },
+    expiresAt,
+    ...ruleset.startedLimits(),
   };
   return { state: { ...state, rounds }, ok: true, reason: null, started };
 }
@@ -80,10 +145,14 @@ export function startRound(state, { machineId, occupantId, playerId, roundId, no
 /**
  * Validate + award a submitted round. `senderId` is the socket's authoritative
  * identity (never client-supplied), `occupantId` is the current cabinet holder.
+ *
+ * The validator + payout are selected from the ROUND's server-recorded cabinet
+ * type, so a client cannot submit a Signal Sprint result against a Pulse Tap
+ * round (or vice-versa) to pick a more generous formula.
  */
 export function submitRound(state, { payload, senderId, occupantId, now }) {
-  const v = validateScorePayload(payload);
-  if (!v.ok) return { state, ok: false, reason: v.reason };
+  if (!payload || typeof payload !== 'object') return { state, ok: false, reason: 'malformed' };
+  if (typeof payload.roundId !== 'string' || !payload.roundId) return { state, ok: false, reason: 'malformed' };
 
   const round = state.rounds[payload.roundId];
   if (!round) return { state, ok: false, reason: 'unknown_round' };
@@ -93,14 +162,27 @@ export function submitRound(state, { payload, senderId, occupantId, now }) {
   if (round.status === 'expired') return { state, ok: false, reason: 'round_expired' };
   if (round.playerId !== senderId) return { state, ok: false, reason: 'wrong_session' };
   if (round.machineId !== payload.machineId) return { state, ok: false, reason: 'wrong_cabinet' };
+  // Explicit cross-cabinet-type / ruleset guards (when the client labels its result).
+  if (payload.cabinetType != null && payload.cabinetType !== round.cabinetType) {
+    return { state, ok: false, reason: 'wrong_cabinet_type' };
+  }
+  if (payload.rulesetVersion != null && payload.rulesetVersion !== round.rulesetVersion) {
+    return { state, ok: false, reason: 'wrong_ruleset' };
+  }
   if (occupantId !== round.playerId) return { state, ok: false, reason: 'not_occupant' };
   if (now > round.expiresAt) {
     const rounds = { ...state.rounds, [round.roundId]: { ...round, status: 'expired' } };
     return { state: { ...state, rounds }, ok: false, reason: 'round_expired' };
   }
 
+  // Pick the validator + payout from the round's server-recorded cabinet type.
+  const ruleset = RULESETS[round.cabinetType];
+  if (!ruleset) return { state, ok: false, reason: 'invalid_cabinet' };
+  const v = ruleset.validate(payload);
+  if (!v.ok) return { state, ok: false, reason: v.reason };
+
   // Server computes the award. Any payload.tickets is ignored entirely.
-  const awarded = computeTickets({ grade: payload.grade, score: payload.score, accuracy: payload.accuracy });
+  const awarded = ruleset.compute(payload);
   const balance = getBalance(state, round.playerId) + awarded;
   let next = {
     ...state,
@@ -112,7 +194,7 @@ export function submitRound(state, { payload, senderId, occupantId, now }) {
   // Ledger: one tickets_awarded entry per round (deduped by round id).
   next = appendLedger(next, {
     playerId: round.playerId, eventType: 'tickets_awarded', delta: awarded, balanceAfter: balance,
-    source: round.machineId, refId: round.roundId, cabinetId: round.machineId,
+    source: round.machineId, refId: round.roundId, cabinetId: round.machineId, cabinetType: round.cabinetType,
     summary: `earned ${awarded} tickets at ${round.machineId}`, now,
   }).state;
   return {

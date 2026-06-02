@@ -138,8 +138,11 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 
 /* interact prompt */
 .interact{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:20;
-  display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:opacity .25s;}
-.interact .key{display:inline-flex;align-items:center;gap:8px;background:rgba(8,4,17,.8);
+  display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:opacity .25s;
+  /* the prompt floats over the cabinet row; let dead space pass clicks through to
+     the cabinets beneath (the .key button re-enables its own pointer events). */
+  pointer-events:none;}
+.interact .key{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;background:rgba(8,4,17,.8);
   border:1.5px solid var(--cyan);border-radius:var(--r-pill);padding:8px 16px;
   box-shadow:var(--glow-cyan);font-weight:600;font-size:14px;letter-spacing:.5px;color:var(--text);
   animation:floaty 1.8s ease-in-out infinite;}
