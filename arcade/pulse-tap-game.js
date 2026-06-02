@@ -271,6 +271,9 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
     isOpen() {
       return isOpen;
     },
+    getFrame() {
+      return frame; // the cabinet frame runtime (Phase 1i); null until first open()
+    },
     // ---- server-authoritative ticket hooks (called by the floor) ----
     setBalance(n) {
       setBalanceUI(n);

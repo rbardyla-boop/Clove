@@ -17,10 +17,12 @@
  * test-bravo), and ?ws=ws://localhost:8787/arcade/ws for local authority.
  */
 import { NeonCircuitRoomClient } from './neon-circuit-room-client.js';
-import { createPulseTapGame } from './pulse-tap-game.js';
-import { createSignalSprintGame } from './signal-sprint-game.js';
 import { createPrizeCounter } from './prize-counter.js';
 import { createChallengeBoard } from './challenge-board.js';
+// Phase 1j: games enter through adapters (which reference the Phase 1i frame
+// contract); the runtime imports the game factories, so the floor does not.
+import { mountAdapter } from './cabinet-adapter-runtime.js';
+import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 
 // Powered (playable) cabinets, keyed by their occupancy machine id. The room
 // authority drives free/yours/in-use; the catalog confirms they are live.
@@ -147,6 +149,10 @@ function activate(machineId) {
     return;
   }
   const c = cabs[machineId];
+  if (!c.game || c.adapterState !== 'playable') {
+    toast(`${labelFor(machineId)} is unavailable`);
+    return;
+  }
   if (!c.occupiedBy) {
     client.occupy(machineId);
   } else if (isMine(machineId)) {
@@ -183,6 +189,19 @@ function renderTickets() {
 function renderCabinet(machineId) {
   const c = cabs[machineId];
   if (!c.el) return;
+
+  // Phase 1j: a cabinet with no valid adapter renders "Unavailable" and cannot
+  // be occupied/played (fail safe — the server may list a cabinet this client
+  // has no adapter for).
+  if (!c.game || c.adapterState !== 'playable') {
+    c.el.classList.add('unavailable');
+    c.el.classList.remove('busy', 'mine');
+    c.occEl.hidden = true;
+    c.ledEl.textContent = '● unavailable';
+    return;
+  }
+  c.el.classList.remove('unavailable');
+
   const mine = isMine(machineId);
   const busy = isBusyByOther(machineId);
   const occupied = mine || busy;
@@ -310,28 +329,34 @@ const client = new NeonCircuitRoomClient({
   onArcadeEvent: (m) => { if (m.event) { myFeed = [...myFeed, m.event].slice(-50); challengeBoard?.addEvent(m.event); } },
 });
 
-// ---- local mini-games (occupancy-gated; they send no economy messages) ----
-cabs.pulse.game = createPulseTapGame({
+// ---- local mini-games, mounted through the Cabinet Adapter SDK (Phase 1j) ----
+// The adapter runtime validates each adapter against its frame contract and
+// fails closed (game = null) if the adapter is invalid/unsupported.
+const pulseMount = mountAdapter('pulse_tap', {
   accent: '#ff2d95',
   onLeave: () => client.release('pulse'),
   onRoundStart: () => client.startPulseRound('pulse'),
   onRoundSubmit: (result) => {
-    if (!currentRoundId) { cabs.pulse.game.roundRejected({ reason: 'round not registered' }); return; }
+    if (!currentRoundId) { cabs.pulse.game?.roundRejected({ reason: 'round not registered' }); return; }
     client.submitPulseRound({ roundId: currentRoundId, machineId: 'pulse', ...result });
     currentRoundId = null; // one submit per server-registered round
   },
 });
+cabs.pulse.game = pulseMount.game;
+cabs.pulse.adapterState = pulseMount.state;
 
-cabs.signal.game = createSignalSprintGame({
+const signalMount = mountAdapter('signal_sprint', {
   accent: '#19e3ff',
   onLeave: () => client.release('signal'),
   onRoundStart: () => client.startSignalRound('signal'),
   onRoundSubmit: (result) => {
-    if (!currentSignalRoundId) { cabs.signal.game.roundRejected({ reason: 'round not registered' }); return; }
+    if (!currentSignalRoundId) { cabs.signal.game?.roundRejected({ reason: 'round not registered' }); return; }
     client.submitSignalRound({ roundId: currentSignalRoundId, machineId: 'signal', ...result });
     currentSignalRoundId = null; // one submit per server-registered round
   },
 });
+cabs.signal.game = signalMount.game;
+cabs.signal.adapterState = signalMount.state;
 
 // Phase 1f: Prize Counter panel. It only forwards intent; the server validates,
 // computes cost, and owns balances/inventory.
@@ -404,5 +429,9 @@ if (params.get('test') === '1') {
       lastChallengeReject,
       lastChallengeReward,
     }),
+    // Phase 1j: adapter introspection for browser validation.
+    adapters: { pulse_tap: pulseMount, signal_sprint: signalMount },
+    adapterState: (cabinetType) => (getAdapter(cabinetType) ? 'has_adapter' : 'no_adapter'),
+    renderState: (cabinet) => cabinetRenderState(cabinet),
   };
 }
