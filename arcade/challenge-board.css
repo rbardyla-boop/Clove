@@ -61,6 +61,10 @@
 .cb-ev-dot[data-k="challenge_completed"]{background:var(--good,#3df58b);box-shadow:0 0 8px var(--good,#3df58b);}
 .cb-ev-dot[data-k="cosmetic_equip"]{background:var(--purple,#b14aff);box-shadow:0 0 8px var(--purple,#b14aff);}
 .cb-ev-dot[data-k="prize_redeem"]{background:var(--pink,#ff2d95);box-shadow:0 0 8px var(--pink,#ff2d95);}
+/* Phase 2f — live room-event feed announcements (display-only, amber) */
+.cb-ev-dot[data-k="room_event_started"]{background:#ffb45d;box-shadow:0 0 8px #ffb45d;}
+.cb-ev-dot[data-k="room_event_ended"]{background:#8a83b8;box-shadow:0 0 8px #8a83b8;}
+.cb-ev-dot[data-k="featured_cabinet_changed"]{background:var(--cyan,#19e3ff);box-shadow:0 0 8px var(--cyan,#19e3ff);}
 
 .cb-feedback{height:32px;display:flex;align-items:center;justify-content:center;
   font-size:12.5px;letter-spacing:.4px;opacity:0;transition:opacity .12s;border-top:1px solid var(--line);}

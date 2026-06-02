@@ -659,6 +659,11 @@ if (params.get('test') === '1') {
     nextRoomEvent: () => nextRoomEvent,
     featuredMachine: () => featuredMachineId,
     requestRoomEvents: () => client.requestRoomEvents(),
+    // Phase 2f: TEST-ONLY event-clock override (dev-gated server-side) to drive live
+    // feed start/end/featured transitions deterministically. `feed` (in state()) reflects
+    // the live room feed; pass null to clear the override.
+    setEventNow: (nowMs) => client.send({ t: '__test_set_event_now', nowMs }),
+    feed: () => myFeed,
   };
 
   // Phase 1k: dynamically load + mount the test-only sample import fixture

@@ -26,7 +26,10 @@ import {
   isJoinableStatus, effectiveStatus, getRoom,
   roomPresenceListPayload, roomDiagnosticsList, HEARTBEAT_SCHEMA_VERSION,
 } from './src/rooms.mjs';
-import { attachRoomEvents, annotateCatalogForRoom, roomEventListPayload } from './src/room-events.mjs';
+import {
+  attachRoomEvents, annotateCatalogForRoom, roomEventListPayload,
+  initialEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition,
+} from './src/room-events.mjs';
 import { checkAdmin, adminEnabled, isAdminOp } from './src/admin.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
@@ -48,9 +51,27 @@ function room(roomId) {
   if (!r) {
     const machines = {};
     for (const machineId of ticketedMachineIds()) machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
-    r = rooms[roomId] = { machines, ticketState: createTicketState(), generation: 0 };
+    r = rooms[roomId] = { machines, ticketState: createTicketState(), generation: 0, eventTracker: initialEventTracker() };
   }
+  if (!r.eventTracker) r.eventTracker = initialEventTracker();
   return r;
+}
+// Phase 2f: TEST-ONLY per-room event-clock override (ms) — the shim is test-only, so it
+// always honours it. Mirrors the DO's roomEventNow()/__test_set_event_now (dev-gated there).
+const eventClockOverride = {}; // roomId -> absolute ms (or undefined)
+const roomEventNow = (roomId) => (eventClockOverride[roomId] != null ? eventClockOverride[roomId] : Date.now());
+
+// Detect + announce room-event start/end/featured transitions for a room (deduped by the
+// per-room tracker), appending a public-safe feed entry per transition + broadcasting it.
+// Idempotent at the same clock — the parity twin of ArcadeRoom.checkAndAnnounceRoomEvents.
+function checkAndAnnounceRoomEvents(roomId) {
+  const part = room(roomId);
+  const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, roomEventNow(roomId));
+  if (!changed) return;
+  part.eventTracker = state;
+  for (const tr of transitions) {
+    broadcastEvent(roomId, pushEvent(roomId, { ...roomEventFeedEntryForTransition(tr), now: Date.now() }));
+  }
 }
 const sockets = new Map(); // ws -> { playerId, roomId }
 
@@ -258,7 +279,7 @@ wss.on('connection', (ws) => {
         send(ws, { t: 'room_left', roomId: bound.roomId });
         return;
       }
-      case 'room_state_request': return void send(ws, roomStatePayload((bound || meta).roomId));
+      case 'room_state_request': { const cr = (bound || meta).roomId; checkAndAnnounceRoomEvents(cr); return void send(ws, roomStatePayload(cr)); }
       case 'occupy_machine': {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         const part = room(bound.roomId); const machine = part.machines[d.machineId];
@@ -290,7 +311,7 @@ wss.on('connection', (ws) => {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         return void send(ws, { t: 'ticket_balance', playerId: bound.playerId, balance: getBalance(room(bound.roomId).ticketState, bound.playerId) });
       }
-      case 'cabinet_catalog_request': { const cr = (bound || meta).roomId; return void send(ws, { t: 'cabinet_catalog', roomId: cr, ...annotateCatalogForRoom(cabinetCatalogPayload(), cr, Date.now()) }); }
+      case 'cabinet_catalog_request': { const cr = (bound || meta).roomId; checkAndAnnounceRoomEvents(cr); return void send(ws, { t: 'cabinet_catalog', roomId: cr, ...annotateCatalogForRoom(cabinetCatalogPayload(), cr, roomEventNow(cr)) }); }
       case 'prize_catalog_request': return void send(ws, { t: 'prize_catalog', ...prizeCatalogPayload() });
       case 'ticket_ledger_request': {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
@@ -357,7 +378,15 @@ wss.on('connection', (ws) => {
       }
       case 'arcade_event_feed_request': return void send(ws, { t: 'arcade_event_feed', roomId: (bound || meta).roomId, ...eventFeedPayload(room((bound || meta).roomId).ticketState) });
       // Phase 2e: deterministic, public-safe scheduled room events (read-only).
-      case 'room_events_request': return void send(ws, { t: 'room_events', ...roomEventListPayload((bound || meta).roomId, Date.now()) });
+      case 'room_events_request': { const cr = (bound || meta).roomId; checkAndAnnounceRoomEvents(cr); return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr)) }); }
+      // Phase 2f: TEST-ONLY event-clock override (shim is test-only). Advances the room
+      // event schedule so start/end/featured transitions are deterministically testable.
+      case '__test_set_event_now': {
+        const cr = (bound || meta).roomId;
+        eventClockOverride[cr] = (d.nowMs == null) ? undefined : Number(d.nowMs);
+        checkAndAnnounceRoomEvents(cr);
+        return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr)) });
+      }
       case 'challenge_reward_claim': {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         const { playerId, roomId } = bound; const part = room(roomId);
