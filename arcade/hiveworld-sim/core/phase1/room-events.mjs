@@ -112,6 +112,64 @@ export function publicPresentation(config = DEFAULT_EVENT_PRESENTATION) {
   };
 }
 
+// ===================== v0.9: per-room presentation OVERRIDES =====================
+//
+// SIMULATOR-LOCAL PORT of product Phase 2i. A room can carry a DISPLAY-ONLY override on
+// top of the ctx base presentation (the analog of the product's per-room registry
+// override on top of the env base). The effective config a room presents = base ⊕
+// override. Still no economy/authority/schedule effect — an override only tunes the
+// pre-roll lead + the show flags (the countdown_refresh_ms is a client hint with no
+// simulator analog, surfaced for parity).
+
+/** The tunable presentation keys (the only fields an override may carry). */
+export const PRESENTATION_KEYS = Object.freeze(['preroll_lead_ticks', 'countdown_refresh_ms', 'show_next_event', 'show_featured_chip']);
+
+const isValidNumericOverride = (v) => Number.isFinite(Number(v));
+const isValidBoolOverride = (v) => v === true || v === false || v === 'true' || v === 'false' || v === 0 || v === 1 || v === '0' || v === '1';
+
+/**
+ * PURE: keep only the KNOWN, PRESENT, VALID keys of a raw override. Unknown/empty keys and
+ * keys whose value would not validate are DROPPED, so an invalid override key falls through
+ * to the base rather than being stored as a default.
+ */
+function presentKeys(override) {
+  const out = {};
+  if (override == null || typeof override !== 'object') return out;
+  for (const k of PRESENTATION_KEYS) {
+    if (!(k in override)) continue;
+    const v = override[k];
+    if (v === undefined || v === null || v === '') continue;
+    if ((k === 'preroll_lead_ticks' || k === 'countdown_refresh_ms') && !isValidNumericOverride(v)) continue;
+    if ((k === 'show_next_event' || k === 'show_featured_chip') && !isValidBoolOverride(v)) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
+/**
+ * PURE: sanitize a raw override into the partial that is SAFE TO STORE — only the keys the
+ * operator actually set, each validated/clamped (round-tripped through
+ * resolveEventPresentation). Invalid/unknown keys are dropped, so a bad value can never be
+ * persisted. An empty/garbage override sanitizes to `{}` (i.e. "no override").
+ */
+export function sanitizeEventPresentationOverride(override) {
+  const present = presentKeys(override);
+  const resolved = resolveEventPresentation(present); // fills + validates
+  const out = {};
+  for (const k of Object.keys(present)) out[k] = resolved[k]; // keep only the set keys, clamped
+  return out;
+}
+
+/**
+ * PURE: the EFFECTIVE presentation config for a room = base config with its (sanitized)
+ * override applied on top, re-validated. Missing override keys fall through to the base.
+ * Returns a frozen config (same shape as resolveEventPresentation).
+ */
+export function mergeEventPresentation(base, override) {
+  const b = base || DEFAULT_EVENT_PRESENTATION;
+  return resolveEventPresentation({ ...publicPresentation(b), ...presentKeys(override) });
+}
+
 /** Event lifecycle statuses (public-safe) — identical set to the product. */
 export const EVENT_STATUSES = Object.freeze(['upcoming', 'active', 'ended', 'disabled']);
 
@@ -308,12 +366,20 @@ export function roomEventPublic(roomId, nowTick = 0, config = DEFAULT_EVENT_PRES
 export function attachRoomEvents(presenceList, nowTick = 0, config = DEFAULT_EVENT_PRESENTATION) {
   if (!presenceList || !Array.isArray(presenceList.rooms)) return presenceList;
   const t = Number(nowTick) || 0;
-  const cfg = config || DEFAULT_EVENT_PRESENTATION;
+  // v0.9: `config` may be a per-room RESOLVER `(roomId) => config` (each room reflects its
+  // EFFECTIVE base⊕override config) or a plain config object (backward-compatible with the
+  // v0.5–v0.8 callers). The top-level `presentation` stays the base = resolve(null).
+  const resolve = typeof config === 'function' ? config : () => (config || DEFAULT_EVENT_PRESENTATION);
+  const base = resolve(null) || DEFAULT_EVENT_PRESENTATION;
   return {
     ...presenceList,
     event_ruleset_version: EVENT_RULESET_VERSION,
-    presentation: publicPresentation(cfg),
-    rooms: presenceList.rooms.map((r) => (r && r.room_id ? { ...r, ...roomEventPublic(r.room_id, t, cfg) } : r)),
+    presentation: publicPresentation(base),
+    rooms: presenceList.rooms.map((r) => {
+      if (!r || !r.room_id) return r;
+      const cfg = resolve(r.room_id) || base;
+      return { ...r, ...roomEventPublic(r.room_id, t, cfg), presentation: publicPresentation(cfg) };
+    }),
   };
 }
 

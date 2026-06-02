@@ -369,12 +369,34 @@ export function eventPresentationShowcase({ seed = 'p2h-pres', prerollLeadTicks 
   return { sim, report: sim.report() };
 }
 
+// ── 17. presentationOverrideShowcase (v0.9 per-room presentation overrides) ────────
+// Two rooms observe the SAME pre-roll tick (4 out from window 4). neon-training carries a
+// DISPLAY-ONLY override widening its pre-roll lead to 5 ticks; main-floor stays on the base
+// 2-tick lead. Only neon-training fires `upcoming` — main-floor announces nothing at the
+// same tick. Proves a per-room override changes that room's DISPLAY behaviour ONLY (and in
+// isolation), with no economy/authority/schedule effect. Deterministic + convergent.
+export function presentationOverrideShowcase({ seed = 'p2i-override', overrideLeadTicks = 5 } = {}) {
+  const W = EVENT_WINDOW_TICKS;
+  const sim = new HiveSimulator({ seed, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  const train = sim.addRoom({ id: 'neon-training', name: 'Neon Training' });
+  sim.publish(main.announce(0)); sim.publish(train.announce(0));
+  // neon-training gets a WIDER display-only pre-roll lead; main-floor stays on the base.
+  sim.publish(train.setPresentationOverride({ preroll_lead_ticks: overrideLeadTicks }, 1));
+  // Both observe 4 ticks before window 4. main-floor (base 2-tick lead) → nothing yet;
+  // neon-training (5-tick override lead) → upcoming. Per-room display divergence, same clock.
+  sim.publish(main.observeRoomEvents(4 * W - 4, 2));
+  sim.publish(train.observeRoomEvents(4 * W - 4, 3));
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
   multiRoomIsolation, roomHealthLifecycle, roomRecommendationShowcase, roomEventWindowShowcase,
   roomEventFeedTransitionShowcase, multiRoomEventFeedIsolation, roomEventPrerollShowcase,
-  eventPresentationShowcase,
+  eventPresentationShowcase, presentationOverrideShowcase,
 });
 
 export function runPhase1Scenario(name, opts) {

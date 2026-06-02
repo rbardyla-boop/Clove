@@ -17,7 +17,7 @@ import { redeemPrize, equipCosmetic, unequipCosmetic } from '../phase1/prize.mjs
 import { recordRedemption, claimReward } from '../phase1/challenges.mjs';
 import { appendFeed } from '../phase1/feed.mjs';
 import { isValidRoomId } from '../phase1/rooms.mjs';
-import { initialRoomEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition, eventPresentationFromCtx } from '../phase1/room-events.mjs';
+import { initialRoomEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition, eventPresentationFromCtx, sanitizeEventPresentationOverride, mergeEventPresentation } from '../phase1/room-events.mjs';
 
 function occupantOf(state, roomId, machineId) {
   return state.rooms[roomId]?.machines?.[machineId]?.occupiedBy ?? null;
@@ -119,13 +119,35 @@ export function room_event_transition_check(state, ev, ctx) {
   // Monotonic: a stale/backward observation is a no-op (idempotent convergence).
   if (observeTick < (Number(tracker.last_transition_checked_tick) || -1)) return ok(state);
 
-  // v0.8: the operator-tunable, display-only presentation config from the sim ctx (the
-  // analog of the product DO env). It only changes the pre-roll lead — never the economy.
-  const config = eventPresentationFromCtx(ctx);
+  // v0.8 base config from the sim ctx (env analog) ⊕ v0.9 per-room override stored in this
+  // room's partition. Display-only: the EFFECTIVE config only changes the pre-roll lead —
+  // never the economy or the deterministic schedule. The override is read from the SAME
+  // partition the fold owns, so convergence is free (canonical order is deterministic).
+  const config = mergeEventPresentation(eventPresentationFromCtx(ctx), sub.presentationOverride);
   const { transitions, state: nextTracker } = deriveRoomEventTransitions(tracker, roomId, observeTick, config);
   let next = { ...sub, eventTracker: nextTracker };
   for (const tr of transitions) {
     next = appendFeed(next, roomEventFeedEntryForTransition(tr));
   }
   return ok({ ...state, arcade: withArcadeRoom(state.arcade, roomId, next) });
+}
+
+/**
+ * v0.9: a room sets (or clears) its DISPLAY-ONLY presentation override. Room-authored
+ * (actor_id === room_id), like room_event_transition_check — the live-ops analog of the
+ * product Phase 2i admin set/clear_presentation ops. The payload override is sanitized
+ * (only known + valid keys, clamped; invalid dropped) before it is stored; an empty
+ * sanitized override clears the room back to the base config. Display-only: it never
+ * touches tickets / ledger / inventory / economy / the schedule. Convergent: the canonical
+ * fold applies sets in canonical order; the effective config is read at transition-check.
+ */
+export function room_presentation_override_set(state, ev) {
+  const roomId = ev.room_id || ev.payload?.room_id;
+  if (!isValidRoomId(roomId)) return rej(state, 'unknown_room');
+  if (ev.actor_id !== roomId) return rej(state, 'not_authority');
+  const sanitized = sanitizeEventPresentationOverride(ev.payload?.override);
+  const sub = arcadeRoom(state.arcade, roomId);
+  // Empty sanitized override → clear (null = "no override" = base); else store the partial.
+  const presentationOverride = Object.keys(sanitized).length === 0 ? null : sanitized;
+  return ok({ ...state, arcade: withArcadeRoom(state.arcade, roomId, { ...sub, presentationOverride }) });
 }

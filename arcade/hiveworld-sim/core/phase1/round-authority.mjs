@@ -68,6 +68,9 @@ export function createArcade(generation = 0) {
     // Reset-safe: a room_reset installs a fresh partition via createArcade(generation),
     // so an old event never replays. Public-safe (no actor ids / balances / ledger).
     eventTracker: initialRoomEventTracker(generation),
+    // v0.9: per-room DISPLAY-ONLY presentation override (sanitized partial, or null = none).
+    // The room presents base⊕override. Reset-safe: a fresh partition clears it (back to base).
+    presentationOverride: null,
   };
 }
 

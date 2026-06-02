@@ -61,6 +61,16 @@ export class RoomBaseStation extends HiveNode {
     return this.emit({ eventType: 'room_event_transition_check', sideband: 'weather', roomId: this.id, payload: { room_id: this.id, observe_tick: observeTick }, tick });
   }
 
+  /**
+   * v0.9: set (or clear) this room's DISPLAY-ONLY presentation override (the live-ops analog
+   * of the product Phase 2i set/clear_presentation). The reducer sanitizes the override
+   * (drops invalid/unknown keys); pass `{}` (or an all-invalid override) to clear it back to
+   * the base config. Room-authored (actor_id === room_id). Display-only — no economy effect.
+   */
+  setPresentationOverride(override, tick) {
+    return this.emit({ eventType: 'room_presentation_override_set', sideband: 'weather', roomId: this.id, payload: { room_id: this.id, override }, tick });
+  }
+
   noteHeartbeat(agentId, tick) {
     this.heartbeats[agentId] = tick;
   }

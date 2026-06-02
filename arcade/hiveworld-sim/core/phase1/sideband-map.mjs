@@ -35,6 +35,8 @@ export const PHASE1_EVENT_SIDEBAND = Object.freeze({
   // v0.6 live room-event feed transitions (the observation trigger; the resulting
   // started/ended/featured feed entries are projections appended by the reducer)
   room_event_transition_check: 'weather',
+  // v0.9 per-room display-only presentation override (room-authored live-ops set/clear)
+  room_presentation_override_set: 'weather',
 });
 
 /** Conceptual product-event → sideband mapping (documentation parity). */
@@ -72,6 +74,7 @@ export const ROOM_EVENT_SIDEBAND = Object.freeze({
   room_event_ended:            'weather',    // v0.6: EMITTED room-wide transition
   featured_cabinet_changed:    'discovery',  // v0.6: EMITTED featured-cabinet transition
   room_event_upcoming:         'weather',    // v0.7: EMITTED room-wide pre-roll transition
+  room_presentation_override_set: 'weather', // v0.9: room-authored display-only override set/clear
 });
 
 export function sidebandForRoomEvent(kind) {

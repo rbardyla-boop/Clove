@@ -72,6 +72,10 @@ export const EVENT_SPECS = Object.freeze({
   // weather: a room observes its own scheduled-event window (ambient/time observation);
   // the reducer appends public-safe started/ended/featured_cabinet_changed feed entries.
   room_event_transition_check: { sideband: 'weather' },
+  // ── v0.9 per-room display-only presentation override ────────────────────────
+  // weather: a room sets/clears its display-only presentation override (live-ops analog
+  // of product Phase 2i). The reducer sanitizes + stores it; effective config = base⊕override.
+  room_presentation_override_set: { sideband: 'weather' },
 });
 
 /**

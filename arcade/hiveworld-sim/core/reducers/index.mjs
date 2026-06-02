@@ -64,6 +64,8 @@ export const HANDLERS = Object.freeze({
   room_reset: registry.room_reset,
   // v0.6 live room-event feed transitions
   room_event_transition_check: arcade.room_event_transition_check,
+  // v0.9 per-room display-only presentation override (live-ops analog of Phase 2i)
+  room_presentation_override_set: arcade.room_presentation_override_set,
 });
 
 export function getHandler(eventType) {

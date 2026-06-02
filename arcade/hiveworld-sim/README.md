@@ -16,16 +16,18 @@ are isolated per room — mirroring the per-room product Durable Objects. It
 **mirrors** the product; it never bridges into the production Worker/DO and is
 never deployed.
 
-**v0.3–v0.8 — Phase 2 parity:** room presence health (v0.3), smart-lobby presence
+**v0.3–v0.9 — Phase 2 parity:** room presence health (v0.3), smart-lobby presence
 UX (v0.4), deterministic scheduled room events + featured-cabinet annotations
 (v0.5), **live room-event feed transitions** (v0.6), **pre-roll "upcoming"
-announcements** (v0.7), and **operator-tunable event presentation** (v0.8). v0.6
-emits `room_event_started` / `room_event_ended` / `featured_cabinet_changed` via a
-`room_event_transition_check` fabric event + a deduped per-room transition tracker;
-v0.7 adds `room_event_upcoming` (a pre-roll when the next event is within
-`PREROLL_LEAD_TICKS` of starting); v0.8 makes the presentation operator-tunable
-(validated config via the sim ctx — pre-roll lead, show flags, public `presentation`
-payload) — the tick-clocked mirror of product Phase 2f / 2g / 2h.
+announcements** (v0.7), **operator-tunable event presentation** (v0.8), and
+**live-ops per-room presentation overrides** (v0.9). v0.6 emits `room_event_started`
+/ `room_event_ended` / `featured_cabinet_changed` via a `room_event_transition_check`
+fabric event + a deduped per-room transition tracker; v0.7 adds `room_event_upcoming`
+(a pre-roll when the next event is within `PREROLL_LEAD_TICKS` of starting); v0.8 makes
+the presentation operator-tunable (validated config via the sim ctx — pre-roll lead,
+show flags, public `presentation` payload); v0.9 adds a per-room display-only override
+(effective = ctx base ⊕ override) via a room-authored `room_presentation_override_set`
+fabric event — the tick-clocked mirror of product Phase 2f / 2g / 2h / 2i.
 
 Full write-ups: [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
 · [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
