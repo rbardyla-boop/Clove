@@ -230,7 +230,10 @@
 /* Phase 2g — pre-roll: the next event is starting soon (amber-gold, slightly louder) */
 .lr-event-next.lr-event-preroll {
   color: #ffd45d; font-weight: 700; font-variant-numeric: tabular-nums;
+  /* Phase 2h — gentle pulse polish (reduced-motion safe via the @media block below) */
+  animation: prerollPulseLobby 2s ease-in-out infinite;
 }
+@keyframes prerollPulseLobby { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
 
 .lr-activity {
   font: 700 9px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.6px;
@@ -263,6 +266,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .lobby-room, .lr-join, .room-chip, .lr-health, .lr-profile, .lr-reco, .lr-activity { transition: none; }
+  .lr-event-next.lr-event-preroll { animation: none; }
 }
 @media (max-width: 480px) {
   .lobby-panel { padding: 14px; }

@@ -34,6 +34,7 @@ import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMet
 import {
   annotateCatalogForRoom, roomEventListPayload,
   initialEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition,
+  eventPresentationFromEnv,
 } from "./room-events.mjs";
 
 export interface MachineState {
@@ -77,6 +78,9 @@ export class ArcadeRoom implements DurableObject {
   // schedule derivation (started/ended/featured transitions) — never ticket/round
   // authority, balances, or any economy. In-memory (not persisted).
   private eventClockOverride: number | null = null;
+  // Phase 2h: the operator-tunable, display-only event presentation config, resolved
+  // once from env (validated + clamped in room-events.mjs). Never affects economy.
+  private eventConfigCache: ReturnType<typeof eventPresentationFromEnv> | null = null;
 
   constructor(
     private readonly ctx: DurableObjectState,
@@ -328,7 +332,7 @@ export class ArcadeRoom implements DurableObject {
       case "arcade_event_feed_request": { this.send(ws, { t: "arcade_event_feed", roomId: this.socketRoom(ws), ...eventFeedPayload(this.room(this.socketRoom(ws)).ticketState) }); break; }
       // Phase 2e: deterministic, public-safe scheduled room events (current/next +
       // one-rotation schedule). Read-only — the client cannot set or trigger events.
-      case "room_events_request": { const cr = this.socketRoom(ws); await this.checkAndAnnounceRoomEvents(cr); this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow()) }); break; }
+      case "room_events_request": { const cr = this.socketRoom(ws); await this.checkAndAnnounceRoomEvents(cr); this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow(), this.eventConfig()) }); break; }
       // Phase 2f: TEST-ONLY event-clock override (dev/test gate only) — advances the
       // room-event schedule so start/end/featured transitions are deterministically
       // testable without waiting real minutes. Rejected unless ENVIRONMENT==="development".
@@ -337,7 +341,7 @@ export class ArcadeRoom implements DurableObject {
           const cr = this.socketRoom(ws);
           this.eventClockOverride = (data.nowMs == null) ? null : Number(data.nowMs);
           await this.checkAndAnnounceRoomEvents(cr);
-          this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow()) });
+          this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow(), this.eventConfig()) });
         }
         break;
       }
@@ -609,6 +613,12 @@ export class ArcadeRoom implements DurableObject {
     return this.eventClockOverride ?? Date.now();
   }
 
+  /** The operator-tunable event presentation config (resolved + cached from env). */
+  private eventConfig(): ReturnType<typeof eventPresentationFromEnv> {
+    if (!this.eventConfigCache) this.eventConfigCache = eventPresentationFromEnv(this.env);
+    return this.eventConfigCache;
+  }
+
   /**
    * Detect room-event start/end/featured transitions for `roomId` as of roomEventNow(),
    * append a public-safe feed entry per transition (deduped by the per-room tracker), and
@@ -617,7 +627,7 @@ export class ArcadeRoom implements DurableObject {
    */
   private async checkAndAnnounceRoomEvents(roomId: string): Promise<void> {
     const part = this.room(roomId);
-    const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, this.roomEventNow());
+    const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, this.roomEventNow(), this.eventConfig());
     if (!changed) return;
     part.eventTracker = state;
     const now = Date.now();
@@ -807,4 +817,9 @@ interface Env {
   // Phase 2f: gates the TEST-ONLY event-clock override. "development" in dev/wrangler
   // dev (wrangler.toml [vars]); a production deploy sets it otherwise → override OFF.
   ENVIRONMENT?: string;
+  // Phase 2h: operator-tunable, display-only event presentation (validated in room-events.mjs).
+  EVENT_PREROLL_LEAD_MS?: string;
+  EVENT_COUNTDOWN_REFRESH_MS?: string;
+  EVENT_SHOW_NEXT?: string;
+  EVENT_SHOW_FEATURED?: string;
 }
