@@ -67,6 +67,9 @@ export function validateManifest(manifest, opts = {}) {
 
   // entry path + assets must be arcade-local
   if (!underAllowedRoot(manifest.entry_file)) errors.push('entry_file_outside_allowed_root');
+  if (manifest.adapter_module != null && (!underAllowedRoot(manifest.adapter_module) || !ALLOWED_SCRIPT_EXT.some((e) => manifest.adapter_module.endsWith(e)))) {
+    errors.push('adapter_module_outside_allowed_root');
+  }
   for (const s of (Array.isArray(manifest.scripts) ? manifest.scripts : [])) {
     if (!underAllowedRoot(s) || !ALLOWED_SCRIPT_EXT.some((e) => s.endsWith(e))) errors.push(`unsupported_script:${s}`);
   }

@@ -16,7 +16,7 @@ const params = new URLSearchParams(location.search);
 const DEBUG = params.get('frameDebug') === '1';
 const EXPOSE = DEBUG || params.get('test') === '1';
 
-export function createCabinetFrame(gameId, { onLeave = () => {} } = {}) {
+export function createCabinetFrame(gameId, { onLeave = () => {}, onResize = null } = {}) {
   const contract = getContract(gameId);
   if (!contract) throw new Error(`No frame contract for game "${gameId}"`);
   // Fail loudly in dev/test if a clone silently changed the native size.
@@ -98,6 +98,8 @@ export function createCabinetFrame(gameId, { onLeave = () => {} } = {}) {
     overlay.style.setProperty('--game-letterbox-x', r.letterboxX + 'px');
     overlay.style.setProperty('--game-letterbox-y', r.letterboxY + 'px');
     if (DEBUG) renderDebug();
+    // Phase 1k: notify the adapter runtime so it can route the onResize lifecycle hook.
+    if (typeof onResize === 'function') { try { onResize({ ...geom }); } catch { /* hook errors never break the frame */ } }
   }
 
   function renderDebug() {

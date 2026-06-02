@@ -7,6 +7,7 @@
  * contract resolver. See manifest.mjs.
  */
 import { sampleImportContract } from './manifest.mjs';
+import { createSampleImportGame } from './sample-game.mjs';
 
 /** Contract resolver for tests (the fixture's contract is intentionally not in the production registry). */
 export function sampleContractResolver(id) {
@@ -31,3 +32,8 @@ export const sampleImportAdapter = Object.freeze({
   capabilities: Object.freeze({ tickets: false, challenges: false, prizes: false }),
   clonePolicy: 'preserve_original_size',
 });
+
+// ── Import-loader contract: an imported adapter module exports { adapter, contract, createGame } ──
+export const adapter = sampleImportAdapter;
+export const contract = sampleImportContract;
+export function createGame() { return createSampleImportGame(); }

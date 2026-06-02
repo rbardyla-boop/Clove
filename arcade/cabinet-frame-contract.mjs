@@ -89,12 +89,35 @@ export const GAME_CONTRACTS = Object.freeze({
   }),
 });
 
+// Phase 1k: dynamically-registered contracts for imported/test games. Production
+// contracts in GAME_CONTRACTS are immutable and can never be overridden here.
+const _dynamicContracts = new Map(); // game_id -> contract
+
 export function getContract(gameId) {
-  return GAME_CONTRACTS[gameId] || null;
+  return GAME_CONTRACTS[gameId] || _dynamicContracts.get(gameId) || null;
+}
+
+/**
+ * Register a frame contract for an imported/test game at runtime. Validates the
+ * contract and REFUSES to override any built-in production contract. Returns
+ * { ok, reason }.
+ */
+export function registerContract(contract) {
+  if (!contract || typeof contract.game_id !== 'string' || !contract.game_id) return { ok: false, reason: 'bad_contract' };
+  if (GAME_CONTRACTS[contract.game_id]) return { ok: false, reason: 'cannot_override_builtin' };
+  const v = validateContract(contract);
+  if (!v.ok) return { ok: false, reason: 'invalid_contract', errors: v.errors };
+  _dynamicContracts.set(contract.game_id, contract);
+  return { ok: true, reason: null };
+}
+
+/** Test helper: drop a dynamically-registered contract (never affects built-ins). */
+export function unregisterContract(gameId) {
+  return _dynamicContracts.delete(gameId);
 }
 
 export function listContracts() {
-  return Object.values(GAME_CONTRACTS);
+  return [...Object.values(GAME_CONTRACTS), ..._dynamicContracts.values()];
 }
 
 function isPosInt(n) {

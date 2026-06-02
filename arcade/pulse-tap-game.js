@@ -27,7 +27,7 @@ const MAX_SCALE = 1.0; // pulse start size (× base ring)
 const END_SCALE = 0.18; // pulse end size
 const TARGET_SCALE = 0.4; // fixed target ring
 
-export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {} } = {}) {
+export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {}, onResize = null } = {}) {
   let root = null;   // the .ptg-panel, mounted inside the cabinet frame
   let frame = null;  // cabinet frame runtime (owns the modal overlay + scaling)
   let raf = 0;
@@ -92,7 +92,7 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
         <div class="ptg-feedback" data-f="fb"></div>`;
 
     // Mount the panel inside the cabinet frame (preserves native size + aspect).
-    frame = createCabinetFrame('pulse_tap', { onLeave });
+    frame = createCabinetFrame('pulse_tap', { onLeave, onResize });
     frame.mount(root);
 
     root.addEventListener('click', (e) => {
