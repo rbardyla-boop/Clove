@@ -29,6 +29,13 @@ export class NeonCircuitRoomClient {
     this.onDenied = options.onDenied || (() => {});
     this.onError = options.onError || (() => {});
     this.onConnected = options.onConnected || (() => {});
+    // Phase 1e ticket-flow callbacks
+    this.onRoundStarted = options.onRoundStarted || (() => {});
+    this.onRoundAccepted = options.onRoundAccepted || (() => {});
+    this.onRoundRejected = options.onRoundRejected || (() => {});
+    this.onTicketBalance = options.onTicketBalance || (() => {});
+    this.onTicketAwarded = options.onTicketAwarded || (() => {});
+    this.onTicketState = options.onTicketState || (() => {});
 
     this.ws = null;
     this.roomId = "main";
@@ -77,6 +84,8 @@ export class NeonCircuitRoomClient {
         });
         this.startHeartbeat();
         this.onConnected({ playerId: this.playerId });
+        // Reconnect support: pull authoritative ticket balance + cabinet state.
+        this.requestTicketBalance();
       };
 
       this.ws.onmessage = (event) => {
@@ -160,6 +169,30 @@ export class NeonCircuitRoomClient {
         this.onError(msg);
         break;
       }
+      case "pulse_round_started": {
+        this.onRoundStarted(msg);
+        break;
+      }
+      case "pulse_round_accepted": {
+        this.onRoundAccepted(msg);
+        break;
+      }
+      case "pulse_round_rejected": {
+        this.onRoundRejected(msg);
+        break;
+      }
+      case "ticket_balance": {
+        this.onTicketBalance(msg);
+        break;
+      }
+      case "ticket_awarded": {
+        this.onTicketAwarded(msg);
+        break;
+      }
+      case "ticket_state": {
+        this.onTicketState(msg);
+        break;
+      }
     }
   }
 
@@ -184,6 +217,28 @@ export class NeonCircuitRoomClient {
       t: "release_machine",
       machineId,
     });
+  }
+
+  // ==================== Phase 1e: server-authoritative tickets ====================
+
+  /** Ask the server to register a new Pulse Tap round and issue a round id. */
+  startPulseRound(machineId = "pulse") {
+    this.send({ t: "pulse_round_start", machineId });
+  }
+
+  /**
+   * Submit a finished round for server validation + ticket award.
+   * `result` must include { roundId, machineId, score, accuracy, grade, hits, bestStreak, durationMs }.
+   * Any client-side ticket estimate is intentionally NOT sent as authoritative —
+   * the server computes the final award and replies with pulse_round_accepted.
+   */
+  submitPulseRound(result) {
+    this.send({ t: "pulse_round_submit", ...result });
+  }
+
+  /** Request the current authoritative ticket balance for this session. */
+  requestTicketBalance() {
+    this.send({ t: "ticket_balance_request" });
   }
 
   getCurrentMachineState(machineId = "pulse") {

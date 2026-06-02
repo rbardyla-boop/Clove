@@ -1,20 +1,25 @@
 /**
  * ArcadeRoom — Neon Circuit Room Authority (Durable Object)
  *
- * Phase 1b scope ONLY:
- * - One room ("main")
- * - One machine ("pulse")
- * - Authoritative occupancy state that survives hibernation
- * - WebSocket Hibernation API (clients stay connected while DO sleeps)
- * - Alarm used ONLY for stale lock cleanup, never for routine socket closing
+ * Authority for the "main" room:
+ * - Phase 1b: authoritative cabinet occupancy (one occupant, monotonic rev,
+ *   stale-lock timeout) surviving hibernation via the WebSocket Hibernation API.
+ * - Phase 1e: server-authoritative Pulse Tap tickets + rounds, delegated to the
+ *   pure ./round-authority.mjs state machine. Occupancy authority is unchanged.
  *
- * Non-goals (explicitly out of scope):
- * - No blockchain / hash chain
- * - No browser P2P mesh
- * - No tickets, scoring, economy, or gameplay
- * - No multiple rooms or zones
- * - No player profiles or long-term history
+ * Scope + non-goals: docs/NEON_CIRCUIT_PHASE1E_SERVER_TICKETS.md
+ * (internal session/room-scoped points only; no external economy).
  */
+
+import {
+  createTicketState,
+  ensureTicketState,
+  startRound,
+  submitRound,
+  expirePlayerRounds,
+  getBalance,
+  pruneExpired,
+} from "./round-authority.mjs";
 
 export interface MachineState {
   machineId: string;      // "pulse"
@@ -23,10 +28,18 @@ export interface MachineState {
   rev: number;
 }
 
+export interface TicketState {
+  balances: Record<string, number>;
+  rounds: Record<string, any>;
+  submitted: Record<string, boolean>;
+  lastPublic: any;
+}
+
 export interface RoomState {
   roomId: string;
   machines: Record<string, MachineState>;
   lastActivity: number;
+  ticketState: TicketState;
 }
 
 const MACHINE_ID = "pulse";
@@ -68,6 +81,7 @@ export class ArcadeRoom implements DurableObject {
         },
       },
       lastActivity: Date.now(),
+      ticketState: createTicketState(),
     };
   }
 
@@ -100,6 +114,9 @@ export class ArcadeRoom implements DurableObject {
         this.roomState = this.createInitialState();
         await this.ctx.storage.put("roomState", this.roomState);
       }
+
+      // Migration-safe: older stored rooms predate tickets.
+      this.roomState.ticketState = ensureTicketState(this.roomState.ticketState);
     });
 
     // Schedule the stale lock cleanup alarm the first time we initialize
@@ -161,6 +178,18 @@ export class ArcadeRoom implements DurableObject {
         await this.handleHeartbeat(ws, playerId);
         break;
       }
+      case "pulse_round_start": {
+        await this.handlePulseRoundStart(ws, data);
+        break;
+      }
+      case "pulse_round_submit": {
+        await this.handlePulseRoundSubmit(ws, data);
+        break;
+      }
+      case "ticket_balance_request": {
+        await this.handleTicketBalanceRequest(ws);
+        break;
+      }
       default: {
         this.sendError(ws, "unknown_type", `Unknown message type: ${data.t}`);
       }
@@ -181,6 +210,9 @@ export class ArcadeRoom implements DurableObject {
     if (machine.occupiedBy === playerId) {
       await this.releaseMachineInternal(playerId, "disconnect");
     }
+
+    // Disconnect always invalidates the player's active round (idempotent).
+    this.roomState.ticketState = expirePlayerRounds(this.roomState.ticketState, playerId);
 
     // Broadcast updated state to remaining clients
     await this.broadcastRoomState();
@@ -221,6 +253,10 @@ export class ArcadeRoom implements DurableObject {
       machines: this.roomState.machines,
       rev: this.roomState.machines[MACHINE_ID].rev,
     });
+
+    // Reconnect support: hand the joiner its authoritative ticket balance + public cabinet state.
+    this.send(ws, { t: "ticket_balance", playerId, balance: getBalance(this.roomState.ticketState, playerId) });
+    this.sendTicketState(ws);
   }
 
   private async handleOccupy(
@@ -320,6 +356,113 @@ export class ArcadeRoom implements DurableObject {
     await this.persistState();
   }
 
+  // ==================== Ticket / Round Authority (Phase 1e) ====================
+
+  private currentOccupant(): string | null {
+    return this.roomState.machines[MACHINE_ID].occupiedBy;
+  }
+
+  private async handlePulseRoundStart(ws: WebSocket, data: any): Promise<void> {
+    const meta = this.sockets.get(ws);
+    const playerId = meta?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    const machineId = data.machineId;
+    const roundId = `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const res = startRound(this.roomState.ticketState, {
+      machineId,
+      occupantId: this.currentOccupant(),
+      playerId,
+      roundId,
+      now: Date.now(),
+    });
+    this.roomState.ticketState = res.state;
+    if (!res.ok) {
+      this.send(ws, { t: "pulse_round_rejected", machineId, reason: res.reason });
+      return;
+    }
+    await this.persistState();
+    this.send(ws, { t: "pulse_round_started", roomId: ROOM_ID, ...res.started });
+  }
+
+  private async handlePulseRoundSubmit(ws: WebSocket, data: any): Promise<void> {
+    const meta = this.sockets.get(ws);
+    const playerId = meta?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    // senderId is the SOCKET's identity, never a client-supplied field.
+    const res = submitRound(this.roomState.ticketState, {
+      payload: data,
+      senderId: playerId,
+      occupantId: this.currentOccupant(),
+      now: Date.now(),
+    });
+    this.roomState.ticketState = res.state;
+    if (!res.ok) {
+      this.send(ws, { t: "pulse_round_rejected", roundId: data.roundId, machineId: data.machineId, reason: res.reason });
+      return;
+    }
+    await this.persistState();
+    // Private to the owner: round accepted + authoritative balance.
+    this.send(ws, {
+      t: "pulse_round_accepted",
+      roundId: data.roundId,
+      machineId: data.machineId,
+      awarded: res.awarded,
+      balance: res.balance,
+      grade: data.grade,
+      score: data.score,
+    });
+    this.send(ws, { t: "ticket_balance", playerId, balance: res.balance });
+    // Public broadcast: who won how many (no private balance) + cabinet/last-score state.
+    this.broadcast({ t: "ticket_awarded", roomId: ROOM_ID, ...res.publicAward });
+    this.broadcastTicketState();
+  }
+
+  private async handleTicketBalanceRequest(ws: WebSocket): Promise<void> {
+    const meta = this.sockets.get(ws);
+    const playerId = meta?.playerId;
+    if (!playerId) {
+      this.sendError(ws, "no_identity", "Must join with playerId first");
+      return;
+    }
+    this.send(ws, { t: "ticket_balance", playerId, balance: getBalance(this.roomState.ticketState, playerId) });
+  }
+
+  private ticketStatePayload(): Record<string, unknown> {
+    const machine = this.roomState.machines[MACHINE_ID];
+    const lp = this.roomState.ticketState.lastPublic;
+    return {
+      t: "ticket_state",
+      roomId: ROOM_ID,
+      machineId: MACHINE_ID,
+      occupied: machine.occupiedBy !== null,
+      occupiedBy: machine.occupiedBy,
+      lastScore: lp ? lp.score : null,
+      lastGrade: lp ? lp.grade : null,
+      lastAwardBy: lp ? lp.playerId : null,
+      lastAwardAmount: lp ? lp.awarded : null,
+    };
+  }
+
+  private sendTicketState(ws: WebSocket): void {
+    this.send(ws, this.ticketStatePayload());
+  }
+
+  private broadcastTicketState(): void {
+    this.broadcast(this.ticketStatePayload());
+  }
+
+  private broadcast(payload: unknown): void {
+    for (const ws of this.sockets.keys()) {
+      this.send(ws, payload);
+    }
+  }
+
   // ==================== Internal Authority Logic ====================
 
   private async releaseMachineInternal(requester: string, reason: string): Promise<void> {
@@ -333,8 +476,12 @@ export class ArcadeRoom implements DurableObject {
     machine.occupiedSince = null;
     machine.rev += 1;
 
+    // Releasing the cabinet invalidates any active round the holder had open.
+    this.roomState.ticketState = expirePlayerRounds(this.roomState.ticketState, requester);
+
     await this.persistState();
     await this.broadcastRoomState();
+    this.broadcastTicketState();
   }
 
   private async broadcastRoomState(): Promise<void> {
@@ -382,18 +529,27 @@ export class ArcadeRoom implements DurableObject {
 
       // If the occupant has no recent heartbeat (or no active socket), release
       if (occupantLastSeen === 0 || now - occupantLastSeen > STALE_LOCK_MS) {
+        const staleOccupant = machine.occupiedBy;
         machine.occupiedBy = null;
         machine.occupiedSince = null;
         machine.rev += 1;
+
+        // Stale-lock release also invalidates that occupant's active round.
+        if (staleOccupant) this.roomState.ticketState = expirePlayerRounds(this.roomState.ticketState, staleOccupant);
 
         await this.persistState();
 
         // Only broadcast if there are still active sockets
         if (this.sockets.size > 0) {
           await this.broadcastRoomState();
+          this.broadcastTicketState();
         }
       }
     }
+
+    // Always prune fully-elapsed rounds so ticket state stays bounded.
+    this.roomState.ticketState = pruneExpired(this.roomState.ticketState, now);
+    await this.persistState();
 
     // Always reschedule the cleanup alarm (never close healthy sockets)
     this.scheduleStaleLockAlarm();
