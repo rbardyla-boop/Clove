@@ -3,17 +3,12 @@
    Reuses the :root design variables from neon-circuit.css.
    Local session feedback only — no economy UI.
    ============================================================ */
-.ptg-overlay{position:fixed;inset:0;z-index:80;display:none;
-  background:rgba(6,3,14,.86);backdrop-filter:blur(10px);
-  align-items:center;justify-content:center;
-  padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));}
-.ptg-overlay.show{display:flex;animation:ptg-fade .2s ease;}
-@keyframes ptg-fade{from{opacity:0;}to{opacity:1;}}
-
-.ptg-panel{width:min(560px,100%);display:flex;flex-direction:column;overflow:hidden;
+/* Phase 1i: the cabinet frame (cabinet-frame.css) owns the modal overlay and
+   native-size scaling. The panel now fills the native 360x640 stage. */
+.ptg-panel{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;
   background:linear-gradient(180deg,var(--panel-2),var(--panel));
-  border:1.5px solid var(--line-strong);border-radius:var(--r-lg);
-  box-shadow:0 0 50px -10px var(--ptg-accent);}
+  border:1.5px solid var(--line-strong);border-radius:0;
+  box-shadow:inset 0 0 60px -20px var(--ptg-accent);}
 
 .ptg-head{display:flex;align-items:center;justify-content:space-between;
   padding:14px 18px;border-bottom:1px solid var(--line);}
@@ -29,7 +24,7 @@
 .ptg-cell .k{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
 .ptg-cell .v{font-family:var(--font-display);font-size:18px;color:#fff;font-variant-numeric:tabular-nums;}
 
-.ptg-stage{position:relative;height:min(340px,52vh);display:grid;place-items:center;cursor:pointer;
+.ptg-stage{position:relative;flex:1;min-height:0;display:grid;place-items:center;cursor:pointer;
   overflow:hidden;background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.03), transparent 60%);}
 .ptg-target,.ptg-pulse{position:absolute;left:50%;top:50%;width:260px;height:260px;border-radius:50%;
   will-change:transform;}
@@ -66,7 +61,7 @@
 .ptg-feedback.good{color:var(--cyan);}
 .ptg-feedback.miss{color:var(--danger);}
 
-@media (prefers-reduced-motion:reduce){.ptg-overlay.show{animation:none;}}
+/* (reduced-motion for the modal is handled by the cabinet frame) */
 
 /* Phase 1e — server-authoritative ticket award states */
 .ptg-award { margin-top: 10px; font-size: 14px; letter-spacing: .4px; min-height: 18px; font-weight: 600; }

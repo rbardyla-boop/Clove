@@ -9,7 +9,7 @@
  * GUARDRAILS (by design):
  *  - Local session feedback ONLY — the round result is sent to the room
  *    authority for server-side validation + ticket award; nothing else leaves.
- *  - Tickets are SERVER-authoritative: this module never finalizes a payout.
+ *  - Tickets are SERVER-authoritative: this module never finalizes a ticket award.
  *  - Arcade points only — no money, no crypto, no transferable goods.
  *
  * createSignalSprintGame({ accent, onLeave, onRoundStart, onRoundSubmit })
@@ -17,7 +17,12 @@
  *
  * Mirrors the createPulseTapGame() floor interface so the floor wires both
  * cabinets the same way.
+ *
+ * Phase 1i: the panel is mounted inside a Cabinet Frame that preserves the
+ * game's native logical size (360x640) and uniformly scales it to fit.
  */
+import { createCabinetFrame } from './cabinet-frame.js';
+
 const ROUND_MS = 25000;
 const LANES = 3;
 const SPAWN_MS_START = 620;
@@ -27,7 +32,8 @@ const SCROLL_PX_MAX = 430;
 const HIT_BAND = 7;            // ± % of stage height where the rider collects
 
 export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {} } = {}) {
-  let root = null;
+  let root = null;   // the .ssg-panel, mounted inside the cabinet frame
+  let frame = null;  // cabinet frame runtime (owns the modal overlay + scaling)
   let raf = 0;
   let isOpen = false;
 
@@ -48,11 +54,14 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
   const screen = (name) => root.querySelector(`[data-screen="${name}"]`);
 
   function build() {
+    // The panel IS the root now; the cabinet frame owns the modal overlay and
+    // scales this panel uniformly within the declared native box (360x640).
     root = document.createElement('div');
-    root.className = 'ssg-overlay';
+    root.className = 'ssg-panel';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-label', 'Signal Sprint mini-game');
     root.style.setProperty('--ssg-accent', accent);
     root.innerHTML = `
-      <div class="ssg-panel" role="dialog" aria-label="Signal Sprint mini-game">
         <div class="ssg-head">
           <div class="ssg-title">SIGNAL <span>SPRINT</span></div>
           <button class="ssg-leave" type="button" data-act="leave">✕ Leave</button>
@@ -91,9 +100,11 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
           <button class="ssg-pad" type="button" data-act="left" aria-label="Steer left">◀</button>
           <button class="ssg-pad" type="button" data-act="right" aria-label="Steer right">▶</button>
         </div>
-        <div class="ssg-feedback" data-f="fb"></div>
-      </div>`;
-    document.body.appendChild(root);
+        <div class="ssg-feedback" data-f="fb"></div>`;
+
+    // Mount the panel inside the cabinet frame (preserves native size + aspect).
+    frame = createCabinetFrame('signal_sprint', { onLeave });
+    frame.mount(root);
 
     buildLaneGuides();
 
@@ -313,7 +324,7 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
       $('fb').className = 'ssg-feedback';
       setBalanceUI(ticketBalance);
       setAward('', '—');
-      root.classList.add('show');
+      frame.open(); // the cabinet frame shows the modal + applies native-size scaling
     },
     close() {
       if (!root || !isOpen) return;
@@ -321,7 +332,7 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
       phase = 'ready';
       cancelAnimationFrame(raf);
       clearEntities();
-      root.classList.remove('show');
+      frame.close();
     },
     isOpen() {
       return isOpen;
