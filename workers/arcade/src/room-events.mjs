@@ -34,6 +34,14 @@ export const EVENT_RULESET_VERSION = 'arcade-events/1';
  */
 export const EVENT_WINDOW_MS = 20 * 60 * 1000; // 20 minutes
 
+/**
+ * Phase 2g: how long BEFORE the next event begins it is announced as "upcoming"
+ * (pre-roll). When the next event is within this lead of starting, the room feed gets a
+ * one-time `room_event_upcoming` announcement and the lobby/floor show a live countdown.
+ * Display-only — no reward, no ticket change. Tests inject a fake `now`.
+ */
+export const PREROLL_LEAD_MS = 2 * 60 * 1000; // 2 minutes
+
 /** All event lifecycle statuses (public-safe). */
 export const EVENT_STATUSES = Object.freeze(['upcoming', 'active', 'ended', 'disabled']);
 
@@ -218,12 +226,15 @@ export function roomEventPublic(roomId, now = Date.now()) {
   const t = Number(now) || 0;
   const current = getCurrentRoomEvent(roomId, t);
   const next = getNextRoomEvent(roomId, t);
+  const startsInMs = next ? Math.max(0, next.starts_at - t) : null;
   return {
     current_event: current,
     next_event: next,
     event_ends_in_ms: current ? Math.max(0, current.ends_at - t) : null,
-    event_starts_in_ms: next ? Math.max(0, next.starts_at - t) : null,
+    event_starts_in_ms: startsInMs,
     featured_cabinet_id: current ? current.featured_cabinet_id : null,
+    // Phase 2g: the next event is within the pre-roll lead (drives the live countdown).
+    event_upcoming: !!next && next.starts_at > t && (next.starts_at - t) <= PREROLL_LEAD_MS,
   };
 }
 
@@ -248,12 +259,18 @@ export function attachRoomEvents(presenceList, now = Date.now()) {
  */
 export function roomEventListPayload(roomId, now = Date.now()) {
   const t = Number(now) || 0;
+  const current = getCurrentRoomEvent(roomId, t);
+  const next = getNextRoomEvent(roomId, t);
   return {
     room_id: roomId,
     event_ruleset_version: EVENT_RULESET_VERSION,
-    current_event: getCurrentRoomEvent(roomId, t),
-    next_event: getNextRoomEvent(roomId, t),
+    current_event: current,
+    next_event: next,
     schedule: getRoomEventSchedule(roomId, t),
+    // Phase 2g: pre-roll countdown info so the floor can render "up next in …".
+    event_ends_in_ms: current ? Math.max(0, current.ends_at - t) : null,
+    event_starts_in_ms: next ? Math.max(0, next.starts_at - t) : null,
+    event_upcoming: !!next && next.starts_at > t && (next.starts_at - t) <= PREROLL_LEAD_MS,
   };
 }
 
@@ -296,11 +313,12 @@ export function annotateCatalogForRoom(catalogPayload, roomId, now = Date.now())
 // Display-only: a transition carries NO economy and NO private data — only the public
 // event id / name / featured cabinet. No reward, no multiplier, no balance, no ledger.
 
-/** Transition kinds → public feed event types (the only three Phase 2f feed types). */
+/** Transition kinds → public feed event types (Phase 2f + the Phase 2g pre-roll). */
 export const ROOM_EVENT_FEED_TYPES = Object.freeze({
   started: 'room_event_started',
   ended: 'room_event_ended',
   featured_changed: 'featured_cabinet_changed',
+  upcoming: 'room_event_upcoming',
 });
 
 /** PURE: the initial, empty per-room transition tracker (public-safe). */
@@ -310,6 +328,7 @@ export function initialEventTracker() {
     started_announced_id: null,         // last event id a 'started' was announced for
     ended_announced_id: null,           // last event id an 'ended' was announced for
     featured_announced_event_id: null,  // event id a 'featured_changed' was announced for
+    upcoming_announced_id: null,        // Phase 2g: next event id a pre-roll was announced for
     checked_at: 0,
   };
 }
@@ -328,6 +347,7 @@ function eventSnapshot(event) {
 export function publicRoomEventSummary(transitionType, snap) {
   if (transitionType === 'started') return `${snap.display_name} started.`;
   if (transitionType === 'ended') return `${snap.display_name} ended.`;
+  if (transitionType === 'upcoming') return `${snap.display_name} is up next.`;
   // featured_changed — resolve the featured cabinet's display name (fail-safe).
   const cab = snap.featured_cabinet_id ? getCabinet(snap.featured_cabinet_id) : null;
   return cab ? `${snap.display_name} is now featuring ${cab.display_name}.`
@@ -373,6 +393,7 @@ export function deriveRoomEventTransitions(prevState, roomId, now) {
   let startedAnn = prev.started_announced_id;
   let endedAnn = prev.ended_announced_id;
   let featuredAnn = prev.featured_announced_event_id;
+  let upcomingAnn = prev.upcoming_announced_id ?? null; // ?? null migrates pre-2g trackers
   const activeChanged = prevId !== curId;
 
   // The previously-active event is no longer active → it ended (announce once).
@@ -393,12 +414,20 @@ export function deriveRoomEventTransitions(prevState, roomId, now) {
     transitions.push(makeTransition('featured_changed', eventSnapshot(current), roomId, t));
     featuredAnn = curId;
   }
+  // Phase 2g: the NEXT event begins within the pre-roll lead → announce it as upcoming
+  // (once per next-event window). Display-only; the live countdown is rendered client-side.
+  const next = getNextRoomEvent(roomId, t);
+  if (next && next.starts_at > t && (next.starts_at - t) <= PREROLL_LEAD_MS && upcomingAnn !== next.event_id) {
+    transitions.push(makeTransition('upcoming', eventSnapshot(next), roomId, t));
+    upcomingAnn = next.event_id;
+  }
 
   const state = {
     active: eventSnapshot(current),
     started_announced_id: startedAnn,
     ended_announced_id: endedAnn,
     featured_announced_event_id: featuredAnn,
+    upcoming_announced_id: upcomingAnn,
     checked_at: t,
   };
   return { transitions, state, changed: transitions.length > 0 };

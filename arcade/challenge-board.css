@@ -65,6 +65,8 @@
 .cb-ev-dot[data-k="room_event_started"]{background:#ffb45d;box-shadow:0 0 8px #ffb45d;}
 .cb-ev-dot[data-k="room_event_ended"]{background:#8a83b8;box-shadow:0 0 8px #8a83b8;}
 .cb-ev-dot[data-k="featured_cabinet_changed"]{background:var(--cyan,#19e3ff);box-shadow:0 0 8px var(--cyan,#19e3ff);}
+/* Phase 2g — pre-roll "up next" announcement (amber-gold) */
+.cb-ev-dot[data-k="room_event_upcoming"]{background:#ffd45d;box-shadow:0 0 8px #ffd45d;}
 
 .cb-feedback{height:32px;display:flex;align-items:center;justify-content:center;
   font-size:12.5px;letter-spacing:.4px;opacity:0;transition:opacity .12s;border-top:1px solid var(--line);}
