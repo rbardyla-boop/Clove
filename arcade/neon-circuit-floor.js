@@ -21,7 +21,9 @@ import { createPrizeCounter } from './prize-counter.js';
 import { createChallengeBoard } from './challenge-board.js';
 // Phase 1j: games enter through adapters (which reference the Phase 1i frame
 // contract); the runtime imports the game factories, so the floor does not.
-import { mountAdapter, loadAndMountImported } from './cabinet-adapter-runtime.js';
+// Phase 1l: Neon Grid enters through the dynamic adapter/import path, gated by
+// the server catalog (loadAndActivateImportedCabinet) — not hand-wired here.
+import { mountAdapter, loadAndMountImported, loadAndActivateImportedCabinet } from './cabinet-adapter-runtime.js';
 import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 
 // Powered (playable) cabinets, keyed by their occupancy machine id. The room
@@ -29,6 +31,7 @@ import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 const POWERED = [
   { id: 'pulse',  name: 'PULSE TAP',     ico: '⚡',  color: '#ff2d95' },
   { id: 'signal', name: 'SIGNAL SPRINT', ico: '📡', color: '#19e3ff' },
+  { id: 'grid',   name: 'NEON GRID',     ico: '▦',  color: '#3df58b' }, // Phase 1l: adapter-loaded
 ];
 // Flavour-only "coming soon" cabinets (no authority, cannot be occupied).
 const COMING_SOON = [
@@ -59,6 +62,8 @@ let hintTimer = 0;
 let focused = 'pulse';        // which powered cabinet the interact bar / keyboard targets
 let currentRoundId = null;        // server-issued Pulse Tap round id
 let currentSignalRoundId = null;  // server-issued Signal Sprint round id
+let currentGridRoundId = null;    // server-issued Neon Grid round id (Phase 1l)
+let gridActivationStarted = false; // Neon Grid is activated once, from the server catalog
 let myTickets = 0;            // server-authoritative ticket balance for this session
 let lastReject = null;        // last round-rejection reason (test introspection)
 let myLedger = [];            // private ledger entries (test introspection)
@@ -75,9 +80,12 @@ let lastChallengeReject = null;   // Phase 1h: last challenge claim rejection re
 let lastChallengeReward = null;   // Phase 1h: last challenge reward result
 
 // Per-cabinet authoritative state mirrored from the DO. game is wired below.
+// Neon Grid starts 'unavailable' until the server catalog activates its imported
+// adapter (Phase 1l) — adapter presence alone never makes it playable.
 const cabs = {
   pulse:  { occupiedBy: null, rev: null, el: null, occEl: null, ledEl: null, game: null },
   signal: { occupiedBy: null, rev: null, el: null, occEl: null, ledEl: null, game: null },
+  grid:   { occupiedBy: null, rev: null, el: null, occEl: null, ledEl: null, game: null, adapterState: 'unavailable', controller: null },
 };
 
 // ---- build the cabinet row once (powered first, then coming-soon) ----
@@ -296,18 +304,25 @@ const client = new NeonCircuitRoomClient({
   onSignalRoundStarted: (msg) => { currentSignalRoundId = msg.roundId; },
   onSignalRoundAccepted: (msg) => { myTickets = msg.balance; cabs.signal.game.roundAccepted(msg); renderTickets(); },
   onSignalRoundRejected: (msg) => { lastReject = msg.reason; cabs.signal.game.roundRejected(msg); toast(`round not counted: ${msg.reason}`); },
+  // ---- Neon Grid (Phase 1l, adapter-loaded cabinet) ----
+  onNeonGridRoundStarted: (msg) => { currentGridRoundId = msg.roundId; },
+  onNeonGridRoundAccepted: (msg) => { myTickets = msg.balance; cabs.grid.game?.roundAccepted(msg); renderTickets(); },
+  onNeonGridRoundRejected: (msg) => { lastReject = msg.reason; cabs.grid.game?.roundRejected(msg); toast(`round not counted: ${msg.reason}`); },
   // ---- shared ticket flow ----
   onTicketBalance: (msg) => {
     myTickets = msg.balance;
     cabs.pulse.game.setBalance(msg.balance);
     cabs.signal.game.setBalance(msg.balance);
+    cabs.grid.game?.setBalance(msg.balance);
     prizeCounter?.setBalance(msg.balance);
     renderTickets();
   },
   onTicketAwarded: (msg) => { if (msg.playerId !== myId()) toast(`${shorten(msg.playerId)} won ${msg.awarded} tickets`); },
   onTicketState: () => { /* public cabinet/last-score; occupancy already drives renderFloor */ },
   // ---- Phase 1f: arcade loop (catalog / prizes / cosmetics) ----
-  onCabinetCatalog: (m) => { prizeCounter?.setZones(m.zones || []); },
+  // Phase 1l: the server catalog is the authority that activates Neon Grid — the
+  // imported adapter is only enabled + mounted once the catalog lists it active.
+  onCabinetCatalog: (m) => { prizeCounter?.setZones(m.zones || []); activateNeonGrid(m.cabinets || []); },
   onPrizeCatalog: (m) => { prizeCounter?.setPrizes(m.prizes || []); },
   onInventoryState: (m) => {
     myInventory = m.items || []; myEquips = m.equips || {};
@@ -363,6 +378,61 @@ cabs.signal.game = signalMount.game;
 cabs.signal.adapterState = signalMount.state;
 cabs.signal.controller = signalMount;
 
+// ---- Neon Grid (Phase 1l): the FIRST cabinet activated through the dynamic ----
+// adapter/import path. It is NOT hand-wired like the cabinets above: the server
+// catalog activates it, the import loader validates + enables its adapter, the
+// runtime resolves + mounts it inside its frame, and only then does it become
+// playable. Any failure leaves the tile 'unavailable' (fail closed, no crash).
+async function activateNeonGrid(catalogCabinets) {
+  if (gridActivationStarted) return; // catalog can arrive on every (re)connect
+  gridActivationStarted = true;
+  const cabinet = (catalogCabinets || []).find((c) => c.cabinet_type === 'neon_grid') || null;
+  let res;
+  try {
+    const mod = await import('./cabinets/neon-grid/manifest.mjs');
+    res = await loadAndActivateImportedCabinet(cabinet, mod.neonGridManifest, {
+      // Public server state already drives renderFloor; the lifecycle hook exists
+      // so the runtime can route it (and prove lifecycle routing for an imported,
+      // server-authoritative cabinet).
+      lifecycle: { onServerState: () => {} },
+      // The runtime forwards these game options to the imported factory so the
+      // imported game can drive the server-authoritative round flow.
+      gameOptions: {
+        accent: '#3df58b',
+        onLeave: () => client.release('grid'),
+        onRoundStart: () => client.startNeonGridRound('grid'),
+        onRoundSubmit: (result) => {
+          if (!currentGridRoundId) { cabs.grid.game?.roundRejected({ reason: 'round not registered' }); return; }
+          client.submitNeonGridRound({ roundId: currentGridRoundId, machineId: 'grid', ...result });
+          currentGridRoundId = null; // one submit per server-registered round
+        },
+      },
+    });
+  } catch (e) {
+    res = { ok: false, reason: 'activation_threw' };
+  }
+  if (res && res.ok) {
+    const inner = res.mount.game; // the imported game instance (round/balance hooks)
+    cabs.grid.game = {
+      open: () => res.mount.open(),
+      close: () => res.mount.close(),
+      isOpen: () => { const f = res.mount.getFrame(); return !!(f && f.isOpen()); },
+      setBalance: (n) => inner.setBalance(n),
+      roundAccepted: (m) => inner.roundAccepted(m),
+      roundRejected: (m) => inner.roundRejected(m),
+      getFrame: () => res.mount.getFrame(),
+    };
+    cabs.grid.adapterState = 'playable';
+    cabs.grid.controller = res.mount;
+    cabs.grid.game.setBalance(myTickets);
+  } else {
+    cabs.grid.adapterState = 'unavailable';
+    gridActivationStarted = false; // allow a retry if the catalog had not listed it active yet
+  }
+  if (typeof window !== 'undefined' && window.__neon) window.__neon.adapters.neon_grid = res;
+  renderFloor();
+}
+
 // Phase 1f: Prize Counter panel. It only forwards intent; the server validates,
 // computes cost, and owns balances/inventory.
 prizeCounter = createPrizeCounter({
@@ -389,7 +459,7 @@ for (const c of POWERED) {
 interactKey.addEventListener('click', () => activate(focused));
 interactBtn.addEventListener('click', () => activate(focused));
 addEventListener('keydown', (e) => {
-  if (cabs.pulse.game.isOpen() || cabs.signal.game.isOpen()) return; // while playing, keys belong to the mini-game
+  if (cabs.pulse.game.isOpen() || cabs.signal.game.isOpen() || cabs.grid.game?.isOpen?.()) return; // while playing, keys belong to the mini-game
   if ((e.key === 'e' || e.key === 'E' || e.key === 'Enter') && !e.repeat) {
     e.preventDefault();
     activate(focused);
@@ -420,6 +490,7 @@ if (params.get('test') === '1') {
       playerId: myId(),
       roundId: currentRoundId,
       signalRoundId: currentSignalRoundId,
+      gridRoundId: currentGridRoundId,
       tickets: myTickets,
       balance: myTickets,
       lastReject,
@@ -434,8 +505,9 @@ if (params.get('test') === '1') {
       lastChallengeReject,
       lastChallengeReward,
     }),
-    // Phase 1j/1k: adapter introspection for browser validation.
-    adapters: { pulse_tap: pulseMount, signal_sprint: signalMount },
+    // Phase 1j/1k/1l: adapter introspection for browser validation. neon_grid is
+    // filled in by activateNeonGrid() once the server catalog activates it.
+    adapters: { pulse_tap: pulseMount, signal_sprint: signalMount, neon_grid: null },
     adapterState: (cabinetType) => (getAdapter(cabinetType) ? 'has_adapter' : 'no_adapter'),
     renderState: (cabinet) => cabinetRenderState(cabinet),
     fixtureLifecycle: [],

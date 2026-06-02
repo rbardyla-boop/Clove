@@ -1,0 +1,215 @@
+/**
+ * Neon Grid — cabinet styles (Phase 1l).
+ *
+ * Authored against the native 360x640 logical box. The cabinet frame (Phase 1i)
+ * uniformly scales this panel to fit the viewport, so all sizing here is in
+ * native px. Self-contained: loaded by neon-grid-game.mjs relative to the module.
+ */
+
+.ngg-panel {
+  --ngg-accent: #3df58b;
+  --ngg-ink: #eafff4;
+  --ngg-dim: #6f8c80;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 14px 14px 12px;
+  gap: 10px;
+  font-family: "Chakra Petch", system-ui, sans-serif;
+  color: var(--ngg-ink);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(61, 245, 139, 0.16), transparent 60%),
+    linear-gradient(180deg, #07130d 0%, #04100b 60%, #020a07 100%);
+  overflow: hidden;
+}
+
+.ngg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ngg-title {
+  font-family: "Bungee", "Chakra Petch", sans-serif;
+  font-size: 24px;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(61, 245, 139, 0.55);
+}
+.ngg-title span { color: var(--ngg-accent); }
+.ngg-leave {
+  font: 600 12px "Chakra Petch", sans-serif;
+  color: var(--ngg-ink);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(61, 245, 139, 0.4);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.ngg-leave:hover { background: rgba(61, 245, 139, 0.14); border-color: var(--ngg-accent); }
+
+.ngg-hud {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.ngg-hud .ngg-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(61, 245, 139, 0.16);
+}
+.ngg-hud .k { font-size: 9px; letter-spacing: 0.5px; color: var(--ngg-dim); text-transform: uppercase; }
+.ngg-hud .v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.ngg-stage {
+  position: relative;
+  flex: 1;
+  border-radius: 14px;
+  background:
+    radial-gradient(80% 60% at 50% 40%, rgba(61, 245, 139, 0.08), transparent 70%),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(61, 245, 139, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  overflow: hidden;
+}
+.ngg-stage:focus-visible { box-shadow: inset 0 0 0 2px rgba(61, 245, 139, 0.5); }
+
+.ngg-grid {
+  --ngg-n: 4;
+  display: grid;
+  grid-template-columns: repeat(var(--ngg-n), 1fr);
+  grid-template-rows: repeat(var(--ngg-n), 1fr);
+  gap: 12px;
+  width: 280px;
+  height: 280px;
+}
+.ngg-grid.locked { pointer-events: none; }
+
+.ngg-tile {
+  border: 1px solid rgba(61, 245, 139, 0.28);
+  border-radius: 12px;
+  background: rgba(61, 245, 139, 0.05);
+  cursor: pointer;
+  transition: transform 120ms ease, background 140ms ease, box-shadow 160ms ease, border-color 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ngg-tile:hover { border-color: rgba(61, 245, 139, 0.55); }
+.ngg-tile.lit {
+  background: var(--ngg-accent);
+  border-color: #d9ffe9;
+  box-shadow: 0 0 18px 3px rgba(61, 245, 139, 0.7);
+  transform: scale(1.04);
+}
+.ngg-tile.hit {
+  background: rgba(61, 245, 139, 0.65);
+  box-shadow: 0 0 14px 2px rgba(61, 245, 139, 0.6);
+}
+.ngg-tile.miss {
+  background: rgba(255, 64, 96, 0.6);
+  border-color: #ff8095;
+  box-shadow: 0 0 14px 2px rgba(255, 64, 96, 0.55);
+}
+
+.ngg-prompt {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  color: var(--ngg-accent);
+  text-shadow: 0 0 8px rgba(61, 245, 139, 0.5);
+  pointer-events: none;
+}
+
+.ngg-ready, .ngg-grade {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 18px;
+  background: rgba(3, 12, 8, 0.82);
+  backdrop-filter: blur(2px);
+}
+.ngg-ready[hidden], .ngg-grade[hidden] { display: none; }
+.ngg-big {
+  font-family: "Bungee", sans-serif;
+  font-size: 34px;
+  color: var(--ngg-accent);
+  text-shadow: 0 0 16px rgba(61, 245, 139, 0.6);
+}
+.ngg-ready p { font-size: 13px; line-height: 1.5; color: var(--ngg-ink); margin: 0; }
+
+.ngg-grade-letter {
+  font-family: "Bungee", sans-serif;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--ngg-accent);
+  text-shadow: 0 0 22px rgba(61, 245, 139, 0.6);
+}
+.ngg-grade-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ngg-ink);
+}
+.ngg-grade-rows b { color: var(--ngg-accent); }
+.ngg-award { min-height: 18px; font-size: 13px; font-weight: 600; }
+.ngg-award.accepted { color: var(--ngg-accent); }
+.ngg-award.rejected { color: #ff7a90; }
+.ngg-award.submitting { color: var(--ngg-dim); }
+
+.ngg-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.ngg-btn {
+  font: 700 14px "Chakra Petch", sans-serif;
+  color: #04130c;
+  background: var(--ngg-accent);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(61, 245, 139, 0.45);
+  transition: transform 120ms ease, box-shadow 160ms ease;
+}
+.ngg-btn:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(61, 245, 139, 0.6); }
+.ngg-btn.ghost {
+  color: var(--ngg-ink);
+  background: transparent;
+  border: 1px solid rgba(61, 245, 139, 0.4);
+  box-shadow: none;
+}
+
+.ngg-feedback {
+  height: 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.ngg-feedback.show { opacity: 1; }
+.ngg-feedback.good { color: var(--ngg-accent); }
+.ngg-feedback.bad { color: #ff7a90; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ngg-tile, .ngg-btn { transition: none; }
+}

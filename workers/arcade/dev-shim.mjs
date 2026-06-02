@@ -106,8 +106,8 @@ function handleRoundSubmit(ws, d, playerId, acceptedType, rejectedType) {
   const cabinet = getCabinetByMachineId(d.machineId);
   const cabinetType = cabinet ? cabinet.cabinet_type : null;
   const cabinetLabel = cabinet ? cabinet.display_name : d.machineId;
-  // Phase 1h: accepted round → challenge progress + public feed.
-  const rec = recordRoundAccepted(ticketState, { playerId, cabinetType, noiseHits: d.noiseHits, awarded: res.awarded, now });
+  // Phase 1h/1l: accepted round → challenge progress + public feed.
+  const rec = recordRoundAccepted(ticketState, { playerId, cabinetType, noiseHits: d.noiseHits, mistakes: d.mistakes, awarded: res.awarded, now });
   ticketState = rec.state;
   const feedEvents = [pushEvent({ type: 'ticket_award', actorPublicId: playerId, summary: `${playerId} earned ${res.awarded} tickets at ${cabinetLabel}`, source: d.machineId, now })];
   for (const c of rec.newlyCompleted) feedEvents.push(pushEvent({ type: 'challenge_completed', actorPublicId: playerId, summary: `${playerId} completed ${c.display_name}`, source: c.challenge_id, now }));
@@ -176,6 +176,8 @@ wss.on('connection', (ws) => {
       case 'pulse_round_submit': handleRoundSubmit(ws, d, playerId, 'pulse_round_accepted', 'pulse_round_rejected'); break;
       case 'signal_sprint_round_start': handleRoundStart(ws, d, playerId, 'signal_sprint_round_started', 'signal_sprint_round_rejected'); break;
       case 'signal_sprint_round_submit': handleRoundSubmit(ws, d, playerId, 'signal_sprint_round_accepted', 'signal_sprint_round_rejected'); break;
+      case 'neon_grid_round_start': handleRoundStart(ws, d, playerId, 'neon_grid_round_started', 'neon_grid_round_rejected'); break;
+      case 'neon_grid_round_submit': handleRoundSubmit(ws, d, playerId, 'neon_grid_round_accepted', 'neon_grid_round_rejected'); break;
       case 'ticket_balance_request': {
         if (!playerId) return send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         send(ws, { t: 'ticket_balance', playerId, balance: getBalance(ticketState, playerId) });

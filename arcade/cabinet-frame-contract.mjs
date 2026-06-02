@@ -87,6 +87,37 @@ export const GAME_CONTRACTS = Object.freeze({
     allow_logic_resize: false,
     migrated: false,
   }),
+  // Phase 1l: Neon Grid. A first-class production frame contract (so the clone
+  // guard + frame tests cover it), even though the cabinet ENTERS the floor via
+  // the adapter/import path — the imported adapter REFERENCES this contract rather
+  // than shipping a divergent copy of the native size.
+  neon_grid: Object.freeze({
+    game_id: 'neon_grid',
+    cabinet_id: 'neon-grid-01',
+    display_name: 'Neon Grid',
+    native_width: NATIVE_W,
+    native_height: NATIVE_H,
+    aspect_ratio: NATIVE_W / NATIVE_H,
+    scale_mode: 'fit-contain',
+    input_mode: 'pointer+keyboard',
+    safe_area: Object.freeze({ top: 0, right: 0, bottom: 0, left: 0 }),
+    allow_upscale: true,
+    max_upscale: 2,
+    min_scale: 0.25,
+    chrome_policy: 'modal_overlay',
+    hud_policy: 'in_panel_header',
+    orientation_policy: 'any',
+    test_selectors: Object.freeze({ panel: '.ngg-panel', stage: '.ngg-stage', chrome: '.ngg-head' }),
+    source_kind: 'adapter_import',
+    original_width: NATIVE_W,
+    original_height: NATIVE_H,
+    current_width: NATIVE_W,
+    current_height: NATIVE_H,
+    clone_policy: 'preserve_original_size',
+    allow_visual_skinning: true,
+    allow_logic_resize: false,
+    migrated: false,
+  }),
 });
 
 // Phase 1k: dynamically-registered contracts for imported/test games. Production

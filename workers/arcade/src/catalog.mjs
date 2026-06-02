@@ -57,6 +57,24 @@ export const CABINETS = Object.freeze([
     ruleset_version: 'signal-sprint/1',
     public_description: 'Ride the signal lane: collect pulses, dodge the static.',
   },
+  {
+    // Phase 1l: the FIRST production cabinet activated for the adapter/import
+    // path. The server catalog stays the authority — the client only renders it
+    // after the imported adapter validates. `status: 'live'` is the catalog's
+    // term for an active cabinet (see cabinetRenderState / isPlayableCabinet).
+    cabinet_id: 'neon-grid-01',
+    machine_id: 'grid',             // Phase 1l occupancy machine (independent from pulse/signal)
+    display_name: 'Neon Grid',
+    cabinet_type: 'neon_grid',
+    zone_id: 'cabinet_row',
+    position_hint: 4,
+    status: 'live',
+    ticket_enabled: true,
+    min_players: 1,
+    max_players: 1,
+    ruleset_version: 'neon-grid-v1',
+    public_description: 'Watch the path light up, then repeat it on the neon grid before time runs out.',
+  },
 ]);
 
 /** Prize Counter catalog. Costs are in arcade tickets (points), never currency. */
