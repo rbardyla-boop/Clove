@@ -39,7 +39,78 @@ export const EVENT_WINDOW_TICKS = 20;
  * within this lead, the feed gets a one-time room_event_upcoming announcement and the
  * presence/event payloads flag `event_upcoming`. Display-only — no reward, no ticket change.
  */
-export const PREROLL_LEAD_TICKS = 2;
+export const PREROLL_LEAD_TICKS = 2; // default pre-roll lead
+
+// ===================== v0.8: operator-tunable event presentation =====================
+//
+// SIMULATOR-LOCAL PORT of product Phase 2h (workers/arcade/src/room-events.mjs), on the
+// TICK clock. DISPLAY-ONLY presentation knobs an operator can tune (here: via the
+// simulator ctx, the analog of the product's env). They change ONLY how events are
+// presented — the pre-roll lead (in ticks), a client countdown-refresh hint (ms; no
+// simulator analog — the sim has no live UI clock, surfaced for parity only), and whether
+// the next-event preview / featured chip are shown. They NEVER touch the schedule's
+// economic neutrality. Resolution is pure + validated + clamped, falling back to defaults
+// on any bad value (fail-safe).
+
+/** Safe bounds for the tunable presentation values. */
+export const PRESENTATION_BOUNDS = Object.freeze({
+  preroll_lead_ticks: { min: 1, max: EVENT_WINDOW_TICKS - 1 },   // 1 … (window − 1) ticks
+  countdown_refresh_ms: { min: 250, max: 60 * 1000 },            // 0.25s … 60s (client hint)
+});
+
+/** The default presentation config (matches v0.7 behaviour). */
+export const DEFAULT_EVENT_PRESENTATION = Object.freeze({
+  preroll_lead_ticks: PREROLL_LEAD_TICKS,
+  countdown_refresh_ms: 1000,
+  show_next_event: true,
+  show_featured_chip: true,
+});
+
+function clampInt(value, fallback, { min, max }) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, Math.round(n)));
+}
+function coerceBool(value, fallback) {
+  if (value === true || value === 'true' || value === 1 || value === '1') return true;
+  if (value === false || value === 'false' || value === 0 || value === '0') return false;
+  return fallback;
+}
+
+/**
+ * PURE: resolve + VALIDATE an operator presentation override into a safe, frozen config.
+ * Unknown / out-of-range / malformed values fall back to (or clamp toward) the defaults —
+ * a bad operator value can never break event presentation or leak into the economy fold.
+ */
+export function resolveEventPresentation(overrides = {}) {
+  const o = overrides && typeof overrides === 'object' ? overrides : {};
+  return Object.freeze({
+    preroll_lead_ticks: clampInt(o.preroll_lead_ticks, DEFAULT_EVENT_PRESENTATION.preroll_lead_ticks, PRESENTATION_BOUNDS.preroll_lead_ticks),
+    countdown_refresh_ms: clampInt(o.countdown_refresh_ms, DEFAULT_EVENT_PRESENTATION.countdown_refresh_ms, PRESENTATION_BOUNDS.countdown_refresh_ms),
+    show_next_event: coerceBool(o.show_next_event, DEFAULT_EVENT_PRESENTATION.show_next_event),
+    show_featured_chip: coerceBool(o.show_featured_chip, DEFAULT_EVENT_PRESENTATION.show_featured_chip),
+  });
+}
+
+/**
+ * PURE: read presentation overrides from the simulator ctx (the analog of the product's
+ * env). A scenario opts in via `new HiveSimulator({ ctx: { eventPresentation: {...} } })`.
+ * Absent → defaults; same validation as resolveEventPresentation.
+ */
+export function eventPresentationFromCtx(ctx) {
+  return resolveEventPresentation(ctx && ctx.eventPresentation);
+}
+
+/** The public-safe presentation block surfaced to clients (display hints only). */
+export function publicPresentation(config = DEFAULT_EVENT_PRESENTATION) {
+  const c = config || DEFAULT_EVENT_PRESENTATION;
+  return {
+    preroll_lead_ticks: c.preroll_lead_ticks,
+    countdown_refresh_ms: c.countdown_refresh_ms,
+    show_next_event: c.show_next_event,
+    show_featured_chip: c.show_featured_chip,
+  };
+}
 
 /** Event lifecycle statuses (public-safe) — identical set to the product. */
 export const EVENT_STATUSES = Object.freeze(['upcoming', 'active', 'ended', 'disabled']);
@@ -213,8 +284,9 @@ export function getRoomEventSchedule(roomId, nowTick = 0) {
  * unscheduled room. `event_ends_in_ticks` / `event_starts_in_ticks` are the tick
  * analogs of the product's `_ms` countdowns.
  */
-export function roomEventPublic(roomId, nowTick = 0) {
+export function roomEventPublic(roomId, nowTick = 0, config = DEFAULT_EVENT_PRESENTATION) {
   const t = Number(nowTick) || 0;
+  const lead = (config || DEFAULT_EVENT_PRESENTATION).preroll_lead_ticks;
   const current = getCurrentRoomEvent(roomId, t);
   const next = getNextRoomEvent(roomId, t);
   return {
@@ -223,29 +295,32 @@ export function roomEventPublic(roomId, nowTick = 0) {
     event_ends_in_ticks: current ? Math.max(0, current.ends_at_tick - t) : null,
     event_starts_in_ticks: next ? Math.max(0, next.starts_at_tick - t) : null,
     featured_cabinet_id: current ? current.featured_cabinet_id : null,
-    // v0.7: the next event is within the pre-roll lead (drives the live countdown).
-    event_upcoming: !!next && next.starts_at_tick > t && (next.starts_at_tick - t) <= PREROLL_LEAD_TICKS,
+    // v0.7: the next event is within the (operator-tunable, v0.8) pre-roll lead.
+    event_upcoming: !!next && next.starts_at_tick > t && (next.starts_at_tick - t) <= lead,
   };
 }
 
 /**
- * PURE: enrich a v0.3 presence list payload with per-room event fields. Returns a NEW
- * payload (never mutates). Mirrors the product `attachRoomEvents` used by the
- * RoomRegistry DO + dev shim.
+ * PURE: enrich a v0.3 presence list payload with per-room event fields + the public
+ * presentation config (v0.8). Returns a NEW payload (never mutates). Mirrors the product
+ * `attachRoomEvents` used by the RoomRegistry DO + dev shim.
  */
-export function attachRoomEvents(presenceList, nowTick = 0) {
+export function attachRoomEvents(presenceList, nowTick = 0, config = DEFAULT_EVENT_PRESENTATION) {
   if (!presenceList || !Array.isArray(presenceList.rooms)) return presenceList;
   const t = Number(nowTick) || 0;
+  const cfg = config || DEFAULT_EVENT_PRESENTATION;
   return {
     ...presenceList,
     event_ruleset_version: EVENT_RULESET_VERSION,
-    rooms: presenceList.rooms.map((r) => (r && r.room_id ? { ...r, ...roomEventPublic(r.room_id, t) } : r)),
+    presentation: publicPresentation(cfg),
+    rooms: presenceList.rooms.map((r) => (r && r.room_id ? { ...r, ...roomEventPublic(r.room_id, t, cfg) } : r)),
   };
 }
 
-/** PURE: a room's full event read payload (current + next + one-rotation schedule). */
-export function roomEventListPayload(roomId, nowTick = 0) {
+/** PURE: a room's full event read payload (current + next + schedule) + presentation (v0.8). */
+export function roomEventListPayload(roomId, nowTick = 0, config = DEFAULT_EVENT_PRESENTATION) {
   const t = Number(nowTick) || 0;
+  const cfg = config || DEFAULT_EVENT_PRESENTATION;
   const current = getCurrentRoomEvent(roomId, t);
   const next = getNextRoomEvent(roomId, t);
   return {
@@ -257,7 +332,9 @@ export function roomEventListPayload(roomId, nowTick = 0) {
     // v0.7: pre-roll countdown info (mirrors product Phase 2g).
     event_ends_in_ticks: current ? Math.max(0, current.ends_at_tick - t) : null,
     event_starts_in_ticks: next ? Math.max(0, next.starts_at_tick - t) : null,
-    event_upcoming: !!next && next.starts_at_tick > t && (next.starts_at_tick - t) <= PREROLL_LEAD_TICKS,
+    event_upcoming: !!next && next.starts_at_tick > t && (next.starts_at_tick - t) <= cfg.preroll_lead_ticks,
+    // v0.8: the operator-tunable presentation config (display hints).
+    presentation: publicPresentation(cfg),
   };
 }
 
@@ -414,9 +491,10 @@ export function applyRoomEventTransitions(prevTracker, transitions, currentEvent
  * A reset installs a fresh tracker (initialRoomEventTracker), so an old event never
  * replays; the current event is announced once more after a reset, then deduped.
  */
-export function deriveRoomEventTransitions(prevTracker, roomId, observeTick) {
+export function deriveRoomEventTransitions(prevTracker, roomId, observeTick, config = DEFAULT_EVENT_PRESENTATION) {
   const prev = prevTracker || initialRoomEventTracker();
   const t = Number(observeTick) || 0;
+  const prerollLead = (config || DEFAULT_EVENT_PRESENTATION).preroll_lead_ticks;
   const current = getCurrentRoomEvent(roomId, t); // active event (or null)
   const curId = current ? current.event_id : null;
   const prevActive = prev.active;
@@ -444,7 +522,7 @@ export function deriveRoomEventTransitions(prevTracker, roomId, observeTick) {
   // (once per next-event window). Display-only; mirrors product Phase 2g.
   const next = getNextRoomEvent(roomId, t);
   const upcomingAnn = prev.upcoming_announced_id ?? null;
-  if (next && next.starts_at_tick > t && (next.starts_at_tick - t) <= PREROLL_LEAD_TICKS && upcomingAnn !== next.event_id) {
+  if (next && next.starts_at_tick > t && (next.starts_at_tick - t) <= prerollLead && upcomingAnn !== next.event_id) {
     transitions.push(makeTransition('upcoming', eventSnapshot(next), roomId, t));
   }
 

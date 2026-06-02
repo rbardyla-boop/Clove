@@ -17,7 +17,7 @@ import { redeemPrize, equipCosmetic, unequipCosmetic } from '../phase1/prize.mjs
 import { recordRedemption, claimReward } from '../phase1/challenges.mjs';
 import { appendFeed } from '../phase1/feed.mjs';
 import { isValidRoomId } from '../phase1/rooms.mjs';
-import { initialRoomEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition } from '../phase1/room-events.mjs';
+import { initialRoomEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition, eventPresentationFromCtx } from '../phase1/room-events.mjs';
 
 function occupantOf(state, roomId, machineId) {
   return state.rooms[roomId]?.machines?.[machineId]?.occupiedBy ?? null;
@@ -107,7 +107,7 @@ export function arcade_claim_challenge(state, ev) {
  * so the final feed + tracker are identical regardless of arrival order. Display-only —
  * never touches tickets / ledger / inventory / economy.
  */
-export function room_event_transition_check(state, ev) {
+export function room_event_transition_check(state, ev, ctx) {
   const roomId = ev.room_id || ev.payload?.room_id;
   if (!isValidRoomId(roomId)) return rej(state, 'unknown_room');
   if (ev.actor_id !== roomId) return rej(state, 'not_authority');
@@ -119,7 +119,10 @@ export function room_event_transition_check(state, ev) {
   // Monotonic: a stale/backward observation is a no-op (idempotent convergence).
   if (observeTick < (Number(tracker.last_transition_checked_tick) || -1)) return ok(state);
 
-  const { transitions, state: nextTracker } = deriveRoomEventTransitions(tracker, roomId, observeTick);
+  // v0.8: the operator-tunable, display-only presentation config from the sim ctx (the
+  // analog of the product DO env). It only changes the pre-roll lead — never the economy.
+  const config = eventPresentationFromCtx(ctx);
+  const { transitions, state: nextTracker } = deriveRoomEventTransitions(tracker, roomId, observeTick, config);
   let next = { ...sub, eventTracker: nextTracker };
   for (const tr of transitions) {
     next = appendFeed(next, roomEventFeedEntryForTransition(tr));

@@ -40,6 +40,7 @@ export const DEFAULT_CTX = Object.freeze({
   economyTestMode: true, // grants only allowed in test mode
   presenceTtlTicks: 5,   // presence older than this is "stale" for liveness checks
   adminEnabled: false,   // v0.3: room-admin ops (status/reset) are OFF unless a scenario opts in
+  eventPresentation: null, // v0.8: operator display-only presentation overrides (null → defaults)
 });
 
 /** Return a shallow copy of obj with one key set (no mutation). */

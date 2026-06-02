@@ -351,11 +351,30 @@ export function roomEventPrerollShowcase({ seed = 'p2g-preroll' } = {}) {
   return { sim, report: sim.report() };
 }
 
+// ── 16. eventPresentationShowcase (v0.8 operator-tunable presentation) ────────────
+// Runs with a WIDER operator pre-roll lead (5 ticks) supplied via the sim ctx
+// (eventPresentation), then observes 4 ticks before window 4. Under the DEFAULT 2-tick
+// lead nothing would fire yet; under the operator's 5-tick lead the pre-roll DOES fire —
+// proving the presentation config changes display behaviour (the pre-roll window) only,
+// with no economy/authority effect. The room's folded feed holds started + upcoming.
+export function eventPresentationShowcase({ seed = 'p2h-pres', prerollLeadTicks = 5 } = {}) {
+  const W = EVENT_WINDOW_TICKS;
+  const sim = new HiveSimulator({ seed, ctx: { eventPresentation: { preroll_lead_ticks: prerollLeadTicks } }, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  sim.publish(main.announce(0));
+  sim.publish(main.heartbeat(1, { population: 1 }));   // presence exists
+  sim.publish(main.observeRoomEvents(3 * W + 1, 2));   // window 3 (Pulse Hour) → started
+  sim.publish(main.observeRoomEvents(4 * W - 4, 3));   // 4 ticks out → upcoming ONLY under the wider lead
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
   multiRoomIsolation, roomHealthLifecycle, roomRecommendationShowcase, roomEventWindowShowcase,
   roomEventFeedTransitionShowcase, multiRoomEventFeedIsolation, roomEventPrerollShowcase,
+  eventPresentationShowcase,
 });
 
 export function runPhase1Scenario(name, opts) {
