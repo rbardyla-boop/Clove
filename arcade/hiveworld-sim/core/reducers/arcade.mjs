@@ -16,6 +16,8 @@ import { startRound, submitRound, arcadeRoom, withArcadeRoom, DEFAULT_SIM_ROOM }
 import { redeemPrize, equipCosmetic, unequipCosmetic } from '../phase1/prize.mjs';
 import { recordRedemption, claimReward } from '../phase1/challenges.mjs';
 import { appendFeed } from '../phase1/feed.mjs';
+import { isValidRoomId } from '../phase1/rooms.mjs';
+import { initialRoomEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition } from '../phase1/room-events.mjs';
 
 function occupantOf(state, roomId, machineId) {
   return state.rooms[roomId]?.machines?.[machineId]?.occupiedBy ?? null;
@@ -94,4 +96,33 @@ export function arcade_claim_challenge(state, ev) {
     sub = appendFeed(sub, { type: 'achievement_unlocked', actor: ev.actor_id, summary: `${ev.actor_id} ${res.achievement.public_safe_summary}`, source: res.achievement.achievement_id, tick });
   }
   return ok({ ...state, arcade: withArcadeRoom(state.arcade, roomId, sub) });
+}
+
+/**
+ * v0.6: a room observes its own scheduled-event window at `observe_tick` and announces
+ * any started / ended / featured_cabinet_changed transitions to its public feed (once
+ * each, deduped by the per-room eventTracker). Room-authored (actor_id === room_id),
+ * like room_heartbeat. Deterministic + convergent: the canonical fold processes the
+ * checks in canonical order, and a stale/out-of-order observation is a monotonic no-op,
+ * so the final feed + tracker are identical regardless of arrival order. Display-only —
+ * never touches tickets / ledger / inventory / economy.
+ */
+export function room_event_transition_check(state, ev) {
+  const roomId = ev.room_id || ev.payload?.room_id;
+  if (!isValidRoomId(roomId)) return rej(state, 'unknown_room');
+  if (ev.actor_id !== roomId) return rej(state, 'not_authority');
+  const observeTick = ev.payload?.observe_tick;
+  if (!Number.isInteger(observeTick) || observeTick < 0) return rej(state, 'invalid_observe_tick');
+
+  const sub = arcadeRoom(state.arcade, roomId);
+  const tracker = sub.eventTracker || initialRoomEventTracker(0);
+  // Monotonic: a stale/backward observation is a no-op (idempotent convergence).
+  if (observeTick < (Number(tracker.last_transition_checked_tick) || -1)) return ok(state);
+
+  const { transitions, state: nextTracker } = deriveRoomEventTransitions(tracker, roomId, observeTick);
+  let next = { ...sub, eventTracker: nextTracker };
+  for (const tr of transitions) {
+    next = appendFeed(next, roomEventFeedEntryForTransition(tr));
+  }
+  return ok({ ...state, arcade: withArcadeRoom(state.arcade, roomId, next) });
 }

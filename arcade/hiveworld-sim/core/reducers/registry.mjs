@@ -81,7 +81,10 @@ export function room_reset(state, ev, ctx) {
   const tick = ev.logical_tick;
   const reg = state.roomRegistry;
   const generation = (reg.generations[roomId] || 0) + 1;
-  const arcade = withArcadeRoom(state.arcade, roomId, createArcade());
+  // v0.6: a fresh partition installs a fresh room-event tracker (carrying the bumped
+  // generation), so an old event never replays after a reset; the current event is
+  // announced once more on the next observation, then deduped.
+  const arcade = withArcadeRoom(state.arcade, roomId, createArcade(generation));
   const rooms = state.rooms[roomId]
     ? { ...state.rooms, [roomId]: { ...state.rooms[roomId], machines: {} } }
     : state.rooms;

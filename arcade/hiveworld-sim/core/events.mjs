@@ -68,6 +68,10 @@ export const EVENT_SPECS = Object.freeze({
   // moderation: admin room-lifecycle ops (both-gated in the reducer)
   room_status_set:        { sideband: 'moderation' },
   room_reset:             { sideband: 'moderation' },
+  // ── v0.6 live room-event feed transitions ──────────────────────────────────
+  // weather: a room observes its own scheduled-event window (ambient/time observation);
+  // the reducer appends public-safe started/ended/featured_cabinet_changed feed entries.
+  room_event_transition_check: { sideband: 'weather' },
 });
 
 /**

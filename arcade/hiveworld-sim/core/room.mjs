@@ -52,6 +52,15 @@ export class RoomBaseStation extends HiveNode {
     return this.emit({ eventType: 'room_reset', sideband: 'moderation', roomId: this.id, payload: {}, tick });
   }
 
+  /**
+   * v0.6: observe this room's scheduled-event window at `observeTick` and announce any
+   * started / ended / featured_cabinet_changed transitions to the room feed (the reducer
+   * dedups). Published at logical `tick`; `observeTick` drives the schedule window.
+   */
+  observeRoomEvents(observeTick, tick) {
+    return this.emit({ eventType: 'room_event_transition_check', sideband: 'weather', roomId: this.id, payload: { room_id: this.id, observe_tick: observeTick }, tick });
+  }
+
   noteHeartbeat(agentId, tick) {
     this.heartbeats[agentId] = tick;
   }

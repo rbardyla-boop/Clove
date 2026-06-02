@@ -62,6 +62,8 @@ export const HANDLERS = Object.freeze({
   room_heartbeat: registry.room_heartbeat,
   room_status_set: registry.room_status_set,
   room_reset: registry.room_reset,
+  // v0.6 live room-event feed transitions
+  room_event_transition_check: arcade.room_event_transition_check,
 });
 
 export function getHandler(eventType) {

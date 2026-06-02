@@ -268,3 +268,170 @@ export function annotateCatalogForRoom(catalogPayload, roomId, nowTick = 0) {
     }),
   };
 }
+
+// ===================== v0.6: live room-event feed transitions =====================
+//
+// SIMULATOR-LOCAL PORT of the product Phase 2f transition engine
+// (workers/arcade/src/room-events.mjs). PURE, deterministic, tick-clocked.
+//
+// v0.5 reserved the transition sideband keys but did NOT emit transitions. v0.6 EMITS
+// them: a `room_event_transition_check` fabric event (folded by the arcade reducer)
+// observes a room's schedule at a tick and, comparing the room's per-room transition
+// tracker against the current event, appends public-safe feed entries for started /
+// ended / featured_cabinet_changed — once each, deduped by event id. Because the
+// Sideband CRDT Log folds canonically, the same set of observation events converges to
+// the same feed + tracker regardless of arrival order.
+//
+// Display-only: a transition carries NO economy and NO private data — only the public
+// event id / name / featured cabinet. No reward, no multiplier, no balance, no ledger.
+
+/** Transition kinds → public feed event types (the only three v0.6 feed types). */
+export const ROOM_EVENT_FEED_TYPES = Object.freeze({
+  started: 'room_event_started',
+  ended: 'room_event_ended',
+  featured_changed: 'featured_cabinet_changed',
+});
+
+/** Feed type → sideband (room-wide start/end ride `weather`; featured rides `discovery`). */
+export const ROOM_EVENT_FEED_SIDEBAND = Object.freeze({
+  room_event_started: 'weather',
+  room_event_ended: 'weather',
+  featured_cabinet_changed: 'discovery',
+});
+
+/**
+ * PURE: the initial, empty per-room transition tracker (public-safe). `generation` is
+ * carried so a room reset (which installs a fresh tracker) is observable + an old event
+ * never replays. `last_transition_checked_tick` enforces monotonic (forward-only)
+ * observation so a stale/out-of-order check is a no-op.
+ */
+export function initialRoomEventTracker(generation = 0) {
+  return {
+    active: null,                       // { event_id, display_name, featured_cabinet_id, featured_cabinet_type } | null
+    started_announced_id: null,         // last event id a 'started' was announced for
+    ended_announced_id: null,           // last event id an 'ended' was announced for
+    featured_announced_event_id: null,  // event id a 'featured_changed' was announced for
+    last_transition_checked_tick: -1,   // highest observe_tick folded (monotonic guard)
+    generation: Math.max(0, Number(generation) || 0),
+  };
+}
+
+/** A compact, public-safe snapshot of an event for the tracker (no economy/private fields). */
+function eventSnapshot(event) {
+  return event ? {
+    event_id: event.event_id,
+    display_name: event.display_name,
+    featured_cabinet_id: event.featured_cabinet_id,
+    featured_cabinet_type: event.featured_cabinet_type,
+  } : null;
+}
+
+/** PURE: a public-safe summary string for a transition (never money-like). */
+export function publicRoomEventSummary(transitionType, snap) {
+  if (transitionType === 'started') return `${snap.display_name} started.`;
+  if (transitionType === 'ended') return `${snap.display_name} ended.`;
+  // featured_changed — resolve the featured cabinet's display name (fail-safe).
+  const cab = snap.featured_cabinet_id ? getCabinet(snap.featured_cabinet_id) : null;
+  return cab ? `${snap.display_name} is now featuring ${cab.display_name}.`
+             : `${snap.display_name} featured cabinet updated.`;
+}
+
+/** PURE: build a public-safe transition object from a kind + an event snapshot. */
+function makeTransition(transitionType, snap, roomId, observeTick) {
+  const feedType = ROOM_EVENT_FEED_TYPES[transitionType];
+  return {
+    transition_type: transitionType,
+    event_id: snap.event_id,
+    room_id: roomId,
+    display_name: snap.display_name,
+    featured_cabinet_id: snap.featured_cabinet_id ?? null,
+    featured_cabinet_type: snap.featured_cabinet_type ?? null,
+    occurred_tick: Number(observeTick) || 0,
+    public_safe_summary: publicRoomEventSummary(transitionType, snap),
+    sideband: ROOM_EVENT_FEED_SIDEBAND[feedType] || 'weather',
+  };
+}
+
+/**
+ * PURE: apply a derived transition list to a tracker, producing the NEW tracker. Updates
+ * the dedup ids from the transitions, snapshots the current active event, and advances
+ * the monotonic checked-tick. (Split out per the v0.6 spec; deriveRoomEventTransitions
+ * calls it, so there is a single source of truth for tracker updates.)
+ */
+export function applyRoomEventTransitions(prevTracker, transitions, currentEvent, observeTick) {
+  const prev = prevTracker || initialRoomEventTracker();
+  let started = prev.started_announced_id;
+  let ended = prev.ended_announced_id;
+  let featured = prev.featured_announced_event_id;
+  for (const tr of (transitions || [])) {
+    if (tr.transition_type === 'started') started = tr.event_id;
+    else if (tr.transition_type === 'ended') ended = tr.event_id;
+    else if (tr.transition_type === 'featured_changed') featured = tr.event_id;
+  }
+  return {
+    active: eventSnapshot(currentEvent),
+    started_announced_id: started,
+    ended_announced_id: ended,
+    featured_announced_event_id: featured,
+    last_transition_checked_tick: Math.max(Number(observeTick) || 0, Number(prev.last_transition_checked_tick) || -1),
+    generation: prev.generation,
+  };
+}
+
+/**
+ * PURE: given the previous tracker, derive the room-event transitions that have occurred
+ * as of `observeTick`, plus the NEW tracker. Deterministic + idempotent: re-deriving at
+ * the same tick with the returned tracker yields `{ transitions: [], changed: false }`.
+ *
+ *   no active → active            => started
+ *   active → different active     => ended(old) + started(new) [+ featured_changed if the
+ *                                     featured cabinet differs]
+ *   active → same active          => none
+ * A reset installs a fresh tracker (initialRoomEventTracker), so an old event never
+ * replays; the current event is announced once more after a reset, then deduped.
+ */
+export function deriveRoomEventTransitions(prevTracker, roomId, observeTick) {
+  const prev = prevTracker || initialRoomEventTracker();
+  const t = Number(observeTick) || 0;
+  const current = getCurrentRoomEvent(roomId, t); // active event (or null)
+  const curId = current ? current.event_id : null;
+  const prevActive = prev.active;
+  const prevId = prevActive ? prevActive.event_id : null;
+
+  const transitions = [];
+  const activeChanged = prevId !== curId;
+
+  // The previously-active event is no longer active → it ended (announce once).
+  if (activeChanged && prevActive && prev.ended_announced_id !== prevActive.event_id) {
+    transitions.push(makeTransition('ended', prevActive, roomId, t));
+  }
+  // A (new) active event is in effect → it started (announce once per window).
+  if (current && prev.started_announced_id !== curId) {
+    transitions.push(makeTransition('started', eventSnapshot(current), roomId, t));
+  }
+  // The featured cabinet changed between two different events (announce once) — skipped
+  // on first observation (no prevActive) since 'started' already conveys the cabinet.
+  if (activeChanged && current && current.featured_cabinet_id && prevActive
+      && current.featured_cabinet_id !== prevActive.featured_cabinet_id
+      && prev.featured_announced_event_id !== curId) {
+    transitions.push(makeTransition('featured_changed', eventSnapshot(current), roomId, t));
+  }
+
+  const state = applyRoomEventTransitions(prev, transitions, current, t);
+  return { transitions, state, changed: transitions.length > 0 };
+}
+
+/**
+ * PURE: shape a transition into the simulator's public feed envelope used by appendFeed
+ * (feed.mjs). `actor: 'system'` marks a room-authored announcement (not a player), so it
+ * never carries a private actor id; `source: 'room_events'` tags its origin.
+ */
+export function roomEventFeedEntryForTransition(transition) {
+  return {
+    type: ROOM_EVENT_FEED_TYPES[transition.transition_type],
+    actor: 'system',
+    summary: transition.public_safe_summary,
+    source: 'room_events',
+    tick: transition.occurred_tick,
+  };
+}

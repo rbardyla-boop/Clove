@@ -32,6 +32,9 @@ export const PHASE1_EVENT_SIDEBAND = Object.freeze({
   room_heartbeat:         'presence',
   room_status_set:        'moderation',
   room_reset:             'moderation',
+  // v0.6 live room-event feed transitions (the observation trigger; the resulting
+  // started/ended/featured feed entries are projections appended by the reducer)
+  room_event_transition_check: 'weather',
 });
 
 /** Conceptual product-event → sideband mapping (documentation parity). */
@@ -54,18 +57,20 @@ export function sidebandForEvent(eventType) {
 
 /**
  * v0.5 (Phase 2e parity): scheduled room events are a deterministic PROJECTION (like
- * room health), not raw fabric events the fold ingests — so they map CONCEPTUALLY onto
- * sidebands rather than being folded. A room-wide event rides the ambient `weather`
- * channel (alongside room_mood / room_health); the featured-cabinet ANNOTATION rides
- * `discovery` (alongside cabinet_catalog). Live room_event_started/ended feed transitions
- * are DEFERRED to mirror the product (which defers them to keep DO/shim feed parity);
- * the channels are reserved here so a future phase can emit them without remapping.
+ * room health). v0.6 (Phase 2f parity): the transitions are now EMITTED — a
+ * `room_event_transition_check` fabric event (the time/window observation) rides the
+ * ambient `weather` channel, and the reducer appends the resulting public feed entries:
+ * room-wide start/end ride `weather`, the featured-cabinet change rides `discovery`
+ * (alongside cabinet_catalog). The featured-cabinet ANNOTATION (catalog projection) also
+ * rides `discovery`.
  */
 export const ROOM_EVENT_SIDEBAND = Object.freeze({
-  room_event:         'weather',    // current room-wide scheduled event (mood/activity)
-  cabinet_featured:   'discovery',  // display-only featured-cabinet catalog annotation
-  room_event_started: 'weather',    // DEFERRED transition (reserved, not emitted in v0.5)
-  room_event_ended:   'weather',    // DEFERRED transition (reserved, not emitted in v0.5)
+  room_event:                  'weather',    // current room-wide scheduled event (mood/activity)
+  cabinet_featured:            'discovery',  // display-only featured-cabinet catalog annotation
+  room_event_transition_check: 'weather',    // v0.6: the observation trigger (fabric event)
+  room_event_started:          'weather',    // v0.6: EMITTED room-wide transition
+  room_event_ended:            'weather',    // v0.6: EMITTED room-wide transition
+  featured_cabinet_changed:    'discovery',  // v0.6: EMITTED featured-cabinet transition
 });
 
 export function sidebandForRoomEvent(kind) {

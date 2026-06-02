@@ -16,9 +16,18 @@ are isolated per room — mirroring the per-room product Durable Objects. It
 **mirrors** the product; it never bridges into the production Worker/DO and is
 never deployed.
 
+**v0.3–v0.6 — Phase 2 parity:** room presence health (v0.3), smart-lobby presence
+UX (v0.4), deterministic scheduled room events + featured-cabinet annotations
+(v0.5), and **live room-event feed transitions** (v0.6). v0.6 emits
+`room_event_started` / `room_event_ended` / `featured_cabinet_changed` to the
+per-room public feed via a `room_event_transition_check` fabric event + a deduped
+per-room transition tracker — the tick-clocked mirror of product Phase 2f.
+
 Full write-ups: [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
 · [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
 · [`docs/HIVEWORLD_V0_2_MULTI_ROOM.md`](../../docs/HIVEWORLD_V0_2_MULTI_ROOM.md)
+· [`docs/HIVEWORLD_V0_5_ROOM_EVENTS.md`](../../docs/HIVEWORLD_V0_5_ROOM_EVENTS.md)
+· [`docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md`](../../docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md)
 
 ## Layout
 

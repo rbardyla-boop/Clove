@@ -9,6 +9,7 @@
 import { HiveSimulator } from '../core/simulator.mjs';
 import { CABINETS, cabinetCatalogPayload } from '../core/phase1/catalog.mjs';
 import { cabinetRenderState, adapterStateFor } from '../core/phase1/adapters.mjs';
+import { EVENT_WINDOW_TICKS } from '../core/phase1/room-events.mjs';
 
 // Deterministic round results that award known amounts (mirrors the product tests).
 export const RESULTS = Object.freeze({
@@ -289,10 +290,52 @@ export function roomEventWindowShowcase({ seed = 'p2e-events' } = {}) {
   return { sim, report: sim.report() };
 }
 
+// ── 13. roomEventFeedTransitionShowcase (v0.6 live event-feed transitions) ────────
+// main-floor exists + heartbeats, then OBSERVES its scheduled-event window at a series
+// of ticks. Window 3 (Pulse Hour) → room_event_started once; the same window again →
+// nothing; window 4 (Signal Sprint Relay) → room_event_ended + room_event_started +
+// featured_cabinet_changed; a STALE backward observation → monotonic no-op; window 4
+// again → nothing. The folded feed holds exactly the four public-safe announcements,
+// deduped + room-scoped. Re-running reproduces it byte-for-byte (canonicalFingerprint).
+export function roomEventFeedTransitionShowcase({ seed = 'p2f-feed' } = {}) {
+  const W = EVENT_WINDOW_TICKS;
+  const sim = new HiveSimulator({ seed, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  sim.publish(main.announce(0));
+  sim.publish(main.heartbeat(1, { population: 1 }));   // presence exists
+  sim.publish(main.observeRoomEvents(3 * W + 1, 2));   // window 3 (Pulse Hour) → started
+  sim.publish(main.observeRoomEvents(3 * W + 7, 3));   // same window → no new (dedup)
+  sim.publish(main.observeRoomEvents(4 * W + 1, 4));   // window 4 → ended + started + featured_changed
+  sim.publish(main.observeRoomEvents(3 * W + 9, 5));   // STALE backward → monotonic no-op
+  sim.publish(main.observeRoomEvents(4 * W + 9, 6));   // same window 4 → no new (dedup)
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
+// ── 14. multiRoomEventFeedIsolation (v0.6 room-scoped feed) ───────────────────────
+// Three rooms each observe their OWN schedule window. Each room's transitions land only
+// in that room's feed — main-floor's "Pulse Hour" never appears in neon-training's feed,
+// and each room has a separate active event (per-room phase desync). Proves the feed +
+// tracker are partitioned per room (mirrors the per-room product DOs).
+export function multiRoomEventFeedIsolation({ seed = 'p2f-iso' } = {}) {
+  const W = EVENT_WINDOW_TICKS;
+  const sim = new HiveSimulator({ seed, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  const train = sim.addRoom({ id: 'neon-training', name: 'Neon Training' });
+  const late = sim.addRoom({ id: 'late-night-circuit', name: 'Late Night Circuit' });
+  sim.publish(main.announce(0)); sim.publish(train.announce(0)); sim.publish(late.announce(0));
+  sim.publish(main.observeRoomEvents(3 * W + 1, 2));   // main-floor → Pulse Hour started
+  sim.publish(train.observeRoomEvents(2 * W + 1, 3));  // neon-training → its own (training-focus) started
+  sim.publish(late.observeRoomEvents(3 * W + 1, 4));   // late-night-circuit → its own started
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
   multiRoomIsolation, roomHealthLifecycle, roomRecommendationShowcase, roomEventWindowShowcase,
+  roomEventFeedTransitionShowcase, multiRoomEventFeedIsolation,
 });
 
 export function runPhase1Scenario(name, opts) {

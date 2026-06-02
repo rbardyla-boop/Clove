@@ -17,6 +17,7 @@ import { resolveRulesetByMachine, getRuleset } from './tickets.mjs';
 import { appendLedger } from './ledger.mjs';
 import { appendFeed } from './feed.mjs';
 import { recordRoundAccepted } from './challenges.mjs';
+import { initialRoomEventTracker } from './room-events.mjs';
 
 /** Default room a room-less arcade event is scoped to (mirrors product main-floor). */
 export const DEFAULT_SIM_ROOM = 'room:main';
@@ -49,7 +50,7 @@ export function withArcadeRoom(world, roomId, sub) {
 }
 
 /** The initial arcade state slice (lives inside the world view). */
-export function createArcade() {
+export function createArcade(generation = 0) {
   return {
     rounds: {},            // roundId -> round record
     submitted: {},         // roundId -> true (dedup)
@@ -63,6 +64,10 @@ export function createArcade() {
     achievements: {},      // actor -> { achievementId -> unlock } (kept for parity; badges live in inventory)
     feed: [],              // bounded public-safe event feed
     lastPublic: null,      // last public award summary
+    // v0.6: per-room live room-event transition tracker (dedup state for the feed).
+    // Reset-safe: a room_reset installs a fresh partition via createArcade(generation),
+    // so an old event never replays. Public-safe (no actor ids / balances / ledger).
+    eventTracker: initialRoomEventTracker(generation),
   };
 }
 
