@@ -268,10 +268,31 @@ export function roomRecommendationShowcase({ seed = 'p2d-reco' } = {}) {
   return { sim, report: sim.report() };
 }
 
+// ── 12. roomEventWindowShowcase (v0.5 scheduled room events) ──────────────────────
+// Three healthy rooms (same populations as the reco showcase) report heartbeats at
+// tick 22, so a test can observe TWO adjacent event windows (window 1 ≈ tick 24,
+// window 2 ≈ tick 41) while presence stays FRESH (heartbeat age ≤ 19 ≤ TTL 30 →
+// healthy). Scheduled events are a PURE projection of room id + tick (room-events.mjs),
+// so the test attaches them to the folded presence list and asserts the deterministic
+// current/next event, the window flip (event_id changes), and the featured-cabinet
+// annotation — none of which touch the economy fold.
+export function roomEventWindowShowcase({ seed = 'p2e-events' } = {}) {
+  const sim = new HiveSimulator({ seed, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  const train = sim.addRoom({ id: 'neon-training', name: 'Neon Training' });
+  const late = sim.addRoom({ id: 'late-night-circuit', name: 'Late Night Circuit' });
+  sim.publish(main.announce(0)); sim.publish(train.announce(0)); sim.publish(late.announce(0));
+  sim.publish(main.heartbeat(22, { population: 5 }));
+  sim.publish(train.heartbeat(22, { population: 1 }));
+  sim.publish(late.heartbeat(22, { population: 0 }));
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
-  multiRoomIsolation, roomHealthLifecycle, roomRecommendationShowcase,
+  multiRoomIsolation, roomHealthLifecycle, roomRecommendationShowcase, roomEventWindowShowcase,
 });
 
 export function runPhase1Scenario(name, opts) {

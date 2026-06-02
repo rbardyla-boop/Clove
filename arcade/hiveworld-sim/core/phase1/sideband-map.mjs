@@ -52,6 +52,26 @@ export function sidebandForEvent(eventType) {
   return PHASE1_EVENT_SIDEBAND[eventType] || null;
 }
 
+/**
+ * v0.5 (Phase 2e parity): scheduled room events are a deterministic PROJECTION (like
+ * room health), not raw fabric events the fold ingests — so they map CONCEPTUALLY onto
+ * sidebands rather than being folded. A room-wide event rides the ambient `weather`
+ * channel (alongside room_mood / room_health); the featured-cabinet ANNOTATION rides
+ * `discovery` (alongside cabinet_catalog). Live room_event_started/ended feed transitions
+ * are DEFERRED to mirror the product (which defers them to keep DO/shim feed parity);
+ * the channels are reserved here so a future phase can emit them without remapping.
+ */
+export const ROOM_EVENT_SIDEBAND = Object.freeze({
+  room_event:         'weather',    // current room-wide scheduled event (mood/activity)
+  cabinet_featured:   'discovery',  // display-only featured-cabinet catalog annotation
+  room_event_started: 'weather',    // DEFERRED transition (reserved, not emitted in v0.5)
+  room_event_ended:   'weather',    // DEFERRED transition (reserved, not emitted in v0.5)
+});
+
+export function sidebandForRoomEvent(kind) {
+  return ROOM_EVENT_SIDEBAND[kind] || null;
+}
+
 /** Private field names that must never appear on a public feed event. */
 export const PRIVATE_FIELD_RE = /balance|ledger|inventory|redemption_id|cost_tickets/i;
 

@@ -106,3 +106,69 @@ export function roomRecoveryHint(room) {
   if (h === 'healthy' && pop(room) === 0) return 'Empty room — be the first to play.';
   return null;
 }
+
+// ===================== v0.5: scheduled room events (display-only) =====================
+//
+// SIMULATOR-LOCAL PORT of the product Phase 2e additions (arcade/room-recommend.mjs).
+// These read the public `current_event` already attached to each room by room-events.mjs
+// (attachRoomEvents). PURE presentation derivations — no fold authority, no economy, no
+// private data. The product reads `event_ends_in_ms`; the simulator reads
+// `event_ends_in_ticks` (the only difference is the clock unit).
+
+/** Short type label for an event chip (mirrors the product copy). */
+const EVENT_TYPE_LABEL = {
+  featured_cabinet: 'Featured now',
+  training_focus: 'Training focus',
+  late_night_theme: 'Room event',
+  room_warmup: 'Room warmup',
+  quiet_room_prompt: 'Room warmup',
+};
+
+/**
+ * PURE: a public-safe event badge for one room (or null when no current event). Display
+ * fields only — name, a short kind label, the featured cabinet id (if any), and how many
+ * ticks the current event window has left. Never any reward/economy data.
+ */
+export function roomEventBadge(room) {
+  const ev = room && room.current_event;
+  if (!ev || !ev.display_name) return null;
+  return {
+    label: ev.display_name,
+    kind: ev.event_type,
+    kind_label: EVENT_TYPE_LABEL[ev.event_type] || 'Room event',
+    featured_cabinet_id: ev.featured_cabinet_id || null,
+    ends_in_ticks: Math.max(0, Number(room.event_ends_in_ticks) || 0),
+  };
+}
+
+/** PURE: the room's next-event display name (or null). */
+export function roomNextEventLabel(room) {
+  const nx = room && room.next_event;
+  return nx && nx.display_name ? nx.display_name : null;
+}
+
+/**
+ * PURE: an event-aware warmup hint for a JOINABLE but empty/quiet room that has a current
+ * event — the "Quiet Room Warmup" prompt. Display-only; joining never grants a reward.
+ * Returns null for busy/healthy rooms and for closed/maintenance.
+ */
+export function roomEventWarmupHint(room) {
+  if (!isJoinable(room)) return null;
+  const ev = room && room.current_event;
+  if (!ev || !ev.display_name) return null;
+  const h = room.health || 'unknown';
+  const quiet = (h === 'healthy' && pop(room) === 0) || h === 'stale';
+  if (!quiet) return null;
+  if (ev.event_type === 'training_focus') return `${ev.display_name} — a calm window to warm up. Join to start.`;
+  return `${ev.display_name} is on — be the first in to kick it off.`;
+}
+
+/**
+ * PURE: compact tick-countdown formatting for an event window (e.g. "12t", "now"). The
+ * product formats ms ("12m"); the simulator formats ticks. Display helper only.
+ */
+export function formatEventCountdown(ticks) {
+  const t = Math.max(0, Number(ticks) || 0);
+  if (t <= 0) return 'now';
+  return `${t}t`;
+}
