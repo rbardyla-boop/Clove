@@ -331,11 +331,31 @@ export function multiRoomEventFeedIsolation({ seed = 'p2f-iso' } = {}) {
   return { sim, report: sim.report() };
 }
 
+// ── 15. roomEventPrerollShowcase (v0.7 pre-roll → start/end flow) ─────────────────
+// main-floor observes window 3 (Pulse Hour started), then a PRE-ROLL tick before window
+// 4 (Signal Sprint Relay "is up next."), the same pre-roll window again (no duplicate),
+// then the window-4 flip (ended + started + featured). The folded feed holds the five
+// public-safe announcements in order — started, upcoming, ended, started, featured —
+// proving the pre-roll precedes the start and dedupes. Deterministic + convergent.
+export function roomEventPrerollShowcase({ seed = 'p2g-preroll' } = {}) {
+  const W = EVENT_WINDOW_TICKS;
+  const sim = new HiveSimulator({ seed, staleLockTicks: 1000 });
+  const main = sim.addRoom({ id: 'main-floor', name: 'Main Floor' });
+  sim.publish(main.announce(0));
+  sim.publish(main.heartbeat(1, { population: 1 }));   // presence exists
+  sim.publish(main.observeRoomEvents(3 * W + 1, 2));   // window 3 (Pulse Hour) → started
+  sim.publish(main.observeRoomEvents(4 * W - 2, 3));   // pre-roll of window 4 → upcoming (Signal Sprint Relay)
+  sim.publish(main.observeRoomEvents(4 * W - 1, 4));   // still pre-roll → no duplicate (dedup)
+  sim.publish(main.observeRoomEvents(4 * W + 1, 5));   // window 4 flip → ended + started + featured_changed
+  sim.advance(1);
+  return { sim, report: sim.report() };
+}
+
 export const PHASE1_SCENARIOS = Object.freeze({
   phase1QuickStart, threeCabinetTour, prizeCounterLoop, challengeBoardLoop,
   adapterFailureLoop, reconnectReplayLoop, privacyBoundaryLoop, meshChurnPhase1,
   multiRoomIsolation, roomHealthLifecycle, roomRecommendationShowcase, roomEventWindowShowcase,
-  roomEventFeedTransitionShowcase, multiRoomEventFeedIsolation,
+  roomEventFeedTransitionShowcase, multiRoomEventFeedIsolation, roomEventPrerollShowcase,
 });
 
 export function runPhase1Scenario(name, opts) {

@@ -71,6 +71,7 @@ export const ROOM_EVENT_SIDEBAND = Object.freeze({
   room_event_started:          'weather',    // v0.6: EMITTED room-wide transition
   room_event_ended:            'weather',    // v0.6: EMITTED room-wide transition
   featured_cabinet_changed:    'discovery',  // v0.6: EMITTED featured-cabinet transition
+  room_event_upcoming:         'weather',    // v0.7: EMITTED room-wide pre-roll transition
 });
 
 export function sidebandForRoomEvent(kind) {

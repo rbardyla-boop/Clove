@@ -31,7 +31,11 @@ const evtFor = (room, observeTick, atTick) => room.observeRoomEvents(observeTick
 
 // ── A. pure transition engine ─────────────────────────────────────────────────────
 test('feed types + sideband map mirror the product set', () => {
-  assert.deepEqual(ROOM_EVENT_FEED_TYPES, { started: 'room_event_started', ended: 'room_event_ended', featured_changed: 'featured_cabinet_changed' });
+  // v0.6 transition types (started/ended/featured_changed). The v0.7 `upcoming` is also
+  // present (asserted in phase2-room-event-upcoming.test.mjs); check the v0.6 three here.
+  assert.equal(ROOM_EVENT_FEED_TYPES.started, 'room_event_started');
+  assert.equal(ROOM_EVENT_FEED_TYPES.ended, 'room_event_ended');
+  assert.equal(ROOM_EVENT_FEED_TYPES.featured_changed, 'featured_cabinet_changed');
   assert.equal(ROOM_EVENT_FEED_SIDEBAND.room_event_started, 'weather');
   assert.equal(ROOM_EVENT_FEED_SIDEBAND.room_event_ended, 'weather');
   assert.equal(ROOM_EVENT_FEED_SIDEBAND.featured_cabinet_changed, 'discovery');

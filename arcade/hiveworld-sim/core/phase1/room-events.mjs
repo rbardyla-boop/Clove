@@ -32,6 +32,15 @@ export const EVENT_RULESET_VERSION = 'arcade-events/1';
  */
 export const EVENT_WINDOW_TICKS = 20;
 
+/**
+ * v0.7: how many TICKS before the next event begins it is announced as "upcoming"
+ * (pre-roll). The tick analog of the product's PREROLL_LEAD_MS (2 min of a 20-min
+ * window); 2 ticks of a 20-tick window keeps the same 1/10 lead. When the next event is
+ * within this lead, the feed gets a one-time room_event_upcoming announcement and the
+ * presence/event payloads flag `event_upcoming`. Display-only — no reward, no ticket change.
+ */
+export const PREROLL_LEAD_TICKS = 2;
+
 /** Event lifecycle statuses (public-safe) — identical set to the product. */
 export const EVENT_STATUSES = Object.freeze(['upcoming', 'active', 'ended', 'disabled']);
 
@@ -214,6 +223,8 @@ export function roomEventPublic(roomId, nowTick = 0) {
     event_ends_in_ticks: current ? Math.max(0, current.ends_at_tick - t) : null,
     event_starts_in_ticks: next ? Math.max(0, next.starts_at_tick - t) : null,
     featured_cabinet_id: current ? current.featured_cabinet_id : null,
+    // v0.7: the next event is within the pre-roll lead (drives the live countdown).
+    event_upcoming: !!next && next.starts_at_tick > t && (next.starts_at_tick - t) <= PREROLL_LEAD_TICKS,
   };
 }
 
@@ -235,12 +246,18 @@ export function attachRoomEvents(presenceList, nowTick = 0) {
 /** PURE: a room's full event read payload (current + next + one-rotation schedule). */
 export function roomEventListPayload(roomId, nowTick = 0) {
   const t = Number(nowTick) || 0;
+  const current = getCurrentRoomEvent(roomId, t);
+  const next = getNextRoomEvent(roomId, t);
   return {
     room_id: roomId,
     event_ruleset_version: EVENT_RULESET_VERSION,
-    current_event: getCurrentRoomEvent(roomId, t),
-    next_event: getNextRoomEvent(roomId, t),
+    current_event: current,
+    next_event: next,
     schedule: getRoomEventSchedule(roomId, t),
+    // v0.7: pre-roll countdown info (mirrors product Phase 2g).
+    event_ends_in_ticks: current ? Math.max(0, current.ends_at_tick - t) : null,
+    event_starts_in_ticks: next ? Math.max(0, next.starts_at_tick - t) : null,
+    event_upcoming: !!next && next.starts_at_tick > t && (next.starts_at_tick - t) <= PREROLL_LEAD_TICKS,
   };
 }
 
@@ -285,18 +302,20 @@ export function annotateCatalogForRoom(catalogPayload, roomId, nowTick = 0) {
 // Display-only: a transition carries NO economy and NO private data — only the public
 // event id / name / featured cabinet. No reward, no multiplier, no balance, no ledger.
 
-/** Transition kinds → public feed event types (the only three v0.6 feed types). */
+/** Transition kinds → public feed event types (v0.6 + the v0.7 pre-roll). */
 export const ROOM_EVENT_FEED_TYPES = Object.freeze({
   started: 'room_event_started',
   ended: 'room_event_ended',
   featured_changed: 'featured_cabinet_changed',
+  upcoming: 'room_event_upcoming',
 });
 
-/** Feed type → sideband (room-wide start/end ride `weather`; featured rides `discovery`). */
+/** Feed type → sideband (room-wide start/end/upcoming ride `weather`; featured rides `discovery`). */
 export const ROOM_EVENT_FEED_SIDEBAND = Object.freeze({
   room_event_started: 'weather',
   room_event_ended: 'weather',
   featured_cabinet_changed: 'discovery',
+  room_event_upcoming: 'weather',
 });
 
 /**
@@ -311,6 +330,7 @@ export function initialRoomEventTracker(generation = 0) {
     started_announced_id: null,         // last event id a 'started' was announced for
     ended_announced_id: null,           // last event id an 'ended' was announced for
     featured_announced_event_id: null,  // event id a 'featured_changed' was announced for
+    upcoming_announced_id: null,        // v0.7: next event id a pre-roll was announced for
     last_transition_checked_tick: -1,   // highest observe_tick folded (monotonic guard)
     generation: Math.max(0, Number(generation) || 0),
   };
@@ -330,6 +350,7 @@ function eventSnapshot(event) {
 export function publicRoomEventSummary(transitionType, snap) {
   if (transitionType === 'started') return `${snap.display_name} started.`;
   if (transitionType === 'ended') return `${snap.display_name} ended.`;
+  if (transitionType === 'upcoming') return `${snap.display_name} is up next.`;
   // featured_changed — resolve the featured cabinet's display name (fail-safe).
   const cab = snap.featured_cabinet_id ? getCabinet(snap.featured_cabinet_id) : null;
   return cab ? `${snap.display_name} is now featuring ${cab.display_name}.`
@@ -363,16 +384,19 @@ export function applyRoomEventTransitions(prevTracker, transitions, currentEvent
   let started = prev.started_announced_id;
   let ended = prev.ended_announced_id;
   let featured = prev.featured_announced_event_id;
+  let upcoming = prev.upcoming_announced_id ?? null; // ?? null migrates pre-0.7 trackers
   for (const tr of (transitions || [])) {
     if (tr.transition_type === 'started') started = tr.event_id;
     else if (tr.transition_type === 'ended') ended = tr.event_id;
     else if (tr.transition_type === 'featured_changed') featured = tr.event_id;
+    else if (tr.transition_type === 'upcoming') upcoming = tr.event_id;
   }
   return {
     active: eventSnapshot(currentEvent),
     started_announced_id: started,
     ended_announced_id: ended,
     featured_announced_event_id: featured,
+    upcoming_announced_id: upcoming,
     last_transition_checked_tick: Math.max(Number(observeTick) || 0, Number(prev.last_transition_checked_tick) || -1),
     generation: prev.generation,
   };
@@ -415,6 +439,13 @@ export function deriveRoomEventTransitions(prevTracker, roomId, observeTick) {
       && current.featured_cabinet_id !== prevActive.featured_cabinet_id
       && prev.featured_announced_event_id !== curId) {
     transitions.push(makeTransition('featured_changed', eventSnapshot(current), roomId, t));
+  }
+  // v0.7: the NEXT event begins within the pre-roll lead → announce it as upcoming
+  // (once per next-event window). Display-only; mirrors product Phase 2g.
+  const next = getNextRoomEvent(roomId, t);
+  const upcomingAnn = prev.upcoming_announced_id ?? null;
+  if (next && next.starts_at_tick > t && (next.starts_at_tick - t) <= PREROLL_LEAD_TICKS && upcomingAnn !== next.event_id) {
+    transitions.push(makeTransition('upcoming', eventSnapshot(next), roomId, t));
   }
 
   const state = applyRoomEventTransitions(prev, transitions, current, t);
