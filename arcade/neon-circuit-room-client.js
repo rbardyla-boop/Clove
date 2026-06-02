@@ -567,6 +567,27 @@ export class NeonCircuitRoomClient {
     this.send({ t: "room_admin", op: "diagnostics", token });
   }
 
+  // ---- Phase 2i: live-ops, DISPLAY-ONLY per-room presentation overrides (server-gated) ----
+  // These tune ONLY how room events are presented (pre-roll lead, countdown refresh, show
+  // flags) — never tickets/prizes/economy/authority. The server validates the token and
+  // sanitizes/clamps the override; nothing here is trusted client-side.
+  /** Apply a per-room presentation override (partial; empty/garbage clears it). */
+  adminSetPresentation(roomId, override, token) {
+    this.send({ t: "room_admin", op: "set_presentation", roomId, override, token });
+  }
+  /** Reset a room's presentation override back to the operator/base config. */
+  adminClearPresentation(roomId, token) {
+    this.send({ t: "room_admin", op: "clear_presentation", roomId, token });
+  }
+  /** Preview the effective config a proposed override WOULD produce, WITHOUT applying it. */
+  adminPreviewPresentation(roomId, override, token) {
+    this.send({ t: "room_admin", op: "preview_presentation", roomId, override, token });
+  }
+  /** Request registry-wide presentation diagnostics (per-room override + effective config). */
+  adminPresentationDiagnostics(token) {
+    this.send({ t: "room_admin", op: "presentation_diagnostics", token });
+  }
+
   getCurrentMachineState(machineId = "pulse") {
     return this.currentState.machines?.[machineId] || null;
   }

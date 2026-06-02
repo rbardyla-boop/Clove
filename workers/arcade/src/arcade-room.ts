@@ -36,6 +36,7 @@ import {
   initialEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition,
   eventPresentationFromEnv,
 } from "./room-events.mjs";
+type EventConfig = ReturnType<typeof eventPresentationFromEnv>;
 
 export interface MachineState {
   machineId: string;
@@ -283,7 +284,9 @@ export class ArcadeRoom implements DurableObject {
     this.send(ws, { t: "room_list", ...list });
   }
   private async handleAdmin(ws: WebSocket, data: any): Promise<void> {
-    const result = await this.forwardAdmin({ op: data.op, roomId: data.roomId, status: data.status, token: data.token });
+    // `override` carries the per-room presentation override payload for the Phase 2i
+    // presentation ops (set/preview); harmless for the other ops which ignore it.
+    const result = await this.forwardAdmin({ op: data.op, roomId: data.roomId, status: data.status, override: data.override, token: data.token });
     this.send(ws, { t: "room_admin_result", ...result });
   }
 
@@ -332,7 +335,7 @@ export class ArcadeRoom implements DurableObject {
       case "arcade_event_feed_request": { this.send(ws, { t: "arcade_event_feed", roomId: this.socketRoom(ws), ...eventFeedPayload(this.room(this.socketRoom(ws)).ticketState) }); break; }
       // Phase 2e: deterministic, public-safe scheduled room events (current/next +
       // one-rotation schedule). Read-only — the client cannot set or trigger events.
-      case "room_events_request": { const cr = this.socketRoom(ws); await this.checkAndAnnounceRoomEvents(cr); this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow(), this.eventConfig()) }); break; }
+      case "room_events_request": { const cr = this.socketRoom(ws); const cfg = await this.effectivePresentation(cr); await this.checkAndAnnounceRoomEvents(cr, cfg); this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow(), cfg) }); break; }
       // Phase 2f: TEST-ONLY event-clock override (dev/test gate only) — advances the
       // room-event schedule so start/end/featured transitions are deterministically
       // testable without waiting real minutes. Rejected unless ENVIRONMENT==="development".
@@ -340,8 +343,9 @@ export class ArcadeRoom implements DurableObject {
         if (this.env.ENVIRONMENT === "development") {
           const cr = this.socketRoom(ws);
           this.eventClockOverride = (data.nowMs == null) ? null : Number(data.nowMs);
-          await this.checkAndAnnounceRoomEvents(cr);
-          this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow(), this.eventConfig()) });
+          const cfg = await this.effectivePresentation(cr);
+          await this.checkAndAnnounceRoomEvents(cr, cfg);
+          this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow(), cfg) });
         }
         break;
       }
@@ -614,9 +618,26 @@ export class ArcadeRoom implements DurableObject {
   }
 
   /** The operator-tunable event presentation config (resolved + cached from env). */
-  private eventConfig(): ReturnType<typeof eventPresentationFromEnv> {
+  private eventConfig(): EventConfig {
     if (!this.eventConfigCache) this.eventConfigCache = eventPresentationFromEnv(this.env);
     return this.eventConfigCache;
+  }
+
+  /**
+   * The EFFECTIVE presentation config for `roomId` — the env base (Phase 2h) merged
+   * with any per-room live-ops override the registry holds (Phase 2i). The registry
+   * already resolved + clamped the merge, so its public block IS a valid config. Fail
+   * open: if the registry is unreachable we use the env base, so a registry blip only
+   * reverts the display dressing to default — it never alters event timing (which is
+   * pure + deterministic from the clock). Display-only either way.
+   */
+  private async effectivePresentation(roomId: string): Promise<EventConfig> {
+    try {
+      const res = await this.registryStub().fetch(`https://reg/registry/presentation?room=${encodeURIComponent(roomId)}`);
+      const j: any = await res.json();
+      if (j && j.ok && j.presentation) return j.presentation as EventConfig;
+    } catch { /* fail-open to env base below */ }
+    return this.eventConfig();
   }
 
   /**
@@ -624,10 +645,14 @@ export class ArcadeRoom implements DurableObject {
    * append a public-safe feed entry per transition (deduped by the per-room tracker), and
    * broadcast them. Idempotent: repeated calls at the same clock emit nothing (no spam).
    * Display-only — never touches tickets/economy/private state.
+   *
+   * `cfg` lets the caller reuse an already-fetched effective config (avoids a second
+   * registry round-trip); when omitted we resolve the per-room effective config here.
    */
-  private async checkAndAnnounceRoomEvents(roomId: string): Promise<void> {
+  private async checkAndAnnounceRoomEvents(roomId: string, cfg?: EventConfig): Promise<void> {
     const part = this.room(roomId);
-    const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, this.roomEventNow(), this.eventConfig());
+    const effective = cfg || await this.effectivePresentation(roomId);
+    const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, this.roomEventNow(), effective);
     if (!changed) return;
     part.eventTracker = state;
     const now = Date.now();

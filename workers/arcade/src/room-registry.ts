@@ -19,9 +19,12 @@
 import {
   roomPresenceListPayload, isValidRoomId, isRoomStatus,
   isJoinableStatus, effectiveStatus, roomDiagnosticsList,
-  HEARTBEAT_SCHEMA_VERSION,
+  HEARTBEAT_SCHEMA_VERSION, ROOM_IDS,
 } from "./rooms.mjs";
-import { attachRoomEvents, eventPresentationFromEnv } from "./room-events.mjs";
+import {
+  attachRoomEvents, eventPresentationFromEnv,
+  mergeEventPresentation, sanitizeEventPresentationOverride, publicPresentation,
+} from "./room-events.mjs";
 import { checkAdmin, adminEnabled, isAdminOp } from "./admin.mjs";
 
 /** Latest heartbeat stored for a room (registry stamps `last_seen_at` on receipt). */
@@ -43,6 +46,8 @@ interface Heartbeat {
 interface RegistryState {
   heartbeats: Record<string, Heartbeat>;
   statusOverrides: Record<string, string>;
+  // Phase 2i: per-room, DISPLAY-ONLY presentation overrides (admin-set, validated/sanitized).
+  presentationOverrides: Record<string, any>;
 }
 
 interface Env {
@@ -66,7 +71,7 @@ export class RoomRegistry implements DurableObject {
     if (this.reg) return;
     const stored = await this.ctx.storage.get<any>("registry");
     if (stored && stored.heartbeats) {
-      this.reg = { heartbeats: stored.heartbeats, statusOverrides: stored.statusOverrides || {} };
+      this.reg = { heartbeats: stored.heartbeats, statusOverrides: stored.statusOverrides || {}, presentationOverrides: stored.presentationOverrides || {} };
     } else if (stored && stored.populations) {
       // Migrate a Phase 2b store (bare populations) into heartbeats. Seed them as
       // already-stale (last_seen_at = 0) so we never show ghost population from a
@@ -76,10 +81,15 @@ export class RoomRegistry implements DurableObject {
         if (!isValidRoomId(roomId)) continue;
         heartbeats[roomId] = this.seedHeartbeat(roomId, Math.max(0, Number(population) || 0));
       }
-      this.reg = { heartbeats, statusOverrides: stored.statusOverrides || {} };
+      this.reg = { heartbeats, statusOverrides: stored.statusOverrides || {}, presentationOverrides: stored.presentationOverrides || {} };
     } else {
-      this.reg = { heartbeats: {}, statusOverrides: {} };
+      this.reg = { heartbeats: {}, statusOverrides: {}, presentationOverrides: {} };
     }
+  }
+
+  /** The EFFECTIVE presentation config for a room: env base + that room's override. */
+  private effectivePresentation(roomId: string): ReturnType<typeof mergeEventPresentation> {
+    return mergeEventPresentation(eventPresentationFromEnv(this.env), this.reg.presentationOverrides[roomId]);
   }
   private seedHeartbeat(roomId: string, population: number): Heartbeat {
     return {
@@ -131,8 +141,18 @@ export class RoomRegistry implements DurableObject {
     // and carry no economy/private data (see room-events.mjs).
     if (path === "/registry/list") {
       const now = Date.now();
-      const cfg = eventPresentationFromEnv(this.env);
-      return this.json(attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now, cfg));
+      // Phase 2i: per-room resolver so each room reflects its EFFECTIVE (base + override)
+      // presentation; the top-level `presentation` stays the base.
+      const resolve = (roomId: string | null) => roomId ? this.effectivePresentation(roomId) : eventPresentationFromEnv(this.env);
+      return this.json(attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now, resolve));
+    }
+
+    // Phase 2i: a room DO fetches its EFFECTIVE presentation config (base + override) to
+    // drive its room_events payload + pre-roll feed. Public-safe (display hints only).
+    if (path === "/registry/presentation") {
+      const roomId = url.searchParams.get("room") || "";
+      if (!isValidRoomId(roomId)) return this.json({ ok: false, reason: "invalid_room" });
+      return this.json({ ok: true, roomId, presentation: publicPresentation(this.effectivePresentation(roomId)), has_override: !!this.reg.presentationOverrides[roomId] });
     }
 
     // Public-safe registry health envelope (Phase 2c health schema, additively
@@ -163,9 +183,44 @@ export class RoomRegistry implements DurableObject {
       if (op === "diagnostics") {
         return this.json({ ok: true, op, diagnostics: roomDiagnosticsList(this.reg.heartbeats, this.reg.statusOverrides, Date.now()) });
       }
+      // Phase 2i: registry-wide presentation diagnostics (per-room override + effective config).
+      if (op === "presentation_diagnostics") {
+        const base = eventPresentationFromEnv(this.env);
+        const presentation = ROOM_IDS.map((roomId) => ({
+          room_id: roomId,
+          override: this.reg.presentationOverrides[roomId] || null,
+          effective: publicPresentation(this.effectivePresentation(roomId)),
+        }));
+        return this.json({ ok: true, op, base: publicPresentation(base), presentation });
+      }
 
       const roomId = body.roomId;
       if (!isValidRoomId(roomId)) return this.json({ ok: false, reason: "invalid_room" });
+
+      // Phase 2i: PREVIEW the effective config for a proposed override WITHOUT applying it.
+      if (op === "preview_presentation") {
+        const sanitized = sanitizeEventPresentationOverride(body.override);
+        const effective = mergeEventPresentation(eventPresentationFromEnv(this.env), sanitized);
+        return this.json({ ok: true, op, roomId, override: sanitized, effective: publicPresentation(effective) });
+      }
+      // Phase 2i: APPLY a per-room presentation override (sanitized + persisted).
+      if (op === "set_presentation") {
+        const sanitized = sanitizeEventPresentationOverride(body.override);
+        if (Object.keys(sanitized).length === 0) {
+          // Nothing valid to set → clear any existing override (no-op override = base).
+          delete this.reg.presentationOverrides[roomId];
+        } else {
+          this.reg.presentationOverrides[roomId] = sanitized;
+        }
+        await this.persist();
+        return this.json({ ok: true, op, roomId, override: this.reg.presentationOverrides[roomId] || {}, effective: publicPresentation(this.effectivePresentation(roomId)) });
+      }
+      // Phase 2i: RESET a room's presentation override back to the base config.
+      if (op === "clear_presentation") {
+        delete this.reg.presentationOverrides[roomId];
+        await this.persist();
+        return this.json({ ok: true, op, roomId, effective: publicPresentation(this.effectivePresentation(roomId)) });
+      }
 
       if (op === "set_status") {
         if (!isRoomStatus(body.status)) return this.json({ ok: false, reason: "invalid_status" });

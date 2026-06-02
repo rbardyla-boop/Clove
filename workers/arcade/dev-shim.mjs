@@ -30,12 +30,19 @@ import {
   attachRoomEvents, annotateCatalogForRoom, roomEventListPayload,
   initialEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition,
   eventPresentationFromEnv,
+  mergeEventPresentation, sanitizeEventPresentationOverride, publicPresentation,
 } from './src/room-events.mjs';
+import { ROOM_IDS } from './src/rooms.mjs';
 import { checkAdmin, adminEnabled, isAdminOp } from './src/admin.mjs';
 
 // Phase 2h: resolve the operator-tunable, display-only event presentation config from
 // the shim's process env (same keys + validation as the production DOs).
 const eventConfig = eventPresentationFromEnv(process.env);
+// Phase 2i: per-room, DISPLAY-ONLY presentation overrides (roomId -> sanitized partial).
+// Mirrors the RoomRegistry's presentationOverrides store. The EFFECTIVE config for a room
+// is the env base merged with its override (already validated/clamped on the way in).
+const presentationOverrides = {};
+const effectivePresentation = (roomId) => mergeEventPresentation(eventConfig, presentationOverrides[roomId]);
 
 const PORT = Number(process.env.PORT || 8787);
 const PULSE_ID = 'pulse';
@@ -69,9 +76,9 @@ const roomEventNow = (roomId) => (eventClockOverride[roomId] != null ? eventCloc
 // Detect + announce room-event start/end/featured transitions for a room (deduped by the
 // per-room tracker), appending a public-safe feed entry per transition + broadcasting it.
 // Idempotent at the same clock — the parity twin of ArcadeRoom.checkAndAnnounceRoomEvents.
-function checkAndAnnounceRoomEvents(roomId) {
+function checkAndAnnounceRoomEvents(roomId, cfg = effectivePresentation(roomId)) {
   const part = room(roomId);
-  const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, roomEventNow(roomId), eventConfig);
+  const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, roomEventNow(roomId), cfg);
   if (!changed) return;
   part.eventTracker = state;
   for (const tr of transitions) {
@@ -183,11 +190,37 @@ function handleAdmin(ws, d) {
   if (d.op === 'diagnostics') {
     return send(ws, { t: 'room_admin_result', ok: true, op: 'diagnostics', diagnostics: shimDiagnostics(Date.now()) });
   }
+  // Phase 2i: registry-wide presentation diagnostics (per-room override + effective config).
+  if (d.op === 'presentation_diagnostics') {
+    const presentation = ROOM_IDS.map((roomId) => ({
+      room_id: roomId,
+      override: presentationOverrides[roomId] || null,
+      effective: publicPresentation(effectivePresentation(roomId)),
+    }));
+    return send(ws, { t: 'room_admin_result', ok: true, op: 'presentation_diagnostics', base: publicPresentation(eventConfig), presentation });
+  }
   if (!isValidRoomId(d.roomId)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'invalid_room' });
   if (d.op === 'set_status') {
     if (!isRoomStatus(d.status)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'invalid_status' });
     statusOverrides[d.roomId] = d.status;
     return send(ws, { t: 'room_admin_result', ok: true, op: 'set_status', roomId: d.roomId, status: d.status });
+  }
+  // Phase 2i: PREVIEW the effective config for a proposed override WITHOUT applying it.
+  if (d.op === 'preview_presentation') {
+    const sanitized = sanitizeEventPresentationOverride(d.override);
+    return send(ws, { t: 'room_admin_result', ok: true, op: 'preview_presentation', roomId: d.roomId, override: sanitized, effective: publicPresentation(mergeEventPresentation(eventConfig, sanitized)) });
+  }
+  // Phase 2i: APPLY a per-room presentation override (sanitized + stored; empty = clear).
+  if (d.op === 'set_presentation') {
+    const sanitized = sanitizeEventPresentationOverride(d.override);
+    if (Object.keys(sanitized).length === 0) delete presentationOverrides[d.roomId];
+    else presentationOverrides[d.roomId] = sanitized;
+    return send(ws, { t: 'room_admin_result', ok: true, op: 'set_presentation', roomId: d.roomId, override: presentationOverrides[d.roomId] || {}, effective: publicPresentation(effectivePresentation(d.roomId)) });
+  }
+  // Phase 2i: RESET a room's presentation override back to the base config.
+  if (d.op === 'clear_presentation') {
+    delete presentationOverrides[d.roomId];
+    return send(ws, { t: 'room_admin_result', ok: true, op: 'clear_presentation', roomId: d.roomId, effective: publicPresentation(effectivePresentation(d.roomId)) });
   }
   adminReset(d.roomId);
   return send(ws, { t: 'room_admin_result', ok: true, op: 'reset', roomId: d.roomId, generation: rooms[d.roomId]?.generation ?? 0 });
@@ -265,7 +298,9 @@ wss.on('connection', (ws) => {
     const bound = meta && meta.playerId ? meta : null;
 
     switch (d.t) {
-      case 'room_list_request': { const now = Date.now(); return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now, eventConfig) }); }
+      // Phase 2i: per-room resolver so each room reflects its EFFECTIVE (base + override)
+      // presentation; the top-level `presentation` stays the base (mirrors the registry).
+      case 'room_list_request': { const now = Date.now(); const resolve = (roomId) => roomId ? effectivePresentation(roomId) : eventConfig; return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now, resolve) }); }
       case 'room_admin': return void handleAdmin(ws, d);
       // TEST/DEV ONLY: age a room's stored heartbeat so the stale/offline policy can
       // be exercised deterministically without waiting real seconds. The production
@@ -274,7 +309,8 @@ wss.on('connection', (ws) => {
       case '__test_set_heartbeat_age': {
         if (heartbeats[d.roomId]) heartbeats[d.roomId].last_seen_at = Date.now() - Math.max(0, Number(d.ageMs) || 0);
         const now = Date.now();
-        return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now, eventConfig) });
+        const resolve = (roomId) => roomId ? effectivePresentation(roomId) : eventConfig;
+        return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now, resolve) });
       }
       case 'join_room': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, false);
       case 'room_join_request': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, true);
@@ -383,14 +419,15 @@ wss.on('connection', (ws) => {
       }
       case 'arcade_event_feed_request': return void send(ws, { t: 'arcade_event_feed', roomId: (bound || meta).roomId, ...eventFeedPayload(room((bound || meta).roomId).ticketState) });
       // Phase 2e: deterministic, public-safe scheduled room events (read-only).
-      case 'room_events_request': { const cr = (bound || meta).roomId; checkAndAnnounceRoomEvents(cr); return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr), eventConfig) }); }
+      case 'room_events_request': { const cr = (bound || meta).roomId; const cfg = effectivePresentation(cr); checkAndAnnounceRoomEvents(cr, cfg); return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr), cfg) }); }
       // Phase 2f: TEST-ONLY event-clock override (shim is test-only). Advances the room
       // event schedule so start/end/featured transitions are deterministically testable.
       case '__test_set_event_now': {
         const cr = (bound || meta).roomId;
         eventClockOverride[cr] = (d.nowMs == null) ? undefined : Number(d.nowMs);
-        checkAndAnnounceRoomEvents(cr);
-        return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr), eventConfig) });
+        const cfg = effectivePresentation(cr);
+        checkAndAnnounceRoomEvents(cr, cfg);
+        return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr), cfg) });
       }
       case 'challenge_reward_claim': {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });

@@ -29,11 +29,18 @@ test('adminEnabled reads the dev flag from an env-like object', () => {
   assert.equal(adminEnabled(null), false);
 });
 
-test('only known admin ops are accepted (incl. Phase 2c diagnostics)', () => {
-  assert.deepEqual([...ADMIN_OPS].sort(), ['diagnostics', 'reset', 'set_status']);
+test('only known admin ops are accepted (Phase 2c diagnostics + Phase 2i presentation ops)', () => {
+  assert.deepEqual([...ADMIN_OPS].sort(), [
+    'clear_presentation', 'diagnostics', 'presentation_diagnostics', 'preview_presentation',
+    'reset', 'set_presentation', 'set_status',
+  ]);
   assert.equal(isAdminOp('reset'), true);
   assert.equal(isAdminOp('set_status'), true);
   assert.equal(isAdminOp('diagnostics'), true);
+  assert.equal(isAdminOp('set_presentation'), true);    // Phase 2i
+  assert.equal(isAdminOp('clear_presentation'), true);  // Phase 2i
+  assert.equal(isAdminOp('preview_presentation'), true);// Phase 2i
+  assert.equal(isAdminOp('presentation_diagnostics'), true); // Phase 2i
   assert.equal(isAdminOp('delete_everything'), false);
 });
 

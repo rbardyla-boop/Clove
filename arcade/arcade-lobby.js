@@ -36,6 +36,8 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
   let adminOpen = false;
   let lastAdmin = null;
   let lastDiag = null; // Phase 2c: last admin diagnostics payload (admin panel only)
+  let lastOps = null;  // Phase 2i: last presentation_diagnostics payload (admin panel only)
+  let lastOpsResult = null; // Phase 2i: last preview/apply/clear effective config (admin panel only)
 
   const THEME_ICON = { neon: '🟣', training: '🟢', midnight: '🌙' };
   const STATUS_LABEL = { closed: 'Closed', maintenance: 'Maintenance' };
@@ -63,9 +65,12 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
           <label class="lobby-admin-lbl">Admin token <input class="lobby-admin-tok" data-f="token" type="password" placeholder="admin token (server-gated)" autocomplete="off"></label>
           <div class="lobby-admin-row">
             <button class="lr-adm" type="button" data-act="admin-diag">Diagnostics</button>
-            <span class="lobby-admin-hint">Reset wipes a room's state; status closes it to new joins; diagnostics reads room health. Server validates the token.</span>
+            <button class="lr-adm" type="button" data-act="ops-diag">Presentation</button>
+            <span class="lobby-admin-hint">Reset wipes a room's state; status closes it to new joins; diagnostics reads room health; presentation shows per-room display overrides. Server validates the token.</span>
           </div>
           <div class="lobby-diag" data-f="diag" hidden></div>
+          <div class="lobby-ops" data-f="ops" hidden></div>
+          <div class="lobby-opsmsg" data-f="opsmsg" hidden></div>
         </div>
         <div class="lobby-recos" data-f="recos" hidden></div>
         <div class="lobby-rooms" data-f="rooms"></div>
@@ -84,6 +89,12 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
       else if (act === 'admin-reset') { if (roomId) onAdmin('reset', roomId, null, tokenValue()); }
       else if (act === 'admin-status') { if (roomId) onAdmin('set_status', roomId, btn.dataset.status, tokenValue()); }
       else if (act === 'admin-diag') { onAdmin('diagnostics', null, null, tokenValue()); }
+      // Phase 2i: live-ops, DISPLAY-ONLY per-room presentation overrides. The override is
+      // gathered from this room's inputs; the server sanitizes/clamps + gates by token.
+      else if (act === 'ops-preview') { if (roomId) onAdmin('preview_presentation', roomId, null, tokenValue(), opsOverrideFor(roomId)); }
+      else if (act === 'ops-apply') { if (roomId) onAdmin('set_presentation', roomId, null, tokenValue(), opsOverrideFor(roomId)); }
+      else if (act === 'ops-clear') { if (roomId) onAdmin('clear_presentation', roomId, null, tokenValue()); }
+      else if (act === 'ops-diag') { onAdmin('presentation_diagnostics', null, null, tokenValue()); }
       // click on the backdrop closes
       if (e.target === root) close();
     });
@@ -96,13 +107,57 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
 
   // Per-room admin controls (shown only when the ⚙ admin panel is open).
   function adminRow(r) {
+    // Phase 2i: pre-fill the live-ops inputs from this room's EFFECTIVE presentation
+    // (base ⊕ override, server-resolved). `overridden` = effective differs from the
+    // operator/base config, so the operator can see at a glance which rooms are tuned.
+    const p = (r.presentation && typeof r.presentation === 'object') ? r.presentation : presentation || {};
+    const base = presentation || {};
+    const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+    const preroll = num(p.preroll_lead_ms, '');
+    const refresh = num(p.countdown_refresh_ms, '');
+    const showNext = p.show_next_event !== false;
+    const showFeatured = p.show_featured_chip !== false;
+    const overridden = base && (p.preroll_lead_ms !== base.preroll_lead_ms || p.countdown_refresh_ms !== base.countdown_refresh_ms
+      || p.show_next_event !== base.show_next_event || p.show_featured_chip !== base.show_featured_chip);
     return `
       <div class="lr-admin">
-        <button class="lr-adm" type="button" data-act="admin-reset">Reset</button>
-        <button class="lr-adm" type="button" data-act="admin-status" data-status="open">Open</button>
-        <button class="lr-adm" type="button" data-act="admin-status" data-status="closed">Close</button>
-        <button class="lr-adm" type="button" data-act="admin-status" data-status="maintenance">Maint.</button>
+        <div class="lr-admin-status">
+          <button class="lr-adm" type="button" data-act="admin-reset">Reset</button>
+          <button class="lr-adm" type="button" data-act="admin-status" data-status="open">Open</button>
+          <button class="lr-adm" type="button" data-act="admin-status" data-status="closed">Close</button>
+          <button class="lr-adm" type="button" data-act="admin-status" data-status="maintenance">Maint.</button>
+        </div>
+        <div class="lr-ops" data-ops-room="${r.room_id}">
+          <span class="lr-ops-k">Live ops · presentation ${overridden ? '<em class="lr-ops-on">override</em>' : '<em class="lr-ops-off">base</em>'} <span class="lr-ops-note">display-only</span></span>
+          <label class="lr-ops-f">Pre-roll <input class="lr-ops-i" data-f-ops="preroll_lead_ms" type="number" min="0" step="1000" value="${preroll}" placeholder="${num(base.preroll_lead_ms, '')}"><span class="lr-ops-u">ms</span></label>
+          <label class="lr-ops-f">Countdown <input class="lr-ops-i" data-f-ops="countdown_refresh_ms" type="number" min="0" step="250" value="${refresh}" placeholder="${num(base.countdown_refresh_ms, '')}"><span class="lr-ops-u">ms</span></label>
+          <label class="lr-ops-c"><input data-f-ops="show_next_event" type="checkbox" ${showNext ? 'checked' : ''}> Next</label>
+          <label class="lr-ops-c"><input data-f-ops="show_featured_chip" type="checkbox" ${showFeatured ? 'checked' : ''}> Featured</label>
+          <div class="lr-ops-btns">
+            <button class="lr-adm" type="button" data-act="ops-preview">Preview</button>
+            <button class="lr-adm lr-adm-go" type="button" data-act="ops-apply">Apply</button>
+            <button class="lr-adm" type="button" data-act="ops-clear">Reset override</button>
+          </div>
+        </div>
       </div>`;
+  }
+
+  // Phase 2i: read a room's proposed presentation override from its inputs. Empty number
+  // fields are omitted (→ fall through to base on the server); checkboxes always send a
+  // bool. The server re-sanitizes/clamps regardless — this is purely the request payload.
+  function opsOverrideFor(roomId) {
+    const block = root && root.querySelector(`[data-ops-room="${roomId}"]`);
+    if (!block) return {};
+    const o = {};
+    const pl = block.querySelector('[data-f-ops="preroll_lead_ms"]');
+    const cr = block.querySelector('[data-f-ops="countdown_refresh_ms"]');
+    const sn = block.querySelector('[data-f-ops="show_next_event"]');
+    const sf = block.querySelector('[data-f-ops="show_featured_chip"]');
+    if (pl && pl.value !== '') o.preroll_lead_ms = Number(pl.value);
+    if (cr && cr.value !== '') o.countdown_refresh_ms = Number(cr.value);
+    if (sn) o.show_next_event = sn.checked;
+    if (sf) o.show_featured_chip = sf.checked;
+    return o;
   }
 
   function render() {
@@ -204,6 +259,33 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         diagEl.hidden = true;
       }
     }
+
+    // Phase 2i: per-room presentation override diagnostics (admin-only, display-only).
+    const opsEl = $('ops');
+    if (opsEl) {
+      if (adminOpen && lastOps && Array.isArray(lastOps.presentation) && lastOps.presentation.length) {
+        const fmtFlags = (e) => `${e.show_next_event === false ? '' : '⏭'}${e.show_featured_chip === false ? '' : '★'}` || '—';
+        opsEl.hidden = false;
+        opsEl.innerHTML = `<div class="lobby-ops-base">base · pre-roll ${lastOps.base?.preroll_lead_ms ?? '—'}ms · refresh ${lastOps.base?.countdown_refresh_ms ?? '—'}ms</div>`
+          + lastOps.presentation.map((e) => {
+            const eff = e.effective || {};
+            return `<div class="lobby-ops-row${e.override ? ' overridden' : ''}">
+              <span class="lo-room">${escapeHtml(e.room_id)}</span>
+              <span class="lo-tag">${e.override ? 'override' : 'base'}</span>
+              <span class="lo-num" title="pre-roll lead">pre ${eff.preroll_lead_ms ?? '—'}ms</span>
+              <span class="lo-num" title="countdown refresh">ref ${eff.countdown_refresh_ms ?? '—'}ms</span>
+              <span class="lo-flags" title="show next / show featured">${fmtFlags(eff)}</span>
+            </div>`;
+          }).join('');
+      } else {
+        opsEl.hidden = true;
+      }
+    }
+    const opsMsg = $('opsmsg');
+    if (opsMsg) {
+      if (adminOpen && lastOpsResult) { opsMsg.hidden = false; opsMsg.textContent = lastOpsResult; }
+      else { opsMsg.hidden = true; }
+    }
   }
 
   // Phase 2d: smart recommendations banner — busiest healthy room, training room,
@@ -266,9 +348,23 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
       // Phase 2c: capture diagnostics payload (admin-only). Cleared on failure.
       if (result && result.ok && result.op === 'diagnostics' && Array.isArray(result.diagnostics)) lastDiag = result.diagnostics;
       else if (result && !result.ok) lastDiag = null;
+      // Phase 2i: capture presentation diagnostics + preview/apply/clear effective config.
+      if (result && result.ok && result.op === 'presentation_diagnostics' && Array.isArray(result.presentation)) lastOps = result;
+      if (result && result.ok && (result.op === 'preview_presentation' || result.op === 'set_presentation' || result.op === 'clear_presentation')) {
+        const eff = result.effective || {};
+        const verb = result.op === 'preview_presentation' ? 'preview' : (result.op === 'set_presentation' ? 'applied' : 'cleared');
+        const hasOv = result.override && Object.keys(result.override).length;
+        lastOpsResult = `${verb} · ${result.roomId} → pre-roll ${eff.preroll_lead_ms ?? '—'}ms · refresh ${eff.countdown_refresh_ms ?? '—'}ms · next ${eff.show_next_event === false ? 'off' : 'on'} · featured ${eff.show_featured_chip === false ? 'off' : 'on'}${hasOv ? '' : ' (base)'}`;
+      } else if (result && !result.ok) {
+        lastOpsResult = null;
+      }
       adminOpen = true;
       render();
-      if (!(result && result.op === 'diagnostics')) onRefresh();
+      // Read-only ops do not change room state, so don't trigger a room-list refresh
+      // (which would wipe operator-typed inputs). Mutating ops refresh to reflect the
+      // new effective presentation in the room cards.
+      const READ_OPS = new Set(['diagnostics', 'preview_presentation', 'presentation_diagnostics']);
+      if (!(result && READ_OPS.has(result.op))) onRefresh();
     },
     getRooms() { return rooms.slice(); },
     get element() { return root; },

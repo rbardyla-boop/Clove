@@ -612,11 +612,17 @@ lobby = createArcadeLobby({
     client.switchRoom(roomId);
   },
   onRefresh: () => client.requestRoomList(),
-  // Phase 2b: forward admin intent only. The server gates by dev flag + token.
-  onAdmin: (op, roomId, status, token) => {
+  // Phase 2b/2i: forward admin intent only. The server gates by dev flag + token and
+  // sanitizes any override; the client never trusts or applies these locally.
+  onAdmin: (op, roomId, status, token, override) => {
     if (op === 'reset') client.adminResetRoom(roomId, token);
     else if (op === 'set_status') client.adminSetRoomStatus(roomId, status, token);
     else if (op === 'diagnostics') client.adminRoomDiagnostics(token);
+    // Phase 2i: live-ops presentation overrides (display-only).
+    else if (op === 'set_presentation') client.adminSetPresentation(roomId, override, token);
+    else if (op === 'clear_presentation') client.adminClearPresentation(roomId, token);
+    else if (op === 'preview_presentation') client.adminPreviewPresentation(roomId, override, token);
+    else if (op === 'presentation_diagnostics') client.adminPresentationDiagnostics(token);
   },
 });
 const roomBtn = el('roomBtn');
@@ -697,6 +703,11 @@ if (params.get('test') === '1') {
     adminSetStatus: (roomId, status, token) => client.adminSetRoomStatus(roomId, status, token),
     // Phase 2c: room presence health introspection for browser validation.
     adminDiagnostics: (token) => client.adminRoomDiagnostics(token),
+    // Phase 2i: live-ops per-room presentation override introspection (display-only).
+    adminSetPresentation: (roomId, override, token) => client.adminSetPresentation(roomId, override, token),
+    adminClearPresentation: (roomId, token) => client.adminClearPresentation(roomId, token),
+    adminPreviewPresentation: (roomId, override, token) => client.adminPreviewPresentation(roomId, override, token),
+    adminPresentationDiagnostics: (token) => client.adminPresentationDiagnostics(token),
     lastRoomAdmin: () => lastRoomAdmin,
     setHeartbeatAge: (roomId, ageMs) => client.send({ t: '__test_set_heartbeat_age', roomId, ageMs }),
     // Phase 2e: scheduled room-event introspection for browser validation.
