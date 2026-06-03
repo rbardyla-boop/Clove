@@ -31,7 +31,10 @@ import { challengeCatalogPayload, getProgress, recordRoundAccepted, recordRedemp
 import { getAchievements } from "./achievements.mjs";
 import { appendEvent, eventFeedPayload } from "./events.mjs";
 import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMetaPayload, hasCapacity, getRoom, HEARTBEAT_SCHEMA_VERSION } from "./rooms.mjs";
-import { annotateCatalogForRoom, roomEventListPayload } from "./room-events.mjs";
+import {
+  annotateCatalogForRoom, roomEventListPayload,
+  initialEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition,
+} from "./room-events.mjs";
 
 export interface MachineState {
   machineId: string;
@@ -47,6 +50,9 @@ export interface RoomPartition {
   // Phase 2c: monotonically increments each time this room is reset. Reported in
   // the heartbeat so the registry/admin can see room lifecycle generations.
   generation: number;
+  // Phase 2f: public-safe room-event transition tracker (dedup state for live feed
+  // announcements). Cleared on reset via newPartition, so an old event never replays.
+  eventTracker?: any;
 }
 
 export interface ArcadeState {
@@ -65,6 +71,12 @@ export class ArcadeRoom implements DurableObject {
   // The bound room is learned from the first join (the Worker routes ?room= to
   // idFromName(roomId)). The registry coordinator aggregates cross-room population.
   private boundRoomId: string = DEFAULT_ROOM_ID;
+  // Phase 2f: TEST-ONLY absolute event-clock override (ms). Set only via the
+  // __test_set_event_now message, which is accepted ONLY when env.ENVIRONMENT ===
+  // "development" (dev/test). Production never accepts it. It shifts ONLY the room-event
+  // schedule derivation (started/ended/featured transitions) — never ticket/round
+  // authority, balances, or any economy. In-memory (not persisted).
+  private eventClockOverride: number | null = null;
 
   constructor(
     private readonly ctx: DurableObjectState,
@@ -91,7 +103,7 @@ export class ArcadeRoom implements DurableObject {
     for (const machineId of ticketedMachineIds()) {
       machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
     }
-    return { machines, ticketState: createTicketState(), generation };
+    return { machines, ticketState: createTicketState(), generation, eventTracker: initialEventTracker() };
   }
 
   /** Get (lazily create + migrate) a room's isolated partition. */
@@ -102,6 +114,7 @@ export class ArcadeRoom implements DurableObject {
       this.state.rooms[roomId] = part;
     }
     if (typeof part.generation !== "number") part.generation = 0; // migrate pre-2c partitions
+    if (!part.eventTracker) part.eventTracker = initialEventTracker(); // migrate pre-2f partitions
     part.ticketState = ensureTicketState(part.ticketState);
     if (!part.machines) part.machines = {};
     for (const machineId of ticketedMachineIds()) {
@@ -286,7 +299,7 @@ export class ArcadeRoom implements DurableObject {
       case "join_room": { await this.handleJoin(ws, data.roomId, data.playerId, false); break; }
       case "room_join_request": { await this.handleJoin(ws, data.roomId, data.playerId, true); break; }
       case "room_leave_request": { await this.handleLeave(ws); break; }
-      case "room_state_request": { this.sendRoomState(ws); break; }
+      case "room_state_request": { await this.checkAndAnnounceRoomEvents(this.socketRoom(ws)); this.sendRoomState(ws); break; }
       case "room_admin": { await this.handleAdmin(ws, data); break; }
       // ── occupancy ────────────────────────────────────────────────────────────
       case "occupy_machine": { await this.handleOccupy(ws, data.machineId, data.rev); break; }
@@ -301,7 +314,7 @@ export class ArcadeRoom implements DurableObject {
       case "neon_grid_round_submit": { await this.handleRoundSubmit(ws, data, "neon_grid_round_accepted", "neon_grid_round_rejected"); break; }
       // ── tickets / catalogs / loop ────────────────────────────────────────────
       case "ticket_balance_request": { await this.handleTicketBalanceRequest(ws); break; }
-      case "cabinet_catalog_request": { const cr = this.socketRoom(ws); this.send(ws, { t: "cabinet_catalog", roomId: cr, ...annotateCatalogForRoom(cabinetCatalogPayload(), cr, Date.now()) }); break; }
+      case "cabinet_catalog_request": { const cr = this.socketRoom(ws); await this.checkAndAnnounceRoomEvents(cr); this.send(ws, { t: "cabinet_catalog", roomId: cr, ...annotateCatalogForRoom(cabinetCatalogPayload(), cr, this.roomEventNow()) }); break; }
       case "prize_catalog_request": { this.send(ws, { t: "prize_catalog", ...prizeCatalogPayload() }); break; }
       case "ticket_ledger_request": { await this.handleTicketLedger(ws); break; }
       case "inventory_request": { await this.handleInventoryRequest(ws); break; }
@@ -315,7 +328,19 @@ export class ArcadeRoom implements DurableObject {
       case "arcade_event_feed_request": { this.send(ws, { t: "arcade_event_feed", roomId: this.socketRoom(ws), ...eventFeedPayload(this.room(this.socketRoom(ws)).ticketState) }); break; }
       // Phase 2e: deterministic, public-safe scheduled room events (current/next +
       // one-rotation schedule). Read-only — the client cannot set or trigger events.
-      case "room_events_request": { this.send(ws, { t: "room_events", ...roomEventListPayload(this.socketRoom(ws), Date.now()) }); break; }
+      case "room_events_request": { const cr = this.socketRoom(ws); await this.checkAndAnnounceRoomEvents(cr); this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow()) }); break; }
+      // Phase 2f: TEST-ONLY event-clock override (dev/test gate only) — advances the
+      // room-event schedule so start/end/featured transitions are deterministically
+      // testable without waiting real minutes. Rejected unless ENVIRONMENT==="development".
+      case "__test_set_event_now": {
+        if (this.env.ENVIRONMENT === "development") {
+          const cr = this.socketRoom(ws);
+          this.eventClockOverride = (data.nowMs == null) ? null : Number(data.nowMs);
+          await this.checkAndAnnounceRoomEvents(cr);
+          this.send(ws, { t: "room_events", ...roomEventListPayload(cr, this.roomEventNow()) });
+        }
+        break;
+      }
       default: { this.sendError(ws, "unknown_type", `Unknown message type: ${data.t}`); }
     }
   }
@@ -577,6 +602,33 @@ export class ArcadeRoom implements DurableObject {
   }
   private broadcastEvent(roomId: string, event: unknown): void { this.broadcastRoom(roomId, { t: "arcade_event", event }); }
 
+  // ==================== Phase 2f: live room-event feed transitions ====================
+
+  /** The clock used for room-event schedule derivation (test override in dev, else wall). */
+  private roomEventNow(): number {
+    return this.eventClockOverride ?? Date.now();
+  }
+
+  /**
+   * Detect room-event start/end/featured transitions for `roomId` as of roomEventNow(),
+   * append a public-safe feed entry per transition (deduped by the per-room tracker), and
+   * broadcast them. Idempotent: repeated calls at the same clock emit nothing (no spam).
+   * Display-only — never touches tickets/economy/private state.
+   */
+  private async checkAndAnnounceRoomEvents(roomId: string): Promise<void> {
+    const part = this.room(roomId);
+    const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, this.roomEventNow());
+    if (!changed) return;
+    part.eventTracker = state;
+    const now = Date.now();
+    const emitted: unknown[] = [];
+    for (const tr of transitions) {
+      emitted.push(this.pushEvent(roomId, { ...roomEventFeedEntryForTransition(tr), now }));
+    }
+    await this.persistState();
+    for (const ev of emitted) this.broadcastEvent(roomId, ev);
+  }
+
   private handleChallengeProgressRequest(ws: WebSocket): void {
     const meta = this.sockets.get(ws);
     if (!meta) { this.sendError(ws, "no_identity", "Must join with playerId first"); return; }
@@ -739,6 +791,10 @@ export class ArcadeRoom implements DurableObject {
     // room re-reports presence every ~30s so the registry keeps it `healthy` even
     // with no joins/leaves, and so a room that goes quiet eventually ages to stale.
     await this.reportHeartbeat(this.boundRoomId);
+    // Phase 2f: the ~30s alarm also drives live room-event feed transitions in
+    // PRODUCTION (events feel alive even with no client requests). Idempotent + deduped,
+    // so it never double-announces what a request-driven check already emitted.
+    await this.checkAndAnnounceRoomEvents(this.boundRoomId);
     this.scheduleStaleLockAlarm();
   }
 }
@@ -748,4 +804,7 @@ interface Env {
   ROOM_REGISTRY: DurableObjectNamespace;
   ADMIN_ENABLED?: string;
   ADMIN_TOKEN?: string;
+  // Phase 2f: gates the TEST-ONLY event-clock override. "development" in dev/wrangler
+  // dev (wrangler.toml [vars]); a production deploy sets it otherwise → override OFF.
+  ENVIRONMENT?: string;
 }

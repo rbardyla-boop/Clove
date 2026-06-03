@@ -282,3 +282,138 @@ export function annotateCatalogForRoom(catalogPayload, roomId, now = Date.now())
     }),
   };
 }
+
+// ===================== Phase 2f: live room-event feed transitions =====================
+//
+// Phase 2e deferred live start/end feed announcements to keep the DO/shim feeds in
+// parity (the DO has a 30s alarm; the shim has no timer). Phase 2f resolves this by
+// making transition detection a PURE function of (previous tracker state + roomId +
+// now): the SAME engine runs on the DO, the dev shim, and the unit tests, driven at
+// deterministic access points (room request / alarm) with id-based dedup. Whoever
+// checks first announces the transition once; later checks at the same `now` see the
+// dedup ids and emit nothing — so the feed never spams and both runtimes converge.
+//
+// Display-only: a transition carries NO economy and NO private data — only the public
+// event id / name / featured cabinet. No reward, no multiplier, no balance, no ledger.
+
+/** Transition kinds → public feed event types (the only three Phase 2f feed types). */
+export const ROOM_EVENT_FEED_TYPES = Object.freeze({
+  started: 'room_event_started',
+  ended: 'room_event_ended',
+  featured_changed: 'featured_cabinet_changed',
+});
+
+/** PURE: the initial, empty per-room transition tracker (public-safe). */
+export function initialEventTracker() {
+  return {
+    active: null,                       // { event_id, display_name, featured_cabinet_id, featured_cabinet_type } | null
+    started_announced_id: null,         // last event id a 'started' was announced for
+    ended_announced_id: null,           // last event id an 'ended' was announced for
+    featured_announced_event_id: null,  // event id a 'featured_changed' was announced for
+    checked_at: 0,
+  };
+}
+
+/** A compact, public-safe snapshot of an event for the tracker (no economy/private fields). */
+function eventSnapshot(event) {
+  return event ? {
+    event_id: event.event_id,
+    display_name: event.display_name,
+    featured_cabinet_id: event.featured_cabinet_id,
+    featured_cabinet_type: event.featured_cabinet_type,
+  } : null;
+}
+
+/** PURE: a public-safe summary string for a transition (never money-like). */
+export function publicRoomEventSummary(transitionType, snap) {
+  if (transitionType === 'started') return `${snap.display_name} started.`;
+  if (transitionType === 'ended') return `${snap.display_name} ended.`;
+  // featured_changed — resolve the featured cabinet's display name (fail-safe).
+  const cab = snap.featured_cabinet_id ? getCabinet(snap.featured_cabinet_id) : null;
+  return cab ? `${snap.display_name} is now featuring ${cab.display_name}.`
+             : `${snap.display_name} featured cabinet updated.`;
+}
+
+/** PURE: build a public-safe transition object from a kind + an event snapshot. */
+function makeTransition(transitionType, snap, roomId, now) {
+  return {
+    transition_type: transitionType,
+    event_id: snap.event_id,
+    room_id: roomId,
+    display_name: snap.display_name,
+    featured_cabinet_id: snap.featured_cabinet_id ?? null,
+    featured_cabinet_type: snap.featured_cabinet_type ?? null,
+    occurred_at: Number(now) || 0,
+    public_safe_summary: publicRoomEventSummary(transitionType, snap),
+  };
+}
+
+/**
+ * PURE: given the previous tracker state, derive the room-event transitions that have
+ * occurred as of `now`, plus the NEW tracker state. Deterministic + idempotent: calling
+ * again at the same `now` with the returned state yields `{ transitions: [], changed:
+ * false }` (the dedup guarantee the spam tests rely on).
+ *
+ *   no active → active            => started
+ *   active → different active     => ended(old) + started(new) [+ featured_changed if the
+ *                                     featured cabinet differs]
+ *   active → same active          => none
+ * Reset clears the tracker (pass initialEventTracker()), so an old event never replays;
+ * the current event is announced once more after a reset, then deduped.
+ */
+export function deriveRoomEventTransitions(prevState, roomId, now) {
+  const prev = prevState || initialEventTracker();
+  const t = Number(now) || 0;
+  const current = getCurrentRoomEvent(roomId, t); // active event (or null)
+  const curId = current ? current.event_id : null;
+  const prevActive = prev.active;
+  const prevId = prevActive ? prevActive.event_id : null;
+
+  const transitions = [];
+  let startedAnn = prev.started_announced_id;
+  let endedAnn = prev.ended_announced_id;
+  let featuredAnn = prev.featured_announced_event_id;
+  const activeChanged = prevId !== curId;
+
+  // The previously-active event is no longer active → it ended (announce once).
+  if (activeChanged && prevActive && endedAnn !== prevActive.event_id) {
+    transitions.push(makeTransition('ended', prevActive, roomId, t));
+    endedAnn = prevActive.event_id;
+  }
+  // A (new) active event is in effect → it started (announce once per window).
+  if (current && startedAnn !== curId) {
+    transitions.push(makeTransition('started', eventSnapshot(current), roomId, t));
+    startedAnn = curId;
+  }
+  // The featured cabinet changed between two different events (announce once) — skipped
+  // on first observation (no prevActive) since 'started' already conveys the cabinet.
+  if (activeChanged && current && current.featured_cabinet_id && prevActive
+      && current.featured_cabinet_id !== prevActive.featured_cabinet_id
+      && featuredAnn !== curId) {
+    transitions.push(makeTransition('featured_changed', eventSnapshot(current), roomId, t));
+    featuredAnn = curId;
+  }
+
+  const state = {
+    active: eventSnapshot(current),
+    started_announced_id: startedAnn,
+    ended_announced_id: endedAnn,
+    featured_announced_event_id: featuredAnn,
+    checked_at: t,
+  };
+  return { transitions, state, changed: transitions.length > 0 };
+}
+
+/**
+ * PURE: shape a transition into the existing public event-feed envelope used by
+ * appendEvent (events.mjs). `actorPublicId: 'system'` marks a room-authored
+ * announcement (not a player), so it never carries a private player id.
+ */
+export function roomEventFeedEntryForTransition(transition) {
+  return {
+    type: ROOM_EVENT_FEED_TYPES[transition.transition_type],
+    actorPublicId: 'system',
+    summary: transition.public_safe_summary,
+    source: transition.event_id,
+  };
+}
