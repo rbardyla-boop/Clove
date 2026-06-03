@@ -15,7 +15,13 @@
  * deploy has NO admin surface until an operator explicitly configures the secret.
  */
 
-export const ADMIN_OPS = Object.freeze(['reset', 'set_status', 'diagnostics']);
+export const ADMIN_OPS = Object.freeze([
+  'reset', 'set_status', 'diagnostics',
+  // Phase 2i: live ops surface for per-room, DISPLAY-ONLY presentation overrides. These
+  // change ONLY how events are presented (pre-roll lead, countdown refresh, show flags) —
+  // never tickets, prizes, rewards, authority, or economy. All both-gated like every op.
+  'set_presentation', 'clear_presentation', 'preview_presentation', 'presentation_diagnostics',
+]);
 export function isAdminOp(op) { return ADMIN_OPS.includes(op); }
 
 /**

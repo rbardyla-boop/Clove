@@ -175,6 +175,55 @@
 .lobby-diag-row .ld-h { border-radius: 999px; padding: 1px 7px; }
 .lobby-diag-row .ld-num { color: #8a83b8; }
 
+/* Phase 2i — live-ops per-room presentation overrides (display-only) */
+.lr-admin-status { display: flex; gap: 6px; flex-wrap: wrap; }
+.lr-ops {
+  display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap;
+  margin-top: 8px; padding: 8px 10px; border-radius: 8px;
+  background: rgba(255, 180, 93, 0.05); border: 1px dashed rgba(255, 180, 93, 0.32);
+}
+.lr-ops-k {
+  font: 700 9.5px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.6px;
+  color: #ffb45d; display: inline-flex; align-items: center; gap: 6px; flex-basis: 100%;
+}
+.lr-ops-k em { font-style: normal; border-radius: 999px; padding: 1px 7px; font-size: 9px; }
+.lr-ops-on { color: #19e3ff; background: rgba(25, 227, 255, 0.12); border: 1px solid rgba(25, 227, 255, 0.45); }
+.lr-ops-off { color: #8a83b8; background: rgba(138, 131, 184, 0.1); border: 1px solid rgba(138, 131, 184, 0.35); }
+.lr-ops-note { color: #6f6a96; font-weight: 600; letter-spacing: 0.4px; }
+.lr-ops-f { display: inline-flex; align-items: center; gap: 5px; font: 600 10.5px "Chakra Petch", sans-serif; color: #b8b2e0; }
+.lr-ops-i {
+  width: 72px; font: 600 11px "Chakra Petch", sans-serif; color: #e7e3ff;
+  background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 180, 93, 0.35);
+  border-radius: 6px; padding: 4px 6px; font-variant-numeric: tabular-nums;
+}
+.lr-ops-u { color: #6f6a96; font-size: 10px; }
+.lr-ops-c { display: inline-flex; align-items: center; gap: 4px; font: 600 11px "Chakra Petch", sans-serif; color: #b8b2e0; cursor: pointer; }
+.lr-ops-btns { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.lr-adm-go { color: #0c0a17; background: rgba(255, 180, 93, 0.85); border-color: rgba(255, 180, 93, 0.9); }
+.lr-adm-go:hover { background: rgba(255, 207, 155, 0.95); }
+.lobby-ops { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+.lobby-ops-base { font: 600 10.5px "Chakra Petch", sans-serif; color: #6f6a96; font-variant-numeric: tabular-nums; }
+.lobby-ops-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font: 600 11px "Chakra Petch", sans-serif; color: #b8b2e0;
+  padding: 5px 8px; border-radius: 7px; background: rgba(255, 255, 255, 0.03);
+  font-variant-numeric: tabular-nums;
+}
+.lobby-ops-row.overridden { background: rgba(25, 227, 255, 0.07); border: 1px solid rgba(25, 227, 255, 0.25); }
+.lobby-ops-row .lo-room { font-weight: 700; color: #e7e3ff; min-width: 96px; }
+.lobby-ops-row .lo-tag {
+  border-radius: 999px; padding: 1px 7px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: #8a83b8; background: rgba(138, 131, 184, 0.1);
+}
+.lobby-ops-row.overridden .lo-tag { color: #19e3ff; background: rgba(25, 227, 255, 0.12); }
+.lobby-ops-row .lo-num { color: #8a83b8; }
+.lobby-ops-row .lo-flags { color: #ffcf9b; letter-spacing: 1px; }
+.lobby-opsmsg {
+  margin-top: 8px; padding: 7px 12px; border-radius: 8px;
+  background: rgba(25, 227, 255, 0.08); border: 1px solid rgba(25, 227, 255, 0.3);
+  color: #aef0ff; font-size: 11.5px; font-variant-numeric: tabular-nums;
+}
+
 /* Phase 2d — smart-lobby recommendations + activity */
 .lobby-recos { margin: 4px 0 12px; }
 .lr-reco-title {
