@@ -64,6 +64,8 @@ export class NeonCircuitRoomClient {
     this.onAchievementUnlocked = options.onAchievementUnlocked || (() => {});
     this.onArcadeEventFeed = options.onArcadeEventFeed || (() => {});
     this.onArcadeEvent = options.onArcadeEvent || (() => {});
+    // Phase 2e: scheduled room events (display-only; current/next + schedule).
+    this.onRoomEvents = options.onRoomEvents || (() => {});
     // Phase 2a lobby callbacks
     this.onRoomList = options.onRoomList || (() => {});
     this.onRoomJoined = options.onRoomJoined || (() => {});
@@ -145,6 +147,7 @@ export class NeonCircuitRoomClient {
         this.requestPrizeCatalog();
         this.requestInventory();
         this.requestTicketLedger();
+        this.requestRoomEvents(); // Phase 2e: this room's scheduled events (display-only)
       };
 
       ws.onmessage = (event) => {
@@ -395,6 +398,10 @@ export class NeonCircuitRoomClient {
         this.onArcadeEvent(msg);
         break;
       }
+      case "room_events": {
+        this.onRoomEvents(msg);
+        break;
+      }
     }
   }
 
@@ -525,6 +532,10 @@ export class NeonCircuitRoomClient {
   /** Ask the server for the public-safe room list (with live populations). */
   requestRoomList() {
     this.send({ t: "room_list_request" });
+  }
+  /** Ask the server for this room's deterministic scheduled events (Phase 2e). */
+  requestRoomEvents() {
+    this.send({ t: "room_events_request" });
   }
   /** Re-request the current room's authoritative occupancy snapshot. */
   requestRoomState() {

@@ -107,3 +107,72 @@ export function roomRecoveryHint(room) {
   if (h === 'healthy' && pop(room) === 0) return 'Empty room — be the first to play.';
   return null;
 }
+
+// ===================== Phase 2e: scheduled room events (display-only) =====================
+//
+// These read the public `current_event` already attached to each room by the server
+// (room-events.mjs). They are PURE presentation derivations — no economy, no rewards,
+// no private data, no protocol change beyond the public room list the client already has.
+
+/** Short type label for an event chip. */
+const EVENT_TYPE_LABEL = {
+  featured_cabinet: 'Featured now',
+  training_focus: 'Training focus',
+  late_night_theme: 'Room event',
+  room_warmup: 'Room warmup',
+  quiet_room_prompt: 'Room warmup',
+};
+
+/**
+ * PURE: a public-safe event badge for one room (or null when no current event). Carries
+ * only display fields — the event name, a short kind label, the featured cabinet id (if
+ * any) and how long the current event window has left. Never any reward/economy data.
+ */
+export function roomEventBadge(room) {
+  const ev = room && room.current_event;
+  if (!ev || !ev.display_name) return null;
+  return {
+    label: ev.display_name,
+    kind: ev.event_type,
+    kind_label: EVENT_TYPE_LABEL[ev.event_type] || 'Room event',
+    featured_cabinet_id: ev.featured_cabinet_id || null,
+    ends_in_ms: Math.max(0, Number(room.event_ends_in_ms) || 0),
+  };
+}
+
+/** PURE: the room's next-event display name (or null). */
+export function roomNextEventLabel(room) {
+  const nx = room && room.next_event;
+  return nx && nx.display_name ? nx.display_name : null;
+}
+
+/**
+ * PURE: an event-aware warmup hint for a JOINABLE but empty/quiet room that has a
+ * current event — the "Quiet Room Warmup" prompt. Display-only; joining never grants a
+ * reward. Returns null for busy/healthy rooms and for closed/maintenance.
+ */
+export function roomEventWarmupHint(room) {
+  if (!isJoinable(room)) return null;
+  const ev = room && room.current_event;
+  if (!ev || !ev.display_name) return null;
+  const h = room.health || 'unknown';
+  const quiet = (h === 'healthy' && pop(room) === 0) || h === 'stale';
+  if (!quiet) return null;
+  if (ev.event_type === 'training_focus') return `${ev.display_name} — a calm window to warm up. Join to start.`;
+  return `${ev.display_name} is on — be the first in to kick it off.`;
+}
+
+/**
+ * PURE: compact ms-countdown formatting for an event window (e.g. "12m", "45s",
+ * "now"). Display helper only; never used for any timing-sensitive authority.
+ */
+export function formatEventCountdown(ms) {
+  const t = Math.max(0, Number(ms) || 0);
+  if (t < 1000) return 'now';
+  const totalSec = Math.floor(t / 1000);
+  if (totalSec < 60) return `${totalSec}s`;
+  const min = Math.floor(totalSec / 60);
+  if (min < 60) return `${min}m`;
+  const hr = Math.floor(min / 60);
+  return `${hr}h`;
+}

@@ -196,6 +196,37 @@
 .lr-reco-busiest:hover { border-color: #19e3ff; background: rgba(25, 227, 255, 0.2); }
 .lr-reco-training { border-color: rgba(61, 245, 139, 0.5); background: rgba(61, 245, 139, 0.1); }
 .lr-reco-training:hover { border-color: #3df58b; background: rgba(61, 245, 139, 0.2); }
+.lr-reco-ev { font-size: 10px; color: #ffb45d; letter-spacing: 0.3px; margin-top: 1px; }
+
+/* Phase 2e — scheduled room events (display-only) */
+.lr-event {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 8px 0 4px; padding: 6px 10px; border-radius: 9px;
+  font-family: "Chakra Petch", sans-serif;
+  background: rgba(255, 180, 93, 0.08); border: 1px solid rgba(255, 180, 93, 0.32);
+}
+.lr-event-k {
+  font: 700 9px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.7px;
+  color: #ffb45d; background: rgba(255, 180, 93, 0.14); border-radius: 999px; padding: 2px 8px;
+}
+.lr-event-name { font-size: 12.5px; font-weight: 700; color: #ffe4bd; }
+.lr-event-cd {
+  margin-left: auto; font: 600 10.5px "Chakra Petch", sans-serif; color: #ffd45d;
+  font-variant-numeric: tabular-nums;
+}
+.lr-event-featured_cabinet { border-color: rgba(25, 227, 255, 0.35); background: rgba(25, 227, 255, 0.07); }
+.lr-event-featured_cabinet .lr-event-k { color: #19e3ff; background: rgba(25, 227, 255, 0.14); }
+.lr-event-featured_cabinet .lr-event-name { color: #cdf3ff; }
+.lr-event-training_focus { border-color: rgba(61, 245, 139, 0.35); background: rgba(61, 245, 139, 0.07); }
+.lr-event-training_focus .lr-event-k { color: #3df58b; background: rgba(61, 245, 139, 0.14); }
+.lr-event-training_focus .lr-event-name { color: #c7f7da; }
+.lr-event-late_night_theme { border-color: rgba(177, 74, 255, 0.35); background: rgba(177, 74, 255, 0.07); }
+.lr-event-late_night_theme .lr-event-k { color: #c79bff; background: rgba(177, 74, 255, 0.16); }
+.lr-event-late_night_theme .lr-event-name { color: #e6d6ff; }
+.lr-event-next {
+  margin: 0 0 8px; font: 600 10.5px "Chakra Petch", sans-serif; letter-spacing: 0.3px;
+  color: #8a83b8;
+}
 
 .lr-activity {
   font: 700 9px "Chakra Petch", sans-serif; text-transform: uppercase; letter-spacing: 0.6px;

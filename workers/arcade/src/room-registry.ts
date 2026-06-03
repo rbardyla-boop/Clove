@@ -21,6 +21,7 @@ import {
   isJoinableStatus, effectiveStatus, roomDiagnosticsList,
   HEARTBEAT_SCHEMA_VERSION,
 } from "./rooms.mjs";
+import { attachRoomEvents } from "./room-events.mjs";
 import { checkAdmin, adminEnabled, isAdminOp } from "./admin.mjs";
 
 /** Latest heartbeat stored for a room (registry stamps `last_seen_at` on receipt). */
@@ -120,15 +121,21 @@ export class RoomRegistry implements DurableObject {
       return this.json({ ok: true });
     }
 
-    // Aggregated, public-safe room list with health + freshness (Phase 2c).
+    // Aggregated, public-safe room list with health + freshness (Phase 2c) +
+    // deterministic per-room scheduled events (Phase 2e). Events are display-only
+    // and carry no economy/private data (see room-events.mjs).
     if (path === "/registry/list") {
-      return this.json(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, Date.now()));
+      const now = Date.now();
+      return this.json(attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now));
     }
 
-    // Public-safe registry health envelope (Phase 2c).
+    // Public-safe registry health envelope (Phase 2c health schema, additively
+    // carrying Phase 2e per-room events). `phase` marks the health-envelope schema
+    // (unchanged); `event_ruleset_version` marks the additive event layer.
     if (path === "/registry/health") {
-      const list = roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, Date.now());
-      return this.json({ ok: true, service: "neon-arcade-room-registry", phase: "2c", schema_version: HEARTBEAT_SCHEMA_VERSION, rooms: list.rooms });
+      const now = Date.now();
+      const list = attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now);
+      return this.json({ ok: true, service: "neon-arcade-room-registry", phase: "2c", schema_version: HEARTBEAT_SCHEMA_VERSION, event_ruleset_version: list.event_ruleset_version, rooms: list.rooms });
     }
 
     // Effective status of one room (room DO queries this to enforce joins).

@@ -26,6 +26,7 @@ import {
   isJoinableStatus, effectiveStatus, getRoom,
   roomPresenceListPayload, roomDiagnosticsList, HEARTBEAT_SCHEMA_VERSION,
 } from './src/rooms.mjs';
+import { attachRoomEvents, annotateCatalogForRoom, roomEventListPayload } from './src/room-events.mjs';
 import { checkAdmin, adminEnabled, isAdminOp } from './src/admin.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
@@ -238,7 +239,7 @@ wss.on('connection', (ws) => {
     const bound = meta && meta.playerId ? meta : null;
 
     switch (d.t) {
-      case 'room_list_request': return void send(ws, { t: 'room_list', ...roomPresenceListPayload(heartbeats, statusOverrides, Date.now()) });
+      case 'room_list_request': { const now = Date.now(); return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now) }); }
       case 'room_admin': return void handleAdmin(ws, d);
       // TEST/DEV ONLY: age a room's stored heartbeat so the stale/offline policy can
       // be exercised deterministically without waiting real seconds. The production
@@ -246,7 +247,8 @@ wss.on('connection', (ws) => {
       // runs on both; this only fast-forwards the freshness clock for that room.
       case '__test_set_heartbeat_age': {
         if (heartbeats[d.roomId]) heartbeats[d.roomId].last_seen_at = Date.now() - Math.max(0, Number(d.ageMs) || 0);
-        return void send(ws, { t: 'room_list', ...roomPresenceListPayload(heartbeats, statusOverrides, Date.now()) });
+        const now = Date.now();
+        return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now) });
       }
       case 'join_room': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, false);
       case 'room_join_request': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, true);
@@ -288,7 +290,7 @@ wss.on('connection', (ws) => {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         return void send(ws, { t: 'ticket_balance', playerId: bound.playerId, balance: getBalance(room(bound.roomId).ticketState, bound.playerId) });
       }
-      case 'cabinet_catalog_request': return void send(ws, { t: 'cabinet_catalog', roomId: (bound || meta).roomId, ...cabinetCatalogPayload() });
+      case 'cabinet_catalog_request': { const cr = (bound || meta).roomId; return void send(ws, { t: 'cabinet_catalog', roomId: cr, ...annotateCatalogForRoom(cabinetCatalogPayload(), cr, Date.now()) }); }
       case 'prize_catalog_request': return void send(ws, { t: 'prize_catalog', ...prizeCatalogPayload() });
       case 'ticket_ledger_request': {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
@@ -354,6 +356,8 @@ wss.on('connection', (ws) => {
         return void send(ws, { t: 'achievement_state', playerId: bound.playerId, achievements: getAchievements(room(bound.roomId).ticketState, bound.playerId) });
       }
       case 'arcade_event_feed_request': return void send(ws, { t: 'arcade_event_feed', roomId: (bound || meta).roomId, ...eventFeedPayload(room((bound || meta).roomId).ticketState) });
+      // Phase 2e: deterministic, public-safe scheduled room events (read-only).
+      case 'room_events_request': return void send(ws, { t: 'room_events', ...roomEventListPayload((bound || meta).roomId, Date.now()) });
       case 'challenge_reward_claim': {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });
         const { playerId, roomId } = bound; const part = room(roomId);

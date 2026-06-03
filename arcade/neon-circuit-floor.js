@@ -27,6 +27,8 @@ import { mountAdapter, loadAndMountImported, loadAndActivateImportedCabinet } fr
 import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 // Phase 2a: room selection (the lobby forwards intent; the server is the authority).
 import { createArcadeLobby } from './arcade-lobby.js';
+// Phase 2e: display-only countdown formatting for the floor room-event banner.
+import { formatEventCountdown } from './room-recommend.mjs';
 
 // Powered (playable) cabinets, keyed by their occupancy machine id. The room
 // authority drives free/yours/in-use; the catalog confirms they are live.
@@ -85,6 +87,11 @@ let myAchievements = [];      // Phase 1h: my unlocked achievements
 let myFeed = [];              // Phase 1h: public arcade event feed
 let lastChallengeReject = null;   // Phase 1h: last challenge claim rejection reason
 let lastChallengeReward = null;   // Phase 1h: last challenge reward result
+// Phase 2e: this room's scheduled event state (display-only — never affects authority).
+let currentRoomEvent = null;      // current scheduled event for the joined room (or null)
+let nextRoomEvent = null;         // next scheduled event preview (or null)
+let featuredMachineId = null;     // machine id of the event-featured cabinet (or null)
+let featuredReason = null;        // the featuring event's display name (or null)
 
 // Per-cabinet authoritative state mirrored from the DO. game is wired below.
 // Neon Grid starts 'unavailable' until the server catalog activates its imported
@@ -209,6 +216,36 @@ function renderRoomChip() {
   if (label) label.textContent = roomDisplayName(currentRoomId);
 }
 
+// Phase 2e: short kind label for the floor event banner (mirrors the lobby).
+const FLOOR_EVENT_KIND = {
+  featured_cabinet: 'Featured now',
+  training_focus: 'Training focus',
+  late_night_theme: 'Room event',
+  room_warmup: 'Room warmup',
+  quiet_room_prompt: 'Room warmup',
+};
+
+// Phase 2e: render the current scheduled room event banner (display-only). The
+// banner stays hidden until a room_events message arrives and carries an event.
+function renderRoomEvent() {
+  const banner = el('roomEventBanner');
+  if (!banner) return;
+  if (!currentRoomEvent) { banner.hidden = true; banner.removeAttribute('data-event'); return; }
+  banner.hidden = false;
+  banner.dataset.event = currentRoomEvent.event_type;
+  const k = el('roomEventKind');
+  if (k) k.textContent = FLOOR_EVENT_KIND[currentRoomEvent.event_type] || 'Room event';
+  const n = el('roomEventName');
+  if (n) n.textContent = currentRoomEvent.display_name || '';
+  const cd = el('roomEventCd');
+  if (cd) {
+    const remaining = currentRoomEvent.ends_at != null ? currentRoomEvent.ends_at - Date.now() : 0;
+    cd.textContent = remaining > 0 ? `${formatEventCountdown(remaining)} left` : '';
+  }
+  const nx = el('roomEventNext');
+  if (nx) nx.textContent = nextRoomEvent && nextRoomEvent.display_name ? `Next · ${nextRoomEvent.display_name}` : '';
+}
+
 function renderTickets() {
   const n = el('ticketCount');
   if (n) n.textContent = myTickets;
@@ -236,6 +273,12 @@ function renderCabinet(machineId) {
 
   c.el.classList.toggle('busy', busy);
   c.el.classList.toggle('mine', mine);
+
+  // Phase 2e: highlight the cabinet the current room event features (display-only —
+  // this never changes whether the cabinet can be occupied/played or what it awards).
+  const featured = !!featuredMachineId && machineId === featuredMachineId;
+  c.el.classList.toggle('featured', featured);
+  c.el.dataset.featured = featured ? '1' : '0';
 
   // Only the server-confirmed occupant gets the local mini-game panel.
   if (mine) c.game.open();
@@ -282,6 +325,7 @@ function renderFloor() {
   for (const c of POWERED) renderCabinet(c.id);
   renderInteract();
   renderStatus();
+  renderRoomEvent();
 }
 
 // ---- room authority client (validated Phase 1b client) ----
@@ -296,6 +340,10 @@ const client = new NeonCircuitRoomClient({
     // The server re-sends this room's balance/inventory/ledger/challenge/feed on
     // join, which overwrites the per-room UI vars; clear transient round ids here.
     currentRoundId = currentSignalRoundId = currentGridRoundId = null;
+    // Phase 2e: a room switch starts fresh — clear the old room's event/featured state
+    // until this room's room_events + annotated catalog arrive (requested below).
+    currentRoomEvent = nextRoomEvent = null;
+    featuredMachineId = featuredReason = null;
     renderIdentity();
     renderRoomChip();
     renderFloor();
@@ -363,7 +411,22 @@ const client = new NeonCircuitRoomClient({
   // ---- Phase 1f: arcade loop (catalog / prizes / cosmetics) ----
   // Phase 1l: the server catalog is the authority that activates Neon Grid — the
   // imported adapter is only enabled + mounted once the catalog lists it active.
-  onCabinetCatalog: (m) => { prizeCounter?.setZones(m.zones || []); activateNeonGrid(m.cabinets || []); },
+  onCabinetCatalog: (m) => {
+    prizeCounter?.setZones(m.zones || []);
+    // Phase 2e: the server annotates the catalog with the current event's featured
+    // cabinet (display-only). Map it to its machine id for the floor tile highlight.
+    const feat = (m.cabinets || []).find((c) => c.is_featured === true) || null;
+    featuredMachineId = feat ? feat.machine_id : null;
+    featuredReason = feat ? (feat.featured_reason || null) : null;
+    activateNeonGrid(m.cabinets || []);
+    renderFloor();
+  },
+  // Phase 2e: this room's scheduled events (current + next). Display-only.
+  onRoomEvents: (m) => {
+    currentRoomEvent = m.current_event || null;
+    nextRoomEvent = m.next_event || null;
+    renderRoomEvent();
+  },
   onPrizeCatalog: (m) => { prizeCounter?.setPrizes(m.prizes || []); },
   onInventoryState: (m) => {
     myInventory = m.items || []; myEquips = m.equips || {};
@@ -591,6 +654,11 @@ if (params.get('test') === '1') {
     adminDiagnostics: (token) => client.adminRoomDiagnostics(token),
     lastRoomAdmin: () => lastRoomAdmin,
     setHeartbeatAge: (roomId, ageMs) => client.send({ t: '__test_set_heartbeat_age', roomId, ageMs }),
+    // Phase 2e: scheduled room-event introspection for browser validation.
+    roomEvent: () => currentRoomEvent,
+    nextRoomEvent: () => nextRoomEvent,
+    featuredMachine: () => featuredMachineId,
+    requestRoomEvents: () => client.requestRoomEvents(),
   };
 
   // Phase 1k: dynamically load + mount the test-only sample import fixture

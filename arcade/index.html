@@ -26,6 +26,16 @@
     <div class="ceiling" aria-hidden="true"></div>
     <h1 class="wall-sign">NEON <span class="c">CIRCUIT</span></h1>
     <p class="wall-tag">— level 1 · main floor —</p>
+
+    <!-- Phase 2e: current scheduled room event (display-only). Hidden until a
+         room_events message arrives; never affects tickets, prizes or rounds. -->
+    <div class="room-event-banner" id="roomEventBanner" role="status" aria-live="polite" hidden>
+      <span class="reb-k" id="roomEventKind">Room event</span>
+      <span class="reb-name" id="roomEventName"></span>
+      <span class="reb-cd" id="roomEventCd"></span>
+      <span class="reb-next" id="roomEventNext"></span>
+    </div>
+
     <div class="floor" aria-hidden="true"></div>
     <div class="floor-glow" aria-hidden="true"></div>
 

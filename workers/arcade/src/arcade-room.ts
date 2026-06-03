@@ -31,6 +31,7 @@ import { challengeCatalogPayload, getProgress, recordRoundAccepted, recordRedemp
 import { getAchievements } from "./achievements.mjs";
 import { appendEvent, eventFeedPayload } from "./events.mjs";
 import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMetaPayload, hasCapacity, getRoom, HEARTBEAT_SCHEMA_VERSION } from "./rooms.mjs";
+import { annotateCatalogForRoom, roomEventListPayload } from "./room-events.mjs";
 
 export interface MachineState {
   machineId: string;
@@ -300,7 +301,7 @@ export class ArcadeRoom implements DurableObject {
       case "neon_grid_round_submit": { await this.handleRoundSubmit(ws, data, "neon_grid_round_accepted", "neon_grid_round_rejected"); break; }
       // ── tickets / catalogs / loop ────────────────────────────────────────────
       case "ticket_balance_request": { await this.handleTicketBalanceRequest(ws); break; }
-      case "cabinet_catalog_request": { this.send(ws, { t: "cabinet_catalog", roomId: this.socketRoom(ws), ...cabinetCatalogPayload() }); break; }
+      case "cabinet_catalog_request": { const cr = this.socketRoom(ws); this.send(ws, { t: "cabinet_catalog", roomId: cr, ...annotateCatalogForRoom(cabinetCatalogPayload(), cr, Date.now()) }); break; }
       case "prize_catalog_request": { this.send(ws, { t: "prize_catalog", ...prizeCatalogPayload() }); break; }
       case "ticket_ledger_request": { await this.handleTicketLedger(ws); break; }
       case "inventory_request": { await this.handleInventoryRequest(ws); break; }
@@ -312,6 +313,9 @@ export class ArcadeRoom implements DurableObject {
       case "challenge_reward_claim": { await this.handleChallengeRewardClaim(ws, data); break; }
       case "achievement_state_request": { this.handleAchievementStateRequest(ws); break; }
       case "arcade_event_feed_request": { this.send(ws, { t: "arcade_event_feed", roomId: this.socketRoom(ws), ...eventFeedPayload(this.room(this.socketRoom(ws)).ticketState) }); break; }
+      // Phase 2e: deterministic, public-safe scheduled room events (current/next +
+      // one-rotation schedule). Read-only — the client cannot set or trigger events.
+      case "room_events_request": { this.send(ws, { t: "room_events", ...roomEventListPayload(this.socketRoom(ws), Date.now()) }); break; }
       default: { this.sendError(ws, "unknown_type", `Unknown message type: ${data.t}`); }
     }
   }
