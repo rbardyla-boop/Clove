@@ -123,6 +123,20 @@ export function getBalance(state, playerId) {
 }
 
 /**
+ * PURE: count rounds that are still live (status 'active' and not past expiry) at
+ * `now`. Used only for public-safe room HEARTBEAT diagnostics (Phase 2c) — it reads
+ * the round registry without mutating it and never exposes player ids.
+ */
+export function activeRoundCount(state, now = Date.now()) {
+  if (!state || typeof state.rounds !== 'object' || state.rounds === null) return 0;
+  let n = 0;
+  for (const r of Object.values(state.rounds)) {
+    if (r && r.status === 'active' && (typeof r.expiresAt !== 'number' || r.expiresAt > now)) n += 1;
+  }
+  return n;
+}
+
+/**
  * Register a new round for the current occupant. The DO supplies a freshly
  * generated roundId and the authoritative occupantId. The cabinet type and
  * ruleset are resolved server-side from the catalog, never from the client.

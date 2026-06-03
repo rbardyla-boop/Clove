@@ -29,11 +29,23 @@ test('adminEnabled reads the dev flag from an env-like object', () => {
   assert.equal(adminEnabled(null), false);
 });
 
-test('only known admin ops are accepted', () => {
-  assert.deepEqual([...ADMIN_OPS].sort(), ['reset', 'set_status']);
+test('only known admin ops are accepted (incl. Phase 2c diagnostics)', () => {
+  assert.deepEqual([...ADMIN_OPS].sort(), ['diagnostics', 'reset', 'set_status']);
   assert.equal(isAdminOp('reset'), true);
   assert.equal(isAdminOp('set_status'), true);
+  assert.equal(isAdminOp('diagnostics'), true);
   assert.equal(isAdminOp('delete_everything'), false);
+});
+
+// ── Phase 2c: admin diagnostics gating reuses the SAME both-gate as reset/status ──
+test('diagnostics is gated by the same dev-flag AND token rule', () => {
+  // The op is only reached after checkAdmin passes; prove the gate denies every
+  // missing-credential case and allows only flag + matching token.
+  assert.equal(checkAdmin({ enabled: false, token: 'secret', providedToken: 'secret' }).reason, 'admin_disabled');
+  assert.equal(checkAdmin({ enabled: true, token: undefined, providedToken: 'secret' }).reason, 'admin_not_configured');
+  assert.equal(checkAdmin({ enabled: true, token: 'secret', providedToken: '' }).reason, 'missing_admin_token');
+  assert.equal(checkAdmin({ enabled: true, token: 'secret', providedToken: 'wrong' }).reason, 'bad_admin_token');
+  assert.equal(checkAdmin({ enabled: true, token: 'secret', providedToken: 'secret' }).ok, true);
 });
 
 // ── room status model ────────────────────────────────────────────────────────

@@ -19,9 +19,13 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
   let lastReject = null;
   let adminOpen = false;
   let lastAdmin = null;
+  let lastDiag = null; // Phase 2c: last admin diagnostics payload (admin panel only)
 
   const THEME_ICON = { neon: '🟣', training: '🟢', midnight: '🌙' };
   const STATUS_LABEL = { closed: 'Closed', maintenance: 'Maintenance' };
+  // Phase 2c: public-safe room health → label + badge class.
+  const HEALTH_LABEL = { healthy: 'Healthy', stale: 'Stale', offline: 'Offline', closed: 'Closed', maintenance: 'Maintenance', unknown: 'Unknown' };
+  const HEALTH_WARN = new Set(['stale', 'offline']); // open but degraded: warn, still joinable
 
   function build() {
     root = document.createElement('div');
@@ -41,7 +45,11 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         <div class="lobby-sub" data-f="sub"></div>
         <div class="lobby-admin" data-f="admin" hidden>
           <label class="lobby-admin-lbl">Admin token <input class="lobby-admin-tok" data-f="token" type="password" placeholder="admin token (server-gated)" autocomplete="off"></label>
-          <span class="lobby-admin-hint">Reset wipes a room's state; status closes it to new joins. Server validates the token.</span>
+          <div class="lobby-admin-row">
+            <button class="lr-adm" type="button" data-act="admin-diag">Diagnostics</button>
+            <span class="lobby-admin-hint">Reset wipes a room's state; status closes it to new joins; diagnostics reads room health. Server validates the token.</span>
+          </div>
+          <div class="lobby-diag" data-f="diag" hidden></div>
         </div>
         <div class="lobby-rooms" data-f="rooms"></div>
         <div class="lobby-err" data-f="err" hidden></div>
@@ -58,6 +66,7 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
       else if (act === 'join') { if (roomId && roomId !== currentRoomId) onSwitch(roomId); }
       else if (act === 'admin-reset') { if (roomId) onAdmin('reset', roomId, null, tokenValue()); }
       else if (act === 'admin-status') { if (roomId) onAdmin('set_status', roomId, btn.dataset.status, tokenValue()); }
+      else if (act === 'admin-diag') { onAdmin('diagnostics', null, null, tokenValue()); }
       // click on the backdrop closes
       if (e.target === root) close();
     });
@@ -96,16 +105,28 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         const full = typeof r.capacity === 'number' && r.population >= r.capacity;
         const closed = r.status && r.status !== 'open';
         const cabs = r.cabinet_summary ? r.cabinet_summary.count : 0;
+        // Phase 2c: join gating is driven by STATUS (closed/maintenance disable),
+        // never by health freshness — a stale/offline room is still configured open
+        // and a fresh join re-instantiates its authority, so we WARN but allow it.
+        const health = r.health || (closed ? r.status : 'unknown');
+        const warn = HEALTH_WARN.has(health);
+        const estimated = r.population_is_estimated === true;
+        const profileLabel = r.profile_label;
+        const popText = `${estimated ? '~' : ''}${r.population}${typeof r.capacity === 'number' ? '/' + r.capacity : ''}`;
+        const popTitle = estimated ? `Estimated — ${HEALTH_LABEL[health] || health} room (population not fresh)` : 'Live population';
         const joinLabel = closed ? (STATUS_LABEL[r.status] || 'Unavailable') : (full ? 'Full' : 'Enter →');
         return `
-          <div class="lobby-room${isCurrent ? ' current' : ''}${closed ? ' closed' : ''}" data-room="${r.room_id}">
+          <div class="lobby-room${isCurrent ? ' current' : ''}${closed ? ' closed' : ''}${warn ? ' degraded' : ''}" data-room="${r.room_id}" data-health="${health}">
             <div class="lr-top">
               <span class="lr-ico" aria-hidden="true">${THEME_ICON[r.theme] || '🎮'}</span>
               <span class="lr-name">${escapeHtml(r.display_name)}</span>
+              ${profileLabel ? `<span class="lr-profile">${escapeHtml(profileLabel)}</span>` : ''}
+              <span class="lr-health lr-health-${health}" title="Room health: ${HEALTH_LABEL[health] || health}">${HEALTH_LABEL[health] || health}</span>
               ${closed ? `<span class="lr-status">${STATUS_LABEL[r.status] || r.status}</span>` : ''}
-              <span class="lr-pop">${r.population}${typeof r.capacity === 'number' ? '/' + r.capacity : ''} <span class="lr-pop-k">players</span></span>
+              <span class="lr-pop" title="${popTitle}">${popText} <span class="lr-pop-k">players</span></span>
             </div>
             <div class="lr-desc">${escapeHtml(r.description || '')}</div>
+            ${warn ? `<div class="lr-warn">⚠ This room looks ${HEALTH_LABEL[health] || health}. You can still enter — joining will refresh it.</div>` : ''}
             <div class="lr-foot">
               <span class="lr-cabs">${cabs} cabinet${cabs === 1 ? '' : 's'}</span>
               ${isCurrent
@@ -125,6 +146,25 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
     if (adminEl) adminEl.hidden = !adminOpen;
     const am = $('adminmsg');
     if (am) { if (adminOpen && lastAdmin) { am.hidden = false; am.textContent = lastAdmin; } else { am.hidden = true; } }
+
+    const diagEl = $('diag');
+    if (diagEl) {
+      if (adminOpen && Array.isArray(lastDiag) && lastDiag.length) {
+        diagEl.hidden = false;
+        diagEl.innerHTML = lastDiag.map((d) => `
+          <div class="lobby-diag-row">
+            <span class="ld-room">${escapeHtml(d.room_id)}</span>
+            <span class="ld-h lr-health-${d.health}">${HEALTH_LABEL[d.health] || d.health}</span>
+            <span class="ld-num" title="population">pop ${d.population}</span>
+            <span class="ld-num" title="active connections">conn ${d.active_connection_count}</span>
+            <span class="ld-num" title="active rounds">rnd ${d.active_round_count}</span>
+            <span class="ld-num" title="occupied cabinets">cab ${d.occupied_cabinet_count}</span>
+            <span class="ld-num" title="reset generation">gen ${d.reset_generation}</span>
+          </div>`).join('');
+      } else {
+        diagEl.hidden = true;
+      }
+    }
   }
 
   function currentRoomName() {
@@ -159,9 +199,12 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
       lastAdmin = result && result.ok
         ? `✓ ${result.op || 'admin'}${result.roomId ? ' · ' + result.roomId : ''}${result.status ? ' → ' + result.status : ''}`
         : `✕ admin: ${(result && result.reason) || 'failed'}`;
+      // Phase 2c: capture diagnostics payload (admin-only). Cleared on failure.
+      if (result && result.ok && result.op === 'diagnostics' && Array.isArray(result.diagnostics)) lastDiag = result.diagnostics;
+      else if (result && !result.ok) lastDiag = null;
       adminOpen = true;
       render();
-      onRefresh();
+      if (!(result && result.op === 'diagnostics')) onRefresh();
     },
     getRooms() { return rooms.slice(); },
     get element() { return root; },

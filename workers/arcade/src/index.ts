@@ -1,10 +1,12 @@
 /**
- * Neon Arcade Mesh Worker — Phase 2b (per-room DO sharding + registry coordinator)
+ * Neon Arcade Mesh Worker — Phase 2c (room presence health + per-room sharding)
  *
  * Routes /arcade/ws?room=<id> to a PER-ROOM ArcadeRoom Durable Object instance
  * (idFromName(roomId)) — each room is its own DO, so rooms scale and stay isolated
- * by construction. A single RoomRegistry DO coordinates cross-room population +
- * admin status; room DOs talk to it DO-to-DO (clients never reach it directly).
+ * by construction. A single RoomRegistry DO coordinates cross-room population,
+ * per-room HEALTH/heartbeat freshness, and admin status; room DOs talk to it
+ * DO-to-DO (clients never reach it directly). Health surfaces over HTTP at
+ * /arcade/rooms/health.
  *
  * An explicit invalid room id falls back to the default room DO, where the join is
  * rejected (room_join_rejected: invalid_room). No `?room=` → main-floor.
@@ -51,9 +53,20 @@ export default {
       }
     }
 
+    // Phase 2c: public-safe registry health (per-room health + freshness), surfaced
+    // over HTTP from the coordinator DO.
+    if (url.pathname === "/arcade/rooms/health") {
+      const reg = env.ROOM_REGISTRY.get(env.ROOM_REGISTRY.idFromName("registry"));
+      try {
+        return await reg.fetch("https://reg/registry/health");
+      } catch {
+        return new Response(JSON.stringify({ ok: false, service: "neon-arcade-room-registry", phase: "2c", rooms: [] }), { headers: { "Content-Type": "application/json" } });
+      }
+    }
+
     if (url.pathname === "/arcade/health") {
       return new Response(
-        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "2b", rooms: ROOM_IDS, sharded: true }),
+        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "2c", rooms: ROOM_IDS, sharded: true }),
         { headers: { "Content-Type": "application/json" } }
       );
     }

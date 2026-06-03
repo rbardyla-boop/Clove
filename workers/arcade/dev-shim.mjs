@@ -13,7 +13,7 @@
  */
 import { WebSocketServer } from 'ws';
 import {
-  createTicketState, startRound, submitRound, expirePlayerRounds, getBalance,
+  createTicketState, startRound, submitRound, expirePlayerRounds, getBalance, activeRoundCount,
 } from './src/round-authority.mjs';
 import { cabinetCatalogPayload, prizeCatalogPayload, ticketedMachineIds, getCabinetByMachineId } from './src/catalog.mjs';
 import { redeemPrize, equipCosmetic, unequipCosmetic, getInventory, getEquips, publicCosmeticState } from './src/prize-authority.mjs';
@@ -21,7 +21,11 @@ import { getLedger } from './src/ledger.mjs';
 import { challengeCatalogPayload, getProgress, recordRoundAccepted, recordRedemption, claimReward } from './src/challenges.mjs';
 import { getAchievements } from './src/achievements.mjs';
 import { appendEvent, eventFeedPayload } from './src/events.mjs';
-import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMetaPayload, hasCapacity, isRoomStatus, isJoinableStatus, effectiveStatus } from './src/rooms.mjs';
+import {
+  DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomMetaPayload, hasCapacity, isRoomStatus,
+  isJoinableStatus, effectiveStatus, getRoom,
+  roomPresenceListPayload, roomDiagnosticsList, HEARTBEAT_SCHEMA_VERSION,
+} from './src/rooms.mjs';
 import { checkAdmin, adminEnabled, isAdminOp } from './src/admin.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
@@ -32,6 +36,10 @@ const PULSE_ID = 'pulse';
 // populations are computed from all sockets and admin status overrides live here.
 const rooms = {};
 const statusOverrides = {}; // roomId -> 'open'|'closed'|'maintenance' (admin-set)
+// Phase 2c: the shim ALSO models the registry's heartbeat store. roomId -> latest
+// heartbeat (stamped with a `last_seen_at` receive-clock), so the shim derives the
+// same health/freshness + stale-population eviction the real RoomRegistry does.
+const heartbeats = {};
 // The shim reads the same admin gate as the DO (dev flag + token via env).
 const adminGate = (providedToken) => checkAdmin({ enabled: adminEnabled(process.env), token: process.env.ADMIN_TOKEN, providedToken });
 function room(roomId) {
@@ -39,7 +47,7 @@ function room(roomId) {
   if (!r) {
     const machines = {};
     for (const machineId of ticketedMachineIds()) machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
-    r = rooms[roomId] = { machines, ticketState: createTicketState() };
+    r = rooms[roomId] = { machines, ticketState: createTicketState(), generation: 0 };
   }
   return r;
 }
@@ -62,6 +70,27 @@ function distinctPlayers(roomId, exclude) {
   for (const meta of sockets.values()) if (meta.playerId && meta.roomId === roomId && meta.playerId !== exclude) set.add(meta.playerId);
   return set.size;
 }
+
+// Phase 2c: record a room's heartbeat (mirrors ArcadeRoom.buildHeartbeat + the
+// registry stamping last_seen_at). Reported on join/leave/reset — exactly when a
+// per-room DO would report. `lastSeenAt` may be overridden by the test hook below.
+function recordHeartbeat(roomId, lastSeenAt = Date.now()) {
+  const part = room(roomId);
+  const r = getRoom(roomId);
+  let conns = 0; for (const meta of sockets.values()) if (meta.roomId === roomId) conns += 1;
+  let occupied = 0; for (const m of Object.values(part.machines)) if (m.occupiedBy !== null) occupied += 1;
+  const now = Date.now();
+  heartbeats[roomId] = {
+    roomId, schema_version: HEARTBEAT_SCHEMA_VERSION, generation: part.generation || 0,
+    population: roomPopulation(roomId), capacity: r ? r.capacity : 0, status: r ? r.status : 'open',
+    last_activity_at: now, reported_at: now,
+    active_connections: conns, active_rounds: activeRoundCount(part.ticketState, now),
+    occupied_cabinets: occupied, last_seen_at: lastSeenAt,
+  };
+}
+// Admin diagnostics — same pure builder the RoomRegistry uses (rooms.mjs), so the
+// shim's diagnostics are byte-identical to production for the tested flows.
+const shimDiagnostics = (now) => roomDiagnosticsList(heartbeats, statusOverrides, now);
 
 const roomStatePayload = (roomId) => ({ t: 'room_state', roomId, machines: snapshot(room(roomId).machines), rev: room(roomId).machines[PULSE_ID].rev });
 const broadcastRoomState = (roomId) => broadcastRoom(roomId, roomStatePayload(roomId));
@@ -93,14 +122,16 @@ function leaveRoomInternal(playerId, roomId) {
   part.ticketState = expirePlayerRounds(part.ticketState, playerId);
   if (released) broadcastRoomState(roomId);
   broadcastRoom(roomId, ticketStatePayload(roomId));
+  recordHeartbeat(roomId);
 }
 
 // Phase 2b admin: wipe a room's state (the registry coordinator forwards this to
 // the room DO; the shim does it inline). Connected players in that room are reset.
 function adminReset(roomId) {
+  const prevGen = rooms[roomId]?.generation ?? 0;
   const machines = {};
   for (const machineId of ticketedMachineIds()) machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
-  rooms[roomId] = { machines, ticketState: createTicketState() };
+  rooms[roomId] = { machines, ticketState: createTicketState(), generation: prevGen + 1 };
   const part = rooms[roomId];
   broadcastRoom(roomId, { t: 'room_reset', roomId });
   broadcastRoomState(roomId);
@@ -114,6 +145,7 @@ function adminReset(roomId) {
     send(ws, { t: 'achievement_state', playerId: meta.playerId, achievements: getAchievements(part.ticketState, meta.playerId) });
     send(ws, { t: 'arcade_event_feed', roomId, ...eventFeedPayload(part.ticketState) });
   }
+  recordHeartbeat(roomId); // refresh presence with the new generation + population
 }
 
 // Gated admin op (mirrors the registry coordinator's /registry/admin gating).
@@ -121,6 +153,9 @@ function handleAdmin(ws, d) {
   const gate = adminGate(d.token);
   if (!gate.ok) return send(ws, { t: 'room_admin_result', ok: false, reason: gate.reason });
   if (!isAdminOp(d.op)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'unknown_op' });
+  if (d.op === 'diagnostics') {
+    return send(ws, { t: 'room_admin_result', ok: true, op: 'diagnostics', diagnostics: shimDiagnostics(Date.now()) });
+  }
   if (!isValidRoomId(d.roomId)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'invalid_room' });
   if (d.op === 'set_status') {
     if (!isRoomStatus(d.status)) return send(ws, { t: 'room_admin_result', ok: false, reason: 'invalid_status' });
@@ -128,7 +163,7 @@ function handleAdmin(ws, d) {
     return send(ws, { t: 'room_admin_result', ok: true, op: 'set_status', roomId: d.roomId, status: d.status });
   }
   adminReset(d.roomId);
-  return send(ws, { t: 'room_admin_result', ok: true, op: 'reset', roomId: d.roomId });
+  return send(ws, { t: 'room_admin_result', ok: true, op: 'reset', roomId: d.roomId, generation: rooms[d.roomId]?.generation ?? 0 });
 }
 
 function handleJoin(ws, rawRoomId, playerId, lobby) {
@@ -152,6 +187,7 @@ function handleJoin(ws, rawRoomId, playerId, lobby) {
   send(ws, { t: 'achievement_state', playerId, achievements: getAchievements(part.ticketState, playerId) });
   send(ws, { t: 'arcade_event_feed', roomId, ...eventFeedPayload(part.ticketState) });
   broadcastPopulation(roomId);
+  recordHeartbeat(roomId);
 }
 
 function handleRoundStart(ws, d, meta, startedType, rejectedType) {
@@ -202,8 +238,16 @@ wss.on('connection', (ws) => {
     const bound = meta && meta.playerId ? meta : null;
 
     switch (d.t) {
-      case 'room_list_request': return void send(ws, { t: 'room_list', ...roomListPayload(populations(), statusOverrides) });
+      case 'room_list_request': return void send(ws, { t: 'room_list', ...roomPresenceListPayload(heartbeats, statusOverrides, Date.now()) });
       case 'room_admin': return void handleAdmin(ws, d);
+      // TEST/DEV ONLY: age a room's stored heartbeat so the stale/offline policy can
+      // be exercised deterministically without waiting real seconds. The production
+      // RoomRegistry has no such hook — the same pure deriveRoomHealth/presence code
+      // runs on both; this only fast-forwards the freshness clock for that room.
+      case '__test_set_heartbeat_age': {
+        if (heartbeats[d.roomId]) heartbeats[d.roomId].last_seen_at = Date.now() - Math.max(0, Number(d.ageMs) || 0);
+        return void send(ws, { t: 'room_list', ...roomPresenceListPayload(heartbeats, statusOverrides, Date.now()) });
+      }
       case 'join_room': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, false);
       case 'room_join_request': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, true);
       case 'room_leave_request': {

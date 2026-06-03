@@ -22,6 +22,7 @@ import {
   expirePlayerRounds,
   getBalance,
   pruneExpired,
+  activeRoundCount,
 } from "./round-authority.mjs";
 import { cabinetCatalogPayload, prizeCatalogPayload, ticketedMachineIds, getCabinetByMachineId } from "./catalog.mjs";
 import { redeemPrize, equipCosmetic, unequipCosmetic, getInventory, getEquips, publicCosmeticState } from "./prize-authority.mjs";
@@ -29,7 +30,7 @@ import { getLedger } from "./ledger.mjs";
 import { challengeCatalogPayload, getProgress, recordRoundAccepted, recordRedemption, claimReward } from "./challenges.mjs";
 import { getAchievements } from "./achievements.mjs";
 import { appendEvent, eventFeedPayload } from "./events.mjs";
-import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMetaPayload, hasCapacity, getRoom } from "./rooms.mjs";
+import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMetaPayload, hasCapacity, getRoom, HEARTBEAT_SCHEMA_VERSION } from "./rooms.mjs";
 
 export interface MachineState {
   machineId: string;
@@ -42,6 +43,9 @@ export interface MachineState {
 export interface RoomPartition {
   machines: Record<string, MachineState>;
   ticketState: any;
+  // Phase 2c: monotonically increments each time this room is reset. Reported in
+  // the heartbeat so the registry/admin can see room lifecycle generations.
+  generation: number;
 }
 
 export interface ArcadeState {
@@ -81,12 +85,12 @@ export class ArcadeRoom implements DurableObject {
 
   // ==================== room partitions ====================
 
-  private newPartition(): RoomPartition {
+  private newPartition(generation = 0): RoomPartition {
     const machines: Record<string, MachineState> = {};
     for (const machineId of ticketedMachineIds()) {
       machines[machineId] = { machineId, occupiedBy: null, occupiedSince: null, rev: 0 };
     }
-    return { machines, ticketState: createTicketState() };
+    return { machines, ticketState: createTicketState(), generation };
   }
 
   /** Get (lazily create + migrate) a room's isolated partition. */
@@ -96,6 +100,7 @@ export class ArcadeRoom implements DurableObject {
       part = this.newPartition();
       this.state.rooms[roomId] = part;
     }
+    if (typeof part.generation !== "number") part.generation = 0; // migrate pre-2c partitions
     part.ticketState = ensureTicketState(part.ticketState);
     if (!part.machines) part.machines = {};
     for (const machineId of ticketedMachineIds()) {
@@ -183,10 +188,36 @@ export class ArcadeRoom implements DurableObject {
   private registryStub(): DurableObjectStub {
     return this.env.ROOM_REGISTRY.get(this.env.ROOM_REGISTRY.idFromName("registry"));
   }
-  private async reportPopulation(roomId: string): Promise<void> {
+
+  /** Public-safe heartbeat for one room (Phase 2c). NEVER includes player ids. */
+  private buildHeartbeat(roomId: string): Record<string, unknown> {
+    const part = this.room(roomId);
+    const room = getRoom(roomId);
+    let activeConnections = 0;
+    for (const meta of this.sockets.values()) if (meta.roomId === roomId) activeConnections += 1;
+    let occupied = 0;
+    for (const m of Object.values(part.machines)) if (m.occupiedBy !== null) occupied += 1;
+    const now = Date.now();
+    return {
+      roomId,
+      schema_version: HEARTBEAT_SCHEMA_VERSION,
+      generation: part.generation,
+      population: this.roomPopulation(roomId),
+      capacity: room ? room.capacity : 0,
+      status: room ? room.status : "open", // configured status; the registry overlays admin overrides
+      last_activity_at: this.state.lastActivity,
+      reported_at: now,
+      active_connections: activeConnections,
+      active_rounds: activeRoundCount(part.ticketState, now),
+      occupied_cabinets: occupied,
+    };
+  }
+
+  /** Report a full heartbeat to the registry coordinator (best-effort, DO-to-DO). */
+  private async reportHeartbeat(roomId: string): Promise<void> {
     try {
-      await this.registryStub().fetch("https://reg/registry/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roomId, population: this.roomPopulation(roomId) }) });
-    } catch { /* registry is best-effort; a miss only delays a population refresh */ }
+      await this.registryStub().fetch("https://reg/registry/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(this.buildHeartbeat(roomId)) });
+    } catch { /* registry is best-effort; a miss only delays a presence refresh */ }
   }
   private async registryStatus(roomId: string): Promise<{ status: string; joinable: boolean }> {
     try {
@@ -206,10 +237,11 @@ export class ArcadeRoom implements DurableObject {
 
   private async handleAdminReset(): Promise<Response> {
     const roomId = this.boundRoomId;
-    this.state.rooms[roomId] = this.newPartition(); // wipe occupancy + tickets + ledger + inventory + challenges + feed
+    const prevGeneration = this.state.rooms[roomId]?.generation ?? 0;
+    this.state.rooms[roomId] = this.newPartition(prevGeneration + 1); // wipe state; bump lifecycle generation
     await this.persistState();
     const part = this.room(roomId);
-    this.broadcastRoom(roomId, { t: "room_reset", roomId });
+    this.broadcastRoom(roomId, { t: "room_reset", roomId, generation: part.generation });
     await this.broadcastRoomState(roomId);
     this.broadcastTicketState(roomId);
     this.broadcastCosmeticState(roomId);
@@ -221,7 +253,11 @@ export class ArcadeRoom implements DurableObject {
       this.send(ws, { t: "achievement_state", playerId: meta.playerId, achievements: getAchievements(part.ticketState, meta.playerId) });
       this.send(ws, { t: "arcade_event_feed", roomId, ...eventFeedPayload(part.ticketState) });
     }
-    return new Response(JSON.stringify({ ok: true, population: this.roomPopulation(roomId) }), { headers: { "Content-Type": "application/json" } });
+    // Refresh the registry's presence/heartbeat immediately so the post-reset
+    // generation + population are visible without waiting for the next alarm.
+    const heartbeat = this.buildHeartbeat(roomId);
+    await this.reportHeartbeat(roomId);
+    return new Response(JSON.stringify({ ok: true, heartbeat }), { headers: { "Content-Type": "application/json" } });
   }
 
   private async handleRoomList(ws: WebSocket): Promise<void> {
@@ -295,7 +331,7 @@ export class ArcadeRoom implements DurableObject {
     part.ticketState = expirePlayerRounds(part.ticketState, playerId);
     await this.broadcastRoomState(roomId);
     this.broadcastPopulation(roomId);
-    await this.reportPopulation(roomId);
+    await this.reportHeartbeat(roomId);
     await this.persistState();
   }
 
@@ -356,7 +392,7 @@ export class ArcadeRoom implements DurableObject {
     this.send(ws, { t: "achievement_state", playerId, achievements: getAchievements(part.ticketState, playerId) });
     this.send(ws, { t: "arcade_event_feed", roomId, ...eventFeedPayload(part.ticketState) });
     this.broadcastPopulation(roomId);
-    await this.reportPopulation(roomId);
+    await this.reportHeartbeat(roomId);
     await this.persistState();
   }
 
@@ -695,6 +731,10 @@ export class ArcadeRoom implements DurableObject {
       part.ticketState = pruneExpired(part.ticketState, now);
     }
     await this.persistState();
+    // Phase 2c: the alarm doubles as a heartbeat tick — a live (or recently-live)
+    // room re-reports presence every ~30s so the registry keeps it `healthy` even
+    // with no joins/leaves, and so a room that goes quiet eventually ages to stale.
+    await this.reportHeartbeat(this.boundRoomId);
     this.scheduleStaleLockAlarm();
   }
 }

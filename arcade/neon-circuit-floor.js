@@ -508,6 +508,7 @@ lobby = createArcadeLobby({
   onAdmin: (op, roomId, status, token) => {
     if (op === 'reset') client.adminResetRoom(roomId, token);
     else if (op === 'set_status') client.adminSetRoomStatus(roomId, status, token);
+    else if (op === 'diagnostics') client.adminRoomDiagnostics(token);
   },
 });
 const roomBtn = el('roomBtn');
@@ -586,6 +587,10 @@ if (params.get('test') === '1') {
     requestRoomList: () => client.requestRoomList(),
     adminReset: (roomId, token) => client.adminResetRoom(roomId, token),
     adminSetStatus: (roomId, status, token) => client.adminSetRoomStatus(roomId, status, token),
+    // Phase 2c: room presence health introspection for browser validation.
+    adminDiagnostics: (token) => client.adminRoomDiagnostics(token),
+    lastRoomAdmin: () => lastRoomAdmin,
+    setHeartbeatAge: (roomId, ageMs) => client.send({ t: '__test_set_heartbeat_age', roomId, ageMs }),
   };
 
   // Phase 1k: dynamically load + mount the test-only sample import fixture

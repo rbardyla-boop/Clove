@@ -1,8 +1,9 @@
 /**
- * Admin gating — PURE, runtime-agnostic (Phase 2b).
+ * Admin gating — PURE, runtime-agnostic (Phase 2b → 2c).
  *
- * Room lifecycle ops (reset a room's state, set a room's status) are operational
- * tools, NOT a product auth system. There are NO accounts and NO auth provider.
+ * Room lifecycle ops (reset a room's state, set a room's status, read room
+ * diagnostics) are operational tools, NOT a product auth system. There are NO
+ * accounts and NO auth provider.
  * An op is allowed ONLY when BOTH guards pass (defense in depth):
  *
  *   1. a dev/admin flag is enabled server-side (env.ADMIN_ENABLED === 'true'), AND
@@ -14,7 +15,7 @@
  * deploy has NO admin surface until an operator explicitly configures the secret.
  */
 
-export const ADMIN_OPS = Object.freeze(['reset', 'set_status']);
+export const ADMIN_OPS = Object.freeze(['reset', 'set_status', 'diagnostics']);
 export function isAdminOp(op) { return ADMIN_OPS.includes(op); }
 
 /**

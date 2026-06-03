@@ -547,6 +547,14 @@ export class NeonCircuitRoomClient {
   adminSetRoomStatus(roomId, status, token) {
     this.send({ t: "room_admin", op: "set_status", roomId, status, token });
   }
+  /**
+   * Phase 2c: request public-safe per-room operational diagnostics (admin). The
+   * server validates the token; the result arrives via onRoomAdminResult with a
+   * `diagnostics` array. Never exposes player ids / balances / ledger / the token.
+   */
+  adminRoomDiagnostics(token) {
+    this.send({ t: "room_admin", op: "diagnostics", token });
+  }
 
   getCurrentMachineState(machineId = "pulse") {
     return this.currentState.machines?.[machineId] || null;
