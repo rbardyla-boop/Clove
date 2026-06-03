@@ -27,8 +27,8 @@ import { mountAdapter, loadAndMountImported, loadAndActivateImportedCabinet } fr
 import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 // Phase 2a: room selection (the lobby forwards intent; the server is the authority).
 import { createArcadeLobby } from './arcade-lobby.js';
-// Phase 2e: display-only countdown formatting for the floor room-event banner.
-import { formatEventCountdown } from './room-recommend.mjs';
+// Phase 2e/2h: display-only countdown formatting for the floor room-event banner.
+import { formatEventCountdown, formatPrerollCountdown } from './room-recommend.mjs';
 
 // Powered (playable) cabinets, keyed by their occupancy machine id. The room
 // authority drives free/yours/in-use; the catalog confirms they are live.
@@ -95,6 +95,10 @@ let featuredReason = null;        // the featuring event's display name (or null
 // Phase 2g: pre-roll state — the next event is within the pre-roll lead (display-only).
 let eventUpcoming = false;        // server flag: next event starts soon
 let eventStartsInMs = null;       // server snapshot: ms until the next event begins
+// Phase 2h: operator-tunable presentation config + live countdown state (display-only).
+let eventPresentation = null;     // { preroll_lead_ms, countdown_refresh_ms, show_next_event, show_featured_chip }
+let prerollDeadline = null;       // client-clock deadline for the next event (live countdown)
+let prerollTimer = 0;             // interval id for the live countdown refresh
 
 // Per-cabinet authoritative state mirrored from the DO. game is wired below.
 // Neon Grid starts 'unavailable' until the server catalog activates its imported
@@ -245,18 +249,35 @@ function renderRoomEvent() {
     const remaining = currentRoomEvent.ends_at != null ? currentRoomEvent.ends_at - Date.now() : 0;
     cd.textContent = remaining > 0 ? `${formatEventCountdown(remaining)} left` : '';
   }
-  // Phase 2g: when the next event is upcoming (within the pre-roll lead), show a live
-  // countdown; otherwise the plain next-event preview. Display-only.
+  // Phase 2g/2h: when the next event is upcoming (within the pre-roll lead), show a LIVE
+  // m:ss countdown that ticks down (Phase 2h); otherwise the plain next-event preview.
+  // The next-event line is gated by the operator `show_next_event` flag. Display-only.
+  const showNext = !eventPresentation || eventPresentation.show_next_event !== false;
   const nx = el('roomEventNext');
   if (nx) {
-    if (eventUpcoming && nextRoomEvent && nextRoomEvent.display_name) {
-      const cd = eventStartsInMs != null ? formatEventCountdown(eventStartsInMs) : '';
-      nx.textContent = `⏳ Up next in ${cd} · ${nextRoomEvent.display_name}`;
+    if (!showNext) {
+      nx.textContent = '';
+      nx.removeAttribute('data-preroll');
+    } else if (eventUpcoming && nextRoomEvent && nextRoomEvent.display_name) {
+      const remaining = prerollDeadline != null ? prerollDeadline - Date.now() : (eventStartsInMs ?? 0);
+      nx.textContent = `⏳ Up next in ${formatPrerollCountdown(remaining)} · ${nextRoomEvent.display_name}`;
       nx.dataset.preroll = '1';
     } else {
       nx.textContent = nextRoomEvent && nextRoomEvent.display_name ? `Next · ${nextRoomEvent.display_name}` : '';
       nx.removeAttribute('data-preroll');
     }
+  }
+}
+
+// Phase 2h: run a live countdown that re-renders the pre-roll line every
+// `countdown_refresh_ms` so the m:ss countdown ticks down. Stops when no event is
+// upcoming. Display-only — never re-derives authority or economy.
+function syncPrerollTimer() {
+  const refresh = (eventPresentation && eventPresentation.countdown_refresh_ms) || 1000;
+  if (eventUpcoming && prerollDeadline != null) {
+    if (!prerollTimer) prerollTimer = setInterval(() => { renderRoomEvent(); }, refresh);
+  } else if (prerollTimer) {
+    clearInterval(prerollTimer); prerollTimer = 0;
   }
 }
 
@@ -290,7 +311,9 @@ function renderCabinet(machineId) {
 
   // Phase 2e: highlight the cabinet the current room event features (display-only —
   // this never changes whether the cabinet can be occupied/played or what it awards).
-  const featured = !!featuredMachineId && machineId === featuredMachineId;
+  // Phase 2h: the highlight is gated by the operator `show_featured_chip` flag.
+  const showFeatured = !eventPresentation || eventPresentation.show_featured_chip !== false;
+  const featured = showFeatured && !!featuredMachineId && machineId === featuredMachineId;
   c.el.classList.toggle('featured', featured);
   c.el.dataset.featured = featured ? '1' : '0';
 
@@ -359,6 +382,7 @@ const client = new NeonCircuitRoomClient({
     currentRoomEvent = nextRoomEvent = null;
     featuredMachineId = featuredReason = null;
     eventUpcoming = false; eventStartsInMs = null;
+    prerollDeadline = null; syncPrerollTimer(); // Phase 2h: stop any live countdown
     renderIdentity();
     renderRoomChip();
     renderFloor();
@@ -375,7 +399,7 @@ const client = new NeonCircuitRoomClient({
     lobby?.setCurrentRoom(currentRoomId);
   },
   // ---- Phase 2a: lobby / multi-room ----
-  onRoomList: (m) => { lobby?.setRooms(m.rooms || []); lobby?.setCurrentRoom(currentRoomId); },
+  onRoomList: (m) => { lobby?.setPresentation(m.presentation || null); lobby?.setRooms(m.rooms || []); lobby?.setCurrentRoom(currentRoomId); },
   onRoomJoined: (m) => { currentRoomId = (m.room && m.room.room_id) || currentRoomId; renderRoomChip(); lobby?.setCurrentRoom(currentRoomId); },
   onRoomJoinRejected: (m) => { lastRoomReject = m.reason; lobby?.showRejection(m.reason, m.roomId); toast(`room: ${m.reason}`); },
   onRoomLeft: () => {},
@@ -442,6 +466,10 @@ const client = new NeonCircuitRoomClient({
     nextRoomEvent = m.next_event || null;
     eventUpcoming = m.event_upcoming === true;            // Phase 2g pre-roll flag
     eventStartsInMs = m.event_starts_in_ms ?? null;       // Phase 2g countdown snapshot
+    eventPresentation = m.presentation || null;           // Phase 2h operator config
+    // Phase 2h: anchor a client-clock deadline so the countdown ticks live.
+    prerollDeadline = eventUpcoming && eventStartsInMs != null ? Date.now() + eventStartsInMs : null;
+    syncPrerollTimer();
     renderRoomEvent();
   },
   onPrizeCatalog: (m) => { prizeCounter?.setPrizes(m.prizes || []); },
@@ -677,6 +705,9 @@ if (params.get('test') === '1') {
     eventUpcoming: () => eventUpcoming, // Phase 2g pre-roll flag (browser validation)
     featuredMachine: () => featuredMachineId,
     requestRoomEvents: () => client.requestRoomEvents(),
+    // Phase 2h: operator presentation config + live pre-roll countdown introspection.
+    eventPresentation: () => eventPresentation,
+    eventCountdownMs: () => (prerollDeadline != null ? prerollDeadline - Date.now() : null),
     // Phase 2f: TEST-ONLY event-clock override (dev-gated server-side) to drive live
     // feed start/end/featured transitions deterministically. `feed` (in state()) reflects
     // the live room feed; pass null to clear the override.

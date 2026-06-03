@@ -21,7 +21,7 @@ import {
   isJoinableStatus, effectiveStatus, roomDiagnosticsList,
   HEARTBEAT_SCHEMA_VERSION,
 } from "./rooms.mjs";
-import { attachRoomEvents } from "./room-events.mjs";
+import { attachRoomEvents, eventPresentationFromEnv } from "./room-events.mjs";
 import { checkAdmin, adminEnabled, isAdminOp } from "./admin.mjs";
 
 /** Latest heartbeat stored for a room (registry stamps `last_seen_at` on receipt). */
@@ -50,6 +50,11 @@ interface Env {
   ROOM_REGISTRY: DurableObjectNamespace;
   ADMIN_ENABLED?: string;
   ADMIN_TOKEN?: string;
+  // Phase 2h: operator-tunable, display-only event presentation (validated in room-events.mjs).
+  EVENT_PREROLL_LEAD_MS?: string;
+  EVENT_COUNTDOWN_REFRESH_MS?: string;
+  EVENT_SHOW_NEXT?: string;
+  EVENT_SHOW_FEATURED?: string;
 }
 
 export class RoomRegistry implements DurableObject {
@@ -126,7 +131,8 @@ export class RoomRegistry implements DurableObject {
     // and carry no economy/private data (see room-events.mjs).
     if (path === "/registry/list") {
       const now = Date.now();
-      return this.json(attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now));
+      const cfg = eventPresentationFromEnv(this.env);
+      return this.json(attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now, cfg));
     }
 
     // Public-safe registry health envelope (Phase 2c health schema, additively
@@ -134,7 +140,7 @@ export class RoomRegistry implements DurableObject {
     // (unchanged); `event_ruleset_version` marks the additive event layer.
     if (path === "/registry/health") {
       const now = Date.now();
-      const list = attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now);
+      const list = attachRoomEvents(roomPresenceListPayload(this.reg.heartbeats, this.reg.statusOverrides, now), now, eventPresentationFromEnv(this.env));
       return this.json({ ok: true, service: "neon-arcade-room-registry", phase: "2c", schema_version: HEARTBEAT_SCHEMA_VERSION, event_ruleset_version: list.event_ruleset_version, rooms: list.rooms });
     }
 

@@ -29,8 +29,13 @@ import {
 import {
   attachRoomEvents, annotateCatalogForRoom, roomEventListPayload,
   initialEventTracker, deriveRoomEventTransitions, roomEventFeedEntryForTransition,
+  eventPresentationFromEnv,
 } from './src/room-events.mjs';
 import { checkAdmin, adminEnabled, isAdminOp } from './src/admin.mjs';
+
+// Phase 2h: resolve the operator-tunable, display-only event presentation config from
+// the shim's process env (same keys + validation as the production DOs).
+const eventConfig = eventPresentationFromEnv(process.env);
 
 const PORT = Number(process.env.PORT || 8787);
 const PULSE_ID = 'pulse';
@@ -66,7 +71,7 @@ const roomEventNow = (roomId) => (eventClockOverride[roomId] != null ? eventCloc
 // Idempotent at the same clock — the parity twin of ArcadeRoom.checkAndAnnounceRoomEvents.
 function checkAndAnnounceRoomEvents(roomId) {
   const part = room(roomId);
-  const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, roomEventNow(roomId));
+  const { transitions, state, changed } = deriveRoomEventTransitions(part.eventTracker, roomId, roomEventNow(roomId), eventConfig);
   if (!changed) return;
   part.eventTracker = state;
   for (const tr of transitions) {
@@ -260,7 +265,7 @@ wss.on('connection', (ws) => {
     const bound = meta && meta.playerId ? meta : null;
 
     switch (d.t) {
-      case 'room_list_request': { const now = Date.now(); return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now) }); }
+      case 'room_list_request': { const now = Date.now(); return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now, eventConfig) }); }
       case 'room_admin': return void handleAdmin(ws, d);
       // TEST/DEV ONLY: age a room's stored heartbeat so the stale/offline policy can
       // be exercised deterministically without waiting real seconds. The production
@@ -269,7 +274,7 @@ wss.on('connection', (ws) => {
       case '__test_set_heartbeat_age': {
         if (heartbeats[d.roomId]) heartbeats[d.roomId].last_seen_at = Date.now() - Math.max(0, Number(d.ageMs) || 0);
         const now = Date.now();
-        return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now) });
+        return void send(ws, { t: 'room_list', ...attachRoomEvents(roomPresenceListPayload(heartbeats, statusOverrides, now), now, eventConfig) });
       }
       case 'join_room': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, false);
       case 'room_join_request': return void handleJoin(ws, d.roomId, meta?.playerId ?? d.playerId, true);
@@ -378,14 +383,14 @@ wss.on('connection', (ws) => {
       }
       case 'arcade_event_feed_request': return void send(ws, { t: 'arcade_event_feed', roomId: (bound || meta).roomId, ...eventFeedPayload(room((bound || meta).roomId).ticketState) });
       // Phase 2e: deterministic, public-safe scheduled room events (read-only).
-      case 'room_events_request': { const cr = (bound || meta).roomId; checkAndAnnounceRoomEvents(cr); return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr)) }); }
+      case 'room_events_request': { const cr = (bound || meta).roomId; checkAndAnnounceRoomEvents(cr); return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr), eventConfig) }); }
       // Phase 2f: TEST-ONLY event-clock override (shim is test-only). Advances the room
       // event schedule so start/end/featured transitions are deterministically testable.
       case '__test_set_event_now': {
         const cr = (bound || meta).roomId;
         eventClockOverride[cr] = (d.nowMs == null) ? undefined : Number(d.nowMs);
         checkAndAnnounceRoomEvents(cr);
-        return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr)) });
+        return void send(ws, { t: 'room_events', ...roomEventListPayload(cr, roomEventNow(cr), eventConfig) });
       }
       case 'challenge_reward_claim': {
         if (!bound) return void send(ws, { t: 'error', code: 'no_identity', message: 'join first' });

@@ -192,3 +192,14 @@ export function roomUpcomingPreroll(room) {
     countdown: formatEventCountdown(Math.max(0, Number(room.event_starts_in_ms) || 0)),
   };
 }
+
+/**
+ * PURE: a live `m:ss` countdown for the Phase 2h pre-roll timer (ticks every refresh
+ * interval, so seconds visibly count down). Clamped at 0:00. Display-only.
+ */
+export function formatPrerollCountdown(ms) {
+  const totalSec = Math.floor(Math.max(0, Number(ms) || 0) / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}

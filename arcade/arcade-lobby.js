@@ -22,7 +22,7 @@
 import {
   roomActivity, recommendRooms, sortRoomsForLobby, roomRecoveryHint,
   roomEventBadge, roomNextEventLabel, roomEventWarmupHint, formatEventCountdown,
-  roomUpcomingPreroll,
+  roomUpcomingPreroll, formatPrerollCountdown,
 } from './room-recommend.mjs';
 
 export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, onAdmin = () => {} } = {}) {
@@ -32,6 +32,7 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
   let currentRoomId = null;
   let connected = false;
   let lastReject = null;
+  let presentation = null; // Phase 2h: operator display flags (show_next_event / show_featured_chip)
   let adminOpen = false;
   let lastAdmin = null;
   let lastDiag = null; // Phase 2c: last admin diagnostics payload (admin panel only)
@@ -135,9 +136,12 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         const activity = roomActivity(r);                 // Phase 2d public-safe activity
         // Phase 2e: event-aware warmup hint takes priority over the plain recovery hint.
         const hint = isCurrent ? null : (roomEventWarmupHint(r) || roomRecoveryHint(r));
-        const ev = roomEventBadge(r);                     // Phase 2e current scheduled event
-        const nextEv = roomNextEventLabel(r);             // Phase 2e next-event preview
-        const preroll = roomUpcomingPreroll(r);           // Phase 2g pre-roll (next event imminent)
+        // Phase 2h: operator display flags (default = show everything).
+        const showFeatured = !presentation || presentation.show_featured_chip !== false;
+        const showNext = !presentation || presentation.show_next_event !== false;
+        const ev = showFeatured ? roomEventBadge(r) : null; // Phase 2e current scheduled event
+        const nextEv = showNext ? roomNextEventLabel(r) : null; // Phase 2e next-event preview
+        const preroll = showNext ? roomUpcomingPreroll(r) : null; // Phase 2g pre-roll (next imminent)
         const popText = `${estimated ? '~' : ''}${r.population}${typeof r.capacity === 'number' ? '/' + r.capacity : ''}`;
         const popTitle = estimated ? `Estimated — ${HEALTH_LABEL[health] || health} room (population not fresh)` : 'Live population';
         const joinLabel = closed ? (STATUS_LABEL[r.status] || 'Unavailable') : (full ? 'Full' : 'Enter →');
@@ -158,7 +162,7 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
             </div>` : ''}
             <div class="lr-desc">${escapeHtml(r.description || '')}</div>
             ${preroll
-              ? `<div class="lr-event-next lr-event-preroll" data-preroll="1" title="Starting soon (display-only)">⏳ Up next in ${escapeHtml(preroll.countdown)} · ${escapeHtml(preroll.label)}</div>`
+              ? `<div class="lr-event-next lr-event-preroll" data-preroll="1" title="Starting soon (display-only)">⏳ Up next in ${escapeHtml(formatPrerollCountdown(preroll.starts_in_ms))} · ${escapeHtml(preroll.label)}</div>`
               : (nextEv ? `<div class="lr-event-next">Next event · ${escapeHtml(nextEv)}</div>` : '')}
             ${hint ? `<div class="lr-warn">${escapeHtml(hint)}</div>` : ''}
             <div class="lr-foot">
@@ -240,6 +244,7 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
     close() { if (!root) return; open = false; root.classList.remove('show'); },
     isOpen() { return open; },
     setRooms(list) { rooms = Array.isArray(list) ? list : []; lastReject = null; render(); },
+    setPresentation(p) { presentation = (p && typeof p === 'object') ? p : null; }, // Phase 2h display flags
     setCurrentRoom(roomId) { currentRoomId = roomId; render(); },
     setConnection(isConnected) { connected = !!isConnected; render(); },
     setPopulation(roomId, population) {
