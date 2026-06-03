@@ -64,13 +64,24 @@ export class NeonCircuitRoomClient {
     this.onAchievementUnlocked = options.onAchievementUnlocked || (() => {});
     this.onArcadeEventFeed = options.onArcadeEventFeed || (() => {});
     this.onArcadeEvent = options.onArcadeEvent || (() => {});
+    // Phase 2a lobby callbacks
+    this.onRoomList = options.onRoomList || (() => {});
+    this.onRoomJoined = options.onRoomJoined || (() => {});
+    this.onRoomJoinRejected = options.onRoomJoinRejected || (() => {});
+    this.onRoomLeft = options.onRoomLeft || (() => {});
+    this.onRoomPopulation = options.onRoomPopulation || (() => {});
 
     this.ws = null;
-    this.roomId = "main";
+    // Phase 2a: the room this client is bound to (default main-floor; legacy 'main').
+    this.roomId = this._normalizeRoom(options.roomId) || "main-floor";
     this.currentState = { machines: {} };
     this.heartbeatTimer = null;
     this.reconnectTimer = null;
     this.isConnected = false;
+    // A monotonically-increasing connection generation. Messages from a previous
+    // socket (e.g. after switching rooms) are ignored, so stale room responses can
+    // never corrupt the newly-joined room's UI state.
+    this.generation = 0;
 
     // Support explicit override for validation (e.g. ?id=alpha)
     // When an override is provided we do NOT touch localStorage for this session.
@@ -95,49 +106,61 @@ export class NeonCircuitRoomClient {
     return id;
   }
 
+  /** Normalize an untrusted room id (legacy 'main' → 'main-floor'); empty → null. */
+  _normalizeRoom(raw) {
+    if (typeof raw !== "string") return null;
+    const r = raw.trim().toLowerCase();
+    if (!r || !/^[a-z0-9-]+$/.test(r)) return null;
+    return r === "main" ? "main-floor" : r;
+  }
+
+  /** Build the ws URL for the current room (carries ?room= for routing/clarity). */
+  _roomWsUrl() {
+    const sep = this.wsUrl.includes("?") ? "&" : "?";
+    return `${this.wsUrl}${sep}room=${encodeURIComponent(this.roomId)}`;
+  }
+
   connect() {
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
       return; // already connecting
     }
 
+    const gen = ++this.generation; // this socket's generation
     try {
-      this.ws = new WebSocket(this.wsUrl);
+      const ws = new WebSocket(this._roomWsUrl());
+      this.ws = ws;
 
-      this.ws.onopen = () => {
+      ws.onopen = () => {
+        if (this.ws !== ws) return; // superseded by a newer socket
         this.isConnected = true;
-        this.send({
-          t: "join_room",
-          roomId: this.roomId,
-          playerId: this.playerId,
-        });
+        this.send({ t: "join_room", roomId: this.roomId, playerId: this.playerId });
         this.startHeartbeat();
-        this.onConnected({ playerId: this.playerId });
-        // Reconnect support: pull authoritative ticket balance + cabinet state.
+        this.onConnected({ playerId: this.playerId, roomId: this.roomId });
+        // Reconnect support: pull authoritative balance + room-scoped catalogs/state.
         this.requestTicketBalance();
-        // Phase 1f: refresh catalogs, inventory and ledger on (re)connect.
         this.requestCabinetCatalog();
         this.requestPrizeCatalog();
         this.requestInventory();
         this.requestTicketLedger();
       };
 
-      this.ws.onmessage = (event) => {
+      ws.onmessage = (event) => {
+        // Ignore any message from a stale socket / generation (room-switch safety).
+        if (this.ws !== ws || gen !== this.generation) return;
         let msg;
-        try {
-          msg = JSON.parse(event.data);
-        } catch {
-          return;
-        }
+        try { msg = JSON.parse(event.data); } catch { return; }
         this.handleMessage(msg);
       };
 
-      this.ws.onclose = () => {
+      ws.onclose = () => {
+        if (this.ws !== ws) return; // an intentional switch already moved on
         this.isConnected = false;
         this.stopHeartbeat();
         this.scheduleReconnect();
       };
 
-      this.ws.onerror = (err) => {
+      ws.onerror = (err) => {
+        if (this.ws !== ws) return;
         this.onError(err);
         this.scheduleReconnect();
       };
@@ -145,6 +168,24 @@ export class NeonCircuitRoomClient {
       this.onError(err);
       this.scheduleReconnect();
     }
+  }
+
+  /**
+   * Phase 2a: switch to another room. Closes the current socket cleanly, bumps the
+   * connection generation so any in-flight old-room responses are ignored, then
+   * connects to the selected room. The floor resets room-scoped UI on onConnected.
+   */
+  switchRoom(roomId) {
+    const target = this._normalizeRoom(roomId);
+    if (!target || target === this.roomId) return;
+    this.generation += 1; // invalidate the old socket's callbacks immediately
+    this.stopHeartbeat();
+    if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+    if (this.ws) { try { this.ws.close(1000, "switch room"); } catch { /* ignore */ } this.ws = null; }
+    this.isConnected = false;
+    this.currentState = { machines: {} };
+    this.roomId = target;
+    this.connect();
   }
 
   disconnect() {
@@ -183,6 +224,27 @@ export class NeonCircuitRoomClient {
 
   handleMessage(msg) {
     switch (msg.t) {
+      case "room_list": {
+        this.onRoomList(msg);
+        break;
+      }
+      case "room_joined": {
+        if (msg.room && msg.room.room_id) this.roomId = msg.room.room_id;
+        this.onRoomJoined(msg);
+        break;
+      }
+      case "room_join_rejected": {
+        this.onRoomJoinRejected(msg);
+        break;
+      }
+      case "room_left": {
+        this.onRoomLeft(msg);
+        break;
+      }
+      case "room_population": {
+        this.onRoomPopulation(msg);
+        break;
+      }
       case "room_state": {
         this.currentState = msg;
         this.onState(msg);
@@ -445,6 +507,24 @@ export class NeonCircuitRoomClient {
   }
   requestEventFeed() {
     this.send({ t: "arcade_event_feed_request" });
+  }
+
+  // ==================== Phase 2a: lobby / multi-room ====================
+
+  /** Ask the server for the public-safe room list (with live populations). */
+  requestRoomList() {
+    this.send({ t: "room_list_request" });
+  }
+  /** Re-request the current room's authoritative occupancy snapshot. */
+  requestRoomState() {
+    this.send({ t: "room_state_request" });
+  }
+  /** Explicitly leave the current room (server releases occupancy + rounds). */
+  leaveRoom() {
+    this.send({ t: "room_leave_request" });
+  }
+  getRoomId() {
+    return this.roomId;
   }
 
   getCurrentMachineState(machineId = "pulse") {
