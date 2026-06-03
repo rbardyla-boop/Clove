@@ -92,6 +92,9 @@ let currentRoomEvent = null;      // current scheduled event for the joined room
 let nextRoomEvent = null;         // next scheduled event preview (or null)
 let featuredMachineId = null;     // machine id of the event-featured cabinet (or null)
 let featuredReason = null;        // the featuring event's display name (or null)
+// Phase 2g: pre-roll state — the next event is within the pre-roll lead (display-only).
+let eventUpcoming = false;        // server flag: next event starts soon
+let eventStartsInMs = null;       // server snapshot: ms until the next event begins
 
 // Per-cabinet authoritative state mirrored from the DO. game is wired below.
 // Neon Grid starts 'unavailable' until the server catalog activates its imported
@@ -242,8 +245,19 @@ function renderRoomEvent() {
     const remaining = currentRoomEvent.ends_at != null ? currentRoomEvent.ends_at - Date.now() : 0;
     cd.textContent = remaining > 0 ? `${formatEventCountdown(remaining)} left` : '';
   }
+  // Phase 2g: when the next event is upcoming (within the pre-roll lead), show a live
+  // countdown; otherwise the plain next-event preview. Display-only.
   const nx = el('roomEventNext');
-  if (nx) nx.textContent = nextRoomEvent && nextRoomEvent.display_name ? `Next · ${nextRoomEvent.display_name}` : '';
+  if (nx) {
+    if (eventUpcoming && nextRoomEvent && nextRoomEvent.display_name) {
+      const cd = eventStartsInMs != null ? formatEventCountdown(eventStartsInMs) : '';
+      nx.textContent = `⏳ Up next in ${cd} · ${nextRoomEvent.display_name}`;
+      nx.dataset.preroll = '1';
+    } else {
+      nx.textContent = nextRoomEvent && nextRoomEvent.display_name ? `Next · ${nextRoomEvent.display_name}` : '';
+      nx.removeAttribute('data-preroll');
+    }
+  }
 }
 
 function renderTickets() {
@@ -344,6 +358,7 @@ const client = new NeonCircuitRoomClient({
     // until this room's room_events + annotated catalog arrive (requested below).
     currentRoomEvent = nextRoomEvent = null;
     featuredMachineId = featuredReason = null;
+    eventUpcoming = false; eventStartsInMs = null;
     renderIdentity();
     renderRoomChip();
     renderFloor();
@@ -425,6 +440,8 @@ const client = new NeonCircuitRoomClient({
   onRoomEvents: (m) => {
     currentRoomEvent = m.current_event || null;
     nextRoomEvent = m.next_event || null;
+    eventUpcoming = m.event_upcoming === true;            // Phase 2g pre-roll flag
+    eventStartsInMs = m.event_starts_in_ms ?? null;       // Phase 2g countdown snapshot
     renderRoomEvent();
   },
   onPrizeCatalog: (m) => { prizeCounter?.setPrizes(m.prizes || []); },
@@ -657,6 +674,7 @@ if (params.get('test') === '1') {
     // Phase 2e: scheduled room-event introspection for browser validation.
     roomEvent: () => currentRoomEvent,
     nextRoomEvent: () => nextRoomEvent,
+    eventUpcoming: () => eventUpcoming, // Phase 2g pre-roll flag (browser validation)
     featuredMachine: () => featuredMachineId,
     requestRoomEvents: () => client.requestRoomEvents(),
     // Phase 2f: TEST-ONLY event-clock override (dev-gated server-side) to drive live

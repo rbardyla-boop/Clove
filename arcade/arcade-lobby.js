@@ -22,6 +22,7 @@
 import {
   roomActivity, recommendRooms, sortRoomsForLobby, roomRecoveryHint,
   roomEventBadge, roomNextEventLabel, roomEventWarmupHint, formatEventCountdown,
+  roomUpcomingPreroll,
 } from './room-recommend.mjs';
 
 export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, onAdmin = () => {} } = {}) {
@@ -136,6 +137,7 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
         const hint = isCurrent ? null : (roomEventWarmupHint(r) || roomRecoveryHint(r));
         const ev = roomEventBadge(r);                     // Phase 2e current scheduled event
         const nextEv = roomNextEventLabel(r);             // Phase 2e next-event preview
+        const preroll = roomUpcomingPreroll(r);           // Phase 2g pre-roll (next event imminent)
         const popText = `${estimated ? '~' : ''}${r.population}${typeof r.capacity === 'number' ? '/' + r.capacity : ''}`;
         const popTitle = estimated ? `Estimated — ${HEALTH_LABEL[health] || health} room (population not fresh)` : 'Live population';
         const joinLabel = closed ? (STATUS_LABEL[r.status] || 'Unavailable') : (full ? 'Full' : 'Enter →');
@@ -155,7 +157,9 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
               ${ev.ends_in_ms ? `<span class="lr-event-cd" title="Time left in this event">${escapeHtml(formatEventCountdown(ev.ends_in_ms))} left</span>` : ''}
             </div>` : ''}
             <div class="lr-desc">${escapeHtml(r.description || '')}</div>
-            ${nextEv ? `<div class="lr-event-next">Next event · ${escapeHtml(nextEv)}</div>` : ''}
+            ${preroll
+              ? `<div class="lr-event-next lr-event-preroll" data-preroll="1" title="Starting soon (display-only)">⏳ Up next in ${escapeHtml(preroll.countdown)} · ${escapeHtml(preroll.label)}</div>`
+              : (nextEv ? `<div class="lr-event-next">Next event · ${escapeHtml(nextEv)}</div>` : '')}
             ${hint ? `<div class="lr-warn">${escapeHtml(hint)}</div>` : ''}
             <div class="lr-foot">
               <span class="lr-cabs">${cabs} cabinet${cabs === 1 ? '' : 's'}</span>

@@ -157,6 +157,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .room-event-banner .reb-name{font-size:13px;font-weight:700;color:#ffe4bd;letter-spacing:.3px;}
 .room-event-banner .reb-cd{font-size:11px;font-weight:600;color:#ffd45d;font-variant-numeric:tabular-nums;}
 .room-event-banner .reb-next{font-size:10.5px;color:var(--muted);letter-spacing:.3px;}
+/* Phase 2g — pre-roll: the next event is starting soon (amber-gold countdown) */
+.room-event-banner .reb-next[data-preroll]{color:var(--gold,#ffd23f);font-weight:700;font-variant-numeric:tabular-nums;}
 .room-event-banner[data-event="featured_cabinet"]{background:rgba(25,227,255,.07);border-color:rgba(25,227,255,.34);box-shadow:0 0 18px -6px rgba(25,227,255,.5);}
 .room-event-banner[data-event="featured_cabinet"] .reb-k{color:#19e3ff;background:rgba(25,227,255,.16);}
 .room-event-banner[data-event="featured_cabinet"] .reb-name{color:#cdf3ff;}

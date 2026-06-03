@@ -176,3 +176,19 @@ export function formatEventCountdown(ms) {
   const hr = Math.floor(min / 60);
   return `${hr}h`;
 }
+
+/**
+ * PURE: a pre-roll prompt for a room whose NEXT event is upcoming (Phase 2g). Reads the
+ * server-attached `event_upcoming` flag + `next_event` + `event_starts_in_ms` — returns
+ * null when no event is imminent. Display-only: countdown copy, never a reward.
+ */
+export function roomUpcomingPreroll(room) {
+  if (!room || room.event_upcoming !== true) return null;
+  const nx = room.next_event;
+  if (!nx || !nx.display_name) return null;
+  return {
+    label: nx.display_name,
+    starts_in_ms: Math.max(0, Number(room.event_starts_in_ms) || 0),
+    countdown: formatEventCountdown(Math.max(0, Number(room.event_starts_in_ms) || 0)),
+  };
+}
