@@ -56,6 +56,10 @@ const STALE_LOCK_MS = 45_000;
 export class ArcadeRoom implements DurableObject {
   private state!: ArcadeState;
   private sockets: Map<WebSocket, { playerId: string; lastHeartbeat: number; roomId: string }>;
+  // Phase 2b: with per-room DO sharding, this instance hosts exactly ONE room.
+  // The bound room is learned from the first join (the Worker routes ?room= to
+  // idFromName(roomId)). The registry coordinator aggregates cross-room population.
+  private boundRoomId: string = DEFAULT_ROOM_ID;
 
   constructor(
     private readonly ctx: DurableObjectState,
@@ -155,13 +159,78 @@ export class ArcadeRoom implements DurableObject {
   async fetch(request: Request): Promise<Response> {
     await this.ensureInitialized();
     const url = new URL(request.url);
+
+    // Internal DO-to-DO admin: wipe this room's state (forwarded by the registry
+    // after it has gated the request). Never reachable directly by a client.
+    if (url.pathname === "/admin/reset" && request.method === "POST") {
+      return await this.handleAdminReset();
+    }
+
     if (url.pathname === "/arcade/ws") {
+      // Learn the room this sharded instance serves from the routed ?room= hint.
+      const hinted = resolveRoomId(url.searchParams.get("room"));
+      if (hinted.ok) this.boundRoomId = hinted.roomId;
       const pair = new WebSocketPair();
       const server = pair[1];
       this.ctx.acceptWebSocket(server, ["arcade"]);
       return new Response(null, { status: 101, webSocket: pair[0] });
     }
     return new Response("Not found", { status: 404 });
+  }
+
+  // ==================== registry coordinator (DO-to-DO) ====================
+
+  private registryStub(): DurableObjectStub {
+    return this.env.ROOM_REGISTRY.get(this.env.ROOM_REGISTRY.idFromName("registry"));
+  }
+  private async reportPopulation(roomId: string): Promise<void> {
+    try {
+      await this.registryStub().fetch("https://reg/registry/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roomId, population: this.roomPopulation(roomId) }) });
+    } catch { /* registry is best-effort; a miss only delays a population refresh */ }
+  }
+  private async registryStatus(roomId: string): Promise<{ status: string; joinable: boolean }> {
+    try {
+      const res = await this.registryStub().fetch(`https://reg/registry/status?room=${encodeURIComponent(roomId)}`);
+      const j: any = await res.json();
+      return { status: j.status, joinable: !!j.joinable };
+    } catch {
+      return { status: "open", joinable: true }; // fail-open: a registry outage never locks players out
+    }
+  }
+  private async registryList(): Promise<any> {
+    try { const res = await this.registryStub().fetch("https://reg/registry/list"); return await res.json(); } catch { return { rooms: [] }; }
+  }
+  private async forwardAdmin(body: any): Promise<any> {
+    try { const res = await this.registryStub().fetch("https://reg/registry/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); return await res.json(); } catch { return { ok: false, reason: "registry_unreachable" }; }
+  }
+
+  private async handleAdminReset(): Promise<Response> {
+    const roomId = this.boundRoomId;
+    this.state.rooms[roomId] = this.newPartition(); // wipe occupancy + tickets + ledger + inventory + challenges + feed
+    await this.persistState();
+    const part = this.room(roomId);
+    this.broadcastRoom(roomId, { t: "room_reset", roomId });
+    await this.broadcastRoomState(roomId);
+    this.broadcastTicketState(roomId);
+    this.broadcastCosmeticState(roomId);
+    for (const [ws, meta] of this.sockets) {
+      if (meta.roomId !== roomId) continue;
+      this.send(ws, { t: "ticket_balance", playerId: meta.playerId, balance: 0 });
+      this.sendInventory(ws, roomId, meta.playerId);
+      this.send(ws, { t: "challenge_progress", playerId: meta.playerId, challenges: getProgress(part.ticketState, meta.playerId) });
+      this.send(ws, { t: "achievement_state", playerId: meta.playerId, achievements: getAchievements(part.ticketState, meta.playerId) });
+      this.send(ws, { t: "arcade_event_feed", roomId, ...eventFeedPayload(part.ticketState) });
+    }
+    return new Response(JSON.stringify({ ok: true, population: this.roomPopulation(roomId) }), { headers: { "Content-Type": "application/json" } });
+  }
+
+  private async handleRoomList(ws: WebSocket): Promise<void> {
+    const list = await this.registryList();
+    this.send(ws, { t: "room_list", ...list });
+  }
+  private async handleAdmin(ws: WebSocket, data: any): Promise<void> {
+    const result = await this.forwardAdmin({ op: data.op, roomId: data.roomId, status: data.status, token: data.token });
+    this.send(ws, { t: "room_admin_result", ...result });
   }
 
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
@@ -176,11 +245,12 @@ export class ArcadeRoom implements DurableObject {
 
     switch (data.t) {
       // ── lobby ──────────────────────────────────────────────────────────────
-      case "room_list_request": { this.send(ws, { t: "room_list", ...roomListPayload(this.populations()) }); break; }
+      case "room_list_request": { await this.handleRoomList(ws); break; }
       case "join_room": { await this.handleJoin(ws, data.roomId, data.playerId, false); break; }
       case "room_join_request": { await this.handleJoin(ws, data.roomId, data.playerId, true); break; }
       case "room_leave_request": { await this.handleLeave(ws); break; }
       case "room_state_request": { this.sendRoomState(ws); break; }
+      case "room_admin": { await this.handleAdmin(ws, data); break; }
       // ── occupancy ────────────────────────────────────────────────────────────
       case "occupy_machine": { await this.handleOccupy(ws, data.machineId, data.rev); break; }
       case "release_machine": { await this.handleRelease(ws, data.machineId, data.rev); break; }
@@ -225,6 +295,7 @@ export class ArcadeRoom implements DurableObject {
     part.ticketState = expirePlayerRounds(part.ticketState, playerId);
     await this.broadcastRoomState(roomId);
     this.broadcastPopulation(roomId);
+    await this.reportPopulation(roomId);
     await this.persistState();
   }
 
@@ -254,6 +325,16 @@ export class ArcadeRoom implements DurableObject {
       await this.leaveRoomInternal(ws, prev.playerId, prev.roomId);
     }
 
+    this.boundRoomId = roomId; // this sharded instance serves exactly this room
+
+    // Phase 2b: a room that is closed / under maintenance rejects new joins. Status
+    // is owned by the registry coordinator (admin-set); read it per join.
+    const st = await this.registryStatus(roomId);
+    if (!st.joinable) {
+      this.send(ws, { t: "room_join_rejected", roomId, reason: `room_${st.status}` });
+      return;
+    }
+
     // Capacity check (distinct players already in the target room, excluding self).
     const popExcludingSelf = this.distinctPlayersInRoom(roomId, playerId);
     if (!hasCapacity(roomId, popExcludingSelf)) {
@@ -275,6 +356,7 @@ export class ArcadeRoom implements DurableObject {
     this.send(ws, { t: "achievement_state", playerId, achievements: getAchievements(part.ticketState, playerId) });
     this.send(ws, { t: "arcade_event_feed", roomId, ...eventFeedPayload(part.ticketState) });
     this.broadcastPopulation(roomId);
+    await this.reportPopulation(roomId);
     await this.persistState();
   }
 
@@ -619,4 +701,7 @@ export class ArcadeRoom implements DurableObject {
 
 interface Env {
   ARCADE_ROOM: DurableObjectNamespace;
+  ROOM_REGISTRY: DurableObjectNamespace;
+  ADMIN_ENABLED?: string;
+  ADMIN_TOKEN?: string;
 }

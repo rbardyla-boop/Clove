@@ -70,6 +70,9 @@ export class NeonCircuitRoomClient {
     this.onRoomJoinRejected = options.onRoomJoinRejected || (() => {});
     this.onRoomLeft = options.onRoomLeft || (() => {});
     this.onRoomPopulation = options.onRoomPopulation || (() => {});
+    // Phase 2b admin / lifecycle callbacks
+    this.onRoomReset = options.onRoomReset || (() => {});
+    this.onRoomAdminResult = options.onRoomAdminResult || (() => {});
 
     this.ws = null;
     // Phase 2a: the room this client is bound to (default main-floor; legacy 'main').
@@ -243,6 +246,14 @@ export class NeonCircuitRoomClient {
       }
       case "room_population": {
         this.onRoomPopulation(msg);
+        break;
+      }
+      case "room_reset": {
+        this.onRoomReset(msg);
+        break;
+      }
+      case "room_admin_result": {
+        this.onRoomAdminResult(msg);
         break;
       }
       case "room_state": {
@@ -525,6 +536,16 @@ export class NeonCircuitRoomClient {
   }
   getRoomId() {
     return this.roomId;
+  }
+
+  // ---- Phase 2b: room lifecycle admin (gated server-side by dev flag + token) ----
+  /** Reset a room's state (admin). The server validates the token; never trusted client-side. */
+  adminResetRoom(roomId, token) {
+    this.send({ t: "room_admin", op: "reset", roomId, token });
+  }
+  /** Set a room's status (open/closed/maintenance) (admin). Server-gated. */
+  adminSetRoomStatus(roomId, status, token) {
+    this.send({ t: "room_admin", op: "set_status", roomId, status, token });
   }
 
   getCurrentMachineState(machineId = "pulse") {

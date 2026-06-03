@@ -1,26 +1,38 @@
-# Neon Circuit Room Authority Mesh — Phase 1b
-# Worker + Durable Object for serverless room/cabinet authority
+# Neon Circuit Room Authority Mesh
+# Worker + Durable Objects for serverless room/cabinet authority.
 # This is a separate project from the static Cloudflare Pages site.
 
 name = "neon-arcade-mesh"
 main = "src/index.ts"
 compatibility_date = "2026-05-31"
 
-# Durable Object binding for the room authority
+# Durable Object bindings.
+# Phase 2b: per-room sharding — one ArcadeRoom instance per room (idFromName(roomId)).
+# RoomRegistry is a single coordinator instance that aggregates per-room population
+# and owns admin status overrides for the room-lifecycle tooling.
 [durable_objects]
 bindings = [
-  { name = "ARCADE_ROOM", class_name = "ArcadeRoom" }
+  { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
 ]
 
-# SQLite-backed Durable Objects (recommended for new classes)
-# See Cloudflare docs on new_sqlite_classes migrations
+# SQLite-backed Durable Objects (recommended for new classes).
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["ArcadeRoom"]
 
-# Local development settings
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomRegistry"]
+
+# Local development settings.
 [vars]
 ENVIRONMENT = "development"
+# Phase 2b admin dev flag. Admin/reset ops ALSO require a matching ADMIN_TOKEN
+# secret (set via `wrangler secret put ADMIN_TOKEN`, or a dev env var) — admin is
+# OFF unless BOTH are configured. The token is NEVER committed to the repo.
+ADMIN_ENABLED = "true"
 
-# Production would override with real environment variables if needed later
-# (e.g., for future D1/R2 integration — explicitly out of scope for 1b)
+# ADMIN_TOKEN is intentionally NOT defined here. Configure it out-of-band:
+#   prod: wrangler secret put ADMIN_TOKEN
+#   dev:  wrangler dev --var ADMIN_TOKEN:<token>   (or a gitignored .dev.vars)
