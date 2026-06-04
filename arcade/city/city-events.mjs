@@ -32,12 +32,16 @@ export const EVENT_TYPES = Object.freeze([
   // Phase 4D — Hive Scheduler (non-authoritative, display-only pressure):
   'city_scheduler_tick',
   'city_pressure_suggested',
+  // Phase 4E — Host Rank (non-cash, display-only block reputation):
+  'city_host_rank_evaluated',
+  'city_host_rank_changed',
 ]);
 const TYPE_SET = new Set(EVENT_TYPES);
 export function isCityEventType(t) { return TYPE_SET.has(t); }
 
-/** Public-safe scalar payload fields. Anything else is dropped. (4D adds pressure/severity.) */
-const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity'];
+/** Public-safe scalar payload fields. Anything else is dropped.
+ *  (4D adds pressure/severity; 4E adds tier/support_signal/score/score_cap.) */
+const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity', 'tier', 'support_signal', 'score', 'score_cap'];
 /** Cap allowlisted string values so a crafted client field can't bloat storage/broadcasts. */
 const MAX_PAYLOAD_STR = 64;
 
@@ -48,7 +52,8 @@ export function sanitizeEventPayload(payload) {
   for (const k of ALLOWED_PAYLOAD_KEYS) {
     const v = payload[k];
     if (typeof v === 'string') { if (v.length <= MAX_PAYLOAD_STR) out[k] = v; }
-    else if (typeof v === 'number' || typeof v === 'boolean') out[k] = v;
+    else if (typeof v === 'number') { if (Number.isFinite(v)) out[k] = v; } // drop NaN/Infinity defensively
+    else if (typeof v === 'boolean') out[k] = v;
   }
   return out;
 }

@@ -26,6 +26,7 @@ import {
 } from "../../../arcade/city/city-block.mjs";
 import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from "../../../arcade/city/city-events.mjs";
 import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from "../../../arcade/city/city-scheduler.mjs";
+import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from "../../../arcade/city/city-host-rank.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -43,6 +44,7 @@ interface SocketMeta {
   lastSnapReqAt: number;
   lastEvReqAt: number;
   lastSchedReqAt: number;
+  lastRankReqAt: number;
   interiorOpen: boolean;
 }
 
@@ -53,6 +55,8 @@ export class CityRoom implements DurableObject {
   private state!: CityState;
   private eventLog!: { events: any[]; seq: number }; // Phase 4C: server-authored append-only world log
   private pressure: any = null;                       // Phase 4D: last Hive-Scheduler snapshot (in-memory; derived from the log)
+  private hostRank: any = null;                        // Phase 4E: last Host Rank snapshot (in-memory; derived from the log + scheduler)
+  private rankChangedLast = false;                     // did the last host-rank eval broadcast a change (for join-send dedup)
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
 
@@ -66,7 +70,7 @@ export class CityRoom implements DurableObject {
       if (att?.playerId) {
         // interiorOpen is rehydrated from the attachment so a DO hibernation/restart while
         // a player is inside the arcade still fires city_arcade_interior_closed on disconnect.
-        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, interiorOpen: !!att.interiorOpen });
+        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, interiorOpen: !!att.interiorOpen });
         if (att.cityId) this.boundCityId = att.cityId; // trusted: we serialized this attachment ourselves
       }
     }
@@ -130,6 +134,7 @@ export class CityRoom implements DurableObject {
       case "city_snapshot_request": { this.handleSnapshotRequest(ws); break; }
       case "city_events_request": { this.handleEventsRequest(ws); break; }
       case "city_scheduler_request": { await this.handleSchedulerRequest(ws); break; }
+      case "city_host_rank_request": { await this.handleHostRankRequest(ws); break; }
       // accept the 4C name + the 4B name (alias) so old clients keep working
       case "city_portal_enter":
       case "city_portal_enter_request": { await this.handlePortal(ws, data); break; }
@@ -167,7 +172,7 @@ export class CityRoom implements DurableObject {
     this.state = res.state;
 
     ws.serializeAttachment({ playerId, cityId: this.boundCityId, interiorOpen: false });
-    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, interiorOpen: false });
+    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, interiorOpen: false });
 
     this.send(ws, { t: "city_welcome", ...welcomePayload(this.state, playerId, this.boundCityId, now) });
     this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) }); // recent history on (re)join
@@ -178,6 +183,9 @@ export class CityRoom implements DurableObject {
     // city_scheduler_state to everyone (incl. this socket); only send explicitly when it
     // did NOT, so a (re)connect always sees current pressure exactly once.
     if (!this.evaluateScheduler()) this.send(ws, { t: "city_scheduler_state", ...schedulerStatePayload(this.pressure) });
+    // Phase 4E: evaluateScheduler() also ran the host-rank eval; send host-rank state to
+    // the joiner exactly once (only when the eval did not already broadcast a change).
+    if (!this.rankChangedLast) this.send(ws, { t: "city_host_rank_state", ...hostRankStatePayload(this.hostRank) });
     await this.persist();
     this.scheduleSweep();
   }
@@ -348,6 +356,7 @@ export class CityRoom implements DurableObject {
       this.broadcast({ t: "city_scheduler_state", ...schedulerStatePayload(snap) });
     }
     this.pressure = snap; // always keep the latest snapshot (evaluated_at fresh)
+    this.evaluateHostRank(); // Phase 4E: host rank always follows the scheduler review
     return meaningful;
   }
 
@@ -360,6 +369,46 @@ export class CityRoom implements DurableObject {
     meta.lastSchedReqAt = now;
     const changed = this.evaluateScheduler();
     this.send(ws, { t: "city_scheduler_state", ...schedulerStatePayload(this.pressure) });
+    // evaluateScheduler() also runs the host-rank eval, which may append host-rank events
+    // even when pressure is unchanged — persist if EITHER produced new log entries.
+    if (changed || this.rankChangedLast) await this.persist();
+  }
+
+  // ==================== Phase 4E: Host Rank (non-cash, subordinate, bounded) ====================
+
+  /**
+   * Re-derive the block's non-cash Host Rank from the recent SERVER-AUTHORED event log
+   * + the scheduler-reviewed pressure snapshot. Emits city_host_rank_evaluated only when
+   * the headline display changes (tier|support|reasons; cold-start idle guard) and
+   * city_host_rank_changed when tier|support changes (dedup → bounded, no log spam), and
+   * broadcasts city_host_rank_state on change. Grants nothing, moves no one, reads no
+   * client fact. Sets rankChangedLast for the join-send dedup. Display-only.
+   */
+  private evaluateHostRank(): boolean {
+    const now = Date.now();
+    const snap = evaluateHostRank({ cityId: this.boundCityId, now, recentEvents: recentEvents(this.eventLog), schedulerState: this.pressure });
+    const prev = this.hostRank;
+    const meaningful = hostRankChanged(prev, snap) && !(!prev && isBaselineHostRank(snap));
+    if (meaningful) {
+      const hr = snap.host_rank;
+      this.emit("city_host_rank_evaluated", null, { tier: hr.tier, support_signal: hr.support_signal, score: hr.score, score_cap: hr.score_cap, reason: hr.reasons[0] || "activity" });
+      if (hostRankTierChanged(prev, snap)) this.emit("city_host_rank_changed", null, { tier: hr.tier, support_signal: hr.support_signal, score: hr.score, score_cap: hr.score_cap });
+      this.broadcast({ t: "city_host_rank_state", ...hostRankStatePayload(snap) });
+    }
+    this.hostRank = snap;
+    this.rankChangedLast = meaningful;
+    return meaningful;
+  }
+
+  /** Client request → bounded, rate-limited host-rank re-eval; returns current rank to the requester. */
+  private async handleHostRankRequest(ws: WebSocket): Promise<void> {
+    const meta = this.sockets.get(ws);
+    if (!meta) return;
+    const now = Date.now();
+    if (now - meta.lastRankReqAt < SNAP_REQ_MIN_MS) return; // anti-spam: clients can't flood host-rank evals
+    meta.lastRankReqAt = now;
+    const changed = this.evaluateHostRank();
+    this.send(ws, { t: "city_host_rank_state", ...hostRankStatePayload(this.hostRank) });
     if (changed) await this.persist();
   }
 }

@@ -82,12 +82,14 @@ test('recentEvents + cityEventsPayload return the last N, schema-versioned and b
 test('the city event types are exactly the documented set (4C facts + 4D scheduler); unknown types are not honored', () => {
   assert.deepEqual([...EVENT_TYPES].sort(), [
     'city_arcade_interior_closed', 'city_arcade_interior_opened',
+    'city_host_rank_changed', 'city_host_rank_evaluated',
     'city_player_joined', 'city_player_left',
     'city_portal_enter_accepted', 'city_portal_enter_rejected', 'city_portal_enter_requested',
     'city_pressure_suggested', 'city_scheduler_tick',
   ]);
   assert.equal(isCityEventType('city_player_joined'), true);
   assert.equal(isCityEventType('city_scheduler_tick'), true);
+  assert.equal(isCityEventType('city_host_rank_changed'), true);
   assert.equal(isCityEventType('totally_bogus'), false);
   const { event } = appendCityEvent(createEventLog(), { type: 'totally_bogus', cityId: CITY, now: 1 });
   assert.equal(event.type, 'city_unknown'); // arbitrary type is not recorded as-is
@@ -100,4 +102,13 @@ test('4D scheduler payload fields (pressure/severity) are allowlisted; private f
   });
   assert.deepEqual(event.payload, { reason: 'portal_surge', pressure: 'watching', severity: 'low' });
   assert.ok(!/balance|secret/.test(JSON.stringify(event)));
+});
+
+test('4E host-rank payload fields (tier/support_signal/score/score_cap) are allowlisted; private dropped', () => {
+  const { event } = appendCityEvent(createEventLog(), {
+    type: 'city_host_rank_changed', cityId: CITY, now: 1,
+    payload: { tier: 'helper', support_signal: 'steady', score: 34, score_cap: 100, reason: 'portal_presence', balance: 7, owner: 'x' },
+  });
+  assert.deepEqual(event.payload, { reason: 'portal_presence', tier: 'helper', support_signal: 'steady', score: 34, score_cap: 100 });
+  assert.ok(!/balance|owner/.test(JSON.stringify(event)));
 });

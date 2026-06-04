@@ -40,9 +40,10 @@ export const PLAYER_STALE_MS = 45_000;
 /** City protocol schema version — bump when the city_* wire shape changes.
  *  v1 (4B): dt + ack on inputs/snapshots. v2 (4C): additive append-only event log +
  *  in-place portal/interior messages. v3 (4D): additive Hive-Scheduler pressure events
- *  + city_scheduler_state/request. All additions are backward-compatible — no-dt inputs
- *  and the 4A/4B/4C message set remain valid; a client that ignores scheduler state works. */
-export const SCHEMA_VERSION = 3;
+ *  + city_scheduler_state/request. v4 (4E): additive non-cash Host Rank events +
+ *  city_host_rank_state/request. All additions are backward-compatible — no-dt inputs
+ *  and the 4A/4B/4C/4D message set remain valid; a client that ignores host-rank state works. */
+export const SCHEMA_VERSION = 4;
 /** Max pending client inputs before the client resyncs (bounds replay cost; Phase 4B). */
 export const MAX_INPUT_BACKLOG = 120;
 

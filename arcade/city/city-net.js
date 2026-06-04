@@ -72,6 +72,7 @@ export class CityNet {
       case 'city_events': this.h.onEvents?.(m); break;   // Phase 4C: recent world-event history
       case 'city_event': this.h.onEvent?.(m); break;     // Phase 4C: a single live world event
       case 'city_scheduler_state': this.h.onSchedulerState?.(m); break; // Phase 4D: city pressure snapshot
+      case 'city_host_rank_state': this.h.onHostRankState?.(m); break;  // Phase 4E: non-cash host rank
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }
@@ -100,6 +101,7 @@ export class CityNet {
   requestSnapshot() { this.send({ t: 'city_snapshot_request' }); }
   requestEvents() { this.send({ t: 'city_events_request' }); }
   requestScheduler() { this.send({ t: 'city_scheduler_request' }); } // Phase 4D: ask for current city pressure
+  requestHostRank() { this.send({ t: 'city_host_rank_request' }); }  // Phase 4E: ask for current host rank
 
   close() {
     this.closed = true;

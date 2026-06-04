@@ -142,6 +142,15 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-pressure:empty { display: none; }
 @media (max-width: 560px) { .city-pressure { bottom: 236px; width: 200px; } }
 
+/* Phase 4E — non-cash Host Rank panel (top-right, under the minimap, clear of the joystick) */
+.city-host-rank { position: absolute; top: 224px; right: 14px; width: 180px; max-width: 46vw; z-index: 4;
+  padding: 8px 10px; border: 1px solid var(--edge); border-radius: 10px; background: var(--panel);
+  backdrop-filter: blur(8px); box-shadow: 0 0 16px rgba(34, 224, 255, .12); }
+.city-host-rank .hr-tier { font-family: "Bungee", var(--mono); font-size: 12px; letter-spacing: 1.5px; color: var(--cy); text-shadow: 0 0 10px rgba(34, 224, 255, .45); }
+.city-host-rank .hr-line { font-size: 11px; line-height: 1.5; color: var(--ink); letter-spacing: .3px; }
+.city-host-rank:empty { display: none; }
+@media (max-width: 560px) { .city-host-rank { top: 170px; width: 150px; } }
+
 /* respect reduced motion: drop the blinking status dot animation */
 @media (prefers-reduced-motion: reduce) {
   .pill .dot.wait { animation: none; }

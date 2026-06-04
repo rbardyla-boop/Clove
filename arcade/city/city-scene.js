@@ -43,6 +43,7 @@ const interiorClose = el('interiorClose');
 const interiorFallback = el('interiorFallback');
 const eventLogEl = el('cityEventLog');
 const pressureEl = el('cityPressure');
+const hostRankEl = el('cityHostRank');
 const rendererTag = el('rendererTag');
 const debugPanel = el('debugPanel');
 el('playerName').textContent = playerId;
@@ -69,6 +70,7 @@ const EVENT_UI_MAX = 14;             // bounded city-OS event panel
 const eventList = [];                // recent public events (display only)
 const seenEventIds = new Set();
 let cityPressure = null;             // Phase 4D: last city pressure snapshot (display only)
+let cityHostRank = null;             // Phase 4E: last non-cash host rank snapshot (display only)
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -136,6 +138,7 @@ const net = new CityNet({
     onEvents: (m) => { eventList.length = 0; seenEventIds.clear(); for (const e of (m.events || [])) pushEvent(e); renderEvents(); },
     onEvent: (m) => { if (m.event) { pushEvent(m.event); renderEvents(); } },
     onSchedulerState: (m) => { cityPressure = m; renderPressure(); },
+    onHostRankState: (m) => { cityHostRank = m; renderHostRank(); },
     onError: (m) => {
       window.__neon_city.lastError = m;
       if (String(m.code).startsWith('portal_')) { portalState = 'rejected'; setTimeout(() => { if (portalState === 'rejected') portalState = 'idle'; }, 900); }
@@ -236,6 +239,8 @@ function eventLabel(e) {
     case 'city_arcade_interior_closed': return `arcade interior closed · ${who}`;
     case 'city_scheduler_tick': return `city pressure: ${(e.payload && e.payload.pressure) || 'stable'}`;
     case 'city_pressure_suggested': return `pressure signal · ${(e.payload && e.payload.reason) || 'activity'} (${(e.payload && e.payload.severity) || 'low'})`;
+    case 'city_host_rank_evaluated': return `host rank: ${(e.payload && e.payload.tier) || 'observer'} · ${(e.payload && e.payload.support_signal) || 'quiet'}`;
+    case 'city_host_rank_changed': return `host rank changed → ${(e.payload && e.payload.tier) || 'observer'} (${(e.payload && e.payload.support_signal) || 'quiet'})`;
     default: return `${who} · ${e.type}`;
   }
 }
@@ -266,6 +271,24 @@ function renderPressure() {
     row.className = i === 0 ? 'cp-mood' : 'cp-line';
     row.textContent = lines[i];
     pressureEl.appendChild(row);
+  }
+}
+
+// ── city-OS Host Rank panel (Phase 4E; non-cash, public-safe, textContent only) ──
+function renderHostRank() {
+  if (!hostRankEl || !cityHostRank || !cityHostRank.host_rank) return;
+  const h = cityHostRank.host_rank;
+  const lines = [
+    `HOST RANK: ${String(h.tier || 'observer').toUpperCase()}`,
+    `Support signal: ${h.support_signal || 'quiet'}.`,
+  ];
+  for (const r of (h.reasons || []).slice(0, 2)) lines.push(`Reason: ${String(r).replace(/_/g, ' ')}.`);
+  hostRankEl.textContent = '';
+  for (let i = 0; i < lines.length; i++) {
+    const row = document.createElement('div');
+    row.className = i === 0 ? 'hr-tier' : 'hr-line';
+    row.textContent = lines[i];
+    hostRankEl.appendChild(row);
   }
 }
 
@@ -361,6 +384,8 @@ window.__neon_city = {
   events() { return eventList.map((e) => ({ event_id: e.event_id, type: e.type, seq: e.seq, actor_public_id: e.actor_public_id })); },
   pressure() { return cityPressure ? { ...cityPressure.pressure, suggestions: (cityPressure.suggestions || []).map((s) => s.reason) } : null; }, // Phase 4D
   requestScheduler() { net.requestScheduler(); },
+  hostRank() { return cityHostRank ? { ...cityHostRank.host_rank } : null; }, // Phase 4E
+  requestHostRank() { net.requestHostRank(); },
   debug() {
     return {
       renderer: renderer.name, ackSeq, pending: inputBuffer.pending.length,

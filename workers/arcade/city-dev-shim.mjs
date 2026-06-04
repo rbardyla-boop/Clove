@@ -17,6 +17,7 @@ import {
 } from '../../arcade/city/city-block.mjs';
 import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from '../../arcade/city/city-events.mjs';
 import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from '../../arcade/city/city-scheduler.mjs';
+import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from '../../arcade/city/city-host-rank.mjs';
 
 const PORT = Number(process.env.CITY_PORT || process.env.PORT || 8788);
 const STALE_SWEEP_MS = 30_000;
@@ -25,6 +26,8 @@ const SNAP_REQ_MIN_MS = 250;
 const cities = {};                 // cityId -> pure city state
 const eventLogs = {};              // cityId -> append-only world event log (Phase 4C)
 const pressures = {};              // cityId -> last Hive-Scheduler snapshot (Phase 4D)
+const hostRanks = {};              // cityId -> last Host Rank snapshot (Phase 4E)
+const rankChangedLast = {};        // cityId -> did the last host-rank eval broadcast (join dedup)
 const sockets = new Map();         // ws -> { playerId, cityId, interiorOpen, ... }
 
 const cityState = (cityId) => (cities[cityId] ||= createCityState());
@@ -59,6 +62,7 @@ function evaluateScheduler(cityId) {
     broadcast(cityId, { t: 'city_scheduler_state', ...schedulerStatePayload(snap) });
   }
   pressures[cityId] = snap;
+  tickHostRank(cityId); // Phase 4E: host rank always follows the scheduler review
   return meaningful;
 }
 function schedulerRequest(ws, meta) {
@@ -68,6 +72,31 @@ function schedulerRequest(ws, meta) {
   meta.lastSchedReqAt = now;
   evaluateScheduler(meta.cityId);
   send(ws, { t: 'city_scheduler_state', ...schedulerStatePayload(pressures[meta.cityId]) });
+}
+
+// Phase 4E: re-derive the block's non-cash Host Rank (DO parity). Emits on change only;
+// returns whether it changed. Uses the imported pure evaluateHostRank().
+function tickHostRank(cityId) {
+  const snap = evaluateHostRank({ cityId, now: Date.now(), recentEvents: recentEvents(eventLog(cityId)), schedulerState: pressures[cityId] });
+  const prev = hostRanks[cityId];
+  const meaningful = hostRankChanged(prev, snap) && !(!prev && isBaselineHostRank(snap));
+  if (meaningful) {
+    const hr = snap.host_rank;
+    emit(cityId, 'city_host_rank_evaluated', null, { tier: hr.tier, support_signal: hr.support_signal, score: hr.score, score_cap: hr.score_cap, reason: hr.reasons[0] || 'activity' });
+    if (hostRankTierChanged(prev, snap)) emit(cityId, 'city_host_rank_changed', null, { tier: hr.tier, support_signal: hr.support_signal, score: hr.score, score_cap: hr.score_cap });
+    broadcast(cityId, { t: 'city_host_rank_state', ...hostRankStatePayload(snap) });
+  }
+  hostRanks[cityId] = snap;
+  rankChangedLast[cityId] = meaningful;
+  return meaningful;
+}
+function hostRankRequest(ws, meta) {
+  if (!meta.playerId) return;
+  const now = Date.now();
+  if (now - (meta.lastRankReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
+  meta.lastRankReqAt = now;
+  tickHostRank(meta.cityId);
+  send(ws, { t: 'city_host_rank_state', ...hostRankStatePayload(hostRanks[meta.cityId]) });
 }
 
 function join(ws, meta, data) {
@@ -88,6 +117,8 @@ function join(ws, meta, data) {
   // Phase 4D: if the eval broadcast a state change it already reached this socket; only
   // send explicitly when it did not, so a (re)connect sees current pressure exactly once.
   if (!evaluateScheduler(meta.cityId)) send(ws, { t: 'city_scheduler_state', ...schedulerStatePayload(pressures[meta.cityId]) });
+  // Phase 4E: evaluateScheduler() also ran the host-rank eval; send host-rank state once.
+  if (!rankChangedLast[meta.cityId]) send(ws, { t: 'city_host_rank_state', ...hostRankStatePayload(hostRanks[meta.cityId]) });
 }
 
 function input(ws, meta, data) {
@@ -143,6 +174,7 @@ function dispatch(ws, meta, data) {
     case 'city_join': join(ws, meta, data); break;
     case 'city_input': input(ws, meta, data); break;
     case 'city_scheduler_request': schedulerRequest(ws, meta); break;
+    case 'city_host_rank_request': hostRankRequest(ws, meta); break;
     case 'city_snapshot_request': {
       const now = Date.now();
       if (now - (meta.lastSnapReqAt || 0) < SNAP_REQ_MIN_MS) break; // anti-spam

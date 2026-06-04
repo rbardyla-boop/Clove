@@ -1,3 +1,6 @@
+<!-- Follow-up: Phase 4E derives a non-cash Host Rank from these scheduler-reviewed events —
+see docs/NEON_CIRCUIT_PHASE4E_HOST_RANK.md. -->
+
 # Neon Circuit — Phase 4D: Hive Scheduler (non-authoritative city pressure)
 
 **Status:** implemented, local-only (branch `feat/neon-circuit-phase4d-hive-scheduler`, off the Phase 4C
