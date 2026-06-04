@@ -9,7 +9,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createCityState, addPlayer, applyInput, removePlayer, touchPlayer,
-  stalePlayerIds, enterPortal, welcomePayload, MOVEMENT, PLAYER_STALE_MS,
+  stalePlayerIds, enterPortal, welcomePayload, citySnapshot, SCHEMA_VERSION,
+  MOVEMENT, PLAYER_STALE_MS,
 } from '../../arcade/city/city-block.mjs';
 
 const A = 'player:a';
@@ -114,6 +115,48 @@ test('collision is enforced server-side: walking into a building does not pass t
     state = applyInput(state, A, { dx: -1, dy: 0, seq: i + 1 }, now).state;
   }
   assert.ok(state.players[A].x > 400 + MOVEMENT.PLAYER_RADIUS - 1, 'blocked by the building wall, never inside it');
+});
+
+// ── Phase 4B: client-dt authority (deterministic replay, still anti-cheat) ────
+test('applyInput honors a client dt but NEVER exceeds real elapsed server time (anti speed-hack)', () => {
+  const { state, player } = withA(T0);
+  const forged = applyInput(state, A, { dx: 1, dy: 0, seq: 1, dt: 9_999 }, T0 + 100);
+  const step100 = MOVEMENT.MAX_SPEED * 0.1; // only 100ms really elapsed
+  assert.ok(Math.abs(forged.player.x - (player.x + step100)) < 1e-6, 'forged dt capped to real elapsed');
+});
+
+test('applyInput uses a smaller client dt when it is below real elapsed', () => {
+  const { state, player } = withA(T0);
+  const r = applyInput(state, A, { dx: 1, dy: 0, seq: 1, dt: 50 }, T0 + 100);
+  assert.ok(Math.abs(r.player.x - (player.x + MOVEMENT.MAX_SPEED * 0.05)) < 1e-6);
+});
+
+test('applyInput without dt falls back to the server clock (4A-compatible)', () => {
+  const { state, player } = withA(T0);
+  const r = applyInput(state, A, { dx: 1, dy: 0, seq: 1 }, T0 + 100);
+  assert.ok(Math.abs(r.player.x - (player.x + MOVEMENT.MAX_SPEED * 0.1)) < 1e-6);
+});
+
+test('a rate-limited input is acknowledged (lastSeq advances) so the client stops replaying it', () => {
+  const { state } = withA(T0);
+  const first = applyInput(state, A, { dx: 1, dy: 0, seq: 1, dt: 50 }, T0 + 100);
+  assert.equal(first.accepted, true);
+  const tooSoon = applyInput(first.state, A, { dx: 1, dy: 0, seq: 2, dt: 50 }, T0 + 105); // < 33ms gate
+  assert.equal(tooSoon.accepted, false);
+  assert.equal(tooSoon.reason, 'rate_limited');
+  assert.equal(tooSoon.player.x, first.player.x, 'no movement on a rate-limited input');
+  assert.equal(tooSoon.player.lastSeq, 2, 'seq still ack-ed → client drops it from replay (no over-prediction)');
+});
+
+test('snapshot + welcome carry a schema_version, and snapshot still acks via per-player seq', () => {
+  let { state } = withA(T0);
+  state = applyInput(state, A, { dx: 1, dy: 0, seq: 7, dt: 50 }, T0 + 100).state;
+  const snap = citySnapshot(state, T0 + 100);
+  assert.equal(snap.schema_version, SCHEMA_VERSION);
+  assert.equal(snap.players.find((p) => p.id === A).seq, 7); // ack_seq for self
+  const w = welcomePayload(state, A, 'downtown-01', T0 + 100);
+  assert.equal(w.schema_version, SCHEMA_VERSION);
+  assert.equal(w.self_player_id, A);
 });
 
 // ── server-validated portal ─────────────────────────────────────────────────

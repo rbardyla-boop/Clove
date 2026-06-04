@@ -37,6 +37,10 @@ export const MOVEMENT = Object.freeze({
 export const SNAPSHOT_INTERVAL_MS = 50;
 /** A player with no heartbeat/input for this long is evicted by the coarse alarm. */
 export const PLAYER_STALE_MS = 45_000;
+/** City protocol schema version — bump when the city_* wire shape changes (Phase 4B). */
+export const SCHEMA_VERSION = 1;
+/** Max pending client inputs before the client resyncs (bounds replay cost; Phase 4B). */
+export const MAX_INPUT_BACKLOG = 120;
 
 // ===================== static block layout =====================
 
@@ -239,6 +243,25 @@ export function clampMovement(pos, intent, dtMs) {
   return { x: pos.x + intent.dx * step, y: pos.y + intent.dy * step };
 }
 
+/**
+ * PURE: advance one position by one untrusted input over dtMs — normalize intent,
+ * clamp displacement, resolve collision, derive facing. This is the SINGLE step
+ * function shared by the server (applyInput) and the client's prediction + replay
+ * (city-reconcile.mjs), so a client replay reproduces the server's math exactly.
+ * `pos` may carry a `facing` that is preserved when the intent is zero.
+ */
+export function predictStep(pos, rawInput, dtMs) {
+  const intent = normalizeInput(rawInput);
+  const proposed = clampMovement({ x: pos.x, y: pos.y }, intent, dtMs);
+  const resolved = resolveCollision({ x: pos.x, y: pos.y }, proposed);
+  const moving = intent.dx !== 0 || intent.dy !== 0;
+  return {
+    x: resolved.x,
+    y: resolved.y,
+    facing: moving ? Math.atan2(intent.dy, intent.dx) : (Number.isFinite(pos.facing) ? pos.facing : 0),
+  };
+}
+
 // ===================== player + world state (pure reducers) =====================
 
 /** A fresh, empty city world. */
@@ -295,22 +318,29 @@ export function applyInput(state, playerId, rawInput, now) {
   if (!prev) return { state, player: null, accepted: false, reason: 'not_joined' };
 
   if (now - prev.lastInputAt < MOVEMENT.MIN_INPUT_INTERVAL_MS) {
-    // Rate-limited: keep the player alive (refresh liveness) but do not move.
-    const player = { ...prev, lastSeen: now };
+    // Rate-limited: do not move, but STILL acknowledge the seq (advance lastSeq) so
+    // the client drops this input from its replay buffer instead of re-applying it
+    // and over-predicting — the server "consumed" it, it just produced no movement.
+    const seq = normalizeInput(rawInput).seq;
+    const player = { ...prev, lastSeq: Math.max(prev.lastSeq, seq), lastSeen: now };
     return { state: { ...state, players: { ...state.players, [playerId]: player } }, player, accepted: false, reason: 'rate_limited' };
   }
 
+  // dt source (Phase 4B): honor the client-supplied per-input dt so the client's
+  // replay reproduces the server step — but NEVER exceed real elapsed server time,
+  // so a forged large dt cannot speed-hack. No dt (4A clients/tests) → server clock.
+  const serverElapsed = now - prev.lastInputAt;
+  const clientDt = Number(rawInput && rawInput.dt);
+  const dtMs = (Number.isFinite(clientDt) && clientDt >= 0) ? Math.min(clientDt, serverElapsed) : serverElapsed;
+
   const intent = normalizeInput(rawInput);
-  const dtMs = now - prev.lastInputAt;
-  const proposed = clampMovement({ x: prev.x, y: prev.y }, intent, dtMs);
-  const resolved = resolveCollision({ x: prev.x, y: prev.y }, proposed);
-  const moving = intent.dx !== 0 || intent.dy !== 0;
+  const stepped = predictStep({ x: prev.x, y: prev.y, facing: prev.facing }, rawInput, dtMs);
 
   const player = {
     ...prev,
-    x: resolved.x,
-    y: resolved.y,
-    facing: moving ? Math.atan2(intent.dy, intent.dx) : prev.facing,
+    x: stepped.x,
+    y: stepped.y,
+    facing: stepped.facing,
     lastSeq: Math.max(prev.lastSeq, intent.seq),
     lastInputAt: now,
     lastSeen: now,
@@ -362,14 +392,16 @@ function publicPlayer(p) {
  * sequence number (so a client can reconcile its prediction).
  */
 export function citySnapshot(state, serverTime = Date.now()) {
-  return { serverTime, players: Object.values(state.players).map(publicPlayer) };
+  return { schema_version: SCHEMA_VERSION, serverTime, players: Object.values(state.players).map(publicPlayer) };
 }
 
 /** PURE: the welcome payload sent to a newly joined player. */
 export function welcomePayload(state, playerId, cityId, serverTime = Date.now()) {
   const you = state.players[playerId] || null;
   return {
+    schema_version: SCHEMA_VERSION,
     cityId,
+    self_player_id: playerId,
     you: you ? publicPlayer(you) : null,
     players: citySnapshot(state, serverTime).players,
     layout: publicLayout(),

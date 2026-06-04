@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import {
   WORLD, MOVEMENT, CITY_BLOCK, publicLayout, SPAWN_POINTS,
   CITY_ROOMS, CITY_IDS, DEFAULT_CITY_ID, resolveCityRoomId, sanitizeCityId, getCity, isValidPlayerId,
-  normalizeInput, clampMovement, resolveCollision, isWalkable,
+  normalizeInput, clampMovement, resolveCollision, isWalkable, predictStep,
   pickSpawn, seedPlayer, createCityState, citySnapshot,
 } from '../../arcade/city/city-block.mjs';
 
@@ -111,6 +111,22 @@ test('normalizeInput rejects NaN/Infinity and bad seq/ts to a safe zero/floor', 
   assert.equal(n.ts, 0);
   assert.equal(normalizeInput({ dx: 3.9, dy: 0, seq: 7.8 }).seq, 7);
   assert.deepEqual(normalizeInput(null), { dx: 0, dy: 0, seq: 0, ts: 0 });
+});
+
+// ── predictStep (shared by server applyInput + client replay) ─────────────────
+test('predictStep advances by the clamped step, derives facing, and keeps facing when idle', () => {
+  const moved = predictStep({ x: 500, y: 500, facing: 0 }, { dx: 1, dy: 0 }, 100);
+  assert.ok(Math.abs(moved.x - (500 + MOVEMENT.MAX_SPEED * 0.1)) < 1e-9);
+  assert.ok(Math.abs(moved.facing) < 1e-9); // facing east
+  const idle = predictStep({ x: 500, y: 500, facing: 1.23 }, { dx: 0, dy: 0 }, 100);
+  assert.equal(idle.x, 500);
+  assert.equal(idle.facing, 1.23); // preserved when not moving
+});
+
+test('predictStep enforces collision (cannot replay through a building)', () => {
+  // shove west into data-spire's right wall from just outside it
+  const out = predictStep({ x: 430, y: 240, facing: 0 }, { dx: -1, dy: 0 }, 250);
+  assert.ok(out.x > 400 + R - 1, 'replay is collision-bound, never inside the building');
 });
 
 // ── speed clamp ───────────────────────────────────────────────────────────────

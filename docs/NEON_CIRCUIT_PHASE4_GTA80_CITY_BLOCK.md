@@ -1,3 +1,7 @@
+<!-- Follow-up: Phase 4B hardens the player/network feel — see
+docs/NEON_CIRCUIT_PHASE4B_CITY_AUTHORITY_POLISH.md (input-replay reconciliation,
+remote snapshot interpolation, minimap, portal polish). -->
+
 # Neon Circuit — Phase 4A: City Block Vertical Slice ("GTA-80 Challenge")
 
 **Status:** implemented, local-only (branch `feat/neon-circuit-phase4-gta80-city-block`).

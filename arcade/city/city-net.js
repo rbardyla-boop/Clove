@@ -5,6 +5,7 @@
  * surfaces server messages via callbacks. The server owns every canonical position;
  * this client never asserts one. Auto-reconnects and heartbeats while connected.
  */
+import { SCHEMA_VERSION } from './city-block.mjs';
 
 /** Resolve the city WebSocket URL (precedence: ?ws= → config hook → same-origin). */
 export function resolveCityWsUrl({ explicit, config, location } = {}) {
@@ -40,6 +41,7 @@ export class CityNet {
 
   connect() {
     this.closed = false;
+    if (typeof this.wsUrl !== 'string' || !this.wsUrl) { this._status('offline'); return; } // unresolvable endpoint — fail loud, no crash
     this._status('connecting');
     let ws;
     try { ws = new WebSocket(this._url(), 'arcade'); }
@@ -49,7 +51,7 @@ export class CityNet {
     ws.addEventListener('open', () => {
       this.connected = true;
       this._status('syncing');
-      this.send({ t: 'city_join', playerId: this.playerId, cityId: this.cityId });
+      this.send({ t: 'city_join', playerId: this.playerId, cityId: this.cityId, schema_version: SCHEMA_VERSION });
       this.hb = setInterval(() => this.send({ t: 'heartbeat' }), HEARTBEAT_MS);
     });
     ws.addEventListener('message', (ev) => {
@@ -86,7 +88,10 @@ export class CityNet {
       try { this.ws.send(JSON.stringify(obj)); } catch { /* closing */ }
     }
   }
-  sendInput(seq, ts, dx, dy) { this.send({ t: 'city_input', seq, ts, dx, dy }); }
+  // Phase 4B: carry per-input dt so the server can reproduce the client's predicted
+  // step (and the client can replay it). `ts` is the client timestamp — used only for
+  // ordering/debugging, never for movement authority, and never sent off-server.
+  sendInput(seq, clientTime, dx, dy, dt) { this.send({ t: 'city_input', seq, ts: clientTime, dx, dy, dt }); }
   enterPortal(portalId) { this.send({ t: 'city_portal_enter', portalId }); }
   requestSnapshot() { this.send({ t: 'city_snapshot_request' }); }
 

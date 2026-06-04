@@ -5,6 +5,35 @@ Newest first.
 
 ---
 
+## ADR-005 — Neon Circuit Phase 4B: city authority, reconciliation & minimap (2026-06-04)
+
+**Context.** Phase 4A proved a server-authoritative city block. Phase 4B hardens the
+player/network *feel* (no map growth, no new gameplay) so future systems can sit on it.
+
+**Decision.**
+1. **Input-replay reconciliation** (new pure `arcade/city/city-reconcile.mjs`): the client records
+   each sent input by `seq`, the server snapshot's self `seq` is the ack, and the client replays
+   unacknowledged inputs from the authoritative position each frame (eased; snaps past a threshold).
+   Replay is visual only — never canonical.
+2. **Remote snapshot interpolation** (new pure `arcade/city/city-snapshots.mjs`): remotes render
+   from canonical snapshots buffered by `serverTime`, sampled at a render delay, shortest-arc facing.
+3. **Authority dt = `clamp(min(clientDt, serverElapsed), 0, MAX_DT_MS)`** in `applyInput` — the
+   client dt makes replay deterministic, but can never exceed real elapsed time (no speed-hack);
+   absent dt falls back to the server clock (4A-compatible). New shared `predictStep` is the single
+   movement step used by server + client. `SCHEMA_VERSION` added to `city_snapshot`/`welcome`.
+4. **Minimap/radar v1** (`arcade/city/city-minimap.js`, procedural, no assets) + a debug overlay.
+5. **Portal polish**: deliberate, server-confirmed "entering arcade interior" overlay + rejected
+   feedback; the server remains the sole portal-eligibility authority.
+
+**Consequences.** DO + dev shim transports **unchanged** (dt + schema flow through the pure core).
+Additive client/core/test/doc changes only. Validation: 429 unit + new 4B reconcile/snapshot/authority
+tests, city-authority browser smoke (15/15), 4A city smoke + arcade two-client/frame-contract regression,
+Worker bundle under Node 22, size + config gates — all green. Local-only; not pushed/deployed.
+
+Detail: `docs/NEON_CIRCUIT_PHASE4B_CITY_AUTHORITY_POLISH.md`.
+
+---
+
 ## ADR-004 — Neon Circuit Phase 4A: City Block via an isolated `CityRoom` DO (2026-06-04)
 
 **Context.** Phase 4 evolves the Neon Circuit arcade from a shell into the first vertical
