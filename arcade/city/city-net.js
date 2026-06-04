@@ -73,6 +73,8 @@ export class CityNet {
       case 'city_event': this.h.onEvent?.(m); break;     // Phase 4C: a single live world event
       case 'city_scheduler_state': this.h.onSchedulerState?.(m); break; // Phase 4D: city pressure snapshot
       case 'city_host_rank_state': this.h.onHostRankState?.(m); break;  // Phase 4E: non-cash host rank
+      case 'city_stewardship_state': this.h.onStewardshipState?.(m); break;   // Phase 4F: canonical block style
+      case 'city_stewardship_result': this.h.onStewardshipResult?.(m); break; // Phase 4F: preview/apply/reset outcome
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }
@@ -102,6 +104,9 @@ export class CityNet {
   requestEvents() { this.send({ t: 'city_events_request' }); }
   requestScheduler() { this.send({ t: 'city_scheduler_request' }); } // Phase 4D: ask for current city pressure
   requestHostRank() { this.send({ t: 'city_host_rank_request' }); }  // Phase 4E: ask for current host rank
+  // Phase 4F: request a constrained block-stewardship edit (intent only — the server validates
+  // eligibility + the manifest and owns the canonical style). action: 'preview'|'apply'|'reset'.
+  requestStewardship(action, target, style) { this.send({ t: 'city_stewardship_request', request_id: `s${Date.now().toString(36)}`, action, target, style }); }
 
   close() {
     this.closed = true;

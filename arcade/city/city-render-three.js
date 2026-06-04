@@ -6,7 +6,12 @@
  * fails to initialize this throws and the orchestrator falls back to the 2D renderer.
  * Pure presentation — no authority, no network. 3D-capable foundation for the Phase
  * 4B verticality/vehicle work.
+ *
+ * Phase 4F: `applyBlockStyle(style)` retints the arcade-front edge + portal glow from
+ * the server-validated canonical block style. Visual only; geometry/collision untouched.
+ * (The sidewalk-trim accent is a 2D-canvas nicety; the 3D sidewalk planes are left as-is.)
  */
+import { styleToAccents } from './city-stewardship.mjs';
 
 const VIEWPORT_UNITS = 560;
 const COL = {
@@ -40,6 +45,7 @@ export function createThreeRenderer(canvas, layout) {
   for (const s of layout.sidewalks) { const p = plane(s.w, s.h, COL.sidewalk, 0.3); p.position.set(s.x + s.w / 2, 0.3, s.y + s.h / 2); scene.add(p); }
 
   // buildings (extruded for a readable silhouette)
+  const arcadeEdges = []; // Phase 4F: arcade-front meshes the steward style retints
   for (const b of layout.buildings) {
     const isArcade = b.kind === 'arcade';
     const hh = isArcade ? 26 : 40;
@@ -50,13 +56,23 @@ export function createThreeRenderer(canvas, layout) {
     const edge = new THREE.Mesh(new THREE.BoxGeometry(b.w + 6, 4, b.h + 6), new THREE.MeshBasicMaterial({ color: isArcade ? COL.arcade : 0x3a2a55 }));
     edge.position.set(b.x + b.w / 2, hh + 2, b.y + b.h / 2);
     scene.add(edge);
+    if (isArcade) arcadeEdges.push(edge);
   }
 
   // parked vehicles (scaffold)
   for (const p of layout.props) { const m = box(p.w, 10, p.h, COL.vehicle); m.position.set(p.x + p.w / 2, 5, p.y + p.h / 2); scene.add(m); }
 
   // portals (glowing pad)
-  for (const z of layout.portals) { const p = plane(z.w, z.h, COL.portal, 1.0); p.position.set(z.x + z.w / 2, 1.0, z.y + z.h / 2); scene.add(p); }
+  const portalMeshes = []; // Phase 4F: street-light accent retints these
+  for (const z of layout.portals) { const p = plane(z.w, z.h, COL.portal, 1.0); p.position.set(z.x + z.w / 2, 1.0, z.y + z.h / 2); scene.add(p); portalMeshes.push(p); }
+
+  // Phase 4F: retint accents from the server-validated canonical block style (visual only).
+  function applyBlockStyle(style) {
+    if (!style) return;
+    const a = styleToAccents(style);
+    for (const m of arcadeEdges) m.material.color.set(a.arcade_front.color);
+    for (const m of portalMeshes) m.material.color.set(a.street_lights.color);
+  }
 
   // dynamic player markers: id -> group
   const markers = new Map();
@@ -109,5 +125,5 @@ export function createThreeRenderer(canvas, layout) {
     renderer.render(scene, camera);
   }
 
-  return { name: 'three', draw, resize };
+  return { name: 'three', draw, resize, applyBlockStyle };
 }

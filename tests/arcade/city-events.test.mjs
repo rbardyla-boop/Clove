@@ -79,13 +79,14 @@ test('recentEvents + cityEventsPayload return the last N, schema-versioned and b
   assert.ok(Array.isArray(payload.events));
 });
 
-test('the city event types are exactly the documented set (4C facts + 4D scheduler); unknown types are not honored', () => {
+test('the city event types are exactly the documented set (4C facts + 4D scheduler + 4E host rank + 4F stewardship); unknown types are not honored', () => {
   assert.deepEqual([...EVENT_TYPES].sort(), [
     'city_arcade_interior_closed', 'city_arcade_interior_opened',
     'city_host_rank_changed', 'city_host_rank_evaluated',
     'city_player_joined', 'city_player_left',
     'city_portal_enter_accepted', 'city_portal_enter_rejected', 'city_portal_enter_requested',
     'city_pressure_suggested', 'city_scheduler_tick',
+    'city_stewardship_applied', 'city_stewardship_previewed', 'city_stewardship_rejected', 'city_stewardship_reset',
   ]);
   assert.equal(isCityEventType('city_player_joined'), true);
   assert.equal(isCityEventType('city_scheduler_tick'), true);
@@ -111,4 +112,13 @@ test('4E host-rank payload fields (tier/support_signal/score/score_cap) are allo
   });
   assert.deepEqual(event.payload, { reason: 'portal_presence', tier: 'helper', support_signal: 'steady', score: 34, score_cap: 100 });
   assert.ok(!/balance|owner/.test(JSON.stringify(event)));
+});
+
+test('4F stewardship payload fields (target/palette/sign_variant/intensity) are allowlisted; injection/private dropped', () => {
+  const { event } = appendCityEvent(createEventLog(), {
+    type: 'city_stewardship_applied', cityId: CITY, now: 1,
+    payload: { target: 'arcade_front', palette: 'amber', sign_variant: 'circuit', intensity: 'high', reason: 'applied', css: 'body{}', url: 'https://evil', owner: 'x', balance: 9 },
+  });
+  assert.deepEqual(event.payload, { target: 'arcade_front', reason: 'applied', palette: 'amber', sign_variant: 'circuit', intensity: 'high' });
+  assert.ok(!/css|evil|owner|balance/.test(JSON.stringify(event)));
 });

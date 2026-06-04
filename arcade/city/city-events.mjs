@@ -20,7 +20,8 @@ import { SCHEMA_VERSION } from './city-block.mjs';
 export const MAX_CITY_EVENTS = 50;
 
 /** Server-authored city event types. 4C = discrete world facts (no per-move logging);
- *  4D adds the two Hive-Scheduler pressure events. */
+ *  4D adds the two Hive-Scheduler pressure events; 4E adds host-rank events; 4F adds
+ *  the constrained block-stewardship events (preview/apply/reject/reset). */
 export const EVENT_TYPES = Object.freeze([
   'city_player_joined',
   'city_player_left',
@@ -35,13 +36,19 @@ export const EVENT_TYPES = Object.freeze([
   // Phase 4E — Host Rank (non-cash, display-only block reputation):
   'city_host_rank_evaluated',
   'city_host_rank_changed',
+  // Phase 4F — Block Stewardship (constrained, reversible, non-cash visual edits):
+  'city_stewardship_previewed',
+  'city_stewardship_applied',
+  'city_stewardship_rejected',
+  'city_stewardship_reset',
 ]);
 const TYPE_SET = new Set(EVENT_TYPES);
 export function isCityEventType(t) { return TYPE_SET.has(t); }
 
 /** Public-safe scalar payload fields. Anything else is dropped.
- *  (4D adds pressure/severity; 4E adds tier/support_signal/score/score_cap.) */
-const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity', 'tier', 'support_signal', 'score', 'score_cap'];
+ *  (4D adds pressure/severity; 4E adds tier/support_signal/score/score_cap;
+ *   4F adds the stewardship visual tokens palette/sign_variant/intensity.) */
+const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity', 'tier', 'support_signal', 'score', 'score_cap', 'palette', 'sign_variant', 'intensity'];
 /** Cap allowlisted string values so a crafted client field can't bloat storage/broadcasts. */
 const MAX_PAYLOAD_STR = 64;
 

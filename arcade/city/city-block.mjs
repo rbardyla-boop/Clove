@@ -41,9 +41,11 @@ export const PLAYER_STALE_MS = 45_000;
  *  v1 (4B): dt + ack on inputs/snapshots. v2 (4C): additive append-only event log +
  *  in-place portal/interior messages. v3 (4D): additive Hive-Scheduler pressure events
  *  + city_scheduler_state/request. v4 (4E): additive non-cash Host Rank events +
- *  city_host_rank_state/request. All additions are backward-compatible — no-dt inputs
- *  and the 4A/4B/4C/4D message set remain valid; a client that ignores host-rank state works. */
-export const SCHEMA_VERSION = 4;
+ *  city_host_rank_state/request. v5 (4F): additive constrained Block-Stewardship events
+ *  + city_stewardship_state/result + city_stewardship_request. All additions are
+ *  backward-compatible — no-dt inputs and the 4A/4B/4C/4D/4E message set remain valid; a
+ *  client that ignores stewardship state still works. */
+export const SCHEMA_VERSION = 5;
 /** Max pending client inputs before the client resyncs (bounds replay cost; Phase 4B). */
 export const MAX_INPUT_BACKLOG = 120;
 

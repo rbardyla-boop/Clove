@@ -18,6 +18,7 @@ import {
 import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from '../../arcade/city/city-events.mjs';
 import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from '../../arcade/city/city-scheduler.mjs';
 import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from '../../arcade/city/city-host-rank.mjs';
+import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload } from '../../arcade/city/city-stewardship.mjs';
 
 const PORT = Number(process.env.CITY_PORT || process.env.PORT || 8788);
 const STALE_SWEEP_MS = 30_000;
@@ -28,10 +29,12 @@ const eventLogs = {};              // cityId -> append-only world event log (Pha
 const pressures = {};              // cityId -> last Hive-Scheduler snapshot (Phase 4D)
 const hostRanks = {};              // cityId -> last Host Rank snapshot (Phase 4E)
 const rankChangedLast = {};        // cityId -> did the last host-rank eval broadcast (join dedup)
+const stewardships = {};           // cityId -> canonical block style (Phase 4F)
 const sockets = new Map();         // ws -> { playerId, cityId, interiorOpen, ... }
 
 const cityState = (cityId) => (cities[cityId] ||= createCityState());
 const eventLog = (cityId) => (eventLogs[cityId] ||= createEventLog());
+const stewardship = (cityId) => (stewardships[cityId] ||= defaultBlockStyle());
 const send = (ws, p) => { try { ws.send(JSON.stringify(p)); } catch { /* closing */ } };
 const broadcast = (cityId, p) => { for (const [ws, m] of sockets) if (m.cityId === cityId) send(ws, p); };
 const broadcastExcept = (except, cityId, p) => { for (const [ws, m] of sockets) if (ws !== except && m.cityId === cityId) send(ws, p); };
@@ -99,6 +102,33 @@ function hostRankRequest(ws, meta) {
   send(ws, { t: 'city_host_rank_state', ...hostRankStatePayload(hostRanks[meta.cityId]) });
 }
 
+// Phase 4F: server-validated, manifest-constrained block stewardship (DO parity). The
+// client sends intent only; the pure module gates on current Host Rank eligibility +
+// the closed allowlist. preview never persists; apply/reset update + broadcast canonical.
+function stewardshipRequest(ws, meta, data) {
+  if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }
+  const now = Date.now();
+  if (now - (meta.lastStewReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
+  meta.lastStewReqAt = now;
+  const request = { request_id: data.request_id, action: data.action, target: data.target, style: data.style };
+  const res = evaluateStewardship({ cityId: meta.cityId, now, hostRank: hostRanks[meta.cityId]?.host_rank, currentStewardship: stewardship(meta.cityId), request });
+  if (!res.ok) {
+    emit(meta.cityId, 'city_stewardship_rejected', meta.playerId, { target: typeof data.target === 'string' ? data.target : undefined, reason: res.reason });
+    send(ws, { t: 'city_stewardship_result', ok: false, action: res.action, reason: res.reason, public_safe: true });
+    return;
+  }
+  if (res.action === 'preview') {
+    emit(meta.cityId, 'city_stewardship_previewed', meta.playerId, { target: res.target, palette: res.preview_style[res.target]?.palette });
+    send(ws, { t: 'city_stewardship_result', ok: true, action: 'preview', target: res.target, preview_style: res.preview_style, reason: res.reason, public_safe: true });
+    return;
+  }
+  stewardships[meta.cityId] = normalizeBlockStyle(res.canonical_style);
+  if (res.action === 'reset') emit(meta.cityId, 'city_stewardship_reset', meta.playerId, {});
+  else { const st = stewardships[meta.cityId][res.target] || {}; emit(meta.cityId, 'city_stewardship_applied', meta.playerId, { target: res.target, palette: st.palette, sign_variant: st.sign_variant, intensity: st.intensity }); }
+  broadcast(meta.cityId, { t: 'city_stewardship_state', ...stewardshipStatePayload(stewardships[meta.cityId]) });
+  send(ws, { t: 'city_stewardship_result', ok: true, action: res.action, target: res.target, reason: res.reason, public_safe: true });
+}
+
 function join(ws, meta, data) {
   const playerId = data.playerId;
   if (!isValidPlayerId(playerId)) { send(ws, { t: 'city_error', code: 'no_identity', message: 'a valid playerId is required' }); return; }
@@ -119,6 +149,8 @@ function join(ws, meta, data) {
   if (!evaluateScheduler(meta.cityId)) send(ws, { t: 'city_scheduler_state', ...schedulerStatePayload(pressures[meta.cityId]) });
   // Phase 4E: evaluateScheduler() also ran the host-rank eval; send host-rank state once.
   if (!rankChangedLast[meta.cityId]) send(ws, { t: 'city_host_rank_state', ...hostRankStatePayload(hostRanks[meta.cityId]) });
+  // Phase 4F: a (re)connect always sees the current canonical block style.
+  send(ws, { t: 'city_stewardship_state', ...stewardshipStatePayload(stewardship(meta.cityId)) });
 }
 
 function input(ws, meta, data) {
@@ -175,6 +207,7 @@ function dispatch(ws, meta, data) {
     case 'city_input': input(ws, meta, data); break;
     case 'city_scheduler_request': schedulerRequest(ws, meta); break;
     case 'city_host_rank_request': hostRankRequest(ws, meta); break;
+    case 'city_stewardship_request': stewardshipRequest(ws, meta, data); break;
     case 'city_snapshot_request': {
       const now = Date.now();
       if (now - (meta.lastSnapReqAt || 0) < SNAP_REQ_MIN_MS) break; // anti-spam

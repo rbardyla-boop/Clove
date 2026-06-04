@@ -4,9 +4,15 @@
  * Renders the top-down block from the shared layout with a camera that follows the
  * local player. Used when Three.js is absent or its WebGL context fails to init, so
  * the city is always playable. Pure presentation — no authority, no network.
+ *
+ * Phase 4F: `applyBlockStyle(style)` swaps a few accent colors/glows (arcade front,
+ * street lights, sidewalk trim) from the server-validated canonical block style. Visual
+ * only — geometry, collision, and portal zones are untouched.
  */
+import { styleToAccents } from './city-stewardship.mjs';
 
 const VIEWPORT_UNITS = 560; // world units visible vertically (orthographic feel)
+const SIGN_SUFFIX = { classic: '', circuit: ' ▦', signal: ' ☰' };
 const PAL = {
   asphalt: '#080610', road: '#14141f', roadLine: '#2b2b3d', sidewalk: '#1c1c2a',
   building: '#191324', buildingEdge: '#3a2a55', arcade: '#ff2d95', arcadeGlow: 'rgba(255,45,149,.35)',
@@ -19,6 +25,8 @@ export function createCanvas2DRenderer(canvas, layout) {
   let dpr = 1;
   let cssW = 0;
   let cssH = 0;
+  let accents = null; // Phase 4F: canonical block-style accents (null → built-in palette)
+  function applyBlockStyle(style) { accents = style ? styleToAccents(style) : null; }
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -59,15 +67,23 @@ export function createCanvas2DRenderer(canvas, layout) {
     }
     ctx.setLineDash([]);
 
-    // sidewalks (drawn under buildings)
-    for (const s of layout.sidewalks) rect(s, PAL.sidewalk, null);
+    // Phase 4F accents (canonical block style) — fall back to the built-in palette.
+    const arcadeColor = accents ? accents.arcade_front.color : PAL.arcade;
+    const arcadeBlur = accents ? accents.arcade_front.blur : 1;
+    const signSuffix = accents ? (SIGN_SUFFIX[accents.arcade_front.sign_variant] || '') : '';
+    const streetColor = accents ? accents.street_lights.color : PAL.portal;
+    const streetBlur = accents ? accents.street_lights.blur : 1;
+    const trimColor = accents ? accents.sidewalk_trim.color : null;
 
-    // buildings (arcade gets the glow)
+    // sidewalks (drawn under buildings) — sidewalk-trim accent is a thin stroke
+    for (const s of layout.sidewalks) rect(s, PAL.sidewalk, trimColor);
+
+    // buildings (arcade gets the steward-tunable glow)
     for (const b of layout.buildings) {
       if (b.kind === 'arcade') {
-        ctx.save(); ctx.shadowColor = PAL.arcade; ctx.shadowBlur = 24 * dpr;
-        rect(b, PAL.building, PAL.arcade); ctx.restore();
-        label(b, b.label, PAL.arcade);
+        ctx.save(); ctx.shadowColor = arcadeColor; ctx.shadowBlur = 24 * dpr * arcadeBlur;
+        rect(b, PAL.building, arcadeColor); ctx.restore();
+        label(b, b.label + signSuffix, arcadeColor);
       } else {
         rect(b, PAL.building, PAL.buildingEdge);
         label(b, b.label, PAL.text);
@@ -77,11 +93,11 @@ export function createCanvas2DRenderer(canvas, layout) {
     // parked vehicles (scaffold props)
     for (const p of layout.props) rect(p, PAL.vehicle, PAL.vehicleEdge);
 
-    // portals (glowing doorway)
+    // portals (glowing doorway) — street-lights accent tints the glow
     for (const z of layout.portals) {
-      ctx.save(); ctx.shadowColor = PAL.portal; ctx.shadowBlur = 22 * dpr;
-      rect(z, PAL.portalGlow, PAL.portal); ctx.restore();
-      label({ x: z.x, y: z.y, w: z.w, h: z.h }, z.label, PAL.portal, true);
+      ctx.save(); ctx.shadowColor = streetColor; ctx.shadowBlur = 22 * dpr * streetBlur;
+      rect(z, PAL.portalGlow, streetColor); ctx.restore();
+      label({ x: z.x, y: z.y, w: z.w, h: z.h }, z.label, streetColor, true);
     }
 
     // remote players
@@ -118,5 +134,5 @@ export function createCanvas2DRenderer(canvas, layout) {
     }
   }
 
-  return { name: 'canvas2d', draw, resize };
+  return { name: 'canvas2d', draw, resize, applyBlockStyle };
 }

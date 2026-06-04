@@ -27,6 +27,7 @@ import {
 import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from "../../../arcade/city/city-events.mjs";
 import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from "../../../arcade/city/city-scheduler.mjs";
 import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from "../../../arcade/city/city-host-rank.mjs";
+import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload } from "../../../arcade/city/city-stewardship.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -45,6 +46,7 @@ interface SocketMeta {
   lastEvReqAt: number;
   lastSchedReqAt: number;
   lastRankReqAt: number;
+  lastStewReqAt: number;
   interiorOpen: boolean;
 }
 
@@ -57,6 +59,7 @@ export class CityRoom implements DurableObject {
   private pressure: any = null;                       // Phase 4D: last Hive-Scheduler snapshot (in-memory; derived from the log)
   private hostRank: any = null;                        // Phase 4E: last Host Rank snapshot (in-memory; derived from the log + scheduler)
   private rankChangedLast = false;                     // did the last host-rank eval broadcast a change (for join-send dedup)
+  private stewardship: any = null;                      // Phase 4F: canonical block style (server-owned; persisted, hibernation-safe)
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
 
@@ -70,7 +73,7 @@ export class CityRoom implements DurableObject {
       if (att?.playerId) {
         // interiorOpen is rehydrated from the attachment so a DO hibernation/restart while
         // a player is inside the arcade still fires city_arcade_interior_closed on disconnect.
-        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, interiorOpen: !!att.interiorOpen });
+        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, interiorOpen: !!att.interiorOpen });
         if (att.cityId) this.boundCityId = att.cityId; // trusted: we serialized this attachment ourselves
       }
     }
@@ -83,12 +86,17 @@ export class CityRoom implements DurableObject {
       this.state = stored && stored.players ? stored : createCityState();
       const storedEv = await this.ctx.storage.get<{ events: any[]; seq: number }>("cityEvents");
       this.eventLog = storedEv && Array.isArray(storedEv.events) ? storedEv : createEventLog();
+      // Phase 4F: canonical block style — normalized through the pure manifest so a stored
+      // value can never carry anything outside the allowlist, and missing → city default.
+      const storedSt = await this.ctx.storage.get<any>("cityStewardship");
+      this.stewardship = storedSt ? normalizeBlockStyle(storedSt) : defaultBlockStyle();
     });
   }
 
   private async persist(): Promise<void> {
     await this.ctx.storage.put("cityState", this.state);
     await this.ctx.storage.put("cityEvents", this.eventLog);
+    await this.ctx.storage.put("cityStewardship", this.stewardship);
   }
 
   /** Append a SERVER-AUTHORED public-safe world event + broadcast it live. */
@@ -135,6 +143,7 @@ export class CityRoom implements DurableObject {
       case "city_events_request": { this.handleEventsRequest(ws); break; }
       case "city_scheduler_request": { await this.handleSchedulerRequest(ws); break; }
       case "city_host_rank_request": { await this.handleHostRankRequest(ws); break; }
+      case "city_stewardship_request": { await this.handleStewardshipRequest(ws, data); break; }
       // accept the 4C name + the 4B name (alias) so old clients keep working
       case "city_portal_enter":
       case "city_portal_enter_request": { await this.handlePortal(ws, data); break; }
@@ -172,7 +181,7 @@ export class CityRoom implements DurableObject {
     this.state = res.state;
 
     ws.serializeAttachment({ playerId, cityId: this.boundCityId, interiorOpen: false });
-    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, interiorOpen: false });
+    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, interiorOpen: false });
 
     this.send(ws, { t: "city_welcome", ...welcomePayload(this.state, playerId, this.boundCityId, now) });
     this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) }); // recent history on (re)join
@@ -186,6 +195,8 @@ export class CityRoom implements DurableObject {
     // Phase 4E: evaluateScheduler() also ran the host-rank eval; send host-rank state to
     // the joiner exactly once (only when the eval did not already broadcast a change).
     if (!this.rankChangedLast) this.send(ws, { t: "city_host_rank_state", ...hostRankStatePayload(this.hostRank) });
+    // Phase 4F: a (re)connect always sees the current canonical block style.
+    this.send(ws, { t: "city_stewardship_state", ...stewardshipStatePayload(this.stewardship) });
     await this.persist();
     this.scheduleSweep();
   }
@@ -410,5 +421,54 @@ export class CityRoom implements DurableObject {
     const changed = this.evaluateHostRank();
     this.send(ws, { t: "city_host_rank_state", ...hostRankStatePayload(this.hostRank) });
     if (changed) await this.persist();
+  }
+
+  // ==================== Phase 4F: Block Stewardship (constrained, reversible, non-cash) ====================
+
+  /**
+   * Client request → server-validated, manifest-constrained visual edit. The client sends
+   * INTENT only (action/target/style); the pure module checks CURRENT Host Rank eligibility
+   * + the closed allowlist and decides the outcome. preview never persists; apply/reset
+   * persist the canonical style and broadcast it. The client can never mutate canonical
+   * style directly, and no css/html/js/url/text field can survive the sanitizer. Touches no
+   * player/collision/portal/ticket/inventory/economy state. Rate-limited per socket.
+   */
+  private async handleStewardshipRequest(ws: WebSocket, data: any): Promise<void> {
+    const meta = this.sockets.get(ws);
+    if (!meta) { this.send(ws, { t: "city_error", code: "no_identity", message: "Must city_join first" }); return; }
+    const now = Date.now();
+    if (now - meta.lastStewReqAt < SNAP_REQ_MIN_MS) return; // anti-spam: clients can't flood stewardship evals
+    meta.lastStewReqAt = now;
+
+    const request = { request_id: data.request_id, action: data.action, target: data.target, style: data.style };
+    const res = evaluateStewardship({ cityId: this.boundCityId, now, hostRank: this.hostRank?.host_rank, currentStewardship: this.stewardship, request });
+
+    if (!res.ok) {
+      this.emit("city_stewardship_rejected", meta.playerId, { target: typeof data.target === "string" ? data.target : undefined, reason: res.reason });
+      this.send(ws, { t: "city_stewardship_result", ok: false, action: res.action, reason: res.reason, public_safe: true });
+      await this.persist(); // the rejected event was appended to the log
+      return;
+    }
+
+    if (res.action === "preview") {
+      // preview NEVER changes canonical state — only the requester gets the sanitized preview.
+      this.emit("city_stewardship_previewed", meta.playerId, { target: res.target, palette: res.preview_style[res.target!]?.palette });
+      this.send(ws, { t: "city_stewardship_result", ok: true, action: "preview", target: res.target, preview_style: res.preview_style, reason: res.reason, public_safe: true });
+      await this.persist(); // the preview event was appended to the log
+      return;
+    }
+
+    // apply / reset → the canonical block style changes; broadcast it to everyone.
+    this.stewardship = normalizeBlockStyle(res.canonical_style);
+    if (res.action === "reset") {
+      this.emit("city_stewardship_reset", meta.playerId, {});
+    } else {
+      const t = res.target!;
+      const st = this.stewardship[t] || {};
+      this.emit("city_stewardship_applied", meta.playerId, { target: t, palette: st.palette, sign_variant: st.sign_variant, intensity: st.intensity });
+    }
+    this.broadcast({ t: "city_stewardship_state", ...stewardshipStatePayload(this.stewardship) });
+    this.send(ws, { t: "city_stewardship_result", ok: true, action: res.action, target: res.target, reason: res.reason, public_safe: true });
+    await this.persist();
   }
 }

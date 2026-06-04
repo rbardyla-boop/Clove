@@ -16,6 +16,10 @@ import {
   createInputBuffer, recordPendingInput, dropAcknowledgedInputs, reconcilePredictedState, DISPLAY_EASE,
 } from './city-reconcile.mjs';
 import { createSnapshotBuffer, pushSnapshot, sampleSnapshotAt, latestServerTime } from './city-snapshots.mjs';
+import {
+  defaultBlockStyle, normalizeBlockStyle, mergeBlockStyle, isStewardshipEligible,
+  ALLOWED_TARGETS, ALLOWED_PALETTES, ALLOWED_SIGN_VARIANTS, ALLOWED_INTENSITY,
+} from './city-stewardship.mjs';
 import { CityNet, resolveCityWsUrl } from './city-net.js';
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
@@ -44,6 +48,7 @@ const interiorFallback = el('interiorFallback');
 const eventLogEl = el('cityEventLog');
 const pressureEl = el('cityPressure');
 const hostRankEl = el('cityHostRank');
+const stewardshipEl = el('cityStewardship');
 const rendererTag = el('rendererTag');
 const debugPanel = el('debugPanel');
 el('playerName').textContent = playerId;
@@ -71,6 +76,10 @@ const eventList = [];                // recent public events (display only)
 const seenEventIds = new Set();
 let cityPressure = null;             // Phase 4D: last city pressure snapshot (display only)
 let cityHostRank = null;             // Phase 4E: last non-cash host rank snapshot (display only)
+let cityStewardship = defaultBlockStyle(); // Phase 4F: canonical block style (server-owned)
+let stewardshipPreview = null;       // Phase 4F: local, non-persistent preview (until server-confirmed)
+let stewardEligible = false;         // Phase 4F: current Host Rank confers stewardship eligibility?
+const stewSel = { target: 'arcade_front', palette: 'magenta', sign_variant: 'classic', intensity: 'medium' }; // editor selection
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -138,7 +147,9 @@ const net = new CityNet({
     onEvents: (m) => { eventList.length = 0; seenEventIds.clear(); for (const e of (m.events || [])) pushEvent(e); renderEvents(); },
     onEvent: (m) => { if (m.event) { pushEvent(m.event); renderEvents(); } },
     onSchedulerState: (m) => { cityPressure = m; renderPressure(); },
-    onHostRankState: (m) => { cityHostRank = m; renderHostRank(); },
+    onHostRankState: (m) => { cityHostRank = m; stewardEligible = isStewardshipEligible(m && m.host_rank); renderHostRank(); updateStewardship(); },
+    onStewardshipState: (m) => { cityStewardship = normalizeBlockStyle(m && m.stewardship); stewardshipPreview = null; applyEffectiveStyle(); updateStewardship(); },
+    onStewardshipResult: (m) => { onStewardshipResult(m); },
     onError: (m) => {
       window.__neon_city.lastError = m;
       if (String(m.code).startsWith('portal_')) { portalState = 'rejected'; setTimeout(() => { if (portalState === 'rejected') portalState = 'idle'; }, 900); }
@@ -241,6 +252,10 @@ function eventLabel(e) {
     case 'city_pressure_suggested': return `pressure signal · ${(e.payload && e.payload.reason) || 'activity'} (${(e.payload && e.payload.severity) || 'low'})`;
     case 'city_host_rank_evaluated': return `host rank: ${(e.payload && e.payload.tier) || 'observer'} · ${(e.payload && e.payload.support_signal) || 'quiet'}`;
     case 'city_host_rank_changed': return `host rank changed → ${(e.payload && e.payload.tier) || 'observer'} (${(e.payload && e.payload.support_signal) || 'quiet'})`;
+    case 'city_stewardship_previewed': return `${who} previewed ${(e.payload && e.payload.target) || 'block'} style`;
+    case 'city_stewardship_applied': return `${who} restyled ${(e.payload && e.payload.target) || 'block'} → ${(e.payload && e.payload.palette) || 'default'}`;
+    case 'city_stewardship_rejected': return `${who}'s stewardship edit was declined (${(e.payload && e.payload.reason) || 'denied'})`;
+    case 'city_stewardship_reset': return `${who} reset the block to city default`;
     default: return `${who} · ${e.type}`;
   }
 }
@@ -290,6 +305,112 @@ function renderHostRank() {
     row.textContent = lines[i];
     hostRankEl.appendChild(row);
   }
+}
+
+// ── Block Stewardship constrained editor (Phase 4F; server-validated, non-cash) ──
+// The client sends INTENT only. The server owns the canonical block style; here we show
+// it, gate the controls on current Host Rank eligibility, and offer a fixed set of
+// preview/apply/reset options (no free text, no uploads, no URLs). textContent only.
+const TARGET_LABELS = { arcade_front: 'arcade', street_lights: 'street', sidewalk_trim: 'walk' };
+let stewStatus = '';
+let stewBuilt = false;
+const stewEls = {};
+
+function applyEffectiveStyle() {
+  renderer.applyBlockStyle?.(stewardshipPreview || cityStewardship);
+}
+function styleForSelection() {
+  const t = stewSel.target;
+  const style = { palette: stewSel.palette };
+  if (t === 'arcade_front') style.sign_variant = stewSel.sign_variant;
+  if (t !== 'sidewalk_trim') style.intensity = stewSel.intensity;
+  return style;
+}
+function stwLine(cls) { const d = document.createElement('div'); d.className = cls; return d; }
+function stwRow(labelText, values, labels, onPick) {
+  const row = document.createElement('div'); row.className = 'stw-row';
+  const lab = document.createElement('span'); lab.className = 'stw-lab'; lab.textContent = labelText; row.appendChild(lab);
+  const chips = new Map();
+  for (const v of values) {
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'stw-chip';
+    c.textContent = (labels && labels[v]) || v;
+    c.addEventListener('click', () => { onPick(v); });
+    chips.set(v, c); row.appendChild(c);
+  }
+  return { row, chips };
+}
+function stwBtn(label, onClick) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'stw-btn';
+  b.textContent = label; b.addEventListener('click', onClick); return b;
+}
+function setActiveChip(chips, val) { for (const [v, c] of chips) c.classList.toggle('active', v === val); }
+
+function buildStewardship() {
+  if (!stewardshipEl || stewBuilt) return;
+  stewBuilt = true;
+  stewardshipEl.textContent = '';
+  const head = stwLine('stw-head'); head.textContent = 'BLOCK STEWARDSHIP';
+  stewEls.elig = stwLine('stw-elig');
+  stewEls.cur = stwLine('stw-cur');
+  stewEls.targets = stwRow('TARGET', ALLOWED_TARGETS, TARGET_LABELS, (v) => { stewSel.target = v; updateStewardship(); });
+  stewEls.palettes = stwRow('PALETTE', ALLOWED_PALETTES, null, (v) => { stewSel.palette = v; updateStewardship(); });
+  stewEls.signs = stwRow('SIGN', ALLOWED_SIGN_VARIANTS, null, (v) => { stewSel.sign_variant = v; updateStewardship(); });
+  stewEls.intens = stwRow('GLOW', ALLOWED_INTENSITY, null, (v) => { stewSel.intensity = v; updateStewardship(); });
+  const actions = document.createElement('div'); actions.className = 'stw-actions';
+  stewEls.preview = stwBtn('Preview', () => requestStew('preview'));
+  stewEls.apply = stwBtn('Apply', () => requestStew('apply'));
+  stewEls.reset = stwBtn('Reset', () => requestStew('reset'));
+  actions.append(stewEls.preview, stewEls.apply, stewEls.reset);
+  stewEls.status = stwLine('stw-status');
+  stewardshipEl.append(head, stewEls.elig, stewEls.cur, stewEls.targets.row, stewEls.palettes.row, stewEls.signs.row, stewEls.intens.row, actions, stewEls.status);
+}
+
+function updateStewardship() {
+  if (!stewardshipEl) return;
+  buildStewardship();
+  stewEls.elig.textContent = stewardEligible ? 'Eligibility: stewardship signal active.' : 'Eligibility: locked — raise host rank.';
+  stewEls.elig.classList.toggle('on', stewardEligible);
+  const s = stewardshipPreview || cityStewardship;
+  stewEls.cur.textContent = `Block style: arcade ${s.arcade_front.palette} · street ${s.street_lights.palette} · walk ${s.sidewalk_trim.palette}${stewardshipPreview ? ' (preview)' : ''}`;
+  setActiveChip(stewEls.targets.chips, stewSel.target);
+  setActiveChip(stewEls.palettes.chips, stewSel.palette);
+  setActiveChip(stewEls.signs.chips, stewSel.sign_variant);
+  setActiveChip(stewEls.intens.chips, stewSel.intensity);
+  stewEls.signs.row.hidden = stewSel.target !== 'arcade_front';   // sign variant is arcade-only
+  stewEls.intens.row.hidden = stewSel.target === 'sidewalk_trim'; // sidewalk has no glow
+  for (const b of [stewEls.preview, stewEls.apply, stewEls.reset]) b.disabled = !stewardEligible;
+  stewEls.status.textContent = stewStatus;
+}
+
+function requestStew(action) {
+  if (action === 'reset') { stewStatus = 'Resetting to city default…'; net.requestStewardship('reset'); updateStewardship(); return; }
+  const style = styleForSelection();
+  if (action === 'preview') {
+    // optimistic LOCAL preview (clearly marked) — the server still confirms or rejects it
+    stewardshipPreview = mergeBlockStyle(cityStewardship, stewSel.target, style);
+    applyEffectiveStyle();
+    stewStatus = 'Preview (local) — Apply to make it the block style.';
+  } else {
+    stewStatus = 'Applying…';
+  }
+  net.requestStewardship(action, stewSel.target, style);
+  updateStewardship();
+}
+
+function onStewardshipResult(m) {
+  window.__neon_city.lastStewardshipResult = m;
+  if (!m || !m.ok) {
+    stewardshipPreview = null; applyEffectiveStyle();
+    stewStatus = `Rejected: ${(m && m.reason) || 'unknown'}`;
+  } else if (m.action === 'preview') {
+    if (m.preview_style) { stewardshipPreview = normalizeBlockStyle(m.preview_style); applyEffectiveStyle(); }
+    stewStatus = 'Preview confirmed (not yet applied).';
+  } else if (m.action === 'apply') {
+    stewardshipPreview = null; stewStatus = 'Applied to the block.'; // canonical arrives via city_stewardship_state
+  } else if (m.action === 'reset') {
+    stewardshipPreview = null; stewStatus = 'Reset to city default.';
+  }
+  updateStewardship();
 }
 
 // ── send loop (bounded input rate, records each input for replay) ─────────────
@@ -386,6 +507,14 @@ window.__neon_city = {
   requestScheduler() { net.requestScheduler(); },
   hostRank() { return cityHostRank ? { ...cityHostRank.host_rank } : null; }, // Phase 4E
   requestHostRank() { net.requestHostRank(); },
+  // Phase 4F — block stewardship (display/visual only; the server owns canonical truth)
+  stewardship() { return JSON.parse(JSON.stringify(cityStewardship)); },
+  blockStyle() { return JSON.parse(JSON.stringify(stewardshipPreview || cityStewardship)); }, // effective applied style
+  eligible() { return stewardEligible; },
+  lastStewardshipResult: null,
+  previewStewardship(target, style) { net.requestStewardship('preview', target, style); },
+  applyStewardship(target, style) { net.requestStewardship('apply', target, style); },
+  resetStewardship() { net.requestStewardship('reset'); },
   debug() {
     return {
       renderer: renderer.name, ackSeq, pending: inputBuffer.pending.length,
@@ -398,4 +527,6 @@ window.__neon_city = {
   client: net,
 };
 
+applyEffectiveStyle();   // apply the (default) block style to the renderer up front
+updateStewardship();     // build the stewardship panel so it is visible before server state
 net.connect();

@@ -1,3 +1,6 @@
+<!-- Follow-up: Phase 4F reads this non-cash Host Rank as ONE eligibility signal for constrained,
+reversible Block Stewardship — see docs/NEON_CIRCUIT_PHASE4F_BLOCK_STEWARDSHIP.md. -->
+
 # Neon Circuit — Phase 4E: Host Rank (non-cash, scheduler-reviewed city reputation)
 
 **Status:** implemented, local-only (branch `feat/neon-circuit-phase4e-host-rank`; Phase 4D `4598969` and
