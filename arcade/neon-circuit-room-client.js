@@ -22,9 +22,18 @@
  *   });
  */
 
+// Worker endpoint resolution lives in a shared pure .mjs so it is unit-testable in
+// node (this .js client is browser-ESM). Re-exported for any caller that wants it.
+import { resolveWsUrl, neonArcadeConfig } from "./neon-arcade-url.mjs";
+export { resolveWsUrl, neonArcadeConfig };
+
 export class NeonCircuitRoomClient {
   constructor(options = {}) {
-    this.wsUrl = options.wsUrl || this.defaultWsUrl();
+    this.wsUrl = resolveWsUrl({
+      explicit: options.wsUrl,
+      config: neonArcadeConfig(),
+      location: (typeof location !== "undefined" ? location : null),
+    });
     this.onState = options.onState || (() => {});
     this.onDenied = options.onDenied || (() => {});
     this.onError = options.onError || (() => {});
@@ -96,9 +105,12 @@ export class NeonCircuitRoomClient {
   }
 
   defaultWsUrl() {
-    const proto = location.protocol === "https:" ? "wss:" : "ws:";
-    // In dev you will usually override this explicitly
-    return `${proto}//${location.host}/arcade/ws`;
+    // Same resolution as the constructor (config hook → same-origin). Kept for any
+    // caller that wants the resolved default without constructing a client.
+    return resolveWsUrl({
+      config: neonArcadeConfig(),
+      location: (typeof location !== "undefined" ? location : null),
+    });
   }
 
   loadOrCreatePlayerId() {
@@ -606,15 +618,19 @@ export class NeonCircuitRoomClient {
   }
 }
 
-// Convenience factory for the Phase 1b test harness
+// Convenience factory for the Phase 1b test harness.
+// No hardcoded production hostname: an explicit override wins, then the deploy-time
+// config hook (window.__NEON_ARCADE_CONFIG__.wsUrl), then localhost in dev, otherwise
+// the client resolves same-origin /arcade/ws. Point at a cross-origin Worker by
+// setting the config hook (see arcade/neon-arcade-config.example.js).
 export function createRoomClientForTest(overrides = {}) {
-  const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-  const defaultUrl = isLocal
-    ? "ws://localhost:8787/arcade/ws"
-    : "wss://neon-arcade-mesh.<your-subdomain>.workers.dev/arcade/ws"; // replace at deploy time
+  const cfg = neonArcadeConfig();
+  const isLocal = typeof location !== "undefined"
+    && (location.hostname === "localhost" || location.hostname === "127.0.0.1");
+  const devDefault = isLocal ? "ws://localhost:8787/arcade/ws" : undefined;
 
   return new NeonCircuitRoomClient({
-    wsUrl: overrides.wsUrl || defaultUrl,
+    wsUrl: overrides.wsUrl || (cfg && cfg.wsUrl) || devDefault,
     ...overrides,
   });
 }

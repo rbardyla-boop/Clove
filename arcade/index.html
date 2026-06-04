@@ -6,6 +6,14 @@
 <title>Neon Circuit Arcade</title>
 <meta name="description" content="Neon Circuit Arcade — Level 1 Main Floor. Walk up to cabinets and play. Pulse Tap is live, with real shared occupancy.">
 <meta name="theme-color" content="#080411">
+<!--
+  Worker endpoint config (optional). The client connects to same-origin
+  /arcade/ws by default. If the Worker is on a DIFFERENT origin (e.g. a
+  *.workers.dev URL), point it there at deploy time by UNcommenting the line
+  below (or see arcade/neon-arcade-config.example.js). Public transport config
+  only — never put a secret/admin token here.
+  <script>window.__NEON_ARCADE_CONFIG__ = { wsUrl: "wss://neon-arcade-mesh.YOUR-SUBDOMAIN.workers.dev/arcade/ws" };</script>
+-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">

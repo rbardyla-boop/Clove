@@ -24,7 +24,9 @@ const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8787/arcade/ws';
 const TOKEN = process.env.ADMIN_TEST_TOKEN || '';
 const RUN = Date.now().toString(36);
-const url = (id, room) => `${BASE}/arcade/index.html?test=1&id=${id}${room ? `&room=${room}` : ''}&ws=${encodeURIComponent(WS)}`;
+// Phase 3E: the lobby admin (live-ops) UI is hidden unless explicitly enabled; the
+// operator driver opens with admin=1 so the ⚙ panel renders. The server still gates.
+const url = (id, room, admin = false) => `${BASE}/arcade/index.html?test=1&id=${id}${room ? `&room=${room}` : ''}${admin ? '&admin=1' : ''}&ws=${encodeURIComponent(WS)}`;
 const W = EVENT_WINDOW_MS;
 const BASE_CFG = eventPresentationFromEnv({}); // hard default base (shim started without EVENT_* vars)
 const WIDE = 300000;             // 5-min override lead
@@ -33,14 +35,14 @@ const fourMinOut = 4 * W - 4 * 60 * 1000; // 4 min before window 4: inside a 5-m
 let failures = 0;
 const check = (name, cond) => { console.log(`${cond ? 'ok  ' : 'FAIL'} ${name}`); if (!cond) failures++; };
 
-async function open(browser, id, room, waitLive = true) {
+async function open(browser, id, room, waitLive = true, admin = false) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   const errors = [];
   const isNoise = (t) => /fonts\.(googleapis|gstatic)\.com/.test(t) || /net::ERR_/.test(t);
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !isNoise(m.text())) errors.push('console: ' + m.text()); });
-  await page.goto(url(id, room), { waitUntil: 'load' });
+  await page.goto(url(id, room, admin), { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__neon, null, { timeout: 8000 });
   if (waitLive) await page.waitForFunction(() => document.getElementById('statusTxt')?.textContent.includes('live'), null, { timeout: 8000 });
   return { page, ctx, errors };
@@ -52,8 +54,16 @@ const waitAdminOk = (c) => c.page.waitForFunction(() => { const a = window.__neo
 const browser = await chromium.launch({ headless: true });
 try {
   check('admin test token provided to the spec', TOKEN.length > 0);
-  const A = await open(browser, `a${RUN}`, 'main-floor');     // operator/admin driver
+  const A = await open(browser, `a${RUN}`, 'main-floor', true, true); // operator/admin driver (admin UI on)
   const C = await open(browser, `c${RUN}`, 'neon-training');  // the room we will override
+
+  // ── Phase 3E: the admin (live-ops) gear is HIDDEN for a public client (no ?admin=1) ──
+  await C.page.click('#roomBtn');
+  await C.page.waitForSelector('.lobby-overlay.show', { timeout: 8000 });
+  check('admin gear is hidden for public players (no ?admin=1)',
+    await C.page.evaluate(() => !document.querySelector('.lobby-overlay [data-act="admin"]')));
+  await C.page.click('.lobby-overlay [data-act="close"]');
+  await C.page.waitForSelector('.lobby-overlay.show', { state: 'hidden', timeout: 8000 }).catch(() => {});
 
   // ── gating: a wrong token is rejected, nothing persists ──────────────────────────
   await A.page.evaluate(() => window.__neon.adminSetPresentation('neon-training', { preroll_lead_ms: 300000 }, 'wrong-token'));

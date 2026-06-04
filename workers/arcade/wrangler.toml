@@ -36,5 +36,40 @@ ENVIRONMENT = "development"
 ADMIN_ENABLED = "true"
 
 # ADMIN_TOKEN is intentionally NOT defined here. Configure it out-of-band:
-#   prod: wrangler secret put ADMIN_TOKEN
+#   prod: wrangler secret put ADMIN_TOKEN --env production
 #   dev:  wrangler dev --var ADMIN_TOKEN:<token>   (or a gitignored .dev.vars)
+
+# ===================== Phase 3A: production environment =====================
+# Deploy production with:  wrangler deploy --env production
+#
+# Named Wrangler environments do NOT inherit top-level `vars`, `durable_objects`,
+# or `migrations` — each must be re-declared here, or the production Worker would
+# ship with the dev defaults / no DO bindings. (Verified via `--env production
+# --dry-run`.) This block makes a production deploy safe BY DEFAULT:
+#   * ENVIRONMENT = "production"  → rejects the __test_set_event_now event-clock hook
+#   * ADMIN_ENABLED = "false"     → admin/live-ops surface OFF (and still needs a
+#                                   separately-configured ADMIN_TOKEN secret to ever be on)
+#   * EVENT_* are the display-only presentation defaults (clamped server-side).
+# ADMIN_TOKEN is NEVER set here — configure it out-of-band only if you intend to
+# enable live-ops:  wrangler secret put ADMIN_TOKEN --env production
+[env.production.vars]
+ENVIRONMENT = "production"
+ADMIN_ENABLED = "false"
+EVENT_PREROLL_LEAD_MS = "120000"
+EVENT_COUNTDOWN_REFRESH_MS = "1000"
+EVENT_SHOW_NEXT = "true"
+EVENT_SHOW_FEATURED = "true"
+
+[env.production.durable_objects]
+bindings = [
+  { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
+]
+
+[[env.production.migrations]]
+tag = "v1"
+new_sqlite_classes = ["ArcadeRoom"]
+
+[[env.production.migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomRegistry"]
