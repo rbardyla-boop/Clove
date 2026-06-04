@@ -19,7 +19,8 @@ import { SCHEMA_VERSION } from './city-block.mjs';
 /** Keep the log bounded so per-room state stays small. */
 export const MAX_CITY_EVENTS = 50;
 
-/** The Phase 4C event types. No per-move logging — these are discrete world facts. */
+/** Server-authored city event types. 4C = discrete world facts (no per-move logging);
+ *  4D adds the two Hive-Scheduler pressure events. */
 export const EVENT_TYPES = Object.freeze([
   'city_player_joined',
   'city_player_left',
@@ -28,12 +29,15 @@ export const EVENT_TYPES = Object.freeze([
   'city_portal_enter_rejected',
   'city_arcade_interior_opened',
   'city_arcade_interior_closed',
+  // Phase 4D — Hive Scheduler (non-authoritative, display-only pressure):
+  'city_scheduler_tick',
+  'city_pressure_suggested',
 ]);
 const TYPE_SET = new Set(EVENT_TYPES);
 export function isCityEventType(t) { return TYPE_SET.has(t); }
 
-/** Public-safe scalar payload fields. Anything else is dropped. */
-const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason'];
+/** Public-safe scalar payload fields. Anything else is dropped. (4D adds pressure/severity.) */
+const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity'];
 /** Cap allowlisted string values so a crafted client field can't bloat storage/broadcasts. */
 const MAX_PAYLOAD_STR = 64;
 

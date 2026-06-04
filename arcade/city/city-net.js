@@ -71,6 +71,7 @@ export class CityNet {
       case 'city_portal_ok': this.h.onPortalOk?.(m); break;
       case 'city_events': this.h.onEvents?.(m); break;   // Phase 4C: recent world-event history
       case 'city_event': this.h.onEvent?.(m); break;     // Phase 4C: a single live world event
+      case 'city_scheduler_state': this.h.onSchedulerState?.(m); break; // Phase 4D: city pressure snapshot
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }
@@ -98,6 +99,7 @@ export class CityNet {
   closeInterior() { this.send({ t: 'city_portal_close_request' }); } // Phase 4C: leave the arcade interior
   requestSnapshot() { this.send({ t: 'city_snapshot_request' }); }
   requestEvents() { this.send({ t: 'city_events_request' }); }
+  requestScheduler() { this.send({ t: 'city_scheduler_request' }); } // Phase 4D: ask for current city pressure
 
   close() {
     this.closed = true;

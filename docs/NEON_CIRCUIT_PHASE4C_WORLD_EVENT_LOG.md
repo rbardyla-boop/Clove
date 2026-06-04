@@ -1,3 +1,6 @@
+<!-- Follow-up: Phase 4D adds the Hive Scheduler that reads this event log to produce
+non-authoritative city pressure — see docs/NEON_CIRCUIT_PHASE4D_HIVE_SCHEDULER.md. -->
+
 # Neon Circuit — Phase 4C: Append-Only World Event Log + In-Place Arcade Interior Portal
 
 **Status:** implemented, local-only (branch `feat/neon-circuit-phase4c-world-event-log`, off Phase 4B `2fa0be4`).

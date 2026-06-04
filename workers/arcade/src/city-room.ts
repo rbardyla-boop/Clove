@@ -24,7 +24,8 @@ import {
   createCityState, addPlayer, applyInput, removePlayer, touchPlayer,
   stalePlayerIds, enterPortal, welcomePayload, citySnapshot,
 } from "../../../arcade/city/city-block.mjs";
-import { createEventLog, appendCityEvent, cityEventsPayload } from "../../../arcade/city/city-events.mjs";
+import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from "../../../arcade/city/city-events.mjs";
+import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from "../../../arcade/city/city-scheduler.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -41,6 +42,7 @@ interface SocketMeta {
   lastHeartbeat: number;
   lastSnapReqAt: number;
   lastEvReqAt: number;
+  lastSchedReqAt: number;
   interiorOpen: boolean;
 }
 
@@ -50,6 +52,7 @@ const SNAP_REQ_MIN_MS = 250; // floor between client-requested snapshots/events 
 export class CityRoom implements DurableObject {
   private state!: CityState;
   private eventLog!: { events: any[]; seq: number }; // Phase 4C: server-authored append-only world log
+  private pressure: any = null;                       // Phase 4D: last Hive-Scheduler snapshot (in-memory; derived from the log)
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
 
@@ -63,7 +66,7 @@ export class CityRoom implements DurableObject {
       if (att?.playerId) {
         // interiorOpen is rehydrated from the attachment so a DO hibernation/restart while
         // a player is inside the arcade still fires city_arcade_interior_closed on disconnect.
-        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, interiorOpen: !!att.interiorOpen });
+        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, interiorOpen: !!att.interiorOpen });
         if (att.cityId) this.boundCityId = att.cityId; // trusted: we serialized this attachment ourselves
       }
     }
@@ -126,6 +129,7 @@ export class CityRoom implements DurableObject {
       case "city_input": { await this.handleInput(ws, data); break; }
       case "city_snapshot_request": { this.handleSnapshotRequest(ws); break; }
       case "city_events_request": { this.handleEventsRequest(ws); break; }
+      case "city_scheduler_request": { await this.handleSchedulerRequest(ws); break; }
       // accept the 4C name + the 4B name (alias) so old clients keep working
       case "city_portal_enter":
       case "city_portal_enter_request": { await this.handlePortal(ws, data); break; }
@@ -163,13 +167,17 @@ export class CityRoom implements DurableObject {
     this.state = res.state;
 
     ws.serializeAttachment({ playerId, cityId: this.boundCityId, interiorOpen: false });
-    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, interiorOpen: false });
+    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, interiorOpen: false });
 
     this.send(ws, { t: "city_welcome", ...welcomePayload(this.state, playerId, this.boundCityId, now) });
     this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) }); // recent history on (re)join
     this.broadcastExcept(ws, { t: "city_player_joined", id: playerId, x: res.player.x, y: res.player.y }); // legacy 4B message
     this.emit("city_player_joined", playerId, {}); // canonical append-only event
     this.broadcastSnapshot(now);
+    // Phase 4D: refresh pressure. If the eval changed pressure it already broadcast
+    // city_scheduler_state to everyone (incl. this socket); only send explicitly when it
+    // did NOT, so a (re)connect always sees current pressure exactly once.
+    if (!this.evaluateScheduler()) this.send(ws, { t: "city_scheduler_state", ...schedulerStatePayload(this.pressure) });
     await this.persist();
     this.scheduleSweep();
   }
@@ -218,6 +226,7 @@ export class CityRoom implements DurableObject {
     if (!res.ok) {
       this.emit("city_portal_enter_rejected", meta.playerId, { portalId, reason: res.reason });
       this.send(ws, { t: "city_error", code: `portal_${res.reason}`, message: "portal entry denied" });
+      this.evaluateScheduler();
       await this.persist();
       return;
     }
@@ -228,6 +237,7 @@ export class CityRoom implements DurableObject {
       this.emit("city_arcade_interior_opened", meta.playerId, { portalId });
     }
     this.send(ws, { t: "city_portal_ok", portalId, target: res.target });
+    this.evaluateScheduler();
     await this.persist();
   }
 
@@ -237,6 +247,7 @@ export class CityRoom implements DurableObject {
     meta.interiorOpen = false;
     ws.serializeAttachment({ playerId: meta.playerId, cityId: meta.cityId, interiorOpen: false });
     this.emit("city_arcade_interior_closed", meta.playerId, {});
+    this.evaluateScheduler();
     await this.persist();
   }
 
@@ -268,6 +279,7 @@ export class CityRoom implements DurableObject {
     this.broadcast({ t: "city_player_left", id: meta.playerId }); // legacy 4B message
     this.emit("city_player_left", meta.playerId, {});             // canonical append-only event (once)
     this.broadcastSnapshot(now);
+    this.evaluateScheduler();
     await this.persist();
   }
 
@@ -306,7 +318,48 @@ export class CityRoom implements DurableObject {
       changed = true;
     }
     if (changed) this.broadcastSnapshot(now);
+    this.evaluateScheduler(); // Phase 4D: periodic decay (activity ages out of the window)
     await this.persist();
     if (this.sockets.size > 0 || Object.keys(this.state.players).length > 0) this.scheduleSweep();
+  }
+
+  // ==================== Phase 4D: Hive Scheduler (subordinate, bounded) ====================
+
+  /**
+   * Re-evaluate non-authoritative city pressure from the recent SERVER-AUTHORED event
+   * log + the server's own occupancy count. Emits a scheduler tick / new suggestions
+   * ONLY when the pressure snapshot actually changes (dedup → bounded, no log spam),
+   * and never moves a player, grants anything, or reads a client fact. Returns whether
+   * the snapshot changed (so callers can decide to persist). Display-only.
+   */
+  private evaluateScheduler(): boolean {
+    const now = Date.now();
+    const occupancy = Object.keys(this.state.players).length;
+    const snap = evaluatePressure({ cityId: this.boundCityId, now, recentEvents: recentEvents(this.eventLog), occupancy });
+    const prev = this.pressure;
+    // The first eval on a cold start at the idle baseline is not "news" — don't log a tick.
+    const meaningful = pressureChanged(prev, snap) && !(!prev && isBaselinePressure(snap));
+    if (meaningful) {
+      this.emit("city_scheduler_tick", null, { pressure: snap.pressure.scheduler_mood, reason: "pressure_update" });
+      const prevReasons = new Set(suggestionReasons(prev));
+      for (const s of snap.suggestions) {
+        if (!prevReasons.has(s.reason)) this.emit("city_pressure_suggested", null, { pressure: snap.pressure.scheduler_mood, reason: s.reason, severity: s.severity });
+      }
+      this.broadcast({ t: "city_scheduler_state", ...schedulerStatePayload(snap) });
+    }
+    this.pressure = snap; // always keep the latest snapshot (evaluated_at fresh)
+    return meaningful;
+  }
+
+  /** Client request → bounded, rate-limited evaluation; returns current pressure to the requester. */
+  private async handleSchedulerRequest(ws: WebSocket): Promise<void> {
+    const meta = this.sockets.get(ws);
+    if (!meta) return;
+    const now = Date.now();
+    if (now - meta.lastSchedReqAt < SNAP_REQ_MIN_MS) return; // anti-spam: clients can't flood scheduler evals
+    meta.lastSchedReqAt = now;
+    const changed = this.evaluateScheduler();
+    this.send(ws, { t: "city_scheduler_state", ...schedulerStatePayload(this.pressure) });
+    if (changed) await this.persist();
   }
 }

@@ -133,6 +133,15 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-log-list .evt { font-size: 11px; line-height: 1.4; color: var(--ink); letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 560px) { .city-log { bottom: 96px; width: 200px; } .city-log-list { max-height: 96px; } }
 
+/* Phase 4D — city pressure panel (non-authoritative atmosphere; sits above the world log) */
+.city-pressure { position: absolute; left: 14px; bottom: 322px; width: 248px; max-width: 46vw; z-index: 4;
+  padding: 8px 10px; border: 1px solid var(--mg); border-radius: 10px; background: var(--panel);
+  backdrop-filter: blur(8px); box-shadow: 0 0 18px rgba(255, 45, 149, .18); }
+.city-pressure .cp-mood { font-family: "Bungee", var(--mono); font-size: 12px; letter-spacing: 1.5px; color: #ffd7ec; text-shadow: 0 0 10px var(--mg); }
+.city-pressure .cp-line { font-size: 11px; line-height: 1.5; color: var(--ink); letter-spacing: .3px; }
+.city-pressure:empty { display: none; }
+@media (max-width: 560px) { .city-pressure { bottom: 236px; width: 200px; } }
+
 /* respect reduced motion: drop the blinking status dot animation */
 @media (prefers-reduced-motion: reduce) {
   .pill .dot.wait { animation: none; }

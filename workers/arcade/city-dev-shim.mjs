@@ -15,7 +15,8 @@ import {
   resolveCityRoomId, getCity, isValidPlayerId, createCityState, addPlayer, applyInput, removePlayer,
   touchPlayer, stalePlayerIds, enterPortal, welcomePayload, citySnapshot,
 } from '../../arcade/city/city-block.mjs';
-import { createEventLog, appendCityEvent, cityEventsPayload } from '../../arcade/city/city-events.mjs';
+import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from '../../arcade/city/city-events.mjs';
+import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from '../../arcade/city/city-scheduler.mjs';
 
 const PORT = Number(process.env.CITY_PORT || process.env.PORT || 8788);
 const STALE_SWEEP_MS = 30_000;
@@ -23,6 +24,7 @@ const SNAP_REQ_MIN_MS = 250;
 
 const cities = {};                 // cityId -> pure city state
 const eventLogs = {};              // cityId -> append-only world event log (Phase 4C)
+const pressures = {};              // cityId -> last Hive-Scheduler snapshot (Phase 4D)
 const sockets = new Map();         // ws -> { playerId, cityId, interiorOpen, ... }
 
 const cityState = (cityId) => (cities[cityId] ||= createCityState());
@@ -42,6 +44,32 @@ function hasSocketFor(cityId, playerId) {
   return false;
 }
 
+// Phase 4D: re-evaluate non-authoritative city pressure (DO parity). Emits a tick /
+// new suggestions only on change (bounded), broadcasts scheduler state, returns changed.
+function evaluateScheduler(cityId) {
+  const now = Date.now();
+  const occupancy = Object.keys(cityState(cityId).players).length;
+  const snap = evaluatePressure({ cityId, now, recentEvents: recentEvents(eventLog(cityId)), occupancy });
+  const prev = pressures[cityId];
+  const meaningful = pressureChanged(prev, snap) && !(!prev && isBaselinePressure(snap)); // first idle eval is not news
+  if (meaningful) {
+    emit(cityId, 'city_scheduler_tick', null, { pressure: snap.pressure.scheduler_mood, reason: 'pressure_update' });
+    const prevReasons = new Set(suggestionReasons(prev));
+    for (const s of snap.suggestions) if (!prevReasons.has(s.reason)) emit(cityId, 'city_pressure_suggested', null, { pressure: snap.pressure.scheduler_mood, reason: s.reason, severity: s.severity });
+    broadcast(cityId, { t: 'city_scheduler_state', ...schedulerStatePayload(snap) });
+  }
+  pressures[cityId] = snap;
+  return meaningful;
+}
+function schedulerRequest(ws, meta) {
+  if (!meta.playerId) return; // parity with the DO: only joined sockets can request
+  const now = Date.now();
+  if (now - (meta.lastSchedReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
+  meta.lastSchedReqAt = now;
+  evaluateScheduler(meta.cityId);
+  send(ws, { t: 'city_scheduler_state', ...schedulerStatePayload(pressures[meta.cityId]) });
+}
+
 function join(ws, meta, data) {
   const playerId = data.playerId;
   if (!isValidPlayerId(playerId)) { send(ws, { t: 'city_error', code: 'no_identity', message: 'a valid playerId is required' }); return; }
@@ -57,6 +85,9 @@ function join(ws, meta, data) {
   broadcastExcept(ws, meta.cityId, { t: 'city_player_joined', id: playerId, x: res.player.x, y: res.player.y }); // legacy
   emit(meta.cityId, 'city_player_joined', playerId, {}); // canonical append-only event
   snapshot(meta.cityId, now);
+  // Phase 4D: if the eval broadcast a state change it already reached this socket; only
+  // send explicitly when it did not, so a (re)connect sees current pressure exactly once.
+  if (!evaluateScheduler(meta.cityId)) send(ws, { t: 'city_scheduler_state', ...schedulerStatePayload(pressures[meta.cityId]) });
 }
 
 function input(ws, meta, data) {
@@ -72,16 +103,18 @@ function portal(ws, meta, data) {
   const portalId = data.portalId;
   emit(meta.cityId, 'city_portal_enter_requested', meta.playerId, { portalId });
   const res = enterPortal(cityState(meta.cityId), meta.playerId, portalId);
-  if (!res.ok) { emit(meta.cityId, 'city_portal_enter_rejected', meta.playerId, { portalId, reason: res.reason }); send(ws, { t: 'city_error', code: `portal_${res.reason}`, message: 'portal entry denied' }); return; }
+  if (!res.ok) { emit(meta.cityId, 'city_portal_enter_rejected', meta.playerId, { portalId, reason: res.reason }); send(ws, { t: 'city_error', code: `portal_${res.reason}`, message: 'portal entry denied' }); evaluateScheduler(meta.cityId); return; }
   emit(meta.cityId, 'city_portal_enter_accepted', meta.playerId, { portalId, target: res.target });
   if (!meta.interiorOpen) { meta.interiorOpen = true; emit(meta.cityId, 'city_arcade_interior_opened', meta.playerId, { portalId }); }
   send(ws, { t: 'city_portal_ok', portalId, target: res.target });
+  evaluateScheduler(meta.cityId);
 }
 
 function portalClose(ws, meta) {
   if (!meta.playerId || !meta.interiorOpen) return;
   meta.interiorOpen = false;
   emit(meta.cityId, 'city_arcade_interior_closed', meta.playerId, {});
+  evaluateScheduler(meta.cityId);
 }
 
 function eventsRequest(ws, meta) {
@@ -102,12 +135,14 @@ function drop(ws, announce = false) {
   broadcast(meta.cityId, { t: 'city_player_left', id: meta.playerId }); // legacy
   emit(meta.cityId, 'city_player_left', meta.playerId, {});             // canonical append-only event (once)
   snapshot(meta.cityId, Date.now());
+  evaluateScheduler(meta.cityId);
 }
 
 function dispatch(ws, meta, data) {
   switch (data.t) {
     case 'city_join': join(ws, meta, data); break;
     case 'city_input': input(ws, meta, data); break;
+    case 'city_scheduler_request': schedulerRequest(ws, meta); break;
     case 'city_snapshot_request': {
       const now = Date.now();
       if (now - (meta.lastSnapReqAt || 0) < SNAP_REQ_MIN_MS) break; // anti-spam
@@ -149,6 +184,7 @@ setInterval(() => {
       emit(cityId, 'city_player_left', id, {});         // canonical append-only event
       snapshot(cityId, now);
     }
+    evaluateScheduler(cityId); // Phase 4D: periodic decay
   }
 }, STALE_SWEEP_MS);
 
