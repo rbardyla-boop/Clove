@@ -103,6 +103,9 @@ export function runProductionConfigChecks(sources = {}) {
     prodDo ? 'ArcadeRoom binding present' : 'MISSING ArcadeRoom in [env.production.durable_objects]');
   check('production re-declares RoomRegistry DO binding', /class_name\s*=\s*"RoomRegistry"/.test(prodDo),
     prodDo ? 'RoomRegistry binding present' : 'MISSING RoomRegistry in [env.production.durable_objects]');
+  // Phase 4A: the isolated city-block DO must also be re-declared in production.
+  check('production re-declares CityRoom DO binding', /class_name\s*=\s*"CityRoom"/.test(prodDo),
+    prodDo ? 'CityRoom binding present' : 'MISSING CityRoom in [env.production.durable_objects]');
 
   const prodMigrations = toml.includes('[[env.production.migrations]]')
     ? toml.slice(toml.indexOf('[[env.production.migrations]]'))
@@ -111,11 +114,51 @@ export function runProductionConfigChecks(sources = {}) {
     prodMigrations ? 'v1 ArcadeRoom migration present' : 'MISSING [[env.production.migrations]] v1');
   check('production re-declares RoomRegistry v2 migration', /new_sqlite_classes\s*=\s*\[\s*"RoomRegistry"\s*\]/.test(prodMigrations),
     prodMigrations ? 'v2 RoomRegistry migration present' : 'MISSING [[env.production.migrations]] v2');
+  check('production re-declares CityRoom v3 migration', /new_sqlite_classes\s*=\s*\[\s*"CityRoom"\s*\]/.test(prodMigrations),
+    prodMigrations ? 'v3 CityRoom migration present' : 'MISSING [[env.production.migrations]] v3');
 
   // The test-clock hook must stay dev-gated in code, so ENVIRONMENT=production rejects it.
   const hookDevGated = /case\s+"__test_set_event_now"\s*:\s*{[\s\S]*?env\.ENVIRONMENT\s*===\s*"development"/.test(arcadeRoom);
   check('__test_set_event_now is dev-gated in arcade-room.ts', hookDevGated,
     hookDevGated ? 'hook guarded by ENVIRONMENT === "development"' : 'test-clock hook is NOT dev-gated — would be live in production');
+
+  // ── staging (enforce-if-present): the pre-production smoke target must ALSO never ──
+  // ship ENVIRONMENT=development, so NO deployable named env can expose the test hook.
+  // Staging is optional; these checks only run when [env.staging.vars] exists.
+  const stagingVars = tableBody(toml, 'env.staging.vars');
+  if (stagingVars != null) {
+    const stagingEnv = tomlString(stagingVars, 'ENVIRONMENT');
+    check('staging ENVIRONMENT is not development',
+      typeof stagingEnv === 'string' && stagingEnv.length > 0 && stagingEnv !== 'development',
+      `ENVIRONMENT="${stagingEnv}" (must be a non-"development" value, e.g. "staging")`);
+
+    const stagingAdmin = tomlString(stagingVars, 'ADMIN_ENABLED');
+    check('staging ADMIN_ENABLED is false', stagingAdmin === 'false',
+      `ADMIN_ENABLED="${stagingAdmin}" (must be "false")`);
+
+    for (const [envKey, resolvedKey, bounds] of eventChecks) {
+      const raw = tomlString(stagingVars, envKey);
+      const n = Number(raw);
+      const resolved = resolveEventPresentation({ [resolvedKey]: raw })[resolvedKey];
+      check(`staging ${envKey} within clamp bounds`, Number.isFinite(n) && n === resolved,
+        `${envKey}="${raw}" resolves to ${resolved} (safe range ${bounds.min}..${bounds.max})`);
+    }
+
+    const stagingDo = tableBody(toml, 'env.staging.durable_objects') || '';
+    check('staging re-declares all DO bindings',
+      /class_name\s*=\s*"ArcadeRoom"/.test(stagingDo) && /class_name\s*=\s*"RoomRegistry"/.test(stagingDo)
+        && /class_name\s*=\s*"CityRoom"/.test(stagingDo),
+      stagingDo ? 'ArcadeRoom + RoomRegistry + CityRoom present' : 'MISSING [env.staging.durable_objects]');
+
+    const stagingMig = toml.includes('[[env.staging.migrations]]')
+      ? toml.slice(toml.indexOf('[[env.staging.migrations]]'))
+      : '';
+    check('staging re-declares all DO migrations',
+      /new_sqlite_classes\s*=\s*\[\s*"ArcadeRoom"\s*\]/.test(stagingMig)
+        && /new_sqlite_classes\s*=\s*\[\s*"RoomRegistry"\s*\]/.test(stagingMig)
+        && /new_sqlite_classes\s*=\s*\[\s*"CityRoom"\s*\]/.test(stagingMig),
+      stagingMig ? 'v1 + v2 + v3 present' : 'MISSING [[env.staging.migrations]]');
+  }
 
   return { ok: results.every((r) => r.ok), results };
 }

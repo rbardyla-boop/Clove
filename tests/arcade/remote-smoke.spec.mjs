@@ -211,16 +211,16 @@ async function safetyChecks(browser) {
     (before.current_event && before.current_event.event_id) !== (after.current_event && after.current_event.event_id)
     || (Number(before.event_ends_in_ms) - Number(after.event_ends_in_ms) > 2 * 60 * 1000)
   );
-  if (EXPECT_ENV === 'production') {
-    check('__test_set_event_now is REJECTED in production', !!before && !!after && !changed, `${sig(before)} -> ${sig(after)}`);
-  } else if (EXPECT_ENV === 'development') {
+  if (EXPECT_ENV === 'development') {
     check('__test_set_event_now is honored in development (harness can detect it)', changed, `${sig(before)} -> ${sig(after)}`);
-    // Restore the display-only override so the room is left untouched.
-    await wsRoundtrip(page, { sends: [{ t: '__test_set_event_now', nowMs: null }] });
+  } else if (EXPECT_ENV) {
+    // Any non-development env (production, staging, …) must REJECT the test clock.
+    check(`__test_set_event_now is REJECTED in ${EXPECT_ENV}`, !!before && !!after && !changed, `${sig(before)} -> ${sig(after)}`);
   } else {
-    skip('test-clock rejection assertion', 'set EXPECT_ENVIRONMENT=production|development to assert');
-    await wsRoundtrip(page, { sends: [{ t: '__test_set_event_now', nowMs: null }] });
+    skip('test-clock rejection assertion', 'set EXPECT_ENVIRONMENT (development asserts honored; anything else asserts rejected)');
   }
+  // Always restore the display-only override (no-op where the hook is gated/rejected).
+  await wsRoundtrip(page, { sends: [{ t: '__test_set_event_now', nowMs: null }] });
 
   // Admin gate: both-gate (flag + token). diagnostics is read-only / non-destructive.
   const adminResult = (msgs) => msgs.filter((m) => m && m.t === 'room_admin_result').pop() || null;

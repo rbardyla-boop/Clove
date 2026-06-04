@@ -12,10 +12,14 @@ compatibility_date = "2026-05-31"
 # and owns admin status overrides for the room-lifecycle tooling.
 # Phase 2c: room DOs report a periodic HEARTBEAT to the registry, which derives
 # per-room health (healthy/stale/offline) + evicts stale population. No new bindings.
+# Phase 4A: CityRoom is a SEPARATE, isolated DO for the top-down city-block prototype.
+# It is per-block sharded (idFromName(cityId)), never talks to the RoomRegistry, and
+# never touches arcade occupancy/ticket state — so the arcade authority is unchanged.
 [durable_objects]
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
-  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
+  { name = "CITY_ROOM", class_name = "CityRoom" }
 ]
 
 # SQLite-backed Durable Objects (recommended for new classes).
@@ -26,6 +30,11 @@ new_sqlite_classes = ["ArcadeRoom"]
 [[migrations]]
 tag = "v2"
 new_sqlite_classes = ["RoomRegistry"]
+
+# Phase 4A: city-block authority DO (additive; declared here, only RUN on a deploy).
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["CityRoom"]
 
 # Local development settings.
 [vars]
@@ -63,7 +72,8 @@ EVENT_SHOW_FEATURED = "true"
 [env.production.durable_objects]
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
-  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
+  { name = "CITY_ROOM", class_name = "CityRoom" }
 ]
 
 [[env.production.migrations]]
@@ -73,3 +83,47 @@ new_sqlite_classes = ["ArcadeRoom"]
 [[env.production.migrations]]
 tag = "v2"
 new_sqlite_classes = ["RoomRegistry"]
+
+[[env.production.migrations]]
+tag = "v3"
+new_sqlite_classes = ["CityRoom"]
+
+# ===================== Phase 3 (staging): pre-production environment =====================
+# Deploy staging with:  wrangler deploy --env staging   →  Worker `neon-arcade-mesh-staging`.
+# A SAFE, separate target for the pre-production remote smoke. Like production, named envs
+# do NOT inherit top-level vars/durable_objects/migrations, so they are re-declared here.
+#   * ENVIRONMENT = "staging"  → a NON-"development" value, so the __test_set_event_now
+#     event-clock hook is rejected (the code only honors it when ENVIRONMENT === "development").
+#   * ADMIN_ENABLED = "false"  → admin/live-ops surface OFF by default (and still needs a
+#     separately-configured ADMIN_TOKEN secret to ever be on).
+#   * EVENT_* are the display-only presentation defaults (clamped server-side).
+# ADMIN_TOKEN is NEVER set here. Staging is a DISTINCT Worker + DO namespace from production.
+[env.staging]
+name = "neon-arcade-mesh-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ADMIN_ENABLED = "false"
+EVENT_PREROLL_LEAD_MS = "120000"
+EVENT_COUNTDOWN_REFRESH_MS = "1000"
+EVENT_SHOW_NEXT = "true"
+EVENT_SHOW_FEATURED = "true"
+
+[env.staging.durable_objects]
+bindings = [
+  { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
+  { name = "CITY_ROOM", class_name = "CityRoom" }
+]
+
+[[env.staging.migrations]]
+tag = "v1"
+new_sqlite_classes = ["ArcadeRoom"]
+
+[[env.staging.migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomRegistry"]
+
+[[env.staging.migrations]]
+tag = "v3"
+new_sqlite_classes = ["CityRoom"]
