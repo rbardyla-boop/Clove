@@ -100,6 +100,21 @@ export function createCanvas2DRenderer(canvas, layout) {
       label({ x: z.x, y: z.y, w: z.w, h: z.h }, z.label, streetColor, true);
     }
 
+    // Phase 4G: Block Trial signal-node overlay (copied-style accent; non-destructive)
+    if (view.trial && Array.isArray(view.trial.nodes)) {
+      const tcol = view.trial.accent || streetColor;
+      for (const n of view.trial.nodes) {
+        const [nx, ny] = w2s(n.x, n.y);
+        const rr = 18 * scale * 0.6 + 8;
+        ctx.save();
+        ctx.shadowColor = tcol; ctx.shadowBlur = (n.stabilized ? 18 : 8) * dpr;
+        ctx.strokeStyle = tcol; ctx.lineWidth = Math.max(1.5, 2.5 * dpr);
+        ctx.beginPath(); ctx.arc(nx, ny, rr, 0, Math.PI * 2); ctx.stroke();
+        if (n.stabilized) { ctx.globalAlpha = 0.5; ctx.fillStyle = tcol; ctx.beginPath(); ctx.arc(nx, ny, rr * 0.66, 0, Math.PI * 2); ctx.fill(); }
+        ctx.restore();
+      }
+    }
+
     // remote players
     for (const o of (view.others || [])) marker(o, PAL.other, false);
     // local player on top

@@ -18,7 +18,8 @@ import {
 import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from '../../arcade/city/city-events.mjs';
 import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from '../../arcade/city/city-scheduler.mjs';
 import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from '../../arcade/city/city-host-rank.mjs';
-import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload } from '../../arcade/city/city-stewardship.mjs';
+import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload, isStewardshipEligible } from '../../arcade/city/city-stewardship.mjs';
+import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from '../../arcade/city/city-battle-instance.mjs';
 
 const PORT = Number(process.env.CITY_PORT || process.env.PORT || 8788);
 const STALE_SWEEP_MS = 30_000;
@@ -30,6 +31,7 @@ const pressures = {};              // cityId -> last Hive-Scheduler snapshot (Ph
 const hostRanks = {};              // cityId -> last Host Rank snapshot (Phase 4E)
 const rankChangedLast = {};        // cityId -> did the last host-rank eval broadcast (join dedup)
 const stewardships = {};           // cityId -> canonical block style (Phase 4F)
+const trials = {};                 // cityId -> active Block Trial instance (Phase 4G; in-memory, ephemeral)
 const sockets = new Map();         // ws -> { playerId, cityId, interiorOpen, ... }
 
 const cityState = (cityId) => (cities[cityId] ||= createCityState());
@@ -129,6 +131,65 @@ function stewardshipRequest(ws, meta, data) {
   send(ws, { t: 'city_stewardship_result', ok: true, action: res.action, target: res.target, reason: res.reason, public_safe: true });
 }
 
+// Phase 4G: instanced, non-destructive Block Trial (DO parity). Players move via the
+// existing city_input authority; the trial reads server positions + latches nodes. Never
+// mutates public city/stewardship state. trials[] is in-memory + ephemeral (no persistence).
+function broadcastTrial(cityId) { broadcast(cityId, { t: 'city_block_trial_state', ...trialStatePayload(trials[cityId]) }); }
+function tickTrial(cityId) {
+  if (!isTrialActive(trials[cityId])) return false;
+  const now = Date.now();
+  const positions = {};
+  for (const pid of Object.keys(trials[cityId].players)) { const p = cityState(cityId).players[pid]; if (p) positions[pid] = { x: p.x, y: p.y }; }
+  const r = stepTrial(trials[cityId], { now, positions });
+  trials[cityId] = r.state;
+  if (!r.changed) return false;
+  if (r.completed) { const o = trials[cityId].outcome || {}; emit(cityId, 'city_block_trial_completed', null, { instance_id: trials[cityId].instance_id, objective: trials[cityId].objective, status: trials[cityId].status, score: trials[cityId].score, score_cap: trials[cityId].score_cap, node_count: o.node_count, stabilized_count: o.stabilized, duration_ms: o.duration_ms, reason: o.result }); }
+  else { emit(cityId, 'city_block_trial_updated', null, { instance_id: trials[cityId].instance_id, status: trials[cityId].status, score: trials[cityId].score, score_cap: trials[cityId].score_cap, stabilized_count: trials[cityId].score }); }
+  broadcastTrial(cityId);
+  return true;
+}
+function trialRequest(ws, meta) {
+  if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }
+  const now = Date.now();
+  if (now - (meta.lastTrialReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
+  meta.lastTrialReqAt = now;
+  if (isTrialActive(trials[meta.cityId]) && now < trials[meta.cityId].ends_at) { emit(meta.cityId, 'city_block_trial_rejected', meta.playerId, { reason: 'trial_active' }); send(ws, { t: 'city_block_trial_result', ok: false, reason: 'trial_active', public_safe: true }); return; }
+  if (!isStewardshipEligible(hostRanks[meta.cityId]?.host_rank)) { emit(meta.cityId, 'city_block_trial_rejected', meta.playerId, { reason: 'host_rank_too_low' }); send(ws, { t: 'city_block_trial_result', ok: false, reason: 'host_rank_too_low', public_safe: true }); return; }
+  const instanceId = `trial-${meta.cityId}-${now}`;
+  let trial = createTrial({ cityId: meta.cityId, instanceId, now, copiedStyle: stewardship(meta.cityId) });
+  trial = addTrialPlayer(trial, meta.playerId, now);
+  trials[meta.cityId] = trial;
+  emit(meta.cityId, 'city_block_trial_requested', meta.playerId, { instance_id: instanceId, objective: trial.objective });
+  emit(meta.cityId, 'city_block_trial_started', meta.playerId, { instance_id: instanceId, objective: trial.objective, status: trial.status, node_count: trial.signal_nodes.length, score_cap: trial.score_cap });
+  broadcastTrial(meta.cityId);
+  send(ws, { t: 'city_block_trial_result', ok: true, action: 'request', instance_id: instanceId, public_safe: true });
+}
+function trialJoin(ws, meta) {
+  if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }
+  const now = Date.now();
+  if (now - (meta.lastTrialReqAt || 0) < SNAP_REQ_MIN_MS) return;
+  meta.lastTrialReqAt = now;
+  if (!isTrialActive(trials[meta.cityId])) { send(ws, { t: 'city_block_trial_result', ok: false, reason: 'no_active_trial', public_safe: true }); return; }
+  if (!trials[meta.cityId].players[meta.playerId]) { trials[meta.cityId] = addTrialPlayer(trials[meta.cityId], meta.playerId, now); emit(meta.cityId, 'city_block_trial_joined', meta.playerId, { instance_id: trials[meta.cityId].instance_id }); broadcastTrial(meta.cityId); }
+  send(ws, { t: 'city_block_trial_result', ok: true, action: 'join', instance_id: trials[meta.cityId].instance_id, public_safe: true });
+}
+function trialLeave(ws, meta) {
+  if (!meta.playerId || !trials[meta.cityId] || !trials[meta.cityId].players[meta.playerId]) return;
+  trials[meta.cityId] = removeTrialPlayer(trials[meta.cityId], meta.playerId);
+  broadcastTrial(meta.cityId);
+}
+function trialClose(ws, meta) {
+  if (!meta.playerId || !trials[meta.cityId]) return;
+  if (isTrialActive(trials[meta.cityId]) && !trials[meta.cityId].players[meta.playerId]) { send(ws, { t: 'city_block_trial_result', ok: false, reason: 'not_a_member', public_safe: true }); return; }
+  const now = Date.now();
+  trials[meta.cityId] = closeTrial(trials[meta.cityId], now);
+  const o = trials[meta.cityId].outcome || {};
+  emit(meta.cityId, 'city_block_trial_closed', meta.playerId, { instance_id: trials[meta.cityId].instance_id, status: trials[meta.cityId].status, score: trials[meta.cityId].score, node_count: o.node_count, stabilized_count: o.stabilized, duration_ms: o.duration_ms, reason: o.result });
+  broadcastTrial(meta.cityId);
+  send(ws, { t: 'city_block_trial_result', ok: true, action: 'close', instance_id: trials[meta.cityId].instance_id, public_safe: true });
+  trials[meta.cityId] = null; // discard the instance
+}
+
 function join(ws, meta, data) {
   const playerId = data.playerId;
   if (!isValidPlayerId(playerId)) { send(ws, { t: 'city_error', code: 'no_identity', message: 'a valid playerId is required' }); return; }
@@ -151,6 +212,8 @@ function join(ws, meta, data) {
   if (!rankChangedLast[meta.cityId]) send(ws, { t: 'city_host_rank_state', ...hostRankStatePayload(hostRanks[meta.cityId]) });
   // Phase 4F: a (re)connect always sees the current canonical block style.
   send(ws, { t: 'city_stewardship_state', ...stewardshipStatePayload(stewardship(meta.cityId)) });
+  // Phase 4G: a (re)connect sees an in-progress Block Trial, if any.
+  if (trials[meta.cityId]) send(ws, { t: 'city_block_trial_state', ...trialStatePayload(trials[meta.cityId]) });
 }
 
 function input(ws, meta, data) {
@@ -158,7 +221,7 @@ function input(ws, meta, data) {
   const now = Date.now();
   const res = applyInput(cityState(meta.cityId), meta.playerId, data, now);
   cities[meta.cityId] = res.state;
-  if (res.accepted) snapshot(meta.cityId, now);
+  if (res.accepted) { snapshot(meta.cityId, now); tickTrial(meta.cityId); } // Phase 4G: member moves may stabilize a node
 }
 
 function portal(ws, meta, data) {
@@ -198,6 +261,11 @@ function drop(ws, announce = false) {
   broadcast(meta.cityId, { t: 'city_player_left', id: meta.playerId }); // legacy
   emit(meta.cityId, 'city_player_left', meta.playerId, {});             // canonical append-only event (once)
   snapshot(meta.cityId, Date.now());
+  // Phase 4G: a leaver also leaves any active trial (the instance is non-destructive).
+  if (trials[meta.cityId] && trials[meta.cityId].players && trials[meta.cityId].players[meta.playerId]) {
+    trials[meta.cityId] = removeTrialPlayer(trials[meta.cityId], meta.playerId);
+    broadcastTrial(meta.cityId);
+  }
   evaluateScheduler(meta.cityId);
 }
 
@@ -208,6 +276,10 @@ function dispatch(ws, meta, data) {
     case 'city_scheduler_request': schedulerRequest(ws, meta); break;
     case 'city_host_rank_request': hostRankRequest(ws, meta); break;
     case 'city_stewardship_request': stewardshipRequest(ws, meta, data); break;
+    case 'city_block_trial_request': trialRequest(ws, meta); break;
+    case 'city_block_trial_join_request': trialJoin(ws, meta); break;
+    case 'city_block_trial_leave': trialLeave(ws, meta); break;
+    case 'city_block_trial_close_request': trialClose(ws, meta); break;
     case 'city_snapshot_request': {
       const now = Date.now();
       if (now - (meta.lastSnapReqAt || 0) < SNAP_REQ_MIN_MS) break; // anti-spam

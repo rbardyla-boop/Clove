@@ -79,9 +79,11 @@ test('recentEvents + cityEventsPayload return the last N, schema-versioned and b
   assert.ok(Array.isArray(payload.events));
 });
 
-test('the city event types are exactly the documented set (4C facts + 4D scheduler + 4E host rank + 4F stewardship); unknown types are not honored', () => {
+test('the city event types are exactly the documented set (4C facts + 4D scheduler + 4E host rank + 4F stewardship + 4G trial); unknown types are not honored', () => {
   assert.deepEqual([...EVENT_TYPES].sort(), [
     'city_arcade_interior_closed', 'city_arcade_interior_opened',
+    'city_block_trial_closed', 'city_block_trial_completed', 'city_block_trial_joined',
+    'city_block_trial_rejected', 'city_block_trial_requested', 'city_block_trial_started', 'city_block_trial_updated',
     'city_host_rank_changed', 'city_host_rank_evaluated',
     'city_player_joined', 'city_player_left',
     'city_portal_enter_accepted', 'city_portal_enter_rejected', 'city_portal_enter_requested',
@@ -121,4 +123,13 @@ test('4F stewardship payload fields (target/palette/sign_variant/intensity) are 
   });
   assert.deepEqual(event.payload, { target: 'arcade_front', reason: 'applied', palette: 'amber', sign_variant: 'circuit', intensity: 'high' });
   assert.ok(!/css|evil|owner|balance/.test(JSON.stringify(event)));
+});
+
+test('4G trial payload fields (instance_id/objective/status/score/node counts/duration) are allowlisted; wager/payout/private dropped', () => {
+  const { event } = appendCityEvent(createEventLog(), {
+    type: 'city_block_trial_completed', cityId: CITY, now: 1,
+    payload: { instance_id: 'trial-1', objective: 'signal_grid_trial', status: 'complete', score: 3, score_cap: 3, node_count: 3, stabilized_count: 3, duration_ms: 4200, reason: 'stabilized', wager: 50, payout: 999, entry_fee: 5, owner: 'x', balance: 9 },
+  });
+  assert.deepEqual(event.payload, { reason: 'stabilized', score: 3, score_cap: 3, instance_id: 'trial-1', objective: 'signal_grid_trial', status: 'complete', node_count: 3, stabilized_count: 3, duration_ms: 4200 });
+  assert.ok(!/wager|payout|entry_fee|owner|balance/.test(JSON.stringify(event)));
 });

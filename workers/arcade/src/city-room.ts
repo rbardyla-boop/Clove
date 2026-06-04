@@ -27,7 +27,8 @@ import {
 import { createEventLog, appendCityEvent, cityEventsPayload, recentEvents } from "../../../arcade/city/city-events.mjs";
 import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePayload, isBaselinePressure } from "../../../arcade/city/city-scheduler.mjs";
 import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from "../../../arcade/city/city-host-rank.mjs";
-import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload } from "../../../arcade/city/city-stewardship.mjs";
+import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload, isStewardshipEligible } from "../../../arcade/city/city-stewardship.mjs";
+import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from "../../../arcade/city/city-battle-instance.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -47,6 +48,7 @@ interface SocketMeta {
   lastSchedReqAt: number;
   lastRankReqAt: number;
   lastStewReqAt: number;
+  lastTrialReqAt: number;
   interiorOpen: boolean;
 }
 
@@ -60,6 +62,7 @@ export class CityRoom implements DurableObject {
   private hostRank: any = null;                        // Phase 4E: last Host Rank snapshot (in-memory; derived from the log + scheduler)
   private rankChangedLast = false;                     // did the last host-rank eval broadcast a change (for join-send dedup)
   private stewardship: any = null;                      // Phase 4F: canonical block style (server-owned; persisted, hibernation-safe)
+  private trial: any = null;                             // Phase 4G: active Block Trial instance (in-memory, ephemeral; never persisted)
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
 
@@ -73,7 +76,7 @@ export class CityRoom implements DurableObject {
       if (att?.playerId) {
         // interiorOpen is rehydrated from the attachment so a DO hibernation/restart while
         // a player is inside the arcade still fires city_arcade_interior_closed on disconnect.
-        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, interiorOpen: !!att.interiorOpen });
+        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, interiorOpen: !!att.interiorOpen });
         if (att.cityId) this.boundCityId = att.cityId; // trusted: we serialized this attachment ourselves
       }
     }
@@ -144,6 +147,10 @@ export class CityRoom implements DurableObject {
       case "city_scheduler_request": { await this.handleSchedulerRequest(ws); break; }
       case "city_host_rank_request": { await this.handleHostRankRequest(ws); break; }
       case "city_stewardship_request": { await this.handleStewardshipRequest(ws, data); break; }
+      case "city_block_trial_request": { await this.handleTrialRequest(ws); break; }
+      case "city_block_trial_join_request": { await this.handleTrialJoin(ws); break; }
+      case "city_block_trial_leave": { this.handleTrialLeave(ws); break; }
+      case "city_block_trial_close_request": { await this.handleTrialClose(ws); break; }
       // accept the 4C name + the 4B name (alias) so old clients keep working
       case "city_portal_enter":
       case "city_portal_enter_request": { await this.handlePortal(ws, data); break; }
@@ -181,7 +188,7 @@ export class CityRoom implements DurableObject {
     this.state = res.state;
 
     ws.serializeAttachment({ playerId, cityId: this.boundCityId, interiorOpen: false });
-    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, interiorOpen: false });
+    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, interiorOpen: false });
 
     this.send(ws, { t: "city_welcome", ...welcomePayload(this.state, playerId, this.boundCityId, now) });
     this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) }); // recent history on (re)join
@@ -197,6 +204,8 @@ export class CityRoom implements DurableObject {
     if (!this.rankChangedLast) this.send(ws, { t: "city_host_rank_state", ...hostRankStatePayload(this.hostRank) });
     // Phase 4F: a (re)connect always sees the current canonical block style.
     this.send(ws, { t: "city_stewardship_state", ...stewardshipStatePayload(this.stewardship) });
+    // Phase 4G: a (re)connect to a warm DO sees an in-progress Block Trial, if any.
+    if (this.trial) this.send(ws, { t: "city_block_trial_state", ...trialStatePayload(this.trial) });
     await this.persist();
     this.scheduleSweep();
   }
@@ -210,7 +219,11 @@ export class CityRoom implements DurableObject {
     meta.lastHeartbeat = now;
     // Broadcast the canonical snapshot only when the server actually accepted a move.
     // Inputs are rate-limited per player in the pure core, so this cadence is bounded.
-    if (res.accepted) this.broadcastSnapshot(now);
+    if (res.accepted) {
+      this.broadcastSnapshot(now);
+      // Phase 4G: a member's accepted move may stabilize a signal node — step the trial.
+      if (this.tickTrial()) await this.persist();
+    }
   }
 
   private handleSnapshotRequest(ws: WebSocket): void {
@@ -298,6 +311,11 @@ export class CityRoom implements DurableObject {
     this.broadcast({ t: "city_player_left", id: meta.playerId }); // legacy 4B message
     this.emit("city_player_left", meta.playerId, {});             // canonical append-only event (once)
     this.broadcastSnapshot(now);
+    // Phase 4G: a leaver also leaves any active trial (the instance is non-destructive).
+    if (this.trial && this.trial.players && this.trial.players[meta.playerId]) {
+      this.trial = removeTrialPlayer(this.trial, meta.playerId);
+      this.broadcast({ t: "city_block_trial_state", ...trialStatePayload(this.trial) });
+    }
     this.evaluateScheduler();
     await this.persist();
   }
@@ -338,6 +356,7 @@ export class CityRoom implements DurableObject {
     }
     if (changed) this.broadcastSnapshot(now);
     this.evaluateScheduler(); // Phase 4D: periodic decay (activity ages out of the window)
+    this.tickTrial();         // Phase 4G: time-based trial completion when idle (no movement)
     await this.persist();
     if (this.sockets.size > 0 || Object.keys(this.state.players).length > 0) this.scheduleSweep();
   }
@@ -470,5 +489,115 @@ export class CityRoom implements DurableObject {
     this.broadcast({ t: "city_stewardship_state", ...stewardshipStatePayload(this.stewardship) });
     this.send(ws, { t: "city_stewardship_result", ok: true, action: res.action, target: res.target, reason: res.reason, public_safe: true });
     await this.persist();
+  }
+
+  // ==================== Phase 4G: Instanced, non-destructive Block Trial ====================
+
+  private broadcastTrial(): void {
+    this.broadcast({ t: "city_block_trial_state", ...trialStatePayload(this.trial) });
+  }
+
+  /**
+   * Advance the active trial from the SERVER-authoritative positions of its members (players
+   * move via the existing city_input authority — the trial never owns movement). Emits an
+   * updated/completed event + broadcasts ONLY on a node-latch/status change (bounded). Returns
+   * whether anything changed (so the caller can persist the appended log entry). Never mutates
+   * public city/stewardship state. Display-only.
+   */
+  private tickTrial(): boolean {
+    if (!isTrialActive(this.trial)) return false;
+    const now = Date.now();
+    const positions: Record<string, { x: number; y: number }> = {};
+    for (const pid of Object.keys(this.trial.players)) {
+      const p = this.state.players[pid];
+      if (p) positions[pid] = { x: p.x, y: p.y };
+    }
+    const r = stepTrial(this.trial, { now, positions });
+    this.trial = r.state;
+    if (!r.changed) return false;
+    if (r.completed) {
+      const o = this.trial.outcome || {};
+      this.emit("city_block_trial_completed", null, { instance_id: this.trial.instance_id, objective: this.trial.objective, status: this.trial.status, score: this.trial.score, score_cap: this.trial.score_cap, node_count: o.node_count, stabilized_count: o.stabilized, duration_ms: o.duration_ms, reason: o.result });
+    } else {
+      this.emit("city_block_trial_updated", null, { instance_id: this.trial.instance_id, status: this.trial.status, score: this.trial.score, score_cap: this.trial.score_cap, stabilized_count: this.trial.score });
+    }
+    this.broadcastTrial();
+    return true;
+  }
+
+  /** Client request → create + start ONE active Block Trial (gated on stewardship eligibility). */
+  private async handleTrialRequest(ws: WebSocket): Promise<void> {
+    const meta = this.sockets.get(ws);
+    if (!meta) { this.send(ws, { t: "city_error", code: "no_identity", message: "Must city_join first" }); return; }
+    const now = Date.now();
+    if (now - meta.lastTrialReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
+    meta.lastTrialReqAt = now;
+
+    if (isTrialActive(this.trial) && now < this.trial.ends_at) {
+      this.emit("city_block_trial_rejected", meta.playerId, { reason: "trial_active" });
+      this.send(ws, { t: "city_block_trial_result", ok: false, reason: "trial_active", public_safe: true });
+      await this.persist();
+      return;
+    }
+    // gated on CURRENT stewardship eligibility — Host Rank as one signal (it grants nothing itself)
+    if (!isStewardshipEligible(this.hostRank?.host_rank)) {
+      this.emit("city_block_trial_rejected", meta.playerId, { reason: "host_rank_too_low" });
+      this.send(ws, { t: "city_block_trial_result", ok: false, reason: "host_rank_too_low", public_safe: true });
+      await this.persist();
+      return;
+    }
+
+    const instanceId = `trial-${this.boundCityId}-${now}`;
+    let trial = createTrial({ cityId: this.boundCityId, instanceId, now, copiedStyle: this.stewardship }); // COPIES the style
+    trial = addTrialPlayer(trial, meta.playerId, now); // the requester is the first member
+    this.trial = trial;
+    this.emit("city_block_trial_requested", meta.playerId, { instance_id: instanceId, objective: trial.objective });
+    this.emit("city_block_trial_started", meta.playerId, { instance_id: instanceId, objective: trial.objective, status: trial.status, node_count: trial.signal_nodes.length, score_cap: trial.score_cap });
+    this.broadcastTrial();
+    this.send(ws, { t: "city_block_trial_result", ok: true, action: "request", instance_id: instanceId, public_safe: true });
+    await this.persist();
+  }
+
+  /** Client request → join the active trial (open to any joined city player). */
+  private async handleTrialJoin(ws: WebSocket): Promise<void> {
+    const meta = this.sockets.get(ws);
+    if (!meta) { this.send(ws, { t: "city_error", code: "no_identity", message: "Must city_join first" }); return; }
+    const now = Date.now();
+    if (now - meta.lastTrialReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
+    meta.lastTrialReqAt = now;
+    if (!isTrialActive(this.trial)) { this.send(ws, { t: "city_block_trial_result", ok: false, reason: "no_active_trial", public_safe: true }); return; }
+    if (!this.trial.players[meta.playerId]) {
+      this.trial = addTrialPlayer(this.trial, meta.playerId, now);
+      this.emit("city_block_trial_joined", meta.playerId, { instance_id: this.trial.instance_id });
+      this.broadcastTrial();
+      await this.persist();
+    }
+    this.send(ws, { t: "city_block_trial_result", ok: true, action: "join", instance_id: this.trial.instance_id, public_safe: true });
+  }
+
+  /** Client request → leave the trial (membership only; the instance continues). */
+  private handleTrialLeave(ws: WebSocket): void {
+    const meta = this.sockets.get(ws);
+    if (!meta || !this.trial || !this.trial.players || !this.trial.players[meta.playerId]) return;
+    this.trial = removeTrialPlayer(this.trial, meta.playerId);
+    this.broadcastTrial();
+  }
+
+  /** Client request → close + DISCARD the trial. The public city/stewardship are untouched. */
+  private async handleTrialClose(ws: WebSocket): Promise<void> {
+    const meta = this.sockets.get(ws);
+    if (!meta || !this.trial) return;
+    if (isTrialActive(this.trial) && !this.trial.players[meta.playerId]) {
+      this.send(ws, { t: "city_block_trial_result", ok: false, reason: "not_a_member", public_safe: true });
+      return;
+    }
+    const now = Date.now();
+    this.trial = closeTrial(this.trial, now);
+    const o = this.trial.outcome || {};
+    this.emit("city_block_trial_closed", meta.playerId, { instance_id: this.trial.instance_id, status: this.trial.status, score: this.trial.score, node_count: o.node_count, stabilized_count: o.stabilized, duration_ms: o.duration_ms, reason: o.result });
+    this.broadcastTrial();
+    this.send(ws, { t: "city_block_trial_result", ok: true, action: "close", instance_id: this.trial.instance_id, public_safe: true });
+    await this.persist();
+    this.trial = null; // discard the instance (public city + stewardship remain unchanged)
   }
 }

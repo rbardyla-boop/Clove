@@ -17,7 +17,7 @@ import {
 } from './city-reconcile.mjs';
 import { createSnapshotBuffer, pushSnapshot, sampleSnapshotAt, latestServerTime } from './city-snapshots.mjs';
 import {
-  defaultBlockStyle, normalizeBlockStyle, mergeBlockStyle, isStewardshipEligible,
+  defaultBlockStyle, normalizeBlockStyle, mergeBlockStyle, isStewardshipEligible, styleToAccents,
   ALLOWED_TARGETS, ALLOWED_PALETTES, ALLOWED_SIGN_VARIANTS, ALLOWED_INTENSITY,
 } from './city-stewardship.mjs';
 import { CityNet, resolveCityWsUrl } from './city-net.js';
@@ -49,6 +49,7 @@ const eventLogEl = el('cityEventLog');
 const pressureEl = el('cityPressure');
 const hostRankEl = el('cityHostRank');
 const stewardshipEl = el('cityStewardship');
+const trialEl = el('cityBlockTrial');
 const rendererTag = el('rendererTag');
 const debugPanel = el('debugPanel');
 el('playerName').textContent = playerId;
@@ -80,6 +81,7 @@ let cityStewardship = defaultBlockStyle(); // Phase 4F: canonical block style (s
 let stewardshipPreview = null;       // Phase 4F: local, non-persistent preview (until server-confirmed)
 let stewardEligible = false;         // Phase 4F: current Host Rank confers stewardship eligibility?
 const stewSel = { target: 'arcade_front', palette: 'magenta', sign_variant: 'classic', intensity: 'medium' }; // editor selection
+let cityTrial = null;                 // Phase 4G: last Block Trial state from the server (display only)
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -150,6 +152,8 @@ const net = new CityNet({
     onHostRankState: (m) => { cityHostRank = m; stewardEligible = isStewardshipEligible(m && m.host_rank); renderHostRank(); updateStewardship(); },
     onStewardshipState: (m) => { cityStewardship = normalizeBlockStyle(m && m.stewardship); stewardshipPreview = null; applyEffectiveStyle(); updateStewardship(); },
     onStewardshipResult: (m) => { onStewardshipResult(m); },
+    onTrialState: (m) => { cityTrial = m && m.trial; updateTrial(); },
+    onTrialResult: (m) => { onTrialResult(m); },
     onError: (m) => {
       window.__neon_city.lastError = m;
       if (String(m.code).startsWith('portal_')) { portalState = 'rejected'; setTimeout(() => { if (portalState === 'rejected') portalState = 'idle'; }, 900); }
@@ -256,6 +260,13 @@ function eventLabel(e) {
     case 'city_stewardship_applied': return `${who} restyled ${(e.payload && e.payload.target) || 'block'} → ${(e.payload && e.payload.palette) || 'default'}`;
     case 'city_stewardship_rejected': return `${who}'s stewardship edit was declined (${(e.payload && e.payload.reason) || 'denied'})`;
     case 'city_stewardship_reset': return `${who} reset the block to city default`;
+    case 'city_block_trial_requested': return `${who} opened a block trial`;
+    case 'city_block_trial_started': return `block trial started · ${(e.payload && e.payload.objective) || 'signal grid'}`;
+    case 'city_block_trial_joined': return `${who} joined the block trial`;
+    case 'city_block_trial_updated': return `block trial · ${(e.payload && e.payload.score) || 0}/${(e.payload && e.payload.score_cap) || 3} nodes`;
+    case 'city_block_trial_completed': return `block trial complete · ${(e.payload && e.payload.reason) || 'done'} (${(e.payload && e.payload.stabilized_count) || 0}/${(e.payload && e.payload.score_cap) || 3})`;
+    case 'city_block_trial_rejected': return `block trial unavailable (${(e.payload && e.payload.reason) || 'denied'})`;
+    case 'city_block_trial_closed': return `block trial closed · public block unchanged`;
     default: return `${who} · ${e.type}`;
   }
 }
@@ -413,6 +424,67 @@ function onStewardshipResult(m) {
   updateStewardship();
 }
 
+// ── Block Trial (Phase 4G; instanced, non-destructive; server-owned match truth) ──
+// The client shows the trial and sends intent (request/join/close); the server owns
+// creation, the timer, node state, score, and outcome. Movement is the existing city
+// authority. textContent only; fixed buttons; no money/ownership copy.
+let trialBuilt = false;
+let trialStatusMsg = '';
+const trialEls = {};
+
+function trialActive() { return !!cityTrial && cityTrial.status === 'active'; }
+function trialView() {
+  if (!cityTrial || !Array.isArray(cityTrial.signal_nodes) || cityTrial.status === 'closed') return null;
+  const accent = cityTrial.copied_style ? styleToAccents(cityTrial.copied_style).street_lights.color : null;
+  return { nodes: cityTrial.signal_nodes.map((n) => ({ x: n.x, y: n.y, stabilized: n.stabilized })), accent };
+}
+
+function buildTrial() {
+  if (!trialEl || trialBuilt) return;
+  trialBuilt = true;
+  trialEl.textContent = '';
+  const head = stwLine('bt-head'); head.textContent = 'BLOCK TRIAL';
+  trialEls.obj = stwLine('bt-line');
+  trialEls.status = stwLine('bt-line');
+  trialEls.score = stwLine('bt-score');
+  trialEls.style = stwLine('bt-line');
+  const actions = document.createElement('div'); actions.className = 'bt-actions';
+  trialEls.start = stwBtn('Start', () => { trialStatusMsg = 'Requesting trial…'; net.requestTrial(); updateTrial(); });
+  trialEls.join = stwBtn('Join', () => { trialStatusMsg = 'Joining…'; net.joinTrial(); updateTrial(); });
+  trialEls.close = stwBtn('Close', () => { trialStatusMsg = 'Closing…'; net.closeTrial(); updateTrial(); });
+  actions.append(trialEls.start, trialEls.join, trialEls.close);
+  trialEls.note = stwLine('bt-note');
+  trialEls.msg = stwLine('bt-status');
+  trialEl.append(head, trialEls.obj, trialEls.status, trialEls.score, trialEls.style, actions, trialEls.note, trialEls.msg);
+}
+
+function updateTrial() {
+  if (!trialEl) return;
+  buildTrial();
+  const active = trialActive();
+  const t = cityTrial;
+  trialEls.obj.textContent = 'Objective: stabilize 3 signal nodes.';
+  trialEls.status.textContent = `Status: ${t ? t.status : 'no trial'}.`;
+  trialEls.score.textContent = t ? `Score: ${t.stabilized_count ?? t.score} / ${t.score_cap} nodes stabilized.` : 'Score: —';
+  const cs = t && t.copied_style ? t.copied_style : null;
+  trialEls.style.textContent = cs ? `Copied style: arcade ${cs.arcade_front.palette} · street ${cs.street_lights.palette}.` : 'Copied style: city default.';
+  // Start needs stewardship eligibility + no active trial; Join needs an active trial; Close needs a trial.
+  trialEls.start.disabled = !stewardEligible || active;
+  trialEls.join.disabled = !active;
+  trialEls.close.disabled = !t || t.status === 'closed';
+  trialEls.note.textContent = (t && (t.status === 'complete' || t.status === 'closed')) ? 'No public block changes were made.' : '';
+  trialEls.msg.textContent = trialStatusMsg;
+}
+
+function onTrialResult(m) {
+  window.__neon_city.lastTrialResult = m;
+  if (!m || !m.ok) trialStatusMsg = `Trial: ${(m && m.reason) || 'unavailable'}`;
+  else if (m.action === 'request') trialStatusMsg = 'Trial started — stabilize the signal nodes.';
+  else if (m.action === 'join') trialStatusMsg = 'Joined the trial.';
+  else if (m.action === 'close') trialStatusMsg = 'Trial closed. No public block changes were made.';
+  updateTrial();
+}
+
 // ── send loop (bounded input rate, records each input for replay) ─────────────
 let lastSend = performance.now();
 setInterval(() => {
@@ -460,7 +532,7 @@ function frame() {
   }
   updatePortalUI();
 
-  renderer.draw({ me: meView, others: othersView });
+  renderer.draw({ me: meView, others: othersView, trial: trialView() });
   minimap.draw({ me: meView, others: othersView });
   if (debugPanel && !debugPanel.hidden) debugPanel.textContent = debugText();
   requestAnimationFrame(frame);
@@ -515,6 +587,12 @@ window.__neon_city = {
   previewStewardship(target, style) { net.requestStewardship('preview', target, style); },
   applyStewardship(target, style) { net.requestStewardship('apply', target, style); },
   resetStewardship() { net.requestStewardship('reset'); },
+  // Phase 4G — instanced, non-destructive Block Trial (display only; server owns match truth)
+  trial() { return cityTrial ? JSON.parse(JSON.stringify(cityTrial)) : null; },
+  lastTrialResult: null,
+  requestTrial() { net.requestTrial(); },
+  joinTrial() { net.joinTrial(); },
+  closeTrial() { net.closeTrial(); },
   debug() {
     return {
       renderer: renderer.name, ackSeq, pending: inputBuffer.pending.length,
@@ -529,4 +607,5 @@ window.__neon_city = {
 
 applyEffectiveStyle();   // apply the (default) block style to the renderer up front
 updateStewardship();     // build the stewardship panel so it is visible before server state
+updateTrial();           // build the Block Trial panel so it is visible before server state
 net.connect();

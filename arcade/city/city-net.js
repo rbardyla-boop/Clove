@@ -75,6 +75,8 @@ export class CityNet {
       case 'city_host_rank_state': this.h.onHostRankState?.(m); break;  // Phase 4E: non-cash host rank
       case 'city_stewardship_state': this.h.onStewardshipState?.(m); break;   // Phase 4F: canonical block style
       case 'city_stewardship_result': this.h.onStewardshipResult?.(m); break; // Phase 4F: preview/apply/reset outcome
+      case 'city_block_trial_state': this.h.onTrialState?.(m); break;         // Phase 4G: Block Trial instance state
+      case 'city_block_trial_result': this.h.onTrialResult?.(m); break;       // Phase 4G: trial request/join/close outcome
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }
@@ -107,6 +109,11 @@ export class CityNet {
   // Phase 4F: request a constrained block-stewardship edit (intent only — the server validates
   // eligibility + the manifest and owns the canonical style). action: 'preview'|'apply'|'reset'.
   requestStewardship(action, target, style) { this.send({ t: 'city_stewardship_request', request_id: `s${Date.now().toString(36)}`, action, target, style }); }
+  // Phase 4G: instanced, non-destructive Block Trial (intent only — the server owns all match truth).
+  requestTrial() { this.send({ t: 'city_block_trial_request' }); }
+  joinTrial() { this.send({ t: 'city_block_trial_join_request' }); }
+  leaveTrial() { this.send({ t: 'city_block_trial_leave' }); }
+  closeTrial() { this.send({ t: 'city_block_trial_close_request' }); }
 
   close() {
     this.closed = true;

@@ -1,3 +1,6 @@
+<!-- Follow-up: Phase 4G copies this canonical stewardship style into isolated, non-destructive
+Block Trial instances (the public block is never edited) — see docs/NEON_CIRCUIT_PHASE4G_INSTANCED_BLOCK_BATTLES.md. -->
+
 # Neon Circuit — Phase 4F: Block Stewardship + Constrained Editor
 
 **Status:** implemented, local-only (branch `feat/neon-circuit-phase4f-block-stewardship`; Phase 4E `01e7ee0`,

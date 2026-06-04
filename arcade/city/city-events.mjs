@@ -41,14 +41,23 @@ export const EVENT_TYPES = Object.freeze([
   'city_stewardship_applied',
   'city_stewardship_rejected',
   'city_stewardship_reset',
+  // Phase 4G — Instanced, non-destructive Block Trial (Signal Grid; ephemeral, non-cash):
+  'city_block_trial_requested',
+  'city_block_trial_started',
+  'city_block_trial_joined',
+  'city_block_trial_updated',
+  'city_block_trial_completed',
+  'city_block_trial_rejected',
+  'city_block_trial_closed',
 ]);
 const TYPE_SET = new Set(EVENT_TYPES);
 export function isCityEventType(t) { return TYPE_SET.has(t); }
 
 /** Public-safe scalar payload fields. Anything else is dropped.
  *  (4D adds pressure/severity; 4E adds tier/support_signal/score/score_cap;
- *   4F adds the stewardship visual tokens palette/sign_variant/intensity.) */
-const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity', 'tier', 'support_signal', 'score', 'score_cap', 'palette', 'sign_variant', 'intensity'];
+ *   4F adds the stewardship visual tokens palette/sign_variant/intensity;
+ *   4G adds the trial scalars instance_id/objective/status/node_count/stabilized_count/duration_ms.) */
+const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity', 'tier', 'support_signal', 'score', 'score_cap', 'palette', 'sign_variant', 'intensity', 'instance_id', 'objective', 'status', 'node_count', 'stabilized_count', 'duration_ms'];
 /** Cap allowlisted string values so a crafted client field can't bloat storage/broadcasts. */
 const MAX_PAYLOAD_STR = 64;
 

@@ -174,6 +174,24 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-stewardship .stw-status { margin-top: 5px; font-size: 10px; color: var(--am); letter-spacing: .3px; min-height: 12px; }
 @media (max-width: 560px) { .city-stewardship { width: 190px; top: 58px; max-height: calc(100vh - 150px); } }
 
+/* Phase 4G — Block Trial panel (top-right, under the host-rank panel; cyan = instanced trial) */
+.city-block-trial { position: absolute; top: 332px; right: 14px; width: 210px; max-width: 62vw; z-index: 4;
+  max-height: calc(100vh - 360px); overflow-y: auto;
+  padding: 8px 10px; border: 1px solid var(--cy); border-radius: 10px; background: var(--panel);
+  backdrop-filter: blur(8px); box-shadow: 0 0 18px rgba(34, 224, 255, .14); }
+.city-block-trial:empty { display: none; }
+.city-block-trial .bt-head { font-family: "Bungee", var(--mono); font-size: 12px; letter-spacing: 1.5px;
+  color: var(--cy); text-shadow: 0 0 10px rgba(34, 224, 255, .4); margin-bottom: 4px; }
+.city-block-trial .bt-line { font-size: 11px; line-height: 1.5; color: var(--ink); letter-spacing: .3px; }
+.city-block-trial .bt-score { font-size: 12px; color: #eaf6ff; letter-spacing: .3px; }
+.city-block-trial .bt-note { font-size: 10px; line-height: 1.4; color: #7cffb2; letter-spacing: .3px; min-height: 12px; }
+.city-block-trial .bt-status { font-size: 10px; color: var(--am); letter-spacing: .3px; min-height: 12px; }
+.city-block-trial .bt-actions { display: flex; gap: 6px; margin-top: 6px; }
+.city-block-trial .stw-btn { cursor: pointer; flex: 1 1 auto; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--edge);
+  background: rgba(34, 224, 255, .1); color: #eaf6ff; font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+.city-block-trial .stw-btn:disabled { opacity: .4; cursor: not-allowed; }
+@media (max-width: 560px) { .city-block-trial { width: 160px; top: 262px; max-height: calc(100vh - 300px); } }
+
 /* respect reduced motion: drop the blinking status dot animation */
 @media (prefers-reduced-motion: reduce) {
   .pill .dot.wait { animation: none; }
