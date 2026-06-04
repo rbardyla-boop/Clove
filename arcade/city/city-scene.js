@@ -38,6 +38,10 @@ const statusTxt = el('statusTxt');
 const portalPrompt = el('portalPrompt');
 const portalBtn = el('portalBtn');
 const portalOverlay = el('portalOverlay');
+const interiorFrame = el('interiorFrame');
+const interiorClose = el('interiorClose');
+const interiorFallback = el('interiorFallback');
+const eventLogEl = el('cityEventLog');
 const rendererTag = el('rendererTag');
 const debugPanel = el('debugPanel');
 el('playerName').textContent = playerId;
@@ -59,6 +63,10 @@ let activePortal = null;
 let portalState = 'idle';            // idle | in_zone | requesting | accepted | rejected
 let dbg = { error: 0, snapped: false };
 let lastOthers = [];                 // last sampled remote view (for tests/automation)
+let interiorOpen = false;            // in-place arcade interior overlay state (4C)
+const EVENT_UI_MAX = 14;             // bounded city-OS event panel
+const eventList = [];                // recent public events (display only)
+const seenEventIds = new Set();
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -119,11 +127,12 @@ const net = new CityNet({
     onPortalOk: (m) => {
       window.__neon_city.lastPortalOk = { portalId: m.portalId, target: m.target, at: Date.now() };
       portalState = 'accepted';
-      if (portalOverlay) { portalOverlay.hidden = false; }
-      // Navigate only to a same-origin path — guards against a malicious/overridden
-      // server returning a javascript:/cross-origin target (defense in depth).
-      if (!TEST && typeof m.target === 'string' && m.target.startsWith('/')) setTimeout(() => location.assign(m.target), 650);
+      // In-place arcade interior (Phase 4C): only a same-origin path is honored, and we
+      // can only get here from a server city_portal_ok (which requires being in the zone).
+      if (typeof m.target === 'string' && m.target.startsWith('/')) openInterior(m.target);
     },
+    onEvents: (m) => { eventList.length = 0; seenEventIds.clear(); for (const e of (m.events || [])) pushEvent(e); renderEvents(); },
+    onEvent: (m) => { if (m.event) { pushEvent(m.event); renderEvents(); } },
     onError: (m) => {
       window.__neon_city.lastError = m;
       if (String(m.code).startsWith('portal_')) { portalState = 'rejected'; setTimeout(() => { if (portalState === 'rejected') portalState = 'idle'; }, 900); }
@@ -179,6 +188,63 @@ function portalUnder(p) {
 }
 function tryPortal() { if (activePortal) { portalState = 'requesting'; net.enterPortal(activePortal.id); } }
 if (portalBtn) portalBtn.addEventListener('click', tryPortal);
+
+// ── in-place arcade interior (server-confirmed; same-origin iframe shell) ──────
+function openInterior(target) {
+  if (interiorOpen) return; // idempotent: a re-sent city_portal_ok must not reload the iframe mid-session
+  interiorOpen = true;
+  if (interiorFallback) interiorFallback.hidden = true;
+  if (portalOverlay) portalOverlay.hidden = false;
+  if (interiorFrame) {
+    // In tests we mount a tiny placeholder (the real /arcade/ needs the arcade WS and
+    // would add cross-frame noise); real use loads the existing arcade floor unchanged.
+    if (TEST) interiorFrame.srcdoc = '<!doctype html><meta charset="utf-8"><title>arcade interior</title><body style="margin:0;background:#080610;color:#9fb9c9;font:14px monospace;display:grid;place-items:center;height:100vh">ARCADE INTERIOR (test shell)</body>';
+    else interiorFrame.src = target;
+  }
+}
+function closeInterior() {
+  if (!interiorOpen) return;
+  interiorOpen = false;
+  if (portalOverlay) portalOverlay.hidden = true;
+  if (interiorFrame) { interiorFrame.removeAttribute('src'); interiorFrame.removeAttribute('srcdoc'); }
+  net.closeInterior();
+  portalState = activePortal ? 'in_zone' : 'idle';
+}
+if (interiorClose) interiorClose.addEventListener('click', closeInterior);
+if (interiorFrame) interiorFrame.addEventListener('error', () => { if (interiorFallback) interiorFallback.hidden = false; });
+window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && interiorOpen) closeInterior(); });
+
+// ── city-OS event panel (public-safe, bounded, display-only) ──────────────────
+function pushEvent(e) {
+  if (!e || !e.event_id || seenEventIds.has(e.event_id)) return;
+  seenEventIds.add(e.event_id);
+  eventList.push(e);
+  while (eventList.length > EVENT_UI_MAX) { const old = eventList.shift(); seenEventIds.delete(old.event_id); }
+}
+function eventLabel(e) {
+  const who = e.actor_public_id || 'someone';
+  switch (e.type) {
+    case 'city_player_joined': return `${who} entered the block`;
+    case 'city_player_left': return `${who} left the block`;
+    case 'city_portal_enter_requested': return `${who} approached the arcade`;
+    case 'city_portal_enter_accepted': return `${who} stepped into the arcade`;
+    case 'city_portal_enter_rejected': return `${who} was turned away (${(e.payload && e.payload.reason) || 'denied'})`;
+    case 'city_arcade_interior_opened': return `arcade interior opened · ${who}`;
+    case 'city_arcade_interior_closed': return `arcade interior closed · ${who}`;
+    default: return `${who} · ${e.type}`;
+  }
+}
+function renderEvents() {
+  if (!eventLogEl) return;
+  eventLogEl.textContent = ''; // textContent only — never innerHTML (no injection)
+  for (const e of eventList.slice(-EVENT_UI_MAX)) {
+    const row = document.createElement('div');
+    row.className = 'evt';
+    row.textContent = eventLabel(e);
+    eventLogEl.appendChild(row);
+  }
+  eventLogEl.scrollTop = eventLogEl.scrollHeight;
+}
 
 // ── send loop (bounded input rate, records each input for replay) ─────────────
 let lastSend = performance.now();
@@ -267,6 +333,9 @@ window.__neon_city = {
   layout() { return layout; },
   setInput(dx, dy) { input.dx = dx; input.dy = dy; },     // deterministic input for tests
   enterPortal() { tryPortal(); },
+  get interiorOpen() { return interiorOpen; },            // Phase 4C
+  closeInterior() { closeInterior(); },
+  events() { return eventList.map((e) => ({ event_id: e.event_id, type: e.type, seq: e.seq, actor_public_id: e.actor_public_id })); },
   debug() {
     return {
       renderer: renderer.name, ackSeq, pending: inputBuffer.pending.length,

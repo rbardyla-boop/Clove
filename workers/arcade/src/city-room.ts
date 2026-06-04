@@ -24,6 +24,7 @@ import {
   createCityState, addPlayer, applyInput, removePlayer, touchPlayer,
   stalePlayerIds, enterPortal, welcomePayload, citySnapshot,
 } from "../../../arcade/city/city-block.mjs";
+import { createEventLog, appendCityEvent, cityEventsPayload } from "../../../arcade/city/city-events.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -34,12 +35,22 @@ interface CityState {
   generation: number;
 }
 
+interface SocketMeta {
+  playerId: string;
+  cityId: string;
+  lastHeartbeat: number;
+  lastSnapReqAt: number;
+  lastEvReqAt: number;
+  interiorOpen: boolean;
+}
+
 const STALE_SWEEP_MS = 30_000;
-const SNAP_REQ_MIN_MS = 250; // floor between client-requested snapshots (anti-spam)
+const SNAP_REQ_MIN_MS = 250; // floor between client-requested snapshots/events (anti-spam)
 
 export class CityRoom implements DurableObject {
   private state!: CityState;
-  private sockets: Map<WebSocket, { playerId: string; cityId: string; lastHeartbeat: number; lastSnapReqAt: number }>;
+  private eventLog!: { events: any[]; seq: number }; // Phase 4C: server-authored append-only world log
+  private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
 
   constructor(
@@ -48,9 +59,11 @@ export class CityRoom implements DurableObject {
   ) {
     this.sockets = new Map();
     for (const ws of this.ctx.getWebSockets()) {
-      const att = ws.deserializeAttachment() as { playerId?: string; cityId?: string } | null;
+      const att = ws.deserializeAttachment() as { playerId?: string; cityId?: string; interiorOpen?: boolean } | null;
       if (att?.playerId) {
-        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0 });
+        // interiorOpen is rehydrated from the attachment so a DO hibernation/restart while
+        // a player is inside the arcade still fires city_arcade_interior_closed on disconnect.
+        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, interiorOpen: !!att.interiorOpen });
         if (att.cityId) this.boundCityId = att.cityId; // trusted: we serialized this attachment ourselves
       }
     }
@@ -61,11 +74,21 @@ export class CityRoom implements DurableObject {
     await this.ctx.blockConcurrencyWhile(async () => {
       const stored = await this.ctx.storage.get<CityState>("cityState");
       this.state = stored && stored.players ? stored : createCityState();
+      const storedEv = await this.ctx.storage.get<{ events: any[]; seq: number }>("cityEvents");
+      this.eventLog = storedEv && Array.isArray(storedEv.events) ? storedEv : createEventLog();
     });
   }
 
   private async persist(): Promise<void> {
     await this.ctx.storage.put("cityState", this.state);
+    await this.ctx.storage.put("cityEvents", this.eventLog);
+  }
+
+  /** Append a SERVER-AUTHORED public-safe world event + broadcast it live. */
+  private emit(type: string, actorPublicId: string | null, payload: Record<string, unknown> = {}): void {
+    const r = appendCityEvent(this.eventLog, { type, cityId: this.boundCityId, actorPublicId, payload, now: Date.now() });
+    this.eventLog = r.log;
+    this.broadcast({ t: "city_event", event: r.event });
   }
 
   private scheduleSweep(): void {
@@ -102,7 +125,11 @@ export class CityRoom implements DurableObject {
       case "city_join": { await this.handleJoin(ws, data); break; }
       case "city_input": { await this.handleInput(ws, data); break; }
       case "city_snapshot_request": { this.handleSnapshotRequest(ws); break; }
-      case "city_portal_enter": { this.handlePortal(ws, data); break; }
+      case "city_events_request": { this.handleEventsRequest(ws); break; }
+      // accept the 4C name + the 4B name (alias) so old clients keep working
+      case "city_portal_enter":
+      case "city_portal_enter_request": { await this.handlePortal(ws, data); break; }
+      case "city_portal_close_request": { await this.handlePortalClose(ws); break; }
       case "city_leave": { await this.handleLeave(ws); break; }
       case "heartbeat": { this.handleHeartbeat(ws); break; }
       default: { this.send(ws, { t: "city_error", code: "unknown_type", message: `Unknown message type: ${data.t}` }); }
@@ -135,11 +162,13 @@ export class CityRoom implements DurableObject {
     if (!res.ok) { this.send(ws, { t: "city_error", code: res.reason, message: "join rejected" }); return; }
     this.state = res.state;
 
-    ws.serializeAttachment({ playerId, cityId: this.boundCityId });
-    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0 });
+    ws.serializeAttachment({ playerId, cityId: this.boundCityId, interiorOpen: false });
+    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, interiorOpen: false });
 
     this.send(ws, { t: "city_welcome", ...welcomePayload(this.state, playerId, this.boundCityId, now) });
-    this.broadcastExcept(ws, { t: "city_player_joined", id: playerId, x: res.player.x, y: res.player.y });
+    this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) }); // recent history on (re)join
+    this.broadcastExcept(ws, { t: "city_player_joined", id: playerId, x: res.player.x, y: res.player.y }); // legacy 4B message
+    this.emit("city_player_joined", playerId, {}); // canonical append-only event
     this.broadcastSnapshot(now);
     await this.persist();
     this.scheduleSweep();
@@ -166,12 +195,49 @@ export class CityRoom implements DurableObject {
     this.send(ws, { t: "city_snapshot", cityId: this.boundCityId, ...citySnapshot(this.state, now) });
   }
 
-  private handlePortal(ws: WebSocket, data: any): void {
+  private handleEventsRequest(ws: WebSocket): void {
+    const meta = this.sockets.get(ws);
+    if (!meta) return;
+    const now = Date.now();
+    if (now - meta.lastEvReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
+    meta.lastEvReqAt = now;
+    this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) });
+  }
+
+  /**
+   * Server-gated portal entry. The request, and its accept/reject, and the interior
+   * open are all recorded as SERVER-AUTHORED events. The client cannot open the
+   * interior without a server `city_portal_ok` (which requires being in the zone).
+   */
+  private async handlePortal(ws: WebSocket, data: any): Promise<void> {
     const meta = this.sockets.get(ws);
     if (!meta) { this.send(ws, { t: "city_error", code: "no_identity", message: "Must city_join first" }); return; }
-    const res = enterPortal(this.state, meta.playerId, data.portalId);
-    if (!res.ok) { this.send(ws, { t: "city_error", code: `portal_${res.reason}`, message: "portal entry denied" }); return; }
-    this.send(ws, { t: "city_portal_ok", portalId: data.portalId, target: res.target });
+    const portalId = data.portalId;
+    this.emit("city_portal_enter_requested", meta.playerId, { portalId });
+    const res = enterPortal(this.state, meta.playerId, portalId);
+    if (!res.ok) {
+      this.emit("city_portal_enter_rejected", meta.playerId, { portalId, reason: res.reason });
+      this.send(ws, { t: "city_error", code: `portal_${res.reason}`, message: "portal entry denied" });
+      await this.persist();
+      return;
+    }
+    this.emit("city_portal_enter_accepted", meta.playerId, { portalId, target: res.target });
+    if (!meta.interiorOpen) {
+      meta.interiorOpen = true;
+      ws.serializeAttachment({ playerId: meta.playerId, cityId: meta.cityId, interiorOpen: true }); // survive hibernation
+      this.emit("city_arcade_interior_opened", meta.playerId, { portalId });
+    }
+    this.send(ws, { t: "city_portal_ok", portalId, target: res.target });
+    await this.persist();
+  }
+
+  private async handlePortalClose(ws: WebSocket): Promise<void> {
+    const meta = this.sockets.get(ws);
+    if (!meta || !meta.interiorOpen) return; // only a genuinely-open interior closes
+    meta.interiorOpen = false;
+    ws.serializeAttachment({ playerId: meta.playerId, cityId: meta.cityId, interiorOpen: false });
+    this.emit("city_arcade_interior_closed", meta.playerId, {});
+    await this.persist();
   }
 
   private handleHeartbeat(ws: WebSocket): void {
@@ -194,10 +260,13 @@ export class CityRoom implements DurableObject {
     if (!meta) return;
     this.sockets.delete(ws);
     if (announceLeft) { try { ws.close(1000, "left"); } catch { /* already closing */ } }
-    if (this.hasSocketFor(meta.playerId)) return; // another tab still holds this player
+    // a socket that had the arcade interior open closes it (also covers disconnect-while-open)
+    if (meta.interiorOpen) { meta.interiorOpen = false; this.emit("city_arcade_interior_closed", meta.playerId, {}); }
+    if (this.hasSocketFor(meta.playerId)) { await this.persist(); return; } // another tab still holds this player
     this.state = removePlayer(this.state, meta.playerId);
     const now = Date.now();
-    this.broadcast({ t: "city_player_left", id: meta.playerId });
+    this.broadcast({ t: "city_player_left", id: meta.playerId }); // legacy 4B message
+    this.emit("city_player_left", meta.playerId, {});             // canonical append-only event (once)
     this.broadcastSnapshot(now);
     await this.persist();
   }
@@ -232,7 +301,8 @@ export class CityRoom implements DurableObject {
       // Only evict players with no live socket (a heartbeating socket refreshes lastSeen).
       if (this.hasSocketFor(id)) continue;
       this.state = removePlayer(this.state, id);
-      this.broadcast({ t: "city_player_left", id });
+      this.broadcast({ t: "city_player_left", id }); // legacy 4B message
+      this.emit("city_player_left", id, {});         // canonical append-only event
       changed = true;
     }
     if (changed) this.broadcastSnapshot(now);

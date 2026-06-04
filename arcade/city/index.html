@@ -38,6 +38,12 @@
 
   <pre class="debug-panel" id="debugPanel" aria-hidden="true" hidden></pre>
 
+  <!-- city OS world-event log (Phase 4C; public-safe, bounded, display-only) -->
+  <section class="city-log" aria-label="City world event log">
+    <header class="city-log-head">CITY OS · WORLD LOG</header>
+    <div class="city-log-list" id="cityEventLog" role="log" aria-live="polite"></div>
+  </section>
+
   <div class="ctrlhint">
     <span class="kbhint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows to move · <kbd>E</kbd> to enter</span>
     <span class="renderer-tag">renderer: <span id="rendererTag">—</span></span>
@@ -48,11 +54,17 @@
   </div>
   <button class="portal-btn" id="portalBtn" type="button" hidden>Enter Arcade</button>
 
-  <!-- server-confirmed transition state (Phase 4B: deliberate, not teleport magic) -->
-  <div class="portal-overlay" id="portalOverlay" role="status" aria-live="assertive" hidden>
-    <div class="po-box">
-      <div class="po-title">ENTERING ARCADE INTERIOR</div>
-      <div class="po-sub">authority confirmed · stepping inside…</div>
+  <!-- Phase 4C: server-confirmed IN-PLACE arcade interior (same-origin iframe shell).
+       The arcade floor runs unchanged inside; closing returns to the city. -->
+  <div class="portal-overlay" id="portalOverlay" role="dialog" aria-label="Arcade interior" hidden>
+    <div class="interior-shell">
+      <div class="interior-bar">
+        <span class="interior-title">ARCADE INTERIOR<span class="interior-sub"> · authority-confirmed · you are still in the city</span></span>
+        <button class="interior-close" id="interiorClose" type="button" aria-label="Return to the city">✕ Return to city</button>
+      </div>
+      <!-- same-origin arcade floor; sandbox is defense-in-depth (allow-same-origin needed for its WS/session) -->
+      <iframe class="interior-frame" id="interiorFrame" title="Neon Circuit Arcade interior" referrerpolicy="same-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+      <a class="interior-fallback" id="interiorFallback" href="/arcade/" target="_blank" rel="noopener" hidden>Arcade interior failed to load — open the arcade in a new tab ↗</a>
     </div>
   </div>
 

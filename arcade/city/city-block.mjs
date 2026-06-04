@@ -37,8 +37,11 @@ export const MOVEMENT = Object.freeze({
 export const SNAPSHOT_INTERVAL_MS = 50;
 /** A player with no heartbeat/input for this long is evicted by the coarse alarm. */
 export const PLAYER_STALE_MS = 45_000;
-/** City protocol schema version — bump when the city_* wire shape changes (Phase 4B). */
-export const SCHEMA_VERSION = 1;
+/** City protocol schema version — bump when the city_* wire shape changes.
+ *  v1 (4B): dt + ack on inputs/snapshots. v2 (4C): additive append-only event log +
+ *  in-place portal/interior messages. All additions are backward-compatible — no-dt
+ *  inputs and the 4A/4B message set remain valid. */
+export const SCHEMA_VERSION = 2;
 /** Max pending client inputs before the client resyncs (bounds replay cost; Phase 4B). */
 export const MAX_INPUT_BACKLOG = 120;
 

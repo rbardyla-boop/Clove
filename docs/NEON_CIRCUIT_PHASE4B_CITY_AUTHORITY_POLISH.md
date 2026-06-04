@@ -1,3 +1,6 @@
+<!-- Follow-up: Phase 4C adds the append-only world event log + in-place arcade interior —
+see docs/NEON_CIRCUIT_PHASE4C_WORLD_EVENT_LOG.md (the full-page portal here is superseded). -->
+
 # Neon Circuit — Phase 4B: City Authority, Reconciliation, Minimap & Portal Polish
 
 **Status:** implemented, local-only (branch `feat/neon-circuit-phase4b-city-authority-polish`,

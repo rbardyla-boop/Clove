@@ -69,6 +69,8 @@ export class CityNet {
       case 'city_player_joined': this.h.onPlayerJoined?.(m); break;
       case 'city_player_left': this.h.onPlayerLeft?.(m); break;
       case 'city_portal_ok': this.h.onPortalOk?.(m); break;
+      case 'city_events': this.h.onEvents?.(m); break;   // Phase 4C: recent world-event history
+      case 'city_event': this.h.onEvent?.(m); break;     // Phase 4C: a single live world event
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }
@@ -93,7 +95,9 @@ export class CityNet {
   // ordering/debugging, never for movement authority, and never sent off-server.
   sendInput(seq, clientTime, dx, dy, dt) { this.send({ t: 'city_input', seq, ts: clientTime, dx, dy, dt }); }
   enterPortal(portalId) { this.send({ t: 'city_portal_enter', portalId }); }
+  closeInterior() { this.send({ t: 'city_portal_close_request' }); } // Phase 4C: leave the arcade interior
   requestSnapshot() { this.send({ t: 'city_snapshot_request' }); }
+  requestEvents() { this.send({ t: 'city_events_request' }); }
 
   close() {
     this.closed = true;
