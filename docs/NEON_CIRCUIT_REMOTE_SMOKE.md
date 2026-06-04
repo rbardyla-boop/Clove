@@ -47,7 +47,7 @@ If Node ≥ 22 is not on `PATH`, set `NODE22_BIN=/path/to/node22/bin`.
 | `WS_URL` | Worker WebSocket URL (`…/arcade/ws`). Presence of this selects remote mode. |
 | `API_URL` | Worker HTTP origin. Default: derived from `WS_URL`. |
 | `ADMIN_TOKEN` | Operational admin secret (optional). Never printed. |
-| `EXPECT_ENVIRONMENT` | `production` \| `development`. Gates the test-clock assertion. |
+| `EXPECT_ENVIRONMENT` | `development` asserts the test clock is *honored*; **any other value** (`production`, `staging`, …) asserts it is *rejected*. Unset → skipped. |
 | `EXPECT_ADMIN_ENABLED` | `true` \| `false`. Gates the correct-token admin assertion. |
 | `ALLOW_REMOTE_ADMIN_MUTATION` | `true` to permit state-changing admin ops. Default off; this harness still never calls `reset`. |
 | `PW_REQUIRE_BASE` | `node_modules` parent that resolves `playwright`. |
@@ -60,7 +60,7 @@ If Node ≥ 22 is not on `PATH`, set `NODE22_BIN=/path/to/node22/bin`.
 - `GET /arcade/rooms` and `GET /arcade/rooms/health` return **public-safe** envelopes (no balance/ledger/token).
 - A client connects, occupies a cabinet, starts + submits a round, and the **server awards internal tickets**; the ledger updates privately.
 - A second client sees occupancy but **not** the first client's private balance/ledger.
-- `__test_set_event_now` is **rejected** when `EXPECT_ENVIRONMENT=production` (and detectable when `development`, proving the check is real).
+- `__test_set_event_now` is **rejected** for any non-`development` `EXPECT_ENVIRONMENT` (`production`, `staging`, …) — and detectable when `development`, proving the check is real.
 - An admin op is rejected with no token and with a wrong token; with the correct token it succeeds only when `EXPECT_ADMIN_ENABLED=true`.
 - The admin token **never** appears in any server payload.
 - The event `presentation` block is present, public-safe, and within clamp bounds.

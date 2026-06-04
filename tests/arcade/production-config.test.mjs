@@ -44,6 +44,28 @@ new_sqlite_classes = ["ArcadeRoom"]
 [[env.production.migrations]]
 tag = "v2"
 new_sqlite_classes = ["RoomRegistry"]
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ADMIN_ENABLED = "false"
+EVENT_PREROLL_LEAD_MS = "120000"
+EVENT_COUNTDOWN_REFRESH_MS = "1000"
+EVENT_SHOW_NEXT = "true"
+EVENT_SHOW_FEATURED = "true"
+
+[env.staging.durable_objects]
+bindings = [
+  { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
+]
+
+[[env.staging.migrations]]
+tag = "v1"
+new_sqlite_classes = ["ArcadeRoom"]
+
+[[env.staging.migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomRegistry"]
 `;
 const SAFE_ARCADE_ROOM = 'case "__test_set_event_now": { if (this.env.ENVIRONMENT === "development") { doThing(); } break; }';
 
@@ -83,4 +105,27 @@ test('gate CATCHES a missing production DO binding', () => {
 test('gate CATCHES an un-gated test-clock hook', () => {
   const r = named(SAFE_TOML, 'case "__test_set_event_now": { doThing(); break; }');
   assert.equal(r['__test_set_event_now is dev-gated in arcade-room.ts'], false);
+});
+
+// ── staging (enforce-if-present): no deployable named env may ship development ──
+test('gate CATCHES staging ENVIRONMENT=development', () => {
+  // Replace the staging value specifically (production stays "production").
+  const r = named(SAFE_TOML.replace('ENVIRONMENT = "staging"', 'ENVIRONMENT = "development"'));
+  assert.equal(r['staging ENVIRONMENT is not development'], false);
+});
+
+test('gate CATCHES a missing staging DO binding', () => {
+  // Drop the staging ROOM_REGISTRY binding (the staging block is second in SAFE_TOML).
+  const idx = SAFE_TOML.indexOf('[env.staging.durable_objects]');
+  const broken = SAFE_TOML.slice(0, idx) + SAFE_TOML.slice(idx).replace(/{ name = "ROOM_REGISTRY"[^}]*}/, '');
+  const r = named(broken);
+  assert.equal(r['staging re-declares both DO bindings'], false);
+});
+
+test('staging checks are skipped when no [env.staging] exists (optional env)', () => {
+  // SAFE_TOML minus the staging section → only production checks run, still PASS.
+  const prodOnly = SAFE_TOML.slice(0, SAFE_TOML.indexOf('[env.staging.vars]'));
+  const { ok, results } = runProductionConfigChecks({ toml: prodOnly, arcadeRoom: SAFE_ARCADE_ROOM });
+  assert.equal(ok, true);
+  assert.equal(results.some((r) => r.name.startsWith('staging ')), false);
 });

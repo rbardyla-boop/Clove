@@ -117,6 +117,42 @@ export function runProductionConfigChecks(sources = {}) {
   check('__test_set_event_now is dev-gated in arcade-room.ts', hookDevGated,
     hookDevGated ? 'hook guarded by ENVIRONMENT === "development"' : 'test-clock hook is NOT dev-gated — would be live in production');
 
+  // ── staging (enforce-if-present): the pre-production smoke target must ALSO never ──
+  // ship ENVIRONMENT=development, so NO deployable named env can expose the test hook.
+  // Staging is optional; these checks only run when [env.staging.vars] exists.
+  const stagingVars = tableBody(toml, 'env.staging.vars');
+  if (stagingVars != null) {
+    const stagingEnv = tomlString(stagingVars, 'ENVIRONMENT');
+    check('staging ENVIRONMENT is not development',
+      typeof stagingEnv === 'string' && stagingEnv.length > 0 && stagingEnv !== 'development',
+      `ENVIRONMENT="${stagingEnv}" (must be a non-"development" value, e.g. "staging")`);
+
+    const stagingAdmin = tomlString(stagingVars, 'ADMIN_ENABLED');
+    check('staging ADMIN_ENABLED is false', stagingAdmin === 'false',
+      `ADMIN_ENABLED="${stagingAdmin}" (must be "false")`);
+
+    for (const [envKey, resolvedKey, bounds] of eventChecks) {
+      const raw = tomlString(stagingVars, envKey);
+      const n = Number(raw);
+      const resolved = resolveEventPresentation({ [resolvedKey]: raw })[resolvedKey];
+      check(`staging ${envKey} within clamp bounds`, Number.isFinite(n) && n === resolved,
+        `${envKey}="${raw}" resolves to ${resolved} (safe range ${bounds.min}..${bounds.max})`);
+    }
+
+    const stagingDo = tableBody(toml, 'env.staging.durable_objects') || '';
+    check('staging re-declares both DO bindings',
+      /class_name\s*=\s*"ArcadeRoom"/.test(stagingDo) && /class_name\s*=\s*"RoomRegistry"/.test(stagingDo),
+      stagingDo ? 'ArcadeRoom + RoomRegistry present' : 'MISSING [env.staging.durable_objects]');
+
+    const stagingMig = toml.includes('[[env.staging.migrations]]')
+      ? toml.slice(toml.indexOf('[[env.staging.migrations]]'))
+      : '';
+    check('staging re-declares both DO migrations',
+      /new_sqlite_classes\s*=\s*\[\s*"ArcadeRoom"\s*\]/.test(stagingMig)
+        && /new_sqlite_classes\s*=\s*\[\s*"RoomRegistry"\s*\]/.test(stagingMig),
+      stagingMig ? 'v1 + v2 present' : 'MISSING [[env.staging.migrations]]');
+  }
+
   return { ok: results.every((r) => r.ok), results };
 }
 

@@ -64,12 +64,35 @@ wrangler deploy --env production
 node tests/arcade/check-production-config.mjs
 ```
 
-This fails the deploy if production would leave `ENVIRONMENT=development`, enable admin by default, commit an `ADMIN_TOKEN`, ship out-of-range `EVENT_*`, drop a DO binding/migration, or un-gate the test clock. The same checks run in the unit gate (`tests/arcade/production-config.test.mjs`).
+This fails the deploy if **production _or_ staging** would leave `ENVIRONMENT=development`, enable admin by default, commit an `ADMIN_TOKEN`, ship out-of-range `EVENT_*`, drop a DO binding/migration, or un-gate the test clock. The same checks run in the unit gate (`tests/arcade/production-config.test.mjs`).
 
 Checklist:
 - [ ] `node tests/arcade/check-production-config.mjs` → PASS.
 - [ ] `wrangler deploy --env production --dry-run` shows `ENVIRONMENT ("production")`, `ADMIN_ENABLED ("false")`, both DO bindings.
 - [ ] Post-deploy, `GET /arcade/health` is reachable and `__test_set_event_now` is rejected (verified by remote smoke with `EXPECT_ENVIRONMENT=production`).
+
+### 3a. Staging environment (pre-production smoke target)
+
+`[env.staging]` is a **safe, separate** pre-production target. Deploy it with:
+
+```bash
+wrangler deploy --env staging
+```
+
+It ships `ENVIRONMENT="staging"` (a non-`development` value, so the `__test_set_event_now` hook is **rejected** — the code only honors `development`) and `ADMIN_ENABLED="false"`, and re-declares the DO bindings + migrations. **Never** use the default env (`wrangler deploy` with no `--env`) as public staging — it ships `ENVIRONMENT="development"` with the test hook live.
+
+- [ ] `wrangler deploy --env staging --dry-run` shows `ENVIRONMENT ("staging")`, `ADMIN_ENABLED ("false")`, both DO bindings.
+- [ ] Smoke staging green with `EXPECT_ENVIRONMENT=staging` (see §7) **before** any production deploy.
+
+**Worker names (env-suffixed by Wrangler — point the client at the right one):**
+
+| Command | Deployed Worker | Use |
+|---|---|---|
+| `wrangler deploy` | `neon-arcade-mesh` | local/default (development) — **not** public |
+| `wrangler deploy --env staging` | `neon-arcade-mesh-staging` | pre-production smoke |
+| `wrangler deploy --env production` | `neon-arcade-mesh-production` | production |
+
+Each is a **distinct Worker + DO namespace** (no shared state). The static client's `WS_URL` must point at the *actual deployed* Worker for the target you are verifying.
 
 ---
 

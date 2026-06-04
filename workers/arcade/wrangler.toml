@@ -73,3 +73,38 @@ new_sqlite_classes = ["ArcadeRoom"]
 [[env.production.migrations]]
 tag = "v2"
 new_sqlite_classes = ["RoomRegistry"]
+
+# ===================== Phase 3 (staging): pre-production environment =====================
+# Deploy staging with:  wrangler deploy --env staging   →  Worker `neon-arcade-mesh-staging`.
+# A SAFE, separate target for the pre-production remote smoke. Like production, named envs
+# do NOT inherit top-level vars/durable_objects/migrations, so they are re-declared here.
+#   * ENVIRONMENT = "staging"  → a NON-"development" value, so the __test_set_event_now
+#     event-clock hook is rejected (the code only honors it when ENVIRONMENT === "development").
+#   * ADMIN_ENABLED = "false"  → admin/live-ops surface OFF by default (and still needs a
+#     separately-configured ADMIN_TOKEN secret to ever be on).
+#   * EVENT_* are the display-only presentation defaults (clamped server-side).
+# ADMIN_TOKEN is NEVER set here. Staging is a DISTINCT Worker + DO namespace from production.
+[env.staging]
+name = "neon-arcade-mesh-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ADMIN_ENABLED = "false"
+EVENT_PREROLL_LEAD_MS = "120000"
+EVENT_COUNTDOWN_REFRESH_MS = "1000"
+EVENT_SHOW_NEXT = "true"
+EVENT_SHOW_FEATURED = "true"
+
+[env.staging.durable_objects]
+bindings = [
+  { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
+]
+
+[[env.staging.migrations]]
+tag = "v1"
+new_sqlite_classes = ["ArcadeRoom"]
+
+[[env.staging.migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomRegistry"]
