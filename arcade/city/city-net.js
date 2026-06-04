@@ -44,7 +44,11 @@ export class CityNet {
     if (typeof this.wsUrl !== 'string' || !this.wsUrl) { this._status('offline'); return; } // unresolvable endpoint — fail loud, no crash
     this._status('connecting');
     let ws;
-    try { ws = new WebSocket(this._url(), 'arcade'); }
+    // No WebSocket subprotocol: the deployed CityRoom DO returns a 101 without a
+    // Sec-WebSocket-Protocol echo, so offering one makes browsers abort the handshake
+    // (works against the Node `ws` dev-shim, fails on real workerd). Match the arcade
+    // client, which connects without a subprotocol.
+    try { ws = new WebSocket(this._url()); }
     catch { this._scheduleReconnect(); return; }
     this.ws = ws;
 
