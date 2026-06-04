@@ -25,7 +25,7 @@ import {
   roomUpcomingPreroll, formatPrerollCountdown,
 } from './room-recommend.mjs';
 
-export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, onAdmin = () => {} } = {}) {
+export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, onAdmin = () => {}, adminUi = false } = {}) {
   let root = null;
   let open = false;
   let rooms = [];
@@ -50,14 +50,22 @@ export function createArcadeLobby({ onSwitch = () => {}, onRefresh = () => {}, o
     root.className = 'lobby-overlay';
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-label', 'Arcade room lobby');
+    // The operator live-ops (admin) entry point is HIDDEN for public players. It only
+    // renders when explicitly enabled (?admin=1 or window.__NEON_ARCADE_CONFIG__.showAdmin).
+    // The server still enforces the real both-gate; this only keeps the admin UI out of a
+    // public playtester's way. The hidden admin panel markup is always present so render()
+    // element lookups stay valid; without the gear there is no way to open it.
+    const adminBtnHtml = adminUi
+      ? '<button class="lobby-refresh" type="button" data-act="admin" aria-label="Room admin tools" title="Room admin tools">⚙</button>'
+      : '';
     root.innerHTML = `
       <div class="lobby-panel">
         <div class="lobby-head">
           <div class="lobby-title">CHOOSE A <span>ROOM</span></div>
           <div class="lobby-actions">
-            <button class="lobby-refresh" type="button" data-act="admin" title="Room admin tools">⚙</button>
-            <button class="lobby-refresh" type="button" data-act="refresh" title="Refresh room list">↻</button>
-            <button class="lobby-close" type="button" data-act="close" title="Close">✕</button>
+            ${adminBtnHtml}
+            <button class="lobby-refresh" type="button" data-act="refresh" aria-label="Refresh room list" title="Refresh room list">↻</button>
+            <button class="lobby-close" type="button" data-act="close" aria-label="Close lobby" title="Close">✕</button>
           </div>
         </div>
         <div class="lobby-sub" data-f="sub"></div>

@@ -198,6 +198,10 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   display:flex;align-items:flex-start;justify-content:space-between;
   padding:max(12px,env(safe-area-inset-top)) 14px 0;gap:8px;}
 
+/* Phase 3E: guarantee a comfortable mobile tap target (>=40px tall) on the header
+   action buttons. Additive + display-only — changes no behavior or game mechanics. */
+.prize-btn,.challenge-btn,.room-chip,.player-chip{min-height:40px;}
+
 .player-chip{display:flex;align-items:center;gap:9px;background:rgba(15,8,34,.72);
   backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:var(--r-pill);
   padding:6px 14px 6px 6px;transition:border-color .2s, transform .15s;}

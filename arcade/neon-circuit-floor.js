@@ -612,6 +612,11 @@ lobby = createArcadeLobby({
     client.switchRoom(roomId);
   },
   onRefresh: () => client.requestRoomList(),
+  // Phase 3E: the operator live-ops (admin) entry point is hidden from public players.
+  // It only appears when explicitly enabled via ?admin=1 or window.__NEON_ARCADE_CONFIG__
+  // .showAdmin. The server still enforces the real both-gate (dev flag + token).
+  adminUi: params.get('admin') === '1'
+    || (typeof window !== 'undefined' && !!(window.__NEON_ARCADE_CONFIG__ && window.__NEON_ARCADE_CONFIG__.showAdmin === true)),
   // Phase 2b/2i: forward admin intent only. The server gates by dev flag + token and
   // sanitizes any override; the client never trusts or applies these locally.
   onAdmin: (op, roomId, status, token, override) => {
