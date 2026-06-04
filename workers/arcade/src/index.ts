@@ -16,11 +16,15 @@
 
 import { ArcadeRoom } from "./arcade-room";
 import { RoomRegistry } from "./room-registry";
+import { CityRoom } from "./city-room";
 import { resolveRoomId, ROOM_IDS } from "./rooms.mjs";
+import { resolveCityRoomId } from "../../../arcade/city/city-block.mjs";
 
 export interface Env {
   ARCADE_ROOM: DurableObjectNamespace;
   ROOM_REGISTRY: DurableObjectNamespace;
+  // Phase 4A: isolated city-block authority (per-block sharded; never touches arcade state).
+  CITY_ROOM: DurableObjectNamespace;
   ADMIN_ENABLED?: string;
   ADMIN_TOKEN?: string;
 }
@@ -40,6 +44,21 @@ export default {
       } catch (err) {
         console.error("[Worker] Error forwarding to room DO:", err);
         return new Response("DO fetch failed", { status: 500 });
+      }
+    }
+
+    // Phase 4A: city-block authority. Routed to a SEPARATE, per-block CityRoom DO
+    // (idFromName(cityId)) — isolated from the arcade rooms above. An invalid city
+    // falls back to the default block. All city authority lives inside the DO.
+    if (url.pathname === "/arcade/city/ws") {
+      const hint = resolveCityRoomId(url.searchParams.get("city"));
+      const id = env.CITY_ROOM.idFromName(hint.cityId);
+      const stub = env.CITY_ROOM.get(id);
+      try {
+        return await stub.fetch(request);
+      } catch (err) {
+        console.error("[Worker] Error forwarding to city DO:", err);
+        return new Response("City DO fetch failed", { status: 500 });
       }
     }
 
@@ -78,3 +97,4 @@ export default {
 // Re-export the DO classes so wrangler can discover them.
 export { ArcadeRoom } from "./arcade-room";
 export { RoomRegistry } from "./room-registry";
+export { CityRoom } from "./city-room";

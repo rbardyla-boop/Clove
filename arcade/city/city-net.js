@@ -1,0 +1,98 @@
+/**
+ * Neon Circuit — City Block network client (browser).
+ *
+ * Thin WebSocket transport to the CityRoom authority. Sends INPUT INTENT only and
+ * surfaces server messages via callbacks. The server owns every canonical position;
+ * this client never asserts one. Auto-reconnects and heartbeats while connected.
+ */
+
+/** Resolve the city WebSocket URL (precedence: ?ws= → config hook → same-origin). */
+export function resolveCityWsUrl({ explicit, config, location } = {}) {
+  if (typeof explicit === 'string' && explicit.trim()) return explicit.trim();
+  const configured = config && typeof config.cityWsUrl === 'string' ? config.cityWsUrl.trim() : '';
+  if (configured) return configured;
+  if (location && location.host) {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${location.host}/arcade/city/ws`;
+  }
+  return null;
+}
+
+const HEARTBEAT_MS = 10_000;
+const RECONNECT_MS = 1500;
+
+export class CityNet {
+  constructor({ wsUrl, playerId, cityId, handlers = {} }) {
+    this.wsUrl = wsUrl;
+    this.playerId = playerId;
+    this.cityId = cityId;
+    this.h = handlers;
+    this.ws = null;
+    this.hb = null;
+    this.closed = false;
+    this.connected = false;
+  }
+
+  _url() {
+    const sep = this.wsUrl.includes('?') ? '&' : '?';
+    return `${this.wsUrl}${sep}city=${encodeURIComponent(this.cityId)}`;
+  }
+
+  connect() {
+    this.closed = false;
+    this._status('connecting');
+    let ws;
+    try { ws = new WebSocket(this._url(), 'arcade'); }
+    catch { this._scheduleReconnect(); return; }
+    this.ws = ws;
+
+    ws.addEventListener('open', () => {
+      this.connected = true;
+      this._status('syncing');
+      this.send({ t: 'city_join', playerId: this.playerId, cityId: this.cityId });
+      this.hb = setInterval(() => this.send({ t: 'heartbeat' }), HEARTBEAT_MS);
+    });
+    ws.addEventListener('message', (ev) => {
+      let m; try { m = JSON.parse(ev.data); } catch { return; }
+      this._route(m);
+    });
+    ws.addEventListener('close', () => { this._down(); });
+    ws.addEventListener('error', () => { try { ws.close(); } catch { /* noop */ } });
+  }
+
+  _route(m) {
+    switch (m.t) {
+      case 'city_welcome': this.h.onWelcome?.(m); this._status('live'); break;
+      case 'city_snapshot': this.h.onSnapshot?.(m); break;
+      case 'city_player_joined': this.h.onPlayerJoined?.(m); break;
+      case 'city_player_left': this.h.onPlayerLeft?.(m); break;
+      case 'city_portal_ok': this.h.onPortalOk?.(m); break;
+      case 'city_error': this.h.onError?.(m); break;
+      default: break;
+    }
+  }
+
+  _down() {
+    this.connected = false;
+    if (this.hb) { clearInterval(this.hb); this.hb = null; }
+    this._status('offline');
+    if (!this.closed) this._scheduleReconnect();
+  }
+  _scheduleReconnect() { setTimeout(() => { if (!this.closed) this.connect(); }, RECONNECT_MS); }
+  _status(s) { this.h.onStatus?.(s); }
+
+  send(obj) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      try { this.ws.send(JSON.stringify(obj)); } catch { /* closing */ }
+    }
+  }
+  sendInput(seq, ts, dx, dy) { this.send({ t: 'city_input', seq, ts, dx, dy }); }
+  enterPortal(portalId) { this.send({ t: 'city_portal_enter', portalId }); }
+  requestSnapshot() { this.send({ t: 'city_snapshot_request' }); }
+
+  close() {
+    this.closed = true;
+    if (this.hb) { clearInterval(this.hb); this.hb = null; }
+    try { this.send({ t: 'city_leave' }); this.ws?.close(); } catch { /* noop */ }
+  }
+}

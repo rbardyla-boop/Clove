@@ -34,7 +34,8 @@ EVENT_SHOW_FEATURED = "true"
 [env.production.durable_objects]
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
-  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
+  { name = "CITY_ROOM", class_name = "CityRoom" }
 ]
 
 [[env.production.migrations]]
@@ -44,6 +45,10 @@ new_sqlite_classes = ["ArcadeRoom"]
 [[env.production.migrations]]
 tag = "v2"
 new_sqlite_classes = ["RoomRegistry"]
+
+[[env.production.migrations]]
+tag = "v3"
+new_sqlite_classes = ["CityRoom"]
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
@@ -56,7 +61,8 @@ EVENT_SHOW_FEATURED = "true"
 [env.staging.durable_objects]
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
-  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" }
+  { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
+  { name = "CITY_ROOM", class_name = "CityRoom" }
 ]
 
 [[env.staging.migrations]]
@@ -66,6 +72,10 @@ new_sqlite_classes = ["ArcadeRoom"]
 [[env.staging.migrations]]
 tag = "v2"
 new_sqlite_classes = ["RoomRegistry"]
+
+[[env.staging.migrations]]
+tag = "v3"
+new_sqlite_classes = ["CityRoom"]
 `;
 const SAFE_ARCADE_ROOM = 'case "__test_set_event_now": { if (this.env.ENVIRONMENT === "development") { doThing(); } break; }';
 
@@ -119,7 +129,12 @@ test('gate CATCHES a missing staging DO binding', () => {
   const idx = SAFE_TOML.indexOf('[env.staging.durable_objects]');
   const broken = SAFE_TOML.slice(0, idx) + SAFE_TOML.slice(idx).replace(/{ name = "ROOM_REGISTRY"[^}]*}/, '');
   const r = named(broken);
-  assert.equal(r['staging re-declares both DO bindings'], false);
+  assert.equal(r['staging re-declares all DO bindings'], false);
+});
+
+test('gate CATCHES a missing CityRoom production binding (Phase 4A)', () => {
+  const noBinding = named(SAFE_TOML.replace(/{ name = "CITY_ROOM"[^}]*}/, ''));
+  assert.equal(noBinding['production re-declares CityRoom DO binding'], false);
 });
 
 test('staging checks are skipped when no [env.staging] exists (optional env)', () => {
