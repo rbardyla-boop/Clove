@@ -5,6 +5,40 @@ Newest first.
 
 ---
 
+## ADR-012 — Neon Circuit Phase 5A: Multi-Block District foundation (2026-06-04)
+
+**Context.** Phases 4A–4G proved a single server-authoritative city block (merged to `main` via PR #24;
+the city WebSocket handshake was corrected for the deployed Worker in PR #25, tagged `phase4-city-arc-rc2`
+→ `6fb453c`, after a staging deploy + smoke). Phase 5A grows the city into the smallest useful **district**
+of multiple blocks — discovery + bounded routing + per-block isolation — preserving every Phase 4 authority
+and safety boundary. Not an economy/MMO/marketplace/HiveWorld phase.
+
+**Decision.**
+1. **Catalog + pure district layer** — `CITY_ROOMS` expands 1 → 3 (`downtown-01`, `harbor-02`, `skyline-03`);
+   each block is already its **own** `CityRoom` DO (`idFromName(city_id)`), so adding blocks adds **no DO class
+   and no migration**. New pure `arcade/city/city-district.mjs` owns the manifest, a fixed **line** adjacency
+   (`downtown — harbor — skyline`, so downtown↔skyline are non-adjacent), public-safe block summaries, and
+   `validateRouteRequest` (sanitize + known + adjacent + not-self; never mutates state). `SCHEMA_VERSION` → 7 (additive).
+2. **Additive protocol, server owns truth** — `city_blocks` (pushed on join) + `city_blocks_request` +
+   `city_route_request` → `city_route_result` in both the CityRoom DO and the dev-shim, rate-limited per socket.
+   The route's **source** is the server-owned `boundCityId`; the **target** is untrusted. A route is a
+   CONFIRMATION only — the client reconnects (`switchCity`) and the target block's authority admits it, so
+   cross-block membership can never be forged. Per-block state (log/scheduler/Host Rank/stewardship/trial) stays
+   isolated by DO construction; discovery carries no population/private/economy/ownership data (5B = live population).
+3. **Client** — `city-net.js` gains `requestBlocks/requestRoute/switchCity` (close-handler guarded so a replaced
+   socket can't reconnect to the old block); a city-OS **District panel** (current + adjacent blocks + Travel +
+   route status; `textContent`/buttons only, no money/ownership/claim copy).
+
+**Consequences.** Worker unchanged in shape (no new DO/migration; bundle 178.16 KiB / 38.33 KiB gz). Arcade
+economy / ArcadeRoom / RoomRegistry / `game/*` / `hiveworld-sim` untouched. Validation: 500 unit (+9 district)
++ new district browser smoke (25/25) + all Phase 4 city + arcade two-client/frame-contract regression + Worker
+dry-run + size (0.729 / 0.195 MB gz) + config gates — all green. Guardrails clean. Local-only commit on
+`feat/neon-circuit-phase5a-multi-block-district`; not pushed/merged/deployed.
+
+Detail: `docs/NEON_CIRCUIT_PHASE5_MULTI_BLOCK_DISTRICT.md`.
+
+---
+
 ## ADR-011 — Neon Circuit Phase 4G: instanced, non-destructive Block Trial (2026-06-04)
 
 **Context.** Phases 4A–4F built the full city vertical slice (block → authority → event log/interior →

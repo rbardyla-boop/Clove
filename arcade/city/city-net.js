@@ -62,7 +62,8 @@ export class CityNet {
       let m; try { m = JSON.parse(ev.data); } catch { return; }
       this._route(m);
     });
-    ws.addEventListener('close', () => { this._down(); });
+    // Guard on identity so a socket replaced by switchCity() can't trigger a reconnect to the old block.
+    ws.addEventListener('close', () => { if (this.ws === ws) this._down(); });
     ws.addEventListener('error', () => { try { ws.close(); } catch { /* noop */ } });
   }
 
@@ -81,6 +82,8 @@ export class CityNet {
       case 'city_stewardship_result': this.h.onStewardshipResult?.(m); break; // Phase 4F: preview/apply/reset outcome
       case 'city_block_trial_state': this.h.onTrialState?.(m); break;         // Phase 4G: Block Trial instance state
       case 'city_block_trial_result': this.h.onTrialResult?.(m); break;       // Phase 4G: trial request/join/close outcome
+      case 'city_blocks': this.h.onBlocks?.(m); break;                        // Phase 5A: district manifest (discovery)
+      case 'city_route_result': this.h.onRouteResult?.(m); break;             // Phase 5A: server-validated route confirmation
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }
@@ -118,6 +121,26 @@ export class CityNet {
   joinTrial() { this.send({ t: 'city_block_trial_join_request' }); }
   leaveTrial() { this.send({ t: 'city_block_trial_leave' }); }
   closeTrial() { this.send({ t: 'city_block_trial_close_request' }); }
+  // Phase 5A: multi-block district. Discovery + a route request (intent only — the server
+  // validates adjacency and owns the truth; the target block's authority admits the player).
+  requestBlocks() { this.send({ t: 'city_blocks_request' }); }
+  requestRoute(targetCityId) { this.send({ t: 'city_route_request', target_city_id: targetCityId }); }
+
+  /**
+   * Travel to another block: tear down the current socket (without auto-reconnecting to the
+   * OLD block) and reconnect to the new block's CityRoom. Only call after a server
+   * `city_route_result {ok:true}` — the target block's authority still admits the player.
+   */
+  switchCity(cityId) {
+    if (typeof cityId !== 'string' || !cityId || cityId === this.cityId) return;
+    this.cityId = cityId;
+    if (this.hb) { clearInterval(this.hb); this.hb = null; }
+    const old = this.ws;
+    this.ws = null;          // so old's close handler (guarded on this.ws === ws) won't reconnect to the old block
+    this.connected = false;
+    if (old) { try { old.send(JSON.stringify({ t: 'city_leave' })); } catch { /* closing */ } try { old.close(); } catch { /* noop */ } }
+    this.connect();          // opens a fresh socket bound to the new cityId
+  }
 
   close() {
     this.closed = true;

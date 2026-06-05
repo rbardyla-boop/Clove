@@ -29,6 +29,7 @@ import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePay
 import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from "../../../arcade/city/city-host-rank.mjs";
 import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload, isStewardshipEligible } from "../../../arcade/city/city-stewardship.mjs";
 import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from "../../../arcade/city/city-battle-instance.mjs";
+import { districtManifest, validateRouteRequest } from "../../../arcade/city/city-district.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -49,6 +50,8 @@ interface SocketMeta {
   lastRankReqAt: number;
   lastStewReqAt: number;
   lastTrialReqAt: number;
+  lastBlocksReqAt: number; // Phase 5A: district discovery anti-spam
+  lastRouteReqAt: number;  // Phase 5A: route request anti-spam
   interiorOpen: boolean;
 }
 
@@ -76,7 +79,7 @@ export class CityRoom implements DurableObject {
       if (att?.playerId) {
         // interiorOpen is rehydrated from the attachment so a DO hibernation/restart while
         // a player is inside the arcade still fires city_arcade_interior_closed on disconnect.
-        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, interiorOpen: !!att.interiorOpen });
+        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, lastBlocksReqAt: 0, lastRouteReqAt: 0, interiorOpen: !!att.interiorOpen });
         if (att.cityId) this.boundCityId = att.cityId; // trusted: we serialized this attachment ourselves
       }
     }
@@ -151,6 +154,8 @@ export class CityRoom implements DurableObject {
       case "city_block_trial_join_request": { await this.handleTrialJoin(ws); break; }
       case "city_block_trial_leave": { this.handleTrialLeave(ws); break; }
       case "city_block_trial_close_request": { await this.handleTrialClose(ws); break; }
+      case "city_blocks_request": { this.handleBlocksRequest(ws); break; }
+      case "city_route_request": { this.handleRouteRequest(ws, data); break; }
       // accept the 4C name + the 4B name (alias) so old clients keep working
       case "city_portal_enter":
       case "city_portal_enter_request": { await this.handlePortal(ws, data); break; }
@@ -188,7 +193,7 @@ export class CityRoom implements DurableObject {
     this.state = res.state;
 
     ws.serializeAttachment({ playerId, cityId: this.boundCityId, interiorOpen: false });
-    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, interiorOpen: false });
+    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, lastBlocksReqAt: 0, lastRouteReqAt: 0, interiorOpen: false });
 
     this.send(ws, { t: "city_welcome", ...welcomePayload(this.state, playerId, this.boundCityId, now) });
     this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) }); // recent history on (re)join
@@ -206,6 +211,8 @@ export class CityRoom implements DurableObject {
     this.send(ws, { t: "city_stewardship_state", ...stewardshipStatePayload(this.stewardship) });
     // Phase 4G: a (re)connect to a warm DO sees an in-progress Block Trial, if any.
     if (this.trial) this.send(ws, { t: "city_block_trial_state", ...trialStatePayload(this.trial) });
+    // Phase 5A: a (re)connect always sees the public-safe district manifest for discovery.
+    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId) });
     await this.persist();
     this.scheduleSweep();
   }
@@ -242,6 +249,36 @@ export class CityRoom implements DurableObject {
     if (now - meta.lastEvReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
     meta.lastEvReqAt = now;
     this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) });
+  }
+
+  // ==================== Phase 5A: multi-block district (discovery + bounded routing) ====================
+
+  /** Public-safe district manifest (discovery). Static config; no block state touched. */
+  private handleBlocksRequest(ws: WebSocket): void {
+    const meta = this.sockets.get(ws);
+    if (!meta) return;
+    const now = Date.now();
+    if (now - meta.lastBlocksReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
+    meta.lastBlocksReqAt = now;
+    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId) });
+  }
+
+  /**
+   * Server-validated route request. The SOURCE block is server-owned (this.boundCityId,
+   * fixed by the route URL); the target is untrusted and must be a KNOWN block ADJACENT to
+   * the source (bounded — no arbitrary teleport). This is a CONFIRMATION only: it mutates
+   * NO block state. The client reconnects to the target block's CityRoom, which then
+   * authoritatively admits the player — so a client can never forge cross-block membership.
+   */
+  private handleRouteRequest(ws: WebSocket, data: any): void {
+    const meta = this.sockets.get(ws);
+    if (!meta) { this.send(ws, { t: "city_error", code: "no_identity", message: "Must city_join first" }); return; }
+    const now = Date.now();
+    if (now - meta.lastRouteReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
+    meta.lastRouteReqAt = now;
+    const res = validateRouteRequest(this.boundCityId, data?.target_city_id);
+    if (!res.ok) { this.send(ws, { t: "city_route_result", ok: false, reason: res.reason, public_safe: true }); return; }
+    this.send(ws, { t: "city_route_result", ok: true, from_city_id: this.boundCityId, target_city_id: res.target_city_id, ws_hint: res.ws_hint, public_safe: true });
   }
 
   /**
