@@ -23,6 +23,8 @@ node_modules/
 
 # ── Neon Circuit Room Authority (Phase 1b+) ─────────────────────
 # Wrangler local dev state for the authority Worker + DO
+# Root wrangler cache (account/pages id cache) — local-only, never tracked.
+.wrangler/
 workers/arcade/.wrangler/
 workers/arcade/node_modules/
 workers/arcade/.env

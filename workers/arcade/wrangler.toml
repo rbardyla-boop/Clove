@@ -67,6 +67,26 @@ ADMIN_ENABLED = "true"
 #   * EVENT_* are the display-only presentation defaults (clamped server-side).
 # ADMIN_TOKEN is NEVER set here — configure it out-of-band only if you intend to
 # enable live-ops:  wrangler secret put ADMIN_TOKEN --env production
+#
+# Phase 5 launch routing — NARROW same-origin routes. Only the Worker's API/WS endpoints
+# under /arcade/ hit this DO Worker; the static client (incl. /arcade/city/*) stays on the
+# `wild-hat-6257` assets Worker that owns the clovelearn.io custom domain. This is NOT a
+# broad clovelearn.io/arcade/* — that would route the static client files to this Worker,
+# which 404s anything but these 5 endpoints.
+#
+# IMPORTANT: every pattern ends in `*`. A Cloudflare route WITHOUT a trailing `*` matches
+# the path ONLY when there is no query string — so a bare `clovelearn.io/arcade/city/ws`
+# does NOT match the client's real `/arcade/city/ws?city=<id>` (verified: bare → 404 with
+# query, → Worker without). The `*` absorbs the `?room=`/`?city=` query. None of these
+# patterns shadow a static file (no asset path starts with ws/city/ws/rooms/health).
+[env.production]
+routes = [
+  { pattern = "clovelearn.io/arcade/ws*",      zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/city/ws*", zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/rooms*",   zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/health*",  zone_name = "clovelearn.io" },
+]
+
 [env.production.vars]
 ENVIRONMENT = "production"
 ADMIN_ENABLED = "false"
