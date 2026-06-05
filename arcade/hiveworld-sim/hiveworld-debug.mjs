@@ -19,6 +19,7 @@ import { CITY_DISTRICT_SCENARIOS } from './scenarios/city-district.mjs';
 import { CITY_SYSTEMS_SCENARIOS } from './scenarios/city-systems.mjs';
 import { PRESENCE_CADENCE_SCENARIOS } from './scenarios/presence-cadence.mjs';
 import { CITY_IDS, getBlock } from './core/phase1/city-blocks.mjs';
+import { sidebandChannels, pushedViewTimeline, propagationTrace, activityBySideband, convergenceDemo, rejectedSummary } from './core/viz/fabric-view.mjs';
 const ALL_CITY_SCENARIOS = { ...CITY_DISTRICT_SCENARIOS, ...CITY_SYSTEMS_SCENARIOS, ...PRESENCE_CADENCE_SCENARIOS };
 import { CABINETS } from './core/phase1/catalog.mjs';
 import { cabinetRenderState, adapterStateFor } from './core/phase1/adapters.mjs';
@@ -355,10 +356,55 @@ class HiveDebug {
     const name = (sel && sel.value) || 'districtRouteConverges';
     const fn = ALL_CITY_SCENARIOS[name];
     if (!fn) { this.toast('unknown city scenario', 'bad'); return; }
-    const { report } = fn();
+    const { report, events } = fn();
     this.renderCity(report);
+    this.renderFabricLens(report, events || []); // v1.3: read-only diagnostic lens
     const conv = report.desyncReport.finalConverged;
     this.toast(`ran ${name} → converged: ${conv} · rejected routes: ${report.finalWorldState.district.rejectedRoutes}`, conv ? 'ok' : 'bad');
+  }
+
+  /** v1.3 — read-only sideband/radio-fabric lens (derived view-models; never changes the fold). */
+  renderFabricLens(report, events) {
+    const host = $('hw-fabric');
+    if (!host) return;
+    host.textContent = '';
+    const row = (k, v) => { const d = document.createElement('div'); d.className = 'row';
+      const a = document.createElement('span'); a.textContent = k; const b = document.createElement('span'); b.textContent = v;
+      d.appendChild(a); d.appendChild(b); return d; };
+    const lbl = (t) => { const d = document.createElement('div'); d.className = 'lbl'; d.textContent = t; return d; };
+    const evt = (t) => { const d = document.createElement('div'); d.className = 'evt'; d.textContent = t; return d; };
+    if (!report) { host.appendChild(evt('Run a city scenario — the fabric lens visualizes it here.')); return; }
+
+    host.appendChild(lbl('SIDEBAND CHANNELS'));
+    for (const c of sidebandChannels(report).filter((x) => x.traffic > 0)) host.appendChild(row(`${c.name} · ${c.klass}`, `${c.traffic} ev${c.recent_types.length ? ' · ' + c.recent_types.join(',') : ''}`));
+
+    host.appendChild(lbl('PUSHED-VIEW TIMELINE (registry → per-block view)'));
+    for (const f of pushedViewTimeline(events)) {
+      const seen = CITY_IDS.map((id) => `${getBlock(id).display_name[0]}:${f.pushed['downtown-01']?.[id] ?? '–'}`).join(' ');
+      host.appendChild(row(`t${f.tick}`, `reg ${CITY_IDS.map((id) => f.registry[id]).join('/')} · downtown sees ${seen}`));
+    }
+
+    const trace = propagationTrace(events, 'harbor-02');
+    if (trace.change_tick != null) {
+      host.appendChild(lbl('PROPAGATION (harbor change → who sees it)'));
+      for (const v of CITY_IDS) { const t = trace.by_viewer[v]; host.appendChild(row(getBlock(v).display_name, `${t.kind}${t.lag != null ? ' · lag ' + t.lag + 't' : ''}`)); }
+    }
+
+    const abs = activityBySideband(report);
+    if (Object.keys(abs).length) {
+      host.appendChild(lbl('ACTIVITY BY SIDEBAND'));
+      for (const [sb, labels] of Object.entries(abs)) host.appendChild(row(sb, labels.slice(-3).join(' · ')));
+    }
+
+    const c = convergenceDemo(events);
+    host.appendChild(lbl('CONVERGENCE / REPLAY'));
+    host.appendChild(row('fingerprint', short(c.fingerprint)));
+    host.appendChild(row('stable under reorder/dup', `${c.stable_under_reorder} / ${c.stable_under_duplicate}`));
+
+    const rej = rejectedSummary(report);
+    host.appendChild(lbl(`REJECTED / STRIPPED (${rej.reduce((n, g) => n + g.count, 0)})`));
+    if (!rej.length) host.appendChild(row('—', 'none rejected'));
+    for (const g of rej) host.appendChild(row(`${g.phase} · ${g.reason}`, `×${g.count}${g.sideband ? ' · ' + g.sideband : ''}`));
   }
 
   /** Lab display of the city/district fold (textContent/DOM only — public-safe view). */

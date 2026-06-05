@@ -59,7 +59,17 @@ cadence events fold to the same fingerprint. Lab mirror only.
 
 Full write-ups: [`docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md`](../../docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md)
 · [`docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md`](../../docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md)
-· [`docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md`](../../docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
+· [`docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md`](../../docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md)
+
+**v1.3 — sideband / radio-fabric visualization:** a READ-ONLY diagnostic LENS over everything above. Pure
+view-models (`core/viz/fabric-view.mjs`) derive — from the existing report / canonical log / folded state
+— the sideband channels, a fold-prefix **pushed-view timeline** (the v1.2 cadence made visible over time),
+a **propagation trace** (same-block immediate vs cross-block delayed ≈ one alarm), activity-by-sideband,
+the convergence/replay fingerprint, and a public-safe rejected/stripped summary (reasons + counts only,
+never a private value). It adds NO event, reducer, authority, or fold change — the "radio/sideband" naming
+stays a metaphor (no real RF). Rendered in the testbed `#hw-fabric` panel.
+
+Full write-ups: [`docs/HIVEWORLD_V1_3_SIDEBAND_VISUALIZATION.md`](../../docs/HIVEWORLD_V1_3_SIDEBAND_VISUALIZATION.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
 · [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
 · [`docs/HIVEWORLD_V0_2_MULTI_ROOM.md`](../../docs/HIVEWORLD_V0_2_MULTI_ROOM.md)
 · [`docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md`](../../docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md)

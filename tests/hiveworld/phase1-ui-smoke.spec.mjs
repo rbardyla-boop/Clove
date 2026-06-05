@@ -75,6 +75,13 @@ try {
   check('city panel shows presence cadence (registry vs pushed view)', /PRESENCE CADENCE/.test(cadText) && /registry/.test(cadText) && /sees/.test(cadText));
   check('cadence panel shows no private data', !/\b(player_id|balance|socket|adminToken|secret)\b/i.test(cadText));
 
+  // v1.3 — Sideband fabric lens renders for the same run (read-only diagnostic).
+  await page.waitForFunction(() => /SIDEBAND CHANNELS/.test(document.querySelector('#hw-fabric')?.textContent || ''), null, { timeout: 8000 });
+  const lensText = await page.evaluate(() => document.querySelector('#hw-fabric').textContent);
+  check('fabric lens shows channels + cadence timeline + convergence', /SIDEBAND CHANNELS/.test(lensText) && /PUSHED-VIEW TIMELINE/.test(lensText) && /CONVERGENCE/.test(lensText) && /fingerprint/.test(lensText));
+  check('fabric lens shows propagation (immediate vs delayed)', /PROPAGATION/.test(lensText) && /(immediate|delayed)/.test(lensText));
+  check('fabric lens shows no private data / no stripped value', !/\b(player_id|balance|socket|adminToken|secret|agent:)\b/i.test(lensText));
+
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
 } finally {
