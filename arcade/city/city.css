@@ -180,16 +180,24 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .city-district .dist-act.dist-good { color: #7cffb2; }
 .city-district .dist-act.dist-quiet { opacity: .55; }
-/* Phase 6A — district event pulse (display/atmosphere only; current + next scheduled event) */
-.city-district .dist-event { margin-top: 8px; padding: 6px 8px; border: 1px solid var(--edge); border-radius: 8px;
-  background: rgba(34, 224, 255, .06); }
+/* Phase 6A/6C — district event card (display/atmosphere only; current + next + live countdown) */
+.city-district .dist-event { margin-top: 8px; padding: 6px 8px 7px; border: 1px solid var(--edge); border-radius: 8px;
+  background: rgba(34, 224, 255, .06); border-left-width: 3px; }
+.city-district .dist-event.is-active { border-left-color: #7cffb2; }   /* active window → green accent */
+.city-district .dist-event.is-preroll { border-left-color: var(--am); background: rgba(255, 176, 32, .07); } /* pre-roll → amber */
 .city-district .dist-event-title { display: flex; align-items: center; gap: 6px; }
 .city-district .dist-event-name { font-family: "Bungee", var(--mono); font-size: 10.5px; letter-spacing: .8px; color: #dbe9f3; }
 .city-district .dist-event-chip { flex: none; font-family: var(--mono); font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase;
   color: #04121a; background: var(--cy); border-radius: 5px; padding: 1px 5px; }
+.city-district .dist-event.is-preroll .dist-event-chip { background: var(--am); }
 .city-district .dist-event-sum { margin-top: 2px; font-size: 10px; line-height: 1.35; color: var(--ink); letter-spacing: .2px; }
+.city-district .dist-event-meta { margin-top: 3px; font-size: 9.5px; letter-spacing: .3px; color: var(--ink); opacity: .85; }
+.city-district .dist-event-meta-label { opacity: .7; text-transform: uppercase; letter-spacing: 1px; font-size: 8.5px; }
+.city-district .dist-event-countdown { font-family: var(--mono); color: var(--cy); font-variant-numeric: tabular-nums; }
+.city-district .dist-event.is-preroll .dist-event-countdown { color: var(--am); }
 .city-district .dist-event-next { margin-top: 3px; font-size: 9.5px; letter-spacing: .4px; color: var(--ink); opacity: .7; }
 .city-district .dist-event-next.dist-event-soon { color: var(--am); opacity: .95; }
+.city-district .dist-event-next-countdown { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: no-preference) {
   .city-district .dist-event-chip { animation: distEventChip 2.4s ease-in-out infinite; }
 }

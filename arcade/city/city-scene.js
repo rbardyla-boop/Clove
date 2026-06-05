@@ -26,7 +26,7 @@ import {
   deriveActivitiesFromDelta, activityForRouteRequested, activityForRouteResult,
   activityForArrival, activityForDistrictEvent, appendActivity, ACTIVITY_FEED_MAX,
 } from './city-district-activity.mjs';
-import { districtEventWindow, deriveDistrictAnnouncements } from './city-district-events.mjs';
+import { districtEventWindow, deriveDistrictAnnouncements, formatCountdown } from './city-district-events.mjs';
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -428,6 +428,18 @@ function pollDistrictEvents(now = Date.now()) {
   renderDistrict();
   return cityEvent;
 }
+// Phase 6C: lightweight 1s countdown ticker — updates only the countdown text in place (no panel
+// rebuild). When the current window's time runs out, re-derive the schedule (flips the card + fires
+// announcements). Display-only; reads only the clock + the already-derived cityEvent.
+function updateEventCountdown(now = Date.now()) {
+  if (!cityEvent || !cityEvent.current || !districtEl) return;
+  const remaining = cityEvent.ends_at - now;
+  if (remaining <= 0) { pollDistrictEvents(now); return; }  // window ended → re-derive + re-render
+  const cdv = districtEl.querySelector('.dist-event-countdown');
+  if (cdv) cdv.textContent = formatCountdown(remaining);
+  const nxc = districtEl.querySelector('.dist-event-next-countdown');
+  if (nxc && cityEvent.next) nxc.textContent = 'in ' + formatCountdown(cityEvent.next.starts_at - now);
+}
 function renderDistrict() {
   if (!districtEl) return;
   districtEl.textContent = '';
@@ -459,20 +471,30 @@ function renderDistrict() {
   line.textContent = cur ? `theme ${cur.theme} · ${peopleLabel(cur)}` : 'current block';
   districtEl.appendChild(line);
 
-  // Phase 6A: district PULSE — a small, non-dominant event banner (current + next). textContent
-  // only; CSS-only visuals; reduced-motion safe. Display/atmosphere only — no economy/ownership.
+  // Phase 6A/6C: district PULSE — a richer (but still non-dominant) event CARD with a live countdown
+  // and active/pre-roll visual states. textContent only; CSS-only visuals; reduced-motion safe.
+  // Display/atmosphere only — no economy/ownership. The countdown ticks in updateEventCountdown().
   if (cityEvent && cityEvent.current) {
-    const ev = document.createElement('div'); ev.className = 'dist-event';
+    const preroll = !!cityEvent.preroll;
+    const ev = document.createElement('div'); ev.className = 'dist-event ' + (preroll ? 'is-preroll' : 'is-active');
     const title = document.createElement('div'); title.className = 'dist-event-title';
     const tt = document.createElement('span'); tt.className = 'dist-event-name'; tt.textContent = cityEvent.current.label;
-    const chip = document.createElement('span'); chip.className = 'dist-event-chip'; chip.textContent = 'now';
+    const chip = document.createElement('span'); chip.className = 'dist-event-chip'; chip.textContent = preroll ? 'soon' : 'now';
     title.appendChild(tt); title.appendChild(chip);
     ev.appendChild(title);
     const sum = document.createElement('div'); sum.className = 'dist-event-sum'; sum.textContent = cityEvent.current.summary;
     ev.appendChild(sum);
-    if (cityEvent.next) {
-      const nx = document.createElement('div'); nx.className = 'dist-event-next' + (cityEvent.preroll ? ' dist-event-soon' : '');
-      nx.textContent = `Up next: ${cityEvent.next.label}`;
+    // Phase 6C: live countdown to the end of the current window ("ends in m:ss").
+    const meta = document.createElement('div'); meta.className = 'dist-event-meta';
+    const ml = document.createElement('span'); ml.className = 'dist-event-meta-label'; ml.textContent = 'ends in ';
+    const cdv = document.createElement('span'); cdv.className = 'dist-event-countdown'; cdv.textContent = formatCountdown(cityEvent.ends_at - Date.now());
+    meta.appendChild(ml); meta.appendChild(cdv);
+    ev.appendChild(meta);
+    if (cityEvent.next && (!serverEventConfig || serverEventConfig.showNext !== false)) {
+      const nx = document.createElement('div'); nx.className = 'dist-event-next' + (preroll ? ' dist-event-soon' : '');
+      nx.appendChild(document.createTextNode(`Up next: ${cityEvent.next.label} · `));
+      const nxc = document.createElement('span'); nxc.className = 'dist-event-next-countdown'; nxc.textContent = 'in ' + formatCountdown(cityEvent.next.starts_at - Date.now());
+      nx.appendChild(nxc);
       ev.appendChild(nx);
     }
     districtEl.appendChild(ev);
@@ -820,6 +842,8 @@ window.__neon_city = {
   pollDistrictEvents(nowMs) { const w = pollDistrictEvents(Number.isFinite(nowMs) ? nowMs : Date.now()); return w ? JSON.parse(JSON.stringify(w)) : null; },
   // Phase 6B — server-authored event snapshot (display only; server owns the schedule config)
   serverDistrictEvent() { return serverEventSnapshot ? JSON.parse(JSON.stringify(serverEventSnapshot)) : null; },
+  // Phase 6C — drive the live countdown ticker deterministically (display only)
+  tickEventCountdown(nowMs) { updateEventCountdown(Number.isFinite(nowMs) ? nowMs : Date.now()); },
   get cityId() { return net.cityId; },
   requestBlocks() { net.requestBlocks(); },
   routeTo(targetCityId) { net.requestRoute(targetCityId); },
@@ -844,6 +868,8 @@ net.connect();
 // Phase 6A: keep the district-event pulse fresh — re-evaluate the deterministic schedule so the
 // banner advances and pre-roll/active/ended announcements surface as windows turn over. Display-only.
 setInterval(() => pollDistrictEvents(), EVENT_TICK_MS);
+// Phase 6C: 1s countdown ticker (text-only in-place update; flips the card when a window ends).
+setInterval(() => updateEventCountdown(), 1000);
 // Phase 5D: district presence is now PUSHED on change (no steady polling). Keep only a slow
 // degraded-state safety net — if connected but no push/manifest has arrived within the stale
 // window, re-request once. renderDistrict also reflects this as a "refresh" indicator.
