@@ -11,7 +11,7 @@
  *
  * Scope + non-goals: docs/NEON_CIRCUIT_PHASE4B_CITY_AUTHORITY_POLISH.md.
  */
-import { publicLayout, MOVEMENT, predictStep, resolveCityRoomId } from './city-block.mjs';
+import { publicLayout, MOVEMENT, predictStep, resolveCityRoomId, getCity } from './city-block.mjs';
 import {
   createInputBuffer, recordPendingInput, dropAcknowledgedInputs, reconcilePredictedState, DISPLAY_EASE,
 } from './city-reconcile.mjs';
@@ -22,6 +22,10 @@ import {
 } from './city-stewardship.mjs';
 import { CityNet, resolveCityWsUrl } from './city-net.js';
 import { mergePresenceDelta } from './city-district-presence.mjs';
+import {
+  deriveActivitiesFromDelta, activityForRouteRequested, activityForRouteResult,
+  activityForArrival, appendActivity, ACTIVITY_FEED_MAX,
+} from './city-district-activity.mjs';
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -88,6 +92,9 @@ let cityDistrict = null;              // Phase 5A: last district manifest (displ
 let routeStatus = '';                 // Phase 5A: transient route feedback line
 let districtLiveAt = 0;               // Phase 5D: last time district presence updated (full manifest OR push delta)
 const DISTRICT_STALE_MS = 45000;      // Phase 5D: beyond this with no push → show degraded + safety re-request
+let cityActivity = [];                // Phase 5E: derived district activity feed (display-only, local history)
+let travelingTo = null;               // Phase 5E: target block of an in-flight travel (for arrival detection)
+const ACTIVITY_UI_MAX = 8;            // how many of the bounded buffer the district panel shows
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -118,6 +125,11 @@ const net = new CityNet({
       }
       inputBuffer = createInputBuffer();
       net.requestSnapshot(); // populate remote interpolation buffer promptly
+      // Phase 5E: an arrival in a TRAVELED-to block (or the very first connect) logs an arrival.
+      // A plain auto-reconnect to the same block (feed already seeded) logs nothing.
+      if (travelingTo && net.cityId === travelingTo) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); travelingTo = null; }
+      else if (!cityActivity.length) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); }
+      renderDistrict();
     },
     onSnapshot: (m) => {
       window.__neon_city.lastSnapshotAt = Date.now();
@@ -164,6 +176,8 @@ const net = new CityNet({
     onDistrictPresence: (m) => {                                              // Phase 5D: push-on-change presence delta
       if (window.__neon_city) { window.__neon_city.lastDistrictPresence = m; window.__neon_city.districtPushCount++; }
       if (!cityDistrict) return;                                             // wait for the full manifest baseline
+      // Phase 5E: derive district activity from the change BEFORE merging (needs the prior summary).
+      for (const a of deriveActivitiesFromDelta(m, cityDistrict, Date.now())) recordActivity(a);
       cityDistrict = mergePresenceDelta(cityDistrict, m);
       districtLiveAt = Date.now();
       renderDistrict();
@@ -343,6 +357,21 @@ function currentBlock() {
   if (!cityDistrict) return null;
   return (cityDistrict.blocks || []).find((b) => b.city_id === cityDistrict.current_city_id) || null;
 }
+// Phase 5E: resolve a block's friendly name from the manifest, falling back to the static city
+// config (so an arrival logged before the new manifest arrives still reads "Arrived in Skyline").
+function blockName(cityId) {
+  const b = cityDistrict && (cityDistrict.blocks || []).find((x) => x.city_id === cityId);
+  if (b && b.display_name) return b.display_name;
+  const c = getCity(cityId);
+  return (c && c.display_name) || cityId;
+}
+// Phase 5E: record a derived, public-safe district activity item into the bounded local feed.
+// Display-only: nothing canonical reads this back; the server still owns presence/route truth.
+function recordActivity(item) {
+  if (!item) return;
+  cityActivity = appendActivity(cityActivity, item, ACTIVITY_FEED_MAX);
+  if (window.__neon_city) window.__neon_city.lastDistrictActivity = item;
+}
 function renderDistrict() {
   if (!districtEl) return;
   districtEl.textContent = '';
@@ -387,7 +416,7 @@ function renderDistrict() {
     name.textContent = `${b.display_name} · ${peopleLabel(b)}`;
     if (b.health && b.health !== 'healthy') name.classList.add('dist-quiet');
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dist-travel'; btn.textContent = 'Travel';
-    btn.addEventListener('click', () => { routeStatus = `routing to ${b.display_name}…`; renderDistrict(); net.requestRoute(b.city_id); });
+    btn.addEventListener('click', () => { recordActivity(activityForRouteRequested(b.city_id, b.display_name)); routeStatus = `routing to ${b.display_name}…`; renderDistrict(); net.requestRoute(b.city_id); });
     row.appendChild(name); row.appendChild(btn);
     districtEl.appendChild(row);
   }
@@ -395,11 +424,27 @@ function renderDistrict() {
     const st = document.createElement('div'); st.className = 'dist-status'; st.textContent = routeStatus;
     districtEl.appendChild(st);
   }
+  // Phase 5E: District Activity feed — newest-first, public-safe, derived display (bounded).
+  // textContent only; distinct from the World Log (which carries within-block server events).
+  if (cityActivity.length) {
+    const ah = document.createElement('div'); ah.className = 'dist-act-head'; ah.textContent = 'DISTRICT ACTIVITY';
+    districtEl.appendChild(ah);
+    const list = document.createElement('div'); list.className = 'dist-act-list'; list.setAttribute('role', 'log'); list.setAttribute('aria-live', 'polite');
+    for (const a of cityActivity.slice(0, ACTIVITY_UI_MAX)) {
+      const row = document.createElement('div');
+      row.className = 'dist-act' + (a.severity === 'warn' ? ' dist-quiet' : a.severity === 'good' ? ' dist-good' : '');
+      row.textContent = a.label;
+      list.appendChild(row);
+    }
+    districtEl.appendChild(list);
+  }
 }
 function onRouteResult(m) {
   window.__neon_city.lastRouteResult = m;
   if (m && m.ok && typeof m.target_city_id === 'string') {
-    routeStatus = 'traveling…';
+    travelingTo = m.target_city_id;                                  // Phase 5E: expect an arrival in this block
+    recordActivity(activityForRouteResult(m, blockName(m.target_city_id)));
+    routeStatus = `traveling to ${blockName(m.target_city_id)}…`;
     renderDistrict();
     net.switchCity(m.target_city_id); // reconnect to the target block; its welcome re-pushes city_blocks
   } else {
@@ -691,6 +736,9 @@ window.__neon_city = {
   lastDistrictPresence: null,        // last presence delta received (for tests/automation)
   districtPushCount: 0,              // how many push deltas have been applied
   get districtLiveAt() { return districtLiveAt; },
+  // Phase 5E — district activity feed (display only; client-derived from server-authored facts)
+  activity() { return cityActivity.map((a) => ({ type: a.type, city_id: a.city_id, label: a.label, severity: a.severity, occurred_at: a.occurred_at, public_safe: a.public_safe })); },
+  lastDistrictActivity: null,
   get cityId() { return net.cityId; },
   requestBlocks() { net.requestBlocks(); },
   routeTo(targetCityId) { net.requestRoute(targetCityId); },

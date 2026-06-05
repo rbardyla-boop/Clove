@@ -125,6 +125,9 @@ expansion, combat, vehicles, or NPCs.
 
 ## Next phases
 
+- **District activity feed — delivered in Phase 5E**
+  ([NEON_CIRCUIT_PHASE5E_DISTRICT_ACTIVITY_FEED.md](NEON_CIRCUIT_PHASE5E_DISTRICT_ACTIVITY_FEED.md)):
+  turns these presence deltas + route results + arrivals into a readable, public-safe, client-derived
+  district activity feed with cross-block transition polish (no server/protocol change).
 - Optional instant cross-block fan-out (registry→CityRoom notify) if the 30 s cross-block cadence
   proves too coarse in practice — same public-safe, no-economy doctrine.
-- Richer display-only district topology / scheduled cross-block events.

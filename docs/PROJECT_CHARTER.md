@@ -5,6 +5,44 @@ Newest first.
 
 ---
 
+## ADR-016 — Neon Circuit Phase 5E: district activity feed + transition polish (2026-06-05)
+
+**Context.** Phase 5D pushes public-safe district presence deltas, but the player still had to infer
+*what* changed from raw counts. Phase 5E makes the multi-block district understandable: a readable
+district activity feed ("Downtown became active.", "Routing to Skyline confirmed.", "Arrived in
+Skyline.") + clearer cross-block transition feedback — without economy/ownership/account mechanics.
+
+**Decision.**
+1. **Client-side derivation, not a new server message.** The client already receives every underlying
+   fact: `city_district_presence` deltas (5D, server-authored + public-safe), `city_route_result` (5A,
+   server-validated), and `city_welcome` (arrival). A server `city_district_activity` message would be
+   redundant wire traffic + new attack surface for no authority gain — activity is a display projection,
+   and route/presence truth is unaffected either way. So Phase 5E adds **NO** server message, DO,
+   migration, route, protocol field, or client→server activity path. (Rejected: server-authored activity
+   — heavier, and unnecessary since nothing canonical reads the feed back.)
+2. **New pure module** `arcade/city/city-district-activity.mjs` — `classifyBlockChange` (most-salient
+   public change), `deriveActivitiesFromDelta` (vs the pre-merge manifest), route/arrival builders,
+   `activityItem` (field-ALLOWLIST projection = the public-safety choke point; fails safe on unknown
+   types), and `appendActivity` (newest-first, coalesces against the head by `(type, city_id)`, bounded
+   to 16, no mutation). Reused by the scene + tests.
+3. **Client** derives activity from the messages/Travel it already has and renders a bounded DISTRICT
+   ACTIVITY sub-section inside the district panel (`textContent` only, ≤8 shown, scrollable so it never
+   overflows); transition copy is clarified; a blocked route stays transient (not a feed type) and leaves
+   the player in their current block. The feed is **local display history** (resets on reload, seeds one
+   arrival on connect); `city_blocks` stays the authoritative snapshot; no new polling.
+
+**Consequences.** Zero server/protocol change → old clients are unaffected and there is nothing to
+migrate or roll back beyond the additive client code. Public-safe by construction (allowlist + fixed
+labels; only a static display name is interpolated), proven by unit + browser tests asserting no private
+data and no forbidden economy/ownership copy. Validation: 536 unit (+14 pure) + new 20-check activity
+browser smoke + all Phase 4/5 city + arcade regression + Worker dry-run + size (≈0.745/0.200 MB gz) +
+config + guardrails — all green. Note a pre-existing right-column panel overlap (District vs Block Trial)
+can cover the Travel button; the handler is wired (the smoke fires it directly); repositioning is out of
+scope. Local-only commit on `feat/neon-circuit-phase5e-district-activity-feed`; not pushed/merged/deployed.
+Detail: `docs/NEON_CIRCUIT_PHASE5E_DISTRICT_ACTIVITY_FEED.md`.
+
+---
+
 ## ADR-015 — Neon Circuit Phase 5D: push-on-change district presence (2026-06-05)
 
 **Context.** Phase 5C made per-block population + health live, but PULL-based — the client polled
