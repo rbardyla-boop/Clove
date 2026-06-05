@@ -16,7 +16,9 @@ import { runScenario } from './scenarios/canned.mjs';
 // Phase 1 arcade parity (v0.1)
 import { PHASE1_SCENARIOS, runPhase1Scenario, RESULTS } from './scenarios/phase1.mjs';
 import { CITY_DISTRICT_SCENARIOS } from './scenarios/city-district.mjs';
+import { CITY_SYSTEMS_SCENARIOS } from './scenarios/city-systems.mjs';
 import { CITY_IDS, getBlock } from './core/phase1/city-blocks.mjs';
+const ALL_CITY_SCENARIOS = { ...CITY_DISTRICT_SCENARIOS, ...CITY_SYSTEMS_SCENARIOS };
 import { CABINETS } from './core/phase1/catalog.mjs';
 import { cabinetRenderState, adapterStateFor } from './core/phase1/adapters.mjs';
 import { arcadeRoom } from './core/phase1/round-authority.mjs';
@@ -342,7 +344,7 @@ class HiveDebug {
     const sel = $('sel-city-scenario');
     if (!sel) return;
     sel.innerHTML = '';
-    for (const name of Object.keys(CITY_DISTRICT_SCENARIOS)) {
+    for (const name of Object.keys(ALL_CITY_SCENARIOS)) {
       const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o);
     }
   }
@@ -350,7 +352,7 @@ class HiveDebug {
   runCityScenario() {
     const sel = $('sel-city-scenario');
     const name = (sel && sel.value) || 'districtRouteConverges';
-    const fn = CITY_DISTRICT_SCENARIOS[name];
+    const fn = ALL_CITY_SCENARIOS[name];
     if (!fn) { this.toast('unknown city scenario', 'bad'); return; }
     const { report } = fn();
     this.renderCity(report);
@@ -393,6 +395,38 @@ class HiveDebug {
     if (!d.activity.length) host.appendChild(row('—', 'no activity yet'));
     for (const item of d.activity.slice(0, 10)) {
       const line = document.createElement('div'); line.className = 'evt'; line.textContent = item.label; host.appendChild(line);
+    }
+    // v1.1 city systems (only shown when a city-systems scenario populated them)
+    const pr = d.pressure || {}, hr = d.hostRank || {}, st = d.stewardship || {}, tr = d.trials || {};
+    if (Object.keys(pr).length || Object.keys(hr).length) {
+      host.appendChild(lbl('CITY SYSTEMS (4D pressure · 4E host rank)'));
+      for (const id of CITY_IDS) {
+        if (!pr[id] && !hr[id]) continue;
+        const b = getBlock(id);
+        host.appendChild(row(b.display_name, `${pr[id] ? 'pressure ' + pr[id].mood : ''}${pr[id] && hr[id] ? ' · ' : ''}${hr[id] ? 'rank ' + hr[id].tier + ' (' + hr[id].support_signal + ')' : ''}`));
+      }
+    }
+    if (Object.keys(st).length) {
+      host.appendChild(lbl('STEWARDSHIP (4F · constrained, reversible)'));
+      for (const [id, style] of Object.entries(st)) {
+        const b = getBlock(id);
+        host.appendChild(row(b ? b.display_name : id, `${style.palette} · ${style.sign_variant} · ${style.intensity}`));
+      }
+    }
+    const activeTrials = Object.entries(tr).filter(([, x]) => x);
+    if (activeTrials.length) {
+      host.appendChild(lbl('BLOCK TRIALS (4G · instanced, non-destructive)'));
+      for (const [id, x] of activeTrials) {
+        const b = getBlock(id);
+        host.appendChild(row(b ? b.display_name : id, `${x.status} · ${x.score}/${x.score_cap} · ${x.player_count || Object.keys(x.players || {}).length} player(s)`));
+      }
+    }
+    if (d.cityLog && d.cityLog.events && d.cityLog.events.length) {
+      host.appendChild(lbl(`CITY WORLD LOG (4C · ${d.cityLog.events.length}/${50})`));
+      for (const e of d.cityLog.events.slice(-6)) {
+        const line = document.createElement('div'); line.className = 'evt';
+        line.textContent = `#${e.seq} ${e.type}${e.city_id ? ' · ' + e.city_id : ''}`; host.appendChild(line);
+      }
     }
   }
 

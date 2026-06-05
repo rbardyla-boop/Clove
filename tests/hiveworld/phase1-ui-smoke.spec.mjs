@@ -59,6 +59,14 @@ try {
   check('city panel shows a convergence fingerprint', /fingerprint/.test(cityText));
   check('city panel shows no private data', !/\b(player_id|balance|socket|adminToken|secret)\b/i.test(cityText));
 
+  // v1.1 — City systems (4C–4G) scenario through the same button (this one leaves a style applied).
+  await page.selectOption('#sel-city-scenario', 'citySystemsReplayStable');
+  await page.click('[data-action="run-city"]');
+  await page.waitForFunction(() => /STEWARDSHIP/.test(document.querySelector('#hw-city')?.textContent || ''), null, { timeout: 8000 });
+  const sysText = await page.evaluate(() => document.querySelector('#hw-city').textContent);
+  check('city panel shows v1.1 systems (host rank + stewardship + world log)', /rank host|rank steward/i.test(sysText) && /STEWARDSHIP/.test(sysText) && /CITY WORLD LOG/.test(sysText));
+  check('city systems panel shows no private data / no cash', !/\b(player_id|balance|socket|adminToken|secret|credit|payout)\b/i.test(sysText));
+
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
 } finally {

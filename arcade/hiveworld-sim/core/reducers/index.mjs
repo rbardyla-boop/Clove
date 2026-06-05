@@ -14,6 +14,7 @@ import * as ambient from './ambient.mjs';
 import * as arcade from './arcade.mjs';
 import * as registry from './registry.mjs';
 import * as district from './district.mjs';
+import * as citySystems from './city-systems.mjs';
 
 export const HANDLERS = Object.freeze({
   // discovery
@@ -76,6 +77,16 @@ export const HANDLERS = Object.freeze({
   city_route_rejected: district.city_route_rejected,
   city_block_arrived: district.city_block_arrived,
   district_activity_derived: district.district_activity_derived,
+  // v1.1 city systems (product Phase 4C–4G mirror)
+  city_world_event: citySystems.city_world_event,
+  city_pressure_observed: citySystems.city_pressure_observed,
+  city_host_rank_evaluated: citySystems.city_host_rank_evaluated,
+  city_stewardship_applied: citySystems.city_stewardship_applied,
+  city_stewardship_reset: citySystems.city_stewardship_reset,
+  city_block_trial_opened: citySystems.city_block_trial_opened,
+  city_block_trial_joined: citySystems.city_block_trial_joined,
+  city_block_trial_stepped: citySystems.city_block_trial_stepped,
+  city_block_trial_closed: citySystems.city_block_trial_closed,
 });
 
 export function getHandler(eventType) {

@@ -87,6 +87,16 @@ export const EVENT_SPECS = Object.freeze({
   city_route_rejected:       { sideband: 'event_log' },
   city_block_arrived:        { sideband: 'event_log' },
   district_activity_derived: { sideband: 'event_log' },
+  // ── v1.1 city systems (product Phase 4C–4G mirror) ──────────────────────────
+  city_world_event:            { sideband: 'event_log' },  // 4C: explicit append-only world note
+  city_pressure_observed:      { sideband: 'weather' },    // 4D: non-authoritative atmosphere
+  city_host_rank_evaluated:    { sideband: 'event_log' },  // 4E: non-cash reputation evaluation
+  city_stewardship_applied:    { sideband: 'event_log' },  // 4F: constrained, gated, reversible
+  city_stewardship_reset:      { sideband: 'event_log' },
+  city_block_trial_opened:     { sideband: 'event_log' },  // 4G: instanced, non-destructive
+  city_block_trial_joined:     { sideband: 'event_log' },
+  city_block_trial_stepped:    { sideband: 'event_log' },
+  city_block_trial_closed:     { sideband: 'event_log' },
 });
 
 /**

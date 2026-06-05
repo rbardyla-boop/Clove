@@ -35,7 +35,13 @@ export function createInitialState() {
     // v1.0 (Phase 5A–5E city/district mirror): per-block reported public summaries, per-actor
     // current block, route status, a bounded public-safe district activity feed, and a rejected-route
     // counter. No economy/accounts/ownership is ever folded here. See core/reducers/district.mjs.
-    district: { blocks: {}, actorBlock: {}, routes: {}, activity: [], rejectedRoutes: 0 },
+    district: {
+      blocks: {}, actorBlock: {}, routes: {}, activity: [], rejectedRoutes: 0,
+      // v1.1 (Phase 4C–4G city-systems mirror): append-only world log + per-block derived
+      // pressure (non-authoritative) + non-cash host rank + constrained/reversible stewardship
+      // overrides + instanced/non-destructive trials. See core/reducers/city-systems.mjs.
+      cityLog: { events: [], seq: 0 }, pressure: {}, hostRank: {}, stewardship: {}, trials: {},
+    },
   };
 }
 

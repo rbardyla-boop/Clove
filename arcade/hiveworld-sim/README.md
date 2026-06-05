@@ -40,7 +40,17 @@ fields stripped), and a **bounded, deduped district activity feed**. New fabric 
 `district_activity_derived`). All deterministic — duplicated / out-of-order delivery folds to the same
 fingerprint. Lab mirror only: no economy, accounts, ownership, money, networking, or product bridge.
 
-Full write-ups: [`docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md`](../../docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
+**v1.1 — city systems deep mirror (Phase 4C–4G):** on the v1.0 district substrate, five product
+city systems are folded — each public-safe with its safety posture ENFORCED in the fold: **4C** an
+append-only, FIFO-bounded (50), monotonic-seq, sanitized **city world log**; **4D** a
+**non-authoritative** per-block pressure/mood (derived display only); **4E** a **non-cash** Host Rank
+(tier + support signal, no economic field); **4F** **constrained + reversible** Block Stewardship (a
+CLOSED allowlist of palette/sign-variant/intensity, gated by Host Rank, reset → default); **4G** an
+**instanced, non-destructive** Block Trial (never touches the public block). All deterministic —
+reorder/dup delivery folds to the same fingerprint. Lab mirror only: no money/ownership/bridge.
+
+Full write-ups: [`docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md`](../../docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md)
+· [`docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md`](../../docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
 · [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
 · [`docs/HIVEWORLD_V0_2_MULTI_ROOM.md`](../../docs/HIVEWORLD_V0_2_MULTI_ROOM.md)
 · [`docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md`](../../docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md)

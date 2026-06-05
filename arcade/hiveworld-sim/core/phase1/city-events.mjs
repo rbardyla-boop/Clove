@@ -22,6 +22,16 @@ export const CITY_EVENT_SIDEBAND = Object.freeze({
   city_route_rejected:      'event_log',
   city_block_arrived:       'event_log',
   district_activity_derived:'event_log',
+  // v1.1 city systems (Phase 4C–4G mirror)
+  city_world_event:         'event_log',
+  city_pressure_observed:   'weather',
+  city_host_rank_evaluated: 'event_log',
+  city_stewardship_applied: 'event_log',
+  city_stewardship_reset:   'event_log',
+  city_block_trial_opened:  'event_log',
+  city_block_trial_joined:  'event_log',
+  city_block_trial_stepped: 'event_log',
+  city_block_trial_closed:  'event_log',
 });
 
 export const CITY_EVENT_TYPES = Object.freeze(Object.keys(CITY_EVENT_SIDEBAND));
@@ -62,4 +72,39 @@ export function presenceDelta(blockAuthority, cityId, { population = 0, health =
 /** Any node may log an explicitly-derived public-safe activity item (folded into the bounded feed). */
 export function deriveActivity(node, { city_id, type, severity }, tick, extra = {}) {
   return node.emit({ eventType: 'district_activity_derived', sideband: sb('district_activity_derived'), cellId: city_id, payload: { city_id, type, severity, ...extra }, tick });
+}
+
+// ── v1.1 city systems (block authority signs 4C/4D/4E/4F; an actor drives 4G trials) ─────
+/** 4C: a block authority appends a public-safe world-log note. */
+export function worldEvent(blockAuthority, cityId, noteType, payload, tick) {
+  return blockAuthority.emit({ eventType: 'city_world_event', sideband: sb('city_world_event'), cellId: cityId, payload: { note_type: noteType, ...payload }, tick });
+}
+/** 4D: a block authority observes (derives) its non-authoritative pressure. */
+export function observePressure(blockAuthority, cityId, tick) {
+  return blockAuthority.emit({ eventType: 'city_pressure_observed', sideband: sb('city_pressure_observed'), cellId: cityId, payload: { city_id: cityId }, tick });
+}
+/** 4E: a block authority evaluates its non-cash host rank. */
+export function evaluateHostRank(blockAuthority, cityId, tick) {
+  return blockAuthority.emit({ eventType: 'city_host_rank_evaluated', sideband: sb('city_host_rank_evaluated'), cellId: cityId, payload: { city_id: cityId }, tick });
+}
+/** 4F: a block authority applies a constrained (allowlisted) style override (gated by host rank). */
+export function stewardshipApply(blockAuthority, cityId, style, tick) {
+  return blockAuthority.emit({ eventType: 'city_stewardship_applied', sideband: sb('city_stewardship_applied'), cellId: cityId, payload: { style }, tick });
+}
+/** 4F: a block authority resets its block to the default style (reversible). */
+export function stewardshipReset(blockAuthority, cityId, tick) {
+  return blockAuthority.emit({ eventType: 'city_stewardship_reset', sideband: sb('city_stewardship_reset'), cellId: cityId, payload: {}, tick });
+}
+/** 4G: an actor opens an instanced, non-destructive trial in the block it is in. */
+export function trialOpen(actor, cityId, instanceId, tick) {
+  return actor.emit({ eventType: 'city_block_trial_opened', sideband: sb('city_block_trial_opened'), cellId: cityId, payload: { instance_id: instanceId }, tick });
+}
+export function trialJoin(actor, cityId, tick) {
+  return actor.emit({ eventType: 'city_block_trial_joined', sideband: sb('city_block_trial_joined'), cellId: cityId, payload: {}, tick });
+}
+export function trialStep(actor, cityId, tick) {
+  return actor.emit({ eventType: 'city_block_trial_stepped', sideband: sb('city_block_trial_stepped'), cellId: cityId, payload: {}, tick });
+}
+export function trialClose(actor, cityId, tick) {
+  return actor.emit({ eventType: 'city_block_trial_closed', sideband: sb('city_block_trial_closed'), cellId: cityId, payload: {}, tick });
 }
