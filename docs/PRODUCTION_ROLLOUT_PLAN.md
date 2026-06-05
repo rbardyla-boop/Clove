@@ -8,7 +8,8 @@ real gap is the **stale Pages deploy + routing**, which is operational, not code
 
 **Three components must land (in order):** (1) a **fresh Pages deploy** including `arcade/` so the city
 client exists at `clovelearn.io/arcade/city/*`; (2) the **Worker** `neon-arcade-mesh` (`wrangler deploy
---env production`, provisions 4 DOs + v1→v4); (3) the **Workers route** `clovelearn.io/arcade/*` → Worker.
+--env production`, provisions 4 DOs + v1→v4); (3) **narrow Workers routes** for the Worker's five API/WS
+endpoints under `/arcade/` — **NOT** a broad `/arcade/*`, which would 404 the static client (see §0).
 
 ## 0. Routing resolution (decided)
 
@@ -17,22 +18,36 @@ client exists at `clovelearn.io/arcade/city/*`; (2) the **Worker** `neon-arcade-
 `https://clovelearn.io/arcade/health` → **404** and `https://neon-arcade-mesh.rbardyla.workers.dev/arcade/health`
 → **404** — i.e. nothing routes `/arcade/*` to the Worker today, and the production Worker is not deployed.
 
-**Decision — PREFERRED same-origin (feasible because clovelearn.io is a Cloudflare zone):** add a Workers
-**route** so `clovelearn.io/arcade/*` → the `neon-arcade-mesh` Worker, while Pages serves everything else.
-Workers routes take precedence over Pages on the same zone, so `/arcade/*` (incl. `/arcade/city/ws`) hits
-the Worker and the rest stays Pages. The client's same-origin default (`/arcade/city/ws`) then works
-**with no client change**. (Fallback `window.__NEON_ARCADE_CONFIG__.cityWsUrl` is NOT needed.)
+**Decision — PREFERRED same-origin (feasible because clovelearn.io is a Cloudflare zone):** add Workers
+**routes** so only the Worker's API/WS endpoints under `/arcade/` hit the `neon-arcade-mesh` Worker, while
+the static host serves everything else.
+
+**CRITICAL — narrow routes only (the Worker has NO static serving).** The Worker
+([workers/arcade/src/index.ts](../workers/arcade/src/index.ts)) handles exactly **five** paths —
+`/arcade/ws`, `/arcade/city/ws`, `/arcade/rooms`, `/arcade/rooms/health`, `/arcade/health` — and returns
+`404` for everything else (no `ASSETS` binding, no static files). The arcade/city **client**
+(`/arcade/index.html`, `/arcade/city/*.{html,js,mjs,css}`) is **static and must stay on the static host**.
+A broad `clovelearn.io/arcade/*` route would send every static client file to the Worker → `404` → **the
+client breaks.** So the route set must be **narrow, per-endpoint.** The client's same-origin default
+(`/arcade/city/ws`) then works **with no client change**. (Fallback
+`window.__NEON_ARCADE_CONFIG__.cityWsUrl` is NOT needed.)
 
 **Concrete change (applied at the DEPLOY-WORKER gate, not now):** add to `workers/arcade/wrangler.toml`:
 ```toml
 [env.production]
 # … existing name/vars/durable_objects/migrations …
 routes = [
-  { pattern = "clovelearn.io/arcade/*", zone_name = "clovelearn.io" }
+  { pattern = "clovelearn.io/arcade/ws",      zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/city/ws", zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/rooms*",  zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/health",  zone_name = "clovelearn.io" },
 ]
 ```
-Then `wrangler deploy --env production` registers the route. (Alternatively add the Workers Route in the
-Cloudflare dashboard.) The production smoke `WS_URL` becomes `wss://clovelearn.io/arcade/city/ws`.
+`rooms*` covers `/arcade/rooms` + `/arcade/rooms/health` and does **not** shadow the static
+`room-recommend.mjs`; query strings (`?room=`/`?city=`) are ignored by route matching, so the bare `/ws`
+paths still match. Then `wrangler deploy --env production` registers the routes against the **production**
+Worker `neon-arcade-mesh` (do **NOT** bind to `neon-arcade-mesh-staging`). Production smoke `WS_URL` =
+`wss://clovelearn.io/arcade/city/ws`.
 
 ## 1. Production candidate (pinned)
 
@@ -94,8 +109,9 @@ alarm) · 5E District Activity feed renders, no private data · zero console/pag
 ## 7. Open items
 
 ### 7a. Client → Worker WebSocket wiring — ✅ RESOLVED (see §0)
-Same-origin route `clovelearn.io/arcade/*` → `neon-arcade-mesh` (Workers route, applied at the
-deploy-worker gate). Client unchanged; smoke `WS_URL = wss://clovelearn.io/arcade/city/ws`. The deployed DO
+**Narrow** same-origin routes (`/arcade/ws`, `/arcade/city/ws`, `/arcade/rooms*`, `/arcade/health`) →
+`neon-arcade-mesh` (applied at the deploy-worker gate; **not** a broad `/arcade/*` — the Worker has no
+static serving). Client unchanged; smoke `WS_URL = wss://clovelearn.io/arcade/city/ws`. The deployed DO
 already accepts the handshake without a subprotocol (the Phase 4 fix), so the same-origin upgrade succeeds.
 
 ### 7b. Production Worker reachability — ✅ RESOLVED
@@ -103,14 +119,31 @@ already accepts the handshake without a subprotocol (the Phase 4 fix), so the sa
 workers.dev` (the account subdomain; useful for an isolated Worker-only smoke before routing). The client
 path is the custom-domain route.
 
-### 7c. Pages deploy is STALE — ⛔ OPEN (operational; the city client is absent in production)
-**Evidence (read-only HTTP):** `clovelearn.io` serves this repo's ROOT files (`manifest.json`, `sw.js`,
-`particle-bg.js`, `robots.txt` → 200) but **all of `arcade/` → 404** (`/arcade/`, `/arcade/index.html`,
-`/arcade/city/*`), even though those files ARE in `origin/main`, are NOT gitignored, and there is no
-`.cfignore`/build-exclude. The GitHub deployments API is **empty**. → The production Pages deployment is a
-**stale build predating the `arcade/` directory**, and the git integration is **not currently producing
-deployments**. Owner says the project is git-integrated to this repo — but it has not rebuilt since before
-`arcade/` was added.
+### 7c. NO Pages project in this account; live site is a STALE build served elsewhere — ⛔ OPEN
+**Evidence (Cloudflare API with the owner token + read-only HTTP):**
+- `GET /accounts/bea9dc96…/pages/projects` → `success: true`, **`result: [] (0 projects)`**. The token
+  **can** read Pages (no auth error) — there are genuinely **no Cloudflare Pages projects** in this account.
+- No Workers routes on the zone (dashboard: "no routes configured").
+- Yet `clovelearn.io` **is serving this repo**: the live `_redirects` rule (`/index.html → /deck.html`,
+  observed `302`) and the live `_headers` `Permissions-Policy` (`…microphone=(self)…`) **byte-match this
+  repo's root `_redirects`/`_headers`**. But **all `/arcade/* → 404`** — the deployed build **predates the
+  `arcade/` directory**.
+- The site is Cloudflare-proxied (root resolves to CF IPs `104.26.*`/`172.67.*`); the token **lacks
+  Zone-DNS:Read** (`/dns_records` → auth error `10000`), so the origin host can't be read via API.
+
+**Conclusion:** clovelearn.io is **not** a Pages project in the logged-in account. It is a **stale build of
+this repo served from elsewhere** — most likely (a) a Cloudflare **Pages project under a different
+account/email**, or (b) a **non-Cloudflare host that uses the same `_headers`/`_redirects` format (Netlify)**
+proxied through this zone. **Identify it in the dashboard:** clovelearn.io → **DNS → Records** → the root
+`clovelearn.io` record target: `*.pages.dev` = CF Pages (another account), `*.netlify.app` = Netlify,
+`*.vercel.app`/IP = that host.
+
+**Path forward (clean, account-local):** create a **new Cloudflare Pages project in THIS account** from the
+repo (no build command; output dir = repo root; serves git-tracked files as-is), deploy current `main`, then
+**attach `clovelearn.io` as the Pages custom domain** (Cloudflare repoints the zone's DNS to the new project).
+After deploy, verify `clovelearn.io/arcade/city/index.html` → **200** BEFORE the Worker route step. (Direct
+`wrangler pages deploy <clean-dir>` is viable — the token has Pages access; deploy git-tracked files only,
+not the repo root with its `node_modules`/`atip/.venv`.)
 
 **Implication:** launching the city feature requires a **fresh production Pages deploy** that includes
 `arcade/` (and the Phase 5 `arcade/city/*` client). **Confirm + act (dashboard):**
@@ -121,11 +154,13 @@ deployments**. Owner says the project is git-integrated to this repo — but it 
 - Workers-route-over-Pages precedence for `clovelearn.io/arcade/*` is documented Cloudflare behavior;
   verify at the deploy step (`clovelearn.io/arcade/health` → 200 from the Worker, `clovelearn.io/` still Pages).
 
-### 7d. Deploy credential scope — ⛔ OPEN (dashboard)
-The `.env` User API Token deploys **Workers** (proven on staging; `wrangler whoami` OK). `wrangler pages
-project list` returned **empty** → the token likely **lacks Pages scope**. **Confirm:** either the token
-has Pages edit permission, or the Pages deploy uses the git integration (no token needed). Worker deploy +
-the Workers route do not need Pages scope.
+### 7d. Deploy credential scope — partially mapped
+The `.env` User API Token (rbardyla@gmail.com, account `bea9dc96…`): deploys **Workers** (proven on
+staging); **can read Pages** (`/pages/projects` → `success:true`, 0 projects — so the scope is present, the
+account simply has none); **lacks Zone-DNS:Read** (`/dns_records` → auth error `10000`). Pages **write/edit**
+is unverified (read works; a `wrangler pages deploy` needs Pages:Edit). The Worker deploy + the narrow
+Workers routes do not need Pages scope. Note the production site is **manually uploaded** by the owner (not
+git-integrated, not GitHub Actions — no `.github/workflows`), to a destination **outside this account** (§7c).
 
 ### 7e. First-time DO provisioning acceptance — confirm
 First deploy is a one-way provisioning of 4 DO classes + v1→v4. Low risk (empty state), but confirm
