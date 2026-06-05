@@ -32,6 +32,8 @@ export const CITY_EVENT_SIDEBAND = Object.freeze({
   city_block_trial_joined:  'event_log',
   city_block_trial_stepped: 'event_log',
   city_block_trial_closed:  'event_log',
+  // v1.2 presence push cadence
+  city_presence_alarm:      'presence',
 });
 
 export const CITY_EVENT_TYPES = Object.freeze(Object.keys(CITY_EVENT_SIDEBAND));
@@ -107,4 +109,8 @@ export function trialStep(actor, cityId, tick) {
 }
 export function trialClose(actor, cityId, tick) {
   return actor.emit({ eventType: 'city_block_trial_closed', sideband: sb('city_block_trial_closed'), cellId: cityId, payload: {}, tick });
+}
+/** v1.2: a block's alarm fires → it pushes a refreshed cross-block presence view to its clients. */
+export function presenceAlarm(blockAuthority, cityId, tick) {
+  return blockAuthority.emit({ eventType: 'city_presence_alarm', sideband: sb('city_presence_alarm'), cellId: cityId, payload: { city_id: cityId }, tick });
 }

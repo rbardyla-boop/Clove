@@ -41,6 +41,10 @@ export function createInitialState() {
       // pressure (non-authoritative) + non-cash host rank + constrained/reversible stewardship
       // overrides + instanced/non-destructive trials. See core/reducers/city-systems.mjs.
       cityLog: { events: [], seq: 0 }, pressure: {}, hostRank: {}, stewardship: {}, trials: {},
+      // v1.2 (Phase 5C/5D/5E push cadence): `blocks` is the registry AGGREGATE; `pushedView[cityId]`
+      // is what that block has PUSHED to its clients — its own entry immediate, others as of its last
+      // alarm. See core/reducers/city-cadence.mjs + core/phase1/district-presence-push.mjs.
+      pushedView: {},
     },
   };
 }

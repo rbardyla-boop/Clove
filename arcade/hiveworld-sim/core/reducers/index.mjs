@@ -15,6 +15,7 @@ import * as arcade from './arcade.mjs';
 import * as registry from './registry.mjs';
 import * as district from './district.mjs';
 import * as citySystems from './city-systems.mjs';
+import * as cityCadence from './city-cadence.mjs';
 
 export const HANDLERS = Object.freeze({
   // discovery
@@ -87,6 +88,8 @@ export const HANDLERS = Object.freeze({
   city_block_trial_joined: citySystems.city_block_trial_joined,
   city_block_trial_stepped: citySystems.city_block_trial_stepped,
   city_block_trial_closed: citySystems.city_block_trial_closed,
+  // v1.2 presence push cadence
+  city_presence_alarm: cityCadence.city_presence_alarm,
 });
 
 export function getHandler(eventType) {

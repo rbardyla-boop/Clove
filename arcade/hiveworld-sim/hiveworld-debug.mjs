@@ -17,8 +17,9 @@ import { runScenario } from './scenarios/canned.mjs';
 import { PHASE1_SCENARIOS, runPhase1Scenario, RESULTS } from './scenarios/phase1.mjs';
 import { CITY_DISTRICT_SCENARIOS } from './scenarios/city-district.mjs';
 import { CITY_SYSTEMS_SCENARIOS } from './scenarios/city-systems.mjs';
+import { PRESENCE_CADENCE_SCENARIOS } from './scenarios/presence-cadence.mjs';
 import { CITY_IDS, getBlock } from './core/phase1/city-blocks.mjs';
-const ALL_CITY_SCENARIOS = { ...CITY_DISTRICT_SCENARIOS, ...CITY_SYSTEMS_SCENARIOS };
+const ALL_CITY_SCENARIOS = { ...CITY_DISTRICT_SCENARIOS, ...CITY_SYSTEMS_SCENARIOS, ...PRESENCE_CADENCE_SCENARIOS };
 import { CABINETS } from './core/phase1/catalog.mjs';
 import { cabinetRenderState, adapterStateFor } from './core/phase1/adapters.mjs';
 import { arcadeRoom } from './core/phase1/round-authority.mjs';
@@ -426,6 +427,19 @@ class HiveDebug {
       for (const e of d.cityLog.events.slice(-6)) {
         const line = document.createElement('div'); line.className = 'evt';
         line.textContent = `#${e.seq} ${e.type}${e.city_id ? ' · ' + e.city_id : ''}`; host.appendChild(line);
+      }
+    }
+    // v1.2 presence push cadence — registry aggregate vs each block's pushed view
+    const pvMap = d.pushedView || {};
+    if (Object.keys(pvMap).length) {
+      host.appendChild(lbl('PRESENCE CADENCE (5D · registry vs pushed view)'));
+      for (const viewer of CITY_IDS) {
+        const view = pvMap[viewer];
+        if (!view) continue;
+        const b = getBlock(viewer);
+        const seen = CITY_IDS.map((id) => `${getBlock(id).display_name[0]}:${view[id] ? view[id].population : '–'}`).join(' ');
+        const reg = CITY_IDS.map((id) => `${getBlock(id).display_name[0]}:${d.blocks[id] ? d.blocks[id].population : '–'}`).join(' ');
+        host.appendChild(row(`${b.display_name} sees`, `${seen}  (registry ${reg})`));
       }
     }
   }

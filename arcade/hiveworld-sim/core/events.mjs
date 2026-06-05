@@ -97,6 +97,8 @@ export const EVENT_SPECS = Object.freeze({
   city_block_trial_joined:     { sideband: 'event_log' },
   city_block_trial_stepped:    { sideband: 'event_log' },
   city_block_trial_closed:     { sideband: 'event_log' },
+  // ── v1.2 presence push cadence (product Phase 5C/5D/5E timing) ───────────────
+  city_presence_alarm:         { sideband: 'presence' },  // a block's alarm pushes a refreshed cross-block view
 });
 
 /**

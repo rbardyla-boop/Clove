@@ -60,6 +60,11 @@ export function district_presence_delta(state, ev) {
   const item = activityForPresence(prevSummary, nextSummary, ev.logical_tick);
   let nd = { ...d, blocks: { ...d.blocks, [cityId]: reported } };
   nd = pushActivity(nd, item);
+  // v1.2 cadence: a block pushes its OWN change to its clients IMMEDIATELY (same-block immediacy).
+  // Other blocks learn of it only when THEIR alarm fires (city_presence_alarm). The registry above is
+  // the authoritative aggregate; this is the per-block pushed view.
+  const ownPushed = { ...(nd.pushedView[cityId] || {}), [cityId]: nextSummary };
+  nd = { ...nd, pushedView: { ...nd.pushedView, [cityId]: ownPushed } };
   return ok({ ...state, district: nd });
 }
 

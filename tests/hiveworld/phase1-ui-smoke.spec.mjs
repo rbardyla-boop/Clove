@@ -67,6 +67,14 @@ try {
   check('city panel shows v1.1 systems (host rank + stewardship + world log)', /rank host|rank steward/i.test(sysText) && /STEWARDSHIP/.test(sysText) && /CITY WORLD LOG/.test(sysText));
   check('city systems panel shows no private data / no cash', !/\b(player_id|balance|socket|adminToken|secret|credit|payout)\b/i.test(sysText));
 
+  // v1.2 — Presence cadence (5C/5D/5E) scenario through the same button.
+  await page.selectOption('#sel-city-scenario', 'crossBlockAlarmBound');
+  await page.click('[data-action="run-city"]');
+  await page.waitForFunction(() => /PRESENCE CADENCE/.test(document.querySelector('#hw-city')?.textContent || ''), null, { timeout: 8000 });
+  const cadText = await page.evaluate(() => document.querySelector('#hw-city').textContent);
+  check('city panel shows presence cadence (registry vs pushed view)', /PRESENCE CADENCE/.test(cadText) && /registry/.test(cadText) && /sees/.test(cadText));
+  check('cadence panel shows no private data', !/\b(player_id|balance|socket|adminToken|secret)\b/i.test(cadText));
+
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
 } finally {

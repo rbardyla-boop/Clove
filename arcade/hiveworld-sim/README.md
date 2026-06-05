@@ -49,8 +49,17 @@ CLOSED allowlist of palette/sign-variant/intensity, gated by Host Rank, reset �
 **instanced, non-destructive** Block Trial (never touches the public block). All deterministic —
 reorder/dup delivery folds to the same fingerprint. Lab mirror only: no money/ownership/bridge.
 
+**v1.2 — presence push + activity cadence (Phase 5C/5D/5E timing):** adds the TIMED, PARTIAL view the
+fold was missing. `state.district.blocks` stays the registry AGGREGATE (5C); a new per-block
+`pushedView` is what each block has PUSHED to its clients — its own entry IMMEDIATE (5D same-block),
+other blocks only as of its last ALARM (`city_presence_alarm`, the 30-tick = 30s analog; 5D cross-block
+bound). A leave drops to 0 with no ghost; the 5E activity feed follows the push cadence (cross-block
+items derive at the observing block's alarm). All deterministic — delayed/duplicated/out-of-order
+cadence events fold to the same fingerprint. Lab mirror only.
+
 Full write-ups: [`docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md`](../../docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md)
-· [`docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md`](../../docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
+· [`docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md`](../../docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md)
+· [`docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md`](../../docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
 · [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
 · [`docs/HIVEWORLD_V0_2_MULTI_ROOM.md`](../../docs/HIVEWORLD_V0_2_MULTI_ROOM.md)
 · [`docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md`](../../docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md)
