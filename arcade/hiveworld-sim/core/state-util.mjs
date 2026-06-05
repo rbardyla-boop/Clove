@@ -32,6 +32,20 @@ export function createInitialState() {
     // latest heartbeat per room + admin status overrides + reset generations. Health +
     // stale-population eviction are DERIVED at query time (rooms.mjs), never folded.
     roomRegistry: { heartbeats: {}, statusOverrides: {}, generations: {} },
+    // v1.0 (Phase 5A–5E city/district mirror): per-block reported public summaries, per-actor
+    // current block, route status, a bounded public-safe district activity feed, and a rejected-route
+    // counter. No economy/accounts/ownership is ever folded here. See core/reducers/district.mjs.
+    district: {
+      blocks: {}, actorBlock: {}, routes: {}, activity: [], rejectedRoutes: 0,
+      // v1.1 (Phase 4C–4G city-systems mirror): append-only world log + per-block derived
+      // pressure (non-authoritative) + non-cash host rank + constrained/reversible stewardship
+      // overrides + instanced/non-destructive trials. See core/reducers/city-systems.mjs.
+      cityLog: { events: [], seq: 0 }, pressure: {}, hostRank: {}, stewardship: {}, trials: {},
+      // v1.2 (Phase 5C/5D/5E push cadence): `blocks` is the registry AGGREGATE; `pushedView[cityId]`
+      // is what that block has PUSHED to its clients — its own entry immediate, others as of its last
+      // alarm. See core/reducers/city-cadence.mjs + core/phase1/district-presence-push.mjs.
+      pushedView: {},
+    },
   };
 }
 
@@ -78,6 +92,7 @@ export function stateFingerprint(state) {
     moderationLog: state.moderationLog,
     arcade: state.arcade,
     roomRegistry: state.roomRegistry,
+    district: state.district, // v1.0: include the city/district slice in the convergence fingerprint
   };
   return hashString(canonicalStringify(view));
 }

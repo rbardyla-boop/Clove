@@ -13,6 +13,9 @@ import * as assets from './assets.mjs';
 import * as ambient from './ambient.mjs';
 import * as arcade from './arcade.mjs';
 import * as registry from './registry.mjs';
+import * as district from './district.mjs';
+import * as citySystems from './city-systems.mjs';
+import * as cityCadence from './city-cadence.mjs';
 
 export const HANDLERS = Object.freeze({
   // discovery
@@ -66,6 +69,27 @@ export const HANDLERS = Object.freeze({
   room_event_transition_check: arcade.room_event_transition_check,
   // v0.9 per-room display-only presentation override (live-ops analog of Phase 2i)
   room_presentation_override_set: arcade.room_presentation_override_set,
+  // v1.0 city/district foundation (product Phase 5A–5E mirror)
+  city_player_joined: district.city_player_joined,
+  city_player_left: district.city_player_left,
+  district_presence_delta: district.district_presence_delta,
+  city_route_requested: district.city_route_requested,
+  city_route_confirmed: district.city_route_confirmed,
+  city_route_rejected: district.city_route_rejected,
+  city_block_arrived: district.city_block_arrived,
+  district_activity_derived: district.district_activity_derived,
+  // v1.1 city systems (product Phase 4C–4G mirror)
+  city_world_event: citySystems.city_world_event,
+  city_pressure_observed: citySystems.city_pressure_observed,
+  city_host_rank_evaluated: citySystems.city_host_rank_evaluated,
+  city_stewardship_applied: citySystems.city_stewardship_applied,
+  city_stewardship_reset: citySystems.city_stewardship_reset,
+  city_block_trial_opened: citySystems.city_block_trial_opened,
+  city_block_trial_joined: citySystems.city_block_trial_joined,
+  city_block_trial_stepped: citySystems.city_block_trial_stepped,
+  city_block_trial_closed: citySystems.city_block_trial_closed,
+  // v1.2 presence push cadence
+  city_presence_alarm: cityCadence.city_presence_alarm,
 });
 
 export function getHandler(eventType) {

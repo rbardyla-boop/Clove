@@ -48,6 +48,40 @@ try {
   await page.waitForFunction(() => /70/.test(document.querySelector('#p1-arcade .seldet')?.textContent || ''), null, { timeout: 8000 });
   check('Three Cabinet Tour scenario shows the 70-ticket combined balance', true);
 
+  // v1.0 — City district panel: run a routing scenario through the real button.
+  await page.waitForSelector('#hw-city', { timeout: 8000 });
+  await page.selectOption('#sel-city-scenario', 'districtRouteConverges');
+  await page.click('[data-action="run-city"]');
+  await page.waitForFunction(() => /Arrived in Harbor/.test(document.querySelector('#hw-city')?.textContent || ''), null, { timeout: 8000 });
+  const cityText = await page.evaluate(() => document.querySelector('#hw-city').textContent);
+  check('city panel renders the three district blocks', /Downtown/.test(cityText) && /Harbor/.test(cityText) && /Skyline/.test(cityText));
+  check('city panel shows the actor arrived in Harbor + a confirmed route', /Arrived in Harbor/.test(cityText) && /confirmed/.test(cityText));
+  check('city panel shows a convergence fingerprint', /fingerprint/.test(cityText));
+  check('city panel shows no private data', !/\b(player_id|balance|socket|adminToken|secret)\b/i.test(cityText));
+
+  // v1.1 — City systems (4C–4G) scenario through the same button (this one leaves a style applied).
+  await page.selectOption('#sel-city-scenario', 'citySystemsReplayStable');
+  await page.click('[data-action="run-city"]');
+  await page.waitForFunction(() => /STEWARDSHIP/.test(document.querySelector('#hw-city')?.textContent || ''), null, { timeout: 8000 });
+  const sysText = await page.evaluate(() => document.querySelector('#hw-city').textContent);
+  check('city panel shows v1.1 systems (host rank + stewardship + world log)', /rank host|rank steward/i.test(sysText) && /STEWARDSHIP/.test(sysText) && /CITY WORLD LOG/.test(sysText));
+  check('city systems panel shows no private data / no cash', !/\b(player_id|balance|socket|adminToken|secret|credit|payout)\b/i.test(sysText));
+
+  // v1.2 — Presence cadence (5C/5D/5E) scenario through the same button.
+  await page.selectOption('#sel-city-scenario', 'crossBlockAlarmBound');
+  await page.click('[data-action="run-city"]');
+  await page.waitForFunction(() => /PRESENCE CADENCE/.test(document.querySelector('#hw-city')?.textContent || ''), null, { timeout: 8000 });
+  const cadText = await page.evaluate(() => document.querySelector('#hw-city').textContent);
+  check('city panel shows presence cadence (registry vs pushed view)', /PRESENCE CADENCE/.test(cadText) && /registry/.test(cadText) && /sees/.test(cadText));
+  check('cadence panel shows no private data', !/\b(player_id|balance|socket|adminToken|secret)\b/i.test(cadText));
+
+  // v1.3 — Sideband fabric lens renders for the same run (read-only diagnostic).
+  await page.waitForFunction(() => /SIDEBAND CHANNELS/.test(document.querySelector('#hw-fabric')?.textContent || ''), null, { timeout: 8000 });
+  const lensText = await page.evaluate(() => document.querySelector('#hw-fabric').textContent);
+  check('fabric lens shows channels + cadence timeline + convergence', /SIDEBAND CHANNELS/.test(lensText) && /PUSHED-VIEW TIMELINE/.test(lensText) && /CONVERGENCE/.test(lensText) && /fingerprint/.test(lensText));
+  check('fabric lens shows propagation (immediate vs delayed)', /PROPAGATION/.test(lensText) && /(immediate|delayed)/.test(lensText));
+  check('fabric lens shows no private data / no stripped value', !/\b(player_id|balance|socket|adminToken|secret|agent:)\b/i.test(lensText));
+
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
 } finally {

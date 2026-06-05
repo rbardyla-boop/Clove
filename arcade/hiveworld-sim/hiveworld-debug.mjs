@@ -15,6 +15,12 @@ import { simulatePulseTapRound } from './core/pulse-tap.mjs';
 import { runScenario } from './scenarios/canned.mjs';
 // Phase 1 arcade parity (v0.1)
 import { PHASE1_SCENARIOS, runPhase1Scenario, RESULTS } from './scenarios/phase1.mjs';
+import { CITY_DISTRICT_SCENARIOS } from './scenarios/city-district.mjs';
+import { CITY_SYSTEMS_SCENARIOS } from './scenarios/city-systems.mjs';
+import { PRESENCE_CADENCE_SCENARIOS } from './scenarios/presence-cadence.mjs';
+import { CITY_IDS, getBlock } from './core/phase1/city-blocks.mjs';
+import { sidebandChannels, pushedViewTimeline, propagationTrace, activityBySideband, convergenceDemo, rejectedSummary } from './core/viz/fabric-view.mjs';
+const ALL_CITY_SCENARIOS = { ...CITY_DISTRICT_SCENARIOS, ...CITY_SYSTEMS_SCENARIOS, ...PRESENCE_CADENCE_SCENARIOS };
 import { CABINETS } from './core/phase1/catalog.mjs';
 import { cabinetRenderState, adapterStateFor } from './core/phase1/adapters.mjs';
 import { arcadeRoom } from './core/phase1/round-authority.mjs';
@@ -53,6 +59,8 @@ class HiveDebug {
     this.agentN = 0; this.roomN = 0; this.slotN = 0; this.goodN = 0; this.objN = 0; this.p1RoundN = 0;
     this.lastSlotByAgent = {};
     this.refreshPhase1Select();
+    this.refreshCitySelect();
+    this.renderCity(null);
     for (const sb of SIDEBAND_NAMES) this.energy[sb] = 0;
 
     // seed a small world so the page is alive on load
@@ -136,6 +144,7 @@ class HiveDebug {
         case 'p1-equip': this.p1Equip(a); break;
         case 'p1-claim': this.p1Claim(a); break;
         case 'run-phase1': this.runPhase1Scenario(); break;
+        case 'run-city': this.runCityScenario(); break;
         case 'reset': this.init(); break;
       }
     } catch (err) {
@@ -330,6 +339,155 @@ class HiveDebug {
     this.refreshRoomSelect();
     const r = sim.report();
     this.toast(`ran ${name} → converged: ${r.desyncReport.finalConverged} · rejected: ${r.rejectedEvents.length}`, r.desyncReport.finalConverged ? 'ok' : 'bad');
+  }
+
+  // ── City district (v1.0 — Phase 5A–5E mirror) ─────────────────────────────
+  refreshCitySelect() {
+    const sel = $('sel-city-scenario');
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (const name of Object.keys(ALL_CITY_SCENARIOS)) {
+      const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o);
+    }
+  }
+
+  runCityScenario() {
+    const sel = $('sel-city-scenario');
+    const name = (sel && sel.value) || 'districtRouteConverges';
+    const fn = ALL_CITY_SCENARIOS[name];
+    if (!fn) { this.toast('unknown city scenario', 'bad'); return; }
+    const { report, events } = fn();
+    this.renderCity(report);
+    this.renderFabricLens(report, events || []); // v1.3: read-only diagnostic lens
+    const conv = report.desyncReport.finalConverged;
+    this.toast(`ran ${name} → converged: ${conv} · rejected routes: ${report.finalWorldState.district.rejectedRoutes}`, conv ? 'ok' : 'bad');
+  }
+
+  /** v1.3 — read-only sideband/radio-fabric lens (derived view-models; never changes the fold). */
+  renderFabricLens(report, events) {
+    const host = $('hw-fabric');
+    if (!host) return;
+    host.textContent = '';
+    const row = (k, v) => { const d = document.createElement('div'); d.className = 'row';
+      const a = document.createElement('span'); a.textContent = k; const b = document.createElement('span'); b.textContent = v;
+      d.appendChild(a); d.appendChild(b); return d; };
+    const lbl = (t) => { const d = document.createElement('div'); d.className = 'lbl'; d.textContent = t; return d; };
+    const evt = (t) => { const d = document.createElement('div'); d.className = 'evt'; d.textContent = t; return d; };
+    if (!report) { host.appendChild(evt('Run a city scenario — the fabric lens visualizes it here.')); return; }
+
+    host.appendChild(lbl('SIDEBAND CHANNELS'));
+    for (const c of sidebandChannels(report).filter((x) => x.traffic > 0)) host.appendChild(row(`${c.name} · ${c.klass}`, `${c.traffic} ev${c.recent_types.length ? ' · ' + c.recent_types.join(',') : ''}`));
+
+    host.appendChild(lbl('PUSHED-VIEW TIMELINE (registry → per-block view)'));
+    for (const f of pushedViewTimeline(events)) {
+      const seen = CITY_IDS.map((id) => `${getBlock(id).display_name[0]}:${f.pushed['downtown-01']?.[id] ?? '–'}`).join(' ');
+      host.appendChild(row(`t${f.tick}`, `reg ${CITY_IDS.map((id) => f.registry[id]).join('/')} · downtown sees ${seen}`));
+    }
+
+    const trace = propagationTrace(events, 'harbor-02');
+    if (trace.change_tick != null) {
+      host.appendChild(lbl('PROPAGATION (harbor change → who sees it)'));
+      for (const v of CITY_IDS) { const t = trace.by_viewer[v]; host.appendChild(row(getBlock(v).display_name, `${t.kind}${t.lag != null ? ' · lag ' + t.lag + 't' : ''}`)); }
+    }
+
+    const abs = activityBySideband(report);
+    if (Object.keys(abs).length) {
+      host.appendChild(lbl('ACTIVITY BY SIDEBAND'));
+      for (const [sb, labels] of Object.entries(abs)) host.appendChild(row(sb, labels.slice(-3).join(' · ')));
+    }
+
+    const c = convergenceDemo(events);
+    host.appendChild(lbl('CONVERGENCE / REPLAY'));
+    host.appendChild(row('fingerprint', short(c.fingerprint)));
+    host.appendChild(row('stable under reorder/dup', `${c.stable_under_reorder} / ${c.stable_under_duplicate}`));
+
+    const rej = rejectedSummary(report);
+    host.appendChild(lbl(`REJECTED / STRIPPED (${rej.reduce((n, g) => n + g.count, 0)})`));
+    if (!rej.length) host.appendChild(row('—', 'none rejected'));
+    for (const g of rej) host.appendChild(row(`${g.phase} · ${g.reason}`, `×${g.count}${g.sideband ? ' · ' + g.sideband : ''}`));
+  }
+
+  /** Lab display of the city/district fold (textContent/DOM only — public-safe view). */
+  renderCity(report) {
+    const host = $('hw-city');
+    if (!host) return;
+    host.textContent = '';
+    const row = (k, v) => {
+      const d = document.createElement('div'); d.className = 'row';
+      const a = document.createElement('span'); a.textContent = k;
+      const b = document.createElement('span'); b.textContent = v;
+      d.appendChild(a); d.appendChild(b); return d;
+    };
+    const lbl = (txt) => { const d = document.createElement('div'); d.className = 'lbl'; d.textContent = txt; return d; };
+    if (!report) {
+      const hint = document.createElement('div'); hint.className = 'hint';
+      hint.textContent = 'Pick a city scenario and run it — blocks, routing, presence + activity fold here.';
+      host.appendChild(hint); return;
+    }
+    const d = report.finalWorldState.district;
+    host.appendChild(row('fingerprint', short(report.canonicalFingerprint)));
+    host.appendChild(row('converged', String(report.desyncReport.finalConverged)));
+    host.appendChild(row('rejected routes', String(d.rejectedRoutes)));
+    host.appendChild(row('refused events', String(report.applyRejectionCount)));
+    host.appendChild(lbl('BLOCKS'));
+    for (const id of CITY_IDS) {
+      const b = getBlock(id); const rep = d.blocks[id];
+      host.appendChild(row(`${b.display_name} · ${b.theme}`, `${rep ? rep.population : 0} here · ${rep ? rep.health : 'unknown'}`));
+    }
+    host.appendChild(lbl('ACTORS'));
+    const actors = Object.entries(d.actorBlock);
+    if (!actors.length) host.appendChild(row('—', 'no actors in a block'));
+    for (const [actor, city] of actors) host.appendChild(row(short(actor), getBlock(city) ? getBlock(city).display_name : city));
+    host.appendChild(lbl('DISTRICT ACTIVITY'));
+    if (!d.activity.length) host.appendChild(row('—', 'no activity yet'));
+    for (const item of d.activity.slice(0, 10)) {
+      const line = document.createElement('div'); line.className = 'evt'; line.textContent = item.label; host.appendChild(line);
+    }
+    // v1.1 city systems (only shown when a city-systems scenario populated them)
+    const pr = d.pressure || {}, hr = d.hostRank || {}, st = d.stewardship || {}, tr = d.trials || {};
+    if (Object.keys(pr).length || Object.keys(hr).length) {
+      host.appendChild(lbl('CITY SYSTEMS (4D pressure · 4E host rank)'));
+      for (const id of CITY_IDS) {
+        if (!pr[id] && !hr[id]) continue;
+        const b = getBlock(id);
+        host.appendChild(row(b.display_name, `${pr[id] ? 'pressure ' + pr[id].mood : ''}${pr[id] && hr[id] ? ' · ' : ''}${hr[id] ? 'rank ' + hr[id].tier + ' (' + hr[id].support_signal + ')' : ''}`));
+      }
+    }
+    if (Object.keys(st).length) {
+      host.appendChild(lbl('STEWARDSHIP (4F · constrained, reversible)'));
+      for (const [id, style] of Object.entries(st)) {
+        const b = getBlock(id);
+        host.appendChild(row(b ? b.display_name : id, `${style.palette} · ${style.sign_variant} · ${style.intensity}`));
+      }
+    }
+    const activeTrials = Object.entries(tr).filter(([, x]) => x);
+    if (activeTrials.length) {
+      host.appendChild(lbl('BLOCK TRIALS (4G · instanced, non-destructive)'));
+      for (const [id, x] of activeTrials) {
+        const b = getBlock(id);
+        host.appendChild(row(b ? b.display_name : id, `${x.status} · ${x.score}/${x.score_cap} · ${x.player_count || Object.keys(x.players || {}).length} player(s)`));
+      }
+    }
+    if (d.cityLog && d.cityLog.events && d.cityLog.events.length) {
+      host.appendChild(lbl(`CITY WORLD LOG (4C · ${d.cityLog.events.length}/${50})`));
+      for (const e of d.cityLog.events.slice(-6)) {
+        const line = document.createElement('div'); line.className = 'evt';
+        line.textContent = `#${e.seq} ${e.type}${e.city_id ? ' · ' + e.city_id : ''}`; host.appendChild(line);
+      }
+    }
+    // v1.2 presence push cadence — registry aggregate vs each block's pushed view
+    const pvMap = d.pushedView || {};
+    if (Object.keys(pvMap).length) {
+      host.appendChild(lbl('PRESENCE CADENCE (5D · registry vs pushed view)'));
+      for (const viewer of CITY_IDS) {
+        const view = pvMap[viewer];
+        if (!view) continue;
+        const b = getBlock(viewer);
+        const seen = CITY_IDS.map((id) => `${getBlock(id).display_name[0]}:${view[id] ? view[id].population : '–'}`).join(' ');
+        const reg = CITY_IDS.map((id) => `${getBlock(id).display_name[0]}:${d.blocks[id] ? d.blocks[id].population : '–'}`).join(' ');
+        host.appendChild(row(`${b.display_name} sees`, `${seen}  (registry ${reg})`));
+      }
+    }
   }
 
   renderPhase1(w) {

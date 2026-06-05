@@ -29,7 +29,47 @@ show flags, public `presentation` payload); v0.9 adds a per-room display-only ov
 (effective = ctx base ⊕ override) via a room-authored `room_presentation_override_set`
 fabric event — the tick-clocked mirror of product Phase 2f / 2g / 2h / 2i.
 
-Full write-ups: [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
+**v1.0 — city/district foundation (Phase 5A–5E mirror):** the simulator now understands the
+multi-block **district** — a static line of three blocks (`downtown-01 — harbor-02 — skyline-03`)
+with per-block display identity, **bounded cross-block routing** (an actor moves ONLY after a
+source-block-authorized `city_route_confirmed` + `city_block_arrived`; a forged/non-adjacent confirm
+can never teleport), a **public-safe presence summary** (`district_presence_delta`, private payload
+fields stripped), and a **bounded, deduped district activity feed**. New fabric events ride
+`presence` (`city_player_joined`/`city_player_left`/`district_presence_delta`) and `event_log`
+(`city_route_requested`/`city_route_confirmed`/`city_route_rejected`/`city_block_arrived`/
+`district_activity_derived`). All deterministic — duplicated / out-of-order delivery folds to the same
+fingerprint. Lab mirror only: no economy, accounts, ownership, money, networking, or product bridge.
+
+**v1.1 — city systems deep mirror (Phase 4C–4G):** on the v1.0 district substrate, five product
+city systems are folded — each public-safe with its safety posture ENFORCED in the fold: **4C** an
+append-only, FIFO-bounded (50), monotonic-seq, sanitized **city world log**; **4D** a
+**non-authoritative** per-block pressure/mood (derived display only); **4E** a **non-cash** Host Rank
+(tier + support signal, no economic field); **4F** **constrained + reversible** Block Stewardship (a
+CLOSED allowlist of palette/sign-variant/intensity, gated by Host Rank, reset → default); **4G** an
+**instanced, non-destructive** Block Trial (never touches the public block). All deterministic —
+reorder/dup delivery folds to the same fingerprint. Lab mirror only: no money/ownership/bridge.
+
+**v1.2 — presence push + activity cadence (Phase 5C/5D/5E timing):** adds the TIMED, PARTIAL view the
+fold was missing. `state.district.blocks` stays the registry AGGREGATE (5C); a new per-block
+`pushedView` is what each block has PUSHED to its clients — its own entry IMMEDIATE (5D same-block),
+other blocks only as of its last ALARM (`city_presence_alarm`, the 30-tick = 30s analog; 5D cross-block
+bound). A leave drops to 0 with no ghost; the 5E activity feed follows the push cadence (cross-block
+items derive at the observing block's alarm). All deterministic — delayed/duplicated/out-of-order
+cadence events fold to the same fingerprint. Lab mirror only.
+
+Full write-ups: [`docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md`](../../docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md)
+· [`docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md`](../../docs/HIVEWORLD_V1_1_CITY_SYSTEMS_DEEP_MIRROR.md)
+· [`docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md`](../../docs/HIVEWORLD_V1_2_PRESENCE_CADENCE_MIRROR.md)
+
+**v1.3 — sideband / radio-fabric visualization:** a READ-ONLY diagnostic LENS over everything above. Pure
+view-models (`core/viz/fabric-view.mjs`) derive — from the existing report / canonical log / folded state
+— the sideband channels, a fold-prefix **pushed-view timeline** (the v1.2 cadence made visible over time),
+a **propagation trace** (same-block immediate vs cross-block delayed ≈ one alarm), activity-by-sideband,
+the convergence/replay fingerprint, and a public-safe rejected/stripped summary (reasons + counts only,
+never a private value). It adds NO event, reducer, authority, or fold change — the "radio/sideband" naming
+stays a metaphor (no real RF). Rendered in the testbed `#hw-fabric` panel.
+
+Full write-ups: [`docs/HIVEWORLD_V1_3_SIDEBAND_VISUALIZATION.md`](../../docs/HIVEWORLD_V1_3_SIDEBAND_VISUALIZATION.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
 · [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
 · [`docs/HIVEWORLD_V0_2_MULTI_ROOM.md`](../../docs/HIVEWORLD_V0_2_MULTI_ROOM.md)
 · [`docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md`](../../docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md)
