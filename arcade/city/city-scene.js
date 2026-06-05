@@ -345,11 +345,14 @@ function renderDistrict() {
   const sub = document.querySelector('.brand .sub');
   if (sub && cur) sub.textContent = `${cur.display_name.toLowerCase()} · prototype`;
 
+  // Phase 5C: live, public-safe per-block presence (a count + health; never player data).
+  const peopleLabel = (b) => `${b.population || 0} here`;
+
   const head = document.createElement('div'); head.className = 'dist-head';
   head.textContent = `DISTRICT · ${cur ? cur.display_name : cityDistrict.current_city_id}`;
   districtEl.appendChild(head);
   const line = document.createElement('div'); line.className = 'dist-line';
-  line.textContent = cur ? `theme ${cur.theme} · here now` : 'current block';
+  line.textContent = cur ? `theme ${cur.theme} · ${peopleLabel(cur)}` : 'current block';
   districtEl.appendChild(line);
 
   const nearby = (cur ? cur.adjacent : [])
@@ -362,7 +365,8 @@ function renderDistrict() {
   for (const b of nearby) {
     const row = document.createElement('div'); row.className = 'dist-row';
     const name = document.createElement('span'); name.className = 'dist-name';
-    name.textContent = `${b.display_name} · ${b.theme}`;
+    name.textContent = `${b.display_name} · ${peopleLabel(b)}`;
+    if (b.health && b.health !== 'healthy') name.classList.add('dist-quiet');
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dist-travel'; btn.textContent = 'Travel';
     btn.addEventListener('click', () => { routeStatus = `routing to ${b.display_name}…`; renderDistrict(); net.requestRoute(b.city_id); });
     row.appendChild(name); row.appendChild(btn);
@@ -684,3 +688,5 @@ updateStewardship();     // build the stewardship panel so it is visible before 
 updateTrial();           // build the Block Trial panel so it is visible before server state
 renderDistrict();        // show the district panel placeholder before server state arrives
 net.connect();
+// Phase 5C: keep the district presence (population/health) reasonably fresh while connected.
+setInterval(() => { if (net.connected) net.requestBlocks(); }, 12000);

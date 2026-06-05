@@ -13,7 +13,9 @@ import {
 import { CITY_IDS, DEFAULT_CITY_ID } from '../../arcade/city/city-block.mjs';
 
 // Word-boundaried so legitimate substrings (e.g. "cur**rent**_city_id") don't false-match.
-const PRIVATE = /\b(balance|ledger|inventory|redemption|secret|token|economy|payout|wager|owner|ownership|rent|rental|income|landlord|tenant|population|price|market|marketplace)\b/i;
+// Phase 5C: a public `population` COUNT + `health` are public-safe aggregates (like arcade
+// rooms expose) — NOT private. The forbidden set is player-level/economy data.
+const PRIVATE = /\b(balance|ledger|inventory|redemption|secret|token|economy|payout|wager|owner|ownership|rent|rental|income|landlord|tenant|price|market|marketplace|player_id|connection)\b/i;
 
 // ── block identity ───────────────────────────────────────────────────────────
 test('known block ids are accepted; unknown/garbage rejected', () => {
@@ -49,10 +51,14 @@ test('the line topology leaves downtown and skyline non-adjacent (route via harb
 });
 
 // ── public summaries ─────────────────────────────────────────────────────────
-test('block public summary carries identity/presentation only — no private/economy fields', () => {
+test('block public summary carries identity/presentation/presence only — no private/economy fields', () => {
   const s = blockPublicSummary('downtown-01');
-  assert.deepEqual(Object.keys(s).sort(), ['adjacent', 'capacity', 'city_id', 'display_name', 'theme']);
+  assert.deepEqual(Object.keys(s).sort(),
+    ['adjacent', 'capacity', 'city_id', 'display_name', 'health', 'population', 'population_is_estimated', 'theme']);
   assert.equal(s.city_id, 'downtown-01');
+  // no heartbeat → unknown / 0 (the Phase 5A/5B static default)
+  assert.equal(s.population, 0);
+  assert.equal(s.health, 'unknown');
   assert.equal(blockPublicSummary('nope') === null, true);
   assert.equal(PRIVATE.test(JSON.stringify(s)), false);
 });

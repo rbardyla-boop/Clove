@@ -33,6 +33,9 @@ import { districtManifest, validateRouteRequest } from "../../../arcade/city/cit
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
+  // Phase 5C: city-block presence coordinator (DO-to-DO; this block reports its occupancy
+  // and reads back the public-safe district presence map). Optional/fail-open.
+  CITY_REGISTRY?: DurableObjectNamespace;
 }
 
 interface CityState {
@@ -68,6 +71,7 @@ export class CityRoom implements DurableObject {
   private trial: any = null;                             // Phase 4G: active Block Trial instance (in-memory, ephemeral; never persisted)
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
+  private presenceCache: Record<string, any> = {}; // Phase 5C: last district presence map (DO-to-DO, fail-open)
 
   constructor(
     private readonly ctx: DurableObjectState,
@@ -118,6 +122,29 @@ export class CityRoom implements DurableObject {
     this.ctx.storage.setAlarm(Date.now() + STALE_SWEEP_MS);
   }
 
+  /**
+   * Phase 5C: report THIS block's live occupancy to the city presence coordinator and refresh
+   * the cached district presence map from the echoed response. DO-to-DO only; FAIL-OPEN — if the
+   * registry is unbound or unreachable, the district manifest simply falls back to static
+   * (population 0 / unknown). Reports only a COUNT — never player ids or any private data.
+   */
+  private async reportPresence(): Promise<void> {
+    const ns = this.env.CITY_REGISTRY;
+    if (!ns) return;
+    try {
+      const stub = ns.get(ns.idFromName("city-registry"));
+      const res = await stub.fetch("https://city-reg/city-registry/heartbeat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cityId: this.boundCityId, population: Object.keys(this.state.players).length }),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (data && data.presence && typeof data.presence === "object") this.presenceCache = data.presence;
+    } catch {
+      /* fail-open: keep the last cache (or static) */
+    }
+  }
+
   // ==================== WebSocket transport ====================
 
   async fetch(request: Request): Promise<Response> {
@@ -159,7 +186,7 @@ export class CityRoom implements DurableObject {
       case "city_block_trial_join_request": { await this.handleTrialJoin(ws); break; }
       case "city_block_trial_leave": { this.handleTrialLeave(ws); break; }
       case "city_block_trial_close_request": { await this.handleTrialClose(ws); break; }
-      case "city_blocks_request": { this.handleBlocksRequest(ws); break; }
+      case "city_blocks_request": { await this.handleBlocksRequest(ws); break; }
       case "city_route_request": { this.handleRouteRequest(ws, data); break; }
       // accept the 4C name + the 4B name (alias) so old clients keep working
       case "city_portal_enter":
@@ -216,8 +243,10 @@ export class CityRoom implements DurableObject {
     this.send(ws, { t: "city_stewardship_state", ...stewardshipStatePayload(this.stewardship) });
     // Phase 4G: a (re)connect to a warm DO sees an in-progress Block Trial, if any.
     if (this.trial) this.send(ws, { t: "city_block_trial_state", ...trialStatePayload(this.trial) });
-    // Phase 5A: a (re)connect always sees the public-safe district manifest for discovery.
-    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId) });
+    // Phase 5A/5C: a (re)connect always sees the public-safe district manifest for discovery,
+    // enriched with live per-block presence (refresh first so this join counts).
+    await this.reportPresence();
+    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId, this.presenceCache) });
     await this.persist();
     this.scheduleSweep();
   }
@@ -258,14 +287,19 @@ export class CityRoom implements DurableObject {
 
   // ==================== Phase 5A: multi-block district (discovery + bounded routing) ====================
 
-  /** Public-safe district manifest (discovery). Static config; no block state touched. */
-  private handleBlocksRequest(ws: WebSocket): void {
+  /**
+   * Public-safe district manifest (discovery) enriched with live per-block presence. Refreshes
+   * the presence cache from the coordinator first (fail-open) so a client polling for blocks sees
+   * other blocks' current population. Touches no block state.
+   */
+  private async handleBlocksRequest(ws: WebSocket): Promise<void> {
     const meta = this.sockets.get(ws);
     if (!meta) return;
     const now = Date.now();
     if (now - meta.lastBlocksReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
     meta.lastBlocksReqAt = now;
-    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId) });
+    await this.reportPresence();
+    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId, this.presenceCache) });
   }
 
   /**
@@ -359,6 +393,7 @@ export class CityRoom implements DurableObject {
       this.broadcast({ t: "city_block_trial_state", ...trialStatePayload(this.trial) });
     }
     this.evaluateScheduler();
+    this.ctx.waitUntil(this.reportPresence()); // Phase 5C: occupancy dropped — report it (fail-open)
     await this.persist();
   }
 
@@ -399,6 +434,7 @@ export class CityRoom implements DurableObject {
     if (changed) this.broadcastSnapshot(now);
     this.evaluateScheduler(); // Phase 4D: periodic decay (activity ages out of the window)
     this.tickTrial();         // Phase 4G: time-based trial completion when idle (no movement)
+    this.ctx.waitUntil(this.reportPresence()); // Phase 5C: keepalive — keep this block's presence fresh
     await this.persist();
     if (this.sockets.size > 0 || Object.keys(this.state.players).length > 0) this.scheduleSweep();
   }
