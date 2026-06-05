@@ -54,10 +54,12 @@ try {
   // ── discovery ──────────────────────────────────────────────────────────────
   const d0 = await A.page.evaluate(() => window.__neon_city.district());
   check('district manifest received on join', !!d0 && d0.district_id === 'neon-district-01');
-  check('district lists all three blocks', !!d0 && Array.isArray(d0.blocks) && d0.blocks.length === 3);
+  check('district lists all four blocks (Phase 6D)', !!d0 && Array.isArray(d0.blocks) && d0.blocks.length === 4);
   check('current block is downtown-01 (server-owned)', !!d0 && d0.current_city_id === 'downtown-01');
   check('DISTRICT panel renders the current block name', await A.page.evaluate(() => /DISTRICT/.test(document.getElementById('cityDistrict').textContent) && /Downtown Block/.test(document.getElementById('cityDistrict').textContent)));
   check('adjacent block (Harbor) is shown with a Travel control', await A.page.evaluate(() => { const el = document.getElementById('cityDistrict'); return /Harbor Block/.test(el.textContent) && !!el.querySelector('.dist-travel'); }));
+  // Phase 6D: from downtown the ring offers BOTH harbor and foundry (non-linear adjacency)
+  check('adjacent block (Foundry) is shown with a Travel control from downtown', await A.page.evaluate(() => { const el = document.getElementById('cityDistrict'); return /Foundry Block/.test(el.textContent); }));
   check('non-adjacent block (Skyline) is NOT offered from downtown', await A.page.evaluate(() => ![...document.querySelectorAll('#cityDistrict .dist-row')].some((r) => /Skyline/.test(r.textContent))));
 
   // public-safe manifest (no private / economy / ownership)
@@ -98,6 +100,12 @@ try {
   await A.page.waitForFunction(() => window.__neon_city.district() && window.__neon_city.district().current_city_id === 'harbor-02', null, { timeout: 6000 }).catch(() => {});
   check('server-owned current block is now harbor-02', await A.page.evaluate(() => window.__neon_city.district().current_city_id === 'harbor-02'));
   check('from harbor, BOTH downtown and skyline are adjacent (hub)', await A.page.evaluate(() => { const el = document.getElementById('cityDistrict'); return /Downtown Block/.test(el.textContent) && /Skyline Block/.test(el.textContent); }));
+  // Phase 6D: harbor↔foundry are OPPOSITE corners of the ring — foundry is NOT offered, and a direct route is rejected
+  check('from harbor, Foundry (opposite corner) is NOT offered', await A.page.evaluate(() => ![...document.querySelectorAll('#cityDistrict .dist-row')].some((r) => /Foundry/.test(r.textContent))));
+  await sleep(320);
+  await A.page.evaluate(() => window.__neon_city.routeTo('foundry-04'));
+  await sleep(320);
+  check('route harbor → foundry is rejected (not_adjacent)', await A.page.evaluate(() => { const r = window.__neon_city.lastRouteResult; return r && r.ok === false && r.reason === 'not_adjacent'; }));
 
   // Phase 5B: harbor has its OWN visual identity (style + landmark labels change on travel)
   await A.page.waitForFunction((p) => window.__neon_city.blockStyle().arcade_front.palette !== p, dtId.palette, { timeout: 5000 }).catch(() => {});

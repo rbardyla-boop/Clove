@@ -27,15 +27,19 @@ export const DISTRICT_ID = 'neon-district-01';
 export const DISTRICT_NAME = 'Neon District';
 
 /**
- * Block adjacency graph (the routing topology). A line: downtown — harbor — skyline,
- * so downtown↔skyline are NOT adjacent (you route through harbor). Routing is bounded
- * to adjacent blocks only. Every id here MUST be a known block (asserted in tests).
- * This carries only block ids — it is already public-safe.
+ * Block adjacency graph (the routing topology). Phase 6D makes it NON-LINEAR: a 4-block ring
+ *   downtown — harbor — skyline — foundry — downtown
+ * so opposite blocks have TWO paths (downtown↔skyline via harbor OR foundry) while remaining
+ * NON-adjacent (no direct edge). Routing is bounded to directly-adjacent blocks only. Harbor's
+ * neighbours are unchanged from the Phase 5A line (downtown, skyline), preserving prior routes.
+ * Adjacency is symmetric; every id here MUST be a known block (asserted in tests). Block ids only
+ * — already public-safe. This is map topology, NOT ownership/economy.
  */
 const ADJACENCY = Object.freeze({
-  'downtown-01': Object.freeze(['harbor-02']),
+  'downtown-01': Object.freeze(['harbor-02', 'foundry-04']),
   'harbor-02': Object.freeze(['downtown-01', 'skyline-03']),
-  'skyline-03': Object.freeze(['harbor-02']),
+  'skyline-03': Object.freeze(['harbor-02', 'foundry-04']),
+  'foundry-04': Object.freeze(['downtown-01', 'skyline-03']),
 });
 
 /** True if cityId is a configured block. */

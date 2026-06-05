@@ -5,6 +5,38 @@ Newest first.
 
 ---
 
+## ADR-020 — Neon Circuit Phase 6D: fourth block + non-linear district topology (2026-06-05)
+
+**Context.** Phases 6A–6C made the district's event pulse rich and server-authored. Phase 6D proves
+the district can **scale**: a fourth block (Foundry) and a **non-linear** topology — without rewriting
+routing/presence/activity/event systems, and with no economy/ownership.
+
+**Decision.**
+1. **Fourth block as pure catalog config.** `city-block.mjs` adds `foundry-04` (`Foundry Block`,
+   `forge-ember`) with shared byte-identical geometry + per-block labels (`FORGE STACK`/…) and a
+   per-block default style (`city-stewardship.mjs`: amber arcade + magenta glow). Each block is its
+   own `CityRoom` DO via `idFromName(city_id)` → **no DO class, no migration**.
+2. **Ring topology, additively.** `city-district.mjs` `ADJACENCY` becomes a 4-ring
+   (downtown–harbor–skyline–foundry–downtown): downtown & skyline each **gain** foundry; **harbor is
+   unchanged** (`[downtown, skyline]`) and downtown↔skyline stays non-adjacent — so every Phase 5A
+   route assertion and live route still holds. Non-linear: opposite corners (downtown↔skyline,
+   harbor↔foundry) are non-adjacent, and downtown reaches skyline two ways (via harbor *or* foundry).
+   (Rejected: the workflow's harbor↔foundry / skyline↔foundry ring — it would have changed harbor's
+   neighbour set; the chosen ring is functionally equivalent and fully backward-compatible.)
+3. **Everything downstream is block-agnostic.** Presence, the activity feed, and the event schedule
+   iterate the manifest / `CITY_IDS`, so they pick up Foundry with no change; no `SCHEMA_VERSION` bump
+   (a 4-block manifest is the same shape).
+
+**Consequences.** Routing stays server-validated + bounded (`harbor→foundry` rejected `not_adjacent`).
+No block mutates another; isolation stays structural (one DO per block). Only one prior test needed
+updating (the explicit 3-block roster → 4); all adjacency/presence/route assertions passed unchanged.
+The Worker bundle grew ~194.5→195.1 KiB (foundry config in the shared modules). Validation: 568 unit
+(+4 ring tests) + district/presence/activity/events/stewardship smokes (incl. foundry offered +
+harbor→foundry rejected) + two-client + frame + dry-run + size (≈0.783/0.212 MB gz) + config +
+guardrails — all green. Detail: `docs/NEON_CIRCUIT_PHASE6D_FOURTH_BLOCK.md`.
+
+---
+
 ## ADR-019 — Neon Circuit Phase 6C: rich district event cards + live countdown (2026-06-05)
 
 **Context.** With the schedule server-authored (6B), Phase 6C polishes presentation: a richer,

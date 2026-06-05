@@ -87,6 +87,11 @@ const BLOCK_DEFAULT_STYLES = Object.freeze({
     street_lights: Object.freeze({ palette: 'amber', intensity: 'medium' }),
     sidewalk_trim: Object.freeze({ palette: 'white' }),
   }),
+  'foundry-04': Object.freeze({    // forge-ember: amber arcade + magenta forge glow (Phase 6D)
+    arcade_front: Object.freeze({ palette: 'amber', sign_variant: 'signal', intensity: 'high' }),
+    street_lights: Object.freeze({ palette: 'magenta', intensity: 'high' }),
+    sidewalk_trim: Object.freeze({ palette: 'white' }),
+  }),
 });
 
 /**
