@@ -1,8 +1,14 @@
 # Neon Circuit — Production Rollout Plan
 
-**Status:** pre-flight complete; routing **architecture decided** (same-origin); **NOT deploy-ready** —
-two dashboard facts remain (Pages deploy pipeline + token Pages-scope, §7c/§7d). The Worker artifact and
-config are green and low-risk; the gap is infrastructure wiring, not code. **No production deploy has occurred.**
+**Status:** pre-flight complete; routing **architecture decided** (same-origin); **NOT deploy-ready.** This
+is a **FULL feature launch** — production currently has NONE of the city feature: the **client is absent**
+(production Pages is a stale build predating `arcade/`; all `/arcade/*` → 404, §7c), the **Worker is not
+deployed**, and the **route is not configured**. The Worker artifact + config are green and low-risk; the
+real gap is the **stale Pages deploy + routing**, which is operational, not code. **No production deploy has occurred.**
+
+**Three components must land (in order):** (1) a **fresh Pages deploy** including `arcade/` so the city
+client exists at `clovelearn.io/arcade/city/*`; (2) the **Worker** `neon-arcade-mesh` (`wrangler deploy
+--env production`, provisions 4 DOs + v1→v4); (3) the **Workers route** `clovelearn.io/arcade/*` → Worker.
 
 ## 0. Routing resolution (decided)
 
@@ -97,12 +103,23 @@ already accepts the handshake without a subprotocol (the Phase 4 fix), so the sa
 workers.dev` (the account subdomain; useful for an isolated Worker-only smoke before routing). The client
 path is the custom-domain route.
 
-### 7c. Pages deploy mechanism — ⛔ OPEN (dashboard)
-No `_routes.json`/`functions`/CI workflow committed; the site uses Pages `_redirects` → most likely a
-**git-integrated** Pages project (auto-deploy on push to `main`). **Confirm in the dashboard:** the Pages
-project name, whether it auto-deploys from `main`, and whether the **Workers route over Pages** precedence
-is in effect for `clovelearn.io/arcade/*` once the route is added. If not git-integrated, the client deploy
-step is `wrangler pages deploy`.
+### 7c. Pages deploy is STALE — ⛔ OPEN (operational; the city client is absent in production)
+**Evidence (read-only HTTP):** `clovelearn.io` serves this repo's ROOT files (`manifest.json`, `sw.js`,
+`particle-bg.js`, `robots.txt` → 200) but **all of `arcade/` → 404** (`/arcade/`, `/arcade/index.html`,
+`/arcade/city/*`), even though those files ARE in `origin/main`, are NOT gitignored, and there is no
+`.cfignore`/build-exclude. The GitHub deployments API is **empty**. → The production Pages deployment is a
+**stale build predating the `arcade/` directory**, and the git integration is **not currently producing
+deployments**. Owner says the project is git-integrated to this repo — but it has not rebuilt since before
+`arcade/` was added.
+
+**Implication:** launching the city feature requires a **fresh production Pages deploy** that includes
+`arcade/` (and the Phase 5 `arcade/city/*` client). **Confirm + act (dashboard):**
+- Pages project name; is auto-deploy from `main` actually **enabled**, and when did it last deploy?
+- Either re-trigger the integration to rebuild current `main`, or run a manual `wrangler pages deploy`.
+- After redeploy, verify `clovelearn.io/arcade/city/index.html` → **200** (client present) BEFORE relying
+  on the Worker route.
+- Workers-route-over-Pages precedence for `clovelearn.io/arcade/*` is documented Cloudflare behavior;
+  verify at the deploy step (`clovelearn.io/arcade/health` → 200 from the Worker, `clovelearn.io/` still Pages).
 
 ### 7d. Deploy credential scope — ⛔ OPEN (dashboard)
 The `.env` User API Token deploys **Workers** (proven on staging; `wrangler whoami` OK). `wrangler pages
