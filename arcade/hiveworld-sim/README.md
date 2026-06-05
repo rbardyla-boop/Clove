@@ -29,7 +29,18 @@ show flags, public `presentation` payload); v0.9 adds a per-room display-only ov
 (effective = ctx base ⊕ override) via a room-authored `room_presentation_override_set`
 fabric event — the tick-clocked mirror of product Phase 2f / 2g / 2h / 2i.
 
-Full write-ups: [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
+**v1.0 — city/district foundation (Phase 5A–5E mirror):** the simulator now understands the
+multi-block **district** — a static line of three blocks (`downtown-01 — harbor-02 — skyline-03`)
+with per-block display identity, **bounded cross-block routing** (an actor moves ONLY after a
+source-block-authorized `city_route_confirmed` + `city_block_arrived`; a forged/non-adjacent confirm
+can never teleport), a **public-safe presence summary** (`district_presence_delta`, private payload
+fields stripped), and a **bounded, deduped district activity feed**. New fabric events ride
+`presence` (`city_player_joined`/`city_player_left`/`district_presence_delta`) and `event_log`
+(`city_route_requested`/`city_route_confirmed`/`city_route_rejected`/`city_block_arrived`/
+`district_activity_derived`). All deterministic — duplicated / out-of-order delivery folds to the same
+fingerprint. Lab mirror only: no economy, accounts, ownership, money, networking, or product bridge.
+
+Full write-ups: [`docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md`](../../docs/HIVEWORLD_V1_0_CITY_DISTRICT_FOUNDATION.md) [`docs/HIVEWORLD_V0_TESTBED.md`](../../docs/HIVEWORLD_V0_TESTBED.md)
 · [`docs/HIVEWORLD_V0_1_PHASE1_PARITY.md`](../../docs/HIVEWORLD_V0_1_PHASE1_PARITY.md)
 · [`docs/HIVEWORLD_V0_2_MULTI_ROOM.md`](../../docs/HIVEWORLD_V0_2_MULTI_ROOM.md)
 · [`docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md`](../../docs/HIVEWORLD_V0_6_ROOM_EVENT_FEED.md)

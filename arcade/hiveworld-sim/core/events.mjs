@@ -76,6 +76,17 @@ export const EVENT_SPECS = Object.freeze({
   // weather: a room sets/clears its display-only presentation override (live-ops analog
   // of product Phase 2i). The reducer sanitizes + stores it; effective config = base⊕override.
   room_presentation_override_set: { sideband: 'weather' },
+  // ── v1.0 city/district foundation (product Phase 5A–5E mirror) ───────────────
+  // presence: per-block actor location + the block-authored public presence summary
+  city_player_joined:        { sideband: 'presence' },
+  city_player_left:          { sideband: 'presence' },
+  district_presence_delta:   { sideband: 'presence' },
+  // event_log: cross-block routing semantics + arrival + (optional) explicitly-logged activity
+  city_route_requested:      { sideband: 'event_log' },
+  city_route_confirmed:      { sideband: 'event_log' },
+  city_route_rejected:       { sideband: 'event_log' },
+  city_block_arrived:        { sideband: 'event_log' },
+  district_activity_derived: { sideband: 'event_log' },
 });
 
 /**

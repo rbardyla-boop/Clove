@@ -15,6 +15,8 @@ import { simulatePulseTapRound } from './core/pulse-tap.mjs';
 import { runScenario } from './scenarios/canned.mjs';
 // Phase 1 arcade parity (v0.1)
 import { PHASE1_SCENARIOS, runPhase1Scenario, RESULTS } from './scenarios/phase1.mjs';
+import { CITY_DISTRICT_SCENARIOS } from './scenarios/city-district.mjs';
+import { CITY_IDS, getBlock } from './core/phase1/city-blocks.mjs';
 import { CABINETS } from './core/phase1/catalog.mjs';
 import { cabinetRenderState, adapterStateFor } from './core/phase1/adapters.mjs';
 import { arcadeRoom } from './core/phase1/round-authority.mjs';
@@ -53,6 +55,8 @@ class HiveDebug {
     this.agentN = 0; this.roomN = 0; this.slotN = 0; this.goodN = 0; this.objN = 0; this.p1RoundN = 0;
     this.lastSlotByAgent = {};
     this.refreshPhase1Select();
+    this.refreshCitySelect();
+    this.renderCity(null);
     for (const sb of SIDEBAND_NAMES) this.energy[sb] = 0;
 
     // seed a small world so the page is alive on load
@@ -136,6 +140,7 @@ class HiveDebug {
         case 'p1-equip': this.p1Equip(a); break;
         case 'p1-claim': this.p1Claim(a); break;
         case 'run-phase1': this.runPhase1Scenario(); break;
+        case 'run-city': this.runCityScenario(); break;
         case 'reset': this.init(); break;
       }
     } catch (err) {
@@ -330,6 +335,65 @@ class HiveDebug {
     this.refreshRoomSelect();
     const r = sim.report();
     this.toast(`ran ${name} → converged: ${r.desyncReport.finalConverged} · rejected: ${r.rejectedEvents.length}`, r.desyncReport.finalConverged ? 'ok' : 'bad');
+  }
+
+  // ── City district (v1.0 — Phase 5A–5E mirror) ─────────────────────────────
+  refreshCitySelect() {
+    const sel = $('sel-city-scenario');
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (const name of Object.keys(CITY_DISTRICT_SCENARIOS)) {
+      const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o);
+    }
+  }
+
+  runCityScenario() {
+    const sel = $('sel-city-scenario');
+    const name = (sel && sel.value) || 'districtRouteConverges';
+    const fn = CITY_DISTRICT_SCENARIOS[name];
+    if (!fn) { this.toast('unknown city scenario', 'bad'); return; }
+    const { report } = fn();
+    this.renderCity(report);
+    const conv = report.desyncReport.finalConverged;
+    this.toast(`ran ${name} → converged: ${conv} · rejected routes: ${report.finalWorldState.district.rejectedRoutes}`, conv ? 'ok' : 'bad');
+  }
+
+  /** Lab display of the city/district fold (textContent/DOM only — public-safe view). */
+  renderCity(report) {
+    const host = $('hw-city');
+    if (!host) return;
+    host.textContent = '';
+    const row = (k, v) => {
+      const d = document.createElement('div'); d.className = 'row';
+      const a = document.createElement('span'); a.textContent = k;
+      const b = document.createElement('span'); b.textContent = v;
+      d.appendChild(a); d.appendChild(b); return d;
+    };
+    const lbl = (txt) => { const d = document.createElement('div'); d.className = 'lbl'; d.textContent = txt; return d; };
+    if (!report) {
+      const hint = document.createElement('div'); hint.className = 'hint';
+      hint.textContent = 'Pick a city scenario and run it — blocks, routing, presence + activity fold here.';
+      host.appendChild(hint); return;
+    }
+    const d = report.finalWorldState.district;
+    host.appendChild(row('fingerprint', short(report.canonicalFingerprint)));
+    host.appendChild(row('converged', String(report.desyncReport.finalConverged)));
+    host.appendChild(row('rejected routes', String(d.rejectedRoutes)));
+    host.appendChild(row('refused events', String(report.applyRejectionCount)));
+    host.appendChild(lbl('BLOCKS'));
+    for (const id of CITY_IDS) {
+      const b = getBlock(id); const rep = d.blocks[id];
+      host.appendChild(row(`${b.display_name} · ${b.theme}`, `${rep ? rep.population : 0} here · ${rep ? rep.health : 'unknown'}`));
+    }
+    host.appendChild(lbl('ACTORS'));
+    const actors = Object.entries(d.actorBlock);
+    if (!actors.length) host.appendChild(row('—', 'no actors in a block'));
+    for (const [actor, city] of actors) host.appendChild(row(short(actor), getBlock(city) ? getBlock(city).display_name : city));
+    host.appendChild(lbl('DISTRICT ACTIVITY'));
+    if (!d.activity.length) host.appendChild(row('—', 'no activity yet'));
+    for (const item of d.activity.slice(0, 10)) {
+      const line = document.createElement('div'); line.className = 'evt'; line.textContent = item.label; host.appendChild(line);
+    }
   }
 
   renderPhase1(w) {

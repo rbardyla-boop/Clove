@@ -48,6 +48,17 @@ try {
   await page.waitForFunction(() => /70/.test(document.querySelector('#p1-arcade .seldet')?.textContent || ''), null, { timeout: 8000 });
   check('Three Cabinet Tour scenario shows the 70-ticket combined balance', true);
 
+  // v1.0 — City district panel: run a routing scenario through the real button.
+  await page.waitForSelector('#hw-city', { timeout: 8000 });
+  await page.selectOption('#sel-city-scenario', 'districtRouteConverges');
+  await page.click('[data-action="run-city"]');
+  await page.waitForFunction(() => /Arrived in Harbor/.test(document.querySelector('#hw-city')?.textContent || ''), null, { timeout: 8000 });
+  const cityText = await page.evaluate(() => document.querySelector('#hw-city').textContent);
+  check('city panel renders the three district blocks', /Downtown/.test(cityText) && /Harbor/.test(cityText) && /Skyline/.test(cityText));
+  check('city panel shows the actor arrived in Harbor + a confirmed route', /Arrived in Harbor/.test(cityText) && /confirmed/.test(cityText));
+  check('city panel shows a convergence fingerprint', /fingerprint/.test(cityText));
+  check('city panel shows no private data', !/\b(player_id|balance|socket|adminToken|secret)\b/i.test(cityText));
+
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log('  errors:', JSON.stringify(errors, null, 2));
 } finally {

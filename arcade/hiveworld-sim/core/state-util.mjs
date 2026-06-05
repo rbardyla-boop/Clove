@@ -32,6 +32,10 @@ export function createInitialState() {
     // latest heartbeat per room + admin status overrides + reset generations. Health +
     // stale-population eviction are DERIVED at query time (rooms.mjs), never folded.
     roomRegistry: { heartbeats: {}, statusOverrides: {}, generations: {} },
+    // v1.0 (Phase 5A–5E city/district mirror): per-block reported public summaries, per-actor
+    // current block, route status, a bounded public-safe district activity feed, and a rejected-route
+    // counter. No economy/accounts/ownership is ever folded here. See core/reducers/district.mjs.
+    district: { blocks: {}, actorBlock: {}, routes: {}, activity: [], rejectedRoutes: 0 },
   };
 }
 
@@ -78,6 +82,7 @@ export function stateFingerprint(state) {
     moderationLog: state.moderationLog,
     arcade: state.arcade,
     roomRegistry: state.roomRegistry,
+    district: state.district, // v1.0: include the city/district slice in the convergence fingerprint
   };
   return hashString(canonicalStringify(view));
 }
