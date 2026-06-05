@@ -83,6 +83,7 @@ export class CityNet {
       case 'city_block_trial_state': this.h.onTrialState?.(m); break;         // Phase 4G: Block Trial instance state
       case 'city_block_trial_result': this.h.onTrialResult?.(m); break;       // Phase 4G: trial request/join/close outcome
       case 'city_blocks': this.h.onBlocks?.(m); break;                        // Phase 5A: district manifest (discovery)
+      case 'city_district_presence': this.h.onDistrictPresence?.(m); break;   // Phase 5D: push-on-change presence delta
       case 'city_route_result': this.h.onRouteResult?.(m); break;             // Phase 5A: server-validated route confirmation
       case 'city_error': this.h.onError?.(m); break;
       default: break;
