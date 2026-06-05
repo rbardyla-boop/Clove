@@ -21,6 +21,7 @@ import {
   ALLOWED_TARGETS, ALLOWED_PALETTES, ALLOWED_SIGN_VARIANTS, ALLOWED_INTENSITY,
 } from './city-stewardship.mjs';
 import { CityNet, resolveCityWsUrl } from './city-net.js';
+import { mergePresenceDelta } from './city-district-presence.mjs';
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -85,6 +86,8 @@ const stewSel = { target: 'arcade_front', palette: 'magenta', sign_variant: 'cla
 let cityTrial = null;                 // Phase 4G: last Block Trial state from the server (display only)
 let cityDistrict = null;              // Phase 5A: last district manifest (display only; server-owned)
 let routeStatus = '';                 // Phase 5A: transient route feedback line
+let districtLiveAt = 0;               // Phase 5D: last time district presence updated (full manifest OR push delta)
+const DISTRICT_STALE_MS = 45000;      // Phase 5D: beyond this with no push → show degraded + safety re-request
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -157,7 +160,14 @@ const net = new CityNet({
     onStewardshipResult: (m) => { onStewardshipResult(m); },
     onTrialState: (m) => { cityTrial = m && m.trial; updateTrial(); },
     onTrialResult: (m) => { onTrialResult(m); },
-    onBlocks: (m) => { cityDistrict = m; renderDistrict(); },                 // Phase 5A: district manifest
+    onBlocks: (m) => { cityDistrict = m; districtLiveAt = Date.now(); renderDistrict(); },  // Phase 5A: full district manifest (initial snapshot)
+    onDistrictPresence: (m) => {                                              // Phase 5D: push-on-change presence delta
+      if (window.__neon_city) { window.__neon_city.lastDistrictPresence = m; window.__neon_city.districtPushCount++; }
+      if (!cityDistrict) return;                                             // wait for the full manifest baseline
+      cityDistrict = mergePresenceDelta(cityDistrict, m);
+      districtLiveAt = Date.now();
+      renderDistrict();
+    },
     onRouteResult: (m) => { onRouteResult(m); },                              // Phase 5A: route confirmation
     onError: (m) => {
       window.__neon_city.lastError = m;
@@ -171,6 +181,7 @@ function setStatus(s) {
   status = s;
   statusTxt.textContent = s === 'live' ? 'live' : s;
   statusDot.className = 'dot ' + (s === 'live' ? 'on' : s === 'offline' ? 'err' : 'wait');
+  if (cityDistrict) renderDistrict(); // Phase 5D: reflect connect/disconnect in the live indicator at once
 }
 
 // ── input: keyboard ─────────────────────────────────────────────────────────
@@ -350,6 +361,14 @@ function renderDistrict() {
 
   const head = document.createElement('div'); head.className = 'dist-head';
   head.textContent = `DISTRICT · ${cur ? cur.display_name : cityDistrict.current_city_id}`;
+  // Phase 5D: subtle live/degraded indicator. Presence is PUSHED on change, so "live" tracks the
+  // connection (the stream that carries deltas). Disconnected → "offline"; connected but no
+  // push/manifest within the stale window → "refresh" (the safety re-request is about to fire).
+  const live = document.createElement('span'); live.className = 'dist-live';
+  if (status !== 'live') { live.textContent = ' · offline'; live.classList.add('dist-quiet'); }
+  else if (!districtLiveAt || (Date.now() - districtLiveAt) > DISTRICT_STALE_MS) { live.textContent = ' · refresh'; live.classList.add('dist-quiet'); }
+  else { live.textContent = ' · ◦ live'; }
+  head.appendChild(live);
   districtEl.appendChild(head);
   const line = document.createElement('div'); line.className = 'dist-line';
   line.textContent = cur ? `theme ${cur.theme} · ${peopleLabel(cur)}` : 'current block';
@@ -668,6 +687,10 @@ window.__neon_city = {
   // Phase 5A — multi-block district (display only; the server owns route truth)
   district() { return cityDistrict ? JSON.parse(JSON.stringify(cityDistrict)) : null; },
   lastRouteResult: null,
+  // Phase 5D — push-on-change district presence (display only; server-derived)
+  lastDistrictPresence: null,        // last presence delta received (for tests/automation)
+  districtPushCount: 0,              // how many push deltas have been applied
+  get districtLiveAt() { return districtLiveAt; },
   get cityId() { return net.cityId; },
   requestBlocks() { net.requestBlocks(); },
   routeTo(targetCityId) { net.requestRoute(targetCityId); },
@@ -688,5 +711,9 @@ updateStewardship();     // build the stewardship panel so it is visible before 
 updateTrial();           // build the Block Trial panel so it is visible before server state
 renderDistrict();        // show the district panel placeholder before server state arrives
 net.connect();
-// Phase 5C: keep the district presence (population/health) reasonably fresh while connected.
-setInterval(() => { if (net.connected) net.requestBlocks(); }, 12000);
+// Phase 5D: district presence is now PUSHED on change (no steady polling). Keep only a slow
+// degraded-state safety net — if connected but no push/manifest has arrived within the stale
+// window, re-request once. renderDistrict also reflects this as a "refresh" indicator.
+setInterval(() => {
+  if (net.connected && (!districtLiveAt || Date.now() - districtLiveAt > DISTRICT_STALE_MS)) net.requestBlocks();
+}, 15000);

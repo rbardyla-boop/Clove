@@ -5,6 +5,45 @@ Newest first.
 
 ---
 
+## ADR-015 — Neon Circuit Phase 5D: push-on-change district presence (2026-06-05)
+
+**Context.** Phase 5C made per-block population + health live, but PULL-based — the client polled
+`city_blocks_request` on a ~12s timer. The product goal was to make the district feel live without
+polling, and without adding any economy/account/ownership/gameplay/DO/migration.
+
+**Decision.**
+1. **Deliver over the existing CityRoom socket, not a new registry socket.** The `city_blocks`
+   district manifest already flows to clients over the per-block CityRoom WebSocket, so pushing
+   presence DELTAS over that same channel is the existing architecture — no new route, no new
+   client-facing surface, no new DO, no new migration. The `CityRegistry` stays the DO-to-DO
+   coordinator; the CityRoom stays block authority. (Rejected: a client-facing registry WebSocket —
+   larger attack surface + a single DO fronting all district clients, for no extra capability here.)
+2. **New pure module** `arcade/city/city-district-presence.mjs` — `districtPresenceSnapshot` (reuses
+   the 5C `cityPresenceEntry` freshness policy), `diffDistrictPresence` (bounded ≤ block count,
+   sorted, coalesced), `buildPresenceDelta` (re-projects through a `{city_id,population,health,
+   population_is_estimated}` ALLOWLIST = the public-safety choke point), `deriveDistrictPresenceDelta`
+   (returns `delta:null` when nothing changed), and client-side `mergePresenceDelta` (new manifest,
+   no mutation). Shared unchanged by DO + dev-shim + tests + browser.
+3. **CityRoom** calls `broadcastDistrictPresence()` after each existing `reportPresence()` refresh
+   (join / leave / 30s alarm keepalive), emitting `t:"city_district_presence"` ONLY on change. The
+   message is OUTBOUND-only — a client that sends it hits `default → unknown_type` (cannot inject
+   presence). Dev-shim mirrors with one global delta fan-out (join/leave/sweep).
+4. **Client** drops the 12s poll for a degraded-only 15s safety re-request (fires only when stale
+   >45s), applies deltas via `mergePresenceDelta`, and shows a connection-based live/refresh/offline
+   indicator. Additive message; no `SCHEMA_VERSION` bump (old clients ignore the unknown `t`).
+
+**Consequences.** No new DO/migration/route/persisted state — `reportPresence` (the only DO-to-DO
+hop) is unchanged; the delta is computed locally from the same `presenceCache` the manifest is, so it
+can expose nothing the manifest does not. Same-block join/leave deltas are immediate; cross-block
+changes surface within one 30s alarm tick (the existing keepalive cadence, deliberately not lowered —
+instant cross-DO fan-out would need registry→CityRoom reverse calls, out of scope). Validation: 522
+unit (+12 pure) + new push-without-polling two-client browser smoke + all Phase 4/5 city + arcade
+regression + Worker dry-run (187.10/40.74 KiB gz) + size (0.744/0.200 MB gz) + config (still v1–v4) +
+guardrails — all green. Local-only commit on `feat/neon-circuit-phase5d-district-presence-push`; not
+pushed/merged/deployed. Detail: `docs/NEON_CIRCUIT_PHASE5D_DISTRICT_PRESENCE_PUSH.md`.
+
+---
+
 ## ADR-014 — Neon Circuit Phase 5C: live district presence (cross-block) (2026-06-05)
 
 **Context.** Phase 5A/5B made a district of distinct blocks, but discovery was static. Phase 5C

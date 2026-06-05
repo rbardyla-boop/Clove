@@ -21,6 +21,7 @@ import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostR
 import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload, isStewardshipEligible } from '../../arcade/city/city-stewardship.mjs';
 import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from '../../arcade/city/city-battle-instance.mjs';
 import { districtManifest, validateRouteRequest } from '../../arcade/city/city-district.mjs';
+import { deriveDistrictPresenceDelta } from '../../arcade/city/city-district-presence.mjs';
 
 const PORT = Number(process.env.CITY_PORT || process.env.PORT || 8788);
 const STALE_SWEEP_MS = 30_000;
@@ -45,6 +46,14 @@ const cityPresenceMap = () => {
   for (const cityId of Object.keys(cities)) map[cityId] = { population: Object.keys(cityState(cityId).players).length, last_seen_at: now };
   return map;
 };
+// Phase 5D: push-on-change district presence. Single-process — the global presence view drives
+// ONE delta fan-out to every socket (each client merges by city_id). Coalesced: emit only on change.
+let lastDistrictPresence = {};
+function broadcastDistrictPresence() {
+  const r = deriveDistrictPresenceDelta(lastDistrictPresence, cityPresenceMap(), Date.now());
+  lastDistrictPresence = r.snapshot;
+  if (r.delta) for (const ws of sockets.keys()) send(ws, { t: 'city_district_presence', ...r.delta });
+}
 const eventLog = (cityId) => (eventLogs[cityId] ||= createEventLog());
 const stewardship = (cityId) => (stewardships[cityId] ||= defaultBlockStyle(cityId)); // Phase 5B: per-block default identity
 const send = (ws, p) => { try { ws.send(JSON.stringify(p)); } catch { /* closing */ } };
@@ -226,6 +235,8 @@ function join(ws, meta, data) {
   if (trials[meta.cityId]) send(ws, { t: 'city_block_trial_state', ...trialStatePayload(trials[meta.cityId]) });
   // Phase 5A: a (re)connect always sees the public-safe district manifest for discovery.
   send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()) });
+  // Phase 5D: push the +1 as a delta so other connected clients update live (no polling).
+  broadcastDistrictPresence();
 }
 
 // Phase 5A: multi-block district discovery + bounded routing (DO parity). Discovery is
@@ -300,6 +311,7 @@ function drop(ws, announce = false) {
     broadcastTrial(meta.cityId);
   }
   evaluateScheduler(meta.cityId);
+  broadcastDistrictPresence(); // Phase 5D: occupancy dropped — push the delta live (no polling)
 }
 
 function dispatch(ws, meta, data) {
@@ -358,6 +370,7 @@ setInterval(() => {
     }
     evaluateScheduler(cityId); // Phase 4D: periodic decay
   }
+  broadcastDistrictPresence(); // Phase 5D: periodic refresh — push any population/health delta live
 }, STALE_SWEEP_MS);
 
 console.log(`[city-dev-shim] listening on ws://127.0.0.1:${PORT}/arcade/city/ws`);

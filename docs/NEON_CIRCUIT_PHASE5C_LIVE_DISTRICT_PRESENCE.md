@@ -89,6 +89,8 @@ collision change. No credentials.
 
 ## Next phases
 
-- Push-on-change presence updates (broadcast `city_blocks` when a block's occupancy changes).
+- **Push-on-change presence updates — delivered in Phase 5D**
+  ([NEON_CIRCUIT_PHASE5D_DISTRICT_PRESENCE_PUSH.md](NEON_CIRCUIT_PHASE5D_DISTRICT_PRESENCE_PUSH.md)):
+  the server pushes a bounded public-safe presence delta on change; the client drops the ~12 s poll.
 - Richer district topology / scheduled cross-block events (display-only), same per-block-authority,
   no-economy doctrine.

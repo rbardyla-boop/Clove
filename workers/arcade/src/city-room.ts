@@ -30,6 +30,7 @@ import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostR
 import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload, isStewardshipEligible } from "../../../arcade/city/city-stewardship.mjs";
 import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from "../../../arcade/city/city-battle-instance.mjs";
 import { districtManifest, validateRouteRequest } from "../../../arcade/city/city-district.mjs";
+import { deriveDistrictPresenceDelta } from "../../../arcade/city/city-district-presence.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -72,6 +73,7 @@ export class CityRoom implements DurableObject {
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
   private presenceCache: Record<string, any> = {}; // Phase 5C: last district presence map (DO-to-DO, fail-open)
+  private lastDistrictPresence: Record<string, any> = {}; // Phase 5D: last public-safe summary pushed to clients (for change coalescing)
 
   constructor(
     private readonly ctx: DurableObjectState,
@@ -143,6 +145,19 @@ export class CityRoom implements DurableObject {
     } catch {
       /* fail-open: keep the last cache (or static) */
     }
+  }
+
+  /**
+   * Phase 5D: push a bounded, public-safe district-presence DELTA to THIS block's connected
+   * clients — but ONLY when a public per-block summary changed since the last push (coalesced).
+   * Built from the SAME presenceCache the district manifest is, so it never exposes anything the
+   * manifest does not. The CityRegistry stays the DO-to-DO coordinator; this is pure delivery
+   * over the existing city socket. Call AFTER reportPresence() has refreshed the cache.
+   */
+  private broadcastDistrictPresence(now = Date.now()): void {
+    const r = deriveDistrictPresenceDelta(this.lastDistrictPresence, this.presenceCache, now);
+    this.lastDistrictPresence = r.snapshot;
+    if (r.delta) this.broadcast({ t: "city_district_presence", ...r.delta });
   }
 
   // ==================== WebSocket transport ====================
@@ -247,6 +262,9 @@ export class CityRoom implements DurableObject {
     // enriched with live per-block presence (refresh first so this join counts).
     await this.reportPresence();
     this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId, this.presenceCache) });
+    // Phase 5D: the joiner has the full manifest; push the +1 as a delta so OTHER clients
+    // already on this block update live (and re-baseline lastDistrictPresence) without polling.
+    this.broadcastDistrictPresence(now);
     await this.persist();
     this.scheduleSweep();
   }
@@ -393,7 +411,9 @@ export class CityRoom implements DurableObject {
       this.broadcast({ t: "city_block_trial_state", ...trialStatePayload(this.trial) });
     }
     this.evaluateScheduler();
-    this.ctx.waitUntil(this.reportPresence()); // Phase 5C: occupancy dropped — report it (fail-open)
+    // Phase 5C: occupancy dropped — report it (fail-open). Phase 5D: once the cache refreshes,
+    // push the drop as a delta to the remaining clients (no polling). Stays non-blocking.
+    this.ctx.waitUntil(this.reportPresence().then(() => this.broadcastDistrictPresence()));
     await this.persist();
   }
 
@@ -434,7 +454,9 @@ export class CityRoom implements DurableObject {
     if (changed) this.broadcastSnapshot(now);
     this.evaluateScheduler(); // Phase 4D: periodic decay (activity ages out of the window)
     this.tickTrial();         // Phase 4G: time-based trial completion when idle (no movement)
-    this.ctx.waitUntil(this.reportPresence()); // Phase 5C: keepalive — keep this block's presence fresh
+    // Phase 5C: keepalive — keep this block's presence fresh. Phase 5D: the periodic refresh is
+    // also how this block learns OTHER blocks' changes; push any resulting delta to clients live.
+    this.ctx.waitUntil(this.reportPresence().then(() => this.broadcastDistrictPresence()));
     await this.persist();
     if (this.sockets.size > 0 || Object.keys(this.state.players).length > 0) this.scheduleSweep();
   }
