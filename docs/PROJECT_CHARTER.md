@@ -5,6 +5,37 @@ Newest first.
 
 ---
 
+## ADR-013 — Neon Circuit Phase 5B: per-block identity (display-only) (2026-06-05)
+
+**Context.** Phase 5A made the city a district of three blocks (discovery + bounded routing), but
+all blocks looked identical. Phase 5B gives each block its own visual identity so travelling the
+district visibly changes the world — without touching geometry, collision, authority, or economy.
+
+**Decision.**
+1. **Per-block default style** — `defaultBlockStyle(cityId)` returns a per-block default drawn from
+   the SAME closed stewardship allowlist (downtown magenta / harbor cyan / skyline amber); no/unknown
+   cityId → the downtown default (every no-arg caller unchanged). A steward reset restores the
+   *block's* default (the reset path threads `cityId`). Reuses the Phase 4F `applyBlockStyle` render
+   path, so the accent updates on every (re)connect/travel with no renderer change.
+2. **Per-block landmark labels** — `publicLayout(cityId)` overlays per-block building labels onto the
+   SHARED, byte-identical geometry (so collision/spawn/portal authority is unchanged); the arcade
+   building keeps its label everywhere. `welcomePayload` sends `publicLayout(cityId)`. A small
+   `setLayout` on both renderers refreshes labels on travel; `city-scene.js` calls it on welcome.
+3. **Cold-DO ordering** — `CityRoom.fetch` binds `boundCityId` from the route BEFORE
+   `ensureInitialized()`, so a cold harbor/skyline DO seeds its OWN identity, not downtown's. The
+   dev-shim already partitions by cityId. No new DO, no migration, no cross-DO coordination.
+
+**Consequences.** Display-only: no geometry/collision/authority/economy change (a pure test asserts
+per-block geometry/portals/spawns are byte-identical while labels differ). Per-block styles are
+allowlist-constrained, so an identity can never carry anything off-manifest. Validation: 504 unit
+(+4 identity) + district browser smoke now asserts the style+labels change across downtown→harbor→
+skyline travel + all Phase 4 city/arcade regression + Worker dry-run + size (0.732 / 0.196 MB gz) +
+config + guardrails — all green. Local-only commit on `feat/neon-circuit-phase5b-per-block-identity`;
+not pushed/merged/deployed. Live cross-block presence deferred (needs a staging-validated cross-DO
+coordinator). Detail: `docs/NEON_CIRCUIT_PHASE5B_PER_BLOCK_IDENTITY.md`.
+
+---
+
 ## ADR-012 — Neon Circuit Phase 5A: Multi-Block District foundation (2026-06-04)
 
 **Context.** Phases 4A–4G proved a single server-authoritative city block (merged to `main` via PR #24;

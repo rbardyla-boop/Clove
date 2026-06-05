@@ -66,6 +66,10 @@ export function createThreeRenderer(canvas, layout) {
   const portalMeshes = []; // Phase 4F: street-light accent retints these
   for (const z of layout.portals) { const p = plane(z.w, z.h, COL.portal, 1.0); p.position.set(z.x + z.w / 2, 1.0, z.y + z.h / 2); scene.add(p); portalMeshes.push(p); }
 
+  // Phase 5B: layout swap on block travel. The 3D geometry is identical across blocks and
+  // carries no text labels, so this just keeps the stored ref current (uniform API).
+  function setLayout(l) { if (l && l.world) layout = l; }
+
   // Phase 4F: retint accents from the server-validated canonical block style (visual only).
   function applyBlockStyle(style) {
     if (!style) return;
@@ -125,5 +129,5 @@ export function createThreeRenderer(canvas, layout) {
     renderer.render(scene, camera);
   }
 
-  return { name: 'three', draw, resize, applyBlockStyle };
+  return { name: 'three', draw, resize, applyBlockStyle, setLayout };
 }

@@ -37,7 +37,7 @@ const sockets = new Map();         // ws -> { playerId, cityId, interiorOpen, ..
 
 const cityState = (cityId) => (cities[cityId] ||= createCityState());
 const eventLog = (cityId) => (eventLogs[cityId] ||= createEventLog());
-const stewardship = (cityId) => (stewardships[cityId] ||= defaultBlockStyle());
+const stewardship = (cityId) => (stewardships[cityId] ||= defaultBlockStyle(cityId)); // Phase 5B: per-block default identity
 const send = (ws, p) => { try { ws.send(JSON.stringify(p)); } catch { /* closing */ } };
 const broadcast = (cityId, p) => { for (const [ws, m] of sockets) if (m.cityId === cityId) send(ws, p); };
 const broadcastExcept = (except, cityId, p) => { for (const [ws, m] of sockets) if (ws !== except && m.cityId === cityId) send(ws, p); };
