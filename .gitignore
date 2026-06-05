@@ -16,6 +16,7 @@ atip/
 
 # Local AI assistant config — never public
 .claude/
+.env
 
 # Node artifacts (if electron-app deps ever get installed locally)
 node_modules/

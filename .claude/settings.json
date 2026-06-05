@@ -46,7 +46,8 @@
       "Bash(echo \"morphFrom exit: $?\")"
     ],
     "additionalDirectories": [
-      "/tmp"
+      "/tmp",
+      "/home/thebackhand/Downloads/grok/claude_foundry_base"
     ]
   }
 }
