@@ -44,10 +44,47 @@ test('adjacency is deterministic, symmetric, and references only known blocks', 
   assert.deepEqual(adjacentBlocks('harbor-02'), ['downtown-01', 'skyline-03']);
 });
 
-test('the line topology leaves downtown and skyline non-adjacent (route via harbor)', () => {
+test('downtown and skyline stay non-adjacent (opposite blocks need a route via harbor or foundry)', () => {
   assert.equal(areAdjacent('downtown-01', 'harbor-02'), true);
   assert.equal(areAdjacent('harbor-02', 'skyline-03'), true);
   assert.equal(areAdjacent('downtown-01', 'skyline-03'), false);
+});
+
+// ── Phase 6D: fourth block + non-linear (ring) topology ───────────────────────
+test('6D: foundry-04 is a known block in the catalog', () => {
+  assert.equal(isKnownBlock('foundry-04'), true);
+  assert.ok(CITY_IDS.includes('foundry-04'));
+});
+
+test('6D: the ring topology — foundry connects downtown & skyline; harbor stays the same', () => {
+  // foundry's neighbours
+  assert.deepEqual(adjacentBlocks('foundry-04').slice().sort(), ['downtown-01', 'skyline-03']);
+  // downtown and skyline each gained foundry; harbor is UNCHANGED (preserves Phase 5A routes)
+  assert.deepEqual(adjacentBlocks('downtown-01').slice().sort(), ['foundry-04', 'harbor-02']);
+  assert.deepEqual(adjacentBlocks('skyline-03').slice().sort(), ['foundry-04', 'harbor-02']);
+  assert.deepEqual(adjacentBlocks('harbor-02'), ['downtown-01', 'skyline-03']);
+  // adjacency is symmetric for every new edge
+  assert.equal(areAdjacent('foundry-04', 'downtown-01'), true);
+  assert.equal(areAdjacent('downtown-01', 'foundry-04'), true);
+  assert.equal(areAdjacent('foundry-04', 'skyline-03'), true);
+  assert.equal(areAdjacent('skyline-03', 'foundry-04'), true);
+});
+
+test('6D: the ring is non-linear — harbor↔foundry are OPPOSITE (non-adjacent); two paths downtown↔skyline', () => {
+  assert.equal(areAdjacent('harbor-02', 'foundry-04'), false);   // opposite corners of the ring
+  assert.equal(areAdjacent('downtown-01', 'skyline-03'), false); // opposite corners of the ring
+  // downtown reaches skyline two ways: via harbor AND via foundry (more than one path)
+  assert.ok(areAdjacent('downtown-01', 'harbor-02') && areAdjacent('harbor-02', 'skyline-03'));
+  assert.ok(areAdjacent('downtown-01', 'foundry-04') && areAdjacent('foundry-04', 'skyline-03'));
+});
+
+test('6D: routing respects the ring — adjacent foundry routes accepted; non-adjacent rejected', () => {
+  assert.equal(validateRouteRequest('downtown-01', 'foundry-04').ok, true);
+  assert.equal(validateRouteRequest('skyline-03', 'foundry-04').ok, true);
+  assert.equal(validateRouteRequest('foundry-04', 'downtown-01').ok, true);
+  // harbor↔foundry is not a direct edge — must be rejected
+  assert.deepEqual(validateRouteRequest('harbor-02', 'foundry-04'), { ok: false, reason: 'not_adjacent' });
+  assert.deepEqual(validateRouteRequest('foundry-04', 'harbor-02'), { ok: false, reason: 'not_adjacent' });
 });
 
 // ── public summaries ─────────────────────────────────────────────────────────

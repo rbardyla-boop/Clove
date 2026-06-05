@@ -135,6 +135,7 @@ export const CITY_BLOCK = Object.freeze({
 const BLOCK_LABELS = Object.freeze({
   'harbor-02': Object.freeze({ 'data-spire': 'HARBOR CONTROL', 'ramen': 'DOCKSIDE NOODLES', 'maglev': 'FERRY TERMINAL' }),
   'skyline-03': Object.freeze({ 'data-spire': 'SKY TOWER', 'ramen': 'CLOUD CAFE', 'maglev': 'SKY-TRAM HUB' }),
+  'foundry-04': Object.freeze({ 'data-spire': 'FORGE STACK', 'ramen': 'EMBER CANTEEN', 'maglev': 'FREIGHT LINE' }),
 });
 
 /**
@@ -155,15 +156,17 @@ export function publicLayout(cityId) {
 export const DEFAULT_CITY_ID = 'downtown-01';
 
 /**
- * Static, configured city block set. Phase 4A shipped exactly one; Phase 5A expands to
- * a small district of three. Each block is its OWN CityRoom DO (idFromName(city_id)),
- * so adding blocks adds no DO class and needs no migration. The district topology
- * (adjacency/routing) lives in the pure city-district.mjs layer on top of this catalog.
+ * Static, configured city block set. Phase 4A shipped exactly one; Phase 5A expanded to a
+ * small district of three; Phase 6D adds a fourth (Foundry) and a non-linear topology. Each
+ * block is its OWN CityRoom DO (idFromName(city_id)), so adding blocks adds no DO class and
+ * needs no migration. The district topology (adjacency/routing) lives in the pure
+ * city-district.mjs layer on top of this catalog.
  */
 export const CITY_ROOMS = Object.freeze([
   { city_id: 'downtown-01', display_name: 'Downtown Block', capacity: 24, theme: 'neon-noir' },
   { city_id: 'harbor-02',   display_name: 'Harbor Block',   capacity: 24, theme: 'tidal-cyan' },
   { city_id: 'skyline-03',  display_name: 'Skyline Block',  capacity: 24, theme: 'sunset-violet' },
+  { city_id: 'foundry-04',  display_name: 'Foundry Block',  capacity: 24, theme: 'forge-ember' },
 ]);
 export const CITY_IDS = Object.freeze(CITY_ROOMS.map((c) => c.city_id));
 
