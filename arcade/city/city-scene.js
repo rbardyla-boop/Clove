@@ -101,6 +101,8 @@ let cityEvent = null;                 // Phase 6A: current district-event window
 const announcedEventKeys = new Set(); // Phase 6A: dedupe keys for already-announced district events
 const ANNOUNCED_KEYS_MAX = 48;        // bound the dedupe set across many windows
 const EVENT_TICK_MS = 20000;          // re-evaluate the schedule ~every 20s (catch window flips / pre-roll)
+let serverEventSnapshot = null;       // Phase 6B: last server-authored public-safe district-event snapshot
+let serverEventConfig = null;         // Phase 6B: adopted config {enabled,windowMs,showNext} (null → 6A defaults)
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -180,7 +182,11 @@ const net = new CityNet({
     onStewardshipResult: (m) => { onStewardshipResult(m); },
     onTrialState: (m) => { cityTrial = m && m.trial; updateTrial(); },
     onTrialResult: (m) => { onTrialResult(m); },
-    onBlocks: (m) => { cityDistrict = m; districtLiveAt = Date.now(); renderDistrict(); },  // Phase 5A: full district manifest (initial snapshot)
+    onBlocks: (m) => {                                                         // Phase 5A: full district manifest (initial snapshot)
+      cityDistrict = m; districtLiveAt = Date.now();
+      if (m && m.event && typeof m.event === 'object') adoptServerEventSnapshot(m.event); // Phase 6B: server-authored event snapshot
+      renderDistrict();
+    },
     onDistrictPresence: (m) => {                                              // Phase 5D: push-on-change presence delta
       if (window.__neon_city) { window.__neon_city.lastDistrictPresence = m; window.__neon_city.districtPushCount++; }
       if (!cityDistrict) return;                                             // wait for the full manifest baseline
@@ -380,13 +386,34 @@ function recordActivity(item) {
   cityActivity = appendActivity(cityActivity, item, ACTIVITY_FEED_MAX);
   if (window.__neon_city) window.__neon_city.lastDistrictActivity = item;
 }
+// Phase 6B: adopt the server-authored district-event snapshot (from city_blocks). The server is
+// authoritative for the schedule CONFIG (enabled/window/show-next); the client runs the SAME pure
+// schedule with that config so current/next stay in sync. Sanitized; old behavior if absent.
+function adoptServerEventSnapshot(snap) {
+  serverEventSnapshot = snap;
+  serverEventConfig = {
+    enabled: snap.enabled !== false,
+    windowMs: Number.isFinite(snap.window_ms) ? snap.window_ms : undefined,
+    showNext: snap.show_next !== false,
+  };
+  pollDistrictEvents();
+}
 // Phase 6A: recompute the deterministic district-event window for `now`, surface any NEW
 // (deduped) public announcements into the activity feed, and refresh the district panel.
 // Display-only + entirely client-derived: nothing canonical reads this; the schedule is a pure
 // function of the clock + the static block manifest. Reconnect/reload recompute and dedupe.
 function pollDistrictEvents(now = Date.now()) {
-  cityEvent = districtEventWindow(now);
-  const { events, keys } = deriveDistrictAnnouncements(now, announcedEventKeys);
+  // Phase 6B: prefer the server-authored config when present; both sides run the SAME pure schedule
+  // so the client stays in sync with the server without a per-transition push. null → 6A defaults.
+  const cfg = serverEventConfig || undefined;
+  if (serverEventConfig && serverEventConfig.enabled === false) {
+    cityEvent = null;                       // operator disabled district events → hide the pulse
+    renderDistrict();
+    return cityEvent;
+  }
+  cityEvent = districtEventWindow(now, cfg);
+  if (serverEventConfig && serverEventConfig.showNext === false && cityEvent) cityEvent.next = null;
+  const { events, keys } = deriveDistrictAnnouncements(now, announcedEventKeys, cfg);
   for (let i = 0; i < events.length; i++) {
     announcedEventKeys.add(keys[i]);
     recordActivity(activityForDistrictEvent(events[i], now));
@@ -790,7 +817,9 @@ window.__neon_city = {
   // Phase 6A — scheduled district events (display only; deterministic, client-derived from the clock)
   districtEvent() { return cityEvent ? JSON.parse(JSON.stringify(cityEvent)) : null; },
   lastDistrictEventAnnounced: null,
-  pollDistrictEvents(nowMs) { return JSON.parse(JSON.stringify(pollDistrictEvents(Number.isFinite(nowMs) ? nowMs : Date.now()))); },
+  pollDistrictEvents(nowMs) { const w = pollDistrictEvents(Number.isFinite(nowMs) ? nowMs : Date.now()); return w ? JSON.parse(JSON.stringify(w)) : null; },
+  // Phase 6B — server-authored event snapshot (display only; server owns the schedule config)
+  serverDistrictEvent() { return serverEventSnapshot ? JSON.parse(JSON.stringify(serverEventSnapshot)) : null; },
   get cityId() { return net.cityId; },
   requestBlocks() { net.requestBlocks(); },
   routeTo(targetCityId) { net.requestRoute(targetCityId); },

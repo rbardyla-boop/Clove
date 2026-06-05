@@ -31,12 +31,18 @@ import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshi
 import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from "../../../arcade/city/city-battle-instance.mjs";
 import { districtManifest, validateRouteRequest } from "../../../arcade/city/city-district.mjs";
 import { deriveDistrictPresenceDelta } from "../../../arcade/city/city-district-presence.mjs";
+import { districtEventSnapshot, resolveDistrictEventConfig } from "../../../arcade/city/city-district-events.mjs";
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
   // Phase 5C: city-block presence coordinator (DO-to-DO; this block reports its occupancy
   // and reads back the public-safe district presence map). Optional/fail-open.
   CITY_REGISTRY?: DurableObjectNamespace;
+  // Phase 6B: optional, operator-tunable district-event schedule config (display-only; clamped to
+  // safe bounds; absent → Phase 6A defaults). Never a secret.
+  DISTRICT_EVENT_ENABLED?: string;
+  DISTRICT_EVENT_WINDOW_MS?: string;
+  DISTRICT_EVENT_SHOW_NEXT?: string;
 }
 
 interface CityState {
@@ -160,6 +166,17 @@ export class CityRoom implements DurableObject {
     if (r.delta) this.broadcast({ t: "city_district_presence", ...r.delta });
   }
 
+  /**
+   * Phase 6B: the public-safe district-event snapshot the server authors and ships inside the
+   * existing city_blocks payload. Deterministic display schedule (no economy/rewards); operator
+   * config comes from env, clamped to safe bounds, defaulting to Phase 6A. Old clients ignore the
+   * extra `event` field; the server adds no new DO/migration/route/message and reads no player data.
+   */
+  private districtEventSnapshot(now = Date.now()): any {
+    const config = resolveDistrictEventConfig(this.env);
+    return districtEventSnapshot(now, config);
+  }
+
   // ==================== WebSocket transport ====================
 
   async fetch(request: Request): Promise<Response> {
@@ -261,7 +278,7 @@ export class CityRoom implements DurableObject {
     // Phase 5A/5C: a (re)connect always sees the public-safe district manifest for discovery,
     // enriched with live per-block presence (refresh first so this join counts).
     await this.reportPresence();
-    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId, this.presenceCache) });
+    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId, this.presenceCache), event: this.districtEventSnapshot(now) });
     // Phase 5D: the joiner has the full manifest; push the +1 as a delta so OTHER clients
     // already on this block update live (and re-baseline lastDistrictPresence) without polling.
     this.broadcastDistrictPresence(now);
@@ -317,7 +334,7 @@ export class CityRoom implements DurableObject {
     if (now - meta.lastBlocksReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
     meta.lastBlocksReqAt = now;
     await this.reportPresence();
-    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId, this.presenceCache) });
+    this.send(ws, { t: "city_blocks", ...districtManifest(this.boundCityId, this.presenceCache), event: this.districtEventSnapshot(now) });
   }
 
   /**

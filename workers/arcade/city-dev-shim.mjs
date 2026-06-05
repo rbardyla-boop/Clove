@@ -22,6 +22,12 @@ import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshi
 import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from '../../arcade/city/city-battle-instance.mjs';
 import { districtManifest, validateRouteRequest } from '../../arcade/city/city-district.mjs';
 import { deriveDistrictPresenceDelta } from '../../arcade/city/city-district-presence.mjs';
+import { districtEventSnapshot, resolveDistrictEventConfig } from '../../arcade/city/city-district-events.mjs';
+
+// Phase 6B: the SAME server-authored, public-safe district-event snapshot the DO ships in
+// city_blocks. Operator config comes from env (clamped); absent → Phase 6A defaults. DO parity.
+const districtEventConfig = resolveDistrictEventConfig(process.env);
+const districtEventSnapshotShim = (now = Date.now()) => districtEventSnapshot(now, districtEventConfig);
 
 const PORT = Number(process.env.CITY_PORT || process.env.PORT || 8788);
 const STALE_SWEEP_MS = 30_000;
@@ -234,7 +240,7 @@ function join(ws, meta, data) {
   // Phase 4G: a (re)connect sees an in-progress Block Trial, if any.
   if (trials[meta.cityId]) send(ws, { t: 'city_block_trial_state', ...trialStatePayload(trials[meta.cityId]) });
   // Phase 5A: a (re)connect always sees the public-safe district manifest for discovery.
-  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()) });
+  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()), event: districtEventSnapshotShim() });
   // Phase 5D: push the +1 as a delta so other connected clients update live (no polling).
   broadcastDistrictPresence();
 }
@@ -247,7 +253,7 @@ function blocksRequest(ws, meta) {
   const now = Date.now();
   if (now - (meta.lastBlocksReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
   meta.lastBlocksReqAt = now;
-  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()) });
+  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()), event: districtEventSnapshotShim() });
 }
 function routeRequest(ws, meta, data) {
   if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }
