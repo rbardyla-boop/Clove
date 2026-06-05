@@ -50,6 +50,7 @@ const pressureEl = el('cityPressure');
 const hostRankEl = el('cityHostRank');
 const stewardshipEl = el('cityStewardship');
 const trialEl = el('cityBlockTrial');
+const districtEl = el('cityDistrict');
 const rendererTag = el('rendererTag');
 const debugPanel = el('debugPanel');
 el('playerName').textContent = playerId;
@@ -82,6 +83,8 @@ let stewardshipPreview = null;       // Phase 4F: local, non-persistent preview 
 let stewardEligible = false;         // Phase 4F: current Host Rank confers stewardship eligibility?
 const stewSel = { target: 'arcade_front', palette: 'magenta', sign_variant: 'classic', intensity: 'medium' }; // editor selection
 let cityTrial = null;                 // Phase 4G: last Block Trial state from the server (display only)
+let cityDistrict = null;              // Phase 5A: last district manifest (display only; server-owned)
+let routeStatus = '';                 // Phase 5A: transient route feedback line
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -154,6 +157,8 @@ const net = new CityNet({
     onStewardshipResult: (m) => { onStewardshipResult(m); },
     onTrialState: (m) => { cityTrial = m && m.trial; updateTrial(); },
     onTrialResult: (m) => { onTrialResult(m); },
+    onBlocks: (m) => { cityDistrict = m; renderDistrict(); },                 // Phase 5A: district manifest
+    onRouteResult: (m) => { onRouteResult(m); },                              // Phase 5A: route confirmation
     onError: (m) => {
       window.__neon_city.lastError = m;
       if (String(m.code).startsWith('portal_')) { portalState = 'rejected'; setTimeout(() => { if (portalState === 'rejected') portalState = 'idle'; }, 900); }
@@ -315,6 +320,69 @@ function renderHostRank() {
     row.className = i === 0 ? 'hr-tier' : 'hr-line';
     row.textContent = lines[i];
     hostRankEl.appendChild(row);
+  }
+}
+
+// ── city-OS District panel (Phase 5A; multi-block discovery + bounded routing) ──
+// Shows the current block + adjacent blocks with a Travel control. The server owns the
+// route truth; on a confirmed route_result the client reconnects to the target block,
+// whose authority admits the player. Discovery/travel only — no ownership/rent/claim.
+// textContent + button elements only (no innerHTML, no economy copy).
+function currentBlock() {
+  if (!cityDistrict) return null;
+  return (cityDistrict.blocks || []).find((b) => b.city_id === cityDistrict.current_city_id) || null;
+}
+function renderDistrict() {
+  if (!districtEl) return;
+  districtEl.textContent = '';
+  if (!cityDistrict) {
+    const wait = document.createElement('div'); wait.className = 'dist-line'; wait.textContent = 'DISTRICT · locating…';
+    districtEl.appendChild(wait);
+    return;
+  }
+  const cur = currentBlock();
+  // keep the topbar honest after travel (the const cityId is construction-only)
+  const sub = document.querySelector('.brand .sub');
+  if (sub && cur) sub.textContent = `${cur.display_name.toLowerCase()} · prototype`;
+
+  const head = document.createElement('div'); head.className = 'dist-head';
+  head.textContent = `DISTRICT · ${cur ? cur.display_name : cityDistrict.current_city_id}`;
+  districtEl.appendChild(head);
+  const line = document.createElement('div'); line.className = 'dist-line';
+  line.textContent = cur ? `theme ${cur.theme} · here now` : 'current block';
+  districtEl.appendChild(line);
+
+  const nearby = (cur ? cur.adjacent : [])
+    .map((id) => (cityDistrict.blocks || []).find((b) => b.city_id === id))
+    .filter(Boolean);
+  if (!nearby.length) {
+    const none = document.createElement('div'); none.className = 'dist-line dist-none'; none.textContent = 'no adjacent blocks';
+    districtEl.appendChild(none);
+  }
+  for (const b of nearby) {
+    const row = document.createElement('div'); row.className = 'dist-row';
+    const name = document.createElement('span'); name.className = 'dist-name';
+    name.textContent = `${b.display_name} · ${b.theme}`;
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dist-travel'; btn.textContent = 'Travel';
+    btn.addEventListener('click', () => { routeStatus = `routing to ${b.display_name}…`; renderDistrict(); net.requestRoute(b.city_id); });
+    row.appendChild(name); row.appendChild(btn);
+    districtEl.appendChild(row);
+  }
+  if (routeStatus) {
+    const st = document.createElement('div'); st.className = 'dist-status'; st.textContent = routeStatus;
+    districtEl.appendChild(st);
+  }
+}
+function onRouteResult(m) {
+  window.__neon_city.lastRouteResult = m;
+  if (m && m.ok && typeof m.target_city_id === 'string') {
+    routeStatus = 'traveling…';
+    renderDistrict();
+    net.switchCity(m.target_city_id); // reconnect to the target block; its welcome re-pushes city_blocks
+  } else {
+    routeStatus = `route blocked: ${String((m && m.reason) || 'denied').replace(/_/g, ' ')}`;
+    renderDistrict();
+    setTimeout(() => { if (routeStatus.startsWith('route blocked')) { routeStatus = ''; renderDistrict(); } }, 1600);
   }
 }
 
@@ -593,6 +661,12 @@ window.__neon_city = {
   requestTrial() { net.requestTrial(); },
   joinTrial() { net.joinTrial(); },
   closeTrial() { net.closeTrial(); },
+  // Phase 5A — multi-block district (display only; the server owns route truth)
+  district() { return cityDistrict ? JSON.parse(JSON.stringify(cityDistrict)) : null; },
+  lastRouteResult: null,
+  get cityId() { return net.cityId; },
+  requestBlocks() { net.requestBlocks(); },
+  routeTo(targetCityId) { net.requestRoute(targetCityId); },
   debug() {
     return {
       renderer: renderer.name, ackSeq, pending: inputBuffer.pending.length,
@@ -608,4 +682,5 @@ window.__neon_city = {
 applyEffectiveStyle();   // apply the (default) block style to the renderer up front
 updateStewardship();     // build the stewardship panel so it is visible before server state
 updateTrial();           // build the Block Trial panel so it is visible before server state
+renderDistrict();        // show the district panel placeholder before server state arrives
 net.connect();

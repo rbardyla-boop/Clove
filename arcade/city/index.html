@@ -50,6 +50,11 @@
   <!-- city OS host rank panel (Phase 4E; non-cash reputation, display-only) -->
   <section class="city-host-rank" id="cityHostRank" aria-label="City host rank" role="status" aria-live="polite"></section>
 
+  <!-- city OS district panel (Phase 5A; multi-block discovery + bounded routing).
+       Built by city-scene.js. Travel is a server-validated route to an ADJACENT block;
+       no ownership / no rent / no claim — discovery + travel only. -->
+  <section class="city-district" id="cityDistrict" aria-label="District map" role="status" aria-live="polite"></section>
+
   <!-- city OS block stewardship editor (Phase 4F; constrained, reversible, non-cash visual edits).
        Controls are built by city-scene.js (fixed options only — no free text / uploads / URLs). -->
   <section class="city-stewardship" id="cityStewardship" aria-label="Block stewardship"></section>

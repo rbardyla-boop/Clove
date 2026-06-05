@@ -44,9 +44,12 @@ export const PLAYER_STALE_MS = 45_000;
  *  city_host_rank_state/request. v5 (4F): additive constrained Block-Stewardship events
  *  + city_stewardship_state/result + city_stewardship_request. v6 (4G): additive instanced
  *  Block-Trial events + city_block_trial_state/result + city_block_trial_request/join/leave/
- *  close messages. All additions are backward-compatible — no-dt inputs and the 4A–4F
- *  message set remain valid; a client that ignores trial state still works. */
-export const SCHEMA_VERSION = 6;
+ *  close messages. v7 (5A): additive multi-block district discovery + bounded routing —
+ *  city_blocks (district manifest, pushed on join) + city_blocks_request + city_route_request/
+ *  city_route_result. All additions are backward-compatible — no-dt inputs and the 4A–4G
+ *  message set remain valid; a client that ignores district/trial state still works, and a
+ *  no-id client still lands in the default block. */
+export const SCHEMA_VERSION = 7;
 /** Max pending client inputs before the client resyncs (bounds replay cost; Phase 4B). */
 export const MAX_INPUT_BACKLOG = 120;
 
@@ -132,9 +135,16 @@ export function publicLayout() {
 /** The default city block a no-id client lands in. */
 export const DEFAULT_CITY_ID = 'downtown-01';
 
-/** Static, configured city block set (Phase 4A ships exactly one). */
+/**
+ * Static, configured city block set. Phase 4A shipped exactly one; Phase 5A expands to
+ * a small district of three. Each block is its OWN CityRoom DO (idFromName(city_id)),
+ * so adding blocks adds no DO class and needs no migration. The district topology
+ * (adjacency/routing) lives in the pure city-district.mjs layer on top of this catalog.
+ */
 export const CITY_ROOMS = Object.freeze([
   { city_id: 'downtown-01', display_name: 'Downtown Block', capacity: 24, theme: 'neon-noir' },
+  { city_id: 'harbor-02',   display_name: 'Harbor Block',   capacity: 24, theme: 'tidal-cyan' },
+  { city_id: 'skyline-03',  display_name: 'Skyline Block',  capacity: 24, theme: 'sunset-violet' },
 ]);
 export const CITY_IDS = Object.freeze(CITY_ROOMS.map((c) => c.city_id));
 

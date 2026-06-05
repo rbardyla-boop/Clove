@@ -20,6 +20,7 @@ import { evaluatePressure, pressureChanged, suggestionReasons, schedulerStatePay
 import { evaluateHostRank, hostRankChanged, hostRankTierChanged, isBaselineHostRank, hostRankStatePayload } from '../../arcade/city/city-host-rank.mjs';
 import { evaluateStewardship, defaultBlockStyle, normalizeBlockStyle, stewardshipStatePayload, isStewardshipEligible } from '../../arcade/city/city-stewardship.mjs';
 import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, isTrialActive, trialStatePayload } from '../../arcade/city/city-battle-instance.mjs';
+import { districtManifest, validateRouteRequest } from '../../arcade/city/city-district.mjs';
 
 const PORT = Number(process.env.CITY_PORT || process.env.PORT || 8788);
 const STALE_SWEEP_MS = 30_000;
@@ -214,6 +215,29 @@ function join(ws, meta, data) {
   send(ws, { t: 'city_stewardship_state', ...stewardshipStatePayload(stewardship(meta.cityId)) });
   // Phase 4G: a (re)connect sees an in-progress Block Trial, if any.
   if (trials[meta.cityId]) send(ws, { t: 'city_block_trial_state', ...trialStatePayload(trials[meta.cityId]) });
+  // Phase 5A: a (re)connect always sees the public-safe district manifest for discovery.
+  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId) });
+}
+
+// Phase 5A: multi-block district discovery + bounded routing (DO parity). Discovery is
+// public-safe static config; a route is a server-VALIDATED confirmation the client then
+// reconnects on (the target block's authority admits it). Never mutates any block state.
+function blocksRequest(ws, meta) {
+  if (!meta.playerId) return;
+  const now = Date.now();
+  if (now - (meta.lastBlocksReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
+  meta.lastBlocksReqAt = now;
+  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId) });
+}
+function routeRequest(ws, meta, data) {
+  if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }
+  const now = Date.now();
+  if (now - (meta.lastRouteReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
+  meta.lastRouteReqAt = now;
+  // The SOURCE block is server-owned (meta.cityId, fixed by the connection URL); the target is untrusted.
+  const res = validateRouteRequest(meta.cityId, data.target_city_id);
+  if (!res.ok) { send(ws, { t: 'city_route_result', ok: false, reason: res.reason, public_safe: true }); return; }
+  send(ws, { t: 'city_route_result', ok: true, from_city_id: meta.cityId, target_city_id: res.target_city_id, ws_hint: res.ws_hint, public_safe: true });
 }
 
 function input(ws, meta, data) {
@@ -280,6 +304,8 @@ function dispatch(ws, meta, data) {
     case 'city_block_trial_join_request': trialJoin(ws, meta); break;
     case 'city_block_trial_leave': trialLeave(ws, meta); break;
     case 'city_block_trial_close_request': trialClose(ws, meta); break;
+    case 'city_blocks_request': blocksRequest(ws, meta); break;
+    case 'city_route_request': routeRequest(ws, meta, data); break;
     case 'city_snapshot_request': {
       const now = Date.now();
       if (now - (meta.lastSnapReqAt || 0) < SNAP_REQ_MIN_MS) break; // anti-spam

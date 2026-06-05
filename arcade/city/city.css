@@ -151,6 +151,25 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-host-rank:empty { display: none; }
 @media (max-width: 560px) { .city-host-rank { top: 170px; width: 150px; } }
 
+/* Phase 5A — Multi-Block District panel (right column, under the Host Rank panel) */
+.city-district { position: absolute; top: 336px; right: 14px; width: 200px; max-width: 46vw; z-index: 4;
+  padding: 8px 10px; border: 1px solid var(--edge); border-radius: 10px; background: var(--panel);
+  backdrop-filter: blur(8px); box-shadow: 0 0 16px rgba(34, 224, 255, .10); }
+.city-district .dist-head { font-family: "Bungee", var(--mono); font-size: 12px; letter-spacing: 1.2px; color: var(--cy); text-shadow: 0 0 10px rgba(34, 224, 255, .45); }
+.city-district .dist-line { font-size: 11px; line-height: 1.5; color: var(--ink); letter-spacing: .3px; }
+.city-district .dist-none { opacity: .6; }
+.city-district .dist-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 5px; }
+.city-district .dist-name { font-size: 11px; color: var(--ink); letter-spacing: .2px; }
+.city-district .dist-travel { flex: none; font-family: var(--mono); font-size: 10px; letter-spacing: .6px; text-transform: uppercase;
+  color: #04121a; background: var(--cy); border: 0; border-radius: 6px; padding: 4px 9px; cursor: pointer;
+  box-shadow: 0 0 10px rgba(34, 224, 255, .35); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; }
+.city-district .dist-travel:hover { filter: brightness(1.12); box-shadow: 0 0 14px rgba(34, 224, 255, .55); }
+.city-district .dist-travel:active { transform: translateY(1px) scale(.97); }
+.city-district .dist-travel:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.city-district .dist-status { margin-top: 6px; font-size: 10.5px; color: #ffd7ec; letter-spacing: .3px; }
+.city-district:empty { display: none; }
+@media (max-width: 560px) { .city-district { top: 272px; width: 158px; } }
+
 /* Phase 4F — Block Stewardship constrained editor (top-left tool palette; amber = "edit mode") */
 .city-stewardship { position: absolute; left: 14px; top: 64px; width: 236px; max-width: 62vw; z-index: 4;
   max-height: calc(100vh - 220px); overflow-y: auto;
