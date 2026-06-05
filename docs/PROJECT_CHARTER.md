@@ -5,6 +5,32 @@ Newest first.
 
 ---
 
+## ADR-019 — Neon Circuit Phase 6C: rich district event cards + live countdown (2026-06-05)
+
+**Context.** With the schedule server-authored (6B), Phase 6C polishes presentation: a richer,
+mobile-safe event card with active/pre-roll states and a live countdown — client + CSS only, no new
+server authority.
+
+**Decision.**
+1. **Pure `formatCountdown(ms)`** (`m:ss`, clamped, garbage-safe) shared by client + tests.
+2. **Card render** gains a state class (`is-active`/`is-preroll`), an "ends in m:ss" meta row, and a
+   next-event countdown. A separate **1 s** `updateEventCountdown()` ticker updates only the countdown
+   text nodes in place (no panel rebuild — avoids per-second DOM churn); when the window's time hits 0
+   it calls `pollDistrictEvents()` to flip the card + fire announcements.
+3. **CSS** adds green/amber left-border accents, amber pre-roll chip, and `tabular-nums` so the timer
+   doesn't jitter. The chip pulse stays gated behind `prefers-reduced-motion: no-preference`.
+
+**Consequences.** No server message/DO/migration/route change (dry-run unchanged at 194.47/42.71 gz —
+the events module the Worker imports gained only `formatCountdown`). `textContent` only; no assets,
+third-party UI, telemetry, or `innerHTML`. The fast countdown carries no `aria-live` (avoids
+screen-reader spam); the activity feed keeps its polite live region. Verified at a 390×844 phone
+viewport; no overlap with arcade controls / route buttons / Block Trial / Stewardship. Validation: 564
+unit (+2) + 28-check events smoke (card state + live ticker) + district/activity/presence regression +
+size (≈0.782/0.212 MB gz) + config + guardrails — all green. Detail:
+`docs/NEON_CIRCUIT_PHASE6C_EVENT_PRESENTATION.md`.
+
+---
+
 ## ADR-018 — Neon Circuit Phase 6B: server-authored / operator-tunable district events (2026-06-05)
 
 **Context.** Phase 6A's district event schedule was client-derived display. Phase 6B makes it

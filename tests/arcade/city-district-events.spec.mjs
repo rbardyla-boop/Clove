@@ -68,8 +68,19 @@ try {
   check('district-event window present (current + next)', !!(w0 && w0.current && w0.next));
   const banner0 = await bannerText(c.page);
   check('banner shows the current event label', !!w0 && banner0.includes(w0.current.label));
-  check('banner shows a "now" chip', /now/i.test(banner0));
+  check('banner shows a state chip (now/soon)', /(now|soon)/i.test(banner0));
   check('banner shows an "Up next" line with the next label', !!w0 && banner0.includes('Up next') && banner0.includes(w0.next.label));
+
+  // 1c. Phase 6C: rich card — state class + live countdown
+  const cardClass = await c.page.evaluate(() => { const e = document.querySelector('.city-district .dist-event'); return e ? e.className : ''; });
+  check('event card has an active/pre-roll state class', /\bis-(active|preroll)\b/.test(cardClass));
+  check('card shows an "ends in" countdown label', /ends in/i.test(banner0));
+  const cd1 = await c.page.evaluate(() => { const e = document.querySelector('.dist-event-countdown'); return e ? e.textContent : ''; });
+  check('countdown renders in m:ss format', /^\d+:\d{2}$/.test(cd1));
+  await c.page.waitForTimeout(1300);                         // let the real 1s ticker advance
+  const cd2 = await c.page.evaluate(() => { const e = document.querySelector('.dist-event-countdown'); return e ? e.textContent : ''; });
+  check('countdown advances over time (live ticker)', /^\d+:\d{2}$/.test(cd2) && cd2 !== cd1);
+  check('card shows a next-event countdown ("in m:ss")', /Up next/.test(banner0) && /in \d+:\d{2}/.test(banner0));
 
   // 1b. Phase 6B: the event is SERVER-AUTHORED (snapshot arrived in city_blocks), not just client-derived
   const serverSnap = await c.page.evaluate(() => window.__neon_city.serverDistrictEvent());

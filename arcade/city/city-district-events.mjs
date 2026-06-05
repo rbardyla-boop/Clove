@@ -248,6 +248,17 @@ export function districtEventWindow(now = Date.now(), config = DEFAULT_DISTRICT_
   };
 }
 
+/**
+ * PURE (Phase 6C): format a millisecond duration as a compact `m:ss` countdown, clamped at 0.
+ * Used by the live event card; deterministic and display-only.
+ */
+export function formatCountdown(ms) {
+  const total = Math.max(0, Math.floor((Number.isFinite(ms) ? ms : 0) / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 /** A unique announcement key for an (event, status) pair — the dedupe identity. */
 function announceKey(event) {
   return `${event.event_id}#${event.status}`;

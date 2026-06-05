@@ -17,6 +17,7 @@ import {
   buildDistrictEvent, currentDistrictEvent, nextDistrictEvent, districtEventWindow,
   deriveDistrictAnnouncements,
   districtEventSnapshot, resolveDistrictEventConfig, DEFAULT_DISTRICT_EVENT_CONFIG, DISTRICT_EVENT_BOUNDS,
+  formatCountdown,
 } from '../../arcade/city/city-district-events.mjs';
 import { activityForDistrictEvent, appendActivity } from '../../arcade/city/city-district-activity.mjs';
 import { CITY_IDS } from '../../arcade/city/city-block.mjs';
@@ -262,6 +263,25 @@ test('6B: a custom window size actually changes the window math (config threads 
   // bounds differ because the bucket size differs
   assert.notEqual(wDefault.ends_at - wDefault.starts_at, wCustom.ends_at - wCustom.starts_at);
   assert.equal(wCustom.ends_at - wCustom.starts_at, WINDOW_MS * 2);
+});
+
+// ===================== Phase 6C: countdown formatting =====================
+
+test('6C: formatCountdown renders m:ss, pads seconds, clamps at 0, ignores garbage', () => {
+  assert.equal(formatCountdown(0), '0:00');
+  assert.equal(formatCountdown(5000), '0:05');
+  assert.equal(formatCountdown(59999), '0:59');
+  assert.equal(formatCountdown(65000), '1:05');
+  assert.equal(formatCountdown(600000), '10:00');
+  assert.equal(formatCountdown(-5000), '0:00');     // clamp negative
+  assert.equal(formatCountdown(NaN), '0:00');       // garbage → 0
+  assert.equal(formatCountdown(undefined), '0:00');
+});
+
+test('6C: countdown matches the window remaining time (display of the pure schedule)', () => {
+  const w = districtEventWindow(NOW);
+  // remaining in the current window, formatted, equals formatting the window's ms_remaining
+  assert.equal(formatCountdown(w.ends_at - NOW), formatCountdown(w.ms_remaining));
 });
 
 test('6B: resolveDistrictEventConfig and districtEventSnapshot never mutate their inputs', () => {
