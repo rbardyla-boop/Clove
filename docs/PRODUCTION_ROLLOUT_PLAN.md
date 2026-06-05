@@ -1,8 +1,32 @@
 # Neon Circuit — Production Rollout Plan
 
-**Status:** pre-flight complete; **NOT deploy-ready** — blocked on the production routing / client→Worker
-wiring (§7). The Worker artifact and config are green and low-risk; the gap is infrastructure wiring, not
-code. **No production deploy has occurred.**
+**Status:** pre-flight complete; routing **architecture decided** (same-origin); **NOT deploy-ready** —
+two dashboard facts remain (Pages deploy pipeline + token Pages-scope, §7c/§7d). The Worker artifact and
+config are green and low-risk; the gap is infrastructure wiring, not code. **No production deploy has occurred.**
+
+## 0. Routing resolution (decided)
+
+**Production domain: `clovelearn.io`** (observed: `sitemap.xml` + `robots.txt`; the site is a Cloudflare
+**Pages** project on this **custom domain**, i.e. a Cloudflare zone). Current probes (observed):
+`https://clovelearn.io/arcade/health` → **404** and `https://neon-arcade-mesh.rbardyla.workers.dev/arcade/health`
+→ **404** — i.e. nothing routes `/arcade/*` to the Worker today, and the production Worker is not deployed.
+
+**Decision — PREFERRED same-origin (feasible because clovelearn.io is a Cloudflare zone):** add a Workers
+**route** so `clovelearn.io/arcade/*` → the `neon-arcade-mesh` Worker, while Pages serves everything else.
+Workers routes take precedence over Pages on the same zone, so `/arcade/*` (incl. `/arcade/city/ws`) hits
+the Worker and the rest stays Pages. The client's same-origin default (`/arcade/city/ws`) then works
+**with no client change**. (Fallback `window.__NEON_ARCADE_CONFIG__.cityWsUrl` is NOT needed.)
+
+**Concrete change (applied at the DEPLOY-WORKER gate, not now):** add to `workers/arcade/wrangler.toml`:
+```toml
+[env.production]
+# … existing name/vars/durable_objects/migrations …
+routes = [
+  { pattern = "clovelearn.io/arcade/*", zone_name = "clovelearn.io" }
+]
+```
+Then `wrangler deploy --env production` registers the route. (Alternatively add the Workers Route in the
+Cloudflare dashboard.) The production smoke `WS_URL` becomes `wss://clovelearn.io/arcade/city/ws`.
 
 ## 1. Production candidate (pinned)
 
@@ -61,36 +85,32 @@ F. Sign-off → production live
 200 · city page connects to `/arcade/city/ws` · presence push (same-block immediate, cross-block ≤30s real
 alarm) · 5E District Activity feed renders, no private data · zero console/page errors.
 
-## 7. ⛔ BLOCKING open items (resolve before `DEPLOY PRODUCTION WORKER`)
+## 7. Open items
 
-### 7a. Client → Worker WebSocket wiring (HARD BLOCKER — evidence-backed)
-The Pages-served client tries **same-origin** `/arcade/city/ws` (`city-net.js` →
-`${proto}//${location.host}/arcade/city/ws`), and `window.__NEON_ARCADE_CONFIG__.cityWsUrl` is **not set**
-(only an example file). **No committed config routes `/arcade/*` from the Pages origin to the Worker** — no
-`_routes.json`, no `functions/`, no `/arcade/*` rule in `_redirects`/`_headers`, and the Worker has **no
-route/custom-domain** in `wrangler.toml` (→ `*.workers.dev` only unless a dashboard route exists). So in
-production the city WebSocket would have nothing to connect to. **One of these must be chosen + applied:**
-- **(Preferred) Same-origin routing:** a Cloudflare Workers **route** so the production domain that serves
-  Pages sends `/arcade/*` → `neon-arcade-mesh`. Keeps the client's same-origin default working unchanged.
-- **(Alternative) Explicit client config:** set `window.__NEON_ARCADE_CONFIG__.cityWsUrl =
-  "wss://neon-arcade-mesh.<subdomain>.workers.dev/arcade/city/ws"` in the production client (public
-  transport URL only — never a secret). Cross-origin to the Worker; the deployed DO already accepts the
-  handshake without a subprotocol (the Phase 4 fix).
+### 7a. Client → Worker WebSocket wiring — ✅ RESOLVED (see §0)
+Same-origin route `clovelearn.io/arcade/*` → `neon-arcade-mesh` (Workers route, applied at the
+deploy-worker gate). Client unchanged; smoke `WS_URL = wss://clovelearn.io/arcade/city/ws`. The deployed DO
+already accepts the handshake without a subprotocol (the Phase 4 fix), so the same-origin upgrade succeeds.
 
-### 7b. Production Worker reachability (NEW gate)
-**Confirm whether the production Worker is reachable at `*.workers.dev`, a custom domain, or both.** The
-smoke's `WS_URL` (and 7a's choice) depend on this. No route config is committed → default is workers.dev
-unless a dashboard route/custom-domain is configured out-of-band.
+### 7b. Production Worker reachability — ✅ RESOLVED
+`clovelearn.io/arcade/*` (the same-origin route, what the client uses) **and** `neon-arcade-mesh.rbardyla.
+workers.dev` (the account subdomain; useful for an isolated Worker-only smoke before routing). The client
+path is the custom-domain route.
 
-### 7c. Pages deploy mechanism
-**Confirm the Pages project name + pipeline** (git-integrated auto-deploy from main vs `wrangler pages
-deploy`). No `_routes.json`/`functions` committed; the static site appears git-integrated, but unconfirmed.
+### 7c. Pages deploy mechanism — ⛔ OPEN (dashboard)
+No `_routes.json`/`functions`/CI workflow committed; the site uses Pages `_redirects` → most likely a
+**git-integrated** Pages project (auto-deploy on push to `main`). **Confirm in the dashboard:** the Pages
+project name, whether it auto-deploys from `main`, and whether the **Workers route over Pages** precedence
+is in effect for `clovelearn.io/arcade/*` once the route is added. If not git-integrated, the client deploy
+step is `wrangler pages deploy`.
 
-### 7d. Deploy credential scope
-The `.env` User API Token deploys **Workers** (proven on staging). **Confirm it also has Pages deploy
-permission** (separate), or use the appropriate path for the Pages pipeline.
+### 7d. Deploy credential scope — ⛔ OPEN (dashboard)
+The `.env` User API Token deploys **Workers** (proven on staging; `wrangler whoami` OK). `wrangler pages
+project list` returned **empty** → the token likely **lacks Pages scope**. **Confirm:** either the token
+has Pages edit permission, or the Pages deploy uses the git integration (no token needed). Worker deploy +
+the Workers route do not need Pages scope.
 
-### 7e. First-time DO provisioning acceptance
+### 7e. First-time DO provisioning acceptance — confirm
 First deploy is a one-way provisioning of 4 DO classes + v1→v4. Low risk (empty state), but confirm
 acceptance before cutover.
 
@@ -105,15 +125,19 @@ rollback. Once a second production version exists, `wrangler rollback` becomes a
 
 ## 9. Recommended gate order
 ```text
-1. AUTHORIZED: RUN PRODUCTION PRE-FLIGHT        ✅ DONE (this document; candidate pinned; validation green)
-2. RESOLVE §7 (routing model, Pages pipeline, client WS wiring, credential scope, DO acceptance)  ← BLOCKER
-3. AUTHORIZED: DEPLOY PRODUCTION WORKER         → wrangler deploy --env production
-4. AUTHORIZED: PRODUCTION WORKER SMOKE
-5. AUTHORIZED: DEPLOY/CONFIRM PRODUCTION CLIENT (Pages) + routing
-6. AUTHORIZED: FULL-ORIGIN PRODUCTION SMOKE + SIGN-OFF
+1. AUTHORIZED: RUN PRODUCTION PRE-FLIGHT        ✅ DONE (candidate pinned; validation green)
+2. AUTHORIZED: RESOLVE PRODUCTION ROUTING PLAN  ✅ DONE (architecture decided: same-origin clovelearn.io/arcade/*)
+3. Confirm §7c/§7d in the Cloudflare dashboard  ← remaining (Pages pipeline + token Pages-scope) — NOT code
+4. AUTHORIZED: DEPLOY PRODUCTION WORKER         → add [env.production].routes + wrangler deploy --env production
+5. AUTHORIZED: PRODUCTION WORKER SMOKE          → workers.dev health/clock-reject before routing flips
+6. AUTHORIZED: DEPLOY/CONFIRM PRODUCTION CLIENT (Pages) + confirm the /arcade/* route is live
+7. AUTHORIZED: FULL-ORIGIN PRODUCTION SMOKE (clovelearn.io) + SIGN-OFF
 ```
 
 ## 10. Bottom line
-Worker side: **green, low-risk, ready.** Blocker: **production routing + client→Worker wiring (§7a/7b)** —
-infrastructure decisions, not code. Do **not** run `AUTHORIZED: DEPLOY PRODUCTION WORKER` until §7 is
-resolved. Production and the HiveWorld lab lineage are untouched; this plan performs no deploy.
+Worker side: **green, low-risk, ready.** Routing **architecture decided** — preferred same-origin
+(`clovelearn.io/arcade/*` → `neon-arcade-mesh`, no client change), feasible because clovelearn.io is a
+Cloudflare zone. Remaining before deploy are **two dashboard facts** (§7c Pages pipeline, §7d token
+Pages-scope), not code. Do **not** run `AUTHORIZED: DEPLOY PRODUCTION WORKER` until §7c/§7d are confirmed
+and you accept first-time DO provisioning (§7e). Production and the HiveWorld lab lineage are untouched;
+this plan performs no deploy.
