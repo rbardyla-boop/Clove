@@ -71,6 +71,12 @@ try {
   check('banner shows a "now" chip', /now/i.test(banner0));
   check('banner shows an "Up next" line with the next label', !!w0 && banner0.includes('Up next') && banner0.includes(w0.next.label));
 
+  // 1b. Phase 6B: the event is SERVER-AUTHORED (snapshot arrived in city_blocks), not just client-derived
+  const serverSnap = await c.page.evaluate(() => window.__neon_city.serverDistrictEvent());
+  check('server-authored event snapshot present (enabled + window_ms)', !!serverSnap && serverSnap.enabled === true && Number.isFinite(serverSnap.window_ms));
+  check('server snapshot is public_safe with current/next', !!serverSnap && !!serverSnap.current && serverSnap.current.public_safe === true);
+  check('rendered banner matches the server snapshot current', !!serverSnap && banner0.includes(serverSnap.current.label));
+
   // 2. feed received the current active announcement (cold-start poll)
   let acts = await waitActivity(c.page, (a) => a.type === 'district_event_active');
   check('District Activity feed received a district_event_active item', acts.some((a) => a.type === 'district_event_active'));

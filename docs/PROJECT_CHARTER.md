@@ -5,6 +5,41 @@ Newest first.
 
 ---
 
+## ADR-018 — Neon Circuit Phase 6B: server-authored / operator-tunable district events (2026-06-05)
+
+**Context.** Phase 6A's district event schedule was client-derived display. Phase 6B makes it
+**server-authored** (a public-safe snapshot in the existing `city_blocks` payload) and
+**operator-tunable** (env), so the live city's event pulse is canonical and configurable — while
+staying strictly non-economic.
+
+**Decision.**
+1. **Config layer on the existing pure schedule, not a new push path.** `city-district-events.mjs`
+   gains `resolveDistrictEventConfig(env)` (clamps `DISTRICT_EVENT_WINDOW_MS` to 1 min…1 hour; parses
+   `DISTRICT_EVENT_{ENABLED,SHOW_NEXT}`; defaults = 6A) and `districtEventSnapshot(now, config)` (a
+   public-safe `{enabled, window_ms, show_next, server_time, current, next}`). The window size is now
+   a parameter threaded through `windowIndexAt/windowBounds/buildDistrictEvent/...` via an optional
+   trailing arg defaulting to `WINDOW_MS`, so all 553 prior callers/tests are unchanged.
+2. **Server attaches the snapshot.** CityRoom (`this.env`) and the dev-shim (`process.env`) both add
+   `event: districtEventSnapshot(...)` to their two `city_blocks` sends — exact DO parity. **No new
+   DO, migration, route, or message type.** (Rejected: a per-transition DO-alarm push — heavier, a
+   migration risk, and unnecessary because the deterministic schedule + published config lets every
+   client compute live current/next from the shared pure module.)
+3. **Client adopts the config.** `adoptServerEventSnapshot` stores the server config and recomputes
+   via the same pure schedule, so it stays in sync without a push; falls back to 6A defaults if the
+   snapshot is absent (old server), hides the banner if `enabled:false`, suppresses "Up next" if
+   `show_next:false`.
+
+**Consequences.** Server is authoritative for the schedule config; clients only display (cannot author
+canonical district facts); CityRoom/CityRegistry still own presence/route/identity. The Worker bundle
+grows ~187→194 KiB (gz 40.7→42.7) because the events module is now imported server-side — expected for
+server authorship (6B is a real Worker change, not byte-identical). Still display/atmosphere: no
+rewards/economy/Host-Rank/Stewardship/Block-Trial change. Validation: 562 unit (+9) + 23-check events
+smoke (incl. server-snapshot path) + all city/arcade regression + dry-run + size (≈0.779/0.212 MB gz)
++ config gate + guardrails — all green. `wrangler.toml` untouched (defaults safe; vars optional).
+Detail: `docs/NEON_CIRCUIT_PHASE6B_DISTRICT_EVENT_AUTHORITY.md`.
+
+---
+
 ## ADR-017 — Neon Circuit Phase 6A: scheduled district events + live announcements (2026-06-05)
 
 **Context.** The city is LIVE in production (`clovelearn.io`, signed off 2026-06-05 by real

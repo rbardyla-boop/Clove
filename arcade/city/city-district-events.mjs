@@ -33,9 +33,66 @@ import { CITY_IDS, getCity } from './city-block.mjs';
 export const EVENT_SCHEMA = 1;
 
 /** Each window runs WINDOW_MS; the pre-roll lead is how early "next" is announced as upcoming. */
-export const WINDOW_MS = 5 * 60_000;        // 5 minutes per district window
+export const WINDOW_MS = 5 * 60_000;        // 5 minutes per district window (default)
 export const PREROLL_LEAD_MS = 60_000;      // announce the next window ~1 min before it starts
 export const ANNOUNCE_MAX = 8;              // hard cap on a single announcement batch (bounded)
+
+// ===================== Phase 6B: operator-tunable, server-authored config =====================
+//
+// The schedule stays a pure, deterministic function of the clock — Phase 6B lets the SERVER author
+// the parameters (window size, enabled, show-next) and publish a public-safe snapshot in the
+// existing city_blocks payload. Defaults reproduce Phase 6A exactly. The same pure functions run on
+// the server (CityRoom / dev-shim) and the client, so both compute identical current/next events
+// from the shared config — no per-transition push needed.
+
+/** Safe bounds for operator-tunable values (clamped server-side; never silently out of range). */
+export const DISTRICT_EVENT_BOUNDS = Object.freeze({
+  window_ms: Object.freeze({ min: 60_000, max: 3_600_000 }),   // 1 min .. 1 hour
+});
+
+/** Default config — reproduces Phase 6A behaviour exactly. */
+export const DEFAULT_DISTRICT_EVENT_CONFIG = Object.freeze({
+  enabled: true,
+  windowMs: WINDOW_MS,
+  showNext: true,
+});
+
+function parseBoolish(v, dflt) {
+  if (v === true || v === false) return v;
+  if (typeof v === 'string') {
+    const s = v.trim().toLowerCase();
+    if (s === 'true') return true;
+    if (s === 'false') return false;
+  }
+  return dflt;
+}
+
+function clampWindowMs(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return WINDOW_MS;
+  const { min, max } = DISTRICT_EVENT_BOUNDS.window_ms;
+  return Math.min(max, Math.max(min, Math.trunc(n)));
+}
+
+/**
+ * PURE: resolve an operator/env-shaped raw object into a validated, frozen config. Reads
+ * DISTRICT_EVENT_{ENABLED,WINDOW_MS,SHOW_NEXT}; clamps the window to safe bounds; falls back to the
+ * Phase 6A defaults for anything absent/invalid. Never mutates the input.
+ */
+export function resolveDistrictEventConfig(raw = {}) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  return Object.freeze({
+    enabled: parseBoolish(r.DISTRICT_EVENT_ENABLED, DEFAULT_DISTRICT_EVENT_CONFIG.enabled),
+    windowMs: r.DISTRICT_EVENT_WINDOW_MS == null ? WINDOW_MS : clampWindowMs(r.DISTRICT_EVENT_WINDOW_MS),
+    showNext: parseBoolish(r.DISTRICT_EVENT_SHOW_NEXT, DEFAULT_DISTRICT_EVENT_CONFIG.showNext),
+  });
+}
+
+/** The effective, positive window size for a config (falls back to the default). */
+function cfgWindowMs(config) {
+  const w = config && Number.isFinite(config.windowMs) && config.windowMs > 0 ? config.windowMs : WINDOW_MS;
+  return w;
+}
 
 /** The closed set of Phase 6A event types (display/atmosphere only). */
 export const EVENT_TYPES = Object.freeze([
@@ -67,16 +124,18 @@ function clock(now) {
   return Number.isFinite(now) ? now : Date.now();
 }
 
-/** PURE: the window index for a time. Floor division into fixed WINDOW_MS buckets. */
-export function windowIndexAt(now = Date.now()) {
-  return Math.floor(clock(now) / WINDOW_MS);
+/** PURE: the window index for a time. Floor division into fixed `windowMs` buckets (default WINDOW_MS). */
+export function windowIndexAt(now = Date.now(), windowMs = WINDOW_MS) {
+  const w = Number.isFinite(windowMs) && windowMs > 0 ? windowMs : WINDOW_MS;
+  return Math.floor(clock(now) / w);
 }
 
-/** PURE: the [starts_at, ends_at) bounds of a window index. */
-export function windowBounds(index) {
+/** PURE: the [starts_at, ends_at) bounds of a window index (default WINDOW_MS window). */
+export function windowBounds(index, windowMs = WINDOW_MS) {
+  const w = Number.isFinite(windowMs) && windowMs > 0 ? windowMs : WINDOW_MS;
   const i = Number.isFinite(index) ? Math.trunc(index) : 0;
-  const starts_at = i * WINDOW_MS;
-  return { starts_at, ends_at: starts_at + WINDOW_MS };
+  const starts_at = i * w;
+  return { starts_at, ends_at: starts_at + w };
 }
 
 /** Deterministic, non-negative modulo selection from a frozen list. */
@@ -129,14 +188,14 @@ export function eventSummary(type, name) {
  * field allowlist. Returns null for an unknown focus block (fail-safe). Reads ONLY static city
  * config + computed window times — no player/server/private data can reach the object.
  */
-export function buildDistrictEvent(index, status, now = Date.now()) {
+export function buildDistrictEvent(index, status, now = Date.now(), windowMs = WINDOW_MS) {
   if (!EVENT_STATUSES.includes(status)) return null;
   const cityId = blockForWindow(index);
   const c = getCity(cityId);
   if (!c) return null;                       // unknown/invalid block → no event (fail-safe)
   const type = typeForWindow(index);
   const name = shortBlockName(c.display_name, cityId);
-  const { starts_at, ends_at } = windowBounds(index);
+  const { starts_at, ends_at } = windowBounds(index, windowMs);
   const event = {
     schema_version: EVENT_SCHEMA,
     event_id: eventId(index, type, cityId),
@@ -156,23 +215,27 @@ export function buildDistrictEvent(index, status, now = Date.now()) {
 }
 
 /** PURE: the currently-active district event (status 'active'). */
-export function currentDistrictEvent(now = Date.now()) {
-  return buildDistrictEvent(windowIndexAt(now), 'active', now);
+export function currentDistrictEvent(now = Date.now(), config = DEFAULT_DISTRICT_EVENT_CONFIG) {
+  const w = cfgWindowMs(config);
+  return buildDistrictEvent(windowIndexAt(now, w), 'active', now, w);
 }
 
 /** PURE: the next district event (status 'upcoming'). */
-export function nextDistrictEvent(now = Date.now()) {
-  return buildDistrictEvent(windowIndexAt(now) + 1, 'upcoming', now);
+export function nextDistrictEvent(now = Date.now(), config = DEFAULT_DISTRICT_EVENT_CONFIG) {
+  const w = cfgWindowMs(config);
+  return buildDistrictEvent(windowIndexAt(now, w) + 1, 'upcoming', now, w);
 }
 
 /**
  * PURE: the district-event window view for `now` — the current + next event, time remaining in the
  * current window, and whether the next window is within the pre-roll lead. Display-only; bounded.
+ * `config` (Phase 6B) tunes the window size; defaults reproduce Phase 6A.
  */
-export function districtEventWindow(now = Date.now()) {
+export function districtEventWindow(now = Date.now(), config = DEFAULT_DISTRICT_EVENT_CONFIG) {
+  const w = cfgWindowMs(config);
   const t = clock(now);
-  const index = windowIndexAt(t);
-  const { starts_at, ends_at } = windowBounds(index);
+  const index = windowIndexAt(t, w);
+  const { starts_at, ends_at } = windowBounds(index, w);
   const ms_remaining = Math.max(0, ends_at - t);
   return {
     index,
@@ -180,8 +243,8 @@ export function districtEventWindow(now = Date.now()) {
     ends_at,
     ms_remaining,
     preroll: ms_remaining <= PREROLL_LEAD_MS,
-    current: buildDistrictEvent(index, 'active', t),
-    next: buildDistrictEvent(index + 1, 'upcoming', t),
+    current: buildDistrictEvent(index, 'active', t, w),
+    next: buildDistrictEvent(index + 1, 'upcoming', t, w),
   };
 }
 
@@ -200,13 +263,14 @@ function announceKey(event) {
  * was already announced — so a cold load never surfaces a stale "ended"), the current active window,
  * and the next window once it is within the pre-roll lead.
  */
-export function deriveDistrictAnnouncements(now = Date.now(), announced = null) {
+export function deriveDistrictAnnouncements(now = Date.now(), announced = null, config = DEFAULT_DISTRICT_EVENT_CONFIG) {
+  const w = cfgWindowMs(config);
   const t = clock(now);
   const seen = announced instanceof Set
     ? announced
     : new Set(Array.isArray(announced) ? announced : []);
-  const index = windowIndexAt(t);
-  const { ends_at } = windowBounds(index);
+  const index = windowIndexAt(t, w);
+  const { ends_at } = windowBounds(index, w);
   const events = [];
   const keys = [];
   const consider = (event) => {
@@ -218,12 +282,46 @@ export function deriveDistrictAnnouncements(now = Date.now(), announced = null) 
   };
 
   // ended: the immediately-previous window — only if we already announced it active (witnessed it).
-  const ended = buildDistrictEvent(index - 1, 'ended', t);
+  const ended = buildDistrictEvent(index - 1, 'ended', t, w);
   if (ended && seen.has(`${ended.event_id}#active`)) consider(ended);
   // active: the current window.
-  consider(buildDistrictEvent(index, 'active', t));
+  consider(buildDistrictEvent(index, 'active', t, w));
   // upcoming: the next window, once it is within the pre-roll lead.
-  if (ends_at - t <= PREROLL_LEAD_MS) consider(buildDistrictEvent(index + 1, 'upcoming', t));
+  if (ends_at - t <= PREROLL_LEAD_MS) consider(buildDistrictEvent(index + 1, 'upcoming', t, w));
 
   return { events, keys };
+}
+
+// ===================== Phase 6B: server-authored public-safe event snapshot =====================
+
+/** The fields the public event snapshot carries (the wire allowlist). */
+const SNAPSHOT_FIELDS = Object.freeze([
+  'schema_version', 'enabled', 'window_ms', 'show_next', 'server_time', 'current', 'next',
+]);
+
+/**
+ * PURE: build the public-safe district-event snapshot the SERVER publishes in the existing
+ * city_blocks payload (Phase 6B). `current`/`next` are the same allowlisted event objects the
+ * client would derive locally — the server is authoritative, the client just displays. When the
+ * feature is disabled, `current`/`next` are null. `server_time` lets clients align countdowns to the
+ * server clock. Carries no player/private data (only static block names + computed window times).
+ */
+export function districtEventSnapshot(now = Date.now(), config = DEFAULT_DISTRICT_EVENT_CONFIG) {
+  const cfg = config && typeof config === 'object' ? config : DEFAULT_DISTRICT_EVENT_CONFIG;
+  const w = cfgWindowMs(cfg);
+  const t = clock(now);
+  const enabled = cfg.enabled !== false;
+  const showNext = cfg.showNext !== false;
+  const win = enabled ? districtEventWindow(t, cfg) : null;
+  const snapshot = {
+    schema_version: EVENT_SCHEMA,
+    enabled,
+    window_ms: w,
+    show_next: showNext,
+    server_time: t,
+    current: win ? win.current : null,
+    next: win && showNext ? win.next : null,
+  };
+  for (const k of Object.keys(snapshot)) if (!SNAPSHOT_FIELDS.includes(k)) delete snapshot[k];
+  return Object.freeze(snapshot);
 }

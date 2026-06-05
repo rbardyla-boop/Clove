@@ -16,6 +16,7 @@ import {
   windowIndexAt, windowBounds, typeForWindow, blockForWindow, eventId, eventLabel, eventSummary,
   buildDistrictEvent, currentDistrictEvent, nextDistrictEvent, districtEventWindow,
   deriveDistrictAnnouncements,
+  districtEventSnapshot, resolveDistrictEventConfig, DEFAULT_DISTRICT_EVENT_CONFIG, DISTRICT_EVENT_BOUNDS,
 } from '../../arcade/city/city-district-events.mjs';
 import { activityForDistrictEvent, appendActivity } from '../../arcade/city/city-district-activity.mjs';
 import { CITY_IDS } from '../../arcade/city/city-block.mjs';
@@ -188,4 +189,88 @@ test('activityForDistrictEvent fails safe on a non-public-safe or unknown-status
   assert.equal(activityForDistrictEvent(null, NOW), null);
   assert.equal(activityForDistrictEvent({ status: 'active', public_safe: false, city_id: 'x', label: 'y' }, NOW), null);
   assert.equal(activityForDistrictEvent({ status: 'bogus', public_safe: true, city_id: 'x', label: 'y' }, NOW), null);
+});
+
+// ===================== Phase 6B: server-authored snapshot + operator config =====================
+
+const SNAPSHOT_FIELDS = ['schema_version', 'enabled', 'window_ms', 'show_next', 'server_time', 'current', 'next'];
+
+test('6B: the server snapshot matches the pure deterministic window helper', () => {
+  const snap = districtEventSnapshot(NOW);
+  const w = districtEventWindow(NOW);
+  assert.deepEqual(snap.current, w.current);
+  assert.deepEqual(snap.next, w.next);
+  assert.equal(snap.enabled, true);
+  assert.equal(snap.window_ms, WINDOW_MS);
+  assert.equal(snap.show_next, true);
+  assert.equal(snap.server_time, NOW);
+  assert.deepEqual(Object.keys(snap).sort(), [...SNAPSHOT_FIELDS].sort());
+});
+
+test('6B: default config reproduces 6A (old-client fallback path is identical)', () => {
+  const cfg = resolveDistrictEventConfig({});
+  assert.deepEqual(cfg, DEFAULT_DISTRICT_EVENT_CONFIG);
+  // computing with the resolved default config === computing with no config (6A behaviour)
+  assert.deepEqual(districtEventWindow(NOW, cfg), districtEventWindow(NOW));
+  assert.deepEqual(currentDistrictEvent(NOW, cfg), currentDistrictEvent(NOW));
+});
+
+test('6B: snapshot current/next are public_safe with no private fields', () => {
+  const snap = districtEventSnapshot(NOW);
+  for (const ev of [snap.current, snap.next]) {
+    assert.equal(ev.public_safe, true);
+    assert.ok(!FORBIDDEN.test(ev.label) && !FORBIDDEN.test(ev.summary));
+    assert.ok(!('player_id' in ev) && !('players' in ev) && !('balance' in ev));
+  }
+});
+
+test('6B: operator window clamps to safe bounds (min/max); invalid → default', () => {
+  assert.equal(resolveDistrictEventConfig({ DISTRICT_EVENT_WINDOW_MS: '999999999' }).windowMs, DISTRICT_EVENT_BOUNDS.window_ms.max);
+  assert.equal(resolveDistrictEventConfig({ DISTRICT_EVENT_WINDOW_MS: '1' }).windowMs, DISTRICT_EVENT_BOUNDS.window_ms.min);
+  assert.equal(resolveDistrictEventConfig({ DISTRICT_EVENT_WINDOW_MS: 'not-a-number' }).windowMs, WINDOW_MS);
+  assert.equal(resolveDistrictEventConfig({}).windowMs, WINDOW_MS);
+});
+
+test('6B: invalid/garbage env falls back to defaults (enabled, show_next)', () => {
+  const cfg = resolveDistrictEventConfig({ DISTRICT_EVENT_ENABLED: 'maybe', DISTRICT_EVENT_SHOW_NEXT: 42 });
+  assert.equal(cfg.enabled, true);
+  assert.equal(cfg.showNext, true);
+  // explicit false is honoured
+  assert.equal(resolveDistrictEventConfig({ DISTRICT_EVENT_ENABLED: 'false' }).enabled, false);
+  assert.equal(resolveDistrictEventConfig({ DISTRICT_EVENT_SHOW_NEXT: 'false' }).showNext, false);
+});
+
+test('6B: a disabled snapshot exposes no event (current/next null, enabled false)', () => {
+  const snap = districtEventSnapshot(NOW, resolveDistrictEventConfig({ DISTRICT_EVENT_ENABLED: 'false' }));
+  assert.equal(snap.enabled, false);
+  assert.equal(snap.current, null);
+  assert.equal(snap.next, null);
+});
+
+test('6B: show_next=false hides next in the snapshot but keeps current', () => {
+  const snap = districtEventSnapshot(NOW, resolveDistrictEventConfig({ DISTRICT_EVENT_SHOW_NEXT: 'false' }));
+  assert.ok(snap.current && snap.current.status === 'active');
+  assert.equal(snap.next, null);
+  assert.equal(snap.show_next, false);
+});
+
+test('6B: a custom window size actually changes the window math (config threads through)', () => {
+  const cfg = resolveDistrictEventConfig({ DISTRICT_EVENT_WINDOW_MS: String(WINDOW_MS * 2) });
+  assert.equal(cfg.windowMs, WINDOW_MS * 2);
+  const wDefault = districtEventWindow(NOW);
+  const wCustom = districtEventWindow(NOW, cfg);
+  // bounds differ because the bucket size differs
+  assert.notEqual(wDefault.ends_at - wDefault.starts_at, wCustom.ends_at - wCustom.starts_at);
+  assert.equal(wCustom.ends_at - wCustom.starts_at, WINDOW_MS * 2);
+});
+
+test('6B: resolveDistrictEventConfig and districtEventSnapshot never mutate their inputs', () => {
+  const raw = { DISTRICT_EVENT_WINDOW_MS: '120000', DISTRICT_EVENT_ENABLED: 'true' };
+  const rawCopy = { ...raw };
+  resolveDistrictEventConfig(raw);
+  assert.deepEqual(raw, rawCopy);
+  const cfg = resolveDistrictEventConfig(raw);
+  const cfgCopy = { ...cfg };
+  districtEventSnapshot(NOW, cfg);
+  assert.deepEqual({ ...cfg }, cfgCopy);
 });
