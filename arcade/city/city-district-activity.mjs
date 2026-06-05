@@ -38,6 +38,10 @@ export const ACTIVITY_TYPES = Object.freeze([
   'route_requested',
   'route_confirmed',
   'block_arrived',
+  // Phase 6A: scheduled district event announcements (display/atmosphere; see city-district-events.mjs).
+  'district_event_upcoming',
+  'district_event_active',
+  'district_event_ended',
 ]);
 const TYPE_SET = new Set(ACTIVITY_TYPES);
 const SEVERITIES = new Set(['info', 'good', 'warn']);
@@ -63,6 +67,10 @@ export function labelFor(type, name) {
     case 'route_requested': return `Routing to ${name}…`;
     case 'route_confirmed': return `Routing to ${name} confirmed.`;
     case 'block_arrived': return `Arrived in ${name}.`;
+    // Phase 6A: `name` is the district event's static label (e.g. "Downtown Signal Surge").
+    case 'district_event_upcoming': return `${name} starts soon.`;
+    case 'district_event_active': return `${name} is active.`;
+    case 'district_event_ended': return `${name} ended.`;
     default: return `${name} updated.`;
   }
 }
@@ -74,6 +82,9 @@ const SEVERITY_FOR = Object.freeze({
   block_arrived: 'good',
   block_presence_stale: 'warn',
   block_became_empty: 'info',
+  district_event_active: 'good',
+  district_event_upcoming: 'info',
+  district_event_ended: 'info',
 });
 
 /**
@@ -166,6 +177,29 @@ export function activityForRouteResult(result, name, now = Date.now()) {
 /** PURE: an arrival activity (player reconnected into a new block after a travel). */
 export function activityForArrival(cityId, name, now = Date.now()) {
   return activityItem({ city_id: cityId, type: 'block_arrived', occurred_at: now, name });
+}
+
+/** Map a Phase 6A district-event lifecycle status → an activity type (the feed projection). */
+const EVENT_STATUS_TYPE = Object.freeze({
+  upcoming: 'district_event_upcoming',
+  active: 'district_event_active',
+  ended: 'district_event_ended',
+});
+
+/**
+ * PURE: project a Phase 6A scheduled district EVENT into a public-safe activity feed item, through
+ * the SAME allowlist choke point as every other feed item. Only the event's static `label` (e.g.
+ * "Downtown Signal Surge") and `city_id` cross over; status picks the type. A non-public-safe or
+ * unknown-status event yields null (fail-safe). The event carries no player/private data by
+ * construction (see city-district-events.mjs), and nothing private can reach the item regardless.
+ */
+export function activityForDistrictEvent(event, now = Date.now()) {
+  if (!event || event.public_safe !== true) return null;
+  const type = EVENT_STATUS_TYPE[event.status];
+  if (!type) return null;
+  const cityId = typeof event.city_id === 'string' ? event.city_id : '';
+  const name = typeof event.label === 'string' ? event.label : '';
+  return activityItem({ city_id: cityId, type, occurred_at: now, name });
 }
 
 /**

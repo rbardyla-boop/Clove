@@ -1,15 +1,23 @@
 # Neon Circuit — Production Rollout Plan
 
-**Status:** pre-flight complete; routing **architecture decided** (same-origin); **NOT deploy-ready.** This
-is a **FULL feature launch** — production currently has NONE of the city feature: the **client is absent**
-(production Pages is a stale build predating `arcade/`; all `/arcade/*` → 404, §7c), the **Worker is not
-deployed**, and the **route is not configured**. The Worker artifact + config are green and low-risk; the
-real gap is the **stale Pages deploy + routing**, which is operational, not code. **No production deploy has occurred.**
+**Status: 🟢 LAUNCHED & SIGNED OFF 2026-06-05.** The full city feature is live on `clovelearn.io` and
+**validated by real cross-device multiplayer** (operator confirmed: phone + PC see each other and play all
+games). City tab shows **● LIVE**; presence, Host Rank, City Pressure, and the World Log render live;
+console clean except the benign CF `beacon.min.js` CSP block. Network path also verified: static client 200
+(incl. `/arcade/city/`), DO Worker `neon-arcade-mesh-production` up, the 4 narrow routes win over the
+`wild-hat-6257` custom domain, both `/arcade/city/ws?city=…` and `/arcade/ws?room=…` → `101`, static site
+untouched. **No open items.**
 
-**Three components must land (in order):** (1) a **fresh Pages deploy** including `arcade/` so the city
-client exists at `clovelearn.io/arcade/city/*`; (2) the **Worker** `neon-arcade-mesh` (`wrangler deploy
---env production`, provisions 4 DOs + v1→v4); (3) **narrow Workers routes** for the Worker's five API/WS
-endpoints under `/arcade/` — **NOT** a broad `/arcade/*`, which would 404 the static client (see §0).
+_History (now done): this was a FULL feature launch from a baseline where production had none of it — the
+static-assets Worker `wild-hat-6257` held a stale build predating `arcade/`, the DO Worker was undeployed,
+and no routes existed. Closed by: clean 234-file re-upload (client), `wrangler deploy --env production`
+(Worker + 4 DOs + v1→v4), and 4 narrow `/arcade/...*` routes._
+
+**Three components must land (in order):** (1) a **fresh upload to `wild-hat-6257`** including `arcade/` so
+the city client exists at `clovelearn.io/arcade/city/*`; (2) the **DO Worker** `neon-arcade-mesh`
+(`wrangler deploy --env production`, provisions 4 DOs + v1→v4); (3) **narrow Workers routes** for the
+Worker's five API/WS endpoints under `/arcade/` — **NOT** a broad `/arcade/*`, which would 404 the static
+client (see §0).
 
 ## 0. Routing resolution (decided)
 
@@ -37,17 +45,21 @@ client breaks.** So the route set must be **narrow, per-endpoint.** The client's
 [env.production]
 # … existing name/vars/durable_objects/migrations …
 routes = [
-  { pattern = "clovelearn.io/arcade/ws",      zone_name = "clovelearn.io" },
-  { pattern = "clovelearn.io/arcade/city/ws", zone_name = "clovelearn.io" },
-  { pattern = "clovelearn.io/arcade/rooms*",  zone_name = "clovelearn.io" },
-  { pattern = "clovelearn.io/arcade/health",  zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/ws*",      zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/city/ws*", zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/rooms*",   zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/health*",  zone_name = "clovelearn.io" },
 ]
 ```
-`rooms*` covers `/arcade/rooms` + `/arcade/rooms/health` and does **not** shadow the static
-`room-recommend.mjs`; query strings (`?room=`/`?city=`) are ignored by route matching, so the bare `/ws`
-paths still match. Then `wrangler deploy --env production` registers the routes against the **production**
-Worker `neon-arcade-mesh` (do **NOT** bind to `neon-arcade-mesh-staging`). Production smoke `WS_URL` =
-`wss://clovelearn.io/arcade/city/ws`.
+**Every pattern ends in `*` — required.** CORRECTION (verified live 2026-06-05): a Cloudflare route
+WITHOUT a trailing `*` matches the path ONLY when there is no query string. The client connects to
+`/arcade/city/ws?city=<id>` and `/arcade/ws?room=<id>`, so a bare `clovelearn.io/arcade/city/ws` route
+**404s the real request** (it falls through to the `wild-hat-6257` static Worker) while a no-query probe
+reaches the DO Worker — exactly the symptom observed. The trailing `*` absorbs the query. `rooms*` already
+covers `/arcade/rooms` + `/arcade/rooms/health`; none of these patterns shadow a static asset (no file path
+starts with `ws`/`city/ws`/`rooms`/`health`). `wrangler deploy --env production` registers them against the
+**production** Worker `neon-arcade-mesh-production` (env-default name; do **NOT** bind to
+`neon-arcade-mesh-staging`). Production smoke `WS_URL` = `wss://clovelearn.io/arcade/city/ws?city=downtown-01`.
 
 ## 1. Production candidate (pinned)
 
@@ -119,31 +131,32 @@ already accepts the handshake without a subprotocol (the Phase 4 fix), so the sa
 workers.dev` (the account subdomain; useful for an isolated Worker-only smoke before routing). The client
 path is the custom-domain route.
 
-### 7c. NO Pages project in this account; live site is a STALE build served elsewhere — ⛔ OPEN
-**Evidence (Cloudflare API with the owner token + read-only HTTP):**
-- `GET /accounts/bea9dc96…/pages/projects` → `success: true`, **`result: [] (0 projects)`**. The token
-  **can** read Pages (no auth error) — there are genuinely **no Cloudflare Pages projects** in this account.
-- No Workers routes on the zone (dashboard: "no routes configured").
-- Yet `clovelearn.io` **is serving this repo**: the live `_redirects` rule (`/index.html → /deck.html`,
-  observed `302`) and the live `_headers` `Permissions-Policy` (`…microphone=(self)…`) **byte-match this
-  repo's root `_redirects`/`_headers`**. But **all `/arcade/* → 404`** — the deployed build **predates the
-  `arcade/` directory**.
-- The site is Cloudflare-proxied (root resolves to CF IPs `104.26.*`/`172.67.*`); the token **lacks
-  Zone-DNS:Read** (`/dns_records` → auth error `10000`), so the origin host can't be read via API.
+### 7c. Production host IDENTIFIED: Workers static-assets Worker `wild-hat-6257` (this account) — stale build
+**Resolved (dashboard + API).** clovelearn.io is served by a **Cloudflare Workers static-assets Worker**
+named **`wild-hat-6257`** in THIS account (`bea9dc96…`), with **clovelearn.io attached as a Custom Domain**
+(also `wild-hat-6257.rbardyla.workers.dev`). It is **assets-only** (Bindings 0, Workers 0; dashboard:
+"Metrics is unavailable for Workers with only static assets"), deployed via the dashboard **"Upload static
+files"** flow ("Automatic deployment on upload", last deploy ~9 days ago). This is **not** Cloudflare Pages
+(hence 0 Pages projects), but it honors `_headers`/`_redirects` identically (live `/index.html → /deck.html`
+302 + `Permissions-Policy` byte-match this repo). The deployed build **predates `arcade/`** → all
+`/arcade/* → 404`.
 
-**Conclusion:** clovelearn.io is **not** a Pages project in the logged-in account. It is a **stale build of
-this repo served from elsewhere** — most likely (a) a Cloudflare **Pages project under a different
-account/email**, or (b) a **non-Cloudflare host that uses the same `_headers`/`_redirects` format (Netlify)**
-proxied through this zone. **Identify it in the dashboard:** clovelearn.io → **DNS → Records** → the root
-`clovelearn.io` record target: `*.pages.dev` = CF Pages (another account), `*.netlify.app` = Netlify,
-`*.vercel.app`/IP = that host.
+**Fix — the owner's normal flow: re-upload the current build including `arcade/`.** The dashboard uploader
+caps at **1000 files**; dragging the repo root fails (pulls in `node_modules`/`atip/.venv`/`.git` =
+thousands). Use a **clean tree of git-tracked files only** — built at **`~/Downloads/clovelearn-upload`**
+(**414 files**, 19 MB, `index.html` at root, `arcade/city/*` present) — drag that into "Upload static files"
+→ Deploy. CLI alternative (uploads up to 20,000 files):
+`wrangler deploy --name wild-hat-6257 --assets ~/Downloads/clovelearn-upload` — the token deploys Workers,
+**but verify it preserves the clovelearn.io Custom Domain** before relying on it; the dashboard drag is the
+zero-risk path. After deploy, confirm `clovelearn.io/arcade/city/index.html` → **200** BEFORE the Worker step.
 
-**Path forward (clean, account-local):** create a **new Cloudflare Pages project in THIS account** from the
-repo (no build command; output dir = repo root; serves git-tracked files as-is), deploy current `main`, then
-**attach `clovelearn.io` as the Pages custom domain** (Cloudflare repoints the zone's DNS to the new project).
-After deploy, verify `clovelearn.io/arcade/city/index.html` → **200** BEFORE the Worker route step. (Direct
-`wrangler pages deploy <clean-dir>` is viable — the token has Pages access; deploy git-tracked files only,
-not the repo root with its `node_modules`/`atip/.venv`.)
+**Routing implication for §0 (changed by this finding).** clovelearn.io is a **Custom Domain on
+`wild-hat-6257`** (an implicit catch-all), not Pages. The narrow `/arcade/...` routes → `neon-arcade-mesh`
+must be **more specific** than that catch-all to win. **Verify at the deploy step** that the narrow routes
+take precedence over the `wild-hat-6257` custom domain for those exact paths (Cloudflare evaluates the most
+specific match). If precedence does not hold, the fallback is `window.__NEON_ARCADE_CONFIG__.cityWsUrl =
+wss://neon-arcade-mesh.rbardyla.workers.dev/arcade/city/ws` (re-enables §7a's override) — but that is
+cross-origin, so prefer the route.
 
 **Implication:** launching the city feature requires a **fresh production Pages deploy** that includes
 `arcade/` (and the Phase 5 `arcade/city/*` client). **Confirm + act (dashboard):**
@@ -159,8 +172,9 @@ The `.env` User API Token (rbardyla@gmail.com, account `bea9dc96…`): deploys *
 staging); **can read Pages** (`/pages/projects` → `success:true`, 0 projects — so the scope is present, the
 account simply has none); **lacks Zone-DNS:Read** (`/dns_records` → auth error `10000`). Pages **write/edit**
 is unverified (read works; a `wrangler pages deploy` needs Pages:Edit). The Worker deploy + the narrow
-Workers routes do not need Pages scope. Note the production site is **manually uploaded** by the owner (not
-git-integrated, not GitHub Actions — no `.github/workflows`), to a destination **outside this account** (§7c).
+Workers routes do not need Pages scope. The production site is **manually uploaded** by the owner via the
+dashboard "Upload static files" flow to the `wild-hat-6257` static-assets Worker **in this account** (§7c) —
+not Pages, not git-integrated, no GitHub Actions.
 
 ### 7e. First-time DO provisioning acceptance — confirm
 First deploy is a one-way provisioning of 4 DO classes + v1→v4. Low risk (empty state), but confirm
@@ -178,12 +192,36 @@ rollback. Once a second production version exists, `wrangler rollback` becomes a
 ## 9. Recommended gate order
 ```text
 1. AUTHORIZED: RUN PRODUCTION PRE-FLIGHT        ✅ DONE (candidate pinned; validation green)
-2. AUTHORIZED: RESOLVE PRODUCTION ROUTING PLAN  ✅ DONE (architecture decided: same-origin clovelearn.io/arcade/*)
-3. Confirm §7c/§7d in the Cloudflare dashboard  ← remaining (Pages pipeline + token Pages-scope) — NOT code
-4. AUTHORIZED: DEPLOY PRODUCTION WORKER         → add [env.production].routes + wrangler deploy --env production
-5. AUTHORIZED: PRODUCTION WORKER SMOKE          → workers.dev health/clock-reject before routing flips
-6. AUTHORIZED: DEPLOY/CONFIRM PRODUCTION CLIENT (Pages) + confirm the /arcade/* route is live
-7. AUTHORIZED: FULL-ORIGIN PRODUCTION SMOKE (clovelearn.io) + SIGN-OFF
+2. AUTHORIZED: RESOLVE PRODUCTION ROUTING PLAN  ✅ DONE (narrow routes; host = wild-hat-6257 custom domain, §7c)
+3. Identify host + DEPLOY CLIENT                ✅ DONE 2026-06-05 (uploaded clean 234-file build incl. arcade/
+                                                   to wild-hat-6257 "Upload static files"; /arcade/city/ → 200
+                                                   verified; no regression; infra stripped/not public)
+4. DEPLOY PRODUCTION WORKER (no routes)         ✅ DONE 2026-06-05. `wrangler deploy --env production` →
+                                                   Worker **neon-arcade-mesh-production** (env default suffix;
+                                                   [env.production] sets no `name`). 187.10 KiB/40.74 gz;
+                                                   4 DOs + v1→v4 provisioned. Version c63c4d8f-7944-44f1-a13b-
+                                                   8df7161c9487. URL neon-arcade-mesh-production.rbardyla.workers.dev.
+                                                   NO routes → clovelearn.io verified unchanged (/, client 200).
+5. PRODUCTION WORKER SMOKE (workers.dev)        ✅ DONE. /arcade/health 200 (service neon-arcade-mesh) ·
+                                                   POST /__test_set_event_now 404 · /arcade/rooms/health 200 ·
+                                                   /arcade/rooms 200 · /arcade/city/ws → 101 over HTTP/1.1.
+                                                   NOTE: a WS probe over HTTP/2 returns 500 "City DO fetch failed"
+                                                   — a curl/h2 artifact (known-good STAGING behaves identically);
+                                                   browsers use h1.1 → 101. Plain non-WS GET to /city/ws → 500
+                                                   (pre-existing: DO expects an upgrade; matches staging; benign).
+6. ADD NARROW ROUTES                            ✅ DONE 2026-06-05 (via dashboard Workers Routes, bound to
+                                                   neon-arcade-mesh-production): /arcade/ws* · /arcade/city/ws* ·
+                                                   /arcade/rooms* · /arcade/health. GOTCHA (verified live): a
+                                                   route WITHOUT trailing `*` does NOT match a query string, so
+                                                   the WS routes MUST be `…/ws*` (the client uses ?city=/?room=).
+                                                   Precedence over the wild-hat-6257 custom domain CONFIRMED
+                                                   (/arcade/health 200 from Worker; static paths still 200 static).
+7. FULL-ORIGIN SMOKE (clovelearn.io)            ✅ DONE + SIGNED OFF. Network: /arcade/city/ws?city=downtown-01
+                                                   → 101 · /arcade/ws?room=main-floor → 101 · /arcade/health 200 ·
+                                                   / 200 · /arcade/city/ 200. Browser end-to-end: ● LIVE, presence/
+                                                   Host Rank/City Pressure/World Log render; operator confirmed
+                                                   CROSS-DEVICE play (phone+PC see each other, all games). Console
+                                                   clean except benign CF beacon.min.js CSP block. 🟢 LAUNCH COMPLETE.
 ```
 
 ## 10. Bottom line
