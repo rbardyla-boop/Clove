@@ -5,6 +5,40 @@ Newest first.
 
 ---
 
+## ADR-014 — Neon Circuit Phase 5C: live district presence (cross-block) (2026-06-05)
+
+**Context.** Phase 5A/5B made a district of distinct blocks, but discovery was static. Phase 5C
+shows each block's LIVE population + health in discovery — the first cross-block coordination in
+the city. Deferred from 5B precisely because a cross-DO path can only be proven end-to-end on real
+`workerd`, and staging deploy is now in the loop (5A+5B verified on staging, Worker 7c0253ad).
+
+**Decision.**
+1. **Dedicated coordinator DO** — new `CityRegistry` (`workers/arcade/src/city-registry.ts`),
+   separate from the arcade-coupled `RoomRegistry`. Stores a per-block occupancy heartbeat (a COUNT
+   + a registry-stamped freshness timestamp); `POST /city-registry/heartbeat` + `GET .../presence`,
+   DO-to-DO only, never client-reachable, no private data. Additive migration **v4**
+   (`new_sqlite_classes:["CityRegistry"]`) + `CITY_REGISTRY` binding re-declared in all three env
+   blocks; config-check asserts both. Touches no existing DO.
+2. **Pure presence layer** (`city-district.mjs`) — `deriveCityHealth` + `cityPresenceEntry` reuse the
+   Phase 2c freshness policy (≤30s healthy / ≤90s stale / >90s offline, population evicted = no
+   ghosts); `districtManifest(currentCityId, presence)` enriches each block summary with
+   `population`/`health`/`population_is_estimated`. Omitting `presence` = the 5A/5B static default
+   (back-compat). Population is a PUBLIC aggregate (like RoomRegistry exposes) — not private.
+3. **CityRoom** reports occupancy on join/leave/alarm + on `city_blocks_request`, caching the echoed
+   map (FAIL-OPEN → static if the registry is unbound/unreachable); the dev-shim computes cross-block
+   population in-process for headless parity. Client shows live "N here"; refreshes on a ~12s timer.
+
+**Consequences.** First cross-DO path in the city, done with the proven registry/heartbeat pattern;
+per-block authority + safety unchanged; arcade/`game/*`/economy untouched. Validation: 510 unit
+(+ presence + updated config fixture) + new two-client cross-block presence browser smoke (downtown
+sees harbor's count, drops to 0 on leave, public-safe) + all Phase 4/5 regression + Worker dry-run
+(CityRegistry compiles) + size (0.735/0.197 MB gz) + config + guardrails — all green. The CityRoom↔
+CityRegistry DO-to-DO wiring is unit-tested + MUST be verified on staging (deploy in the loop) — the
+shim alone cannot prove it. Local-only commit on `feat/neon-circuit-phase5c-live-presence`; not
+pushed/merged/deployed. Detail: `docs/NEON_CIRCUIT_PHASE5C_LIVE_DISTRICT_PRESENCE.md`.
+
+---
+
 ## ADR-013 — Neon Circuit Phase 5B: per-block identity (display-only) (2026-06-05)
 
 **Context.** Phase 5A made the city a district of three blocks (discovery + bounded routing), but

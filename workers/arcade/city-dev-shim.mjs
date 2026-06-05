@@ -36,6 +36,15 @@ const trials = {};                 // cityId -> active Block Trial instance (Pha
 const sockets = new Map();         // ws -> { playerId, cityId, interiorOpen, ... }
 
 const cityState = (cityId) => (cities[cityId] ||= createCityState());
+// Phase 5C: single-process presence parity with the CityRegistry DO. The shim sees every
+// block's state directly, so it builds the district presence map locally (always-fresh
+// heartbeats). Population is the live player count; an untouched block is absent → unknown/0.
+const cityPresenceMap = () => {
+  const now = Date.now();
+  const map = {};
+  for (const cityId of Object.keys(cities)) map[cityId] = { population: Object.keys(cityState(cityId).players).length, last_seen_at: now };
+  return map;
+};
 const eventLog = (cityId) => (eventLogs[cityId] ||= createEventLog());
 const stewardship = (cityId) => (stewardships[cityId] ||= defaultBlockStyle(cityId)); // Phase 5B: per-block default identity
 const send = (ws, p) => { try { ws.send(JSON.stringify(p)); } catch { /* closing */ } };
@@ -216,7 +225,7 @@ function join(ws, meta, data) {
   // Phase 4G: a (re)connect sees an in-progress Block Trial, if any.
   if (trials[meta.cityId]) send(ws, { t: 'city_block_trial_state', ...trialStatePayload(trials[meta.cityId]) });
   // Phase 5A: a (re)connect always sees the public-safe district manifest for discovery.
-  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId) });
+  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()) });
 }
 
 // Phase 5A: multi-block district discovery + bounded routing (DO parity). Discovery is
@@ -227,7 +236,7 @@ function blocksRequest(ws, meta) {
   const now = Date.now();
   if (now - (meta.lastBlocksReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
   meta.lastBlocksReqAt = now;
-  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId) });
+  send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()) });
 }
 function routeRequest(ws, meta, data) {
   if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }

@@ -35,7 +35,8 @@ EVENT_SHOW_FEATURED = "true"
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
-  { name = "CITY_ROOM", class_name = "CityRoom" }
+  { name = "CITY_ROOM", class_name = "CityRoom" },
+  { name = "CITY_REGISTRY", class_name = "CityRegistry" }
 ]
 
 [[env.production.migrations]]
@@ -49,6 +50,10 @@ new_sqlite_classes = ["RoomRegistry"]
 [[env.production.migrations]]
 tag = "v3"
 new_sqlite_classes = ["CityRoom"]
+
+[[env.production.migrations]]
+tag = "v4"
+new_sqlite_classes = ["CityRegistry"]
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
@@ -62,7 +67,8 @@ EVENT_SHOW_FEATURED = "true"
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
-  { name = "CITY_ROOM", class_name = "CityRoom" }
+  { name = "CITY_ROOM", class_name = "CityRoom" },
+  { name = "CITY_REGISTRY", class_name = "CityRegistry" }
 ]
 
 [[env.staging.migrations]]
@@ -76,6 +82,10 @@ new_sqlite_classes = ["RoomRegistry"]
 [[env.staging.migrations]]
 tag = "v3"
 new_sqlite_classes = ["CityRoom"]
+
+[[env.staging.migrations]]
+tag = "v4"
+new_sqlite_classes = ["CityRegistry"]
 `;
 const SAFE_ARCADE_ROOM = 'case "__test_set_event_now": { if (this.env.ENVIRONMENT === "development") { doThing(); } break; }';
 

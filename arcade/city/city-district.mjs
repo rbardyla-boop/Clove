@@ -54,20 +54,58 @@ export function areAdjacent(a, b) {
   return adjacentBlocks(a).includes(b);
 }
 
+// ===================== Phase 5C: live district presence (population + health) =====================
+
+/** Heartbeat freshness windows — mirror the Phase 2c room-health policy. */
+export const CITY_HEARTBEAT_TTL_MS = 30_000; // within → healthy
+export const CITY_STALE_TTL_MS = 90_000;     // beyond → offline (population evicted; no ghosts)
+export const CITY_HEALTHS = Object.freeze(['healthy', 'stale', 'offline', 'unknown']);
+
+/** PURE: a block's public health from its heartbeat freshness age (ms; null = never reported). */
+export function deriveCityHealth(lastSeenAgeMs) {
+  if (lastSeenAgeMs == null) return 'unknown';
+  if (lastSeenAgeMs > CITY_STALE_TTL_MS) return 'offline';
+  if (lastSeenAgeMs > CITY_HEARTBEAT_TTL_MS) return 'stale';
+  return 'healthy';
+}
+
 /**
- * PUBLIC-SAFE summary of one block: identity + presentation + adjacency ONLY. Never
- * population, player ids, balances, ledger, inventory, economy, or ownership. Returns
- * null for an unknown block.
+ * PURE: one block's public-safe presence from its latest heartbeat (or null) + the clock.
+ * Stale-population policy (no ghost population): fresh → reported count; stale → last reported,
+ * flagged estimated; offline/unknown → 0, flagged estimated. A heartbeat carries ONLY a count
+ * and a freshness timestamp — never player ids, balances, ledger, inventory, or any private data.
  */
-export function blockPublicSummary(cityId) {
+export function cityPresenceEntry(heartbeat, now = Date.now()) {
+  const lastSeenAt = heartbeat && Number.isFinite(heartbeat.last_seen_at) ? heartbeat.last_seen_at : null;
+  const lastSeenAgeMs = lastSeenAt == null ? null : Math.max(0, now - lastSeenAt);
+  const health = deriveCityHealth(lastSeenAgeMs);
+  let population = heartbeat ? Math.max(0, Number(heartbeat.population) || 0) : 0;
+  let estimated = false;
+  if (lastSeenAgeMs == null) { population = 0; estimated = true; }
+  else if (lastSeenAgeMs > CITY_STALE_TTL_MS) { population = 0; estimated = true; }
+  else if (lastSeenAgeMs > CITY_HEARTBEAT_TTL_MS) { estimated = true; }
+  return { population, health, population_is_estimated: estimated };
+}
+
+/**
+ * PUBLIC-SAFE summary of one block: identity + presentation + adjacency + live presence
+ * (a population COUNT + health derived from heartbeat freshness). Never player ids, balances,
+ * ledger, inventory, economy, or ownership. `heartbeat` is this block's latest heartbeat (or
+ * null → unknown/0). Returns null for an unknown block.
+ */
+export function blockPublicSummary(cityId, heartbeat = null, now = Date.now()) {
   const c = getCity(cityId);
   if (!c) return null;
+  const pres = cityPresenceEntry(heartbeat, now);
   return {
     city_id: c.city_id,
     display_name: c.display_name,
     theme: c.theme,
     capacity: c.capacity,
     adjacent: adjacentBlocks(c.city_id),
+    population: pres.population,
+    health: pres.health,
+    population_is_estimated: pres.population_is_estimated,
   };
 }
 
@@ -78,17 +116,20 @@ export function cityWsHint(cityId) {
 
 /**
  * PURE: the public-safe district manifest sent to a client. `current_city_id` is the
- * server-owned block the requester is in (falls back to the default if unknown).
+ * server-owned block the requester is in (falls back to the default if unknown). `presence`
+ * is a public-safe map { cityId → heartbeat } (Phase 5C); omit it and every block reads as
+ * unknown/0 (the Phase 5A/5B static behavior).
  */
-export function districtManifest(currentCityId) {
+export function districtManifest(currentCityId, presence = {}, now = Date.now()) {
   const current = sanitizeCityId(currentCityId);
   const adjacency = {};
   for (const id of CITY_IDS) adjacency[id] = adjacentBlocks(id);
+  const beats = presence && typeof presence === 'object' ? presence : {};
   return {
     district_id: DISTRICT_ID,
     district_name: DISTRICT_NAME,
     current_city_id: isKnownBlock(current) ? current : DEFAULT_CITY_ID,
-    blocks: CITY_IDS.map((id) => blockPublicSummary(id)),
+    blocks: CITY_IDS.map((id) => blockPublicSummary(id, beats[id] || null, now)),
     adjacency,
   };
 }

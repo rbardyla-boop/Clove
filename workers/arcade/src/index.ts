@@ -17,6 +17,7 @@
 import { ArcadeRoom } from "./arcade-room";
 import { RoomRegistry } from "./room-registry";
 import { CityRoom } from "./city-room";
+import { CityRegistry } from "./city-registry";
 import { resolveRoomId, ROOM_IDS } from "./rooms.mjs";
 import { resolveCityRoomId } from "../../../arcade/city/city-block.mjs";
 
@@ -25,6 +26,8 @@ export interface Env {
   ROOM_REGISTRY: DurableObjectNamespace;
   // Phase 4A: isolated city-block authority (per-block sharded; never touches arcade state).
   CITY_ROOM: DurableObjectNamespace;
+  // Phase 5C: city-block presence coordinator (DO-to-DO only; public-safe per-block counts).
+  CITY_REGISTRY: DurableObjectNamespace;
   ADMIN_ENABLED?: string;
   ADMIN_TOKEN?: string;
 }
@@ -98,3 +101,4 @@ export default {
 export { ArcadeRoom } from "./arcade-room";
 export { RoomRegistry } from "./room-registry";
 export { CityRoom } from "./city-room";
+export { CityRegistry } from "./city-registry";

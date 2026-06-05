@@ -19,7 +19,8 @@ compatibility_date = "2026-05-31"
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
-  { name = "CITY_ROOM", class_name = "CityRoom" }
+  { name = "CITY_ROOM", class_name = "CityRoom" },
+  { name = "CITY_REGISTRY", class_name = "CityRegistry" }
 ]
 
 # SQLite-backed Durable Objects (recommended for new classes).
@@ -35,6 +36,11 @@ new_sqlite_classes = ["RoomRegistry"]
 [[migrations]]
 tag = "v3"
 new_sqlite_classes = ["CityRoom"]
+
+# Phase 5C: city-block presence coordinator DO (additive; only RUN on a deploy).
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["CityRegistry"]
 
 # Local development settings.
 [vars]
@@ -73,7 +79,8 @@ EVENT_SHOW_FEATURED = "true"
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
-  { name = "CITY_ROOM", class_name = "CityRoom" }
+  { name = "CITY_ROOM", class_name = "CityRoom" },
+  { name = "CITY_REGISTRY", class_name = "CityRegistry" }
 ]
 
 [[env.production.migrations]]
@@ -87,6 +94,10 @@ new_sqlite_classes = ["RoomRegistry"]
 [[env.production.migrations]]
 tag = "v3"
 new_sqlite_classes = ["CityRoom"]
+
+[[env.production.migrations]]
+tag = "v4"
+new_sqlite_classes = ["CityRegistry"]
 
 # ===================== Phase 3 (staging): pre-production environment =====================
 # Deploy staging with:  wrangler deploy --env staging   →  Worker `neon-arcade-mesh-staging`.
@@ -113,7 +124,8 @@ EVENT_SHOW_FEATURED = "true"
 bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
-  { name = "CITY_ROOM", class_name = "CityRoom" }
+  { name = "CITY_ROOM", class_name = "CityRoom" },
+  { name = "CITY_REGISTRY", class_name = "CityRegistry" }
 ]
 
 [[env.staging.migrations]]
@@ -127,3 +139,7 @@ new_sqlite_classes = ["RoomRegistry"]
 [[env.staging.migrations]]
 tag = "v3"
 new_sqlite_classes = ["CityRoom"]
+
+[[env.staging.migrations]]
+tag = "v4"
+new_sqlite_classes = ["CityRegistry"]

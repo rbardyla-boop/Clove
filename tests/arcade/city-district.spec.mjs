@@ -61,7 +61,7 @@ try {
   check('non-adjacent block (Skyline) is NOT offered from downtown', await A.page.evaluate(() => ![...document.querySelectorAll('#cityDistrict .dist-row')].some((r) => /Skyline/.test(r.textContent))));
 
   // public-safe manifest (no private / economy / ownership)
-  check('district manifest carries no private/economy/ownership data', await A.page.evaluate(() => !/\b(balance|ledger|inventory|payout|wager|owner|ownership|rent|rental|income|landlord|tenant|population|price|market|economy|secret|token)\b/i.test(JSON.stringify(window.__neon_city.district()))));
+  check('district manifest carries no private/economy/ownership data (population count is public)', await A.page.evaluate(() => !/\b(balance|ledger|inventory|payout|wager|owner|ownership|rent|rental|income|landlord|tenant|price|market|economy|secret|token|player_id|connection)\b/i.test(JSON.stringify(window.__neon_city.district()))));
   check('district panel copy is travel-only (no money/ownership/claim)', await A.page.evaluate(() => !/\$|\bcash\b|\bpayout\b|\bbuy\b|\bsell\b|\brent\b|\bown\b|\bowner\b|\bclaim\b|\bprice\b|\bmarket\b|\bstake\b|\bprofit\b|\bincome\b/i.test(document.getElementById('cityDistrict').textContent)));
 
   // Phase 5B: capture downtown's visual identity (style + landmark label) before travel
