@@ -24,8 +24,9 @@ import { CityNet, resolveCityWsUrl } from './city-net.js';
 import { mergePresenceDelta } from './city-district-presence.mjs';
 import {
   deriveActivitiesFromDelta, activityForRouteRequested, activityForRouteResult,
-  activityForArrival, appendActivity, ACTIVITY_FEED_MAX,
+  activityForArrival, activityForDistrictEvent, appendActivity, ACTIVITY_FEED_MAX,
 } from './city-district-activity.mjs';
+import { districtEventWindow, deriveDistrictAnnouncements } from './city-district-events.mjs';
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -94,7 +95,12 @@ let districtLiveAt = 0;               // Phase 5D: last time district presence u
 const DISTRICT_STALE_MS = 45000;      // Phase 5D: beyond this with no push → show degraded + safety re-request
 let cityActivity = [];                // Phase 5E: derived district activity feed (display-only, local history)
 let travelingTo = null;               // Phase 5E: target block of an in-flight travel (for arrival detection)
+let seededArrival = false;            // Phase 5E/6A: have we seeded the initial arrival? (decoupled from feed contents)
 const ACTIVITY_UI_MAX = 8;            // how many of the bounded buffer the district panel shows
+let cityEvent = null;                 // Phase 6A: current district-event window view (display-only, client-derived)
+const announcedEventKeys = new Set(); // Phase 6A: dedupe keys for already-announced district events
+const ANNOUNCED_KEYS_MAX = 48;        // bound the dedupe set across many windows
+const EVENT_TICK_MS = 20000;          // re-evaluate the schedule ~every 20s (catch window flips / pre-roll)
 
 // ── renderer (Three.js if present + working, else 2D) ─────────────────────────
 let renderer;
@@ -126,9 +132,11 @@ const net = new CityNet({
       inputBuffer = createInputBuffer();
       net.requestSnapshot(); // populate remote interpolation buffer promptly
       // Phase 5E: an arrival in a TRAVELED-to block (or the very first connect) logs an arrival.
-      // A plain auto-reconnect to the same block (feed already seeded) logs nothing.
-      if (travelingTo && net.cityId === travelingTo) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); travelingTo = null; }
-      else if (!cityActivity.length) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); }
+      // A plain auto-reconnect to the same block logs nothing. Phase 6A: gate on an explicit
+      // seededArrival flag (not feed emptiness — the feed may already carry a district-event item).
+      if (travelingTo && net.cityId === travelingTo) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); travelingTo = null; seededArrival = true; }
+      else if (!seededArrival) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); seededArrival = true; }
+      pollDistrictEvents();   // Phase 6A: refresh the district-event pulse on (re)connect (also re-renders)
       renderDistrict();
     },
     onSnapshot: (m) => {
@@ -372,6 +380,27 @@ function recordActivity(item) {
   cityActivity = appendActivity(cityActivity, item, ACTIVITY_FEED_MAX);
   if (window.__neon_city) window.__neon_city.lastDistrictActivity = item;
 }
+// Phase 6A: recompute the deterministic district-event window for `now`, surface any NEW
+// (deduped) public announcements into the activity feed, and refresh the district panel.
+// Display-only + entirely client-derived: nothing canonical reads this; the schedule is a pure
+// function of the clock + the static block manifest. Reconnect/reload recompute and dedupe.
+function pollDistrictEvents(now = Date.now()) {
+  cityEvent = districtEventWindow(now);
+  const { events, keys } = deriveDistrictAnnouncements(now, announcedEventKeys);
+  for (let i = 0; i < events.length; i++) {
+    announcedEventKeys.add(keys[i]);
+    recordActivity(activityForDistrictEvent(events[i], now));
+    if (window.__neon_city) window.__neon_city.lastDistrictEventAnnounced = events[i];
+  }
+  // Bound the dedupe set so it can't grow unbounded across many windows (keep the newest keys).
+  if (announcedEventKeys.size > ANNOUNCED_KEYS_MAX) {
+    const kept = [...announcedEventKeys].slice(-Math.floor(ANNOUNCED_KEYS_MAX / 2));
+    announcedEventKeys.clear();
+    for (const k of kept) announcedEventKeys.add(k);
+  }
+  renderDistrict();
+  return cityEvent;
+}
 function renderDistrict() {
   if (!districtEl) return;
   districtEl.textContent = '';
@@ -402,6 +431,25 @@ function renderDistrict() {
   const line = document.createElement('div'); line.className = 'dist-line';
   line.textContent = cur ? `theme ${cur.theme} · ${peopleLabel(cur)}` : 'current block';
   districtEl.appendChild(line);
+
+  // Phase 6A: district PULSE — a small, non-dominant event banner (current + next). textContent
+  // only; CSS-only visuals; reduced-motion safe. Display/atmosphere only — no economy/ownership.
+  if (cityEvent && cityEvent.current) {
+    const ev = document.createElement('div'); ev.className = 'dist-event';
+    const title = document.createElement('div'); title.className = 'dist-event-title';
+    const tt = document.createElement('span'); tt.className = 'dist-event-name'; tt.textContent = cityEvent.current.label;
+    const chip = document.createElement('span'); chip.className = 'dist-event-chip'; chip.textContent = 'now';
+    title.appendChild(tt); title.appendChild(chip);
+    ev.appendChild(title);
+    const sum = document.createElement('div'); sum.className = 'dist-event-sum'; sum.textContent = cityEvent.current.summary;
+    ev.appendChild(sum);
+    if (cityEvent.next) {
+      const nx = document.createElement('div'); nx.className = 'dist-event-next' + (cityEvent.preroll ? ' dist-event-soon' : '');
+      nx.textContent = `Up next: ${cityEvent.next.label}`;
+      ev.appendChild(nx);
+    }
+    districtEl.appendChild(ev);
+  }
 
   const nearby = (cur ? cur.adjacent : [])
     .map((id) => (cityDistrict.blocks || []).find((b) => b.city_id === id))
@@ -739,6 +787,10 @@ window.__neon_city = {
   // Phase 5E — district activity feed (display only; client-derived from server-authored facts)
   activity() { return cityActivity.map((a) => ({ type: a.type, city_id: a.city_id, label: a.label, severity: a.severity, occurred_at: a.occurred_at, public_safe: a.public_safe })); },
   lastDistrictActivity: null,
+  // Phase 6A — scheduled district events (display only; deterministic, client-derived from the clock)
+  districtEvent() { return cityEvent ? JSON.parse(JSON.stringify(cityEvent)) : null; },
+  lastDistrictEventAnnounced: null,
+  pollDistrictEvents(nowMs) { return JSON.parse(JSON.stringify(pollDistrictEvents(Number.isFinite(nowMs) ? nowMs : Date.now()))); },
   get cityId() { return net.cityId; },
   requestBlocks() { net.requestBlocks(); },
   routeTo(targetCityId) { net.requestRoute(targetCityId); },
@@ -757,8 +809,12 @@ window.__neon_city = {
 applyEffectiveStyle();   // apply the (default) block style to the renderer up front
 updateStewardship();     // build the stewardship panel so it is visible before server state
 updateTrial();           // build the Block Trial panel so it is visible before server state
+pollDistrictEvents();    // Phase 6A: seed the district-event pulse before server state arrives
 renderDistrict();        // show the district panel placeholder before server state arrives
 net.connect();
+// Phase 6A: keep the district-event pulse fresh — re-evaluate the deterministic schedule so the
+// banner advances and pre-roll/active/ended announcements surface as windows turn over. Display-only.
+setInterval(() => pollDistrictEvents(), EVENT_TICK_MS);
 // Phase 5D: district presence is now PUSHED on change (no steady polling). Keep only a slow
 // degraded-state safety net — if connected but no push/manifest has arrived within the stale
 // window, re-request once. renderDistrict also reflects this as a "refresh" indicator.

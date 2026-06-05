@@ -5,6 +5,51 @@ Newest first.
 
 ---
 
+## ADR-017 — Neon Circuit Phase 6A: scheduled district events + live announcements (2026-06-05)
+
+**Context.** The city is LIVE in production (`clovelearn.io`, signed off 2026-06-05 by real
+cross-device multiplayer; see `docs/PRODUCTION_ROLLOUT_PLAN.md`). Phase 5 made the district
+*functional* (routing, identity, presence, push deltas, activity feed); Phase 6A is the first
+post-launch feature: a district *pulse* so the world feels alive — a current event, a next event,
+and live public announcements ("Downtown Signal Surge is active.", "Harbor Quiet Window starts
+soon.") — without opening any risky system.
+
+**Decision.**
+1. **Client-derived deterministic schedule, not a server feature (Option A).** District events are a
+   pure function of the wall clock + the static block manifest — every client computes the SAME
+   current/next event and the SAME stable `event_id` per window. So Phase 6A adds **NO** Worker code,
+   DO, migration, route, server message, or protocol field; the Worker bundle is byte-identical
+   (`187.10 KiB / 40.74 KiB gz`). Old clients are unaffected; the feature needs no deploy to exist in
+   code (and deploy stays separately gated). (Rejected: Option B server-derived schedule — Worker
+   change + deploy + regression surface for no authority gain, since nothing canonical depends on the
+   schedule.)
+2. **New pure module** `arcade/city/city-district-events.mjs` — fixed `WINDOW_MS` (5 min) buckets;
+   `(type, focus block)` chosen by deterministic rotation on the window index; events built through a
+   field ALLOWLIST (only a static block name is interpolated; `public_safe: true`); bounded, witnessed
+   ("ended" only fires for a window whose active was seen) + deduped announcements via a caller-owned
+   key set (reload/reconnect recompute and cannot spam).
+3. **Single allowlist choke point reused.** `city-district-activity.mjs` is extended *additively* with
+   three display types (`district_event_{upcoming,active,ended}`) + labels/severity + a
+   `activityForDistrictEvent` projector, so announcements flow into the existing DISTRICT ACTIVITY feed
+   through the same public-safety projection as every other item.
+4. **Client** renders a small, non-dominant district-event banner (current + next + a "now" chip,
+   `textContent` only, CSS-only, reduced-motion safe, phone-safe) above the activity feed, polls the
+   schedule on connect + a 20 s tick, and seeds announcements into the bounded feed. The 5E arrival
+   seed was decoupled from feed-emptiness onto an explicit `seededArrival` flag (the feed can now carry
+   an event item before the arrival).
+
+**Consequences.** Zero server/protocol change → nothing to migrate or roll back beyond additive client
+code; rollback = revert the branch. Strictly display/atmosphere: it never touches rewards, tickets,
+Host Rank, Stewardship, Block Trial, prize values, or any economy (there is none). Public-safe by
+construction (allowlist + fixed observational labels), proven by unit + browser tests asserting no
+private data and no forbidden economy/ownership/gambling copy. Validation: 553 unit (+17 pure) + new
+20-check events browser smoke + all Phase 4/5 city + arcade regression (incl. the regressed-then-fixed
+5E arrival smoke) + Worker dry-run byte-identical + size (≈0.773/0.209 MB gz) + config gate +
+guardrails — all green. Local-only commit on `feat/neon-circuit-phase6a-district-events`; not
+pushed/merged/tagged/deployed. Detail: `docs/NEON_CIRCUIT_PHASE6A_DISTRICT_EVENTS.md`.
+
+---
+
 ## ADR-016 — Neon Circuit Phase 5E: district activity feed + transition polish (2026-06-05)
 
 **Context.** Phase 5D pushes public-safe district presence deltas, but the player still had to infer
