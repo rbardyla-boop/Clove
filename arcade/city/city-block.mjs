@@ -125,9 +125,28 @@ export const CITY_BLOCK = Object.freeze({
   spawns: SPAWN_POINTS,
 });
 
-/** Public-safe layout payload for the client (deep-cloned so the wire copy is plain). */
-export function publicLayout() {
-  return JSON.parse(JSON.stringify(CITY_BLOCK));
+/**
+ * Phase 5B — per-block landmark LABELS (display-only). Every block shares the SAME
+ * canonical geometry (so collision/spawn/portal authority is identical and unchanged);
+ * only the building labels differ, giving each block its own identity. The arcade
+ * building keeps its label everywhere (it is the portal home). Unknown/missing cityId →
+ * downtown's built-in labels.
+ */
+const BLOCK_LABELS = Object.freeze({
+  'harbor-02': Object.freeze({ 'data-spire': 'HARBOR CONTROL', 'ramen': 'DOCKSIDE NOODLES', 'maglev': 'FERRY TERMINAL' }),
+  'skyline-03': Object.freeze({ 'data-spire': 'SKY TOWER', 'ramen': 'CLOUD CAFE', 'maglev': 'SKY-TRAM HUB' }),
+});
+
+/**
+ * Public-safe layout payload for the client (deep-cloned so the wire copy is plain).
+ * Phase 5B: `cityId` overlays that block's landmark labels onto the shared geometry; no
+ * cityId → the default (downtown) labels. Geometry is byte-identical across blocks.
+ */
+export function publicLayout(cityId) {
+  const layout = JSON.parse(JSON.stringify(CITY_BLOCK));
+  const labels = (typeof cityId === 'string' && BLOCK_LABELS[cityId]) || null;
+  if (labels) for (const b of layout.buildings) if (labels[b.id]) b.label = labels[b.id];
+  return layout;
 }
 
 // ===================== city room catalog =====================
@@ -422,7 +441,7 @@ export function welcomePayload(state, playerId, cityId, serverTime = Date.now())
     self_player_id: playerId,
     you: you ? publicPlayer(you) : null,
     players: citySnapshot(state, serverTime).players,
-    layout: publicLayout(),
+    layout: publicLayout(cityId), // Phase 5B: per-block landmark labels (same geometry)
     tick: { snapshotIntervalMs: SNAPSHOT_INTERVAL_MS, maxSpeed: MOVEMENT.MAX_SPEED },
   };
 }

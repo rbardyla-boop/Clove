@@ -95,7 +95,9 @@ export class CityRoom implements DurableObject {
       // Phase 4F: canonical block style — normalized through the pure manifest so a stored
       // value can never carry anything outside the allowlist, and missing → city default.
       const storedSt = await this.ctx.storage.get<any>("cityStewardship");
-      this.stewardship = storedSt ? normalizeBlockStyle(storedSt) : defaultBlockStyle();
+      // Phase 5B: a cold block seeds its OWN per-block default identity (boundCityId is set
+      // from the route before init — see fetch()); a stored style is normalized as before.
+      this.stewardship = storedSt ? normalizeBlockStyle(storedSt) : defaultBlockStyle(this.boundCityId);
     });
   }
 
@@ -119,16 +121,19 @@ export class CityRoom implements DurableObject {
   // ==================== WebSocket transport ====================
 
   async fetch(request: Request): Promise<Response> {
-    await this.ensureInitialized();
     const url = new URL(request.url);
     if (url.pathname === "/arcade/city/ws") {
+      // Bind the block from the route BEFORE init so a cold DO seeds the per-block default
+      // style/labels (Phase 5B) rather than the downtown default.
       const hinted = resolveCityRoomId(url.searchParams.get("city"));
       if (hinted.ok) this.boundCityId = hinted.cityId;
+      await this.ensureInitialized();
       const pair = new WebSocketPair();
       const server = pair[1];
       this.ctx.acceptWebSocket(server, ["city"]);
       return new Response(null, { status: 101, webSocket: pair[0] });
     }
+    await this.ensureInitialized();
     return new Response("Not found", { status: 404 });
   }
 

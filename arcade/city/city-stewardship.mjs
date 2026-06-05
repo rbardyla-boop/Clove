@@ -68,12 +68,38 @@ const DEFAULT_INTERNAL = Object.freeze({
 });
 export const DEFAULT_BLOCK_STYLE = DEFAULT_INTERNAL;
 
-/** A fresh, deeply-frozen copy of the city-default block style. */
-export function defaultBlockStyle() {
+/**
+ * Phase 5B — per-block DEFAULT style identity (display-only; every value is drawn from
+ * the SAME closed stewardship allowlist). Each block starts with its own look so
+ * travelling the district visibly changes the world; a steward can still edit within the
+ * manifest, and a reset returns to the block's own default. Unknown/missing cityId → the
+ * city default (downtown). This is paint, not ownership/economy.
+ */
+const BLOCK_DEFAULT_STYLES = Object.freeze({
+  'downtown-01': DEFAULT_INTERNAL, // neon-noir: magenta arcade, cyan lights/trim
+  'harbor-02': Object.freeze({     // tidal-cyan
+    arcade_front: Object.freeze({ palette: 'cyan', sign_variant: 'signal', intensity: 'medium' }),
+    street_lights: Object.freeze({ palette: 'cyan', intensity: 'high' }),
+    sidewalk_trim: Object.freeze({ palette: 'white' }),
+  }),
+  'skyline-03': Object.freeze({    // sunset-amber
+    arcade_front: Object.freeze({ palette: 'amber', sign_variant: 'circuit', intensity: 'high' }),
+    street_lights: Object.freeze({ palette: 'amber', intensity: 'medium' }),
+    sidewalk_trim: Object.freeze({ palette: 'white' }),
+  }),
+});
+
+/**
+ * A fresh, deeply-frozen copy of a block's default style. Phase 5B: `cityId` selects the
+ * per-block identity; no/unknown cityId → the city default (downtown), so every existing
+ * no-arg caller is unchanged. All values are manifest-allowlisted by construction.
+ */
+export function defaultBlockStyle(cityId) {
+  const src = (typeof cityId === 'string' && BLOCK_DEFAULT_STYLES[cityId]) || DEFAULT_INTERNAL;
   return freezeStyle({
-    arcade_front: { ...DEFAULT_INTERNAL.arcade_front },
-    street_lights: { ...DEFAULT_INTERNAL.street_lights },
-    sidewalk_trim: { ...DEFAULT_INTERNAL.sidewalk_trim },
+    arcade_front: { ...src.arcade_front },
+    street_lights: { ...src.street_lights },
+    sidewalk_trim: { ...src.sidewalk_trim },
   });
 }
 
@@ -159,7 +185,7 @@ export function evaluateStewardship({ cityId, now = Date.now(), hostRank = null,
   if (!isStewardshipEligible(hostRank)) return { ok: false, action, reason: 'host_rank_too_low', ...base };
 
   if (action === 'reset') {
-    const canonical = defaultBlockStyle();
+    const canonical = defaultBlockStyle(cityId); // Phase 5B: reset to the BLOCK's own default identity
     return { ok: true, action, target: null, canonical_style: canonical, preview_style: canonical, reason: 'reset_to_default', ...base };
   }
 

@@ -27,6 +27,9 @@ export function createCanvas2DRenderer(canvas, layout) {
   let cssH = 0;
   let accents = null; // Phase 4F: canonical block-style accents (null → built-in palette)
   function applyBlockStyle(style) { accents = style ? styleToAccents(style) : null; }
+  // Phase 5B: swap the layout (per-block landmark labels) when the player travels blocks.
+  // Geometry is identical across blocks, so this only refreshes the drawn building labels.
+  function setLayout(l) { if (l && l.world && Array.isArray(l.buildings)) layout = l; }
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -149,5 +152,5 @@ export function createCanvas2DRenderer(canvas, layout) {
     }
   }
 
-  return { name: 'canvas2d', draw, resize, applyBlockStyle };
+  return { name: 'canvas2d', draw, resize, applyBlockStyle, setLayout };
 }

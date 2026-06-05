@@ -64,6 +64,13 @@ try {
   check('district manifest carries no private/economy/ownership data', await A.page.evaluate(() => !/\b(balance|ledger|inventory|payout|wager|owner|ownership|rent|rental|income|landlord|tenant|population|price|market|economy|secret|token)\b/i.test(JSON.stringify(window.__neon_city.district()))));
   check('district panel copy is travel-only (no money/ownership/claim)', await A.page.evaluate(() => !/\$|\bcash\b|\bpayout\b|\bbuy\b|\bsell\b|\brent\b|\bown\b|\bowner\b|\bclaim\b|\bprice\b|\bmarket\b|\bstake\b|\bprofit\b|\bincome\b/i.test(document.getElementById('cityDistrict').textContent)));
 
+  // Phase 5B: capture downtown's visual identity (style + landmark label) before travel
+  const dtId = await A.page.evaluate(() => ({
+    palette: window.__neon_city.blockStyle().arcade_front.palette,
+    label: (window.__neon_city.layout().buildings.find((b) => b.id === 'data-spire') || {}).label,
+  }));
+  check('downtown has a block style + landmark label (5B identity)', !!dtId.palette && !!dtId.label);
+
   // ── bounded routing: a NON-adjacent route is server-rejected; you stay put ───
   // (route requests are server rate-limited; space them so each result is observed)
   await A.page.evaluate(() => window.__neon_city.routeTo('skyline-03'));
@@ -92,10 +99,24 @@ try {
   check('server-owned current block is now harbor-02', await A.page.evaluate(() => window.__neon_city.district().current_city_id === 'harbor-02'));
   check('from harbor, BOTH downtown and skyline are adjacent (hub)', await A.page.evaluate(() => { const el = document.getElementById('cityDistrict'); return /Downtown Block/.test(el.textContent) && /Skyline Block/.test(el.textContent); }));
 
+  // Phase 5B: harbor has its OWN visual identity (style + landmark labels change on travel)
+  await A.page.waitForFunction((p) => window.__neon_city.blockStyle().arcade_front.palette !== p, dtId.palette, { timeout: 5000 }).catch(() => {});
+  const hbId = await A.page.evaluate(() => ({
+    palette: window.__neon_city.blockStyle().arcade_front.palette,
+    label: (window.__neon_city.layout().buildings.find((b) => b.id === 'data-spire') || {}).label,
+  }));
+  check('harbor block style differs from downtown (5B per-block identity)', hbId.palette !== dtId.palette);
+  check('harbor landmark label differs from downtown', hbId.label && hbId.label !== dtId.label);
+
   // harbor → skyline is adjacent → another server-confirmed hop
   check('clicked the Skyline Travel control', await clickTravel(A.page, 'Skyline'));
   await A.page.waitForFunction(() => window.__neon_city.cityId === 'skyline-03' && window.__neon_city.connected, null, { timeout: 9000 }).catch(() => {});
   check('travel reconnected the client to skyline-03', await A.page.evaluate(() => window.__neon_city.cityId === 'skyline-03' && window.__neon_city.status === 'live'));
+
+  // Phase 5B: skyline has its own third distinct identity
+  await A.page.waitForFunction((p) => window.__neon_city.blockStyle().arcade_front.palette !== p, hbId.palette, { timeout: 5000 }).catch(() => {});
+  const skPalette = await A.page.evaluate(() => window.__neon_city.blockStyle().arcade_front.palette);
+  check('skyline block style is distinct from both downtown and harbor', skPalette !== dtId.palette && skPalette !== hbId.palette);
 
   // ── per-block isolation: skyline has its OWN fresh state ─────────────────────
   check('skyline block has its own world log (per-block isolation)', await A.page.evaluate(() => { const el = document.getElementById('cityEventLog'); return !!el; }));

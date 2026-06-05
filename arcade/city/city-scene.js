@@ -106,7 +106,7 @@ const net = new CityNet({
   handlers: {
     onStatus: setStatus,
     onWelcome: (m) => {
-      if (m.layout) layout = m.layout;
+      if (m.layout) { layout = m.layout; renderer.setLayout?.(layout); } // Phase 5B: per-block labels on (re)connect/travel
       if (m.you) {
         serverSelf = { x: m.you.x, y: m.you.y, facing: m.you.facing };
         predicted = { ...serverSelf };
