@@ -5,6 +5,39 @@ Newest first.
 
 ---
 
+## ADR-025 — Neon Circuit Phase 7B: walkable-boundary kernel layer (2026-06-06)
+
+**Context.** The Gameplay Charter (ADR-024) made the City Gameplay Kernel the foundation gameplay
+extends. Phase 7B builds its first explicit layer — walkable boundaries — without reimplementing the
+collision authority that has existed since Phase 4A.
+
+**Decision.**
+1. **Compose, don't duplicate.** New pure `arcade/city/city-collision.mjs` composes the existing
+   `city-block.mjs` primitives (`WORLD`, `MOVEMENT`, `isWalkable`, `resolveCollision`, `SPAWN_POINTS`)
+   and adds the kernel boundary API: `isPointWalkable`, `clampToWalkable`, `segmentIntersectsBlocked`,
+   `nearestSafePoint`, `safeSpawnPoint`, `safeArrivalPoint`, plus a `BLOCKED_ZONES` capability (keep-out
+   rectangles distinct from solid buildings, per-block, frozen). The public API accepts a city id **or**
+   an explicit zones array, so blocked-zone logic is fully fixture-testable.
+2. **Authority unchanged; model server-ready.** World-bounds + building collision stay
+   **server-authoritative** (the DO's `predictStep` is untouched). The module is server-ready (the
+   CityRoom DO may import it), but in 7B the new blocked-zone layer is client-enforced for feel and
+   verified by tests; the **live `BLOCKED_ZONES` set is empty** (capability proven, not yet populated),
+   so the Worker stays **byte-identical** (no migration, no live-feel change). Populating a block's zones
+   later enforces consistently on server + client via the shared step. The client never becomes the
+   permanent source of truth.
+3. **Display guard only on the client.** `city-scene.js` snaps the *eased* avatar to a walkable point so
+   it never visually clips a wall/zone during interpolation — a no-op in normal play with empty live
+   zones; it wires the kernel into the render path.
+4. **No combat/vehicles/navmesh.** Deterministic AABB + wall-slide only, replay-deterministic, within the
+   GTA-80 size budget.
+
+**Consequences.** New `arcade/city/city-collision.mjs` + `tests/arcade/city-collision.{test,spec}.mjs` +
+`tests/arcade/run-city-collision.sh` + `docs/NEON_CIRCUIT_PHASE7B_COLLISION.md`; additive `city-scene.js`
+display guard. **No Worker/DO change, no migration, no economy/ownership/accounts.** Validation: 584
+arcade unit (568 + 16) + 16-check browser smoke (real move-to-wall clamp + in-browser kernel) + existing
+city-authority regression green + size 0.795 MB / 0.217 gz (GTA-80 within) + Worker dry-run byte-identical
+(195.09 KiB). Local-only; not deployed. Detail: `docs/NEON_CIRCUIT_PHASE7B_COLLISION.md`.
+
 ## ADR-024 — Neon Circuit city gameplay must be kernel-first, not bolt-on (2026-06-06)
 
 **Context.** Phase 6 is live in production with real cross-device multiplayer, a four-block district,
