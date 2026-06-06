@@ -50,7 +50,12 @@ function zonesOf(ctx) {
   return (id && BLOCKED_ZONES[id]) || [];
 }
 
-/** A circle (center x,y radius r) overlaps an AABB inflated by the radius. */
+/**
+ * Circle-vs-AABB overlap, conservative: tests the point against the rect inflated by `r`.
+ * This over-approximates slightly at corners (a point up to ~r√2 diagonally off a corner reads
+ * as inside) — it errs toward BLOCKING, which is safe, and matches the existing convention in
+ * city-block.mjs (`circleHitsRect`) so the two layers agree.
+ */
 function circleHitsRect(x, y, r, rect) {
   return x > rect.x - r && x < rect.x + rect.w + r && y > rect.y - r && y < rect.y + rect.h + r;
 }
@@ -137,7 +142,10 @@ export function nearestSafePoint(x, y, ctx, r = R) {
       if (isPointWalkable(qx, qy, ctx, r)) return { x: qx, y: qy };
     }
   }
-  return safeSpawnPoint(ctx);
+  // Spiral exhausted — a context with no walkable point in range. Return the clamped centre.
+  // We do NOT delegate to safeSpawnPoint here: that would risk unbounded mutual recursion when
+  // a context has no walkable point at all (both fallbacks would call each other forever).
+  return { x: cx, y: cy };
 }
 
 /**
@@ -152,8 +160,10 @@ export function safeSpawnPoint(ctx, seed = 0) {
     const s = SPAWN_POINTS[(start + i) % n];
     if (isPointWalkable(s.x, s.y, ctx)) return { x: s.x, y: s.y };
   }
-  const c = { x: WORLD.w / 2, y: WORLD.h / 2 };
-  return isPointWalkable(c.x, c.y, ctx) ? c : nearestSafePoint(c.x, c.y, ctx);
+  // Terminal fallback: the world centre. We do NOT delegate to nearestSafePoint here — that
+  // would risk unbounded mutual recursion if a context has no walkable point at all. Callers get
+  // a finite, in-bounds point even for a fully-blocked context (it just may not be "safe").
+  return { x: WORLD.w / 2, y: WORLD.h / 2 };
 }
 
 /**

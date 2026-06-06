@@ -115,6 +115,20 @@ test('garbage coordinates fail safe (never walkable)', () => {
   assert.equal(isInBlockedZone(NaN, NaN, FIXTURE), true); // garbage is never "safe"
 });
 
+test('fully-blocked context returns a finite point without infinite recursion', () => {
+  // A zone covering the whole world: NO point is walkable. nearestSafePoint/safeSpawnPoint must
+  // terminate (return the clamped centre) rather than recurse into each other forever.
+  const ALL = [Object.freeze({ id: 'sealed', x: 0, y: 0, w: WORLD.w, h: WORLD.h, label: 'SEALED' })];
+  let near, spawn, arrival;
+  assert.doesNotThrow(() => { near = nearestSafePoint(500, 500, ALL); });
+  assert.doesNotThrow(() => { spawn = safeSpawnPoint(ALL, 3); });
+  assert.doesNotThrow(() => { arrival = safeArrivalPoint(ALL); });
+  for (const p of [near, spawn, arrival]) {
+    assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y), 'returns a finite point');
+    assert.ok(p.x >= 0 && p.x <= WORLD.w && p.y >= 0 && p.y <= WORLD.h, 'point is in-bounds');
+  }
+});
+
 test('deterministic output for identical inputs', () => {
   const a = clampToWalkable({ x: 450, y: 500 }, { x: 520, y: 500 }, FIXTURE);
   const b = clampToWalkable({ x: 450, y: 500 }, { x: 520, y: 500 }, FIXTURE);
