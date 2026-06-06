@@ -5,6 +5,47 @@ Newest first.
 
 ---
 
+## ADR-024 — Neon Circuit city gameplay must be kernel-first, not bolt-on (2026-06-06)
+
+**Context.** Phase 6 is live in production with real cross-device multiplayer, a four-block district,
+and a server-authored event pulse; the creator foundation (CF-1/CF-2/CF-3 on `main`) is in place. The
+next risk is no longer missing features — it is **architectural drift**. If "GTA-style" gameplay, block
+customization, arcade-game packages, creator assets, and decentralized ("Hive") validation are added
+later as bolt-ons, they create latency, security, moderation, and design debt that is expensive to undo.
+A gameplay constitution is needed *before* the map grows deeper. (This charter was authored off the
+pre-CF-3 `main` and given ADR-024 to avoid colliding with ADR-023; CF-3 then merged to `main` via PR #42
+(`d75080d`), so this branch was rebased on top and ADR-024 sits immediately above ADR-023, below.)
+
+**Decision.** Adopt a **gameplay charter** (this ADR's detail lives in four new docs) that fixes:
+1. **"GTA-style" = camera / spatial / social city readability, not IP or content cloning.** The genre
+   reference is top-down/isometric legibility (the existing "GTA-80" size-and-readability framing,
+   ADR-004); GTA/APB/SimCity/RCT assets, names, maps, and signature antagonistic mechanics (crime,
+   weapons, police, wanted level, vehicular violence, theft, loot, gambling) are hard non-goals.
+2. **Gameplay is kernel-first.** A small **City Gameplay Kernel** (movement, collision, routing, arrival,
+   presence, interaction zones, arcade entry, district events, activity feed, block trial, stewardship,
+   creator preview, approved loading) is specified with explicit *client-owned-display vs.
+   server-owned-truth* splits, so every future feature extends the kernel rather than working around it.
+   The binding rule: **display may be predicted on the client; truth is always the server's, projected
+   through an allowlist; the client never authors a canonical fact.**
+3. **Creator customization requires validation before any live use.** The CF-1…CF-8 pipeline keeps
+   deny-by-default, data-only closed-token packages, hash-bound approval, and `LIVE_WORLD_LOADER_ENABLED`
+   closed until a deliberate, human-reviewed CF-7 (the doc's "CF-E") opens it. No open UGC, no arbitrary
+   scripts/uploads, no live load without an approved-hash receipt.
+4. **Gameplay expansion must preserve server authority** (`CityRoom` per-block, `CityRegistry` cross-block,
+   input-intent-only protocol) and **economy/ownership remains a non-goal** (no money/crypto/marketplace/
+   paid hosting/land ownership/sellable or transferable goods) until a future charter ADR states exactly
+   how, behind legal/safety gates.
+
+**Consequences.** Four new docs (`docs/NEON_CIRCUIT_GAMEPLAY_CHARTER.md`,
+`docs/NEON_CIRCUIT_CITY_GAMEPLAY_KERNEL.md`, `docs/NEON_CIRCUIT_CREATOR_PIPELINE_ROADMAP.md`,
+`docs/NEON_CIRCUIT_PHASE7_PLAN.md`) plus this ADR. **Docs-only:** no Worker/DO/creator/test/production
+code changed; no deploy; no Phase 7 implementation. Phase 7 ("City Gameplay Kernel": interaction zones,
+collision/boundaries, reward-free objectives, arcade entry/return polish, server-confirmed receipts,
+cross-device multiplayer proof) is scoped but gated behind `AUTHORIZED: IMPLEMENT PHASE 7A`. Recommended
+order: land this charter → CF-2/CF-3 are on `main` (CF-3 via PR #42) →
+Phase 7 (7B collision groundwork, then 7A interaction zones) → only then city-scale expansion.
+Charter authored on `docs/neon-circuit-gameplay-charter`.
+
 ## ADR-023 — Creator Foundation CF-3: layered block customization (data-only depth on the CF-2 boundary) (2026-06-06)
 
 **Context.** With the trust boundary built (CF-2), customization *depth* can be added safely. CF-3
