@@ -53,6 +53,10 @@ test('economy/ownership/gambling copy in label or prompt is rejected', () => {
   assert.ok(validateInteractionZone({ ...ARCADE, label: 'Buy Tickets' }).errors.includes('forbidden_copy_in_label'));
   assert.ok(validateInteractionZone({ ...ARCADE, prompt: 'Own this block' }).errors.includes('forbidden_copy_in_prompt'));
   assert.ok(validateInteractionZone({ ...ARCADE, prompt: 'Place a wager' }).errors.includes('forbidden_copy_in_prompt'));
+  // review hardening: word-suffix + space-separated economy terms must also be rejected
+  for (const bad of ['Gambling den', 'Cash out here', 'Earn rewards', 'For sale', 'Boost income']) {
+    assert.equal(validateInteractionZone({ ...ARCADE, label: bad }).ok, false, `"${bad}" must be rejected`);
+  }
 });
 
 test('garbage / malformed zones are rejected (deny-by-default)', () => {

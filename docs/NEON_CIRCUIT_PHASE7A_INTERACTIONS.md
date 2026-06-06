@@ -48,9 +48,13 @@ prompt UI was added, keeping the proven portal/district/event flows intact.
 ## Forbidden by construction
 
 Zone kinds and label/prompt text are screened against an economy/ownership/gambling/crime regex
-(shop, market, buy/sell, rent, own, wager, bet, gambl, loot, raid, cashout, payout, crypto, token, nft,
-stake, multiplier, weapon, police, wanted, crime, …). A forbidden kind or any such copy fails validation,
-so a malformed or economy-laden zone can never drive a prompt or produce an action request.
+(shop, market, buy/sell, for-sale, rent, own, wager, bet, gambling, loot, raid, cash-out, payout, payment,
+earn, crypto, token, nft, stake, multiplier, boost, weapon, police, wanted, crime, …). It is **aligned
+with** (a superset of the interaction-relevant terms in) the charter non-goals and the creator validator's
+`FORBIDDEN_TERMS` family — a sibling list, not a byte-for-byte copy. A forbidden kind or any such copy
+fails validation, so a malformed or economy-laden zone can never drive a prompt or produce an action
+request. (In 7A the only live zone copy is the server-frozen "ENTER ARCADE" label; the regex is
+defense-in-depth for the author-supplied zone copy that Phase 7E/creator phases may introduce.)
 
 ## Validation
 
