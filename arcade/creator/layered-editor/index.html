@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Local-only tool: same-origin modules/styles only; no remote code, no connections. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Creator Foundation — Layered Block Editor (CF-3)</title>
+<!--
+  LOCAL, OFFLINE, NO-SUBMIT editor for the DATA-ONLY `block_layered` package kind. Composes 6 procedural
+  layer dimensions (facade · windows · roof · sign · symbols/decals · lighting zones) from closed
+  allowlists, previews with the procedural layered renderer, validates locally with the SAME validator
+  the CLI uses, and exports a package + a local validation report. NO network, NO external assets, NO live
+  submit, NO live-world load. Serve from the repo root over a local static server:
+      python3 -m http.server 8099   →   /arcade/creator/layered-editor/
+-->
+<link rel="stylesheet" href="../block-editor/block-editor.css">
+<link rel="stylesheet" href="./layered-editor.css">
+</head>
+<body>
+<header>
+  <h1>CREATOR FOUNDATION <span>//</span> LAYERED BLOCK EDITOR</h1>
+  <div class="sub">block_layered · 6 procedural layers · local validation · no upload · no submit · no live world</div>
+</header>
+<main>
+  <section class="card" id="controls">
+    <h2>Compose (closed allowlists)</h2>
+    <label for="package_id">Package id (kebab)</label>
+    <input type="text" id="package_id" value="downtown-neon-facade-01" autocomplete="off" spellcheck="false">
+    <label for="display_name">Display name (optional)</label>
+    <input type="text" id="display_name" maxlength="40" value="Neon Downtown Facade" autocomplete="off">
+    <div class="grid2">
+      <div><label for="target_city_id">Target block</label><select id="target_city_id"></select></div>
+      <div><label for="palette_variant">Palette variant</label><select id="palette_variant"></select></div>
+    </div>
+
+    <h3>Facade</h3>
+    <div class="grid2">
+      <div><label for="facade_pattern">Pattern</label><select id="facade_pattern"></select></div>
+      <div><label for="facade_trim">Trim</label><select id="facade_trim"></select></div>
+      <div><label for="facade_primary_color">Primary</label><select id="facade_primary_color"></select></div>
+      <div><label for="facade_secondary_color">Secondary</label><select id="facade_secondary_color"></select></div>
+    </div>
+
+    <h3>Windows</h3>
+    <div class="grid2">
+      <div><label for="windows_grid_type">Grid</label><select id="windows_grid_type"></select></div>
+      <div><label for="windows_density">Density</label><select id="windows_density"></select></div>
+      <div><label for="windows_glow_color">Glow</label><select id="windows_glow_color"></select></div>
+    </div>
+
+    <h3>Roof &amp; sign</h3>
+    <div class="grid2">
+      <div><label for="roof_accent_type">Roof accent</label><select id="roof_accent_type"></select></div>
+      <div><label for="roof_highlight">Roof highlight</label><select id="roof_highlight"></select></div>
+      <div><label for="roof_pattern">Roof pattern</label><select id="roof_pattern"></select></div>
+      <div><label for="sign_variant">Sign</label><select id="sign_variant"></select></div>
+      <div><label for="sign_placement">Sign place</label><select id="sign_placement"></select></div>
+      <div><label for="sign_color">Sign color</label><select id="sign_color"></select></div>
+    </div>
+
+    <h3>Symbols / decals <span class="hint">(up to 6)</span></h3>
+    <div id="symbolRows"></div>
+
+    <h3>Lighting zones <span class="hint">(1–4)</span></h3>
+    <div id="zoneRows"></div>
+  </section>
+
+  <section class="card" id="previewCard">
+    <h2>Layered preview (procedural)</h2>
+    <canvas id="preview" width="320" height="300" aria-label="Layered block preview"></canvas>
+    <div class="note">Original procedural shapes only — no external images/audio, no copied franchise art. The live world is untouched; nothing is written, uploaded, or loaded live.</div>
+  </section>
+
+  <section class="card" id="reportCard">
+    <h2>Local validation</h2>
+    <div class="verdict" id="verdict">—</div>
+    <div class="report" id="report"></div>
+    <div class="hash" id="hash"></div>
+    <div class="actions">
+      <button id="exportPkg">Export package JSON</button>
+      <button id="exportReport">Export report</button>
+    </div>
+    <div class="receipt-note" id="receiptNote"></div>
+  </section>
+
+  <section class="card" id="approvedCard">
+    <h2>Approved local preview <span class="op-tag">operator</span></h2>
+    <div class="note">Import a block_layered package + its approval receipt to render an <strong>offline preview</strong>.
+      A package loads only when its hash matches the receipt and the receipt says
+      <code>operator_approved_local</code>. The live world is closed here — no submit, no upload, and no
+      live-world loader (disabled in code).</div>
+    <label for="importPkg">Import package JSON</label>
+    <input type="file" id="importPkg" accept="application/json,.json">
+    <label for="importReceipt">Import approval receipt JSON</label>
+    <input type="file" id="importReceipt" accept="application/json,.json">
+    <canvas id="approvedPreview" width="320" height="300" aria-label="Approved local preview"></canvas>
+    <div class="hash" id="approvedHash"></div>
+    <div class="receipt-note" id="approvedReceiptStatus"></div>
+    <div class="approved-status a-bad" id="approvedStatus">—</div>
+    <div class="approved-warning" id="approvedWarning" role="status"></div>
+  </section>
+</main>
+<script type="module" src="./layered-editor.mjs"></script>
+</body>
+</html>

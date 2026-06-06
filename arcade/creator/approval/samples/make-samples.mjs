@@ -51,4 +51,22 @@ const write = (name, obj) => { writeFileSync(join(HERE, name), JSON.stringify(ob
 write('sample-block.approved-receipt.json', approvedReceipt);
 write('sample-block.mismatch-receipt.json', mismatchReceipt);
 write('sample-approved-registry.json', registry);
-console.log(`package hash: ${hash}`);
+console.log(`block_style package hash: ${hash}`);
+
+// ── CF-3: layered package receipts (for the layered editor approved-preview smoke) ───────────────
+const layered = JSON.parse(readFileSync(join(HERE, '../../samples/sample-layered.package.json'), 'utf8'));
+const layeredHash = await packageHash(layered);
+const layeredModified = { ...layered, display_name: 'A Different Layered Facade' };
+const layeredModifiedHash = await packageHash(layeredModified);
+
+const layeredApproved = await buildApprovalReceipt({
+  packageHash: layeredHash, packageKind: 'block_layered', status: 'operator_approved_local',
+  operatorNote: 'Reviewed locally for offline preview. Not authorized for the live world.', now: APPROVED_AT,
+});
+const layeredMismatch = await buildApprovalReceipt({
+  packageHash: layeredModifiedHash, packageKind: 'block_layered', status: 'operator_approved_local',
+  operatorNote: 'Bound to a different package hash on purpose (negative sample).', now: APPROVED_AT,
+});
+write('sample-layered.approved-receipt.json', layeredApproved);
+write('sample-layered.mismatch-receipt.json', layeredMismatch);
+console.log(`block_layered package hash: ${layeredHash}`);

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "receipt_kind": "creator_approval_receipt",
+  "package_hash": "sha256:126ad5e5e038a8392aec0d94a79d9312883bddf179fb071c04902fa2fc2ccdb6",
+  "package_kind": "block_layered",
+  "approval_status": "operator_approved_local",
+  "validator_version": "creator-validator-cf2",
+  "operator_note": "Bound to a different package hash on purpose (negative sample).",
+  "live_world_authorized": false,
+  "approved_at": "2026-06-06T00:00:00.000Z",
+  "receipt_hash": "sha256:465cf09cc629d6cdf2ae6fe168d2eceadf8f5a3efb9ceae13c24cc666de79cdd"
+}
