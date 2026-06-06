@@ -15,6 +15,8 @@ import { drawBlock } from '../render/iso-renderer.mjs';
 
 const $ = (id) => document.getElementById(id);
 const fill = (id, list, sel) => { $(id).innerHTML = list.map((v) => `<option${v === sel ? ' selected' : ''}>${v}</option>`).join(''); };
+/** Escape HTML metacharacters — defense-in-depth before any innerHTML interpolation of validator text. */
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 fill('target_city_id', TARGET_CITY_IDS, 'harbor-02');
 fill('palette', PALETTES, 'neon-cyan');
@@ -65,8 +67,8 @@ async function render() {
   vEl.className = `verdict ${v.ok ? 'v-ok' : 'v-bad'}`;
   const lines = [];
   lines.push(`<div class="lim">size ${v.limits.size_bytes} / ${v.limits.size_budget_bytes} bytes</div>`);
-  for (const e of v.errors) lines.push(`<div class="err">✗ ${e}</div>`);
-  for (const w of v.warnings) lines.push(`<div class="warn">! ${w}</div>`);
+  for (const e of v.errors) lines.push(`<div class="err">✗ ${esc(e)}</div>`);
+  for (const w of v.warnings) lines.push(`<div class="warn">! ${esc(w)}</div>`);
   if (v.ok && !v.errors.length) lines.push('<div>✓ all checks passed</div>');
   $('report').innerHTML = lines.join('');
   $('hash').textContent = report.package_hash;

@@ -15,6 +15,7 @@
  */
 import { packageHash } from '../validator/package-hash.mjs';
 import { validateBlockPackage } from '../validator/validate-block-package.mjs';
+import { validateBlockLayeredPackage } from '../validator/validate-block-layered-package.mjs';
 import { validateArcadePackage } from '../validator/validate-arcade-package.mjs';
 import { validateReceipt } from './approval-receipt.mjs';
 import { validateRegistry, resolveApprovedPackage } from './approved-package-registry.mjs';
@@ -34,6 +35,7 @@ function reject(reason, extra = {}) { return { ok: false, reason, ...extra }; }
 function validateByKind(pkg) {
   if (!pkg || typeof pkg !== 'object') return { ok: false };
   if (pkg.package_kind === 'block_style') return validateBlockPackage(pkg);
+  if (pkg.package_kind === 'block_layered') return validateBlockLayeredPackage(pkg);
   if (pkg.package_kind === 'arcade_game') return validateArcadePackage(pkg);
   return { ok: false };
 }

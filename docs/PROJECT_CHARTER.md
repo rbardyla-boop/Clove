@@ -5,6 +5,40 @@ Newest first.
 
 ---
 
+## ADR-023 — Creator Foundation CF-3: layered block customization (data-only depth on the CF-2 boundary) (2026-06-06)
+
+**Context.** With the trust boundary built (CF-2), customization *depth* can be added safely. CF-3
+introduces a richer, layered block model — the first step toward APB-level depth — without changing the
+rails: closed tokens, deny-by-default, bounded sizes, original procedural visuals, no live-world load.
+
+**Decision.**
+1. **New `block_layered` kind, `block_style` frozen.** A NEW package kind composes 6 fixed-key layer
+   dimensions (facade/windows/roof/lighting_zones required; sign/symbols optional) — `layers` is an
+   object, not a free array, so every sub-schema is statically validatable. The flat `block_style`
+   contract (CF-1/CF-2 + samples) is byte-frozen; the only edits to existing files are additive
+   (append tokens, export 3 iso primitives without touching `drawBlock`, register the kind in the
+   validator CLI / loader `validateByKind` / receipt `PACKAGE_KINDS`).
+2. **Closed taxonomy, no free values.** ~65 new closed tokens in `creator-tokens.mjs`; colors reuse the
+   CF-1 hex. `scale` is a STRING enum (not a number) — no arbitrary-value surface. Bounds: 12 KiB,
+   ≤6 symbols, 1–4 unique lighting zones. 3rd constraint flag `no_live_world_load:true`.
+3. **Validator-first, reuse CF-1 primitives.** `validate-block-layered-package.mjs` reuses
+   `isPlainData`/`scanSafety`/`FORBIDDEN_*`; 18 ordered deny-by-default rules; covered by a 26-row
+   adversarial abuse checklist (smuggling, DoS, prototype pollution, spoofed/missing/extra fields,
+   numeric-scale injection, constraint downgrade) + positive control.
+4. **Boundary unchanged.** `block_layered` flows through the CF-2 loader: `local_preview` loads an
+   approved-local package; `live_world` is still always rejected; `live_world_authorized:true` rejected
+   by receipt + registry. New layered renderer (`drawLayeredBlock`) + offline layered editor with the
+   CF-2 approved-local-preview path; no submit/upload/live control; CSP. All under `arcade/creator/**`
+   (curated-upload-excluded).
+
+**Consequences.** New `block-layered-package-schema.mjs` + `validate-block-layered-package.mjs` +
+`render/layered-renderer.mjs` + `layered-editor/**` + samples + `tests/creator/{block-layered-validator,
+layered-renderer,layered-editor}.*` + `docs/CREATOR_FOUNDATION_CF3_LAYERED_EDITOR.md`; additive token /
+iso-export / kind-registration edits. Worker/DO untouched (dry-run byte-identical). Validation: 101
+creator unit (CF-1 26 + CF-2 38 + CF-3 37) + 20-check layered editor smoke + CF-1/CF-2 18-check editor
+smoke green; `block_style` hash unchanged. Local-only; not pushed/deployed. No economy/ownership/
+marketplace/accounts/live-world load. Detail: `docs/CREATOR_FOUNDATION_CF3_LAYERED_EDITOR.md`.
+
 ## ADR-022 — Creator Foundation CF-2: approved hash + receipt before any world loader may trust a package (2026-06-06)
 
 **Context.** CF-1 made authoring local and produced immutable, validated, hash-addressed packages,

@@ -184,8 +184,10 @@ Worker dry-run remains byte-identical (`cd workers/arcade && wrangler deploy --d
 ## Next Creator Foundation phase
 
 ```
-CF-3  tiled isometric map viewer (local tile source; future R2 documented, not built)
-CF-4  arcade game package importer + local sandbox runner (separately gated; still no live submit)
+CF-3  layered block customization editor — IMPLEMENTED (data-only `block_layered` kind, 6 layer
+      dimensions, no live load). See docs/CREATOR_FOUNDATION_CF3_LAYERED_EDITOR.md.
+CF-4  tiled isometric map viewer / multi-block compositions (local tile source; future R2 documented,
+      not built) — OR arcade game package importer + local sandbox runner (separately gated).
 CF-E  LIVE approved-hash loader — flips LIVE_WORLD_LOADER_ENABLED only behind a human-cleared,
       separately-authorized review path; requires live_world_authorized semantics that CF-2 forbids.
 ```

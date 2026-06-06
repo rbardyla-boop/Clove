@@ -34,18 +34,24 @@ export function tileDiamond(gx, gy, opts = {}) {
   ];
 }
 
-function poly(ctx, pts) {
+/** PURE: trace a closed path through points (exported so the CF-3 layered renderer can reuse it). */
+export function poly(ctx, pts) {
   ctx.beginPath();
   pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
   ctx.closePath();
 }
-const shade = (hex, f) => {
+/** PURE: multiply a #rrggbb hex by factor f, clamped to [0,255] → rgb() string. Exported for reuse. */
+export const shade = (hex, f) => {
   const n = parseInt(hex.slice(1), 16);
   const r = Math.max(0, Math.min(255, Math.round(((n >> 16) & 255) * f)));
   const g = Math.max(0, Math.min(255, Math.round(((n >> 8) & 255) * f)));
   const b = Math.max(0, Math.min(255, Math.round((n & 255) * f)));
   return `rgb(${r},${g},${b})`;
 };
+/** PURE: the 4 screen-space corners of a vertical face rising height `h` from base edge a→b. */
+export function faceQuad(a, b, h) {
+  return [a, b, { x: b.x, y: b.y - h }, { x: a.x, y: a.y - h }];
+}
 
 /**
  * Draw one procedural neon block from a block-style `style` (palette/facade_pattern/sign_variant/

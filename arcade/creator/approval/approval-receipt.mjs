@@ -21,7 +21,7 @@ export const APPROVED_LOCAL = 'operator_approved_local';
 
 /** Shared primitives (re-used by the registry + loader so the rules never drift). */
 export const HASH_RE = /^sha256:[0-9a-f]{64}$/;
-export const PACKAGE_KINDS = Object.freeze(['block_style', 'arcade_game']);
+export const PACKAGE_KINDS = Object.freeze(['block_style', 'block_layered', 'arcade_game']);
 const NOTE_MAX = 200;
 
 /** Receipt fields covered by `receipt_hash` (everything except the hash itself), in declared order. */

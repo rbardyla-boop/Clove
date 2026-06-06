@@ -1,0 +1,15 @@
+/* CF-3 layered editor — extends block-editor.css (linked first) with layer-row controls. */
+#controls h3 { margin:14px 0 4px; font-size:10px; letter-spacing:2px; color:var(--am); text-transform:uppercase; opacity:.85; }
+#controls h3 .hint { color:var(--ink); opacity:.5; text-transform:none; letter-spacing:0; }
+.layer-row { display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; gap:6px; align-items:center; margin:4px 0; }
+.layer-row select { font-size:12px; padding:5px 6px; }
+.zone-row { display:grid; grid-template-columns:auto 1.2fr 1fr auto; gap:8px; align-items:center; margin:4px 0; font-size:11px; }
+.zone-row label.inline { display:flex; align-items:center; gap:5px; margin:0; text-transform:none; letter-spacing:0; opacity:.9; }
+.zone-row .zname { color:var(--cy); letter-spacing:1px; }
+#preview, #approvedPreview { height:auto; }
+
+/* narrow viewports: reflow the symbol + zone rows so 4-up controls don't crush */
+@media (max-width:600px) {
+  .layer-row { grid-template-columns:1fr 1fr; gap:5px; }
+  .zone-row { grid-template-columns:auto 1fr auto; gap:6px; }
+}

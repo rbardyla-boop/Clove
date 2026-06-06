@@ -12,6 +12,7 @@ import { packageHash } from './package-hash.mjs';
 import { buildValidationReport } from './validation-report.mjs';
 import { validateBlockPackage } from './validate-block-package.mjs';
 import { validateArcadePackage } from './validate-arcade-package.mjs';
+import { validateBlockLayeredPackage } from './validate-block-layered-package.mjs';
 
 const args = process.argv.slice(2);
 const file = args.find((a) => !a.startsWith('--'));
@@ -29,9 +30,10 @@ catch (e) { console.error(`creator validator: cannot read/parse ${file}: ${e.mes
 
 const kind = pkg && pkg.package_kind;
 const validate = kind === 'block_style' ? validateBlockPackage
-  : kind === 'arcade_game' ? validateArcadePackage
-    : null;
-if (!validate) { console.error(`creator validator: unknown package_kind ${JSON.stringify(kind)} (expected block_style|arcade_game)`); process.exit(1); }
+  : kind === 'block_layered' ? validateBlockLayeredPackage
+    : kind === 'arcade_game' ? validateArcadePackage
+      : null;
+if (!validate) { console.error(`creator validator: unknown package_kind ${JSON.stringify(kind)} (expected block_style|block_layered|arcade_game)`); process.exit(1); }
 
 const validation = validate(pkg);
 const hash = await packageHash(pkg);

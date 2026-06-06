@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "package_kind": "block_layered",
+  "package_id": "downtown-neon-facade-01",
+  "display_name": "Neon Downtown Facade",
+  "target_city_id": "downtown-01",
+  "palette_variant": "neon-arcade-v1",
+  "layers": {
+    "facade": {
+      "pattern": "neon-mesh",
+      "primary_color": "neon-blue",
+      "secondary_color": "neon-cyan",
+      "trim": "cyan-trim"
+    },
+    "sign": {
+      "variant": "blade",
+      "color": "neon-magenta",
+      "placement": "apex"
+    },
+    "symbols": [
+      { "token": "decal-star-burst", "position": "upper-left", "color": "neon-amber", "scale": "1.0" },
+      { "token": "decal-circuit-path", "position": "center", "color": "neon-green", "scale": "0.75" },
+      { "token": "decal-chevron-up", "position": "lower-right", "color": "violet-trim", "scale": "1.25" }
+    ],
+    "windows": {
+      "grid_type": "glass-bright",
+      "density": "medium",
+      "glow_color": "neon-cyan"
+    },
+    "roof": {
+      "accent_type": "ridge-sharp",
+      "highlight": "white-trim",
+      "pattern": "lights"
+    },
+    "lighting_zones": [
+      { "zone_id": "left-face", "glow": "high", "flicker": false },
+      { "zone_id": "right-face", "glow": "medium", "flicker": false },
+      { "zone_id": "roof", "glow": "low", "flicker": false }
+    ]
+  },
+  "constraints": {
+    "no_external_assets": true,
+    "no_scripts": true,
+    "no_live_world_load": true
+  }
+}
