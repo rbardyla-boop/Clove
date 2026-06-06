@@ -38,6 +38,10 @@
 
   <pre class="debug-panel" id="debugPanel" aria-hidden="true" hidden></pre>
 
+  <!-- HUD info panels. Phase 6F: this wrapper is `display:contents` on desktop (each panel keeps its
+       original absolute position — desktop unchanged), and on phones becomes ONE scrollable tray so the
+       panels stack instead of overlapping. See `.hud-panels` in city.css. -->
+  <div class="hud-panels">
   <!-- city OS world-event log (Phase 4C; public-safe, bounded, display-only) -->
   <section class="city-log" aria-label="City world event log">
     <header class="city-log-head">CITY OS · WORLD LOG</header>
@@ -62,6 +66,7 @@
   <!-- city OS Block Trial panel (Phase 4G; instanced, non-destructive Signal Grid Trial).
        Built by city-scene.js; the public block is never edited by a trial. -->
   <section class="city-block-trial" id="cityBlockTrial" aria-label="Block trial"></section>
+  </div><!-- /.hud-panels -->
 
   <div class="ctrlhint">
     <span class="kbhint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows to move · <kbd>E</kbd> to enter</span>

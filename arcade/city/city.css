@@ -250,3 +250,37 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 @media (prefers-reduced-motion: reduce) {
   .pill .dot.wait { animation: none; }
 }
+
+/* ─────────────────────────── Phase 6F — mobile HUD layout ───────────────────────────
+   The HUD info panels (world log, pressure, host rank, district, stewardship, block trial)
+   are absolutely positioned for desktop. On a phone the fixed offsets collide (the taller
+   District panel — Phase 6C event card + Phase 6D fourth-block row — lands on top of the
+   Block Trial panel; Stewardship rides under the top bar). The .hud-panels wrapper keeps
+   desktop EXACTLY as-is (display:contents → each panel keeps its own absolute layout) while,
+   on narrow viewports, collecting the panels into ONE scrollable left-rail tray that stacks
+   instead of overlapping. Client/layout only — no protocol, authority, or gameplay change. */
+.hud-panels { display: contents; }            /* desktop: wrapper generates no box; panels keep absolute layout */
+.hud-panels > * { pointer-events: auto; }     /* keep panels interactive (the wrapper, not the panels, matches .hud > *) */
+
+@media (max-width: 560px) {
+  /* one scrollable tray on the left — clears the top bar (top), the minimap (top-right),
+     and the bottom-right touch joystick, so nothing overlaps. */
+  .hud-panels {
+    position: absolute; z-index: 4;
+    top: 96px; left: 8px; bottom: 164px;
+    width: min(62vw, 230px);
+    display: flex; flex-direction: column; gap: 8px;
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    pointer-events: auto;
+  }
+  /* panels flow inside the tray instead of overlapping at fixed offsets */
+  .hud-panels > section {
+    position: static; inset: auto;
+    width: auto; max-width: 100%; max-height: none;
+    margin: 0; flex: 0 0 auto;
+  }
+  /* the District panel (event card + Travel) is the primary mobile surface → show it first */
+  .hud-panels > .city-district { order: -1; }
+  /* drop the minimap below the top bar so the two no longer overlap on phone */
+  .minimap { top: 96px; }
+}
