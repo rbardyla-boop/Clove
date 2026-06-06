@@ -80,6 +80,12 @@ ADMIN_ENABLED = "true"
 # query, → Worker without). The `*` absorbs the `?room=`/`?city=` query. None of these
 # patterns shadow a static file (no asset path starts with ws/city/ws/rooms/health).
 [env.production]
+# Pin the Worker name explicitly. `wrangler deploy --env production` derives this SAME name
+# today from the base name + the `production` env suffix, but that resolution is implicit —
+# pinning it guarantees a future Wrangler version can't change it and deploy to a stray Worker.
+# Verified live 2026-06-05 (read-only): clovelearn.io/arcade/* all route to this Worker, and
+# `wrangler deployments list --env production` → version c63c4d8f-7944-44f1-a13b-8df7161c9487.
+name = "neon-arcade-mesh-production"
 routes = [
   { pattern = "clovelearn.io/arcade/ws*",      zone_name = "clovelearn.io" },
   { pattern = "clovelearn.io/arcade/city/ws*", zone_name = "clovelearn.io" },
