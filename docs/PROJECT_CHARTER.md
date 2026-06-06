@@ -5,6 +5,35 @@ Newest first.
 
 ---
 
+## ADR-026 — Neon Circuit Phase 7A: interaction zones / action prompts (2026-06-06)
+
+**Context.** With walkable boundaries in place (ADR-025), the city loop needs to be **legible**: a
+player near a destination should see a clear action prompt. Phase 7A adds the interaction-zone kernel
+layer — affordance + a server-confirmable action vocabulary — without rewards or economy.
+
+**Decision.**
+1. **Pure model `arcade/city/city-interactions.mjs`.** Allowed kinds (`arcade_entry`, `block_travel`,
+   `district_event`, `activity_board`, `block_preview`) each mapped to an `action_request_type` that
+   Phase 7E will server-confirm. `validateInteractionZone` is deny-by-default (rejects unknown/forbidden
+   kinds, bad bounds/id, oversized or economy/ownership/gambling/crime copy, non-public-safe zones);
+   `nearestInteractionZone` picks the highest-priority valid containing zone (stable tie-break);
+   `actionRequestFor` emits a public-safe request shape with no private fields.
+2. **A prompt authorizes nothing.** The client detects nearby zones for display only; the server stays
+   the authority. The arcade-entry zone derives from the existing **server-gated portal** (`enterPortal`),
+   so wiring the model to the live prompt changes no authority.
+3. **No regression, no new floor content.** `deriveInteractionZones` yields an arcade_entry zone that is
+   a backward-compatible **superset** of the portal object; `city-scene.js`'s `portalUnder` now resolves
+   via `nearestInteractionZone` filtered to `arcade_entry`, so the existing prompt + `enterPortal(id)`
+   path behaves exactly as before (city-authority regression green). Other kinds are surfaced by the
+   existing district/event/activity/stewardship panels; their action_request shapes are defined for 7E.
+
+**Consequences.** New `arcade/city/city-interactions.mjs` + `tests/arcade/city-interactions.{test,spec}.mjs`
++ `tests/arcade/run-city-interactions.sh` + `docs/NEON_CIRCUIT_PHASE7A_INTERACTIONS.md`; `city-scene.js`
+prompt now model-driven + test hooks. **No Worker/DO change, no migration, no economy/ownership/accounts.**
+Validation: 598 arcade unit (585 + 13) + 14-check browser smoke (model drives the live prompt) +
+city-authority + city-district regression green + size 0.804 MB / 0.221 gz + Worker dry-run byte-identical
+(195.09 KiB). Local-only; not deployed. Detail: `docs/NEON_CIRCUIT_PHASE7A_INTERACTIONS.md`.
+
 ## ADR-025 — Neon Circuit Phase 7B: walkable-boundary kernel layer (2026-06-06)
 
 **Context.** The Gameplay Charter (ADR-024) made the City Gameplay Kernel the foundation gameplay

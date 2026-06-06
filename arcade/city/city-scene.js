@@ -13,6 +13,7 @@
  */
 import { publicLayout, MOVEMENT, predictStep, resolveCityRoomId, getCity } from './city-block.mjs';
 import { isPointWalkable, nearestSafePoint } from './city-collision.mjs'; // Phase 7B walkable-boundary kernel
+import { deriveInteractionZones, nearestInteractionZone, actionRequestFor, publicZone } from './city-interactions.mjs'; // Phase 7A interaction zones
 import {
   createInputBuffer, recordPendingInput, dropAcknowledgedInputs, reconcilePredictedState, DISPLAY_EASE,
 } from './city-reconcile.mjs';
@@ -64,6 +65,7 @@ el('playerName').textContent = playerId;
 
 // ── scene state ────────────────────────────────────────────────────────────
 let layout = publicLayout();
+let interactionZones = deriveInteractionZones(cityId, layout); // Phase 7A: derived from public layout
 let serverSelf = null;               // last authoritative position for me
 let predicted = null;                // server pos + replay(pending) — what the client believes "now"
 let displayed = null;                // eased visual position
@@ -125,7 +127,7 @@ const net = new CityNet({
   handlers: {
     onStatus: setStatus,
     onWelcome: (m) => {
-      if (m.layout) { layout = m.layout; renderer.setLayout?.(layout); } // Phase 5B: per-block labels on (re)connect/travel
+      if (m.layout) { layout = m.layout; renderer.setLayout?.(layout); interactionZones = deriveInteractionZones(net.cityId, layout); } // Phase 5B labels + Phase 7A zones on (re)connect/travel
       if (m.you) {
         serverSelf = { x: m.you.x, y: m.you.y, facing: m.you.facing };
         predicted = { ...serverSelf };
@@ -249,8 +251,12 @@ if (pad) {
 // ── portal ────────────────────────────────────────────────────────────────
 function portalUnder(p) {
   if (!p) return null;
-  for (const z of layout.portals) if (p.x >= z.x && p.x <= z.x + z.w && p.y >= z.y && p.y <= z.y + z.h) return z;
-  return null;
+  // Phase 7A: the arcade prompt is driven by the interaction-zone kernel. The arcade_entry zone
+  // is a backward-compatible SUPERSET of the portal object (keeps id/x/y/w/h/target/label), so
+  // activePortal.id (tryPortal → enterPortal) and activePortal.label below behave exactly as
+  // before — the server portal gate (city-block.mjs enterPortal) is unchanged.
+  const z = nearestInteractionZone(p, interactionZones);
+  return z && z.kind === 'arcade_entry' ? z : null;
 }
 function tryPortal() { if (activePortal) { portalState = 'requesting'; net.enterPortal(activePortal.id); } }
 if (portalBtn) portalBtn.addEventListener('click', tryPortal);
@@ -855,6 +861,10 @@ window.__neon_city = {
   // Phase 6C — drive the live countdown ticker deterministically (display only)
   tickEventCountdown(nowMs) { updateEventCountdown(Number.isFinite(nowMs) ? nowMs : Date.now()); },
   get cityId() { return net.cityId; },
+  // Phase 7A: interaction-zone kernel surface (display model; server confirms actions in 7E)
+  interactionZones() { return interactionZones.map(publicZone); },
+  activeZone() { const z = displayed ? nearestInteractionZone(displayed, interactionZones) : null; return z ? publicZone(z) : null; },
+  actionRequest() { const z = displayed ? nearestInteractionZone(displayed, interactionZones) : null; return z ? actionRequestFor(z) : null; },
   requestBlocks() { net.requestBlocks(); },
   routeTo(targetCityId) { net.requestRoute(targetCityId); },
   debug() {
