@@ -5,6 +5,35 @@ Newest first.
 
 ---
 
+## ADR-021 — Creator Foundation CF-1: local, constrained, validated, hash-addressed packages (2026-06-06)
+
+**Context.** Before Phase 7, player-created blocks / arcade games / assets need a safety foundation
+so they never become a bolted-on latency / security / moderation / file-bloat problem. (The
+directive suggested "ADR-018"; that number is already Phase 6B, so this is ADR-021.)
+
+**Decision.**
+1. **Doctrine:** nothing player-authored enters the live world directly — author locally → produce an
+   immutable **data-only package** → **validate locally** → only an approved, hash-addressed package
+   may *later* reach the live world via a separately-gated loader. CF-1 stops at local validation.
+2. **Closed allowlists, deny-by-default.** Block packages are data-only (no JS/URL/external assets);
+   tokens come from a rich-but-closed vocab (`arcade/creator/schemas/creator-tokens.mjs`, lineage from
+   the Phase 4F stewardship manifest). Validators reject unknown keys (never silent-drop), bound
+   numbers, and deep-scan for code/markup/url/template + private keys. Arcade packages declare
+   capabilities **deny-by-default** (empty allowlist), empty assets, and a strict `size_budget_bytes`
+   (≤ 64 KiB) — the size limit is the creative constraint.
+3. **Hash + receipt.** `package-hash.mjs` = canonical JSON + SHA-256; the report's receipt is a stub
+   `{ status:"local_validation_only", live_world_authorized:false }` — never live authority.
+4. **Stack:** TypeScript/Canvas + package validation. Original procedural isometric renderer
+   (`iso-renderer.mjs`), offline no-submit block editor. Java is a reference only — no Java tooling added.
+5. **Isolation:** all of `arcade/creator/**` is operator-local and excluded from the curated live-client
+   upload until a gated loader phase. No Worker/DO/route/economy/account change.
+
+**Consequences.** New isolated `arcade/creator/**` + `tests/creator/**` + `docs/CREATOR_FOUNDATION_CF1.md`.
+Worker/DO untouched (production unchanged). Validation: 26 creator unit tests + 10-check editor browser
+smoke green; block + arcade validator CLIs + arcade size gate green; arcade 568 unit + production-config
++ size + city smokes + Worker dry-run byte-identical (regression clean). Local-only; not pushed/deployed.
+Detail: `docs/CREATOR_FOUNDATION_CF1.md`.
+
 ## ADR-020 — Neon Circuit Phase 6D: fourth block + non-linear district topology (2026-06-05)
 
 **Context.** Phases 6A–6C made the district's event pulse rich and server-authored. Phase 6D proves
