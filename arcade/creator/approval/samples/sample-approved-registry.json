@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "registry_kind": "creator_approved_packages",
+  "packages": [
+    {
+      "package_hash": "sha256:f01318e95d1bc2b06574ac549d404390fd116d3eef254f9bd988ea66026d9ced",
+      "package_kind": "block_style",
+      "display_name": "Tide Glass Facade (demo, local)",
+      "approval_status": "operator_approved_local",
+      "approved_at": "2026-06-06T00:00:00.000Z",
+      "validator_version": "creator-validator-cf2",
+      "live_world_authorized": false
+    }
+  ]
+}

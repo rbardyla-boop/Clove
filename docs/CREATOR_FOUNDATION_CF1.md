@@ -121,11 +121,19 @@ deliberately exposes any of it. CF-1 uploads nothing and changes no Worker/DO/ro
 ## Next phases
 
 ```
-CF-2  binary asset parser harness — ONLY if legal, test-owned fixtures exist (ask first)
+CF-2  approved-hash loader boundary + curated upload exclusion — IMPLEMENTED (local/operator-only,
+      no live-world load). See docs/CREATOR_FOUNDATION_CF2_APPROVED_LOADER.md.
 CF-3  tiled isometric map viewer (local tile source; future R2 documented, not built)
-CF-4  arcade game package importer + live sandbox runner (separately gated)
-CF-E  approved-hash loader: live world trusts a package only via a human-cleared approved receipt
+CF-4  arcade game package importer + local sandbox runner (separately gated; still no live submit)
+CF-E  LIVE approved-hash loader: the live world trusts a package only via a human-cleared approved
+      receipt — opened only behind a separate, explicit review path (deferred).
 ```
+
+> **CF-2 landed the approval boundary** (`arcade/creator/approval/`): an approved package registry,
+> a hash-sealed approval receipt (`live_world_authorized` always false), and an approved-hash loader
+> whose `live_world` mode is structurally disabled. It also added
+> `scripts/build-curated-client-upload.mjs`, which excludes `arcade/creator/**` from the production
+> static upload — closing the bundle risk this doc's "Deploy / bundle note" warns about.
 
 A **Java** 2D/isometric framework is treated as an **architecture reference only**; the production
 stack stays TypeScript + Canvas + package validation + Cloudflare Worker/DO. No Java build tooling

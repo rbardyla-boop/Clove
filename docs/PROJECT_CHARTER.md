@@ -5,6 +5,42 @@ Newest first.
 
 ---
 
+## ADR-022 — Creator Foundation CF-2: approved hash + receipt before any world loader may trust a package (2026-06-06)
+
+**Context.** CF-1 made authoring local and produced immutable, validated, hash-addressed packages,
+but stopped at local validation. Before any package can ever reach the live world, the *trust
+boundary* itself must exist and be provably closed — and, now that CF-1 made `arcade/creator/**`
+git-tracked, the creator tooling must not leak into the production static upload.
+
+**Decision.**
+1. **Approval is hash-bound and explicit.** A package is trusted by a loader only via (a) an
+   approved-package **registry** (`approved-package-registry.mjs`) — a static, local allowlist keyed
+   by canonical hash — and (b) a hash-sealed **approval receipt** (`approval-receipt.mjs`) whose
+   `receipt_hash` covers its body (tamper-evident). Statuses are `local_validation_only` /
+   `operator_approved_local` / `rejected`; **none** implies live authorization.
+2. **The live world stays closed.** The **approved-hash loader** (`approved-loader.mjs`) loads only
+   when the recomputed hash matches the receipt, the package is valid for its kind, the hash is
+   registry-approved-local, and both receipt and entry say `operator_approved_local`. It has two
+   modes; `live_world` is rejected **unconditionally** (`LIVE_WORLD_LOADER_ENABLED = false`, checked
+   first). `live_world_authorized` is forced false everywhere — a true value is a validation error —
+   so the boundary is double-locked even if a future phase flips the constant.
+3. **Editor local preview only.** The block editor gains an *Approved local preview (operator)* card
+   (import package + receipt → run the loader in `local_preview` → offline render + "Local preview
+   only — not authorized for live world"). No submit / upload / live-world control exists.
+4. **Curated upload exclusion.** `scripts/build-curated-client-upload.mjs` builds the production
+   static tree from git-tracked files minus `arcade/creator/**` (and tests/docs/workers/electron/
+   tooling/secrets), keeping the live client (root pages, `arcade/`, `arcade/city/`, vendored libs
+   like `scripts/three.min.js`). It hard-fails if the creator tools or secrets would ship.
+
+**Consequences.** New isolated `arcade/creator/approval/**` + `block-editor/approved-preview.mjs` +
+`scripts/build-curated-client-upload.mjs` + `tests/creator/{approval-receipt,approved-package-registry,
+approved-loader,curated-upload}.test.mjs` + `docs/CREATOR_FOUNDATION_CF2_APPROVED_LOADER.md`.
+Worker/DO untouched (production unchanged; dry-run byte-identical). Validation: 63 creator unit tests
+(26 CF-1 + 37 CF-2) + 18-check editor browser smoke (10 CF-1 + 8 CF-2) green; curated upload excludes
+creator / includes city; arcade regression + production-config + city-size green. Local-only; not
+pushed/deployed. No marketplace / ownership / economy / accounts / live-world load.
+Detail: `docs/CREATOR_FOUNDATION_CF2_APPROVED_LOADER.md`.
+
 ## ADR-021 — Creator Foundation CF-1: local, constrained, validated, hash-addressed packages (2026-06-06)
 
 **Context.** Before Phase 7, player-created blocks / arcade games / assets need a safety foundation
