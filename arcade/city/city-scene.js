@@ -12,6 +12,7 @@
  * Scope + non-goals: docs/NEON_CIRCUIT_PHASE4B_CITY_AUTHORITY_POLISH.md.
  */
 import { publicLayout, MOVEMENT, predictStep, resolveCityRoomId, getCity } from './city-block.mjs';
+import { isPointWalkable, nearestSafePoint } from './city-collision.mjs'; // Phase 7B walkable-boundary kernel
 import {
   createInputBuffer, recordPendingInput, dropAcknowledgedInputs, reconcilePredictedState, DISPLAY_EASE,
 } from './city-reconcile.mjs';
@@ -749,6 +750,15 @@ function frame() {
       while (df > Math.PI) df -= 2 * Math.PI;
       while (df < -Math.PI) df += 2 * Math.PI;
       displayed.facing += df * 0.3;
+    }
+    // Phase 7B: display-only walkable-boundary guard. The server position is already
+    // collision-resolved; this keeps the EASED avatar from visually clipping into a wall or
+    // (future) blocked zone, and wires the kernel boundary model into the client render path.
+    // With the live BLOCKED_ZONES set empty this is a no-op in normal play.
+    if (displayed && !isPointWalkable(displayed.x, displayed.y, net.cityId)) {
+      const safe = nearestSafePoint(displayed.x, displayed.y, net.cityId);
+      displayed.x = safe.x;
+      displayed.y = safe.y;
     }
   }
 
