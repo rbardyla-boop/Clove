@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "receipt_kind": "creator_approval_receipt",
+  "package_hash": "sha256:f01318e95d1bc2b06574ac549d404390fd116d3eef254f9bd988ea66026d9ced",
+  "package_kind": "block_style",
+  "approval_status": "operator_approved_local",
+  "validator_version": "creator-validator-cf2",
+  "operator_note": "Reviewed locally for offline preview. Not authorized for the live world.",
+  "live_world_authorized": false,
+  "approved_at": "2026-06-06T00:00:00.000Z",
+  "receipt_hash": "sha256:f4f036915dc36df549f6ada5a8b04c43c6bbc36fcbeb0370806d367086ae0a8b"
+}

@@ -27,3 +27,12 @@ select, input[type=text] { width:100%; background:rgba(34,224,255,.06); color:#e
 .actions { display:flex; gap:8px; margin-top:12px; }
 button { cursor:pointer; flex:1; padding:9px; border-radius:8px; border:1px solid var(--cy); background:rgba(34,224,255,.12); color:#eaf6ff; font-family:var(--mono); letter-spacing:1px; text-transform:uppercase; font-weight:700; font-size:11px; }
 button:disabled { opacity:.4; cursor:not-allowed; }
+
+/* CF-2 approved local preview (operator) */
+.op-tag { font-size:9px; letter-spacing:1px; color:var(--am); border:1px solid rgba(255,176,32,.5); border-radius:5px; padding:1px 5px; vertical-align:middle; }
+input[type=file] { width:100%; font-size:11px; color:var(--ink); background:rgba(34,224,255,.06); border:1px solid var(--edge); border-radius:7px; padding:6px; font-family:var(--mono); }
+#approvedPreview { width:100%; height:auto; background:#05030c; border:1px solid var(--edge); border-radius:10px; display:block; margin-top:12px; }
+.approved-status { font-size:11px; letter-spacing:1px; padding:7px 9px; border-radius:8px; text-align:center; margin-top:10px; }
+.approved-status.a-ok { background:rgba(54,245,162,.14); border:1px solid var(--gr); color:var(--gr); }
+.approved-status.a-bad { background:rgba(159,185,201,.10); border:1px solid var(--edge); color:var(--ink); }
+.approved-warning { display:none; margin-top:8px; font-size:11px; font-weight:700; letter-spacing:1px; text-align:center; padding:8px 10px; border-radius:8px; background:rgba(255,176,32,.12); border:1px solid var(--am); color:var(--am); }

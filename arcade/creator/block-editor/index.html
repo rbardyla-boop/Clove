@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Creator Foundation — Local Block Editor (CF-1)</title>
+<!-- Local-only tool: same-origin modules/styles only; no remote code, no connections. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Creator Foundation — Local Block Editor (CF-1 + CF-2 approved preview)</title>
 <!--
   LOCAL, OFFLINE, NO-SUBMIT editor. Composes a DATA-ONLY block_style package from closed allowlists,
   previews it with the procedural isometric renderer, validates it locally with the SAME validator the
@@ -54,7 +56,25 @@
     </div>
     <div class="receipt-note" id="receiptNote"></div>
   </section>
+
+  <section class="card" id="approvedCard">
+    <h2>Approved local preview <span class="op-tag">operator</span></h2>
+    <div class="note">Import a package + its approval receipt to render an <strong>offline preview</strong>.
+      A package loads only when its hash matches the receipt and the receipt says
+      <code>operator_approved_local</code>. The live world is closed here — there is no submit, no
+      upload, and no live-world loader (it is disabled in code).</div>
+    <label for="importPkg">Import package JSON</label>
+    <input type="file" id="importPkg" accept="application/json,.json">
+    <label for="importReceipt">Import approval receipt JSON</label>
+    <input type="file" id="importReceipt" accept="application/json,.json">
+    <canvas id="approvedPreview" width="320" height="280" aria-label="Approved local preview"></canvas>
+    <div class="hash" id="approvedHash"></div>
+    <div class="receipt-note" id="approvedReceiptStatus"></div>
+    <div class="approved-status a-bad" id="approvedStatus">—</div>
+    <div class="approved-warning" id="approvedWarning" role="status"></div>
+  </section>
 </main>
 <script type="module" src="./block-editor.mjs"></script>
+<script type="module" src="./approved-preview.mjs"></script>
 </body>
 </html>

@@ -5,9 +5,15 @@
  * Run: tests/creator/run-block-editor.sh
  */
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
 const { chromium } = require('playwright');
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8099';
+
+// CF-2 sample artifacts (read from disk by the file inputs; not fetched over the network).
+const SAMPLE_PKG = fileURLToPath(new URL('../../arcade/creator/samples/sample-block.package.json', import.meta.url));
+const SAMPLE_RECEIPT = fileURLToPath(new URL('../../arcade/creator/approval/samples/sample-block.approved-receipt.json', import.meta.url));
+const SAMPLE_MISMATCH = fileURLToPath(new URL('../../arcade/creator/approval/samples/sample-block.mismatch-receipt.json', import.meta.url));
 
 let fail = 0;
 const check = (n, c) => { console.log(`${c ? 'ok  ' : 'FAIL'} ${n}`); if (!c) fail++; };
@@ -41,6 +47,28 @@ try {
   await page.fill('#package_id', 'Bad_ID');
   await page.waitForFunction(() => /BLOCKED/.test(document.getElementById('verdict').textContent), null, { timeout: 4000 }).catch(() => {});
   check('invalid edit shows BLOCKED report', /BLOCKED/.test(await page.evaluate(() => document.getElementById('verdict').textContent)));
+
+  // ── CF-2 approved local preview (operator) ──────────────────────────────────────────────────
+  const approvedBefore = await page.evaluate(() => document.getElementById('approvedPreview').toDataURL());
+  await page.setInputFiles('#importPkg', SAMPLE_PKG);
+  await page.setInputFiles('#importReceipt', SAMPLE_RECEIPT);
+  await page.waitForFunction(() => /approved local preview loaded/i.test(document.getElementById('approvedStatus').textContent), null, { timeout: 5000 }).catch(() => {});
+
+  check('approved import shows package hash (sha256:64hex)', /^sha256:[0-9a-f]{64}$/.test(await page.evaluate(() => document.getElementById('approvedHash').textContent)));
+  check('approved local preview status ok', /approved local preview loaded/i.test(await page.evaluate(() => document.getElementById('approvedStatus').textContent)));
+  check('local preview warning visible', /local preview only/i.test(await page.evaluate(() => document.getElementById('approvedWarning').textContent)));
+  const approvedAfter = await page.evaluate(() => document.getElementById('approvedPreview').toDataURL());
+  check('approved local preview canvas rendered', approvedBefore !== approvedAfter && approvedAfter.length > 200);
+
+  // a non-matching receipt must NOT load (proves hash-binding is enforced)
+  await page.setInputFiles('#importReceipt', SAMPLE_MISMATCH);
+  await page.waitForFunction(() => /not loaded/i.test(document.getElementById('approvedStatus').textContent), null, { timeout: 5000 }).catch(() => {});
+  check('approved preview loads ONLY with a matching receipt', /receipt_hash_mismatch/i.test(await page.evaluate(() => document.getElementById('approvedStatus').textContent)));
+  check('mismatched receipt hides the live-world preview warning', '' === (await page.evaluate(() => document.getElementById('approvedWarning').textContent)));
+
+  const buttonText = await page.evaluate(() => Array.from(document.querySelectorAll('button')).map((b) => b.textContent.toLowerCase()).join(' | '));
+  check('no submit/upload/live-world button', !/(submit|upload|go live|publish|live[- ]world)/i.test(buttonText));
+  check('no affirmative live-world publish wording', !/(go live|publish to live|push to live|submit to live|upload to live|enter the live world|live-world ready)/i.test(await page.evaluate(() => document.body.innerText)));
 
   const bodyText = (await page.evaluate(() => document.body.innerText)).toLowerCase();
   check('no economy/ownership/marketplace copy', !/\b(buy|sell|marketplace|ownership|own your|rent|payout|price|for sale|upload to|submit to live)\b/.test(bodyText));
