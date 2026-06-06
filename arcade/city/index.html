@@ -54,18 +54,23 @@
   <!-- city OS host rank panel (Phase 4E; non-cash reputation, display-only) -->
   <section class="city-host-rank" id="cityHostRank" aria-label="City host rank" role="status" aria-live="polite"></section>
 
+  <!-- Right-column group: on desktop District + Block Trial stack vertically in this flex column
+       (they used to pile up at the same top-right offset — overlap). On phones .hud-right is
+       display:contents, so both panels flow into the mobile tray exactly like the other panels. -->
+  <div class="hud-right">
   <!-- city OS district panel (Phase 5A; multi-block discovery + bounded routing).
        Built by city-scene.js. Travel is a server-validated route to an ADJACENT block;
        no ownership / no rent / no claim — discovery + travel only. -->
   <section class="city-district" id="cityDistrict" aria-label="District map" role="status" aria-live="polite"></section>
 
-  <!-- city OS block stewardship editor (Phase 4F; constrained, reversible, non-cash visual edits).
-       Controls are built by city-scene.js (fixed options only — no free text / uploads / URLs). -->
-  <section class="city-stewardship" id="cityStewardship" aria-label="Block stewardship"></section>
-
   <!-- city OS Block Trial panel (Phase 4G; instanced, non-destructive Signal Grid Trial).
        Built by city-scene.js; the public block is never edited by a trial. -->
   <section class="city-block-trial" id="cityBlockTrial" aria-label="Block trial"></section>
+  </div><!-- /.hud-right -->
+
+  <!-- city OS block stewardship editor (Phase 4F; constrained, reversible, non-cash visual edits).
+       Controls are built by city-scene.js (fixed options only — no free text / uploads / URLs). -->
+  <section class="city-stewardship" id="cityStewardship" aria-label="Block stewardship"></section>
   </div><!-- /.hud-panels -->
 
   <div class="ctrlhint">

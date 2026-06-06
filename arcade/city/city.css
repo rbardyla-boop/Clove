@@ -261,6 +261,23 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
    instead of overlapping. Client/layout only — no protocol, authority, or gameplay change. */
 .hud-panels { display: contents; }            /* desktop: wrapper generates no box; panels keep absolute layout */
 .hud-panels > * { pointer-events: auto; }     /* keep panels interactive (the wrapper, not the panels, matches .hud > *) */
+.hud-right { display: contents; }             /* default: District + Block Trial keep their own layout */
+
+/* Desktop: stack District + Block Trial in one right-hand flex column so they no longer pile up
+   at the same top-right offset (a pre-existing overlap). Only these two panels are affected;
+   host rank, stewardship, pressure and the world log keep their existing positions. */
+@media (min-width: 561px) {
+  .hud-right {
+    position: absolute; z-index: 4; top: 336px; right: 14px;
+    width: 212px; max-height: calc(100vh - 360px);
+    display: flex; flex-direction: column; gap: 10px;
+    overflow-y: auto; pointer-events: none;   /* gaps stay click-through; panels re-enable below */
+  }
+  .hud-right > section {
+    position: static; inset: auto; width: auto; max-width: 100%; max-height: none;
+    pointer-events: auto;
+  }
+}
 
 @media (max-width: 560px) {
   /* one scrollable tray on the left — clears the top bar (top), the minimap (top-right),
@@ -273,14 +290,16 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
     overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     pointer-events: auto;
   }
-  /* panels flow inside the tray instead of overlapping at fixed offsets */
-  .hud-panels > section {
+  /* panels flow inside the tray instead of overlapping at fixed offsets.
+     Descendant selector so District + Block Trial (now nested in .hud-right) are flattened too. */
+  .hud-panels section {
     position: static; inset: auto;
     width: auto; max-width: 100%; max-height: none;
     margin: 0; flex: 0 0 auto;
   }
+  .hud-right { display: contents; }              /* phones: let District + Block Trial flow into the tray */
   /* the District panel (event card + Travel) is the primary mobile surface → show it first */
-  .hud-panels > .city-district { order: -1; }
+  .hud-panels .city-district { order: -1; }
   /* drop the minimap below the top bar so the two no longer overlap on phone */
   .minimap { top: 96px; }
 }
