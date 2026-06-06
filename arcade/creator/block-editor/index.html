@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Foundation — Local Block Editor (CF-1)</title>
+<!--
+  LOCAL, OFFLINE, NO-SUBMIT editor. Composes a DATA-ONLY block_style package from closed allowlists,
+  previews it with the procedural isometric renderer, validates it locally with the SAME validator the
+  CLI uses, and exports a package + a local validation report. NO network, NO external assets, NO live
+  submit. Serve from the repo root over a local static server (ES modules need http://, not file://):
+      python3 -m http.server 8099   →   /arcade/creator/block-editor/
+-->
+<link rel="stylesheet" href="./block-editor.css">
+</head>
+<body>
+<header>
+  <h1>CREATOR FOUNDATION <span>//</span> LOCAL BLOCK EDITOR</h1>
+  <div class="sub">data-only · isometric preview · local validation · no upload · no submit</div>
+</header>
+<main>
+  <section class="card" id="controls">
+    <h2>Compose (closed allowlists)</h2>
+    <label for="package_id">Package id (kebab)</label>
+    <input type="text" id="package_id" value="my-block-style" autocomplete="off" spellcheck="false">
+    <label for="display_name">Display name (optional)</label>
+    <input type="text" id="display_name" maxlength="40" value="" autocomplete="off" placeholder="e.g. Tide Glass Facade">
+    <label for="target_city_id">Target block</label>
+    <select id="target_city_id"></select>
+    <div class="grid2">
+      <div><label for="palette">Palette</label><select id="palette"></select></div>
+      <div><label for="accent">Accent trim</label><select id="accent"></select></div>
+      <div><label for="facade_pattern">Facade</label><select id="facade_pattern"></select></div>
+      <div><label for="sign_variant">Sign</label><select id="sign_variant"></select></div>
+      <div><label for="lighting">Lighting</label><select id="lighting"></select></div>
+      <div><label for="tile_accent">Tile accent</label><select id="tile_accent"></select></div>
+    </div>
+  </section>
+
+  <section class="card" id="previewCard">
+    <h2>Isometric preview (procedural)</h2>
+    <canvas id="preview" width="320" height="280" aria-label="Block preview"></canvas>
+    <div class="note">Original procedural shapes only — no external images/audio, no copied franchise art. The live world is untouched; nothing is written or uploaded.</div>
+  </section>
+
+  <section class="card" id="reportCard">
+    <h2>Local validation</h2>
+    <div class="verdict" id="verdict">—</div>
+    <div class="report" id="report"></div>
+    <div class="hash" id="hash"></div>
+    <div class="actions">
+      <button id="exportPkg">Export package JSON</button>
+      <button id="exportReport">Export report</button>
+    </div>
+    <div class="receipt-note" id="receiptNote"></div>
+  </section>
+</main>
+<script type="module" src="./block-editor.mjs"></script>
+</body>
+</html>

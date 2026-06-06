@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "package_kind": "block_style",
+  "package_id": "harbor-tide-glass",
+  "display_name": "Tide Glass Facade",
+  "target_city_id": "harbor-02",
+  "style": {
+    "palette": "neon-cyan",
+    "facade_pattern": "grid-window-tall",
+    "sign_variant": "blade",
+    "lighting": "high",
+    "accent": "white-trim",
+    "tile_accent": "circuit"
+  },
+  "constraints": {
+    "no_external_assets": true,
+    "no_scripts": true
+  }
+}
