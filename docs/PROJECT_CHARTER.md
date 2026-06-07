@@ -5,6 +5,37 @@ Newest first.
 
 ---
 
+## ADR-035 — Phase 8A: six-block district (static config; live loader stays closed) (2026-06-07)
+
+**Context.** ADR-034's Phase 8 plan set the 8A baseline: scale the SINGLE district from 4 blocks toward
+≤9 as **static config**, geometry byte-identical, touching only `city-block.mjs` + `city-district.mjs`
+(+ stewardship identity) + tests — not the Worker, not CF-* files, not the live loader. The plan's §5
+falsifier warned the partial-manifest strategy must land before the broadcast payload gets too large, so
+the first increment should stay conservatively under that edge.
+
+**Decision.** Implement the first 8A increment: grow the district **4 → 6 blocks** (add `nexus-05` +
+`garden-06`) as static config. Adjacency is rewritten to a 6-node graph that **preserves every Phase 6D
+edge** (downtown↔harbor, downtown↔foundry, harbor↔skyline, skyline↔foundry — no route regresses) and
+adds a connected cross-path `downtown ⇄ garden ⇄ nexus ⇄ skyline`, giving downtown & skyline degree 3
+while keeping them mutually non-adjacent. Each new block gets full per-block identity (display_name,
+theme, landmark labels, default steward style from the closed allowlist) over **byte-identical** shared
+geometry — the Phase 5B model. `B = 6` is chosen (not the §1c ceiling of 9) to stay well under the
+unmeasured manifest-byte budget; the actual payload was measured to validate headroom.
+
+**Consequences.** Changed `arcade/city/city-block.mjs` (CITY_ROOMS/BLOCK_LABELS +2),
+`arcade/city/city-district.mjs` (6-node ADJACENCY), `arcade/city/city-stewardship.mjs`
+(BLOCK_DEFAULT_STYLES +2), + tests. **No Worker/DO/migration change**, **no CF-* change**
+(`creator-tokens.mjs` TARGET_CITY_IDS untouched — new blocks aren't creator targets yet),
+`LIVE_WORLD_LOADER_ENABLED` **stays false**, no production, no economy/ownership/accounts/marketplace,
+HiveWorld untouched. The Worker bundle grows 200.81 → 202.01 KiB (the static config it bundles — **not**
+byte-identical, expected). Measured: district manifest worst-case **1590 bytes at B=6** (~265 B/block),
+projected ~2385 B at B=9 — **6.9× under** a 16 KiB socket-message norm, so the §5 "payload too large at
+B=9" falsifier is **not** triggered and static broadcast-all holds. Validation: 612 arcade unit (+4:
+6-block roster, new edges/corridor, label/style identity) + 34-check district browser smoke (six blocks,
+Garden corridor renders, Nexus correctly not offered, public-safe) + 169 creator + production-config PASS
++ GTA-80 size PASS. Adversarial review: APPROVE, zero CRITICAL/HIGH/MEDIUM. Cross-district routing (D>1)
+and package-backed district data remain deferred (8B / later gated). Local-only; not deployed.
+
 ## ADR-034 — Phase 8 District Scale Plan (PLAN ONLY; live loader stays closed) (2026-06-07)
 
 **Context.** Phase 7 shipped the city gameplay kernel (7B/7A/7E, staging-proven) and the creator pipeline

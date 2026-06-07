@@ -27,19 +27,25 @@ export const DISTRICT_ID = 'neon-district-01';
 export const DISTRICT_NAME = 'Neon District';
 
 /**
- * Block adjacency graph (the routing topology). Phase 6D makes it NON-LINEAR: a 4-block ring
- *   downtown — harbor — skyline — foundry — downtown
- * so opposite blocks have TWO paths (downtown↔skyline via harbor OR foundry) while remaining
- * NON-adjacent (no direct edge). Routing is bounded to directly-adjacent blocks only. Harbor's
- * neighbours are unchanged from the Phase 5A line (downtown, skyline), preserving prior routes.
- * Adjacency is symmetric; every id here MUST be a known block (asserted in tests). Block ids only
- * — already public-safe. This is map topology, NOT ownership/economy.
+ * Block adjacency graph (the routing topology). Phase 6D made it NON-LINEAR (a 4-block ring
+ * downtown — harbor — skyline — foundry — downtown). Phase 8A grows the SINGLE district to SIX
+ * blocks, adding Nexus + Garden as a connected cross-path WITHOUT removing any Phase 6D edge:
+ *   - every prior edge is preserved (downtown↔harbor, downtown↔foundry, harbor↔skyline,
+ *     skyline↔foundry), so all existing routes still work;
+ *   - new edges downtown↔garden, garden↔nexus, nexus↔skyline add a second corridor across the
+ *     district (downtown ⇄ garden ⇄ nexus ⇄ skyline), giving downtown & skyline degree 3.
+ * Still bounded to directly-adjacent blocks only; this is the "richer static graph = a different
+ * frozen object" 8A baseline (see docs/PHASE_8_DISTRICT_SCALE_PLAN.md §1). Adjacency is symmetric;
+ * every id here MUST be a known block (asserted in tests). Block ids only — already public-safe.
+ * This is map topology, NOT ownership/economy.
  */
 const ADJACENCY = Object.freeze({
-  'downtown-01': Object.freeze(['harbor-02', 'foundry-04']),
+  'downtown-01': Object.freeze(['harbor-02', 'foundry-04', 'garden-06']),
   'harbor-02': Object.freeze(['downtown-01', 'skyline-03']),
-  'skyline-03': Object.freeze(['harbor-02', 'foundry-04']),
+  'skyline-03': Object.freeze(['harbor-02', 'foundry-04', 'nexus-05']),
   'foundry-04': Object.freeze(['downtown-01', 'skyline-03']),
+  'nexus-05': Object.freeze(['skyline-03', 'garden-06']),
+  'garden-06': Object.freeze(['downtown-01', 'nexus-05']),
 });
 
 /** True if cityId is a configured block. */

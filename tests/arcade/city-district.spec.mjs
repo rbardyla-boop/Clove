@@ -54,13 +54,16 @@ try {
   // ── discovery ──────────────────────────────────────────────────────────────
   const d0 = await A.page.evaluate(() => window.__neon_city.district());
   check('district manifest received on join', !!d0 && d0.district_id === 'neon-district-01');
-  check('district lists all four blocks (Phase 6D)', !!d0 && Array.isArray(d0.blocks) && d0.blocks.length === 4);
+  check('district lists all six blocks (Phase 8A)', !!d0 && Array.isArray(d0.blocks) && d0.blocks.length === 6);
   check('current block is downtown-01 (server-owned)', !!d0 && d0.current_city_id === 'downtown-01');
   check('DISTRICT panel renders the current block name', await A.page.evaluate(() => /DISTRICT/.test(document.getElementById('cityDistrict').textContent) && /Downtown Block/.test(document.getElementById('cityDistrict').textContent)));
   check('adjacent block (Harbor) is shown with a Travel control', await A.page.evaluate(() => { const el = document.getElementById('cityDistrict'); return /Harbor Block/.test(el.textContent) && !!el.querySelector('.dist-travel'); }));
   // Phase 6D: from downtown the ring offers BOTH harbor and foundry (non-linear adjacency)
   check('adjacent block (Foundry) is shown with a Travel control from downtown', await A.page.evaluate(() => { const el = document.getElementById('cityDistrict'); return /Foundry Block/.test(el.textContent); }));
+  // Phase 8A: the new cross-path edge means downtown also offers Garden (and still NOT Skyline)
+  check('adjacent block (Garden, Phase 8A) is offered from downtown', await A.page.evaluate(() => /Garden Block/.test(document.getElementById('cityDistrict').textContent)));
   check('non-adjacent block (Skyline) is NOT offered from downtown', await A.page.evaluate(() => ![...document.querySelectorAll('#cityDistrict .dist-row')].some((r) => /Skyline/.test(r.textContent))));
+  check('non-adjacent block (Nexus, Phase 8A) is NOT offered from downtown', await A.page.evaluate(() => ![...document.querySelectorAll('#cityDistrict .dist-row')].some((r) => /Nexus/.test(r.textContent))));
 
   // public-safe manifest (no private / economy / ownership)
   check('district manifest carries no private/economy/ownership data (population count is public)', await A.page.evaluate(() => !/\b(balance|ledger|inventory|payout|wager|owner|ownership|rent|rental|income|landlord|tenant|price|market|economy|secret|token|player_id|connection)\b/i.test(JSON.stringify(window.__neon_city.district()))));
