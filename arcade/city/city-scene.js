@@ -200,6 +200,7 @@ const net = new CityNet({
       renderDistrict();
     },
     onRouteResult: (m) => { onRouteResult(m); },                              // Phase 5A: route confirmation
+    onInteractionReceipt: (m) => { window.__neon_city.lastInteractionReceipt = m; }, // Phase 7E: server-confirmed receipt (display)
     onError: (m) => {
       window.__neon_city.lastError = m;
       if (String(m.code).startsWith('portal_')) { portalState = 'rejected'; setTimeout(() => { if (portalState === 'rejected') portalState = 'idle'; }, 900); }
@@ -810,6 +811,8 @@ window.__neon_city = {
   authority: 'server',
   lastSnapshotAt: 0,
   lastPortalOk: null,
+  lastInteractionReceipt: null,                                              // Phase 7E
+  requestInteraction(kind, zoneId, target) { net.requestInteraction(kind, zoneId, target); }, // Phase 7E
   lastError: null,
   get connected() { return status === 'live'; },
   get renderer() { return renderer.name; },

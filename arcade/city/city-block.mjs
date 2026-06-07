@@ -48,8 +48,10 @@ export const PLAYER_STALE_MS = 45_000;
  *  city_blocks (district manifest, pushed on join) + city_blocks_request + city_route_request/
  *  city_route_result. All additions are backward-compatible — no-dt inputs and the 4A–4G
  *  message set remain valid; a client that ignores district/trial state still works, and a
- *  no-id client still lands in the default block. */
-export const SCHEMA_VERSION = 7;
+ *  no-id client still lands in the default block. v8 (7E): additive server-confirmed interaction
+ *  receipts — city_interaction_request → city_interaction_receipt (ephemeral, public-safe; no new
+ *  DO, no migration, no persisted ledger). A client that ignores the new message still works. */
+export const SCHEMA_VERSION = 8;
 /** Max pending client inputs before the client resyncs (bounds replay cost; Phase 4B). */
 export const MAX_INPUT_BACKLOG = 120;
 

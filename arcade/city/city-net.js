@@ -85,6 +85,7 @@ export class CityNet {
       case 'city_blocks': this.h.onBlocks?.(m); break;                        // Phase 5A: district manifest (discovery)
       case 'city_district_presence': this.h.onDistrictPresence?.(m); break;   // Phase 5D: push-on-change presence delta
       case 'city_route_result': this.h.onRouteResult?.(m); break;             // Phase 5A: server-validated route confirmation
+      case 'city_interaction_receipt': this.h.onInteractionReceipt?.(m); break; // Phase 7E: server-confirmed interaction receipt
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }
@@ -126,6 +127,13 @@ export class CityNet {
   // validates adjacency and owns the truth; the target block's authority admits the player).
   requestBlocks() { this.send({ t: 'city_blocks_request' }); }
   requestRoute(targetCityId) { this.send({ t: 'city_route_request', target_city_id: targetCityId }); }
+  // Phase 7E: request a server-confirmed interaction receipt (display action → server gate).
+  requestInteraction(actionKind, zoneId, targetCityId) {
+    const msg = { t: 'city_interaction_request', action_kind: actionKind };
+    if (zoneId != null) msg.zone_id = zoneId;
+    if (targetCityId != null) msg.target_city_id = targetCityId;
+    this.send(msg);
+  }
 
   /**
    * Travel to another block: tear down the current socket (without auto-reconnecting to the
