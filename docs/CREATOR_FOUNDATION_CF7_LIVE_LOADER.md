@@ -35,17 +35,22 @@ structured rejection (nothing is ever thrown into the live world):
 |---|------|---------------|--------------|
 | 0 | kill-switch is the exact off-sentinel (`false`) | `kill_switch_engaged` | F5 |
 | 1 | **loader enabled** (`=== true`; shipped false) | `live_world_loader_not_enabled` | — |
-| 2 | package survives a JSON round-trip (no `undefined`/NaN) | `package_not_json_clean` | F2 |
+| 2 | package survives a JSON round-trip (no `undefined`/NaN, no `Date`/`Map`/non-plain objects) | `package_not_json_clean` | F2 |
 | 3 | live receipt valid; **wrong kind fails fast** | `wrong_receipt_kind` / `invalid_live_receipt` | F7 |
 | 4 | package body re-validates at **load time** | `package_invalid` | — |
 | 5 | recomputed canonical hash === receipt's `package_hash` | `package_hash_mismatch` | — |
 | 6 | **binding resolution** — CF-2 local receipt + CF-6 verdict + CF-8 record each present, intact, for this hash, hash-matching the live receipt; `free_text_digest` + `review_id` match | `*_binding_mismatch` / `free_text_digest_mismatch` / `not_a_live_candidate` / … | F1, F3 |
 | 7 | live registry valid + this hash eligible (not revoked, not expired) + points at this `live_approval_id` | `invalid_live_registry` / `not_live_approved` / `live_approval_id_mismatch` | F6 |
-| 8 | registry `revocation_epoch` >= highest epoch seen | `registry_epoch_rollback` | F4 |
-| 9 | `staging_verified` true (fast-fail flag — not proof) | `not_staging_verified` | F9 |
+| 8 | a **persisted** `highestSeenEpoch` is supplied AND registry `revocation_epoch` >= it | `epoch_source_unavailable` / `registry_epoch_rollback` | F4 |
+| 9 | `staging_verified` true (defense-in-depth; step 3 already requires it) | `not_staging_verified` | F9 |
 
 Success returns a **defensive copy** of the package, `live_world_authorized: true`, and the epoch — and is
 reachable **only** when the machine is explicitly driven (a test parameter), never as shipped.
+
+> **Enablement precondition (F4).** `highestSeenEpoch` has **no default** — defaulting it to `0` would make
+> the rollback control fail-OPEN. Any future enablement MUST wire a **persisted** highest-seen epoch source;
+> the loader refuses (`epoch_source_unavailable`) without one. Step 9 is intentionally unreachable
+> defense-in-depth (a `false` `staging_verified` already fails at step 3).
 
 ## Binding resolution at load time (F1) — never trust a stored conclusion
 

@@ -51,7 +51,12 @@ function reject(reason, extra = {}) { return { ok: false, reason, ...extra }; }
 /** Fail-closed: anything other than the exact off-sentinel (`false`) means the kill-switch is ENGAGED. */
 export function killSwitchEngaged(killSwitch) { return killSwitch !== KILL_SWITCH_OFF; }
 
-/** True iff `v` survives a JSON round-trip with no loss (no undefined/function/symbol/bigint/NaN/Infinity). */
+/**
+ * True iff `v` survives a JSON round-trip with NO loss or transformation. Rejects values JSON.stringify
+ * drops (undefined/function/symbol) or mangles (bigint throws; NaN/Infinity → null), AND non-plain objects
+ * (Date/Map/Set/RegExp/class instances) that JSON.stringify silently transforms or collapses to `{}` —
+ * only plain objects (prototype Object.prototype or null) and arrays of clean values pass.
+ */
 function isJsonClean(v, depth = 0) {
   if (depth > 64) return false;
   if (v === null) return true;
@@ -60,7 +65,11 @@ function isJsonClean(v, depth = 0) {
   if (t === 'number') return Number.isFinite(v);
   if (t === 'undefined' || t === 'function' || t === 'symbol' || t === 'bigint') return false;
   if (Array.isArray(v)) return v.every((x) => isJsonClean(x, depth + 1));
-  if (t === 'object') return Object.values(v).every((x) => isJsonClean(x, depth + 1));
+  if (t === 'object') {
+    const proto = Object.getPrototypeOf(v);
+    if (proto !== Object.prototype && proto !== null) return false; // Date/Map/Set/RegExp/class instance
+    return Object.values(v).every((x) => isJsonClean(x, depth + 1));
+  }
   return false;
 }
 
@@ -85,7 +94,7 @@ function revalidateByKind(pkg) {
  */
 export async function loadLivePackage({
   package: pkg, liveReceipt, liveRegistry, localReceipt, hiveReceipt, reviewRecord,
-  killSwitch, highestSeenEpoch = 0, now = Date.now(), enabled = LIVE_WORLD_LOADER_ENABLED,
+  killSwitch, highestSeenEpoch, now = Date.now(), enabled = LIVE_WORLD_LOADER_ENABLED,
 } = {}) {
   // 0. KILL-SWITCH first, fail-closed: proceed only on the exact off-sentinel.
   if (killSwitchEngaged(killSwitch)) return reject('kill_switch_engaged');
@@ -138,11 +147,17 @@ export async function loadLivePackage({
   if (entry.live_approval_id !== liveReceipt.live_approval_id) return reject('live_approval_id_mismatch');
 
   // 8. monotonic revocation epoch (F4): an older registry snapshot can't resurrect a revoked approval.
+  //    The caller MUST supply a PERSISTED highest-seen epoch — there is intentionally NO default, because
+  //    defaulting to 0 would make this rollback control fail-OPEN (a stale registry that still shows a
+  //    since-revoked package as live would be accepted). A missing/invalid epoch source is refused.
+  if (!Number.isInteger(highestSeenEpoch) || highestSeenEpoch < 0) return reject('epoch_source_unavailable');
   if (!(Number.isInteger(liveRegistry.revocation_epoch) && liveRegistry.revocation_epoch >= highestSeenEpoch)) {
     return reject('registry_epoch_rollback', { revocation_epoch: liveRegistry.revocation_epoch, highest_seen_epoch: highestSeenEpoch });
   }
 
-  // 9. staging_verified fast-fail (validateLiveApprovalReceipt already requires it; re-assert as a gate).
+  // 9. staging_verified fast-fail. DEFENSE-IN-DEPTH: validateLiveApprovalReceipt (step 3) already requires
+  //    staging_verified === true, so a false flag stops at step 3 and this line is unreachable in practice
+  //    — kept so the gate is explicit at the loader layer and survives any future receipt-validator change.
   if (liveReceipt.staging_verified !== true) return reject('not_staging_verified');
 
   // SUCCESS — live render authorized. Only reachable with enabled === true, which the shipped constant is

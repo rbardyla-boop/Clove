@@ -175,6 +175,39 @@ test('a non-JSON-clean package (undefined field) fails (F2 — canonical-elision
   assert.equal(r.reason, 'package_not_json_clean');
 });
 
+test('a persisted highestSeenEpoch is required — a missing/invalid epoch source is refused, not defaulted (F4 fail-closed)', async () => {
+  assert.equal((await loadLivePackage(valid({ highestSeenEpoch: undefined }))).reason, 'epoch_source_unavailable');
+  assert.equal((await loadLivePackage(valid({ highestSeenEpoch: -1 }))).reason, 'epoch_source_unavailable');
+  assert.equal((await loadLivePackage(valid({ highestSeenEpoch: 1.5 }))).reason, 'epoch_source_unavailable');
+  assert.equal((await loadLivePackage(valid({ highestSeenEpoch: '1' }))).reason, 'epoch_source_unavailable');
+});
+
+test('a non-plain object in the package (Date) fails the JSON-clean guard (F2)', async () => {
+  const pkg = clone(PKG); pkg.style.when = new Date(NOW); // JSON.stringify would silently stringify it
+  assert.equal((await loadLivePackage(valid({ package: pkg }))).reason, 'package_not_json_clean');
+});
+
+test('each binding-mismatch branch is reachable and rejects (F1 completeness)', async () => {
+  // local receipt: valid + same package but NOT operator_approved_local
+  const localValOnly = await buildApprovalReceipt({ packageHash: HASH, packageKind: 'block_style', status: 'local_validation_only', now: NOW });
+  assert.equal((await loadLivePackage(valid({ localReceipt: localValOnly }))).reason, 'local_receipt_not_approved');
+  // local receipt: approved for same package but a different note → different receipt_hash → binding mismatch
+  const localOtherNote = await buildApprovalReceipt({ packageHash: HASH, packageKind: 'block_style', status: APPROVED_LOCAL, operatorNote: 'different', now: NOW });
+  assert.equal((await loadLivePackage(valid({ localReceipt: localOtherNote }))).reason, 'local_receipt_binding_mismatch');
+  // hive receipt: tampered verdict (hash no longer recomputes) → not valid/intact
+  const hiveTampered = { ...HIVE_RECEIPT, verdict: 'invalid' };
+  assert.equal((await loadLivePackage(valid({ hiveReceipt: hiveTampered }))).reason, 'hive_receipt_not_valid');
+  // hive receipt: valid + intact + same package but built at a different time → different hash → binding mismatch
+  const hiveOtherTime = await buildHiveReceipt(PKG, NOW + 1);
+  assert.equal((await loadLivePackage(valid({ hiveReceipt: hiveOtherTime }))).reason, 'hive_receipt_binding_mismatch');
+  // review record: a live candidate for a DIFFERENT package hash
+  const otherPkgRecord = decideReview(
+    (await createReviewRecord({ package_hash: 'sha256:' + 'e'.repeat(64), package_kind: 'block_style', receipt_hash: LOCAL_RECEIPT.receipt_hash, validator_report_hash: HIVE_RECEIPT.receipt_hash, free_text: FREE_TEXT }, { now: NOW, id: 'fixed' })).record,
+    APPROVE, { now: NOW },
+  ).record;
+  assert.equal((await loadLivePackage(valid({ reviewRecord: otherPkgRecord }))).reason, 'review_record_package_mismatch');
+});
+
 test('the loader mutates no input and returns a defensive package copy', async () => {
   const before = clone({ LIVE_RECEIPT, LIVE_REGISTRY, REVIEW_RECORD, HIVE_RECEIPT, LOCAL_RECEIPT });
   const r = await loadLivePackage(valid());
