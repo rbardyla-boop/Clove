@@ -5,6 +5,42 @@ Newest first.
 
 ---
 
+## ADR-038 — Phase 8C-2: district-graph + route readability (display-only) (2026-06-07)
+
+**Context.** ADR-037's 8C content v1 gave blocks identity + a traversal goal (the District Tour), which
+asks players to understand the six-block route structure. The next-highest-value slice is making the
+topology itself legible — the original ring, the new Garden⇄Nexus corridor, the Nexus pivot, and the
+adjacent-only rule — so movement is informed. Operator's call: map readability before event/activity
+"voice", because it supports every later content slice. Per the plan §4 (Polish 2/4/5).
+
+**Decision.** Implement **route readability**, strictly **display-only**, over the public manifest the
+client already holds:
+1. New pure `arcade/city/city-district-graph.mjs`: `corridorOf()` (classifies an edge ring/new/null from
+   static RING/NEW edge-sets matching the real ADJACENCY), `groupAdjacentByCorridor()` (panel grouping;
+   its ring+new union exactly equals each block's adjacency — falsifier #1), and `districtGraphModel()`
+   (a fixed-layout six-node graph model with current/adjacent/incident flags).
+2. Client `renderDistrict()`: a **DISTRICT MAP** SVG inset (six nodes + the two corridors visually
+   distinguished — ring solid cyan, new corridor magenta dashed — current block highlighted, adjacent
+   nodes emphasized so the directly-routable edges read at a glance); adjacency **grouped by corridor**
+   (Ring vs New corridor) with a "YOU ARE HERE" affordance; route-status names the corridor being
+   traversed (Travel click + onRouteResult). Semantic node coloring (current/adjacent/other) — a clean
+   design decision that sidesteps the plan's unresolved theme→hex open item (O-2).
+
+**Consequences.** New `city-district-graph.mjs` + `tests/arcade/city-district-graph.test.mjs`; edited
+`city-scene.js`, `city.css`, `city-district.spec.mjs` (+7 checks). **Adjacent-only routing authority is
+untouched** — each Travel still calls the identical `net.requestRoute`, server `validateRouteRequest`
+stays the only gate; the grouping/graph add no route target. **Zero Worker/DO/schema change** — the new
+module is client-only (not imported by any Worker source), Worker dry-run **byte-identical (202.01 KiB)**,
+`SCHEMA_VERSION` stays 8, no `blockPublicSummary` field. `LIVE_WORLD_LOADER_ENABLED` **stays false**; no
+economy/ownership/rewards/tokens; no CF-7; no package-backed districts; no production; HiveWorld
+untouched. SVG built via `createElementNS`/`textContent` (injection-safe), reduced-motion-safe, degrades
+to empty on a garbage manifest. Validation: 622 arcade unit (+5: classifier-vs-real-adjacency equality,
+6-node/7-edge model, flags, empty-safe) + 47-check district smoke (graph 6 nodes/7 edges, 3 distinguished
+new-corridor edges, current highlighted, corridor grouping, YOU ARE HERE) + 169 creator + production-
+config + size PASS. Adversarial review APPROVE (0 CRITICAL/HIGH/MEDIUM; 2 LOW — fallback comment folded,
+always-visible-vs-collapsible noted as a benign spec deviation that still meets the "separate inset"
+intent). Deferred to later 8C slices: event/activity "voice" flavor, OBJ-2…OBJ-5. Local-only; not deployed.
+
 ## ADR-037 — Phase 8C content pass v1: per-block identity + District Tour (display-only) (2026-06-07)
 
 **Context.** ADR-036's 8C plan set the content-depth direction (make the six-block district worth
