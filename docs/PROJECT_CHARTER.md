@@ -5,6 +5,37 @@ Newest first.
 
 ---
 
+## ADR-029 — Creator Foundation CF-6: Hive validation service prototype (2026-06-07)
+
+**Context.** CF-2 made a single operator's static approved-registry real. CF-6 turns *validation* into
+something **service-shaped** — accept a package, run the canonical validators, emit a hash-bound verdict,
+keep a queue, answer read-only lookups — while granting **zero live trust**. The seed of future
+distributed validation, not distributed authority (charter §15).
+
+**Decision.**
+1. **Pure service core reusing the CLI's validators.** `arcade/creator/hive-validation/hive-service.mjs`
+   dispatches `package_kind` → the SAME `validateBlockPackage`/`validateBlockLayeredPackage`/
+   `validateArcadePackage` the CLI uses, so the verdict is **equivalent to the CLI by construction**
+   (locked by tests). `createHiveService()` exposes only `submit` / `lookup` / `queue`.
+2. **Hash-bound Hive receipt.** "This exact package hash got this exact validator verdict" —
+   `{ package_hash, validator_version, verdict, ..., receipt_hash }` (hash over the body, tamper-evident).
+   **Not** approval, **not** live authorization, **not** content clearance.
+3. **Quarantine (security control).** Hard invariants forced regardless of package claims:
+   `status='local_validation_only'`, `live_world_authorized=false`, `content_cleared=false`. The module
+   imports ONLY the validators + hash util — **no** approved-loader, **no** registry mutator, **no**
+   Worker/DO — and exposes **no** approve/enable-live/register/publish method. A package claiming
+   `live_world_authorized:true` is recorded false (and rejected as an unknown key).
+4. **CLI-first, no network.** `hive-cli.mjs` is a local harness; no HTTP server, no live write. A
+   localhost-only HTTP wrapper is documented as a future option, not built (zero exposed surface).
+
+**Consequences.** New `arcade/creator/hive-validation/{hive-service,hive-cli}.mjs` +
+`tests/creator/hive-validation.test.mjs` + this doc. Local creator tooling under `arcade/creator/**`
+(excluded from curated upload — verified). **No Worker/DO change** (dry-run byte-identical 200.81 KiB),
+no production, no loader enablement, no economy/ownership/accounts. Validation: 126 creator unit (115 + 11
+incl. equivalence + quarantine + tamper-detection + a 6-case adversarial suite) + CLI harness run on the
+3 samples + 608 arcade unit + curated-upload exclusion + production-config PASS + size within budget.
+Local-only; not deployed. Detail: `docs/CREATOR_FOUNDATION_CF6_HIVE_VALIDATION_SERVICE.md`.
+
 ## ADR-028 — Creator Foundation CF-4: arcade package importer + local sandbox (2026-06-06)
 
 **Context.** CF-1 shipped the arcade-package schema + manifest validator + SDK template + size gate.
