@@ -5,6 +5,43 @@ Newest first.
 
 ---
 
+## ADR-033 — Creator Foundation CF-7: operator-approved live loader, SHIPPED DISABLED (2026-06-07)
+
+**Context.** CF-8 (ADR-032) built the human-review gate the live loader depends on. CF-7 is the trust
+boundary that decides whether an approved creator package could ever enter the live world — the gate that
+determines whether Phase 8 (city scale) can admit creator content. The right move is to **build the
+dangerous gate as a closed, testable machine and prove it rejects by default**, then design Phase 8
+around a real boundary, rather than flip a live loader on faith.
+
+**Decision.**
+1. **Shipped disabled, one shared gate.** `loadLivePackage` imports the **same** `LIVE_WORLD_LOADER_ENABLED`
+   constant the CF-2 loader defines (one source of truth, still **false**) and checks it **before any
+   binding work**. A fully-valid, fully-approved chain still rejects with `live_world_loader_not_enabled`.
+   The inner gates are exercised in tests via a TEST-ONLY `enabled` parameter — the shipped constant is
+   never flipped. The CF-2 local-preview path stays byte-frozen; CF-7 is a parallel live track.
+2. **Closed machine, deny-by-default, fail-closed first.** Order: (0) kill-switch must be the exact
+   off-sentinel `false` (F5); (1) loader enabled; (2) package survives a JSON round-trip — rejects
+   `undefined`/NaN to kill the canonical-elision collision (F2); (3) live receipt valid, **wrong kind
+   fails fast** (F7); (4) re-validate the package body at load time; (5) recomputed hash binds the
+   receipt; (6) **binding resolution** — the CF-2 local receipt, CF-6 verdict, and CF-8 record are each
+   re-resolved now, recomputed, and required to hash-match + cover this package, with `free_text_digest`
+   + `review_id` matching (F1, F3); (7) hash-sealed live registry lists this hash as eligible (not
+   revoked, not expired) pointing at this `live_approval_id` (F6); (8) registry `revocation_epoch` >=
+   highest seen — no rollback resurrects a revoke (F4); (9) `staging_verified` fast-fail (F9).
+3. **Separate live artifacts.** New `creator_live_approval_receipt` (the only receipt-layer artifact that
+   carries `live_world_authorized: true`, **derived** from a real CF-8 candidate — never an input) and
+   `creator_approved_live_packages` registry (monotonic epoch + per-entry revoke/TTL). CF-2's local
+   receipt/registry keep forbidding a true value entirely.
+
+**Consequences.** New `arcade/creator/approval/{live-approval-receipt,live-registry,live-loader,
+live-loader-cli}.mjs` + `tests/creator/live-loader.test.mjs` + this doc. **No Worker/DO change** (dry-run
+byte-identical 200.81 KiB); `LIVE_WORLD_LOADER_ENABLED` **remains false**; no live load, no production, no
+public upload, no auto-approval, no economy/ownership/accounts/marketplace; no Phase 8; HiveWorld
+untouched. Validation: 18 adversarial unit (shipped-disabled rejects a perfect chain; tamper/digest/
+epoch/binding/kind/kill-switch/expiry/revoke/not-registered/JSON-elision all fail) + operator boundary
+CLI (exit 0) + creator + 608 arcade unit + curated-upload exclusion + production-config PASS + size within
+budget. Local-only; not deployed. Detail: `docs/CREATOR_FOUNDATION_CF7_LIVE_LOADER.md`.
+
 ## ADR-032 — Creator Foundation CF-8: human-review queue + moderation/audit (zero live authority) (2026-06-07)
 
 **Context.** The CF-7/CF-8 plan (ADR-031) makes the live loader depend on a human-review gate: a CF-6
