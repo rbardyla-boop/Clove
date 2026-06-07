@@ -34,8 +34,8 @@ function renderTiles(tiles) {
   // back-to-front by (gx+gy) so nearer tiles overlap correctly
   const ordered = [...tiles].sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy));
   for (const t of ordered) {
-    const p = worldToScreen(t.gx, t.gy, { originX: baseX, originY: baseY });
-    const opts = { originX: p.x, originY: p.y };
+    const p = worldToScreen(t.gx, t.gy, { originX: baseX, originY: baseY }); // returns { sx, sy }
+    const opts = { originX: p.sx, originY: p.sy };
     try {
       if (t.package_kind === 'block_style') drawBlock(ctx, t.package.style, opts);
       else if (t.package_kind === 'block_layered') drawLayeredBlock(ctx, t.package, opts);

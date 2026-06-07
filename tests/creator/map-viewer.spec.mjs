@@ -46,6 +46,20 @@ try {
   });
   check('canvas has rendered (non-background) pixels', drewPixels > 500);
 
+  // tiles must render at distinct, CENTERED iso positions — not stacked at the origin (0,0).
+  const bbox = await page.evaluate(() => {
+    const c = document.getElementById('mapCanvas'); const x = c.getContext('2d');
+    const d = x.getImageData(0, 0, c.width, c.height).data;
+    let minX = c.width, maxX = 0, minY = c.height, maxY = 0;
+    for (let yy = 0; yy < c.height; yy++) for (let xx = 0; xx < c.width; xx++) {
+      const i = (yy * c.width + xx) * 4;
+      if (!(d[i] === 5 && d[i + 1] === 6 && d[i + 2] === 12)) { if (xx < minX) minX = xx; if (xx > maxX) maxX = xx; if (yy < minY) minY = yy; if (yy > maxY) maxY = yy; }
+    }
+    return { minX, maxX, minY, maxY, w: c.width, h: c.height };
+  });
+  check('tiles render past the horizontal centre (not stacked at x=0)', bbox.maxX > bbox.w * 0.45);
+  check('two tiles span distinct vertical positions', (bbox.maxY - bbox.minY) > 90);
+
   // a pack referencing an UNAPPROVED hash is BLOCKED (no render)
   const blocked = await page.evaluate(async () => {
     const s = await window.__cf5_map.loadSample();
