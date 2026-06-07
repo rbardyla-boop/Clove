@@ -5,6 +5,38 @@ Newest first.
 
 ---
 
+## ADR-034 — Phase 8 District Scale Plan (PLAN ONLY; live loader stays closed) (2026-06-07)
+
+**Context.** Phase 7 shipped the city gameplay kernel (7B/7A/7E, staging-proven) and the creator pipeline
+is complete CF-1→CF-8, with CF-7 (the operator-approved live loader) existing as a closed, disabled
+machine (ADR-033). The roadmap puts the creator/live-loader trust boundary BEFORE city scale. With that
+boundary now a machine rather than a concept, city-scale expansion can be designed around a real gate.
+The operator's call: do **not** enable CF-7 staging yet (that is an operational/security gate needing a
+real package candidate + staging env + persisted epoch source); plan Phase 8 first.
+
+**Decision.** Author `docs/PHASE_8_DISTRICT_SCALE_PLAN.md` — **PLAN ONLY, no code, no deploy** — produced
+by a grounded multi-agent workflow (4 subsystem mappers → 7 design+adversarial-verify pipelines →
+completeness critic; 19 agents) so every threshold is anchored to the real code. Framing kept cold:
+*scale the city around the proven kernel and closed creator trust boundary* — not a decentralized/hosting
+economy, not live UGC. The plan covers all 13 required items: scale topology (D districts × B blocks,
+CityRoom `idFromName(cityId)` naming, CityRegistry limits + explicit sharding triggers); presence
+interest-management trigger; CF-5 asset packs → district composition + asset-pack bounds for larger maps +
+an explicit **static-config vs approved-package-data** table; the **deferred** staging-candidate path via
+CF-7 (designed, NOT enabled) + operator workflow; rollback/kill-switch for (future) package-backed
+districts (fail-closed to static config, CF-7 kill-switch, monotonic-epoch revocation); performance +
+GTA-80 budget impact + cross-device smoke matrix; open measurements (with protocols) + items deferred to
+Phase 8B (cross-district routing for D>1, the S12 mobile city spec). Default for every 8A tier is **static
+config**; package-backed districts are a later, gated possibility.
+
+**Consequences.** New `docs/PHASE_8_DISTRICT_SCALE_PLAN.md` + this ADR. **No code, no Worker/DO change, no
+deploy, no migration.** `LIVE_WORLD_LOADER_ENABLED` **stays false** and CF-7 is **not** enabled anywhere
+in the plan; no production, no public upload, no auto-load in 8A; **no economy, ownership, rent, paid
+hosting, accounts, marketplace, payout, token, NFT, transfer, or cash-out**; HiveWorld untouched.
+Adversarial critic: all 13 items covered, **zero boundary violations**. The post-plan fork is the
+operator's next gate: **A — IMPLEMENT PHASE 8A** (static/config city scale, no live package load) or
+**B — ENABLE CF-7 STAGING** (one controlled approved package into staging, only once 8A has a real
+package-loading use case + a persisted epoch source + a staging env + an explicit operator decision).
+
 ## ADR-033 — Creator Foundation CF-7: operator-approved live loader, SHIPPED DISABLED (2026-06-07)
 
 **Context.** CF-8 (ADR-032) built the human-review gate the live loader depends on. CF-7 is the trust
