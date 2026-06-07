@@ -64,17 +64,31 @@ there is no live cabinet registration, no server ticket/prize/score authority, n
 > module can run at all; the child's **null origin + `default-src 'none'`** remain the real isolation, and
 > `connect-src` cannot be loosened into the child (child `default-src 'none'` ∩ parent `'self'` = none).
 
-## Sandbox rules (enforced)
+## Sandbox rules (enforced — two layers)
+
+The **authoritative** layer is the runtime: a null-origin `sandbox="allow-scripts"` iframe + a child CSP
+`default-src 'none'` (no `connect-src`, no `'unsafe-eval'`). This holds **even if the static scan misses
+an obfuscated form** (e.g. `window['fe'+'tch']`, `constructor.constructor`, blob-URL import) — string-built
+network, the Function constructor, blob imports, storage, and parent access all fail at runtime. The
+**static source scan is defense-in-depth / best-effort**: it rejects the obvious vectors early so a bad
+package is flagged at import rather than silently failing in the frame.
 
 ```
-no network (fetch/XHR/WebSocket/EventSource/sendBeacon)   ✓ static scan + CSP default-src 'none'
-no external assets / remote import                         ✓ static scan + CSP + assets-empty
-no eval / new Function                                     ✓ static scan + CSP (no 'unsafe-eval')
-no storage (localStorage/sessionStorage/indexedDB/cookie)  ✓ static scan + null-origin sandbox
-no WebSocket / workers / service worker                    ✓ static scan + CSP
-no live cabinet registration / server ticket/prize         ✓ runner never registers; result untrusted
-result is an explicit "untrusted local proposal"           ✓ server_authorized:false, trust label
+                                                           static scan (best-effort)   runtime (authoritative)
+no network (fetch/XHR/WebSocket/EventSource/sendBeacon)    ✓ deny-list                  ✓ CSP default-src 'none'
+no external assets / remote import                          ✓ deny-list                  ✓ CSP + assets-empty
+no eval / new Function / constructor.constructor            ✓ deny-list                  ✓ CSP (no 'unsafe-eval')
+no storage (localStorage/sessionStorage/indexedDB/cookie)   ✓ deny-list                  ✓ null-origin sandbox
+no WebSocket / workers / service worker                     ✓ deny-list                  ✓ CSP
+no parent/top access, popups, navigation                    ✓ deny-list (partial)        ✓ null-origin sandbox attr
+no live cabinet registration / server ticket/prize          ✓ runner never registers; result untrusted
+result is an explicit "untrusted local proposal"            ✓ server_authorized:false, trust label
 ```
+
+Imports are constrained so the sandbox can concatenate modules: the **entry imports nothing**; the
+**adapter imports only `./game.mjs`** (multiline + side-effect imports are rejected). A non-conforming
+import is flagged at import time; even if one slipped through, a relative/bare specifier simply fails to
+resolve in the null-origin `default-src 'none'` frame (the game does not run — no escape).
 
 ## Isolation from production
 

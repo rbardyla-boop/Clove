@@ -94,6 +94,34 @@ test('markup/script injection in source is rejected', () => {
   assert.equal(r.ok, false);
 });
 
+test('obfuscation / capability vectors are rejected (review hardening)', () => {
+  for (const [snippet, label] of [
+    ["const f = window['fe'+'tch']", 'bracket global access'],
+    ['const F = (function(){}).constructor.constructor', 'Function-constructor escape'],
+    ['const u = URL.createObjectURL(b)', 'blob object url'],
+    ['const m = import.meta.url', 'import.meta'],
+    ['parent.postMessage({x:1}, "*")', 'postMessage'],
+    ['const fn = "\\u0066etch"', 'unicode escape'],
+  ]) {
+    const files = SAMPLE_FILES();
+    files['game.mjs'] = files['game.mjs'] + '\nfunction _z(){ ' + snippet + '; }';
+    const r = imp(SAMPLE_MANIFEST, files);
+    assert.equal(r.ok, false, `${label} must be rejected`);
+  }
+});
+
+test('multiline and side-effect imports are rejected (review hardening)', () => {
+  const e1 = [];
+  scanSource('adapter.mjs', 'import {\n  createGame\n} from "./evil.mjs";\nexport function createAdapter(){}', 'adapter', e1);
+  assert.ok(e1.some((e) => /may import only/.test(e)), 'multiline non-game import rejected');
+  const e2 = [];
+  scanSource('game.mjs', 'import "./side-effect.mjs";\nexport function createGame(){}', 'entry', e2);
+  assert.ok(e2.some((e) => /side-effect import/.test(e)), 'side-effect import rejected');
+  const e3 = [];
+  scanSource('adapter.mjs', "import {\n createGame\n} from './game.mjs';\nexport function createAdapter(){}", 'adapter', e3);
+  assert.equal(e3.length, 0, 'multiline ./game.mjs import is allowed');
+});
+
 test('entry module must not import; adapter may import only ./game.mjs', () => {
   const e1 = [];
   scanSource('game.mjs', 'import x from "./other.mjs";\nexport function createGame(){}', 'entry', e1);

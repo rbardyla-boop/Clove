@@ -55,18 +55,30 @@ export const SOURCE_FORBIDDEN = Object.freeze([
   ['service worker', /serviceWorker/],
   ['top/parent navigation', /\b(?:top|parent)\s*\.\s*location\b/],
   ['cross-window open', /\bwindow\s*\.\s*open\s*\(/],
+  ['postMessage from package', /\bpostMessage\s*\(/],            // the trusted bootstrap owns the channel
+  ['Function-constructor escape', /\.\s*constructor\s*\.\s*constructor|\[\s*['"]constructor['"]\s*\]/],
+  ['bracket access on a global', /\b(?:window|globalThis|self|top|parent|frames|document)\s*\[/], // window['fe'+'tch']
+  ['blob object url', /createObjectURL/],
+  ['import.meta', /\bimport\s*\.\s*meta\b/],
+  ['unicode/hex identifier escape', /\\u00|\\x[0-9a-f]{2}/i],     // obfuscated identifiers (fetch via \u..)
 ]);
 
-const IMPORT_RE = /\bimport\b[^;\n]*?\bfrom\s*['"]([^'"]+)['"]/g;
+// `from`-imports may span newlines; side-effect imports (`import 'x'`) have no `from`.
+const FROM_IMPORT_RE = /\bimport\b[\s\S]*?\bfrom\s*['"]([^'"]+)['"]/g;
+const SIDE_EFFECT_IMPORT_RE = /(^|\n)\s*import\s*['"]([^'"]+)['"]\s*;?/;
 
 /** Scan one module's source. game.mjs must have NO imports; adapter.mjs may import ONLY './game.mjs'. */
 export function scanSource(name, source, role, errors) {
   if (typeof source !== 'string' || source.length === 0) { errors.push(`${name}: source missing or empty`); return; }
   for (const [label, re] of SOURCE_FORBIDDEN) if (re.test(source)) errors.push(`${name}: forbidden (${label})`);
   if (FORBIDDEN_TERMS_RE.test(source)) errors.push(`${name}: forbidden economy/ownership term`);
+  // side-effect imports are never allowed (in either role)
+  const se = SIDE_EFFECT_IMPORT_RE.exec(source);
+  if (se) errors.push(`${name}: side-effect import not allowed (found '${se[2]}')`);
+  // from-imports (multiline-tolerant): entry none; adapter only './game.mjs'
   let m;
-  IMPORT_RE.lastIndex = 0;
-  while ((m = IMPORT_RE.exec(source)) !== null) {
+  FROM_IMPORT_RE.lastIndex = 0;
+  while ((m = FROM_IMPORT_RE.exec(source)) !== null) {
     const spec = m[1];
     if (role === 'entry') errors.push(`${name}: entry module must not import (found '${spec}')`);
     else if (spec !== './game.mjs') errors.push(`${name}: adapter may import only './game.mjs' (found '${spec}')`);

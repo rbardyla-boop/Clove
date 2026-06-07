@@ -34,9 +34,10 @@ function setStatus(text, cls) {
   if (s) { s.textContent = text; s.className = 'sb-status ' + (cls || ''); }
 }
 
-/** Strip the adapter's `import {...} from './game.mjs';` — createGame is concatenated in scope. */
+/** Strip the adapter's `import {...} from './game.mjs';` (multiline-tolerant) — createGame is
+ *  concatenated in scope. The importer already guarantees the adapter's only import is './game.mjs'. */
 function stripGameImport(adapterSource) {
-  return adapterSource.replace(/^[ \t]*import\s*\{[^}]*\}\s*from\s*['"]\.\/game\.mjs['"];?[ \t]*$/m, '');
+  return adapterSource.replace(/import\s*\{[\s\S]*?\}\s*from\s*['"]\.\/game\.mjs['"]\s*;?/g, '');
 }
 
 function buildSrcdoc(gameSource, adapterSource, dims) {
@@ -59,6 +60,7 @@ function buildSrcdoc(gameSource, adapterSource, dims) {
     'function __loop(ts){ const dt = __last ? Math.min((ts - __last) / 1000, 0.05) : 0; __last = ts; try { __adapter.frame(dt, __ctx); } catch (e) {} requestAnimationFrame(__loop); }',
     'requestAnimationFrame(__loop);',
     'addEventListener("message", function (e) {',
+    '  if (e.source !== parent) return;', // only accept the host channel
     '  const m = e.data || {};',
     '  if (m.type === "input") { try { __adapter.input(m.event); } catch (e2) {} }',
     '  else if (m.type === "request_result") {',
