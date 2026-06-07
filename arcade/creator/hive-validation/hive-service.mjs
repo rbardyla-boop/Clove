@@ -112,8 +112,8 @@ export function createHiveService() {
       byHash.set(receipt.package_hash, receipt);
       return receipt;
     },
-    /** Read-only: the recorded verdict for an exact package hash, or null. */
-    lookup(packageHashStr) { return byHash.get(packageHashStr) || null; },
+    /** Read-only: a COPY of the recorded verdict for an exact package hash, or null (no mutation leak). */
+    lookup(packageHashStr) { const r = byHash.get(packageHashStr); return r ? { ...r } : null; },
     /** Read-only: a copy of the submission queue (no package bodies, no private data). */
     queue() { return order.map((e) => ({ ...e })); },
     get size() { return order.length; },
