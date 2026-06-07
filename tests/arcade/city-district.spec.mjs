@@ -85,6 +85,11 @@ try {
   check('adjacency is grouped by corridor — from downtown BOTH headers show (Ring + New corridor)', await A.page.evaluate(() => { const h = [...document.querySelectorAll('#cityDistrict .dist-group')].map((e) => e.textContent); return h.includes('Ring') && h.includes('New corridor'); }));
   check('YOU ARE HERE marks the current block', await A.page.evaluate(() => /YOU ARE HERE/.test(document.getElementById('cityDistrict').textContent)));
 
+  // ── Phase 8C-3: per-block VOICE flavor (display-only client overlay) ──
+  check('activity board carries the current block voice (Downtown hums)', await A.page.evaluate(() => /Downtown hums/.test(document.getElementById('cityDistrict').textContent)));
+  check('event card carries a per-block voice line when an event is active', await A.page.evaluate(() => { const card = document.querySelector('#cityDistrict .dist-event'); if (!card) return true; const v = card.querySelector('.dist-event-voice'); return !!v && v.textContent.length > 0; }));
+  check('8C-3 voice copy adds no reward/economy vocabulary', await A.page.evaluate(() => !/\b(reward|earn|prize|bonus|unlock|token|payout|loot|wager|jackpot|stake|buy|sell|rent|own)\b/i.test(document.getElementById('cityDistrict').textContent)));
+
   // Phase 5B: capture downtown's visual identity (style + landmark label) before travel
   const dtId = await A.page.evaluate(() => ({
     palette: window.__neon_city.blockStyle().arcade_front.palette,

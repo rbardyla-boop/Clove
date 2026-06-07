@@ -31,6 +31,7 @@ import {
 import { districtEventWindow, deriveDistrictAnnouncements, formatCountdown } from './city-district-events.mjs';
 import { blockIdentity, tourProgress } from './city-block-identity.mjs'; // Phase 8C: display-only per-block identity + District Tour
 import { districtGraphModel, groupAdjacentByCorridor, corridorOf } from './city-district-graph.mjs'; // Phase 8C-2: district graph + route readability
+import { eventVoiceLine, blockVoice } from './city-district-flavor.mjs'; // Phase 8C-3: per-block voice (display-only overlay)
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -561,6 +562,10 @@ function renderDistrict() {
     ev.appendChild(title);
     const sum = document.createElement('div'); sum.className = 'dist-event-sum'; sum.textContent = cityEvent.current.summary;
     ev.appendChild(sum);
+    // Phase 8C-3: per-block VOICE overlay — the focus block's tone for this event (display-only, client).
+    // Does NOT alter the server-authored label/summary above; pure atmospheric copy from a static table.
+    const voice = eventVoiceLine(cityEvent.current.city_id, cityEvent.current.type);
+    if (voice) { const vv = document.createElement('div'); vv.className = 'dist-event-voice'; vv.textContent = voice; ev.appendChild(vv); }
     // Phase 6C: live countdown to the end of the current window ("ends in m:ss").
     const meta = document.createElement('div'); meta.className = 'dist-event-meta';
     const ml = document.createElement('span'); ml.className = 'dist-event-meta-label'; ml.textContent = 'ends in ';
@@ -623,6 +628,9 @@ function renderDistrict() {
   if (cityActivity.length) {
     const ah = document.createElement('div'); ah.className = 'dist-act-head'; ah.textContent = 'DISTRICT ACTIVITY';
     districtEl.appendChild(ah);
+    // Phase 8C-3: the board's local VOICE — the current block's standing tone (display-only, client copy).
+    const boardVoice = cur ? blockVoice(cur.city_id) : '';
+    if (boardVoice) { const bv = document.createElement('div'); bv.className = 'dist-act-voice dist-quiet'; bv.textContent = boardVoice; districtEl.appendChild(bv); }
     const list = document.createElement('div'); list.className = 'dist-act-list'; list.setAttribute('role', 'log'); list.setAttribute('aria-live', 'polite');
     for (const a of cityActivity.slice(0, ACTIVITY_UI_MAX)) {
       const row = document.createElement('div');
