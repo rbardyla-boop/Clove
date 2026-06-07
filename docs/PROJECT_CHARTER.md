@@ -5,6 +5,41 @@ Newest first.
 
 ---
 
+## ADR-031 — Creator Foundation CF-7/CF-8: live-loader + human-review gate (PLAN ONLY) (2026-06-07)
+
+**Context.** Before any Phase 8 city-scale work, the program needs a written **live-loader threat model**
+so map scale is built around a known trust boundary, not a guessed one. CF-7 is the first time a
+player-authored package could render in the **live world** — the most dangerous gate — and CF-8 (human
+review) must exist before the first live approval. This ADR records the PLAN; it changes no behavior.
+
+**Decision (design, not implementation).**
+1. **Parallel, additionally-gated LIVE track; the CF-2 local boundary stays byte-frozen.** New
+   `creator_live_approval_receipt` + `creator_approved_live_packages` registry + a single live loader
+   path carry `live_world_authorized:true`; the CF-2 local receipt/registry validators are **unchanged**
+   and keep rejecting `true`. `live_world_authorized:true` is honored ONLY by the new live validators,
+   only when the hash is in the live registry (`operator_approved_live`, not revoked/expired), the live
+   receipt binds the package + the CF-2 local receipt + the CF-6 verdict + a **valid CF-8 human-review
+   block**, the package **re-validates at load**, `staging_verified` is true, and the runtime
+   **kill-switch** is off. `live_world_authorized` is **derived, never an input**.
+2. **Hash-bound + tamper-evident throughout** (load-time hash recompute; `receipt_hash` + `registry_hash`).
+   **Revocation** (per-package `revoked` + TTL `expires_at`) and a **runtime kill-switch** (deny-all,
+   no redeploy) provide rollback; default-deny on any error.
+3. **CF-8 before CF-7's first live approval.** A deny-by-default human-review queue; only an `approve_live`
+   decision can mint a live approval; reviewers MUST screen the free-text fields (`display_name`/
+   `package_id`/`operator_note`) for profanity/slurs/harassment/impersonation/PII (the deny-regex is
+   syntactic only). A **CF-6 verdict is NOT live authorization**.
+4. **Staging-only proof before production**; production live load is a separate, explicitly-authorized
+   gate. Threat model covers: malicious package, stale-approval replay, reviewer compromise, hash-collision
+   assumption, moderation bypass, registry poisoning, loader bypass — each with a stated mitigation.
+   Acceptance tests are defined up front. **No economy/ownership/rent/accounts/marketplace/payout/token/
+   NFT/transfer/cash-out.**
+
+**Consequences.** New `docs/CREATOR_FOUNDATION_CF7_CF8_LIVE_LOADER_PLAN.md` + this ADR. **Plan-only:** no
+code, no loader enablement, no deploy, no Phase 8; `LIVE_WORLD_LOADER_ENABLED` **remains false**.
+Implementation is gated: `AUTHORIZED: IMPLEMENT CF-8` → `AUTHORIZED: IMPLEMENT CF-7` (shipped disabled,
+staging-only) → staging proof → a separate production gate. Detail:
+`docs/CREATOR_FOUNDATION_CF7_CF8_LIVE_LOADER_PLAN.md`.
+
 ## ADR-030 — Creator Foundation CF-5: tiled-map / asset-pack workflow (2026-06-07)
 
 **Context.** The bridge between "we can validate/approve packages" and "we can later build bigger
