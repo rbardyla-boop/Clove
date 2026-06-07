@@ -5,6 +5,38 @@ Newest first.
 
 ---
 
+## ADR-036 — Phase 8C District Content Depth Plan (PLAN ONLY; static/display; live loader stays closed) (2026-06-07)
+
+**Context.** Phase 8A (ADR-035) proved the city scales **structurally** (six blocks, richer adjacency, a
+new corridor, staging-proven). Structural scale is not reasons to move: Garden, Nexus, and the new
+corridor are real on the map but have no character. The operator's call was to make the six-block city
+worth exploring **before** any more infrastructure — not 8B (partial-manifest; the measured B=6 manifest
+is 6.9× under the socket norm so the trigger isn't real yet) and not CF-7 staging (no package-backed
+use case exists).
+
+**Decision.** Author `docs/PHASE_8C_DISTRICT_CONTENT_DEPTH.md` — **PLAN ONLY, no code** — produced by a
+grounded multi-agent workflow (4 content-system mappers → 7 design + adversarial-verify pipelines →
+completeness critic; 19 agents) so every hook is anchored to a real system. Make the six-block district
+feel intentional using **only existing kernel systems**, **static config + display-only client
+derivation**, **zero Worker/DO authority change** by default. Covers all nine required items: per-block
+identity / "why go there" for all six (esp. Garden + Nexus); static labels / landmark flavor;
+**non-reward** objectives (built on Phase 7A interaction zones, Phase 7E receipts, non-cash Block Trial /
+Host Rank — display/acknowledge only, grant **nothing** economic); district-event + activity-board flavor
+at the existing public-safe choke points (within `ACTIVITY_FEED_MAX`/`ANNOUNCE_MAX`); route/readability
+polish for the graph + corridor (district panel, minimap, travel affordances); a static-config-vs-
+authority-change line (default zero server change; the one tricky surface — trial context copy — resolved
+to client render-time lookup, not a payload change); cross-device smoke matrix updates with a
+forbidden-vocabulary guard; plus open items to confirm at build time.
+
+**Consequences.** New `docs/PHASE_8C_DISTRICT_CONTENT_DEPTH.md` + this ADR. **No code, no Worker/DO change,
+no deploy, no migration.** `LIVE_WORLD_LOADER_ENABLED` **stays false**; **no economy, ownership, rent,
+paid hosting, accounts, marketplace, rewards, payouts, tokens, NFTs, transfer, or cash-out**; no CF-7
+enablement; no package-backed districts; no production; HiveWorld untouched. Adversarial critic: all 9
+items covered, **zero exclusion violations**, **zero unjustified authority changes**. The post-plan fork:
+**A — IMPLEMENT PHASE 8C** (the content pass: static/display, no server change) vs the still-parked **8B**
+(only when B approaches 9/12 or manifest pressure is measured) and **CF-7 staging** (only when a real
+package-backed candidate exists). Local-only; not deployed.
+
 ## ADR-035 — Phase 8A: six-block district (static config; live loader stays closed) (2026-06-07)
 
 **Context.** ADR-034's Phase 8 plan set the 8A baseline: scale the SINGLE district from 4 blocks toward
