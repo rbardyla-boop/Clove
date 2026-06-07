@@ -5,6 +5,35 @@ Newest first.
 
 ---
 
+## ADR-030 — Creator Foundation CF-5: tiled-map / asset-pack workflow (2026-06-07)
+
+**Context.** The bridge between "we can validate/approve packages" and "we can later build bigger
+districts." CF-5 composes multiple ALREADY-APPROVED, hash-addressed block packages into a LOCAL
+tiled-isometric map — with no live-world reach.
+
+**Decision.**
+1. **Approved-hash-only composition.** New `city_asset_pack` schema + `validateAssetPack(pack, registry)`:
+   a bounded grid (cols/rows ≤ 8, ≤ 32 unique in-grid tiles, ≤ 8 KiB) whose every tile references a
+   package **by canonical hash** that MUST be approved-local in the CF-2 registry
+   (`resolveApprovedPackage`), kinds matching. No package bodies, no URLs, no external assets; deny-by-
+   default (reuses `scanSafety`/`FORBIDDEN_TERMS_RE`). An empty/invalid registry approves nothing.
+2. **Hash-verified resolve.** `resolveAssetPack(pack, registry, packageStore)` returns renderable tiles
+   only for approved hashes whose body's recomputed canonical hash matches (tamper check) and kind agrees.
+3. **Local data-only viewer.** `arcade/creator/map-viewer/` loads a pack + approved registry + local
+   package store and renders the composition with the EXISTING `drawBlock`/`drawLayeredBlock` renderers —
+   rendering approved package DATA, never executing package code (no sandbox needed), no submit/upload/
+   live, strict CSP. An unapproved hash → BLOCKED, empty canvas.
+
+**Consequences.** New `arcade/creator/schemas/asset-pack-schema.mjs` + `validator/validate-asset-pack.mjs`
++ `map-viewer/**` + `samples/sample-asset-pack/{pack,registry}.json` + `tests/creator/
+asset-pack-validator.test.mjs` + `map-viewer.spec.mjs` + `run-map-viewer.sh` + this doc. Local creator
+tooling under `arcade/creator/**` (excluded from curated upload — verified). **No Worker/DO change**
+(dry-run byte-identical 200.81 KiB), no live-world load, no public upload, no economy/ownership/rent/
+accounts/marketplace. Validation: 136 creator unit (126 + 10) + 8-check map-viewer browser smoke (render
+approved tiles + BLOCK unapproved hash + no off-host network) + 608 arcade unit + curated-upload exclusion
++ production-config PASS + size within budget. Local-only; not deployed.
+Detail: `docs/CREATOR_FOUNDATION_CF5_ASSET_PACK.md`.
+
 ## ADR-029 — Creator Foundation CF-6: Hive validation service prototype (2026-06-07)
 
 **Context.** CF-2 made a single operator's static approved-registry real. CF-6 turns *validation* into
