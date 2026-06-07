@@ -29,6 +29,7 @@ import {
   activityForArrival, activityForDistrictEvent, appendActivity, ACTIVITY_FEED_MAX,
 } from './city-district-activity.mjs';
 import { districtEventWindow, deriveDistrictAnnouncements, formatCountdown } from './city-district-events.mjs';
+import { blockIdentity, tourProgress } from './city-block-identity.mjs'; // Phase 8C: display-only per-block identity + District Tour
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -448,6 +449,10 @@ function updateEventCountdown(now = Date.now()) {
   const nxc = districtEl.querySelector('.dist-event-next-countdown');
   if (nxc && cityEvent.next) nxc.textContent = 'in ' + formatCountdown(cityEvent.next.starts_at - now);
 }
+// Phase 8C — District Tour (OBJ-1): a SESSION-LOCAL, NON-REWARD set of blocks this session has been in.
+// Display-only; resets on reload; never written to a DO/account/ledger. Reaching 6/6 needs both corridors.
+const visitedBlocks = new Set();
+
 function renderDistrict() {
   if (!districtEl) return;
   districtEl.textContent = '';
@@ -457,6 +462,7 @@ function renderDistrict() {
     return;
   }
   const cur = currentBlock();
+  if (cur) visitedBlocks.add(cur.city_id); // track traversal for the District Tour (display-only)
   // keep the topbar honest after travel (the const cityId is construction-only)
   const sub = document.querySelector('.brand .sub');
   if (sub && cur) sub.textContent = `${cur.display_name.toLowerCase()} · prototype`;
@@ -478,6 +484,18 @@ function renderDistrict() {
   const line = document.createElement('div'); line.className = 'dist-line';
   line.textContent = cur ? `theme ${cur.theme} · ${peopleLabel(cur)}` : 'current block';
   districtEl.appendChild(line);
+  // Phase 8C: current block's display identity (tagline) — what this place is. Display-only copy.
+  const curId = cur ? blockIdentity(cur.city_id) : null;
+  if (curId && curId.tagline) {
+    const tag = document.createElement('div'); tag.className = 'dist-tag';
+    tag.textContent = `${cur.display_name} — ${curId.tagline}`;
+    districtEl.appendChild(tag);
+  }
+  // Phase 8C: District Tour (OBJ-1) — non-reward, session-local "N/6 blocks seen". Grants nothing.
+  const tour = tourProgress(visitedBlocks);
+  const tourEl = document.createElement('div'); tourEl.className = 'dist-tour' + (tour.complete ? ' dist-good' : '');
+  tourEl.textContent = `District Tour · ${tour.seen}/${tour.total} blocks seen${tour.complete ? ' · complete' : ''}`;
+  districtEl.appendChild(tourEl);
 
   // Phase 6A/6C: district PULSE — a richer (but still non-dominant) event CARD with a live countdown
   // and active/pre-roll visual states. textContent only; CSS-only visuals; reduced-motion safe.
@@ -521,9 +539,16 @@ function renderDistrict() {
     name.textContent = `${b.display_name} · ${peopleLabel(b)}`;
     if (b.health && b.health !== 'healthy') name.classList.add('dist-quiet');
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dist-travel'; btn.textContent = 'Travel';
+    // Phase 8C: a "why go there" affordance — the adjacent block's identity, display-only.
+    const bid = blockIdentity(b.city_id);
+    btn.setAttribute('aria-label', `Travel to ${b.display_name}${bid.why_visit ? ' — ' + bid.why_visit : ''}`);
     btn.addEventListener('click', () => { recordActivity(activityForRouteRequested(b.city_id, b.display_name)); routeStatus = `routing to ${b.display_name}…`; renderDistrict(); net.requestRoute(b.city_id); });
     row.appendChild(name); row.appendChild(btn);
     districtEl.appendChild(row);
+    if (bid.why_visit) {
+      const why = document.createElement('div'); why.className = 'dist-why dist-quiet'; why.textContent = bid.why_visit;
+      districtEl.appendChild(why);
+    }
   }
   if (routeStatus) {
     const st = document.createElement('div'); st.className = 'dist-status'; st.textContent = routeStatus;

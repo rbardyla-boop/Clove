@@ -39,7 +39,9 @@ export const ACTION_REQUEST_TYPE = Object.freeze({
  * interaction surface free of economy/ownership/gambling/crime affordances. Mirrors the
  * charter non-goals and the creator validator's FORBIDDEN_TERMS family.
  */
-const FORBIDDEN_RE = /\b(shop|store|market(place)?|buy|sell|sale|for[-\s]?sale|rent|rental|own(er|ed|ership)?|landlord|tenant|wager|bet|gambl\w*|jackpot|loot|raid|steal|theft|cash[-\s]?out|payout|payment|withdraw|profit|income|earn|price|cost|coin|crypto|token|nft|stake|staking|yield|trade|trading|multiplier|boost|bonus|prize|reward|weapon|gun|police|wanted|crime)\b/i;
+// Exported (Phase 8C) so content modules + tests screen new display copy against the SAME canonical
+// economy/ownership/gambling/crime vocabulary guard — one source of truth, no drift.
+export const FORBIDDEN_RE = /\b(shop|store|market(place)?|buy|sell|sale|for[-\s]?sale|rent|rental|own(er|ed|ership)?|landlord|tenant|wager|bet|gambl\w*|jackpot|loot|raid|steal|theft|cash[-\s]?out|payout|payment|withdraw|profit|income|earn|price|cost|coin|crypto|token|nft|stake|staking|yield|trade|trading|multiplier|boost|bonus|prize|reward|weapon|gun|police|wanted|crime)\b/i;
 
 const LABEL_MAX = 48;
 const PROMPT_MAX = 64;

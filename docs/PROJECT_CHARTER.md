@@ -5,6 +5,39 @@ Newest first.
 
 ---
 
+## ADR-037 — Phase 8C content pass v1: per-block identity + District Tour (display-only) (2026-06-07)
+
+**Context.** ADR-036's 8C plan set the content-depth direction (make the six-block district worth
+exploring using only existing systems, static/display, zero authority change). This is the first
+implementation increment, landing the plan's highest-value, lowest-risk surfaces.
+
+**Decision.** Implement **per-block display identity + the non-reward District Tour** per the plan's §1 /
+§3 (OBJ-1) / §4 (Polish 1), strictly **display-only**:
+1. New pure `arcade/city/city-block-identity.mjs`: a frozen `BLOCK_IDENTITY` (per-block `tagline` +
+   `why_visit`, all six blocks, copy consistent with the existing labels/theme), `blockIdentity()`
+   (fallback-safe + immutable), `identityCopyIsClean()`, and `tourProgress()` (District Tour OBJ-1 —
+   counts known blocks seen out of `CITY_IDS.length`, auto-scaling).
+2. Client `arcade/city/city-scene.js` `renderDistrict()`: current-block tagline subtitle; a
+   **session-local, non-reward** "District Tour · N/6 blocks seen" line (a module `Set` filled from the
+   blocks the session visits — resets on reload, written to no DO/account/ledger, grants nothing,
+   reaching 6/6 structurally requires both corridors); per-adjacent-row `why_visit` affordance + a "why go
+   there" Travel-button `aria-label`. Plus 3 display CSS classes.
+3. Exported the canonical `FORBIDDEN_RE` from `city-interactions.mjs` (additive) so content copy + tests
+   screen against one source of truth (plan O-7).
+
+**Consequences.** New `city-block-identity.mjs` + `tests/arcade/city-block-identity.test.mjs`; edited
+`city-scene.js`, `city.css`, `city-interactions.mjs` (export only), `city-district.spec.mjs` (+6 content
+checks). **Zero Worker/DO/schema change** — Worker dry-run **byte-identical to 8A (202.01 KiB)**,
+`SCHEMA_VERSION` stays 8, no `blockPublicSummary` field, no new wire message; `city-block-identity.mjs` is
+client-only. `LIVE_WORLD_LOADER_ENABLED` **stays false**; **no economy/ownership/rent/accounts/marketplace
+/rewards/payouts/tokens/NFTs** (all identity copy passes the canonical FORBIDDEN_RE + length bounds; the
+Tour grants nothing); no CF-7; no package-backed districts; no production; HiveWorld untouched. Validation:
+617 arcade unit (+5) + 169 creator + 40-check district browser smoke (tagline + Tour 1/6→3/6 progression +
+why-go-there + aria-label + no-reward-vocab) + 14-check interactions smoke + production-config PASS +
+GTA-80 size PASS. Adversarial review APPROVE (0 CRITICAL/HIGH/MEDIUM; 1 LOW CSS cue folded). Deferred to
+8C follow-ups (named, not built): §2 per-block event/activity "voice" flavor, OBJ-2…OBJ-5, minimap
+district-graph (§4 Polish 4). Local-only; not deployed.
+
 ## ADR-036 — Phase 8C District Content Depth Plan (PLAN ONLY; static/display; live loader stays closed) (2026-06-07)
 
 **Context.** Phase 8A (ADR-035) proved the city scales **structurally** (six blocks, richer adjacency, a
