@@ -76,6 +76,15 @@ try {
   check('Travel control exposes the why-go-there as an aria-label', await A.page.evaluate(() => [...document.querySelectorAll('#cityDistrict .dist-travel')].some((b) => /Travel to .+ — /.test(b.getAttribute('aria-label') || ''))));
   check('8C content adds no reward/economy vocabulary to the panel', await A.page.evaluate(() => !/\b(reward|earn|prize|bonus|unlock|token|payout|loot|wager|jackpot|stake)\b/i.test(document.getElementById('cityDistrict').textContent)));
 
+  // ── Phase 8C-2: district-graph inset + corridor grouping + route readability (display-only) ──
+  check('DISTRICT MAP graph renders six nodes', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-node').length === 6));
+  check('DISTRICT MAP graph renders seven edges (4 ring + 3 new)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-edge').length === 7));
+  check('the new Garden⇄Nexus corridor is visually distinguished (dm-new edges)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-new').length === 3));
+  check('current block is highlighted on the map (exactly one dm-current)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-current').length === 1));
+  check('downtown shows its three adjacent (routable) nodes emphasized', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-adjacent').length === 3));
+  check('adjacency is grouped by corridor — from downtown BOTH headers show (Ring + New corridor)', await A.page.evaluate(() => { const h = [...document.querySelectorAll('#cityDistrict .dist-group')].map((e) => e.textContent); return h.includes('Ring') && h.includes('New corridor'); }));
+  check('YOU ARE HERE marks the current block', await A.page.evaluate(() => /YOU ARE HERE/.test(document.getElementById('cityDistrict').textContent)));
+
   // Phase 5B: capture downtown's visual identity (style + landmark label) before travel
   const dtId = await A.page.evaluate(() => ({
     palette: window.__neon_city.blockStyle().arcade_front.palette,

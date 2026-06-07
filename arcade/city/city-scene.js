@@ -30,6 +30,7 @@ import {
 } from './city-district-activity.mjs';
 import { districtEventWindow, deriveDistrictAnnouncements, formatCountdown } from './city-district-events.mjs';
 import { blockIdentity, tourProgress } from './city-block-identity.mjs'; // Phase 8C: display-only per-block identity + District Tour
+import { districtGraphModel, groupAdjacentByCorridor, corridorOf } from './city-district-graph.mjs'; // Phase 8C-2: district graph + route readability
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -453,6 +454,47 @@ function updateEventCountdown(now = Date.now()) {
 // Display-only; resets on reload; never written to a DO/account/ledger. Reaching 6/6 needs both corridors.
 const visitedBlocks = new Set();
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// Phase 8C-2: draw the DISTRICT MAP graph inset (SVG) from a pure model. Display-only; no state/authority.
+// Ring vs new-corridor edges are class-distinguished; the current block + adjacent (routable) nodes are
+// emphasized so the adjacent-only rule is visible at a glance. Reduced-motion safe (static, no animation).
+function appendDistrictMap(container, model) {
+  if (!container || !model || !model.nodes.length) return;
+  const wrap = document.createElement('div'); wrap.className = 'dist-map';
+  const cap = document.createElement('div'); cap.className = 'dist-map-cap';
+  cap.textContent = 'DISTRICT MAP · ring + new corridor';
+  wrap.appendChild(cap);
+
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', model.viewBox);
+  svg.setAttribute('class', 'dist-map-svg');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'District map: six blocks, the original ring and the new Garden to Nexus corridor; your current block is highlighted.');
+
+  const nodeById = (id) => model.nodes.find((n) => n.city_id === id);
+  for (const e of model.edges) {
+    const a = nodeById(e.from); const b = nodeById(e.to);
+    if (!a || !b) continue;
+    const ln = document.createElementNS(SVG_NS, 'line');
+    ln.setAttribute('x1', a.x); ln.setAttribute('y1', a.y); ln.setAttribute('x2', b.x); ln.setAttribute('y2', b.y);
+    ln.setAttribute('class', `dm-edge dm-${e.corridor || 'other'}${e.incident ? ' dm-incident' : ''}`);
+    svg.appendChild(ln);
+  }
+  for (const n of model.nodes) {
+    const c = document.createElementNS(SVG_NS, 'circle');
+    c.setAttribute('cx', n.x); c.setAttribute('cy', n.y); c.setAttribute('r', n.current ? 6 : 4.5);
+    c.setAttribute('class', `dm-node${n.current ? ' dm-current' : (n.adjacent ? ' dm-adjacent' : '')}`);
+    svg.appendChild(c);
+    const t = document.createElementNS(SVG_NS, 'text');
+    t.setAttribute('x', n.x); t.setAttribute('y', n.y + 13); t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('class', 'dm-label'); t.textContent = n.label;
+    svg.appendChild(t);
+  }
+  wrap.appendChild(svg);
+  container.appendChild(wrap);
+}
+
 function renderDistrict() {
   if (!districtEl) return;
   districtEl.textContent = '';
@@ -485,10 +527,13 @@ function renderDistrict() {
   line.textContent = cur ? `theme ${cur.theme} · ${peopleLabel(cur)}` : 'current block';
   districtEl.appendChild(line);
   // Phase 8C: current block's display identity (tagline) — what this place is. Display-only copy.
+  // Phase 8C-2: a "YOU ARE HERE" affordance distinguishes the current block from adjacent rows.
   const curId = cur ? blockIdentity(cur.city_id) : null;
   if (curId && curId.tagline) {
     const tag = document.createElement('div'); tag.className = 'dist-tag';
     tag.textContent = `${cur.display_name} — ${curId.tagline}`;
+    const here = document.createElement('span'); here.className = 'dist-here'; here.textContent = ' · YOU ARE HERE';
+    tag.appendChild(here);
     districtEl.appendChild(tag);
   }
   // Phase 8C: District Tour (OBJ-1) — non-reward, session-local "N/6 blocks seen". Grants nothing.
@@ -496,6 +541,12 @@ function renderDistrict() {
   const tourEl = document.createElement('div'); tourEl.className = 'dist-tour' + (tour.complete ? ' dist-good' : '');
   tourEl.textContent = `District Tour · ${tour.seen}/${tour.total} blocks seen${tour.complete ? ' · complete' : ''}`;
   districtEl.appendChild(tourEl);
+
+  // Phase 8C-2: DISTRICT MAP — a small six-node graph (SVG) showing the topology: the original ring + the
+  // new Garden⇄Nexus corridor visually distinguished, the current block highlighted, and which neighbours
+  // are directly routable (incident edges). Display-only over the public manifest; routing authority is
+  // untouched (the adjacent-only rule still lives in the server's validateRouteRequest).
+  appendDistrictMap(districtEl, districtGraphModel(cityDistrict));
 
   // Phase 6A/6C: district PULSE — a richer (but still non-dominant) event CARD with a live countdown
   // and active/pre-roll visual states. textContent only; CSS-only visuals; reduced-motion safe.
@@ -526,14 +577,12 @@ function renderDistrict() {
     districtEl.appendChild(ev);
   }
 
-  const nearby = (cur ? cur.adjacent : [])
-    .map((id) => (cityDistrict.blocks || []).find((b) => b.city_id === id))
-    .filter(Boolean);
-  if (!nearby.length) {
-    const none = document.createElement('div'); none.className = 'dist-line dist-none'; none.textContent = 'no adjacent blocks';
-    districtEl.appendChild(none);
-  }
-  for (const b of nearby) {
+  // Phase 8C-2: adjacency GROUPED BY CORRIDOR (Ring vs New corridor) so the panel teaches the topology.
+  // The grouped unions exactly equal cur.adjacent; routing authority is untouched (each Travel still calls
+  // net.requestRoute → server validateRouteRequest, adjacent-only). Harbor and Foundry are never adjacent.
+  const byId = (id) => (cityDistrict.blocks || []).find((b) => b.city_id === id);
+  const groups = groupAdjacentByCorridor(cur ? cur.city_id : '', cur ? cur.adjacent : []);
+  const renderRow = (b, corridor) => {
     const row = document.createElement('div'); row.className = 'dist-row';
     const name = document.createElement('span'); name.className = 'dist-name';
     name.textContent = `${b.display_name} · ${peopleLabel(b)}`;
@@ -542,13 +591,28 @@ function renderDistrict() {
     // Phase 8C: a "why go there" affordance — the adjacent block's identity, display-only.
     const bid = blockIdentity(b.city_id);
     btn.setAttribute('aria-label', `Travel to ${b.display_name}${bid.why_visit ? ' — ' + bid.why_visit : ''}`);
-    btn.addEventListener('click', () => { recordActivity(activityForRouteRequested(b.city_id, b.display_name)); routeStatus = `routing to ${b.display_name}…`; renderDistrict(); net.requestRoute(b.city_id); });
+    const cname = corridor === 'new' ? 'new corridor' : 'ring';
+    btn.addEventListener('click', () => { recordActivity(activityForRouteRequested(b.city_id, b.display_name)); routeStatus = `routing to ${b.display_name} — ${cname}…`; renderDistrict(); net.requestRoute(b.city_id); });
     row.appendChild(name); row.appendChild(btn);
     districtEl.appendChild(row);
     if (bid.why_visit) {
       const why = document.createElement('div'); why.className = 'dist-why dist-quiet'; why.textContent = bid.why_visit;
       districtEl.appendChild(why);
     }
+  };
+  const renderGroup = (label, ids, corridor) => {
+    const blocks = ids.map(byId).filter(Boolean);
+    if (!blocks.length) return;
+    const gh = document.createElement('div'); gh.className = 'dist-group'; gh.textContent = label;
+    districtEl.appendChild(gh);
+    for (const b of blocks) renderRow(b, corridor);
+  };
+  if (!groups.ring.length && !groups.new.length) {
+    const none = document.createElement('div'); none.className = 'dist-line dist-none'; none.textContent = 'no adjacent blocks';
+    districtEl.appendChild(none);
+  } else {
+    renderGroup('Ring', groups.ring, 'ring');
+    renderGroup('New corridor', groups.new, 'new');
   }
   if (routeStatus) {
     const st = document.createElement('div'); st.className = 'dist-status'; st.textContent = routeStatus;
@@ -574,7 +638,9 @@ function onRouteResult(m) {
   if (m && m.ok && typeof m.target_city_id === 'string') {
     travelingTo = m.target_city_id;                                  // Phase 5E: expect an arrival in this block
     recordActivity(activityForRouteResult(m, blockName(m.target_city_id)));
-    routeStatus = `traveling to ${blockName(m.target_city_id)}…`;
+    // Phase 8C-2: name the corridor being traversed (display-only; source is the still-current block).
+    const c = cityDistrict ? corridorOf(cityDistrict.current_city_id, m.target_city_id) : null;
+    routeStatus = `traveling to ${blockName(m.target_city_id)}${c ? ' — ' + (c === 'new' ? 'new corridor' : 'ring') : ''}…`;
     renderDistrict();
     net.switchCity(m.target_city_id); // reconnect to the target block; its welcome re-pushes city_blocks
   } else {
