@@ -69,6 +69,13 @@ try {
   check('district manifest carries no private/economy/ownership data (population count is public)', await A.page.evaluate(() => !/\b(balance|ledger|inventory|payout|wager|owner|ownership|rent|rental|income|landlord|tenant|price|market|economy|secret|token|player_id|connection)\b/i.test(JSON.stringify(window.__neon_city.district()))));
   check('district panel copy is travel-only (no money/ownership/claim)', await A.page.evaluate(() => !/\$|\bcash\b|\bpayout\b|\bbuy\b|\bsell\b|\brent\b|\bown\b|\bowner\b|\bclaim\b|\bprice\b|\bmarket\b|\bstake\b|\bprofit\b|\bincome\b/i.test(document.getElementById('cityDistrict').textContent)));
 
+  // ── Phase 8C: per-block identity + District Tour (display-only content depth) ──
+  check('current block tagline renders (Downtown — the hub)', await A.page.evaluate(() => /Downtown Block — the hub/.test(document.getElementById('cityDistrict').textContent)));
+  check('District Tour shows 1/6 on arrival at downtown (non-reward, session-local)', await A.page.evaluate(() => /District Tour · 1\/6 blocks seen/.test(document.getElementById('cityDistrict').textContent)));
+  check('adjacent block carries a why-go-there affordance (Garden calm corridor)', await A.page.evaluate(() => /Calm new-corridor entry from Downtown\./.test(document.getElementById('cityDistrict').textContent)));
+  check('Travel control exposes the why-go-there as an aria-label', await A.page.evaluate(() => [...document.querySelectorAll('#cityDistrict .dist-travel')].some((b) => /Travel to .+ — /.test(b.getAttribute('aria-label') || ''))));
+  check('8C content adds no reward/economy vocabulary to the panel', await A.page.evaluate(() => !/\b(reward|earn|prize|bonus|unlock|token|payout|loot|wager|jackpot|stake)\b/i.test(document.getElementById('cityDistrict').textContent)));
+
   // Phase 5B: capture downtown's visual identity (style + landmark label) before travel
   const dtId = await A.page.evaluate(() => ({
     palette: window.__neon_city.blockStyle().arcade_front.palette,
@@ -136,6 +143,9 @@ try {
   check('pressure panel still present (4D intact)', await A.page.evaluate(() => window.__neon_city.pressure() !== null));
   check('host rank panel still present (4E intact)', await A.page.evaluate(() => window.__neon_city.hostRank() !== null));
   check('stewardship panel still present (4F intact)', await A.page.evaluate(() => window.__neon_city.stewardship() !== null));
+
+  // Phase 8C: after downtown → harbor → skyline, the District Tour has counted 3 of 6 blocks seen
+  check('District Tour counted 3/6 after traversing three blocks', await A.page.evaluate(() => /District Tour · 3\/6 blocks seen/.test(document.getElementById('cityDistrict').textContent)));
 
   check('no console / page errors', A.errors.length === 0);
   if (A.errors.length) console.log('  errors:', JSON.stringify(A.errors, null, 2));
