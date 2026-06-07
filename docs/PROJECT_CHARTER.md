@@ -5,6 +5,40 @@ Newest first.
 
 ---
 
+## ADR-032 — Creator Foundation CF-8: human-review queue + moderation/audit (zero live authority) (2026-06-07)
+
+**Context.** The CF-7/CF-8 plan (ADR-031) makes the live loader depend on a human-review gate: a CF-6
+verdict is not approval, and free-text fields (`display_name`/`package_id`/`operator_note`) need human
+screening for slurs/harassment/impersonation/PII before any live approval. CF-8 builds that human safety
+layer **before** CF-7 — granting zero live authority.
+
+**Decision.**
+1. **Review queue + 5-state lifecycle (deny-by-default).** New pure `arcade/creator/moderation/
+   review-queue.mjs`: states `pending → needs_changes | rejected | approved_for_live_candidate → revoked`.
+   `approved_for_live_candidate` is a human **recommendation**, NOT live authorization — `live_world_
+   authorized` is hard-coded **false** on every record (never an input); no loader is touched; nothing is
+   auto-promoted; the queue is bounded.
+2. **Mandatory free-text review gate.** A package becomes a live candidate only via a human decision with
+   `free_text_reviewed:true` + `free_text_cleared:true` + all required criteria (profanity/slurs/
+   harassment/impersonation/pii); the exact screened strings are stored (plan F3). Each record is
+   hash-bound to `package_hash` + the CF-2 `receipt_hash` + the `validator_report_hash`.
+3. **Append-only, hash-chained audit + revocation.** Every submit/decide/revoke appends a tamper-evident,
+   chained audit entry (`verifyAudit` detects edits/reorders; plan F6); revocation is recorded and
+   irreversible without a fresh review. `isLiveCandidate`/`isLiveCandidateHash` report candidacy, never
+   live authority.
+4. **Quarantine + isolation.** The module imports ONLY the hash util — no approved-loader, no live
+   registry, no Worker/DO; it exposes no live-authority/loader/mint method. Local operator tooling under
+   `arcade/creator/**` (excluded from curated upload). Plus a `review-cli.mjs` reference flow.
+
+**Consequences.** New `arcade/creator/moderation/{review-queue,review-cli}.mjs` +
+`tests/creator/review-queue.test.mjs` + this doc. **No Worker/DO change** (dry-run byte-identical
+200.81 KiB); `LIVE_WORLD_LOADER_ENABLED` **remains false**; no live loader, no production, no public
+upload, no auto-approval, no economy/ownership/rent/accounts/marketplace. Validation: 147 creator unit
+(136 + 11: unreviewed/revoked never candidates, CF-6 verdict ≠ approval, free-text gate, zero live
+authority, append-only/hash-chained audit, deny-by-default) + CLI reference flow + 608 arcade unit +
+curated-upload exclusion + production-config PASS + size within budget. Local-only; not deployed.
+Detail: `docs/CREATOR_FOUNDATION_CF8_REVIEW_QUEUE.md`.
+
 ## ADR-031 — Creator Foundation CF-7/CF-8: live-loader + human-review gate (PLAN ONLY) (2026-06-07)
 
 **Context.** Before any Phase 8 city-scale work, the program needs a written **live-loader threat model**
