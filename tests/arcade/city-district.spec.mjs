@@ -158,7 +158,12 @@ try {
   check('host rank panel still present (4E intact)', await A.page.evaluate(() => window.__neon_city.hostRank() !== null));
   check('stewardship panel still present (4F intact)', await A.page.evaluate(() => window.__neon_city.stewardship() !== null));
 
-  // Phase 8C: after downtown → harbor → skyline, the District Tour has counted 3 of 6 blocks seen
+  // Phase 8C: after downtown → harbor → skyline, the District Tour has counted 3 of 6 blocks seen.
+  // The Tour count is rendered by renderDistrict() — which is driven by the skyline district MANIFEST,
+  // not the client-side cityId/palette the prior checks waited on. On a remote Worker that manifest
+  // re-render lands a few hundred ms after reconnect, so wait for the rendered text before asserting
+  // (same poll-then-assert pattern as the harbor/skyline checks above; display-only, no authority).
+  await A.page.waitForFunction(() => /District Tour · 3\/6 blocks seen/.test(document.getElementById('cityDistrict').textContent), null, { timeout: 9000 }).catch(() => {});
   check('District Tour counted 3/6 after traversing three blocks', await A.page.evaluate(() => /District Tour · 3\/6 blocks seen/.test(document.getElementById('cityDistrict').textContent)));
 
   check('no console / page errors', A.errors.length === 0);
