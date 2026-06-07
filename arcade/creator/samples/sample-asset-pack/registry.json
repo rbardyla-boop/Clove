@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "registry_kind": "creator_approved_packages",
+  "packages": [
+    {
+      "package_hash": "sha256:f01318e95d1bc2b06574ac549d404390fd116d3eef254f9bd988ea66026d9ced",
+      "package_kind": "block_style",
+      "display_name": "Demo Neon Facade",
+      "approval_status": "operator_approved_local",
+      "approved_at": "2026-06-06T00:00:00.000Z",
+      "validator_version": "creator-validator-cf2",
+      "live_world_authorized": false
+    },
+    {
+      "package_hash": "sha256:38cf4728da23f84c23b08e7a8227b094b8246eb0b8bb2abacbc8ea596b3d1d1a",
+      "package_kind": "block_layered",
+      "display_name": "Neon Downtown Facade",
+      "approval_status": "operator_approved_local",
+      "approved_at": "2026-06-06T00:00:00.000Z",
+      "validator_version": "creator-validator-cf2",
+      "live_world_authorized": false
+    }
+  ]
+}

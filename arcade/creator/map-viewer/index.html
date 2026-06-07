@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- LOCAL-ONLY, OFFLINE tool. Same-origin modules + same-origin fetch of local sample packages; NO
+     external code/assets/connections. Renders APPROVED package DATA only (no code execution). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<title>Creator Foundation — CF-5 Local Asset-Pack Map Viewer</title>
+<!--
+  Composes multiple APPROVED, hash-addressed block packages into a tiled isometric map, LOCALLY.
+  Tiles reference packages by APPROVED HASH ONLY (CF-2 registry); an unapproved hash is BLOCKED. No
+  live-world load, no submit/upload, no production. Serve from the repo root over a local static server:
+      python3 -m http.server 8099   →   /arcade/creator/map-viewer/
+-->
+<style>
+  body { margin: 0; background: #07080f; color: #cfe9ff; font: 14px/1.5 ui-monospace, monospace; }
+  header { padding: 12px 16px; border-bottom: 1px solid #1b2740; }
+  h1 { font-size: 15px; margin: 0; letter-spacing: .04em; } h1 span { color: #22e0ff; }
+  main { display: flex; gap: 16px; padding: 16px; flex-wrap: wrap; }
+  .col { min-width: 280px; }
+  button { background: #112; color: #cfe9ff; border: 1px solid #2a3a5a; padding: 8px 12px; border-radius: 6px; cursor: pointer; min-height: 40px; }
+  button:hover { border-color: #22e0ff; }
+  #mapCanvas { width: 480px; height: 420px; max-width: 100%; background: #05060c; border: 1px solid #1b2740; border-radius: 8px; }
+  .mv-status { padding: 6px 8px; border-radius: 6px; background: #0d1424; } .mv-ok { color: #7CFFB0; } .mv-bad { color: #ff6b6b; }
+  pre { white-space: pre-wrap; background: #0a1120; border: 1px solid #1b2740; border-radius: 6px; padding: 8px; max-width: 520px; }
+  .note { color: #8aa0c0; font-size: 12px; }
+</style>
+</head>
+<body>
+<header><h1>CREATOR FOUNDATION <span>//</span> CF-5 LOCAL ASSET-PACK MAP VIEWER</h1></header>
+<main>
+  <div class="col">
+    <p class="mv-status" id="mapStatus">idle</p>
+    <p><button id="runSampleBtn" type="button">Load + render sample map (approved tiles)</button></p>
+    <canvas id="mapCanvas" width="480" height="420" aria-label="Local tiled-isometric map preview"></canvas>
+    <p class="note">Tiles reference packages by APPROVED HASH ONLY. An unapproved hash is blocked. Local
+      preview only — no live-world load, no upload, no production.</p>
+  </div>
+  <div class="col">
+    <p>Pack report</p>
+    <pre id="mapReport">(none)</pre>
+  </div>
+</main>
+<script type="module" src="./map-viewer.mjs"></script>
+</body>
+</html>

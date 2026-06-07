@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "pack_kind": "city_asset_pack",
+  "pack_id": "downtown-mini-map",
+  "display_name": "Downtown Mini Map",
+  "grid": { "cols": 2, "rows": 2 },
+  "tiles": [
+    { "gx": 0, "gy": 0, "package_hash": "sha256:f01318e95d1bc2b06574ac549d404390fd116d3eef254f9bd988ea66026d9ced", "package_kind": "block_style" },
+    { "gx": 1, "gy": 1, "package_hash": "sha256:38cf4728da23f84c23b08e7a8227b094b8246eb0b8bb2abacbc8ea596b3d1d1a", "package_kind": "block_layered" }
+  ],
+  "constraints": { "no_external_assets": true, "no_live_world_load": true, "approved_hashes_only": true }
+}
