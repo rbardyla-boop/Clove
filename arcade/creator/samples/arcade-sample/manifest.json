@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "package_kind": "arcade_game",
+  "package_id": "sample-pulse-mini",
+  "display_name": "Sample Pulse Mini",
+  "frame_contract_id": "cabinet-360x640",
+  "entry": "game.mjs",
+  "adapter": "adapter.mjs",
+  "assets": [],
+  "capabilities": [],
+  "size_budget_bytes": 16384
+}

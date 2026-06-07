@@ -5,6 +5,37 @@ Newest first.
 
 ---
 
+## ADR-028 — Creator Foundation CF-4: arcade package importer + local sandbox (2026-06-06)
+
+**Context.** CF-1 shipped the arcade-package schema + manifest validator + SDK template + size gate.
+CF-4 adds the importer and the first **behavioral** creator surface — a LOCAL sandbox that runs an
+imported package safely — without any path to the live world. Local creator tooling only.
+
+**Decision.**
+1. **Importer reuses CF-1, adds file-level + source checks.** `arcade/creator/arcade-importer/
+   import-arcade-package.mjs` (pure) reuses `validateArcadePackage` and adds: entry/adapter files exist,
+   no extra files (assets empty), a **code-aware static safety scan** (`SOURCE_FORBIDDEN`: network /
+   storage / eval / dynamic-import / external-URL / markup / worker / serviceWorker / nav vectors +
+   economy terms), constrained import specifiers (entry imports nothing; adapter imports only
+   `./game.mjs`), real-total vs declared budget + 64 KiB hard cap, frame-contract → dims. The
+   data-package `FORBIDDEN_CONTENT_RE` can't scan code, so CF-4 ships its own code-aware deny-list.
+2. **Hardened local sandbox runner.** `arcade/creator/arcade-sandbox/` runs a package in a
+   `sandbox="allow-scripts"` (null-origin) iframe with a strict CSP (`default-src 'none'` → no network;
+   no `'unsafe-eval'` → no eval; `img-src data:` → no external) and a narrow postMessage frame contract
+   (input in; an **untrusted** result proposal out, `server_authorized:false`). No live cabinet
+   registration, no server ticket/prize/score authority, no network from the frame.
+3. **Isolation + non-goals.** All under `arcade/creator/**` (excluded from the curated upload — verified).
+   No Worker/DO change (dry-run byte-identical). No public upload, no live-world load, no economy/
+   ownership/accounts/marketplace.
+
+**Consequences.** New `arcade/creator/arcade-importer/**` + `arcade/creator/arcade-sandbox/**` +
+`arcade/creator/samples/arcade-sample/**` + `tests/creator/arcade-importer.test.mjs` +
+`tests/creator/arcade-sandbox.spec.mjs` + `run-arcade-sandbox.sh` + this doc. Validation: 113 creator
+unit (101 + 12) + 13-check sandbox browser smoke (sandboxed run + blocked-package + no off-host network)
++ 608 arcade unit + curated-upload exclusion + frame-contract + block-editor regression + production-config
+PASS + size within budget + Worker dry-run byte-identical (200.81 KiB). Local-only; not deployed.
+Detail: `docs/CREATOR_FOUNDATION_CF4_ARCADE_IMPORTER.md`.
+
 ## ADR-027 — Neon Circuit Phase 7E: server-confirmed interaction receipts (2026-06-06)
 
 **Context.** Phase 7A made interaction prompts legible (display only). Phase 7E closes the authority loop
