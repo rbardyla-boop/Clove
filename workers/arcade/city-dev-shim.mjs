@@ -23,6 +23,7 @@ import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, 
 import { districtManifest, validateRouteRequest } from '../../arcade/city/city-district.mjs';
 import { deriveDistrictPresenceDelta } from '../../arcade/city/city-district-presence.mjs';
 import { districtEventSnapshot, resolveDistrictEventConfig } from '../../arcade/city/city-district-events.mjs';
+import { buildInteractionReceipt } from '../../arcade/city/city-interaction-receipts.mjs'; // Phase 7E
 
 // Phase 6B: the SAME server-authored, public-safe district-event snapshot the DO ships in
 // city_blocks. Operator config comes from env (clamped); absent → Phase 6A defaults. DO parity.
@@ -266,6 +267,25 @@ function routeRequest(ws, meta, data) {
   send(ws, { t: 'city_route_result', ok: true, from_city_id: meta.cityId, target_city_id: res.target_city_id, ws_hint: res.ws_hint, public_safe: true });
 }
 
+// Phase 7E — server-confirmed interaction receipt (DO parity; reuses the shared pure builder).
+let interactionSeq = 0;
+function interactionRequest(ws, meta, data) {
+  if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }
+  const now = Date.now();
+  if (now - (meta.lastInteractionReqAt || 0) < SNAP_REQ_MIN_MS) return; // anti-spam
+  meta.lastInteractionReqAt = now;
+  const player = cityState(meta.cityId).players[meta.playerId];
+  const receiptId = `ix-${meta.cityId}-${now}-${++interactionSeq}`;
+  const receipt = buildInteractionReceipt({
+    playerPos: player ? { x: player.x, y: player.y } : null,
+    cityId: meta.cityId,
+    request: data,
+    receiptId,
+    now,
+  });
+  send(ws, { t: 'city_interaction_receipt', ...receipt });
+}
+
 function input(ws, meta, data) {
   if (!meta.playerId) { send(ws, { t: 'city_error', code: 'no_identity', message: 'Must city_join first' }); return; }
   const now = Date.now();
@@ -333,6 +353,7 @@ function dispatch(ws, meta, data) {
     case 'city_block_trial_close_request': trialClose(ws, meta); break;
     case 'city_blocks_request': blocksRequest(ws, meta); break;
     case 'city_route_request': routeRequest(ws, meta, data); break;
+    case 'city_interaction_request': interactionRequest(ws, meta, data); break;
     case 'city_snapshot_request': {
       const now = Date.now();
       if (now - (meta.lastSnapReqAt || 0) < SNAP_REQ_MIN_MS) break; // anti-spam

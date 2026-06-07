@@ -32,6 +32,7 @@ import { createTrial, addTrialPlayer, removeTrialPlayer, stepTrial, closeTrial, 
 import { districtManifest, validateRouteRequest } from "../../../arcade/city/city-district.mjs";
 import { deriveDistrictPresenceDelta } from "../../../arcade/city/city-district-presence.mjs";
 import { districtEventSnapshot, resolveDistrictEventConfig } from "../../../arcade/city/city-district-events.mjs";
+import { buildInteractionReceipt } from "../../../arcade/city/city-interaction-receipts.mjs"; // Phase 7E
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -62,6 +63,7 @@ interface SocketMeta {
   lastTrialReqAt: number;
   lastBlocksReqAt: number; // Phase 5A: district discovery anti-spam
   lastRouteReqAt: number;  // Phase 5A: route request anti-spam
+  lastInteractionReqAt: number; // Phase 7E: interaction receipt anti-spam
   interiorOpen: boolean;
 }
 
@@ -78,6 +80,7 @@ export class CityRoom implements DurableObject {
   private trial: any = null;                             // Phase 4G: active Block Trial instance (in-memory, ephemeral; never persisted)
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
+  private interactionSeq = 0;                            // Phase 7E: monotonic counter for ephemeral receipt ids
   private presenceCache: Record<string, any> = {}; // Phase 5C: last district presence map (DO-to-DO, fail-open)
   private lastDistrictPresence: Record<string, any> = {}; // Phase 5D: last public-safe summary pushed to clients (for change coalescing)
 
@@ -91,7 +94,7 @@ export class CityRoom implements DurableObject {
       if (att?.playerId) {
         // interiorOpen is rehydrated from the attachment so a DO hibernation/restart while
         // a player is inside the arcade still fires city_arcade_interior_closed on disconnect.
-        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, lastBlocksReqAt: 0, lastRouteReqAt: 0, interiorOpen: !!att.interiorOpen });
+        this.sockets.set(ws, { playerId: att.playerId, cityId: att.cityId || DEFAULT_CITY_ID, lastHeartbeat: Date.now(), lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, lastBlocksReqAt: 0, lastRouteReqAt: 0, lastInteractionReqAt: 0, interiorOpen: !!att.interiorOpen });
         if (att.cityId) this.boundCityId = att.cityId; // trusted: we serialized this attachment ourselves
       }
     }
@@ -220,6 +223,7 @@ export class CityRoom implements DurableObject {
       case "city_block_trial_close_request": { await this.handleTrialClose(ws); break; }
       case "city_blocks_request": { await this.handleBlocksRequest(ws); break; }
       case "city_route_request": { this.handleRouteRequest(ws, data); break; }
+      case "city_interaction_request": { this.handleInteractionRequest(ws, data); break; }
       // accept the 4C name + the 4B name (alias) so old clients keep working
       case "city_portal_enter":
       case "city_portal_enter_request": { await this.handlePortal(ws, data); break; }
@@ -257,7 +261,7 @@ export class CityRoom implements DurableObject {
     this.state = res.state;
 
     ws.serializeAttachment({ playerId, cityId: this.boundCityId, interiorOpen: false });
-    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, lastBlocksReqAt: 0, lastRouteReqAt: 0, interiorOpen: false });
+    this.sockets.set(ws, { playerId, cityId: this.boundCityId, lastHeartbeat: now, lastSnapReqAt: 0, lastEvReqAt: 0, lastSchedReqAt: 0, lastRankReqAt: 0, lastStewReqAt: 0, lastTrialReqAt: 0, lastBlocksReqAt: 0, lastRouteReqAt: 0, lastInteractionReqAt: 0, interiorOpen: false });
 
     this.send(ws, { t: "city_welcome", ...welcomePayload(this.state, playerId, this.boundCityId, now) });
     this.send(ws, { t: "city_events", ...cityEventsPayload(this.eventLog) }); // recent history on (re)join
@@ -353,6 +357,32 @@ export class CityRoom implements DurableObject {
     const res = validateRouteRequest(this.boundCityId, data?.target_city_id);
     if (!res.ok) { this.send(ws, { t: "city_route_result", ok: false, reason: res.reason, public_safe: true }); return; }
     this.send(ws, { t: "city_route_result", ok: true, from_city_id: this.boundCityId, target_city_id: res.target_city_id, ws_hint: res.ws_hint, public_safe: true });
+  }
+
+  /**
+   * Phase 7E — server-confirmed interaction receipt. The client sends an action request
+   * (city_interaction_request{action_kind, zone_id, target_city_id?}); the server validates it
+   * against the player's CANONICAL position + the block's zones + (for travel) adjacency — reusing
+   * the SAME validators as routing/portal — and replies with an EPHEMERAL, public-safe receipt.
+   * No persistence, no broadcast, no ledger, no economy/Host-Rank/Stewardship/Trial coupling. A
+   * forged position/accepted field in the request is ignored (only this.state is authoritative).
+   */
+  private handleInteractionRequest(ws: WebSocket, data: any): void {
+    const meta = this.sockets.get(ws);
+    if (!meta) { this.send(ws, { t: "city_error", code: "no_identity", message: "Must city_join first" }); return; }
+    const now = Date.now();
+    if (now - meta.lastInteractionReqAt < SNAP_REQ_MIN_MS) return; // anti-spam
+    meta.lastInteractionReqAt = now;
+    const player = this.state.players[meta.playerId];
+    const receiptId = `ix-${this.boundCityId}-${now}-${++this.interactionSeq}`;
+    const receipt = buildInteractionReceipt({
+      playerPos: player ? { x: player.x, y: player.y } : null,
+      cityId: this.boundCityId,
+      request: data,
+      receiptId,
+      now,
+    });
+    this.send(ws, { t: "city_interaction_receipt", ...receipt });
   }
 
   /**

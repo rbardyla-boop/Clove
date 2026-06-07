@@ -5,6 +5,37 @@ Newest first.
 
 ---
 
+## ADR-027 — Neon Circuit Phase 7E: server-confirmed interaction receipts (2026-06-06)
+
+**Context.** Phase 7A made interaction prompts legible (display only). Phase 7E closes the authority loop
+— the first canonical Worker/DO protocol change of Phase 7 — so an interaction action is real only when
+the server confirms it. Additive and well-scoped; no economy.
+
+**Decision.**
+1. **Additive protocol.** `city_interaction_request{action_kind, zone_id?, target_city_id?}` →
+   `city_interaction_receipt{kind, receipt_id, action_kind, city_id, [zone_id|target|target_city_id],
+   accepted, reason, issued_at, public_safe:true}`. `SCHEMA_VERSION` 7→8 (additive; old clients ignore it).
+2. **Server authority; forged input ignored.** The server validates against the player's CANONICAL
+   position + the block's zones + (for travel) adjacency. arcade_entry reuses the `enterPortal`
+   position-in-zone test; block_travel reuses `validateRouteRequest` — **single source of validation
+   truth**. A forged position/`accepted` in the request is ignored (only `this.state` is authoritative).
+3. **Pure, parity-shared builder.** `arcade/city/city-interaction-receipts.mjs` is imported unchanged by
+   the CityRoom DO and the dev-shim → byte-identical receipts.
+4. **No persistence, no coupling.** Receipts are ephemeral (computed + replied, never stored). **No new
+   DO, no migration** (config-check still v1–v4). No ledger; no ticket/prize/Host-Rank/Stewardship/Trial
+   read or write; no balance/credit field. The proven `enterPortal`/`city_route_request` flows are
+   unchanged and still work.
+
+**Consequences.** New `arcade/city/city-interaction-receipts.mjs` + `tests/arcade/
+city-interaction-receipts.{test,spec}.mjs` + `run-city-interaction-receipts.sh` +
+`docs/NEON_CIRCUIT_PHASE7E_INTERACTION_RECEIPTS.md`; additive handlers in `city-room.ts` + `city-dev-shim.mjs`
+(parity), client send/receive in `city-net.js` + `city-scene.js`, SCHEMA 7→8 in `city-block.mjs`. **No new
+DO, no migration, no economy/ownership/accounts.** Validation: 608 arcade unit (598 + 10) + 12-check receipts
+browser smoke (request → accepted/rejected; forged-position ignored) + city-authority + two-client +
+frame-contract regression green + production-config PASS (v1–v4) + size 0.810 MB / 0.223 gz + Worker
+dry-run compiles (200.81 KiB / 44.25 gz — a real Worker change, no migration). Local-only; not deployed.
+Detail: `docs/NEON_CIRCUIT_PHASE7E_INTERACTION_RECEIPTS.md`.
+
 ## ADR-026 — Neon Circuit Phase 7A: interaction zones / action prompts (2026-06-06)
 
 **Context.** With walkable boundaries in place (ADR-025), the city loop needs to be **legible**: a
