@@ -38,9 +38,12 @@ A package becomes a live **candidate** only when the human decision carries:
 - `free_text_cleared: true` — and cleared them; and
 - `review_criteria` attesting **all** of `profanity`, `slurs`, `harassment`, `impersonation`, `pii`.
 
-Missing any of these → the approval is **rejected**. The exact screened free-text strings are stored on
-the record so a future CF-7 live receipt can bind them (plan F3 — no mint-time swap). The deny-regex is a
-syntactic filter only; content appropriateness is the human's responsibility.
+Missing any of these → the approval is **rejected**. The exact screened free-text strings are stored
+**immutably** on the record (returns are deep copies; the stored strings are frozen) and bound by a
+`free_text_digest = sha256(canonicalize({display_name, package_id, operator_note}))` that is written into
+the **append-only audit** — so a post-review swap is **tamper-evident**, and a future CF-7 live receipt
+binds this exact digest (plan F3 — no mint-time swap). The deny-regex is a syntactic filter only; content
+appropriateness is the human's responsibility.
 
 ## What each record binds (hash-bound)
 

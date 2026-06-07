@@ -24,7 +24,8 @@ const APPROVE = Object.freeze({
   to_state: 'approved_for_live_candidate', reviewer_ref: 'reviewer:op1',
   free_text_reviewed: true, free_text_cleared: true, review_criteria: [...REQUIRED_REVIEW_CRITERIA], note: 'clean',
 });
-const rec = () => createReviewRecord(SUB, { now: NOW, id: 'fixed' }).record;
+const BASE = (await createReviewRecord(SUB, { now: NOW, id: 'fixed' })).record; // createReviewRecord is async (digest)
+const rec = () => JSON.parse(JSON.stringify(BASE)); // a fresh, mutable deep copy per test
 
 test('a fresh record is pending and NOT a live candidate; CF-8 grants no live authority', () => {
   const r = rec();
@@ -80,10 +81,10 @@ test('deny-by-default transitions: illegal moves are rejected', () => {
   assert.equal(decideReview(rec(), { to_state: 'not_a_state', reviewer_ref: 'r' }).ok, false);
 });
 
-test('invalid submissions are rejected (deny-by-default)', () => {
-  assert.equal(createReviewRecord({ ...SUB, package_hash: 'nope' }).ok, false);
-  assert.equal(createReviewRecord({ ...SUB, free_text: { display_name: 'x' } }).ok, false); // missing fields
-  assert.equal(createReviewRecord({ ...SUB, package_kind: 'arcade_room' }).ok, false);
+test('invalid submissions are rejected (deny-by-default)', async () => {
+  assert.equal((await createReviewRecord({ ...SUB, package_hash: 'nope' })).ok, false);
+  assert.equal((await createReviewRecord({ ...SUB, free_text: { display_name: 'x' } })).ok, false); // missing fields
+  assert.equal((await createReviewRecord({ ...SUB, package_kind: 'arcade_room' })).ok, false);
 });
 
 test('append-only audit trail is hash-chained + tamper-evident', async () => {
@@ -124,6 +125,22 @@ test('the queue: submit -> pending -> approve -> candidate -> revoke, audit stay
   assert.equal(q.audit().length, 3); // submit + approve + revoke, all recorded
   // no auto-approval: an unknown id cannot be decided
   assert.equal((await q.decide('rv_unknown', APPROVE)).ok, false);
+});
+
+test('returned records are copies — mutating one cannot forge candidacy; screened strings are digest-bound (F1)', async () => {
+  const q = createReviewQueue();
+  const s = await q.submit(SUB, { now: NOW });
+  await q.decide(s.record.review_id, APPROVE, { now: NOW + 10 });
+  const got = q.get(s.record.review_id);
+  got.free_text.display_name = 'FORGED <script>'; // mutate the RETURNED copy
+  got.state = 'pending';
+  // the internal store is unaffected: still an approved candidate with the ORIGINAL screened strings
+  assert.equal(q.isLiveCandidateHash(SUB.package_hash), true);
+  assert.equal(q.get(s.record.review_id).free_text.display_name, SUB.free_text.display_name);
+  // the screened strings are digest-bound (tamper-evident in the report + audit)
+  assert.match(q.get(s.record.review_id).free_text_digest, /^sha256:[0-9a-f]{64}$/);
+  assert.ok(q.audit().some((e) => e.free_text_digest && /^sha256:/.test(e.free_text_digest)));
+  assert.equal(await q.verifyAudit(), true);
 });
 
 test('REVIEW_STATES are exactly the five lifecycle states', () => {
