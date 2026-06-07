@@ -5,6 +5,38 @@ Newest first.
 
 ---
 
+## ADR-039 — Phase 8C-3: per-block event/activity voice flavor (display-only client overlay) (2026-06-07)
+
+**Context.** 8C v1 (ADR-037) gave blocks identity + a traversal goal; 8C-2 (ADR-038) made the topology
+legible. The next value is making the city feel alive through the surfaces players already read — the
+district event card and the activity board — giving each block, especially Garden/Nexus, its own tone.
+Operator's call: voice before objectives (OBJ-2…OBJ-5), so the city's voice settles before any "things to
+do" risk drifting toward reward mechanics. Per the plan §2.
+
+**Decision.** Implement per-block **voice** flavor, display-only, as a **client-side overlay**. Key
+constraint discovered: `city-district-events.mjs` is **Worker-bundled** (the server authors the event
+snapshot), so to keep the Worker byte-identical the server event label/summary is left untouched and the
+voice is rendered *alongside* it. New client-only pure `arcade/city/city-district-flavor.mjs`:
+`BLOCK_VOICE` (a standing per-block tone for the activity board) + `EVENT_VOICE` (per-block, per-event-type
+tone for the event card, type-specific → block default → ''), `blockVoice()`, `eventVoiceLine()`,
+`voiceIsClean()`. Wired into `city-scene.js renderDistrict()`: a `dist-event-voice` line under the
+server-authored event summary, and a `dist-act-voice` line (the current block's tone) on the activity
+board. Garden/Nexus carry corridor-specific tone so the new path has character.
+
+**Consequences.** New `city-district-flavor.mjs` + `tests/arcade/city-district-flavor.test.mjs`; edited
+`city-scene.js`, `city.css`, `city-district.spec.mjs` (+3 checks). **Zero Worker/DO/schema change** — the
+flavor module is client-only (not imported by any Worker source), `city-district-events.mjs` is
+**unchanged**, Worker dry-run **byte-identical (202.01 KiB)**, `SCHEMA_VERSION` stays 8, no wire field; the
+overlay never mutates the server `cityEvent.summary/label`. All 36 voice strings pass the canonical
+FORBIDDEN_RE + the panel guard + the `VOICE_LINE_MAX=72` bound; rendered via `textContent` (injection-safe);
+fallback-safe (unknown block/type → ''). `LIVE_WORLD_LOADER_ENABLED` **stays false**; no economy/ownership/
+rewards/tokens/objectives-that-grant-value; no CF-7; no package-backed districts; no production; HiveWorld
+untouched. Validation: 627 arcade unit (+5) + 50-check district smoke (board voice + event-card voice +
+no-reward-vocab) + 169 creator + production-config + size PASS. Adversarial review APPROVE (0 CRITICAL/HIGH/
+MEDIUM; 1 LOW — duplicate "runs hot" opener differentiated for Nexus). Deferred: objectives OBJ-2…OBJ-5.
+Local-only; not deployed. Closes the planned 8C content arc (identity → readability → voice); next step is
+an 8C RC + staging proof of the whole content/readability arc.
+
 ## ADR-038 — Phase 8C-2: district-graph + route readability (display-only) (2026-06-07)
 
 **Context.** ADR-037's 8C content v1 gave blocks identity + a traversal goal (the District Tour), which
