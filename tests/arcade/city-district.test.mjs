@@ -57,13 +57,15 @@ test('6D: foundry-04 is a known block in the catalog', () => {
 });
 
 test('6D: the ring topology — foundry connects downtown & skyline; harbor stays the same', () => {
-  // foundry's neighbours
+  // foundry's neighbours (unchanged by Phase 8A)
   assert.deepEqual(adjacentBlocks('foundry-04').slice().sort(), ['downtown-01', 'skyline-03']);
-  // downtown and skyline each gained foundry; harbor is UNCHANGED (preserves Phase 5A routes)
-  assert.deepEqual(adjacentBlocks('downtown-01').slice().sort(), ['foundry-04', 'harbor-02']);
-  assert.deepEqual(adjacentBlocks('skyline-03').slice().sort(), ['foundry-04', 'harbor-02']);
+  // downtown & skyline are adjacent to foundry (Phase 6D edges preserved); harbor UNCHANGED
+  assert.ok(areAdjacent('downtown-01', 'foundry-04') && areAdjacent('skyline-03', 'foundry-04'));
   assert.deepEqual(adjacentBlocks('harbor-02'), ['downtown-01', 'skyline-03']);
-  // adjacency is symmetric for every new edge
+  // full neighbour sets now include the Phase 8A cross-path edges (downtown+garden, skyline+nexus)
+  assert.deepEqual(adjacentBlocks('downtown-01').slice().sort(), ['foundry-04', 'garden-06', 'harbor-02']);
+  assert.deepEqual(adjacentBlocks('skyline-03').slice().sort(), ['foundry-04', 'harbor-02', 'nexus-05']);
+  // adjacency is symmetric for the foundry edges
   assert.equal(areAdjacent('foundry-04', 'downtown-01'), true);
   assert.equal(areAdjacent('downtown-01', 'foundry-04'), true);
   assert.equal(areAdjacent('foundry-04', 'skyline-03'), true);
@@ -85,6 +87,39 @@ test('6D: routing respects the ring — adjacent foundry routes accepted; non-ad
   // harbor↔foundry is not a direct edge — must be rejected
   assert.deepEqual(validateRouteRequest('harbor-02', 'foundry-04'), { ok: false, reason: 'not_adjacent' });
   assert.deepEqual(validateRouteRequest('foundry-04', 'harbor-02'), { ok: false, reason: 'not_adjacent' });
+});
+
+// ── Phase 8A: six-block district (Nexus + Garden cross-path) ──────────────────
+test('8A: nexus-05 and garden-06 are known blocks with their own adjacency', () => {
+  assert.equal(isKnownBlock('nexus-05'), true);
+  assert.equal(isKnownBlock('garden-06'), true);
+  assert.deepEqual(adjacentBlocks('nexus-05').slice().sort(), ['garden-06', 'skyline-03']);
+  assert.deepEqual(adjacentBlocks('garden-06').slice().sort(), ['downtown-01', 'nexus-05']);
+});
+
+test('8A: the new cross-path edges are symmetric and every Phase 6D edge is preserved', () => {
+  // new edges: downtown↔garden, garden↔nexus, nexus↔skyline
+  for (const [a, b] of [['downtown-01', 'garden-06'], ['garden-06', 'nexus-05'], ['nexus-05', 'skyline-03']]) {
+    assert.equal(areAdjacent(a, b), true, `${a}<->${b} should be adjacent`);
+    assert.equal(areAdjacent(b, a), true, `adjacency symmetric ${a}<->${b}`);
+  }
+  // NO Phase 6D edge was removed (no regression to existing routes)
+  for (const [a, b] of [['downtown-01', 'harbor-02'], ['downtown-01', 'foundry-04'], ['harbor-02', 'skyline-03'], ['skyline-03', 'foundry-04']]) {
+    assert.equal(areAdjacent(a, b), true, `Phase 6D edge ${a}<->${b} preserved`);
+  }
+  // non-edges still rejected (downtown is NOT adjacent to nexus or skyline)
+  assert.equal(areAdjacent('downtown-01', 'nexus-05'), false);
+  assert.equal(areAdjacent('downtown-01', 'skyline-03'), false);
+});
+
+test('8A: routing accepts the new corridor and still rejects non-adjacent hops', () => {
+  // the new second corridor downtown ⇄ garden ⇄ nexus ⇄ skyline routes one hop at a time
+  assert.equal(validateRouteRequest('downtown-01', 'garden-06').ok, true);
+  assert.equal(validateRouteRequest('garden-06', 'nexus-05').ok, true);
+  assert.equal(validateRouteRequest('nexus-05', 'skyline-03').ok, true);
+  // but a non-adjacent jump across the corridor is rejected (bounded routing holds at B=6)
+  assert.deepEqual(validateRouteRequest('downtown-01', 'nexus-05'), { ok: false, reason: 'not_adjacent' });
+  assert.deepEqual(validateRouteRequest('garden-06', 'skyline-03'), { ok: false, reason: 'not_adjacent' });
 });
 
 // ── public summaries ─────────────────────────────────────────────────────────

@@ -92,6 +92,16 @@ const BLOCK_DEFAULT_STYLES = Object.freeze({
     street_lights: Object.freeze({ palette: 'magenta', intensity: 'high' }),
     sidewalk_trim: Object.freeze({ palette: 'white' }),
   }),
+  'nexus-05': Object.freeze({      // pulse-magenta: magenta circuit arcade + magenta high glow (Phase 8A)
+    arcade_front: Object.freeze({ palette: 'magenta', sign_variant: 'circuit', intensity: 'high' }),
+    street_lights: Object.freeze({ palette: 'magenta', intensity: 'high' }),
+    sidewalk_trim: Object.freeze({ palette: 'cyan' }),
+  }),
+  'garden-06': Object.freeze({     // bloom-cyan: cyan arcade + soft amber lights (Phase 8A)
+    arcade_front: Object.freeze({ palette: 'cyan', sign_variant: 'signal', intensity: 'medium' }),
+    street_lights: Object.freeze({ palette: 'amber', intensity: 'low' }),
+    sidewalk_trim: Object.freeze({ palette: 'white' }),
+  }),
 });
 
 /**

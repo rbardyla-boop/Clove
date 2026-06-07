@@ -77,6 +77,26 @@ test('per-block layouts share IDENTICAL geometry but distinct landmark labels', 
   assert.equal(labelOf(sk, 'arcade-bldg'), labelOf(dt, 'arcade-bldg'));
 });
 
+test('8A: nexus-05 and garden-06 share identical geometry but carry their own distinct labels', () => {
+  const dt = publicLayout('downtown-01');
+  const geom = (L) => L.buildings.map((b) => ({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h }));
+  const labelOf = (L, id) => L.buildings.find((b) => b.id === id).label;
+  for (const id of ['nexus-05', 'garden-06']) {
+    const L = publicLayout(id);
+    // byte-identical geometry/spawns/portals (shared collision authority is unchanged)
+    assert.deepEqual(geom(L), geom(dt), `${id} geometry must match downtown`);
+    assert.deepEqual(L.spawns, dt.spawns);
+    assert.deepEqual(L.portals, dt.portals);
+    // distinct landmark labels (a missing BLOCK_LABELS entry would silently fall back to downtown)
+    assert.notEqual(labelOf(L, 'data-spire'), labelOf(dt, 'data-spire'), `${id} must have its own data-spire label`);
+    assert.notEqual(labelOf(L, 'maglev'), labelOf(dt, 'maglev'), `${id} must have its own maglev label`);
+    // the arcade building keeps its canonical label everywhere (portal home)
+    assert.equal(labelOf(L, 'arcade-bldg'), labelOf(dt, 'arcade-bldg'));
+    // its default steward style is also its own identity (not the downtown default)
+    assert.notDeepEqual(defaultBlockStyle(id), defaultBlockStyle('downtown-01'), `${id} must have its own default style`);
+  }
+});
+
 test('publicLayout() with no/unknown cityId returns the default (downtown) labels', () => {
   const labelOf = (L, id) => L.buildings.find((b) => b.id === id).label;
   assert.equal(labelOf(publicLayout(), 'data-spire'), labelOf(publicLayout('downtown-01'), 'data-spire'));
