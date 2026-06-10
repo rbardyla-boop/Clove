@@ -32,6 +32,7 @@ import { districtEventWindow, deriveDistrictAnnouncements, formatCountdown } fro
 import { blockIdentity, tourProgress } from './city-block-identity.mjs'; // Phase 8C: display-only per-block identity + District Tour
 import { districtGraphModel, groupAdjacentByCorridor, corridorOf } from './city-district-graph.mjs'; // Phase 8C-2: district graph + route readability
 import { eventVoiceLine, blockVoice } from './city-district-flavor.mjs'; // Phase 8C-3: per-block voice (display-only overlay)
+import { blockAccent, planNextHop } from './city-world-map.mjs'; // Phase W-1: zone accents + waypoint hop planning (display/client-only)
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -101,6 +102,7 @@ let districtLiveAt = 0;               // Phase 5D: last time district presence u
 const DISTRICT_STALE_MS = 45000;      // Phase 5D: beyond this with no push → show degraded + safety re-request
 let cityActivity = [];                // Phase 5E: derived district activity feed (display-only, local history)
 let travelingTo = null;               // Phase 5E: target block of an in-flight travel (for arrival detection)
+let waypoint = null;                  // Phase W-1: multi-hop travel target (client/display-only; EVERY hop is still server-validated)
 let seededArrival = false;            // Phase 5E/6A: have we seeded the initial arrival? (decoupled from feed contents)
 const ACTIVITY_UI_MAX = 8;            // how many of the bounded buffer the district panel shows
 let cityEvent = null;                 // Phase 6A: current district-event window view (display-only, client-derived)
@@ -192,6 +194,7 @@ const net = new CityNet({
       cityDistrict = m; districtLiveAt = Date.now();
       if (m && m.event && typeof m.event === 'object') adoptServerEventSnapshot(m.event); // Phase 6B: server-authored event snapshot
       renderDistrict();
+      continueWaypoint(); // Phase W-1: a fresh manifest after arrival drives the next waypoint hop (if any)
     },
     onDistrictPresence: (m) => {                                              // Phase 5D: push-on-change presence delta
       if (window.__neon_city) { window.__neon_city.lastDistrictPresence = m; window.__neon_city.districtPushCount++; }
@@ -460,18 +463,21 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 // Phase 8C-2: draw the DISTRICT MAP graph inset (SVG) from a pure model. Display-only; no state/authority.
 // Ring vs new-corridor edges are class-distinguished; the current block + adjacent (routable) nodes are
 // emphasized so the adjacent-only rule is visible at a glance. Reduced-motion safe (static, no animation).
+// Phase W-1: nodes are now TRAVEL CONTROLS — click/Enter an adjacent node routes there directly; a
+// non-adjacent node sets a WAYPOINT and the client chains legal hops (each one server-validated).
+// Nodes carry their zone accent fill; the waypoint target gets a dashed marker ring.
 function appendDistrictMap(container, model) {
   if (!container || !model || !model.nodes.length) return;
   const wrap = document.createElement('div'); wrap.className = 'dist-map';
   const cap = document.createElement('div'); cap.className = 'dist-map-cap';
-  cap.textContent = 'DISTRICT MAP · ring + new corridor';
+  cap.textContent = 'WORLD MAP · tap a block to travel';
   wrap.appendChild(cap);
 
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('viewBox', model.viewBox);
   svg.setAttribute('class', 'dist-map-svg');
-  svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'District map: six blocks, the original ring and the new Garden to Nexus corridor; your current block is highlighted.');
+  svg.setAttribute('role', 'group');
+  svg.setAttribute('aria-label', 'World map: six blocks, the original ring and the new Garden to Nexus corridor. Your current block is highlighted; activate any other block to travel there.');
 
   const nodeById = (id) => model.nodes.find((n) => n.city_id === id);
   for (const e of model.edges) {
@@ -483,9 +489,23 @@ function appendDistrictMap(container, model) {
     svg.appendChild(ln);
   }
   for (const n of model.nodes) {
+    if (waypoint && n.city_id === waypoint) {              // dashed marker ring around the waypoint target
+      const w = document.createElementNS(SVG_NS, 'circle');
+      w.setAttribute('cx', n.x); w.setAttribute('cy', n.y); w.setAttribute('r', 8.5);
+      w.setAttribute('class', 'dm-waypoint');
+      svg.appendChild(w);
+    }
     const c = document.createElementNS(SVG_NS, 'circle');
     c.setAttribute('cx', n.x); c.setAttribute('cy', n.y); c.setAttribute('r', n.current ? 6 : 4.5);
-    c.setAttribute('class', `dm-node${n.current ? ' dm-current' : (n.adjacent ? ' dm-adjacent' : '')}`);
+    c.setAttribute('class', `dm-node${n.current ? ' dm-current' : (n.adjacent ? ' dm-adjacent' : '')}${n.current ? '' : ' dm-click'}`);
+    c.style.fill = blockAccent(n.city_id);                 // Phase W-1: zone accent (display-only token)
+    if (!n.current) {
+      const go = () => travelFromMap(n.city_id);
+      c.setAttribute('role', 'button'); c.setAttribute('tabindex', '0');
+      c.setAttribute('aria-label', n.adjacent ? `Travel to ${n.label}` : `Set waypoint to ${n.label} (multi-hop)`);
+      c.addEventListener('click', go);
+      c.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } });
+    }
     svg.appendChild(c);
     const t = document.createElementNS(SVG_NS, 'text');
     t.setAttribute('x', n.x); t.setAttribute('y', n.y + 13); t.setAttribute('text-anchor', 'middle');
@@ -494,6 +514,47 @@ function appendDistrictMap(container, model) {
   }
   wrap.appendChild(svg);
   container.appendChild(wrap);
+}
+
+// Phase W-1: map-node travel. Adjacent → the same single-hop route request as the Travel button.
+// Non-adjacent → set a waypoint and request the first legal hop; continueWaypoint() chains the rest
+// after each arrival. PURE CLIENT CONVENIENCE: the server still validates every individual hop.
+function travelFromMap(targetCityId) {
+  if (!cityDistrict) return;
+  const plan = planNextHop(cityDistrict, targetCityId);
+  if (!plan.ok) {
+    routeStatus = `waypoint blocked: ${plan.reason.replace(/_/g, ' ')}`;
+    renderDistrict();
+    setTimeout(() => { if (routeStatus.startsWith('waypoint blocked')) { routeStatus = ''; renderDistrict(); } }, 1600);
+    return;
+  }
+  waypoint = plan.hops_remaining > 1 ? targetCityId : null; // single hop needs no standing waypoint
+  routeStatus = waypoint
+    ? `waypoint: ${blockName(targetCityId)} — ${plan.hops_remaining} hops`
+    : `routing to ${blockName(targetCityId)}…`;
+  recordActivity(activityForRouteRequested(plan.next_hop, blockName(plan.next_hop)));
+  renderDistrict();
+  net.requestRoute(plan.next_hop);
+}
+
+// Phase W-1: after each arrival the new block's welcome re-pushes city_blocks; from that fresh
+// manifest, either we've reached the waypoint (done) or we request the next legal hop. The
+// travelingTo guard keeps this idempotent if a manifest re-push arrives mid-hop.
+function continueWaypoint() {
+  if (!waypoint || !cityDistrict || travelingTo) return;
+  if (cityDistrict.current_city_id === waypoint) {
+    waypoint = null;
+    routeStatus = 'waypoint reached';
+    renderDistrict();
+    setTimeout(() => { if (routeStatus === 'waypoint reached') { routeStatus = ''; renderDistrict(); } }, 1600);
+    return;
+  }
+  const plan = planNextHop(cityDistrict, waypoint);
+  if (!plan.ok) { waypoint = null; routeStatus = ''; renderDistrict(); return; } // topology changed under us — stop quietly
+  routeStatus = `waypoint: ${blockName(waypoint)} — ${plan.hops_remaining} hop${plan.hops_remaining === 1 ? '' : 's'} left`;
+  recordActivity(activityForRouteRequested(plan.next_hop, blockName(plan.next_hop)));
+  renderDistrict();
+  net.requestRoute(plan.next_hop);
 }
 
 function renderDistrict() {
@@ -506,6 +567,8 @@ function renderDistrict() {
   }
   const cur = currentBlock();
   if (cur) visitedBlocks.add(cur.city_id); // track traversal for the District Tour (display-only)
+  // Phase W-1: zone accent — a per-block display token painted onto the panel chrome via a CSS var.
+  if (cur) districtEl.style.setProperty('--blk-accent', blockAccent(cur.city_id));
   // keep the topbar honest after travel (the const cityId is construction-only)
   const sub = document.querySelector('.brand .sub');
   if (sub && cur) sub.textContent = `${cur.display_name.toLowerCase()} · prototype`;
@@ -652,6 +715,7 @@ function onRouteResult(m) {
     renderDistrict();
     net.switchCity(m.target_city_id); // reconnect to the target block; its welcome re-pushes city_blocks
   } else {
+    waypoint = null; // Phase W-1: a blocked hop cancels any standing waypoint (server said no — stop chaining)
     routeStatus = `route blocked: ${String((m && m.reason) || 'denied').replace(/_/g, ' ')}`;
     renderDistrict();
     setTimeout(() => { if (routeStatus.startsWith('route blocked')) { routeStatus = ''; renderDistrict(); } }, 1600);
@@ -969,6 +1033,9 @@ window.__neon_city = {
   actionRequest() { const z = displayed ? nearestInteractionZone(displayed, interactionZones) : null; return z ? actionRequestFor(z) : null; },
   requestBlocks() { net.requestBlocks(); },
   routeTo(targetCityId) { net.requestRoute(targetCityId); },
+  // Phase W-1 — world-map fast travel (display/client-only; every hop server-validated)
+  waypointTo(targetCityId) { travelFromMap(targetCityId); },
+  get waypoint() { return waypoint; },
   debug() {
     return {
       renderer: renderer.name, ackSeq, pending: inputBuffer.pending.length,
