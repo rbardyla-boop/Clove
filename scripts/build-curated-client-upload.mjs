@@ -34,6 +34,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
  */
 export const FORBIDDEN_UPLOAD_PREFIXES = Object.freeze([
   'arcade/creator/',   // creator/editor tooling — the CF-2 leak this script exists to prevent
+  'arcade/hiveworld-agents/', // W-4 simulator lab (agent ledger) — never ships until W-6 is authorized
+  'arcade/virtual-arcade/',   // design docs + v0 prototype reference — not a production surface
   'tests/',            // test code
   'docs/',             // documentation
   'workers/',          // Worker/DO source (deployed separately via wrangler, not via static upload)
