@@ -4,6 +4,13 @@
 **Status:** v0 visual + product direction **accepted**
 **Purpose:** Translate the accepted prototype into an engineering-ready reference for the coding agent.
 
+> 🔴 **ARCHITECTURE TARGET SUPERSEDED.** §7 below names the Hallucinate repo as the
+> backend to extend. That path was **demoted** and must not be used. The real backend is
+> this repo's Cloudflare Worker + Durable Object hive (`workers/arcade/`). Read
+> [`HIVE_WORLD_ALIGNMENT.md`](./HIVE_WORLD_ALIGNMENT.md) for the corrected stack mapping —
+> the §4 events in this pack already exist as shipped messages there. Everything else in
+> this pack (states, components, tokens, MVP boundaries) remains valid reference.
+
 > ⚠️ **Read section 7 before writing code.** This prototype is a *visual & state reference only* — not the source architecture.
 
 ---
@@ -245,9 +252,13 @@ Keep the instant-join, no-login magic: enter straight onto the floor.
 
 Before writing any code:
 
-1. **Inspect the Hallucinate repo first** (`https://github.com/stagas/hallucinate`).
-2. **Preserve its existing patterns** — the `Bun.serve` HTTP/WebSocket setup, room system, motion-sync + validation, custom binary protocol, and LMDB persistence.
-3. **Extend, don't replace.** New concepts here (machines, occupancy, mini-game sessions, tickets, prizes, emotes) should map onto the repo's existing message/room/state conventions and binary-protocol style — not introduce a parallel stack.
+1. ~~**Inspect the Hallucinate repo first**~~ **SUPERSEDED — Hallucinate is demoted.**
+   Inspect this repo's `workers/arcade/src/` (ArcadeRoom / CityRoom / CityRegistry /
+   RoomRegistry Durable Objects) instead.
+2. **Preserve its existing patterns** — the Worker fetch/WebSocket upgrade, per-room and
+   per-block DO partitioning, JSON messages with a string type field, server-authoritative
+   round/ticket/prize authorities, and DO storage persistence.
+3. **Extend, don't replace.** New concepts here (machines, occupancy, mini-game sessions, tickets, prizes, emotes) should map onto the repo's existing message/room/state conventions — most already ship (see `HIVE_WORLD_ALIGNMENT.md §2`); do not introduce a parallel stack.
 4. **Treat the JSON in §3 and events in §4 as targets to translate**, expressed in the repo's idioms, with the server authoritative on occupancy locks, ticket balances, and redemptions.
 
 Use this pack to know *what to build and how it should look/behave*. Use the repo to know *how to build it*.

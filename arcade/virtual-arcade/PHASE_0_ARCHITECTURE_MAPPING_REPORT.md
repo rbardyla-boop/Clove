@@ -1,5 +1,13 @@
 # PHASE 0: Neon Circuit Arcade Architecture Mapping Report
 
+> 🔴 **HISTORICAL — DO NOT IMPLEMENT FROM THIS DOCUMENT.** This entire report maps the
+> product onto the Hallucinate repo, which was demoted and is not the Phase 1b authority.
+> The shipped authority is this repo's Cloudflare Worker + Durable Object hive
+> (`workers/arcade/`), and most of the features mapped below (cabinets, occupancy, round
+> scoring, tickets, prizes, emotes, presence, zones/portals) **already ship** there.
+> The corrected mapping is [`HIVE_WORLD_ALIGNMENT.md`](./HIVE_WORLD_ALIGNMENT.md).
+> Kept only as a record of the analysis method.
+
 **Status:** Read-first analysis only. No code written or modified.  
 **Base:** Hallucinate repo (`github.com/stagas/hallucinate`), cloned and inspected in full.  
 **Product Inputs:** Design package at `game/Arcade/virtual-arcade/` (index.html, HANDOFF.md, WORLD_BIBLE.md, WORLD_MAP.svg).

@@ -2,7 +2,7 @@
 
 **Status:** Vision document for v1+ expansion. **v0 is locked and accepted** (see [`HANDOFF.md`](./HANDOFF.md)).
 **Source of truth for look/feel/state:** [`index.html`](./index.html) (DOM-based faux-3D floor, `openView()` router, `:root` tokens).
-**Scope of this document:** Frontend/product design only. **No backend code.** Server contracts are described as *targets to translate* into the existing repo's idioms (Bun.serve + WebSocket rooms + binary protocol + LMDB), exactly as `HANDOFF.md §7` instructs.
+**Scope of this document:** Frontend/product design only. **No backend code.** ~~Server contracts translate into Bun.serve + binary protocol + LMDB idioms~~ **SUPERSEDED:** server contracts translate into this repo's Cloudflare Worker + Durable Object hive idioms — see [`HIVE_WORLD_ALIGNMENT.md`](./HIVE_WORLD_ALIGNMENT.md), which also maps the 8 zones below onto the 6 shipped district blocks and adds the asset editor / arcade builder / creator-economy plan.
 
 > ⚠️ **Original brand only.** This is **Neon Circuit Arcade**. Do **not** use Dave & Buster's name, logo, colors, mascot, slogans, or trade dress anywhere in this world.
 

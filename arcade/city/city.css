@@ -181,6 +181,12 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-district .dist-map-svg .dm-adjacent { fill: var(--am); }                                      /* an adjacent (routable) block */
 .city-district .dist-map-svg .dm-current { fill: var(--cy); stroke: #eaf6ff; stroke-width: 1.2; }   /* you are here */
 .city-district .dist-map-svg .dm-label { fill: var(--ink); font-family: var(--mono); font-size: 8px; opacity: .8; }
+/* Phase W-1: world-map fast travel — nodes are controls (zone-accent filled inline); waypoint ring dashed */
+.city-district .dist-map-svg .dm-click { cursor: pointer; transition: filter .12s ease; }
+.city-district .dist-map-svg .dm-click:hover { filter: brightness(1.35) drop-shadow(0 0 3px rgba(234, 246, 255, .55)); }
+.city-district .dist-map-svg .dm-click:focus-visible { outline: none; stroke: #eaf6ff; stroke-width: 1.4; stroke-dasharray: 2 1.5; }
+.city-district .dist-map-svg .dm-waypoint { fill: none; stroke: var(--am); stroke-width: 1.2; stroke-dasharray: 3 2; opacity: .9; }
+.city-district .dist-head { border-left: 3px solid var(--blk-accent, transparent); padding-left: 6px; } /* zone accent stripe */
 /* Phase 8C-3: per-block VOICE flavor (event card + activity board) — display-only atmosphere */
 .city-district .dist-event-voice { font-size: 10px; line-height: 1.35; color: var(--cy); opacity: .78; margin-top: 3px; letter-spacing: .2px; }
 .city-district .dist-act-voice { font-size: 10px; line-height: 1.35; letter-spacing: .2px; margin: 2px 0 3px; }
