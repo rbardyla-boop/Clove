@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- LOCAL-ONLY, OFFLINE tool. Same-origin modules + same-origin fetch of local sample packages; NO
+     external code/assets/connections. Composes APPROVED package DATA only (no code execution). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<title>Creator Foundation — CF-3.5 District Asset Editor</title>
+<!--
+  The TOP-WORLD composer: place already-approved, hash-addressed block packages on a bounded grid
+  to author a city_asset_pack (CF-5 kind). Approved hashes only — an unapproved tile is BLOCKED by
+  the shared validator. No live-world load, no submit/upload, no production. Serve from repo root:
+      python3 -m http.server 8099   →   /arcade/creator/district-editor/
+-->
+<style>
+  body { margin: 0; background: #07080f; color: #cfe9ff; font: 14px/1.5 ui-monospace, monospace; }
+  header { padding: 12px 16px; border-bottom: 1px solid #1b2740; }
+  h1 { font-size: 15px; margin: 0; letter-spacing: .04em; } h1 span { color: #22e0ff; }
+  main { display: flex; gap: 16px; padding: 16px; flex-wrap: wrap; }
+  .col { min-width: 300px; }
+  label { display: block; margin: 8px 0 2px; color: #8aa0c0; font-size: 12px; }
+  input, select, button { background: #112; color: #cfe9ff; border: 1px solid #2a3a5a; padding: 8px 10px; border-radius: 6px; font: inherit; }
+  button { cursor: pointer; min-height: 40px; } button:hover { border-color: #22e0ff; } button:disabled { opacity: .45; cursor: not-allowed; }
+  #grid { display: grid; gap: 4px; margin: 10px 0; }
+  .cell { width: 34px; height: 34px; min-height: 34px; padding: 0; border-radius: 5px; background: #0a1120; font-weight: 700; }
+  .cell-style { background: #14324a; color: #22e0ff; border-color: #22e0ff; }
+  .cell-layered { background: #2a1a45; color: #c792ff; border-color: #b14aff; }
+  #preview { width: 480px; height: 380px; max-width: 100%; background: #05060c; border: 1px solid #1b2740; border-radius: 8px; }
+  .verdict { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #0d1424; font-weight: 700; }
+  .v-ok { color: #7CFFB0; } .v-bad { color: #ff6b6b; }
+  pre { white-space: pre-wrap; background: #0a1120; border: 1px solid #1b2740; border-radius: 6px; padding: 8px; max-width: 520px; }
+  .note { color: #8aa0c0; font-size: 12px; }
+  .mono { font-size: 11px; word-break: break-all; color: #8aa0c0; }
+</style>
+</head>
+<body>
+<header><h1>CREATOR FOUNDATION <span>//</span> CF-3.5 DISTRICT ASSET EDITOR</h1></header>
+<main>
+  <div class="col">
+    <label for="packId">pack id (kebab, 3–48)</label>
+    <input id="packId" value="my-district-corner" maxlength="48">
+    <label for="displayName">display name (optional, ≤40)</label>
+    <input id="displayName" value="My District Corner" maxlength="40">
+    <label for="cols">grid cols (1–8)</label>
+    <input id="cols" type="number" min="1" max="8" value="4">
+    <label for="rows">grid rows (1–8)</label>
+    <input id="rows" type="number" min="1" max="8" value="4">
+    <label for="palette">approved tile (place on click)</label>
+    <select id="palette"></select>
+    <div id="grid" aria-label="District tile grid"></div>
+    <p><button id="clearBtn" type="button">Clear grid</button>
+       <button id="exportPack" type="button" disabled>Export pack JSON</button></p>
+    <label for="importRegistry">import CF-2 approved registry (JSON)</label>
+    <input id="importRegistry" type="file" accept="application/json">
+    <label for="importPackage">import approved package bodies (JSON, multiple)</label>
+    <input id="importPackage" type="file" accept="application/json" multiple>
+    <p class="note">Tiles reference packages by APPROVED HASH ONLY — the shared CF-5 validator blocks
+      anything else. Local edit + export only: no submit, no upload, no live-world load.</p>
+  </div>
+  <div class="col">
+    <p><span class="verdict" id="verdict">—</span> <span class="note" id="counts"></span></p>
+    <canvas id="preview" width="480" height="380" aria-label="Local district composition preview"></canvas>
+    <p class="note" id="previewNote"></p>
+    <p class="note">pack hash</p>
+    <p class="mono" id="hash">—</p>
+    <p class="note" id="receiptNote"></p>
+    <p class="note">issues</p>
+    <pre id="issues">(none)</pre>
+  </div>
+</main>
+<script type="module" src="./district-editor.mjs"></script>
+</body>
+</html>
