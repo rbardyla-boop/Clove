@@ -119,10 +119,16 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .interior-title { font-family: "Bungee", var(--mono); letter-spacing: 1.5px; color: #fff; font-size: 13px; text-shadow: 0 0 12px var(--mg); }
 .interior-sub { font-family: var(--mono); color: var(--ink); letter-spacing: 1px; font-size: 10px; text-transform: uppercase; }
 .interior-close { cursor: pointer; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--cy);
-  background: rgba(34,224,255,.12); color: #dbe9f3; font-family: var(--mono); letter-spacing: 1px; font-weight: 700; }
+  background: rgba(34,224,255,.12); color: #dbe9f3; font-family: var(--mono); letter-spacing: 1px; font-weight: 700;
+  min-height: 44px; min-width: 44px; flex: none; } /* cabinet-loop polish: thumb-sized return target (WCAG/phone) */
 .interior-frame { flex: 1 1 auto; width: 100%; border: 0; background: #080610; }
 .interior-fallback { padding: 14px; color: var(--mg); text-align: center; font-size: 12px; letter-spacing: 1px; }
-@media (max-width: 560px) { .interior-sub { display: none; } }
+@media (max-width: 560px) {
+  .interior-sub { display: none; }
+  /* safe-area: keep the bar (and its return button) clear of notches/home indicators */
+  .portal-overlay { padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+    max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+}
 
 /* city OS world-event log panel — left side, clear of minimap (top-right) + joystick (bottom-right) */
 .city-log { position: absolute; left: 14px; bottom: 120px; width: 248px; max-width: 46vw; z-index: 4;
