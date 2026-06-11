@@ -9,8 +9,8 @@
  * completing ONLY when both canonical positions sit inside the static zone; identical
  * acknowledgment on both sockets; forged completion/hint rejected per client; no
  * value-shaped fields anywhere. Fails loudly with geometry/state diagnostics.
- * Run: tests/arcade/run-city-objectives-two-client.sh   (total runtime ~75s — the
- * cooldown wait is the honest price of refusing a production test hook.)
+ * Run: tests/arcade/run-city-objectives-two-client.sh   (total runtime ~2.5min — two real
+ * cooldown waits are the honest price of refusing a production test hook.)
  */
 import { connectCityClient, VALUE_FIELD_RE } from './city-objectives-ws-driver.mjs';
 import { OBJECTIVE_COOLDOWN_MS } from '../../arcade/city/city-objectives.mjs';
@@ -81,6 +81,30 @@ try {
   check('gather ack is actor-less and value-free',
     (ackA.actor_public_id == null) && !VALUE_FIELD_RE.test(JSON.stringify(ackA.payload)), JSON.stringify(ackA));
   check('exactly one gather ack despite both players dwelling in-zone', a.acks().length === 2, a.diag());
+
+  // ── 7C-V: DWELL live proof (index 2 — one more real cooldown) ────────────────
+  // visit_in_order (index 3) stays pure-proven: its wire path is the same kind-generic
+  // plumbing; a third cooldown would buy no new authority evidence for its cost.
+  await b.moveTo(300, 520, { near: 16, maxMs: 25000 }); // B clear of everything
+  console.log(`     … waiting out the ${OBJECTIVE_COOLDOWN_MS / 1000}s cooldown again (dwell activates next)`);
+  await new Promise((r) => setTimeout(r, OBJECTIVE_COOLDOWN_MS + 1500));
+  await a.dwell(400);
+  await a.waitFor((s) => s.objective && s.objective.kind === 'dwell_at_node', 'dwell hint after cooldown', 8000);
+  const dwellObj = a.state.objective;
+  check('cycle advances to dwell_at_node with humane parameters', dwellObj.dwell_s >= 2 && dwellObj.dwell_s <= 10, a.diag());
+  // brief touch-and-leave must NOT complete (continuous presence resets)
+  check('A reaches the dwell node', await a.moveTo(dwellObj.x, dwellObj.y, { near: dwellObj.radius - 10 }), a.diag());
+  await a.moveTo(dwellObj.x + 120, dwellObj.y, { near: 14 }); // leave immediately
+  await a.dwell(600);
+  check('touch-and-leave does not complete the dwell', a.acks().length === 2, a.diag());
+  // return and STAY: standing still requires periodic evaluation ticks → gentle in-place nudges
+  check('A returns to the node', await a.moveTo(dwellObj.x, dwellObj.y, { near: dwellObj.radius - 10 }), a.diag());
+  await a.dwell(dwellObj.dwell_s * 1000 + 1500);
+  await a.waitFor(() => a.acks().length === 3, 'dwell acknowledgment', 8000);
+  const dwellAck = a.acks()[2];
+  check('continuous dwell completes with a value-free actor-less ack',
+    dwellAck.payload.kind === 'dwell_at_node' && (dwellAck.actor_public_id == null)
+    && !VALUE_FIELD_RE.test(JSON.stringify(dwellAck.payload)), JSON.stringify(dwellAck));
 } finally {
   a.close(); b.close();
 }
