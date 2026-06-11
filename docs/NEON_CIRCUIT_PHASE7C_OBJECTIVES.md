@@ -68,3 +68,27 @@ is the spawn plaza. Identical across blocks (blocks share canonical geometry by 
   property, not a bug).
 - One cycle of two objectives. More variety (per-block flavored hints through the existing
   display layers) is deferrable polish.
+
+## 7C-V — Objective Variety (2026-06-11, local build)
+
+The closed cycle grows 2 → 4 kinds, all per-block authority, all evaluated from canonical
+positions only, zero Worker/shim wiring changes (the tick is kind-generic):
+
+| # | Kind | Goal | Notes |
+|---|---|---|---|
+| 0 | reach_node | touch the beacon | unchanged (production-proven) |
+| 1 | gather_at_zone | two together on the plaza | unchanged (staging-proven) |
+| 2 | dwell_at_node | stay with the beacon ~4s | continuous presence; leaving RESETS (no banked fractions); sampled at evaluation ticks |
+| 3 | visit_in_order | touch A, then B | block-collective: ANY player may complete each leg |
+
+State gains one field (`phase` — per-kind scratch, reset on activation/completion; dwell uses
+it as the presence-start timestamp, visit as the leg flag). Still four ephemeral numbers,
+never persisted. Hints gain sparse PER-BLOCK flavor (closed `BLOCK_HINTS` overrides, every
+block flavored at least once, same vocabulary screens); acks stay universal per kind.
+Evaluability-bounds tests pin every row (walkable points, dwell 2–10s, radii ≥ 2× player
+radius, visit legs distinct-but-reachable) — the Beacon Climb lesson, promoted into the table.
+Live proof: the two-client smoke now covers reach → gather → DWELL (incl. touch-and-leave
+negative) across two real cooldowns; visit_in_order is pure-proven (same kind-generic wire
+path; a third cooldown buys no new authority evidence). Worker bundle re-grows to 215,246 B
+(86d9c117…) — the expanded pure module only. Staging + Worker-only production redeploy
+required before players see it.
