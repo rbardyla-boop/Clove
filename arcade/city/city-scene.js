@@ -35,6 +35,7 @@ import { eventVoiceLine, blockVoice, corridorVoice } from './city-district-flavo
 import { blockAccent, planNextHop } from './city-world-map.mjs'; // Phase W-1: zone accents + waypoint hop planning (display/client-only)
 import { deriveBlockMood } from './city-block-mood.mjs'; // Phase W-5: block mood — one display-only atmospheric line (ADR-042)
 import { createMoodIntake, intakeCityEvent, moodTuples } from './city-block-mood-intake.mjs'; // W-5 dedup-then-strip boundary
+import { streetHappening } from './city-street-life.mjs'; // next-density pass: ambient street-level happenings (display-only)
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -626,6 +627,15 @@ function renderDistrict() {
       const md = document.createElement('div'); md.className = 'dist-mood';
       md.textContent = moodView.atmospheric_text;
       districtEl.appendChild(md);
+    }
+    // next-density pass: STREET LIFE — one ambient scenery line, rotated on a coarse time bucket.
+    // Same flavor family as the mood line: static closed copy, textContent only, no aria-live,
+    // nothing economic. Hidden on phones via CSS (the panel keeps its narrow-screen budget).
+    const street = streetHappening(cur.city_id, Date.now());
+    if (street) {
+      const sl = document.createElement('div'); sl.className = 'dist-street dist-quiet';
+      sl.textContent = street;
+      districtEl.appendChild(sl);
     }
   }
   // Phase 8C: District Tour (OBJ-1) — non-reward, session-local "N/6 blocks seen". Grants nothing.

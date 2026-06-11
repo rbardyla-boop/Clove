@@ -55,6 +55,7 @@ try {
   await page.fill('#packId', 'sell-this-district');
   await page.waitForFunction(() => window.__cf35_editor.lastReport && window.__cf35_editor.lastReport.ok === false, null, { timeout: 4000 });
   check('economy term in pack id → BLOCKED', /BLOCKED/.test(await page.evaluate(() => document.getElementById('verdict').textContent)));
+  check('issues panel carries a friendly hint for the block (throughput explainer)', await page.evaluate(() => /→ /.test(document.getElementById('issues').textContent)));
   await page.fill('#packId', 'my-district-corner');
   await page.waitForFunction(() => window.__cf35_editor.lastReport && window.__cf35_editor.lastReport.ok === true, null, { timeout: 4000 });
 

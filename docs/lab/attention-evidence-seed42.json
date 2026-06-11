@@ -1,0 +1,82 @@
+{
+  "artifact_kind": "hiveworld_lab_replay",
+  "schema_version": 1,
+  "lab_only": true,
+  "never_production": "arcade/hiveworld-agents/ is denylisted from the curated upload and imported by no Worker/DO/client path",
+  "replay": {
+    "module": "arcade/hiveworld-agents/attention-evidence.mjs",
+    "call": "buildEvidencePack({ seed: 42 })",
+    "determinism": "seeded LCG only — same call reproduces this artifact byte for byte"
+  },
+  "result": {
+    "schema_version": 1,
+    "lab_only": true,
+    "seed": 42,
+    "params": {
+      "rooms": 3,
+      "cabinets": 9,
+      "rounds": 240,
+      "shuffles": 25,
+      "duplicates": 60
+    },
+    "event_count": 502,
+    "agent_count": 12,
+    "granted_total": 18508,
+    "rejected_count": 10,
+    "fingerprint": "g18508|arcade-room:stress-room-0=5723,arcade-room:stress-room-1=5820,arcade-room:stress-room-2=5088,cabinet:sha256:20bb44503f9f2284666a65e579893545a32b51509376bec72d8de729c368f7dd=187,cabinet:sha256:38c77470d56480a1ecac098787790b0b25be49e709777c1b9fd70e087a89daff=201,cabinet:sha256:681d053b91fcac8c821104aa8f0654d83ff48dea9c47c8a88ffc4aad6e5e658d=121,cabinet:sha256:97da2849d73eb438a907d090402c802d7c5700893a34bd83441aabe1f6f21057=180,cabinet:sha256:9db24f74acbb2de8717ea679b802116dda104b4daee51a3744b8791cbe100533=251,cabinet:sha256:9e1be4b28d1f9e69595b47dbfe6841b5ce17d2f2bb362a53ae5c62d50baee397=223,cabinet:sha256:b0128acfdadd957ea5fa5d2501abfe7b2420479bcc3a877765428488a6202f1d=240,cabinet:sha256:f9d5a0bc63c821c6dc7f228a3c32a983e8b0f9405bc4d72a83d12f37897a2fd5=192,cabinet:sha256:fcfc21f07dac5d7ea425b02395af6cb0ae49e76da578f291ac69d692f2ab98ae=282|r10",
+    "claims": [
+      {
+        "id": "C1_replay_deterministic",
+        "ok": true,
+        "detail": "fingerprint g18508|arcade-room:stress-room-0=5723,arcade-room:stress-room-1=5820,arcade-room:stress-room-2=5088,cabinet:sha256:20bb44503f9f2284666a65e579893545a32b51509376bec72d8de729c368f7dd=187,cabinet:sha256:38c77470d56480a1ecac098787790b0b25be49e709777c1b9fd70e087a89daff=201,cabinet:sha256:681d053b91fcac8c821104aa8f0654d83ff48dea9c47c8a88ffc4aad6e5e658d=121,cabinet:sha256:97da2849d73eb438a907d090402c802d7c5700893a34bd83441aabe1f6f21057=180,cabinet:sha256:9db24f74acbb2de8717ea679b802116dda104b4daee51a3744b8791cbe100533=251,cabinet:sha256:9e1be4b28d1f9e69595b47dbfe6841b5ce17d2f2bb362a53ae5c62d50baee397=223,cabinet:sha256:b0128acfdadd957ea5fa5d2501abfe7b2420479bcc3a877765428488a6202f1d=240,cabinet:sha256:f9d5a0bc63c821c6dc7f228a3c32a983e8b0f9405bc4d72a83d12f37897a2fd5=192,cabinet:sha256:fcfc21f07dac5d7ea425b02395af6cb0ae49e76da578f291ac69d692f2ab98ae=282|r10"
+      },
+      {
+        "id": "C2_reorder_convergent",
+        "ok": true,
+        "detail": "25 shuffles → same fingerprint"
+      },
+      {
+        "id": "C3_duplicate_safe",
+        "ok": true,
+        "detail": "60 duplicate deliveries → same fingerprint"
+      },
+      {
+        "id": "C4_conserved",
+        "ok": true,
+        "detail": "granted_total 18508 equals sum of levels"
+      },
+      {
+        "id": "C5_caps_and_shape_enforced",
+        "ok": true,
+        "detail": "atk:person→bad_agent_id, atk:account→bad_agent_id, atk:overgrant→grant_out_of_bounds, atk:zerogrant→grant_out_of_bounds, atk:overroute→route_out_of_bounds, atk:freetext→bad_signal, atk:selfroute→self_route, atk:cashout→unknown_kind, atk:withdraw→unknown_kind"
+      },
+      {
+        "id": "C6_no_negative_levels",
+        "ok": true,
+        "detail": "all levels >= 0"
+      },
+      {
+        "id": "C7_no_exit_kind",
+        "ok": true,
+        "detail": "vocabulary has no exit; injected exits rejected"
+      },
+      {
+        "id": "C8_no_person_agents",
+        "ok": true,
+        "detail": "12 agents, all node-shaped"
+      },
+      {
+        "id": "C9_one_route_per_round",
+        "ok": true,
+        "detail": "drain replay → round_already_routed"
+      },
+      {
+        "id": "C10_vocabulary_clean",
+        "ok": true,
+        "detail": "69 state keys scanned"
+      }
+    ],
+    "pass": true,
+    "suite": "attention-evidence"
+  }
+}
