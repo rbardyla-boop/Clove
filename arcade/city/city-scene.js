@@ -33,6 +33,8 @@ import { blockIdentity, tourProgress } from './city-block-identity.mjs'; // Phas
 import { districtGraphModel, groupAdjacentByCorridor, corridorOf } from './city-district-graph.mjs'; // Phase 8C-2: district graph + route readability
 import { eventVoiceLine, blockVoice } from './city-district-flavor.mjs'; // Phase 8C-3: per-block voice (display-only overlay)
 import { blockAccent, planNextHop } from './city-world-map.mjs'; // Phase W-1: zone accents + waypoint hop planning (display/client-only)
+import { deriveBlockMood } from './city-block-mood.mjs'; // Phase W-5: block mood — one display-only atmospheric line (ADR-042)
+import { createMoodIntake, intakeCityEvent, moodTuples } from './city-block-mood-intake.mjs'; // W-5 dedup-then-strip boundary
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -103,6 +105,10 @@ const DISTRICT_STALE_MS = 45000;      // Phase 5D: beyond this with no push → 
 let cityActivity = [];                // Phase 5E: derived district activity feed (display-only, local history)
 let travelingTo = null;               // Phase 5E: target block of an in-flight travel (for arrival detection)
 let waypoint = null;                  // Phase W-1: multi-hop travel target (client/display-only; EVERY hop is still server-validated)
+// Phase W-5: block-mood intake — SESSION-LOCAL, NON-REWARD. Display-only; resets on reload;
+// cleared on every block switch; never written to a DO/account/ledger. Grants nothing. The
+// transient (actor,type) dedup happens inside the pure intake; only anonymous tuples remain.
+let moodIntake = createMoodIntake();
 let seededArrival = false;            // Phase 5E/6A: have we seeded the initial arrival? (decoupled from feed contents)
 const ACTIVITY_UI_MAX = 8;            // how many of the bounded buffer the district panel shows
 let cityEvent = null;                 // Phase 6A: current district-event window view (display-only, client-derived)
@@ -146,6 +152,7 @@ const net = new CityNet({
       // seededArrival flag (not feed emptiness — the feed may already carry a district-event item).
       if (travelingTo && net.cityId === travelingTo) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); travelingTo = null; seededArrival = true; }
       else if (!seededArrival) { recordActivity(activityForArrival(net.cityId, blockName(net.cityId))); seededArrival = true; }
+      moodIntake = createMoodIntake(); // Phase W-5: block switch / reconnect → stale mood state cleared
       pollDistrictEvents();   // Phase 6A: refresh the district-event pulse on (re)connect (also re-renders)
       renderDistrict();
     },
@@ -182,8 +189,17 @@ const net = new CityNet({
       // can only get here from a server city_portal_ok (which requires being in the zone).
       if (typeof m.target === 'string' && m.target.startsWith('/')) openInterior(m.target);
     },
-    onEvents: (m) => { eventList.length = 0; seenEventIds.clear(); for (const e of (m.events || [])) pushEvent(e); renderEvents(); },
-    onEvent: (m) => { if (m.event) { pushEvent(m.event); renderEvents(); } },
+    onEvents: (m) => {
+      eventList.length = 0; seenEventIds.clear();
+      for (const e of (m.events || [])) { pushEvent(e); moodIntake = intakeCityEvent(moodIntake, e, net.cityId, Date.now()); } // W-5: feed the mood intake
+      renderEvents(); renderDistrict();
+    },
+    onEvent: (m) => {
+      if (!m.event) return;
+      pushEvent(m.event);
+      moodIntake = intakeCityEvent(moodIntake, m.event, net.cityId, Date.now()); // W-5: feed the mood intake
+      renderEvents(); renderDistrict();
+    },
     onSchedulerState: (m) => { cityPressure = m; renderPressure(); },
     onHostRankState: (m) => { cityHostRank = m; stewardEligible = isStewardshipEligible(m && m.host_rank); renderHostRank(); updateStewardship(); },
     onStewardshipState: (m) => { cityStewardship = normalizeBlockStyle(m && m.stewardship); stewardshipPreview = null; applyEffectiveStyle(); updateStewardship(); },
@@ -599,6 +615,17 @@ function renderDistrict() {
     const here = document.createElement('span'); here.className = 'dist-here'; here.textContent = ' · YOU ARE HERE';
     tag.appendChild(here);
     districtEl.appendChild(tag);
+  }
+  // Phase W-5 (ADR-042): BLOCK MOOD — one atmospheric line for the CURRENT block only, derived
+  // client-side from already-received public events. Not a score/rank/count; never comparative;
+  // never persisted; tone taxonomy never rendered; no aria-live (matches the 8C-3 flavor class).
+  if (cur) {
+    const moodView = deriveBlockMood(moodTuples(moodIntake), cur.city_id, Date.now());
+    if (moodView.atmospheric_text) {
+      const md = document.createElement('div'); md.className = 'dist-mood';
+      md.textContent = moodView.atmospheric_text;
+      districtEl.appendChild(md);
+    }
   }
   // Phase 8C: District Tour (OBJ-1) — non-reward, session-local "N/6 blocks seen". Grants nothing.
   const tour = tourProgress(visitedBlocks);
@@ -1036,6 +1063,8 @@ window.__neon_city = {
   // Phase W-1 — world-map fast travel (display/client-only; every hop server-validated)
   waypointTo(targetCityId) { travelFromMap(targetCityId); },
   get waypoint() { return waypoint; },
+  // Phase W-5 — block mood (display-only; exact four-key envelope, no identity, no counts)
+  blockMood() { return deriveBlockMood(moodTuples(moodIntake), net.cityId, Date.now()); },
   debug() {
     return {
       renderer: renderer.name, ackSeq, pending: inputBuffer.pending.length,

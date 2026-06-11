@@ -126,42 +126,63 @@ pipeline** — `arcade-sdk/` (package template + size budget), `arcade-importer/
   the CF-8 human review queue. Live placement in a district interior remains behind CF-7's
   disabled loader and its own production gate.
 
-## 6. Creators earn — the agent payment system (doctrine-bounded)
+## 6. The in-game agent-attention system (doctrine-bounded; SUPERSEDED in part by ADR-042)
 
-This is the part the old plan never had, and the part with hard guardrails already on
-record (Phase 9 economy doctrine, ADR-040): the shipped economy is **non-cash**
-(tickets/prizes/achievements), it is minors-facing, and it has **never been legally
-reviewed** — the G-MINORS/G-MONEY/G-CSAM/G-UGC gates are open for counsel. So "creators
-earn" lands in three rungs, each gated:
+> 🔴 **SUPERSEDED (ADR-042, 2026-06-11).** This section's original Rung-1 wording framed
+> production recognition as a creator-compensation accrual ("when a creator's approved
+> cabinet/asset is played, the block accrues visible recognition (plays, district event
+> spotlights, 'built by the harbor crew' flavor)"). The adversarial W-5 review narrowed
+> that: **production W-5 is `city-block-mood`** — one atmospheric prose line about the
+> current block, with no counts, no plays metrics, no spotlight tallies, no creator
+> binding, and no "creator earns" language. The old examples are REJECTED per
+> AE-4/AE-10/AE-11/AE-12 and the doctrine smell test. **The structural fence is named:
+> no arcade/room data may ever feed block mood** (no room→block binding exists, and the
+> moment cabinet-play events feed a block signal, rung-1 becomes the accrual leg of a
+> payment chain). See `docs/W5_BLOCK_MOOD_PLAN.md` and ADR-042.
+>
+> **Framing correction (operator clarification, on record):** the long-term economy is an
+> in-game **agent-attention** system — non-cash game units routing attention between
+> SYSTEM-OWNED hive agents so the city decides what gets surfaced, maintained, featured,
+> or amplified. It is never real-world money, creator payout, crypto, cash-out, or user
+> income. "Selling ownership" means only the external business outcome (company/product/
+> IP/license), never in-game land/cabinet ownership, creator equity, rent, revenue share,
+> or a transferable claim.
 
-**Rung 1 — recognition (allowed now, doctrine-aligned).** Block-collective recognition
-only, per Phase 9 doctrine: when a creator's approved cabinet/asset is played, the
-*block* accrues visible recognition (plays, district event spotlights, "built by the
-harbor crew" flavor). No per-player attribution (deferred by ADR-009), no balances owed
-to a person.
+The guardrails already on record (Phase 9 economy doctrine, ADR-040) stand: the shipped
+economy is **non-cash** (tickets/prizes/achievements), it is minors-facing, and it has
+**never been legally reviewed** — the G-MINORS/G-MONEY/G-CSAM/G-UGC gates are open for
+counsel. The ladder lands in three rungs, each gated:
 
-**Rung 2 — agent ledger accounts (simulator-first, the hive-node-as-agent design).**
-Each hive node (DO) is modeled as an **agent** with an account in the ledger:
+**Rung 1 — block mood (IMPLEMENTED, ADR-042).** Display-only atmospheric prose about the
+current block, client-derived from already-public city events. No per-player attribution
+(deferred by ADR-009), no counts, no balances, nothing owed to anyone, nothing accrued.
 
-- Identity: agent id = node id (`arcade-room:<roomId>`, `city-room:<blockId>`). Creator
-  packages bind to a node, never to a human identity — keeps it PII-free.
-- Payment primitive: a ledger entry between agent accounts (e.g., a played round routes a
-  fixed ticket fraction from the room agent to the cabinet-package agent). Append-only,
-  capped per round, auditable — the same `ledger.mjs` shape that already records ticket
-  history.
-- **Where it gets built first: the HiveWorld simulator, not production.** Per doctrine,
-  all economy mechanics are simulator-first. HiveWorld nodes already mirror DOs as fold
-  reducers; agent accounts + transfer events + anti-extraction checks (AE-1…AE-13) get
-  proven there, with convergence and abuse scenarios, before any production proposal.
+**Rung 2 — In-game Agent Attention Ledger (simulator-first; future W-6 plan, separately
+gated).** Each hive node is modeled as a system-owned **agent** with an attention account:
 
-**Rung 3 — real-world creator payout (blocked).** Cash-out of any kind requires counsel
-sign-off on the open legal gates first. Nothing in rungs 1–2 may create a balance that
-implies a cash claim. The word "buy" still does not appear in this product.
+- Identity: agent id = node id (`arcade-room:<roomId>`, `city-room:<blockId>`,
+  `cabinet:sha256:<hash>`). Person-shaped ids are rejected structurally. Creator packages
+  bind to a node, never to a human identity — keeps it PII-free.
+- Attention primitive: a bounded, non-cash ledger entry routing **attention** between
+  agent accounts (e.g., a played round routes a capped attention fraction from the room
+  agent to the cabinet-package agent), so the city can decide what gets surfaced or
+  featured. Append-only, capped, auditable. Attention units must never be described as
+  earnings, never create human balances/receivables, never convert, never transfer to a
+  person, and never imply market value or a withdrawal path.
+- **Where it gets built first: the simulator, not production** (per doctrine). The W-4
+  `arcade/hiveworld-agents/agent-ledger.mjs` lab module already proves the structure
+  (node-shaped agents, caps, conservation, no cash-out kind, convergence); its vocabulary
+  (`tickets_minted`, `balance`, "payment") is queued for attention-framing renames at
+  W-6 planning time.
 
-This gives the sentence in the original ask a precise meaning: *each hive-server node is
-an agent in the hive world, and the agent payment system is the ticket ledger operating
-between agent accounts — simulated first, recognition-only in production, cash never
-without the legal gates closing.*
+**Rung 3 — real-world cash of any kind (blocked).** Requires counsel sign-off on the open
+legal gates first. Nothing in rungs 1–2 may create a balance that implies a cash claim.
+The word "buy" still does not appear in this product.
+
+The precise meaning now on record: *each hive-server node is an agent in the hive world,
+and the agent system routes in-game ATTENTION between system-owned agent accounts —
+simulated first, mood-only in production today, cash never without the legal gates
+closing.*
 
 ## 7. Build ladder (each rung independently gated)
 
@@ -171,12 +192,12 @@ without the legal gates closing.*
 | W-2 | District Asset Editor (CF-3.5, local-only like all CF editors) | normal PR review | ✅ BUILT (`creator/district-editor/`; smoke green) |
 | W-3 | Arcade Builder UX over existing CF pipeline | normal PR review | ✅ BUILT (`creator/arcade-builder/`; smoke green) |
 | W-4 | Agent-ledger sim: node-as-agent accounts + bounded transfers + AE checks | lab module, prod-import forbidden | ✅ BUILT (`arcade/hiveworld-agents/agent-ledger.mjs`; 15 tests) |
-| W-5 | Rung-1 recognition in production (block-collective, display-only) | operator authorization | gated |
-| W-6 | Any production agent-ledger transfer | sim evidence + operator authorization | gated |
+| W-5 | Rung-1 in production = **City Block Mood** (display-only prose; counts/plays/creator-binding REJECTED) | operator authorization | ✅ BUILT (ADR-042; `city-block-mood.mjs` + intake; 27 units + 19-check smoke) |
+| W-6 | **In-game Agent Attention Ledger** — any production attention routing between system agents | sim evidence + separate plan + operator authorization | gated |
 | W-7 | CF-7 live loader enable; creator content in live world | separate production gate (unchanged) | gated |
-| W-8 | Cash earning | legal counsel sign-off on G-MINORS/G-MONEY/G-UGC/G-CSAM | gated |
+| W-8 | Real-world cash of any kind | legal counsel sign-off on G-MINORS/G-MONEY/G-UGC/G-CSAM | gated |
 
-See ADR-041 in `docs/PROJECT_CHARTER.md` for the W-1…W-4 implementation record.
+See ADR-041 (W-1…W-4) and ADR-042 (W-5) in `docs/PROJECT_CHARTER.md` for the implementation records.
 
 **Standing constraints:** dry-run byte-identical for client-only rungs; no new DO classes
 without a migration plan; `LIVE_WORLD_LOADER_ENABLED` stays false through W-1…W-6;

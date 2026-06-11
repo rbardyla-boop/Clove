@@ -187,6 +187,9 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-district .dist-map-svg .dm-click:focus-visible { outline: none; stroke: #eaf6ff; stroke-width: 1.4; stroke-dasharray: 2 1.5; }
 .city-district .dist-map-svg .dm-waypoint { fill: none; stroke: var(--am); stroke-width: 1.2; stroke-dasharray: 3 2; opacity: .9; }
 .city-district .dist-head { border-left: 3px solid var(--blk-accent, transparent); padding-left: 6px; } /* zone accent stripe */
+/* Phase W-5 (ADR-042): block mood — ONE constant treatment across all tones (a tone→color map
+   would itself be a visible gauge). Wraps, never truncates; no live region; plain text only. */
+.city-district .dist-mood { font-size: 10px; line-height: 1.35; letter-spacing: .2px; color: var(--ink); opacity: .7; margin: 2px 0 3px; overflow-wrap: break-word; }
 /* Phase 8C-3: per-block VOICE flavor (event card + activity board) — display-only atmosphere */
 .city-district .dist-event-voice { font-size: 10px; line-height: 1.35; color: var(--cy); opacity: .78; margin-top: 3px; letter-spacing: .2px; }
 .city-district .dist-act-voice { font-size: 10px; line-height: 1.35; letter-spacing: .2px; margin: 2px 0 3px; }
