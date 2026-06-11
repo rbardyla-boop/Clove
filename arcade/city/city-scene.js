@@ -36,6 +36,7 @@ import { blockAccent, planNextHop } from './city-world-map.mjs'; // Phase W-1: z
 import { deriveBlockMood } from './city-block-mood.mjs'; // Phase W-5: block mood — one display-only atmospheric line (ADR-042)
 import { createMoodIntake, intakeCityEvent, moodTuples } from './city-block-mood-intake.mjs'; // W-5 dedup-then-strip boundary
 import { streetHappening } from './city-street-life.mjs'; // next-density pass: ambient street-level happenings (display-only)
+import { arcadeName } from './city-arcade-identity.mjs'; // cabinet-loop polish: block-branded arcade seam (display-only)
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
 import { createCityMinimap } from './city-minimap.js';
@@ -286,11 +287,21 @@ function tryPortal() { if (activePortal) { portalState = 'requesting'; net.enter
 if (portalBtn) portalBtn.addEventListener('click', tryPortal);
 
 // ── in-place arcade interior (server-confirmed; same-origin iframe shell) ──────
+// Cabinet-loop polish: the overlay carries the BLOCK'S arcade house name (display overlay —
+// the server-authored portal target/label are untouched), the phone back gesture closes the
+// interior (one history entry per open; our own state only), and returning paints a short
+// arrival cue so the city acknowledges the round trip.
+let interiorPushed = false; // we issued a history entry for THIS open (never call back() otherwise)
 function openInterior(target) {
   if (interiorOpen) return; // idempotent: a re-sent city_portal_ok must not reload the iframe mid-session
   interiorOpen = true;
+  const house = arcadeName(net.cityId);
+  const nameEl = el('interiorName');
+  if (nameEl) nameEl.textContent = house ? house.toUpperCase() : 'ARCADE INTERIOR';
+  if (portalOverlay) portalOverlay.setAttribute('aria-label', house || 'Arcade interior');
   if (interiorFallback) interiorFallback.hidden = true;
   if (portalOverlay) portalOverlay.hidden = false;
+  try { history.pushState({ neonInterior: 1 }, ''); interiorPushed = true; } catch { interiorPushed = false; }
   if (interiorFrame) {
     // In tests we mount a tiny placeholder (the real /arcade/ needs the arcade WS and
     // would add cross-frame noise); real use loads the existing arcade floor unchanged.
@@ -305,10 +316,20 @@ function closeInterior() {
   if (interiorFrame) { interiorFrame.removeAttribute('src'); interiorFrame.removeAttribute('srcdoc'); }
   net.closeInterior();
   portalState = activePortal ? 'in_zone' : 'idle';
+  if (interiorPushed) { interiorPushed = false; try { history.back(); } catch { /* history unavailable → no-op */ } }
+  // arrival cue — the city acknowledges the return (transient, display-only, closed copy shape)
+  const back = blockName(net.cityId);
+  if (back) {
+    routeStatus = `back on the ${back} corner`;
+    renderDistrict();
+    setTimeout(() => { if (routeStatus.startsWith('back on the')) { routeStatus = ''; renderDistrict(); } }, 1600);
+  }
 }
 if (interiorClose) interiorClose.addEventListener('click', closeInterior);
 if (interiorFrame) interiorFrame.addEventListener('error', () => { if (interiorFallback) interiorFallback.hidden = false; });
 window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && interiorOpen) closeInterior(); });
+// phone back gesture / browser back: our pushed entry pops → close (flag first so closeInterior doesn't re-back)
+window.addEventListener('popstate', () => { if (interiorOpen) { interiorPushed = false; closeInterior(); } });
 
 // ── city-OS event panel (public-safe, bounded, display-only) ──────────────────
 function pushEvent(e) {
@@ -996,7 +1017,9 @@ function updatePortalUI() {
   const inZone = !!activePortal;
   if (portalPrompt) {
     portalPrompt.hidden = !inZone || portalState === 'accepted';
-    if (inZone) portalPrompt.querySelector('.pp-name').textContent = activePortal.label;
+    // cabinet-loop polish: the prompt names THIS block's arcade house (display overlay; the
+    // server-authored portal label is the fallback and the gate target is untouched).
+    if (inZone) portalPrompt.querySelector('.pp-name').textContent = arcadeName(net.cityId) || activePortal.label;
     portalPrompt.classList.toggle('rejected', portalState === 'rejected');
   }
   if (portalBtn) portalBtn.hidden = !inZone || portalState === 'accepted';

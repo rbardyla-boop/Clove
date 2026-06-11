@@ -28,14 +28,21 @@
   #framePreview { width: 300px; height: 280px; background: #05060c; border: 1px solid #1b2740; border-radius: 8px; }
   pre { white-space: pre-wrap; background: #0a1120; border: 1px solid #1b2740; border-radius: 6px; padding: 8px; max-height: 320px; overflow: auto; }
   .note { color: #8aa0c0; font-size: 12px; }
+  /* starter metadata card — mobile-first readable preview of the picked starter */
+  .starter-meta { margin: 8px 0; padding: 10px 12px; border: 1px solid #2a3a5a; border-radius: 8px; background: #0a1120; }
+  .starter-meta .sm-pitch { color: #cfe9ff; font-weight: 700; }
+  .starter-meta .sm-explain { color: #9fb9c9; margin-top: 2px; }
+  .starter-meta .sm-tags { color: #22e0ff; font-size: 11px; letter-spacing: .4px; margin-top: 6px; text-transform: uppercase; }
+  .starter-meta .sm-note { color: #8aa0c0; font-size: 11px; margin-top: 4px; }
 </style>
 </head>
 <body>
 <header><h1>CREATOR FOUNDATION <span>//</span> LOCAL ARCADE BUILDER</h1></header>
 <main>
   <div class="col">
-    <label for="template">template (parameter presets — the importer still gates everything)</label>
+    <label for="template">starter cabinet (named presets by category — the importer still gates everything)</label>
     <select id="template"></select>
+    <div id="starterMeta" class="starter-meta" hidden></div>
     <label for="packageId">package id (kebab, 3–48)</label>
     <input id="packageId" value="my-first-cabinet" maxlength="48">
     <label for="displayName">display name (≤40 bytes)</label>
@@ -46,6 +53,10 @@
     <select id="accent"></select>
     <label for="speed">speed (closed set)</label>
     <select id="speed"></select>
+    <label for="difficulty">difficulty (hot-window scale, closed set)</label>
+    <select id="difficulty"></select>
+    <label for="motion">motion (amplitude scale, closed set — pick calm for reduced motion)</label>
+    <select id="motion"></select>
     <label for="frame">frame contract</label>
     <select id="frame"></select>
     <label for="budget">declared size budget (1024–65536 bytes)</label>
