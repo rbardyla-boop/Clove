@@ -34,6 +34,8 @@
 <header><h1>CREATOR FOUNDATION <span>//</span> LOCAL ARCADE BUILDER</h1></header>
 <main>
   <div class="col">
+    <label for="template">template (parameter presets — the importer still gates everything)</label>
+    <select id="template"></select>
     <label for="packageId">package id (kebab, 3–48)</label>
     <input id="packageId" value="my-first-cabinet" maxlength="48">
     <label for="displayName">display name (≤40 bytes)</label>
@@ -49,6 +51,10 @@
     <label for="budget">declared size budget (1024–65536 bytes)</label>
     <input id="budget" type="number" min="1024" max="65536" value="32768">
     <p><button id="exportAll" type="button" disabled>Export manifest + game + adapter</button></p>
+    <p><button id="exportBundle" type="button" disabled>Export builder bundle (.builder.json)</button></p>
+    <label for="importBundle">import a builder bundle (restores PARAMETERS only — source always regenerates)</label>
+    <input id="importBundle" type="file" accept="application/json,.json">
+
     <p class="note">This page generates DATA only — it never runs the game. Test the exported package
       in the arcade-sandbox (the only place creator code executes, inside a closed-CSP iframe).
       The CF-4 importer gate re-scans everything regardless. No submit, no upload, no live world.</p>

