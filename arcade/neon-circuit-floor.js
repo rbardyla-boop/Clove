@@ -23,7 +23,11 @@ import { createChallengeBoard } from './challenge-board.js';
 // contract); the runtime imports the game factories, so the floor does not.
 // Phase 1l: Neon Grid enters through the dynamic adapter/import path, gated by
 // the server catalog (loadAndActivateImportedCabinet) — not hand-wired here.
-import { mountAdapter, loadAndMountImported, loadAndActivateImportedCabinet } from './cabinet-adapter-runtime.js';
+import { mountAdapter, loadAndMountImported, loadAndActivateImportedCabinet, mountStarterCabinet } from './cabinet-adapter-runtime.js';
+// ADR-043: operator-curated STARTER CORNER — static first-party showcase cabinets
+// (client_local_only, no tickets, no server messages). The curated manifest is the
+// gate for SHOWCASE mounting only; the server catalog stays the ticketed authority.
+import { CURATED_STARTERS, starterManifest, validateCuratedFloor, SHELF_TITLE, SHELF_SAFETY } from './cabinets/starters/curated-floor.mjs';
 import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 // Phase 2a: room selection (the lobby forwards intent; the server is the authority).
 import { createArcadeLobby } from './arcade-lobby.js';
@@ -135,6 +139,71 @@ for (const c of POWERED) {
   cabs[c.id].occEl = node.querySelector('.occ');
   cabs[c.id].ledEl = node.querySelector('.status-led');
 }
+
+// ---- ADR-043: STARTER CORNER shelf (operator-curated; client-local showcase) ----
+// Fail-quiet contract: an invalid curated list renders an EMPTY shelf (section stays
+// hidden), never a partial one. Tap → preview sheet (pre-tap honesty + pitch) →
+// Play → mountStarterCabinet (runtime re-validates strict local-only) → frame opens.
+// Leave (host chrome) unmounts back to the floor. No occupy, no rounds, no tickets.
+const starterState = { mounted: null, lastMount: null, sheetFor: null, valid: false };
+function closeStarterSheet() {
+  starterState.sheetFor = null;
+  const sheet = el('starterSheet');
+  if (sheet) sheet.hidden = true;
+}
+function openStarterSheet(entry) {
+  starterState.sheetFor = entry.starter_id;
+  el('starterSheetName').textContent = entry.label;
+  el('starterSheetPitch').textContent = entry.pitch;
+  el('starterSheetSafety').textContent = `${entry.genre_tag} · ${SHELF_SAFETY}`;
+  el('starterSheet').hidden = false;
+}
+async function mountStarter(entry) {
+  if (starterState.mounted) return starterState.lastMount; // one at a time; Leave first
+  closeStarterSheet();
+  const res = await mountStarterCabinet(starterManifest(entry), {
+    gameOptions: { onLeave: () => unmountStarter() },
+    onLeave: () => unmountStarter(),
+  });
+  starterState.lastMount = res;
+  if (res.ok) { starterState.mounted = res; res.mount.open(); }
+  return res;
+}
+function unmountStarter() {
+  if (!starterState.mounted) return;
+  const m = starterState.mounted;
+  starterState.mounted = null;
+  try { m.mount.unmount(); } catch { /* frame already gone */ }
+}
+function buildStarterShelf() {
+  const corner = el('starterCorner');
+  if (!corner) return;
+  const v = validateCuratedFloor(CURATED_STARTERS);
+  starterState.valid = v.ok;
+  if (!v.ok) { corner.hidden = true; if (params.get('test') === '1') console.warn('[starters] curated floor invalid:', v.errors.join(' | ')); return; }
+  el('starterShelfHead').textContent = `${SHELF_TITLE} · ${SHELF_SAFETY}`;
+  const track = el('starterTrack');
+  track.textContent = '';
+  for (const entry of CURATED_STARTERS) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'st-tile';
+    tile.dataset.starter = entry.starter_id;
+    tile.setAttribute('aria-label', `${entry.label} — ${entry.genre_tag} — session-local`);
+    const nm = document.createElement('span'); nm.className = 'st-tile-name'; nm.textContent = entry.label;
+    const tg = document.createElement('span'); tg.className = 'st-tile-tag'; tg.textContent = entry.genre_tag;
+    tile.appendChild(nm); tile.appendChild(tg);
+    tile.addEventListener('click', () => openStarterSheet(entry));
+    track.appendChild(tile);
+  }
+  el('starterSheetPlay').addEventListener('click', () => {
+    const entry = CURATED_STARTERS.find((s) => s.starter_id === starterState.sheetFor);
+    if (entry) mountStarter(entry);
+  });
+  el('starterSheetClose').addEventListener('click', closeStarterSheet);
+  corner.hidden = false;
+}
+buildStarterShelf();
 
 // ---- helpers ----
 const PALETTE = ['#19e3ff', '#ff2d95', '#b14aff', '#3df58b', '#ffd23f'];
@@ -695,6 +764,16 @@ if (params.get('test') === '1') {
     // Phase 1j/1k/1l: adapter introspection for browser validation. neon_grid is
     // filled in by activateNeonGrid() once the server catalog activates it.
     adapters: { pulse_tap: pulseMount, signal_sprint: signalMount, neon_grid: null },
+    // ADR-043: starter-corner introspection for browser validation (showcase only).
+    starters: {
+      get count() { return CURATED_STARTERS.length; },
+      get valid() { return starterState.valid; },
+      get lastMount() { return starterState.lastMount; },
+      get mountedId() { return starterState.mounted ? starterState.mounted.load.manifest.game_id : null; },
+      openSheet: (id) => { const e = CURATED_STARTERS.find((s) => s.starter_id === id); if (e) openStarterSheet(e); },
+      mount: (id) => { const e = CURATED_STARTERS.find((s) => s.starter_id === id); return e ? mountStarter(e) : Promise.resolve(null); },
+      unmount: () => unmountStarter(),
+    },
     adapterState: (cabinetType) => (getAdapter(cabinetType) ? 'has_adapter' : 'no_adapter'),
     renderState: (cabinet) => cabinetRenderState(cabinet),
     fixtureLifecycle: [],

@@ -49,6 +49,22 @@
 
     <div class="cabinets" id="cabinets"><!-- cabinets injected by neon-circuit-floor.js --></div>
 
+    <!-- ADR-043: operator-curated STARTER CORNER — static first-party showcase cabinets.
+         client_local_only / no tickets; renders empty when the curated manifest is invalid. -->
+    <section class="starter-corner" id="starterCorner" aria-label="Starter corner — session-local showcase cabinets" hidden>
+      <div class="st-shelf-head" id="starterShelfHead"></div>
+      <div class="st-track" id="starterTrack"></div>
+    </section>
+    <div class="starter-sheet" id="starterSheet" role="dialog" aria-modal="true" aria-label="Starter cabinet preview" hidden>
+      <div class="st-sheet-name" id="starterSheetName"></div>
+      <div class="st-sheet-pitch" id="starterSheetPitch"></div>
+      <div class="st-sheet-safety" id="starterSheetSafety"></div>
+      <div class="st-sheet-actions">
+        <button class="st-sheet-play" id="starterSheetPlay" type="button">Play</button>
+        <button class="st-sheet-close" id="starterSheetClose" type="button" aria-label="Close preview">Close</button>
+      </div>
+    </div>
+
     <div class="interact" id="interactPrompt" role="status" aria-live="polite">
       <button class="key" id="interactKey" type="button">
         <span class="kbd" id="interactKbd">E</span>

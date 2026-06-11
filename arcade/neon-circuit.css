@@ -90,7 +90,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   font-size:clamp(9px,1.8vw,13px);letter-spacing:5px;color:var(--muted);text-transform:uppercase;font-weight:400;}
 
 /* ---- arcade cabinets row ---- */
-.cabinets{position:absolute;left:0;right:0;bottom:13%;height:46%;
+/* ADR-043: the cabinet band lifts to free a strip for the STARTER CORNER shelf below it. */
+.cabinets{position:absolute;left:0;right:0;bottom:32%;height:38%;
   display:flex;align-items:flex-end;justify-content:center;gap:clamp(10px,3vw,40px);padding:0 16px;}
 .cab{position:relative;width:clamp(96px,17vw,168px);height:clamp(150px,26vw,250px);
   border-radius:16px 16px 6px 6px;flex:0 0 auto;
@@ -251,11 +252,49 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   transition:opacity .3s, transform .3s;white-space:nowrap;}
 .hint-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* ===================== ADR-043: STARTER CORNER (curated showcase shelf) ===================== */
+.starter-corner{position:absolute;left:14px;right:88px;bottom:max(10px,env(safe-area-inset-bottom));z-index:22;
+  background:rgba(8,4,17,.78);border:1px solid rgba(34,224,255,.25);border-radius:12px;padding:8px 10px;}
+.st-shelf-head{font-family:var(--font-display,inherit);font-size:10px;letter-spacing:1.2px;color:var(--cyan,#19e3ff);
+  text-transform:uppercase;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-track{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:2px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin;}
+.st-tile{flex:0 0 auto;scroll-snap-align:start;min-width:104px;min-height:56px;display:flex;flex-direction:column;
+  align-items:flex-start;gap:3px;padding:8px 10px;border-radius:10px;border:1px solid rgba(177,74,255,.4);
+  background:rgba(20,8,36,.85);color:#dbe9f3;cursor:pointer;font:inherit;text-align:left;}
+.st-tile:hover,.st-tile:focus-visible{border-color:var(--cyan,#19e3ff);outline:none;}
+.st-tile-name{font-size:12px;font-weight:700;letter-spacing:.4px;}
+.st-tile-tag{font-size:8px;letter-spacing:1px;color:#8aa0c0;text-transform:uppercase;}
+/* preview sheet — bottom sheet; pre-play pitch + honesty line; 44px controls */
+.starter-sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#0a0716;border-top:1px solid var(--cyan,#19e3ff);
+  border-radius:14px 14px 0 0;padding:14px 16px max(14px,env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,.6);}
+.st-sheet-name{font-size:16px;font-weight:800;letter-spacing:.5px;color:#fff;}
+.st-sheet-pitch{font-size:13px;color:#9fb9c9;margin-top:4px;line-height:1.45;}
+.st-sheet-safety{font-size:10px;letter-spacing:1px;color:var(--cyan,#19e3ff);text-transform:uppercase;margin-top:8px;}
+.st-sheet-actions{display:flex;gap:10px;margin-top:12px;}
+.st-sheet-play,.st-sheet-close{min-height:44px;min-width:88px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;}
+.st-sheet-play{flex:1;background:rgba(34,224,255,.18);border:1px solid var(--cyan,#19e3ff);color:#dff6ff;}
+.st-sheet-close{background:transparent;border:1px solid #3a4a6a;color:#9fb9c9;}
+/* host chrome inside the cabinet frame (360x640 native) */
+.st-panel{width:360px;height:640px;display:flex;flex-direction:column;background:#05060c;color:#cfe9ff;}
+.st-head{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #1b2740;min-height:56px;}
+.st-name{font-weight:800;font-size:13px;letter-spacing:.5px;flex:1;}
+.st-safety{font-size:8px;letter-spacing:1px;color:#19e3ff;text-transform:uppercase;}
+.st-leave{min-height:44px;min-width:64px;border-radius:999px;border:1px solid #19e3ff;background:rgba(25,227,255,.12);
+  color:#dbe9f3;font:inherit;font-weight:700;cursor:pointer;}
+.st-stage{display:block;background:#080610;touch-action:manipulation;}
+.st-score{padding:6px 10px;font-size:11px;letter-spacing:.6px;color:#8aa0c0;border-top:1px solid #1b2740;}
+
 @media (max-width:560px){
   .brand{display:none;}
-  .cabinets{bottom:16%;gap:14px;}
+  .cabinets{bottom:34%;gap:14px;}
   .act-btn{width:58px;height:58px;}
+  .starter-corner{right:84px;}
+  .st-tile{min-width:96px;}
 }
 @media (prefers-reduced-motion:reduce){
   .ceiling::before,.floor,.interact .key,.status-pill .dot.off{animation:none;}
+  .cab.powered:hover,.cab.selected{transform:none;}
+  .st-track{scroll-behavior:auto;}
+  .starter-sheet{transition:none;}
 }
