@@ -27,7 +27,7 @@ import { mountAdapter, loadAndMountImported, loadAndActivateImportedCabinet, mou
 // ADR-043: operator-curated STARTER CORNER — static first-party showcase cabinets
 // (client_local_only, no tickets, no server messages). The curated manifest is the
 // gate for SHOWCASE mounting only; the server catalog stays the ticketed authority.
-import { CURATED_STARTERS, starterManifest, validateCuratedFloor, SHELF_TITLE, SHELF_SAFETY } from './cabinets/starters/curated-floor.mjs';
+import { CURATED_STARTERS, starterManifest, validateCuratedFloor, orderShelf, SHELF_TITLE, SHELF_SAFETY } from './cabinets/starters/curated-floor.mjs';
 import { cabinetRenderState, getAdapter } from './cabinet-adapter-sdk.mjs';
 // Phase 2a: room selection (the lobby forwards intent; the server is the authority).
 import { createArcadeLobby } from './arcade-lobby.js';
@@ -184,12 +184,16 @@ function buildStarterShelf() {
   el('starterShelfHead').textContent = `${SHELF_TITLE} · ${SHELF_SAFETY}`;
   const track = el('starterTrack');
   track.textContent = '';
-  for (const entry of CURATED_STARTERS) {
+  // per-block ordering: ?from= is only ever USED via orderShelf, which validates the
+  // value against the manifest's own closed home_block set — anything else (including
+  // hostile strings) yields the default order and never reaches the DOM.
+  const fromParam = params.get('from');
+  for (const entry of orderShelf(CURATED_STARTERS, fromParam)) {
     const tile = document.createElement('button');
     tile.type = 'button';
-    tile.className = 'st-tile';
+    tile.className = entry.role === 'flex' ? 'st-tile st-tile-flex' : 'st-tile';
     tile.dataset.starter = entry.starter_id;
-    tile.setAttribute('aria-label', `${entry.label} — ${entry.genre_tag} — session-local`);
+    tile.setAttribute('aria-label', `${entry.label} — ${entry.genre_tag}${entry.role === 'flex' ? ' — quick run' : ''} — session-local`);
     const nm = document.createElement('span'); nm.className = 'st-tile-name'; nm.textContent = entry.label;
     const tg = document.createElement('span'); tg.className = 'st-tile-tag'; tg.textContent = entry.genre_tag;
     tile.appendChild(nm); tile.appendChild(tg);
