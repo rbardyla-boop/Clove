@@ -49,12 +49,22 @@ No deploy · no push · CF-7 `LIVE_WORLD_LOADER_ENABLED = false` untouched · `w
 unimported) · no real-money/cash-out/payout/person-receivable vocabulary anywhere new (greps in
 the end-validation record) · per-player attribution still deferred (ADR-009).
 
-## Deferred / not done on this branch
+## Stabilization pass (post-W-5 merge)
 
-- W-4 `agent-ledger.mjs` rejection-dedup port (recommended next cleanup pass).
-- This branch is based on main WITHOUT PR #62 (W-5 block mood); `city-scene.js` edits here will
-  need a trivial merge against W-5's edits when both land (different regions of renderDistrict;
-  expect clean or near-clean merge).
+- **Merged `origin/main` @ 58f8a59 (PR #62, W-5 block mood) — ZERO conflicts.** The predicted
+  `city-scene.js` overlap auto-resolved: W-5's intake feed/welcome reset/.dist-mood render and
+  the density pass's landmark/corridor-voice/phone-bound edits live in different regions of
+  `renderDistrict`. Both block-mood and district smokes pass on the merged tree.
+- **W-4 `agent-ledger.mjs` rejection-dedup PORTED** (the C3 finding's fix): rejections now
+  dedup by event identity exactly like applications, with the same semantics as
+  `attention-ledger.mjs` — first-seen invalid evidence kept (one entry, original reason);
+  re-deliveries silenced; identity-less malformed events collapse to one identical `'?'`
+  entry (no distinct evidence exists to lose). Three regression tests added (duplicate-
+  rejected log stability, audit-fingerprint stability under dup+reorder, first-seen-evidence
+  preservation); all prior attack/rejection tests unchanged and green.
+
+## Remaining deferred items
+
 - No ADR added: nothing here changes an authority/economy boundary — the attention reframe is
   already recorded in ADR-042 and HIVE_WORLD_ALIGNMENT §6; this branch only builds the lab
   evidence behind it.
