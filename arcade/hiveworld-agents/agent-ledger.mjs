@@ -65,12 +65,24 @@ export function foldLedger(events) {
   list.sort((a, b) => ((a?.seq ?? 0) - (b?.seq ?? 0)) || String(a?.event_id).localeCompare(String(b?.event_id)));
   const state = { agents: {}, minted_total: 0, rejected: [] };
   const applied = new Set();
+  const rejectedIds = new Set(); // a duplicate of an already-REJECTED event is also a no-op —
+  // without this, re-delivery grows the rejection log and the audit fingerprint diverges under
+  // duplication (found by the W-6 lab evidence pack's C3 probe; ported from attention-ledger).
+  // First-seen invalid evidence is kept: the FIRST rejection of an event id is recorded with
+  // its reason; only re-deliveries of the SAME id are silenced (identity-less events collapse
+  // to one identical '?' entry — no distinct evidence exists to lose). Same semantics as
+  // attention-ledger.mjs so both lab folds share one audit-convergence contract.
   const roundTransfers = new Set(); // "<from>|<round_id>" — AE-ONE-PER-ROUND
-  const reject = (e, reason) => state.rejected.push({ event_id: String(e?.event_id ?? '?'), reason });
+  const reject = (e, reason) => {
+    const id = String(e?.event_id ?? '?');
+    if (rejectedIds.has(id)) return;
+    rejectedIds.add(id);
+    state.rejected.push({ event_id: id, reason });
+  };
 
   for (const e of list) {
     if (!e || typeof e !== 'object' || !isId(e.event_id) || !isInt(e.seq)) { reject(e, 'malformed_event'); continue; }
-    if (applied.has(e.event_id)) continue;                       // duplicate delivery → no-op
+    if (applied.has(e.event_id) || rejectedIds.has(e.event_id)) continue; // duplicate delivery → no-op
     if (!EVENT_KINDS.includes(e.kind)) { reject(e, 'unknown_kind'); continue; } // AE-NO-CASHOUT
 
     if (e.kind === 'agent_registered') {
