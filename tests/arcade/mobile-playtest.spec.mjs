@@ -75,6 +75,45 @@ try {
   await page.evaluate(() => window.__neon.client.release('pulse'));
   await page.waitForFunction(() => !document.querySelector('.cab[data-id="pulse"]').classList.contains('mine'), null, { timeout: 10000 }).catch(() => {});
 
+  // ── ADR-043: STARTER CORNER at 360px ────────────────────────────────────────
+  check('starter shelf renders at 360px without document overflow', await page.evaluate(() => {
+    const d = document.documentElement;
+    return !document.getElementById('starterCorner').hidden && d.scrollWidth <= d.clientWidth + 1;
+  }));
+  check('starter tiles are ≥44px tap targets with aria-labels', await page.evaluate(() =>
+    [...document.querySelectorAll('#starterTrack .st-tile')].every((t) => {
+      const r = t.getBoundingClientRect();
+      return r.height >= 44 && r.width >= 44 && (t.getAttribute('aria-label') || '').length > 0;
+    })));
+  check('first two starter tiles are visible without scrolling (discovery-by-default)', await page.evaluate(() => {
+    const tiles = [...document.querySelectorAll('#starterTrack .st-tile')].slice(0, 2);
+    const vw = document.documentElement.clientWidth;
+    return tiles.length === 2 && tiles.every((t) => { const r = t.getBoundingClientRect(); return r.left >= 0 && r.right <= vw; });
+  }));
+  check('shelf does not overlap the HUD, cabinet tiles, or the action button', await page.evaluate(() => {
+    const box = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
+    const shelf = box('#starterCorner');
+    const apart = (b) => !b || !(shelf.left < b.right && b.left < shelf.right && shelf.top < b.bottom && b.top < shelf.bottom);
+    return shelf && apart(box('.hud-top')) && apart(box('#interactBtn')) && apart(box('.cab[data-id="pulse"]'));
+  }), 'geometry overlap at 360px');
+  // full loop on phone: tile → sheet → play → leave (no occupancy involved)
+  await page.click('.st-tile[data-starter="arbor-bloom"]');
+  check('preview sheet fits the phone viewport with 44px controls', await page.evaluate(() => {
+    const sheet = document.getElementById('starterSheet');
+    const play = document.getElementById('starterSheetPlay').getBoundingClientRect();
+    return !sheet.hidden && sheet.scrollWidth <= document.documentElement.clientWidth + 1 && play.height >= 44;
+  }));
+  await page.click('#starterSheetPlay');
+  await page.waitForFunction(() => window.__neon.starters.mountedId === 'starter_arbor_bloom', null, { timeout: 8000 });
+  check('starter mounts at 360px and the Leave control is reachable', await page.evaluate(() => {
+    const r = document.querySelector('.st-leave').getBoundingClientRect();
+    return r.height >= 40 && r.top >= 0 && r.right <= document.documentElement.clientWidth + 1;
+  }));
+  await page.click('.st-leave');
+  await page.waitForFunction(() => window.__neon.starters.mountedId === null, null, { timeout: 6000 });
+  check('starter leave returns to the floor on phone', true);
+
+
   // Prize Counter opens + is readable (no overflow) on mobile, then closes cleanly.
   await page.click('#prizeBtn');
   await page.waitForSelector('.pc-overlay.show', { timeout: 8000 });

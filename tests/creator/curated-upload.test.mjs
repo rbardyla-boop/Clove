@@ -58,6 +58,15 @@ test('real repo: arcade/creator EXCLUDED, arcade/city INCLUDED, root index INCLU
   assert.ok(included.includes('index.html'), 'the root index.html must be uploaded');
 });
 
+test('real repo: ADR-043 curated starter statics SHIP (and the writer tool does not)', () => {
+  const { included, excluded } = curatedUploadFileList();
+  assert.ok(included.includes('arcade/cabinets/starters/curated-floor.mjs'), 'the curated manifest must ship');
+  assert.ok(included.includes('arcade/cabinets/starters/starter-host.mjs'), 'the shared host must ship');
+  assert.ok(included.some((f) => /^arcade\/cabinets\/starters\/[a-z-]+\/game\.mjs$/.test(f)), 'per-starter statics must ship');
+  assert.ok(excluded.includes('arcade/creator/arcade-builder/write-starter-statics.mjs'), 'the author-time writer stays excluded');
+  assert.ok(included.length < 990, `upload count ${included.length} keeps headroom under the 1000-file host cap`);
+});
+
 test('real repo: NO forbidden path survives into the curated upload list', () => {
   const { included } = curatedUploadFileList();
   for (const f of included) assert.equal(isExcludedFromUpload(f), false, `leaked into upload: ${f}`);
