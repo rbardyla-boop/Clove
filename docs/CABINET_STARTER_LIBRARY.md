@@ -13,10 +13,13 @@ A starter is **parameters + metadata**, never code you write:
 - a **variant** — one of 14 tiny procedural games (tap-in-the-hot-window family, each with a
   distinct read: pulse, drift, cycle, orbit, tide, crossover, rail, grid walk, phase
   alignment, gauge, bloom, climb, signal window, palindrome echo);
-- four **closed tokens** — accent (5 colors), speed (3), difficulty (3 hot-window scales),
-  motion (3 amplitude scales — pick *calm* for reduced-motion-friendly output);
-- **display metadata** — name, one-line pitch, a 3-second rule explanation, input model
-  (always `tap`), round-length target, result summary, mobile note, reduced-motion note.
+- six **closed tokens** — accent (5 colors), speed (3), difficulty (3 hot-window scales),
+  motion (3 amplitude scales), **juice** (off/standard/vivid visual feel — clamps to off
+  under reduced motion), and **input mode** (tap_window / hold_band / release_timing /
+  swipe_lane / drag_track — see docs/CABINET_JUICE_AND_INPUT_MODES.md);
+- **display metadata** — name, one-line pitch, a 3-second rule explanation, the mode's
+  instruction line, round-length target, result summary, mobile note, reduced-motion note.
+  A plain `tap` always works in every mode (keyboard/sandbox degenerate press+release).
 
 A starter is **not**: arbitrary JS, an asset bundle, a network/storage user, a prize/ticket
 rule, an economy hook, or anything ownable. Token values resolve through frozen tables —
