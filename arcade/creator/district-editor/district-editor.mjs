@@ -13,6 +13,7 @@
  */
 import { PACK_KIND, PACK_SCHEMA_VERSION, MAX_COLS, MAX_ROWS, MAX_TILES, REQUIRED_CONSTRAINTS } from '../schemas/asset-pack-schema.mjs';
 import { validateAssetPack, resolveAssetPack } from '../validator/validate-asset-pack.mjs';
+import { explainIssues } from '../validator/issue-explainer.mjs'; // throughput: friendly hints (explanatory only — validator stays the gate)
 import { packageHash } from '../validator/package-hash.mjs';
 import { worldToScreen, drawBlock } from '../render/iso-renderer.mjs';
 import { drawLayeredBlock } from '../render/layered-renderer.mjs';
@@ -131,7 +132,9 @@ async function refresh() {
   const verdict = el('verdict');
   verdict.textContent = report.ok ? 'VALID (local only)' : 'BLOCKED';
   verdict.className = 'verdict ' + (report.ok ? 'v-ok' : 'v-bad');
-  el('issues').textContent = report.errors.length ? report.errors.join('\n') : '(none)';
+  el('issues').textContent = report.errors.length
+    ? explainIssues(report.errors).map(({ error, hint }) => (hint ? `${error}\n  → ${hint}` : error)).join('\n')
+    : '(none)';
   el('counts').textContent = `${state.tiles.size}/${MAX_TILES} tiles · ${report.limits.size_bytes} bytes`;
   el('hash').textContent = await packageHash(pack);
   el('receiptNote').textContent = 'status=local_validation_only · live_world_authorized=false';
