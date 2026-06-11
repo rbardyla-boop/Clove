@@ -1,0 +1,210 @@
+{
+  "artifact_kind": "hiveworld_lab_replay",
+  "schema_version": 1,
+  "lab_only": true,
+  "never_production": "arcade/hiveworld-agents/ is denylisted from the curated upload and imported by no Worker/DO/client path",
+  "replay": {
+    "module": "arcade/hiveworld-agents/attention-stress.mjs",
+    "call": "buildStressSuite({ seeds: [42,1337,9001] })",
+    "determinism": "seeded LCG only — same call reproduces this artifact byte for byte"
+  },
+  "result": {
+    "schema_version": 1,
+    "lab_only": true,
+    "suite": "attention-stress-suite",
+    "seeds": [
+      42,
+      1337,
+      9001
+    ],
+    "packs": [
+      {
+        "schema_version": 1,
+        "lab_only": true,
+        "suite": "attention-stress",
+        "seed": 42,
+        "params": {
+          "rooms": 6,
+          "cabinets": 24,
+          "rounds": 2000,
+          "shuffles": 12,
+          "rejectedFlood": 200,
+          "malformedFlood": 150
+        },
+        "event_count": 4040,
+        "agent_count": 30,
+        "granted_total": 150883,
+        "rejected_count": 10,
+        "fingerprint": "g150883|arcade-room:stress-room-0=23252,arcade-room:stress-room-1=21780,arcade-room:stress-room-2=21057,arcade-room:stress-room-3=25830,arcade-room:stress-room-4=22366,arcade-room:stress-room-5=21376,cabinet:sha256:0c1014771bf7761f912103bb636c127f611f9f7661ca2ef964b32ae6f2e56658=674,cabinet:sha256:1ecc8449b2fe05d830cfc24534f152333f45b3e8b2e82ca111fb5b251d54b752=622,cabinet:sha256:20bb44503f9f2284666a65e579893545a32b51509376bec72d8de729c368f7dd=532,cabinet:sha256:38c77470d56480a1ecac098787790b0b25be49e709777c1b9fd70e087a89daff=609,cabinet:sha256:3c4023ff55eb3529ebcdbb3463f28d5efb238e6d10962ad31033fe675834b77f=492,cabinet:sha256:681d053b91fcac8c821104aa8f0654d83ff48dea9c47c8a88ffc4aad6e5e658d=656,cabinet:sha256:71c73988df20dc8143c7249bbf7debd530894ffbf3c148afcbcfcd9e58053b3a=685,cabinet:sha256:760606760fc313bcfde3b8d30dee320faa1abc0d38514ef830c0e5ffc2541a89=580,cabinet:sha256:81e8a128f5337658717b20436eea6a3e3bd895a9473572753553c06da71922d3=651,cabinet:sha256:86c97d963beecca221eb7849d56feb08e31064dd90e5957cbd52173c89eab420=665,cabinet:sha256:889f8a8ee13e6b87555ade3978b96f3602015c876fb75b4941d61f0c919e3d3f=702,cabinet:sha256:97da2849d73eb438a907d090402c802d7c5700893a34bd83441aabe1f6f21057=537,cabinet:sha256:99bb057b1e9c98f30b1fd80ed31f62a652ee0e54ce8e2dfb3ce8841df0b98a2a=750,cabinet:sha256:9db24f74acbb2de8717ea679b802116dda104b4daee51a3744b8791cbe100533=590,cabinet:sha256:9e1be4b28d1f9e69595b47dbfe6841b5ce17d2f2bb362a53ae5c62d50baee397=813,cabinet:sha256:a91ea96c361f339986656b19aaed7c27a63fe6ee17d47c5b5f0fb7445430b240=600,cabinet:sha256:aa8e6fd1ebd31d69d65804ff9831e44fa3433efa6c29795777a3ac9252d18c40=738,cabinet:sha256:b0128acfdadd957ea5fa5d2501abfe7b2420479bcc3a877765428488a6202f1d=550,cabinet:sha256:c001e0080ba06d53ba0a9d9696932bb4ef695afeb5e8e325f8f0a9f4f3f48634=647,cabinet:sha256:c1b875a94cdba759f4664a53ac8fde986d40902b2326f7bdc4d540bce749a4ec=643,cabinet:sha256:f9d5a0bc63c821c6dc7f228a3c32a983e8b0f9405bc4d72a83d12f37897a2fd5=628,cabinet:sha256:fa585729ea8e9d7a79aa620b6502a407b2b3495597d135edf72a9cf662e920d1=562,cabinet:sha256:fc7021c80cbb7abe2c68fc9372ef9f42b81282ff84774441f2712e68af6b8704=600,cabinet:sha256:fcfc21f07dac5d7ea425b02395af6cb0ae49e76da578f291ac69d692f2ab98ae=696|r10",
+        "claims": [
+          {
+            "id": "S1_scale_replay_deterministic",
+            "ok": true,
+            "detail": "fingerprint g150883|arcade-room:stress-room-0=23252,… @ 4040 events"
+          },
+          {
+            "id": "S2_scale_reorder_convergent",
+            "ok": true,
+            "detail": "12 shuffles @ 2000 rounds"
+          },
+          {
+            "id": "S3_rejected_flood_convergent",
+            "ok": true,
+            "detail": "200 re-deliveries of 10 rejected events → audit log unchanged (10)"
+          },
+          {
+            "id": "S4_malformed_flood_collapses",
+            "ok": true,
+            "detail": "150 identity-less events → 1 '?' audit entry, agent state untouched"
+          },
+          {
+            "id": "S5_conserved_at_scale",
+            "ok": true,
+            "detail": "granted_total 150883 across 30 agents"
+          },
+          {
+            "id": "S6_attacks_all_rejected",
+            "ok": true,
+            "detail": "10/10 attacks pinned"
+          },
+          {
+            "id": "S7_mixed_storm_stable",
+            "ok": true,
+            "detail": "storm of 4490 deliveries → same agent state; audit grew by exactly the one '?' entry"
+          },
+          {
+            "id": "S8_surfacing_bound_cabinets_only",
+            "ok": true,
+            "detail": "rollup 7466 === bound-cabinet sum 7466; room binding ignored"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "schema_version": 1,
+        "lab_only": true,
+        "suite": "attention-stress",
+        "seed": 1337,
+        "params": {
+          "rooms": 6,
+          "cabinets": 24,
+          "rounds": 2000,
+          "shuffles": 12,
+          "rejectedFlood": 200,
+          "malformedFlood": 150
+        },
+        "event_count": 4040,
+        "agent_count": 30,
+        "granted_total": 149951,
+        "rejected_count": 10,
+        "fingerprint": "g149951|arcade-room:stress-room-0=24507,arcade-room:stress-room-1=22672,arcade-room:stress-room-2=22337,arcade-room:stress-room-3=21262,arcade-room:stress-room-4=23217,arcade-room:stress-room-5=20856,cabinet:sha256:016805364501b8be7876bb449586e45f45cf57cf216acd00868c2bdaca8005f1=709,cabinet:sha256:01bbb33a7f6d690c1e76383125a90d6a928956636794e6aadbaee8f8df7c35ce=619,cabinet:sha256:041baa93013a3b9e146d3a45a262f1a77e85cf739bde9aafba3c59bb0338df46=676,cabinet:sha256:05d089828f3932f74c3cb7a9d7fd427ed988e2d1fcffd26c4c845468be9fc665=489,cabinet:sha256:0ab90f50303427bf0222010f6951541487ca25e174e5494f6c7744866402e6c1=636,cabinet:sha256:23ca668888a3763c9ea133746bb31a2b3c09664024594977dfa0242245322b88=736,cabinet:sha256:2d66d450506f62fba64ea020bc93b777528d2590513fe5673355b39597d08a1e=705,cabinet:sha256:37be6d56ec51814ba71950c1c4d133a5d4dd32ccb98a1de24070a7f580e375a0=617,cabinet:sha256:435af635d7d36b488d55cfacd35d75f9b09ae65f3ba67d01ef9e6f251786f6cb=759,cabinet:sha256:4511089644492da8079e4f7728d7397d39528c3fb1ac62073c060775decd7583=552,cabinet:sha256:46a5e10a6be6e9cb2ccdc5abede78b4da3bfc578c78d7b039270bc8c243390d6=434,cabinet:sha256:5565dd6f5f1549216261073d90a2e6ee01081626354078a351347c1ec75ed937=582,cabinet:sha256:5f3fea0856e8e323c6b03be608111a4ec27fb6fe7a48a064293fe48352aa9285=582,cabinet:sha256:774c1d1f0083213ef62c28178b0892e4e568847fa5465e9b76d7f6d2f725be5d=686,cabinet:sha256:7b56696ce0a589fd67d2d32792f7d1e188ede40d4c1f6d0e436df217b3440a50=612,cabinet:sha256:82564dd341f8d4867a1e048dee18c1f198ffa2a021355793a4a8a3b3004a10bd=638,cabinet:sha256:89304e22fa9c16a4390797dc30ab712e6204712fa1bf5cf2a0b189b74175bbd6=785,cabinet:sha256:92d0a66fea5fe292f771b60083e45dc9fc82d11a4941be19aa1a56b42cdeb126=676,cabinet:sha256:972257172b43bd5295b266a6b20fb4925693a33a000d9d241b3c373080ee2375=474,cabinet:sha256:99024d34899bd2da56cdfa97506ae59227de007a8a5b76a1b016b992b7c466e1=650,cabinet:sha256:b2469250e2fd57cc45d2305be00838b14cc9eb84b0df3bec3e2d5fe26615125b=687,cabinet:sha256:ba3e9310928878b7a85999655f7229d4ebd434fd3f87e6c8e54d0f5d96d07a31=615,cabinet:sha256:f51959cad5560bdd1af196bc44cc6fae0f907fdedb2ea23b030962d040c1923c=574,cabinet:sha256:ffba44977473d0b3e569ed5797f0c149f14543e9669e23812ecbb1a017cfc020=607|r10",
+        "claims": [
+          {
+            "id": "S1_scale_replay_deterministic",
+            "ok": true,
+            "detail": "fingerprint g149951|arcade-room:stress-room-0=24507,… @ 4040 events"
+          },
+          {
+            "id": "S2_scale_reorder_convergent",
+            "ok": true,
+            "detail": "12 shuffles @ 2000 rounds"
+          },
+          {
+            "id": "S3_rejected_flood_convergent",
+            "ok": true,
+            "detail": "200 re-deliveries of 10 rejected events → audit log unchanged (10)"
+          },
+          {
+            "id": "S4_malformed_flood_collapses",
+            "ok": true,
+            "detail": "150 identity-less events → 1 '?' audit entry, agent state untouched"
+          },
+          {
+            "id": "S5_conserved_at_scale",
+            "ok": true,
+            "detail": "granted_total 149951 across 30 agents"
+          },
+          {
+            "id": "S6_attacks_all_rejected",
+            "ok": true,
+            "detail": "10/10 attacks pinned"
+          },
+          {
+            "id": "S7_mixed_storm_stable",
+            "ok": true,
+            "detail": "storm of 4490 deliveries → same agent state; audit grew by exactly the one '?' entry"
+          },
+          {
+            "id": "S8_surfacing_bound_cabinets_only",
+            "ok": true,
+            "detail": "rollup 7339 === bound-cabinet sum 7339; room binding ignored"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "schema_version": 1,
+        "lab_only": true,
+        "suite": "attention-stress",
+        "seed": 9001,
+        "params": {
+          "rooms": 6,
+          "cabinets": 24,
+          "rounds": 2000,
+          "shuffles": 12,
+          "rejectedFlood": 200,
+          "malformedFlood": 150
+        },
+        "event_count": 4040,
+        "agent_count": 30,
+        "granted_total": 157145,
+        "rejected_count": 10,
+        "fingerprint": "g157145|arcade-room:stress-room-0=23573,arcade-room:stress-room-1=22846,arcade-room:stress-room-2=22927,arcade-room:stress-room-3=24324,arcade-room:stress-room-4=22214,arcade-room:stress-room-5=25429,cabinet:sha256:0e738a5687d99bae6d6fc52d4be56093b41466899f13a8a8ed1154e25ae77bca=637,cabinet:sha256:18ce17f57d382c35c2d1d50114f02a845f3fe0b133495bad69c1dd222ab2c7da=636,cabinet:sha256:22c41d036c3ab97371cc443d55821a81f81e8e8973de1c78b6c7a7f10c3bb0ea=579,cabinet:sha256:2b7c09a12f977d7eb01cc3ebaa9940f9a7fa73bb3e0f99bfd382b3dbac431923=638,cabinet:sha256:379609837f240f7c49e311ded487c71b089b20e815ce4b65ceffdbcc75a4e0fc=590,cabinet:sha256:41305b9ae52b301b87945793f60f482d26fbd4aec1692cd3fcc187f458c95b6e=549,cabinet:sha256:455ec27e189d89618673ab12a0007d8751b2ec924c3ef9affff1d1c069064560=675,cabinet:sha256:5854295d8b8cbbb6183e9041c9734bc2f10f5afb0f5167f0610f2a262f1e1d5a=613,cabinet:sha256:6dc7ef5f18947019eb3e14ad1affce5659912b49c1e03387411b45b08e1eda7c=601,cabinet:sha256:7021da37a50755827701a27a1fdb311cbc13086ac86d9e93787fdc2214b51f10=713,cabinet:sha256:76a9a97d7f94c62b01b918646e0878713b270a1774b6b5f4766dd9c853f535e1=713,cabinet:sha256:7874d0d875c1813ab5f1ce64c741c6898ac9d4fad9f4276132361ef88a3a72ac=701,cabinet:sha256:869563f983b154dad126c4c9e98f6894e72752ef860339064d4981afe6bf4993=697,cabinet:sha256:8e2839dead86fcd5fb0a3e88b0af9cae552b7eed5e38a645cb76342ef93973ba=677,cabinet:sha256:928ebe590cc96286b0904bd6c76aff62d25dc318d36f3ad5582a984d7b35c8bd=596,cabinet:sha256:93a465da50bec12f7657826091257eca866ef585450d6f95bc907df429806bf5=690,cabinet:sha256:a46183d68920efd60e68b88bcefb20ac7869eecb3565006fc52544739eb76bbd=716,cabinet:sha256:abfec0c1082f824839454f8721a107c1ad7db3ecd9da78b04da790b333b39e12=563,cabinet:sha256:c28ff089f1c68c05ed980e5a11589f66817a04449675b74504d1da9844c55362=823,cabinet:sha256:d3aa04282460481765d992165ec8faa6991f6e7e5b26262c2b54a9bbd8570501=732,cabinet:sha256:d68616627e4c922c5b41526cbb399b8cca58aa586a0471d899e21d04b6115edf=556,cabinet:sha256:d88de82e7261952759ef6a7a5f9590658804b5e7c1d105954c2521ca0433279b=749,cabinet:sha256:e85e73bb0331f16bbe21f5f8453f2777881440d69e272a552daab1ffe235dbdb=756,cabinet:sha256:fbf8839cc36985747d99d717a261d4847900cb3155e49fd6154c884c53b079d6=632|r10",
+        "claims": [
+          {
+            "id": "S1_scale_replay_deterministic",
+            "ok": true,
+            "detail": "fingerprint g157145|arcade-room:stress-room-0=23573,… @ 4040 events"
+          },
+          {
+            "id": "S2_scale_reorder_convergent",
+            "ok": true,
+            "detail": "12 shuffles @ 2000 rounds"
+          },
+          {
+            "id": "S3_rejected_flood_convergent",
+            "ok": true,
+            "detail": "200 re-deliveries of 10 rejected events → audit log unchanged (10)"
+          },
+          {
+            "id": "S4_malformed_flood_collapses",
+            "ok": true,
+            "detail": "150 identity-less events → 1 '?' audit entry, agent state untouched"
+          },
+          {
+            "id": "S5_conserved_at_scale",
+            "ok": true,
+            "detail": "granted_total 157145 across 30 agents"
+          },
+          {
+            "id": "S6_attacks_all_rejected",
+            "ok": true,
+            "detail": "10/10 attacks pinned"
+          },
+          {
+            "id": "S7_mixed_storm_stable",
+            "ok": true,
+            "detail": "storm of 4490 deliveries → same agent state; audit grew by exactly the one '?' entry"
+          },
+          {
+            "id": "S8_surfacing_bound_cabinets_only",
+            "ok": true,
+            "detail": "rollup 7645 === bound-cabinet sum 7645; room binding ignored"
+          }
+        ],
+        "pass": true
+      }
+    ],
+    "pass": true
+  }
+}
