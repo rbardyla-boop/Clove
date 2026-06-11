@@ -70,18 +70,19 @@ export function starterAdapter(gameId, displayName) {
  * CF-4 factory; `onLeave` is the floor's unmount callback (the Leave button's action).
  * Returns the import-runtime game shape: { getRoot, open, close }.
  */
-export function createStarterHostGame({ createCabinetGame, displayName, onLeave }) {
+export function createStarterHostGame({ createCabinetGame, displayName, instruction, onLeave }) {
   const root = document.createElement('div');
   root.className = 'st-panel';
   root.innerHTML = `
     <div class="st-head">
-      <span class="st-name"></span>
+      <span class="st-titles"><span class="st-name"></span><span class="st-instruction"></span></span>
       <span class="st-safety"></span>
       <button class="st-leave" type="button" aria-label="Leave this cabinet">✕ Leave</button>
     </div>
     <canvas class="st-stage" width="${STARTER_NATIVE_W}" height="${STAGE_H}"></canvas>
     <div class="st-score" role="status"></div>`;
   root.querySelector('.st-name').textContent = displayName;
+  root.querySelector('.st-instruction').textContent = instruction || '';
   root.querySelector('.st-safety').textContent = STARTER_SAFETY_LINE;
 
   const canvas = root.querySelector('.st-stage');
@@ -89,6 +90,7 @@ export function createStarterHostGame({ createCabinetGame, displayName, onLeave 
   let game = null;
   let raf = 0;
   let last = 0;
+  let pointerId = null;
 
   const renderScore = () => {
     const s = game ? game.proposeResult() : null;
@@ -100,16 +102,55 @@ export function createStarterHostGame({ createCabinetGame, displayName, onLeave 
     if (game) {
       game.tick(dt);
       game.render(canvas.getContext('2d'));
+      renderScore();
     }
     raf = requestAnimationFrame(loop);
   };
 
+  // pointer → NATIVE coordinates (the frame scales the whole panel; map back through the rect)
+  const nativePoint = (e) => {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: r.width ? (e.clientX - r.left) * (STARTER_NATIVE_W / r.width) : STARTER_NATIVE_W / 2,
+      y: r.height ? (e.clientY - r.top) * (STAGE_H / r.height) : STAGE_H / 2,
+    };
+  };
+  const send = (type, p) => { if (game) { game.onInput({ type, ...p }); } };
   canvas.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    if (!game) return;
-    game.onInput({ type: 'tap' });
-    renderScore();
+    pointerId = e.pointerId;
+    try { canvas.setPointerCapture(pointerId); } catch { /* capture unsupported */ }
+    send('press', nativePoint(e));
   });
+  canvas.addEventListener('pointermove', (e) => { if (e.pointerId === pointerId) send('move', nativePoint(e)); });
+  const endPointer = (e) => {
+    if (e.pointerId !== pointerId) return;
+    try { canvas.releasePointerCapture(pointerId); } catch { /* already released */ }
+    pointerId = null;
+    send('release', nativePoint(e));
+  };
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+
+  // keyboard fallback (cleaned up on close): Space = press/release at center;
+  // ArrowLeft/Right = a synthesized full swipe (press → move → release across the lane).
+  const center = { x: STARTER_NATIVE_W / 2, y: STAGE_H / 2 };
+  let spaceDown = false;
+  const onKeyDown = (e) => {
+    if (!game) return;
+    if (e.code === 'Space' && !spaceDown) { spaceDown = true; e.preventDefault(); send('press', center); }
+    if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+      e.preventDefault();
+      const dir = e.code === 'ArrowRight' ? 1 : -1;
+      send('press', { x: center.x - dir * 60, y: center.y });
+      send('move', { x: center.x, y: center.y });
+      send('release', { x: center.x + dir * 60, y: center.y });
+    }
+  };
+  const onKeyUp = (e) => {
+    if (e.code === 'Space' && spaceDown) { spaceDown = false; e.preventDefault(); send('release', center); }
+  };
+
   root.querySelector('.st-leave').addEventListener('click', () => {
     if (typeof onLeave === 'function') onLeave();
   });
@@ -123,11 +164,17 @@ export function createStarterHostGame({ createCabinetGame, displayName, onLeave 
       last = 0;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(loop);
+      window.addEventListener('keydown', onKeyDown);
+      window.addEventListener('keyup', onKeyUp);
     },
     close() {
       cancelAnimationFrame(raf);
       raf = 0;
       game = null;
+      pointerId = null;
+      spaceDown = false;
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
     },
   };
 }

@@ -7,5 +7,5 @@ import { starterAdapter, starterContract, createStarterHostGame } from '../start
 export const adapter = starterAdapter('starter_phase_lock', 'Phase Lock');
 export const contract = starterContract('starter_phase_lock', 'Phase Lock');
 export function createGame(opts) {
-  return createStarterHostGame({ createCabinetGame, displayName: 'Phase Lock', onLeave: opts && opts.onLeave });
+  return createStarterHostGame({ createCabinetGame, displayName: 'Phase Lock', instruction: 'Keep your pointer moving with it.', onLeave: opts && opts.onLeave });
 }

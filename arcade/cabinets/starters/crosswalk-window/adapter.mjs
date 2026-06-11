@@ -7,5 +7,5 @@ import { starterAdapter, starterContract, createStarterHostGame } from '../start
 export const adapter = starterAdapter('starter_crosswalk_window', 'Crosswalk Window');
 export const contract = starterContract('starter_crosswalk_window', 'Crosswalk Window');
 export function createGame(opts) {
-  return createStarterHostGame({ createCabinetGame, displayName: 'Crosswalk Window', onLeave: opts && opts.onLeave });
+  return createStarterHostGame({ createCabinetGame, displayName: 'Crosswalk Window', instruction: 'Tap at the right moment.', onLeave: opts && opts.onLeave });
 }
