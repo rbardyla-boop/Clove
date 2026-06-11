@@ -22,7 +22,7 @@ const ACCENTS = Object.freeze({
   cyan: '#22e0ff', magenta: '#ff2d95', violet: '#b14aff', green: '#3df58b', amber: '#ff9e3f',
 });
 const SPEEDS = Object.freeze({ slow: '1.2', medium: '2', fast: '3.2' });
-const VARIANTS = Object.freeze(['pulse-ring', 'drift-band', 'tri-light']);
+const VARIANTS = Object.freeze(['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate']);
 
 // ── generated sources (no template literals in OUTPUT — the importer scans them) ──
 // Each variant follows the SDK contract verbatim: init/tick/render/onInput/proposeResult,
@@ -77,6 +77,49 @@ function gameSource(variant, accentHex, speed) {
       '        ctx.strokeStyle = ACCENT; ctx.lineWidth = 3;',
       '        if (i === this.lit()) { ctx.fillStyle = ACCENT; ctx.fill(); } else { ctx.stroke(); }',
       '      }',
+      '    },',
+    ].join('\n') + '\n' + tail;
+  }
+  if (variant === 'orbit-catch') {
+    return head + '\n' + [
+      '  return {',
+      '    init(f) { this.w = f.width; this.h = f.height; running = true; t = 0; score = 0; },',
+      '    tick(dt) { if (running) t += dt; },',
+      '    angle() { return (t * SPEED) % (Math.PI * 2); },',
+      '    hot() { const a = this.angle(); return a > 4.4 && a < 5.1; },   // the top arc',
+      '    render(ctx) {',
+      '      const w = this.w || 360, h = this.h || 640;',
+      '      const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.3;',
+      '      ctx.clearRect(0, 0, w, h);',
+      '      ctx.strokeStyle = ACCENT; ctx.lineWidth = 2;',
+      '      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();',
+      '      ctx.globalAlpha = 0.2;',
+      '      ctx.beginPath(); ctx.arc(cx, cy, R, 4.4, 5.1); ctx.lineWidth = 10; ctx.stroke();',
+      '      ctx.globalAlpha = 1; ctx.lineWidth = 2;',
+      '      const a = this.angle();',
+      '      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * R, cy + Math.sin(a) * R, 10, 0, Math.PI * 2);',
+      '      ctx.fillStyle = ACCENT; ctx.fill();',
+      '    },',
+    ].join('\n') + '\n' + tail;
+  }
+  if (variant === 'tide-gate') {
+    return head + '\n' + [
+      '  return {',
+      '    init(f) { this.w = f.width; this.h = f.height; running = true; t = 0; score = 0; },',
+      '    tick(dt) { if (running) t += dt; },',
+      '    level() { return (Math.sin(t * SPEED) + 1) / 2; },',
+      '    hot() { const y = this.level(); return y > 0.45 && y < 0.62; },',
+      '    render(ctx) {',
+      '      const w = this.w || 360, h = this.h || 640;',
+      '      ctx.clearRect(0, 0, w, h);',
+      '      ctx.fillStyle = ACCENT; ctx.globalAlpha = 0.16;',
+      '      ctx.fillRect(0, h * 0.38, w, h * 0.17);                       // the gate band',
+      '      ctx.globalAlpha = 0.65;',
+      '      const y = h * (1 - this.level());',
+      '      ctx.fillRect(0, y, w, h - y);                                 // the rising tide',
+      '      ctx.globalAlpha = 1;',
+      '      ctx.strokeStyle = ACCENT; ctx.lineWidth = 2;',
+      '      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();',
       '    },',
     ].join('\n') + '\n' + tail;
   }
