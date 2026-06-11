@@ -31,6 +31,8 @@ test('every starter carries the full metadata contract', () => {
     assert.ok(VARIANTS.includes(s.params.variant), `${s.id} variant closed`);
     assert.ok(s.params.accent in ACCENTS && s.params.speed in SPEEDS, `${s.id} tokens closed`);
     assert.ok(s.params.difficulty in DIFFICULTY && s.params.motion in MOTION, `${s.id} difficulty/motion closed`);
+    assert.ok(['off', 'standard', 'vivid'].includes(s.params.juice), `${s.id} juice closed`);
+    assert.ok(['tap_window', 'hold_band', 'release_timing', 'swipe_lane', 'drag_track'].includes(s.params.input_mode), `${s.id} input_mode closed`);
   }
 });
 
