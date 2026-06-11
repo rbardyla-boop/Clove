@@ -105,6 +105,7 @@ let routeStatus = '';                 // Phase 5A: transient route feedback line
 let districtLiveAt = 0;               // Phase 5D: last time district presence updated (full manifest OR push delta)
 const DISTRICT_STALE_MS = 45000;      // Phase 5D: beyond this with no push → show degraded + safety re-request
 let cityActivity = [];                // Phase 5E: derived district activity feed (display-only, local history)
+let cityObjective = null;   // Phase 7C: active objective HINT (server-pushed display state; never authored here)
 let travelingTo = null;               // Phase 5E: target block of an in-flight travel (for arrival detection)
 let waypoint = null;                  // Phase W-1: multi-hop travel target (client/display-only; EVERY hop is still server-validated)
 // Phase W-5: block-mood intake — SESSION-LOCAL, NON-REWARD. Display-only; resets on reload;
@@ -225,6 +226,7 @@ const net = new CityNet({
     },
     onRouteResult: (m) => { onRouteResult(m); },                              // Phase 5A: route confirmation
     onInteractionReceipt: (m) => { window.__neon_city.lastInteractionReceipt = m; }, // Phase 7E: server-confirmed receipt (display)
+    onObjectiveState: (m) => { cityObjective = m && m.objective; window.__neon_city.lastObjectiveState = m; renderDistrict(); }, // Phase 7C: hint display (server truth; client renders only)
     onError: (m) => {
       window.__neon_city.lastError = m;
       if (String(m.code).startsWith('portal_')) { portalState = 'rejected'; setTimeout(() => { if (portalState === 'rejected') portalState = 'idle'; }, 900); }
@@ -366,6 +368,7 @@ function eventLabel(e) {
     case 'city_block_trial_started': return `block trial started · ${(e.payload && e.payload.objective) || 'signal grid'}`;
     case 'city_block_trial_joined': return `${who} joined the block trial`;
     case 'city_block_trial_updated': return `block trial · ${(e.payload && e.payload.score) || 0}/${(e.payload && e.payload.score_cap) || 3} nodes`;
+    case 'city_objective_completed': return `${(e.payload && e.payload.ack) || 'objective acknowledged'}`;
     case 'city_block_trial_completed': return `block trial complete · ${(e.payload && e.payload.reason) || 'done'} (${(e.payload && e.payload.stabilized_count) || 0}/${(e.payload && e.payload.score_cap) || 3})`;
     case 'city_block_trial_rejected': return `block trial unavailable (${(e.payload && e.payload.reason) || 'denied'})`;
     case 'city_block_trial_closed': return `block trial closed · public block unchanged`;
@@ -664,6 +667,14 @@ function renderDistrict() {
       sl.textContent = street;
       districtEl.appendChild(sl);
     }
+  }
+  // Phase 7C: the block's ACTIVE OBJECTIVE hint — server-pushed display state. The client
+  // renders the closed hint copy verbatim and never evaluates or claims completion;
+  // the acknowledgment arrives as a server-authored world event like any other.
+  if (cityObjective && cityObjective.hint) {
+    const ob = document.createElement('div'); ob.className = 'dist-objective';
+    ob.textContent = cityObjective.hint;
+    districtEl.appendChild(ob);
   }
   // Phase 8C: District Tour (OBJ-1) — non-reward, session-local "N/6 blocks seen". Grants nothing.
   const tour = tourProgress(visitedBlocks);
@@ -1046,6 +1057,9 @@ window.__neon_city = {
   lastPortalOk: null,
   lastInteractionReceipt: null,                                              // Phase 7E
   requestInteraction(kind, zoneId, target) { net.requestInteraction(kind, zoneId, target); }, // Phase 7E
+  lastObjectiveState: null,                                                  // Phase 7C: last server-pushed hint state (display)
+  objective() { return cityObjective; },                                     // Phase 7C: display-state introspection
+  forgeMessage(obj) { net.send(obj); },                                      // Phase 7C smoke: prove forged inbound types are REJECTED server-side
   lastError: null,
   get connected() { return status === 'live'; },
   get renderer() { return renderer.name; },
@@ -1059,7 +1073,7 @@ window.__neon_city = {
   enterPortal() { tryPortal(); },
   get interiorOpen() { return interiorOpen; },            // Phase 4C
   closeInterior() { closeInterior(); },
-  events() { return eventList.map((e) => ({ event_id: e.event_id, type: e.type, seq: e.seq, actor_public_id: e.actor_public_id })); },
+  events() { return eventList.map((e) => ({ event_id: e.event_id, type: e.type, seq: e.seq, actor_public_id: e.actor_public_id, payload: e.payload })); }, // payload is server-sanitized public-safe data (7C smokes assert on it)
   pressure() { return cityPressure ? { ...cityPressure.pressure, suggestions: (cityPressure.suggestions || []).map((s) => s.reason) } : null; }, // Phase 4D
   requestScheduler() { net.requestScheduler(); },
   hostRank() { return cityHostRank ? { ...cityHostRank.host_rank } : null; }, // Phase 4E

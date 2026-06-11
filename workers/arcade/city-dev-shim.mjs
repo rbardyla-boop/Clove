@@ -24,6 +24,7 @@ import { districtManifest, validateRouteRequest } from '../../arcade/city/city-d
 import { deriveDistrictPresenceDelta } from '../../arcade/city/city-district-presence.mjs';
 import { districtEventSnapshot, resolveDistrictEventConfig } from '../../arcade/city/city-district-events.mjs';
 import { buildInteractionReceipt } from '../../arcade/city/city-interaction-receipts.mjs'; // Phase 7E
+import { createObjectiveState, activeObjective, stepObjectives, objectiveHintPayload, objectiveCompletedPayload } from '../../arcade/city/city-objectives.mjs'; // Phase 7C
 
 // Phase 6B: the SAME server-authored, public-safe district-event snapshot the DO ships in
 // city_blocks. Operator config comes from env (clamped); absent → Phase 6A defaults. DO parity.
@@ -41,6 +42,24 @@ const hostRanks = {};              // cityId -> last Host Rank snapshot (Phase 4
 const rankChangedLast = {};        // cityId -> did the last host-rank eval broadcast (join dedup)
 const stewardships = {};           // cityId -> canonical block style (Phase 4F)
 const trials = {};                 // cityId -> active Block Trial instance (Phase 4G; in-memory, ephemeral)
+// Phase 7C: per-city objective cycle state (EPHEMERAL — DO parity; never persisted, never per-player).
+const objectiveStates = {};
+const lastObjectiveIds = {};
+function tickObjectives(cityId) {
+  const now = Date.now();
+  if (!objectiveStates[cityId]) objectiveStates[cityId] = createObjectiveState(now);
+  const positions = {};
+  for (const [pid, p] of Object.entries(cityState(cityId).players || {})) positions[pid] = { x: p.x, y: p.y };
+  const r = stepObjectives(cityId, objectiveStates[cityId], positions, now);
+  objectiveStates[cityId] = r.state;
+  if (r.completed) emit(cityId, 'city_objective_completed', null, objectiveCompletedPayload(r.completed));
+  const active = activeObjective(cityId, objectiveStates[cityId], now);
+  const id = active ? active.objective_id : null;
+  if (id !== lastObjectiveIds[cityId] || r.completed) {
+    lastObjectiveIds[cityId] = id;
+    broadcast(cityId, { t: 'city_objective_state', ...objectiveHintPayload(active) });
+  }
+}
 const sockets = new Map();         // ws -> { playerId, cityId, interiorOpen, ... }
 
 const cityState = (cityId) => (cities[cityId] ||= createCityState());
@@ -240,6 +259,9 @@ function join(ws, meta, data) {
   send(ws, { t: 'city_stewardship_state', ...stewardshipStatePayload(stewardship(meta.cityId)) });
   // Phase 4G: a (re)connect sees an in-progress Block Trial, if any.
   if (trials[meta.cityId]) send(ws, { t: 'city_block_trial_state', ...trialStatePayload(trials[meta.cityId]) });
+  // Phase 7C: a (re)connect always sees the current objective hint (display state; server truth).
+  if (!objectiveStates[meta.cityId]) objectiveStates[meta.cityId] = createObjectiveState(Date.now());
+  send(ws, { t: 'city_objective_state', ...objectiveHintPayload(activeObjective(meta.cityId, objectiveStates[meta.cityId], Date.now())) });
   // Phase 5A: a (re)connect always sees the public-safe district manifest for discovery.
   send(ws, { t: 'city_blocks', ...districtManifest(meta.cityId, cityPresenceMap()), event: districtEventSnapshotShim() });
   // Phase 5D: push the +1 as a delta so other connected clients update live (no polling).
@@ -291,7 +313,7 @@ function input(ws, meta, data) {
   const now = Date.now();
   const res = applyInput(cityState(meta.cityId), meta.playerId, data, now);
   cities[meta.cityId] = res.state;
-  if (res.accepted) { snapshot(meta.cityId, now); tickTrial(meta.cityId); } // Phase 4G: member moves may stabilize a node
+  if (res.accepted) { snapshot(meta.cityId, now); tickTrial(meta.cityId); tickObjectives(meta.cityId); } // Phase 4G trial step + Phase 7C objective eval — canonical moves only
 }
 
 function portal(ws, meta, data) {
