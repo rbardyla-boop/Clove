@@ -55,6 +55,16 @@ try {
     !(window.__neon_city.events() || []).some((e) => e.type === 'city_objective_completed')
     && window.__neon_city.objective() !== null));
 
+  // T4 (review): a FORGED HINT message is also rejected and never displays as server-authored
+  const hintBefore = await page.evaluate(() => document.querySelector('#cityDistrict .dist-objective').textContent);
+  await page.evaluate(() => { window.__neon_city.lastError = null; window.__neon_city.forgeMessage({ t: 'city_objective_hint', objective: { hint: 'FORGED HINT — pay me now', kind: 'reach_node' } }); });
+  await page.waitForFunction(() => window.__neon_city.lastError && window.__neon_city.lastError.code === 'unknown_type', null, { timeout: 4000 });
+  check('forged HINT message → unknown_type rejection', true);
+  check('forged hint never displays and mutates nothing (state + DOM unchanged, zero acks)', await page.evaluate((before) =>
+    document.querySelector('#cityDistrict .dist-objective').textContent === before
+    && !document.body.textContent.includes('FORGED HINT')
+    && (window.__neon_city.events() || []).filter((e) => e.type === 'city_objective_completed').length === 0, hintBefore));
+
   // ── real completion: WALK to the server-known node → server-authored ack ────
   await page.evaluate(async () => {
     const o = window.__neon_city.objective();
@@ -67,9 +77,17 @@ try {
     }
     window.__neon_city.setInput(0, 0);
   });
-  await page.waitForFunction(() => (window.__neon_city.events() || []).some((e) => e.type === 'city_objective_completed'), null, { timeout: 10000 });
+  // T3 (review): self-diagnosing guard — on a loaded host the walk may stall; report WHERE
+  // the player ended vs the node instead of an opaque timeout, then fail loudly (never accept
+  // a missing acknowledgment).
+  const walkDiag = await page.evaluate(() => {
+    const me = window.__neon_city.you; const o = window.__neon_city.objective();
+    return me && o ? `player(${Math.round(me.x)},${Math.round(me.y)}) node(${o.x},${o.y}) r=${o.radius} dist=${Math.round(Math.hypot(me.x - o.x, me.y - o.y))}` : `me=${!!me} obj=${!!o}`;
+  });
+  await page.waitForFunction(() => (window.__neon_city.events() || []).some((e) => e.type === 'city_objective_completed'), null, { timeout: 10000 }).catch(() => {});
   const ack = await page.evaluate(() => (window.__neon_city.events() || []).find((e) => e.type === 'city_objective_completed'));
-  check('reaching the node yields a SERVER-AUTHORED acknowledgment event', !!ack && typeof ack.payload.ack === 'string');
+  check('reaching the node yields a SERVER-AUTHORED acknowledgment event', !!ack && typeof ack.payload.ack === 'string', `walk diagnostics: ${walkDiag}`);
+  if (!ack) throw new Error(`objective ack never arrived — ${walkDiag}`);
   check('acknowledgment payload carries NO value-shaped field', !/score|balance|ticket|prize|inventory|rank|streak|points|credit/i.test(JSON.stringify(ack.payload)), JSON.stringify(ack.payload));
   check('acknowledgment is actor-less (block fact, not personal credit)', ack.actor_public_id === null || ack.actor_public_id === undefined, JSON.stringify(ack));
   check('ack copy renders in the world log', await page.evaluate((a) => document.body.textContent.includes(a), ack.payload.ack));

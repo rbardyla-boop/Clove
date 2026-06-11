@@ -67,7 +67,12 @@ test('projections are EXACT allowlists — and carry no value-shaped field, ever
   const reach = activeObjective(CITY, createObjectiveState(T0), T0);
   const hp = objectiveHintPayload(reach);
   assert.deepEqual(Object.keys(hp.objective).sort(), ['hint', 'kind', 'objective_id', 'radius', 'x', 'y'].sort());
-  assert.ok(Object.keys(hp.objective).every((k) => HINT_FIELDS.includes(k)));
+  // T1 (review): the GATHER kind gets its own exact key-set pin — a leaked field on this
+  // projection branch (w/h/needed path) would otherwise escape the reach-only deepEqual.
+  const gather = activeObjective(CITY, { index: 1, activated_at: T0, cooldown_until: 0 }, T0);
+  const gp = objectiveHintPayload(gather);
+  assert.deepEqual(Object.keys(gp.objective).sort(), ['h', 'hint', 'kind', 'needed', 'objective_id', 'w', 'x', 'y'].sort());
+  assert.ok([...Object.keys(hp.objective), ...Object.keys(gp.objective)].every((k) => HINT_FIELDS.includes(k)));
   const done = stepObjectives(CITY, createObjectiveState(T0), { a: { x: reach.x, y: reach.y } }, T0).completed;
   const cp = objectiveCompletedPayload(done);
   assert.deepEqual(Object.keys(cp).sort(), [...COMPLETION_FIELDS].sort());
@@ -88,4 +93,22 @@ test('NO persistence shape: state is three ephemeral numbers — nothing per-pla
   const s = createObjectiveState(T0);
   assert.deepEqual(Object.keys(s).sort(), ['activated_at', 'cooldown_until', 'index']);
   for (const v of Object.values(s)) assert.ok(Number.isFinite(v));
+});
+
+test('T2 (review): FRESH state after eviction/restart starts clean — ephemerality is the anti-accumulation property', () => {
+  // drive a state deep into the cycle: complete reach, sit in cooldown
+  const obj = activeObjective(CITY, createObjectiveState(T0), T0);
+  const mid = stepObjectives(CITY, createObjectiveState(T0), { a: { x: obj.x, y: obj.y } }, T0).state;
+  assert.ok(mid.cooldown_until > T0, 'precondition: old instance is mid-cooldown');
+  assert.equal(mid.index, 1, 'precondition: old instance advanced the cycle');
+  // a DO eviction/restart constructs a FRESH state — nothing carries over
+  const later = T0 + 5_000; // restart happens INSIDE the old cooldown window
+  const fresh = createObjectiveState(later);
+  assert.equal(fresh.index, 0, 'no stale cycle position');
+  assert.equal(fresh.cooldown_until, 0, 'no stale cooldown carry');
+  const active = activeObjective(CITY, fresh, later);
+  assert.ok(active && active.kind === 'reach_node', 'fresh instance hints normally at once');
+  assert.equal(objectiveHintPayload(active).objective.objective_id, `obj:${CITY}:0`, 'cycle restarted from the top');
+  // and nothing completed carried across the restart
+  assert.equal(stepObjectives(CITY, fresh, {}, later).completed, null);
 });
