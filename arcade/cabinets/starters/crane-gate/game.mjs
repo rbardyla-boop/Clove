@@ -5,12 +5,14 @@ export function createGame() {
   let t = 0;
   let score = 0;
   let running = false;
-  let held = false, heldHot = 0, downX = 0, moveAt = 0;
+  let held = false, heldHot = 0, downX = 0, downT = 0, moveAt = 0, moved = false;
   const ACCENT = '#22e0ff';
   const SPEED = 2;
   const WIN = 1;   // hot-window scale (difficulty)
   const MOT = 0.7;   // motion amplitude scale (motion)
   const MODE = 'swipe_lane';
+  const HOLD_CAD = 0.3, DRAG_CAD = 0.35;
+  const DRAG_WIN = 0.4, SWIPE_PX = 64, SWIPE_T = 0.6;
   // visual feel: fixed pool, decay-only state, reduced-motion clamps to 0 (no shake ever)
   const RM = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const FX = RM ? 0 : 1;
@@ -50,10 +52,13 @@ export function createGame() {
       t += dt;
       fxStep(dt);
       if (MODE === 'hold_band' || MODE === 'drag_track') {
-        const engaged = MODE === 'hold_band' ? held : (held && (t - moveAt) < 0.35);
+        const cad = MODE === 'hold_band' ? HOLD_CAD : DRAG_CAD;
+        const engaged = MODE === 'hold_band' ? held : (held && moved && (t - moveAt) < DRAG_WIN);
         if (engaged && this.hot()) {
           heldHot += dt;
-          if (heldHot >= 0.25) { heldHot -= 0.25; score += 1; fxBurst((this.w || 360) / 2, (this.h || 640) / 2); }
+          if (heldHot >= cad) { heldHot -= cad; score += 1; fxBurst((this.w || 360) / 2, (this.h || 640) / 2); }
+        } else if (!engaged) {
+          heldHot = 0;  // leaving the gesture resets accrual — no banked fractions
         }
       }
     },
@@ -78,16 +83,16 @@ export function createGame() {
       const hit = () => { score += 1; fxBurst(cx, cy); };
       if (ev.type === 'tap') { if (this.hot()) hit(); return; } // degenerate press+release: every mode
       if (ev.type === 'press') {
-        held = true; downX = cx; moveAt = t;
+        held = true; downX = cx; downT = t; moveAt = t; moved = false;
         if (MODE === 'tap_window' && this.hot()) hit();
         return;
       }
-      if (ev.type === 'move') { if (held) moveAt = t; return; }
+      if (ev.type === 'move') { if (held) { moveAt = t; moved = true; } return; }
       if (ev.type === 'release') {
         if (!held) return;
         held = false;
         if (MODE === 'release_timing' && this.hot()) hit();
-        if (MODE === 'swipe_lane' && Math.abs(cx - downX) >= 48 && this.hot()) hit();
+        if (MODE === 'swipe_lane' && Math.abs(cx - downX) >= SWIPE_PX && (t - downT) <= SWIPE_T && this.hot()) hit();
       }
     },
     render(ctx) {

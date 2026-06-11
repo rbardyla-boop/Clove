@@ -37,7 +37,7 @@ export function floorAdapterSource(entry) {
     "export const adapter = starterAdapter('" + entry.game_id + "', '" + entry.label + "');",
     "export const contract = starterContract('" + entry.game_id + "', '" + entry.label + "');",
     'export function createGame(opts) {',
-    "  return createStarterHostGame({ createCabinetGame, displayName: '" + entry.label + "', instruction: '" + instruction + "', onLeave: opts && opts.onLeave });",
+    "  return createStarterHostGame({ createCabinetGame, displayName: '" + entry.label + "', instruction: '" + instruction + "', sound: 'off', onLeave: opts && opts.onLeave });",
     '}',
     '',
   ].join('\n');

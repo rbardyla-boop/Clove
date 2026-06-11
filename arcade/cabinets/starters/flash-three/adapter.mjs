@@ -4,8 +4,8 @@
 import { createGame as createCabinetGame } from './game.mjs';
 import { starterAdapter, starterContract, createStarterHostGame } from '../starter-host.mjs';
 
-export const adapter = starterAdapter('starter_arbor_bloom', 'Arbor Bloom');
-export const contract = starterContract('starter_arbor_bloom', 'Arbor Bloom');
+export const adapter = starterAdapter('starter_flash_three', 'Flash Three');
+export const contract = starterContract('starter_flash_three', 'Flash Three');
 export function createGame(opts) {
-  return createStarterHostGame({ createCabinetGame, displayName: 'Arbor Bloom', instruction: 'Hold while the moment is right.', sound: 'off', onLeave: opts && opts.onLeave });
+  return createStarterHostGame({ createCabinetGame, displayName: 'Flash Three', instruction: 'Tap at the right moment.', sound: 'off', onLeave: opts && opts.onLeave });
 }

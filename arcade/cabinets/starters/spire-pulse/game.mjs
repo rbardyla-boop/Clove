@@ -7,16 +7,16 @@ export function createGame() {
   let running = false;
   let held = false, heldHot = 0, downX = 0, downT = 0, moveAt = 0, moved = false;
   const ACCENT = '#ff2d95';
-  const SPEED = 3.2;
-  const WIN = 0.65;   // hot-window scale (difficulty)
-  const MOT = 1;   // motion amplitude scale (motion)
-  const MODE = 'release_timing';
+  const SPEED = 1.2;
+  const WIN = 1.5;   // hot-window scale (difficulty)
+  const MOT = 1.3;   // motion amplitude scale (motion)
+  const MODE = 'tap_window';
   const HOLD_CAD = 0.3, DRAG_CAD = 0.35;
   const DRAG_WIN = 0.4, SWIPE_PX = 64, SWIPE_T = 0.6;
   // visual feel: fixed pool, decay-only state, reduced-motion clamps to 0 (no shake ever)
   const RM = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const FX = RM ? 0 : 1;
-  const FXN = FX ? 24 : 0;
+  const FX = RM ? 0 : 2;
+  const FXN = FX ? 48 : 0;
   const px = [], py = [], pvx = [], pvy = [], pl = [];
   let fi = 0, flash = 0, shake = 0;
   function fxBurst(cx, cy) {
@@ -62,21 +62,13 @@ export function createGame() {
         }
       }
     },
-    level() { return (Math.sin(t * SPEED) * MOT * 0.9 + 1) / 2; },
-    hot() { return Math.abs(this.level() - 0.5) < 0.09 * WIN; },
+    hot() { return Math.abs(Math.sin(t * SPEED)) > 1 - 0.15 * WIN; },
     scene(ctx) {
       const w = this.w || 360, h = this.h || 640;
-      const cx = w / 2, cy = h * 0.62, R = Math.min(w, h) * 0.34;
+      const r = 30 + 18 * MOT * Math.abs(Math.sin(t * SPEED));
       ctx.clearRect(0, 0, w, h);
       ctx.strokeStyle = ACCENT; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(cx, cy, R, Math.PI, Math.PI * 2); ctx.stroke();
-      ctx.globalAlpha = 0.2; ctx.lineWidth = 12;
-      const mid = Math.PI * 1.5;
-      ctx.beginPath(); ctx.arc(cx, cy, R, mid - 0.28 * WIN, mid + 0.28 * WIN); ctx.stroke();
-      ctx.globalAlpha = 1; ctx.lineWidth = 3;
-      const a = Math.PI + this.level() * Math.PI;
-      ctx.beginPath(); ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(a) * R * 0.85, cy + Math.sin(a) * R * 0.85); ctx.stroke();
+      ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.stroke();
     },
     onInput(ev) {
       if (!running || !ev) return;
