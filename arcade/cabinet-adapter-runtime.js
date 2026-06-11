@@ -165,6 +165,33 @@ export function mountImportedGame(gameId, hooks = {}) {
   return result;
 }
 
+/**
+ * Mount a CURATED STARTER cabinet (ADR-043). The deliberate authority distinction:
+ * the SERVER catalog gates TICKETED play (loadAndActivateImportedCabinet below);
+ * the checked-in curated-floor manifest gates LOCAL SHOWCASE mounting only. This
+ * path therefore fails closed unless the loaded adapter is STRICTLY local —
+ * client_local_only authority, ticket/challenge modes 'none', and zero ticket/
+ * challenge/prize capabilities. It sends no messages and can award nothing; a
+ * starter that ever wants tickets must instead go through the server catalog.
+ */
+export async function mountStarterCabinet(manifest, hooks = {}) {
+  const load = await loadImportedAdapter(manifest);
+  diag.lastImportResult = load;
+  if (!load.ok) {
+    diag.unsupportedCabinets.push({ gameId: manifest && manifest.game_id, reason: load.reason });
+    return { ok: false, reason: load.reason, load, mount: null };
+  }
+  const a = load.adapter;
+  const caps = a.capabilities || {};
+  if (a.authorityMode !== 'client_local_only' || a.ticketMode !== 'none' || a.challengeMode !== 'none'
+    || caps.tickets === true || caps.challenges === true || caps.prizes === true) {
+    diag.unsupportedCabinets.push({ gameId: a.gameId, reason: 'starter_not_local_only' });
+    return { ok: false, reason: 'starter_not_local_only', load, mount: null };
+  }
+  const mount = mountImportedGame(manifest.game_id, hooks);
+  return { ok: mount.ok, reason: mount.reason, load, mount };
+}
+
 /** Load an import manifest and mount the resulting imported game (test path). */
 export async function loadAndMountImported(manifest, hooks = {}) {
   const load = await loadImportedAdapter(manifest);
@@ -246,6 +273,7 @@ if (EXPOSE) {
     mountImportedGame,
     loadAndMountImported,
     loadAndActivateImportedCabinet,
+    mountStarterCabinet,
   };
   window.__mountAdapter = mountAdapter; // back-compat with the Phase 1j browser spec
 }

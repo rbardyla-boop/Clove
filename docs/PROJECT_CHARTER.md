@@ -5,6 +5,38 @@ Newest first.
 
 ---
 
+## ADR-043 — Curated starter placement: checked-in manifest gates LOCAL showcase mounting; server catalog keeps gating ticketed play (2026-06-11)
+
+**Context.** PR #65 shipped a 16-starter cabinet library that lived only in the builder. The
+operator authorized placing a first public floor set (6, one landmark anchor per block) without
+opening CF-7, the creator approval path, or the Worker. The server validates every occupy/round
+against the Worker-bundled catalog (`workers/arcade/src/catalog.mjs` → `occupy_denied` /
+`invalid_cabinet` for unknown ids), so ticketed starters are structurally impossible without a
+Worker change — and the plan's red team flagged that the runtime had no production mount path
+for catalog-less cabinets (`loadAndMountImported` was test-only).
+
+**Decision.** Two-gate authority model. (1) The SERVER CATALOG remains the only gate for
+TICKETED play — untouched. (2) A new checked-in, operator-authored manifest
+(`arcade/cabinets/starters/curated-floor.mjs`) gates LOCAL SHOWCASE mounting only, through one
+promoted runtime export `mountStarterCabinet()` that fails closed unless the loaded adapter is
+strictly local (`client_local_only`, ticket/challenge `none`, zero ticket/challenge/prize
+capabilities). Starters send no messages and can award nothing; the WS-spy smoke pins this.
+Per-starter `game.mjs` files are generated at AUTHOR TIME from the closed builder tables
+(`write-starter-statics.mjs`, denylisted from upload) and BYTE-PINNED to the generator by unit
+test; production code never imports `arcade/creator/**` (grep-tested). The shelf carries the
+pre-tap honesty line "session-local · no tickets" (the District Tour convention), and an
+invalid manifest renders an EMPTY shelf (fail-quiet, never partial). Rollback: revert the PR,
+or empty the manifest array. This is static first-party content — NOT live loading: CF-7's
+`loadApprovedPackage`/receipts are never invoked and `LIVE_WORLD_LOADER_ENABLED` stays false.
+
+**Consequences.** The floor's cabinet band lifted (bottom 13%→32%) to free the shelf strip;
+geometry is pinned by a no-overlap smoke assertion at 360px, not by eye. The deferred follow-ups
+are explicitly gated: the 2 flex starters + `?from=<cityId>` per-block shelf ordering (PR 2,
+closed-list-validated), and any ticketed starter would require the catalog + ruleset Worker
+path with its own authorization.
+
+---
+
 ## ADR-042 — W-5 implemented as City Block Mood (display-only; "recognition" wording narrowed) (2026-06-11)
 
 **Context.** ADR-041 gated W-5 ("production block-collective recognition, display-only") on operator authorization. A plan-only adversarial review (5 reviewers + 3 red-team lenses, all approve-with-changes) found the word "recognition" itself was the risk: HIVE_WORLD_ALIGNMENT.md §6 framed rung-1 as the accrual leg of a creator-compensation ladder ("plays", spotlights, per-cabinet accrual), "recognition" is literally a W-4 agent-ledger value-transfer memo token, and visible windowed counts drift into points/rank (AE-4/AE-10/AE-12; the repo already suppresses its one windowed number in renderHostRank). The operator authorized the narrowed slice only.
