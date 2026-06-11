@@ -7,5 +7,5 @@ import { starterAdapter, starterContract, createStarterHostGame } from '../start
 export const adapter = starterAdapter('starter_arbor_bloom', 'Arbor Bloom');
 export const contract = starterContract('starter_arbor_bloom', 'Arbor Bloom');
 export function createGame(opts) {
-  return createStarterHostGame({ createCabinetGame, displayName: 'Arbor Bloom', onLeave: opts && opts.onLeave });
+  return createStarterHostGame({ createCabinetGame, displayName: 'Arbor Bloom', instruction: 'Hold while the moment is right.', onLeave: opts && opts.onLeave });
 }

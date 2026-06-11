@@ -16,7 +16,7 @@ import { importArcadePackage, FRAME_CONTRACT_DIMS } from '../arcade-importer/imp
 import { FRAME_CONTRACTS, SIZE_BUDGET_MIN_BYTES, SIZE_BUDGET_MAX_BYTES } from '../schemas/arcade-game-package-schema.mjs';
 import { explainIssues } from '../validator/issue-explainer.mjs'; // throughput: friendly hints (explanatory only — importer stays the gate)
 import {
-  ACCENTS, SPEEDS, DIFFICULTY, MOTION, VARIANTS, STARTERS,
+  ACCENTS, SPEEDS, DIFFICULTY, MOTION, JUICE, INPUT_MODES, INPUT_MODE_COPY, VARIANTS, STARTERS,
   getStarter, startersByCategory, buildPackage,
 } from './cabinet-templates.mjs';
 
@@ -31,6 +31,7 @@ function currentParams() {
     display_name: String(el('displayName').value || ''),
     variant: el('variant').value, accent: el('accent').value, speed: el('speed').value,
     difficulty: el('difficulty').value, motion: el('motion').value,
+    juice: el('juice').value, input_mode: el('inputMode').value,
     frame: el('frame').value, budget: Number(el('budget').value) || SIZE_BUDGET_MIN_BYTES,
   };
 }
@@ -45,6 +46,8 @@ function applyParams(p) {
   if (p.speed in SPEEDS) el('speed').value = p.speed;
   if (p.difficulty in DIFFICULTY) el('difficulty').value = p.difficulty;
   if (p.motion in MOTION) el('motion').value = p.motion;
+  if (p.juice in JUICE) el('juice').value = p.juice;
+  if (INPUT_MODES.includes(p.input_mode)) el('inputMode').value = p.input_mode;
   if (FRAME_CONTRACTS.includes(p.frame)) el('frame').value = p.frame;
   const b = Number(p.budget);
   if (Number.isInteger(b) && b >= SIZE_BUDGET_MIN_BYTES && b <= SIZE_BUDGET_MAX_BYTES) el('budget').value = String(b);
@@ -89,7 +92,8 @@ function renderStarterMeta(starterId) {
   };
   line('sm-pitch', s.pitch);
   line('sm-explain', s.explain);
-  line('sm-tags', `${s.tags.join(' · ')} · ~${s.round_s}s rounds · ${s.input} input`);
+  line('sm-tags', `${s.tags.join(' · ')} · ~${s.round_s}s rounds · ${s.params.input_mode}`);
+  line('sm-note', INPUT_MODE_COPY[s.params.input_mode] || '');
   line('sm-note', s.result_note);
   line('sm-note', `Mobile: ${s.mobile_note}`);
   line('sm-note', `Reduced motion: ${s.reduced_motion_note}`);
@@ -132,7 +136,7 @@ function applyStarter(id) {
 
 function wire() {
   for (const id of ['packageId', 'displayName']) el(id).addEventListener('input', refresh);
-  for (const id of ['variant', 'accent', 'speed', 'difficulty', 'motion', 'frame', 'budget']) el(id).addEventListener('change', refresh);
+  for (const id of ['variant', 'accent', 'speed', 'difficulty', 'motion', 'juice', 'inputMode', 'frame', 'budget']) el(id).addEventListener('change', refresh);
   el('exportAll').addEventListener('click', () => {
     if (!state.lastBuild || !state.lastReport?.ok) return;
     const { manifest, files } = state.lastBuild;
@@ -175,10 +179,14 @@ function wire() {
   for (const k of Object.keys(SPEEDS)) { const o = document.createElement('option'); o.value = k; o.textContent = k; el('speed').appendChild(o); }
   for (const k of Object.keys(DIFFICULTY)) { const o = document.createElement('option'); o.value = k; o.textContent = k; el('difficulty').appendChild(o); }
   for (const k of Object.keys(MOTION)) { const o = document.createElement('option'); o.value = k; o.textContent = k; el('motion').appendChild(o); }
+  for (const k of Object.keys(JUICE)) { const o = document.createElement('option'); o.value = k; o.textContent = k; el('juice').appendChild(o); }
+  for (const m of INPUT_MODES) { const o = document.createElement('option'); o.value = m; o.textContent = m; el('inputMode').appendChild(o); }
   for (const f of FRAME_CONTRACTS) { const o = document.createElement('option'); o.value = f; o.textContent = f; el('frame').appendChild(o); }
   el('speed').value = 'medium';
   el('difficulty').value = 'standard';
   el('motion').value = 'standard';
+  el('juice').value = 'standard';
+  el('inputMode').value = 'tap_window';
   renderStarterMeta('');
   refresh();
 }

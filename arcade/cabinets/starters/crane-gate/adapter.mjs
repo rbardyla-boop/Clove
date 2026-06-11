@@ -7,5 +7,5 @@ import { starterAdapter, starterContract, createStarterHostGame } from '../start
 export const adapter = starterAdapter('starter_crane_gate', 'Crane Gate');
 export const contract = starterContract('starter_crane_gate', 'Crane Gate');
 export function createGame(opts) {
-  return createStarterHostGame({ createCabinetGame, displayName: 'Crane Gate', onLeave: opts && opts.onLeave });
+  return createStarterHostGame({ createCabinetGame, displayName: 'Crane Gate', instruction: 'Swipe across while the moment is right.', onLeave: opts && opts.onLeave });
 }
