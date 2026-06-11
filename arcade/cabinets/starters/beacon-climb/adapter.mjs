@@ -7,5 +7,5 @@ import { starterAdapter, starterContract, createStarterHostGame } from '../start
 export const adapter = starterAdapter('starter_beacon_climb', 'Beacon Climb');
 export const contract = starterContract('starter_beacon_climb', 'Beacon Climb');
 export function createGame(opts) {
-  return createStarterHostGame({ createCabinetGame, displayName: 'Beacon Climb', instruction: 'Hold while the moment is right.', onLeave: opts && opts.onLeave });
+  return createStarterHostGame({ createCabinetGame, displayName: 'Beacon Climb', instruction: 'Hold while the moment is right.', sound: 'off', onLeave: opts && opts.onLeave });
 }

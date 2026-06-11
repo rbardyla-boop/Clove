@@ -265,6 +265,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .st-tile:hover,.st-tile:focus-visible{border-color:var(--cyan,#19e3ff);outline:none;}
 .st-tile-name{font-size:12px;font-weight:700;letter-spacing:.4px;}
 .st-tile-tag{font-size:8px;letter-spacing:1px;color:#8aa0c0;text-transform:uppercase;}
+.st-tile-flex{border-style:dashed;} /* flex quick-runs read as extras, never as anchors */
 /* preview sheet — bottom sheet; pre-play pitch + honesty line; 44px controls */
 .starter-sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#0a0716;border-top:1px solid var(--cyan,#19e3ff);
   border-radius:14px 14px 0 0;padding:14px 16px max(14px,env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,.6);}
@@ -284,7 +285,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .st-safety{font-size:8px;letter-spacing:1px;color:#19e3ff;text-transform:uppercase;}
 .st-leave{min-height:44px;min-width:64px;border-radius:999px;border:1px solid #19e3ff;background:rgba(25,227,255,.12);
   color:#dbe9f3;font:inherit;font-weight:700;cursor:pointer;}
-.st-stage{display:block;background:#080610;touch-action:manipulation;}
+.st-stage{display:block;background:#080610;touch-action:none;} /* drag/swipe must never scroll the page mid-play */
 .st-score{padding:6px 10px;font-size:11px;letter-spacing:.6px;color:#8aa0c0;border-top:1px solid #1b2740;}
 
 @media (max-width:560px){

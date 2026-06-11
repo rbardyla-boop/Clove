@@ -7,5 +7,5 @@ import { starterAdapter, starterContract, createStarterHostGame } from '../start
 export const adapter = starterAdapter('starter_ember_sync', 'Ember Sync');
 export const contract = starterContract('starter_ember_sync', 'Ember Sync');
 export function createGame(opts) {
-  return createStarterHostGame({ createCabinetGame, displayName: 'Ember Sync', instruction: 'Hold, then let go at the right moment.', onLeave: opts && opts.onLeave });
+  return createStarterHostGame({ createCabinetGame, displayName: 'Ember Sync', instruction: 'Hold, then let go at the right moment.', sound: 'off', onLeave: opts && opts.onLeave });
 }

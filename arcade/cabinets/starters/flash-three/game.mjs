@@ -6,11 +6,11 @@ export function createGame() {
   let score = 0;
   let running = false;
   let held = false, heldHot = 0, downX = 0, downT = 0, moveAt = 0, moved = false;
-  const ACCENT = '#ff2d95';
+  const ACCENT = '#ff9e3f';
   const SPEED = 3.2;
   const WIN = 0.65;   // hot-window scale (difficulty)
   const MOT = 1;   // motion amplitude scale (motion)
-  const MODE = 'release_timing';
+  const MODE = 'tap_window';
   const HOLD_CAD = 0.3, DRAG_CAD = 0.35;
   const DRAG_WIN = 0.4, SWIPE_PX = 64, SWIPE_T = 0.6;
   // visual feel: fixed pool, decay-only state, reduced-motion clamps to 0 (no shake ever)
@@ -62,21 +62,16 @@ export function createGame() {
         }
       }
     },
-    level() { return (Math.sin(t * SPEED) * MOT * 0.9 + 1) / 2; },
-    hot() { return Math.abs(this.level() - 0.5) < 0.09 * WIN; },
+    lit() { return Math.floor(t * SPEED) % 3; },
+    hot() { return this.lit() === 1; },
     scene(ctx) {
       const w = this.w || 360, h = this.h || 640;
-      const cx = w / 2, cy = h * 0.62, R = Math.min(w, h) * 0.34;
       ctx.clearRect(0, 0, w, h);
-      ctx.strokeStyle = ACCENT; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(cx, cy, R, Math.PI, Math.PI * 2); ctx.stroke();
-      ctx.globalAlpha = 0.2; ctx.lineWidth = 12;
-      const mid = Math.PI * 1.5;
-      ctx.beginPath(); ctx.arc(cx, cy, R, mid - 0.28 * WIN, mid + 0.28 * WIN); ctx.stroke();
-      ctx.globalAlpha = 1; ctx.lineWidth = 3;
-      const a = Math.PI + this.level() * Math.PI;
-      ctx.beginPath(); ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(a) * R * 0.85, cy + Math.sin(a) * R * 0.85); ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath(); ctx.arc(w * (0.25 + i * 0.25), h / 2, 22, 0, Math.PI * 2);
+        ctx.strokeStyle = ACCENT; ctx.lineWidth = 3;
+        if (i === this.lit()) { ctx.fillStyle = ACCENT; ctx.fill(); } else { ctx.stroke(); }
+      }
     },
     onInput(ev) {
       if (!running || !ev) return;

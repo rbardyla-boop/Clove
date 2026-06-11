@@ -28,7 +28,9 @@ export const SHELF_SAFETY = 'session-local · no tickets';
 export const GENRE_TAGS = Object.freeze(['REFLEX', 'PATTERN', 'POSITION', 'PUZZLE', 'ATMOSPHERE']);
 
 /** Closed entry shape — anything outside this list fails validateCuratedFloor. */
-export const ALLOWED_ENTRY_FIELDS = Object.freeze(['starter_id', 'game_id', 'label', 'pitch', 'genre_tag', 'home_block']);
+export const ALLOWED_ENTRY_FIELDS = Object.freeze(['starter_id', 'game_id', 'label', 'pitch', 'genre_tag', 'home_block', 'role']);
+/** Closed roles: anchors are the per-block primaries; flex are the extra quick runs. */
+export const ENTRY_ROLES = Object.freeze(['anchor', 'flex']);
 /** Economy-shaped field names may never appear in a curated entry (defense in depth). */
 export const FORBIDDEN_FIELD_RE = /prize|ticket|payout|owner|award|redeem|balance|ledger|wallet|cash|earn/i;
 
@@ -37,12 +39,15 @@ export const PITCH_MAX = 72;
 
 /** The first public floor set — one anchor per block. Data only; closed fields. */
 export const CURATED_STARTERS = Object.freeze([
-  Object.freeze({ starter_id: 'crosswalk-window', game_id: 'starter_crosswalk_window', label: 'Crosswalk Window', pitch: 'Catch the walk signal before it flips.',            genre_tag: 'ATMOSPHERE', home_block: 'downtown-01' }),
-  Object.freeze({ starter_id: 'crane-gate',       game_id: 'starter_crane_gate',       label: 'Crane Gate',       pitch: 'Harborside — time the tide under the crane.',       genre_tag: 'ATMOSPHERE', home_block: 'harbor-02' }),
-  Object.freeze({ starter_id: 'beacon-climb',     game_id: 'starter_beacon_climb',     label: 'Beacon Climb',     pitch: 'Ride the signal up the Beacon Crown.',              genre_tag: 'ATMOSPHERE', home_block: 'skyline-03' }),
-  Object.freeze({ starter_id: 'ember-sync',       game_id: 'starter_ember_sync',       label: 'Ember Sync',       pitch: 'Foundry heat runs hot — hold the safe arc.',        genre_tag: 'ATMOSPHERE', home_block: 'foundry-04' }),
-  Object.freeze({ starter_id: 'phase-lock',       game_id: 'starter_phase_lock',       label: 'Phase Lock',       pitch: 'Two rings, two satellites — lock them into one line.', genre_tag: 'PUZZLE',  home_block: 'nexus-05' }),
-  Object.freeze({ starter_id: 'arbor-bloom',      game_id: 'starter_arbor_bloom',      label: 'Arbor Bloom',      pitch: 'Garden lights bloom and fade. Meet them at full bloom.', genre_tag: 'ATMOSPHERE', home_block: 'garden-06' }),
+  Object.freeze({ starter_id: 'crosswalk-window', game_id: 'starter_crosswalk_window', label: 'Crosswalk Window', pitch: 'Catch the walk signal before it flips.',            genre_tag: 'ATMOSPHERE', home_block: 'downtown-01', role: 'anchor' }),
+  Object.freeze({ starter_id: 'crane-gate',       game_id: 'starter_crane_gate',       label: 'Crane Gate',       pitch: 'Harborside — time the tide under the crane.',       genre_tag: 'ATMOSPHERE', home_block: 'harbor-02', role: 'anchor' }),
+  Object.freeze({ starter_id: 'beacon-climb',     game_id: 'starter_beacon_climb',     label: 'Beacon Climb',     pitch: 'Ride the signal up the Beacon Crown.',              genre_tag: 'ATMOSPHERE', home_block: 'skyline-03', role: 'anchor' }),
+  Object.freeze({ starter_id: 'ember-sync',       game_id: 'starter_ember_sync',       label: 'Ember Sync',       pitch: 'Foundry heat runs hot — hold the safe arc.',        genre_tag: 'ATMOSPHERE', home_block: 'foundry-04', role: 'anchor' }),
+  Object.freeze({ starter_id: 'phase-lock',       game_id: 'starter_phase_lock',       label: 'Phase Lock',       pitch: 'Two rings, two satellites — lock them into one line.', genre_tag: 'PUZZLE',  home_block: 'nexus-05', role: 'anchor' }),
+  Object.freeze({ starter_id: 'arbor-bloom',      game_id: 'starter_arbor_bloom',      label: 'Arbor Bloom',      pitch: 'Garden lights bloom and fade. Meet them at full bloom.', genre_tag: 'ATMOSPHERE', home_block: 'garden-06', role: 'anchor' }),
+  // flex (quick runs — appear after the six anchors; never displace them)
+  Object.freeze({ starter_id: 'spire-pulse', game_id: 'starter_spire_pulse', label: 'Spire Pulse', pitch: 'Downtown after dark — answer the Signal Spire.',  genre_tag: 'ATMOSPHERE', home_block: 'downtown-01', role: 'flex' }),
+  Object.freeze({ starter_id: 'flash-three', game_id: 'starter_flash_three', label: 'Flash Three', pitch: 'Three lights cycle. Only the middle one counts.', genre_tag: 'REFLEX',     home_block: 'downtown-01', role: 'flex' }),
 ]);
 
 /** The directory a curated entry's checked-in statics live in. */
@@ -103,6 +108,7 @@ export function validateCuratedFloor(list) {
     if (typeof e.pitch !== 'string' || !e.pitch || e.pitch.length > PITCH_MAX) errors.push(`${at}: bad pitch`);
     if (!GENRE_TAGS.includes(e.genre_tag)) errors.push(`${at}: bad genre_tag`);
     if (typeof e.home_block !== 'string' || !/^[a-z]+-[0-9]{2}$/.test(e.home_block)) errors.push(`${at}: bad home_block`);
+    if (!ENTRY_ROLES.includes(e.role)) errors.push(`${at}: bad role`);
     const m = starterManifest(e);
     for (const p of [m.entry_file, m.adapter_module, ...m.scripts]) {
       const pv = validateImportPath(p);
@@ -110,4 +116,19 @@ export function validateCuratedFloor(list) {
     }
   }
   return { ok: errors.length === 0, errors };
+}
+
+/**
+ * PURE: shelf order for a (VALIDATED) city origin. Anchors first — the matching
+ * block's anchor leading when `fromBlock` names one — then flex. `fromBlock` must
+ * already be validated by the caller against this manifest's own home_block set
+ * (closed list; no URL value is trusted past membership here). Unknown → default.
+ */
+export function orderShelf(entries, fromBlock) {
+  const list = Array.isArray(entries) ? entries : [];
+  const anchors = list.filter((e) => e.role === 'anchor');
+  const flex = list.filter((e) => e.role !== 'anchor');
+  const isValid = typeof fromBlock === 'string' && anchors.some((e) => e.home_block === fromBlock);
+  if (!isValid) return [...anchors, ...flex];
+  return [...anchors.filter((e) => e.home_block === fromBlock), ...anchors.filter((e) => e.home_block !== fromBlock), ...flex];
 }

@@ -21,6 +21,50 @@ const STAGE_H = 552; // native height minus the host chrome band (header + score
 /** The standing honesty line — static closed copy, shown on the shelf AND in the frame. */
 export const STARTER_SAFETY_LINE = 'session-local · no tickets';
 
+/**
+ * AUDIO-LITE (closed token; floor-feel sprint). Host-owned Web Audio oscillator
+ * blips only — no files, no network, no loops, no autoplay: the context is created
+ * lazily inside the first pointer/key gesture, every voice is stop()-bounded, the
+ * master gain is hard-capped, and close()/Leave closes the context. The curated
+ * public set ships 'off' (conservative default); 'soft'/'arcade' are tested paths
+ * for a future operator decision.
+ */
+export const SOUND_TOKENS = Object.freeze(['off', 'soft', 'arcade']);
+const SOUND_GAIN = Object.freeze({ off: 0, soft: 0.04, arcade: 0.07 });
+const MASTER_GAIN_CAP = 0.08;
+
+function createSynth(soundToken) {
+  const level = SOUND_TOKENS.includes(soundToken) ? soundToken : 'off';
+  if (level === 'off') return { ensure() {}, blip() {}, close() {} };
+  let ctx = null;
+  let master = null;
+  const ensure = () => { // call ONLY from inside a user-gesture handler
+    if (ctx || typeof AudioContext !== 'function') return;
+    ctx = new AudioContext();
+    master = ctx.createGain();
+    master.gain.value = Math.min(SOUND_GAIN[level], MASTER_GAIN_CAP);
+    master.connect(ctx.destination);
+  };
+  const voice = (freq, dur, slideTo) => {
+    if (!ctx || ctx.state === 'closed') return;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'square';
+    o.frequency.value = freq;
+    if (slideTo) o.frequency.linearRampToValueAtTime(slideTo, ctx.currentTime + dur);
+    g.gain.setValueAtTime(1, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.connect(g); g.connect(master);
+    o.start();
+    o.stop(ctx.currentTime + dur); // duration-bounded; nothing persists
+  };
+  return {
+    ensure,
+    blip() { voice(level === 'arcade' ? 880 : 660, 0.07, level === 'arcade' ? 1100 : 0); },
+    close() { if (ctx) { try { ctx.close(); } catch { /* already closed */ } ctx = null; master = null; } },
+  };
+}
+
 /** Frame contract for a starter (360×640, fit-contain — the production cabinet box). */
 export function starterContract(gameId, displayName) {
   return Object.freeze({
@@ -70,7 +114,8 @@ export function starterAdapter(gameId, displayName) {
  * CF-4 factory; `onLeave` is the floor's unmount callback (the Leave button's action).
  * Returns the import-runtime game shape: { getRoot, open, close }.
  */
-export function createStarterHostGame({ createCabinetGame, displayName, instruction, onLeave }) {
+export function createStarterHostGame({ createCabinetGame, displayName, instruction, sound, onLeave }) {
+  const synth = createSynth(sound);
   const root = document.createElement('div');
   root.className = 'st-panel';
   root.innerHTML = `
@@ -92,9 +137,12 @@ export function createStarterHostGame({ createCabinetGame, displayName, instruct
   let last = 0;
   let pointerId = null;
 
+  let lastScore = 0;
   const renderScore = () => {
     const s = game ? game.proposeResult() : null;
     scoreEl.textContent = s ? `score ${s.proposed_score} · ${STARTER_SAFETY_LINE}` : STARTER_SAFETY_LINE;
+    if (s && s.proposed_score > lastScore) synth.blip(); // host-side hit feedback (off-token = no-op)
+    lastScore = s ? s.proposed_score : 0;
   };
   const loop = (now) => {
     const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
@@ -118,6 +166,7 @@ export function createStarterHostGame({ createCabinetGame, displayName, instruct
   const send = (type, p) => { if (game) { game.onInput({ type, ...p }); } };
   canvas.addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    synth.ensure(); // audio context may ONLY come alive inside a user gesture
     pointerId = e.pointerId;
     try { canvas.setPointerCapture(pointerId); } catch { /* capture unsupported */ }
     send('press', nativePoint(e));
@@ -138,7 +187,7 @@ export function createStarterHostGame({ createCabinetGame, displayName, instruct
   let spaceDown = false;
   const onKeyDown = (e) => {
     if (!game) return;
-    if (e.code === 'Space' && !spaceDown) { spaceDown = true; e.preventDefault(); send('press', center); }
+    if (e.code === 'Space' && !spaceDown) { spaceDown = true; e.preventDefault(); synth.ensure(); send('press', center); }
     if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
       e.preventDefault();
       const dir = e.code === 'ArrowRight' ? 1 : -1;
@@ -160,6 +209,7 @@ export function createStarterHostGame({ createCabinetGame, displayName, instruct
     open() {
       game = createCabinetGame();
       game.init({ width: STARTER_NATIVE_W, height: STAGE_H });
+      lastScore = 0;
       renderScore();
       last = 0;
       cancelAnimationFrame(raf);
@@ -175,6 +225,7 @@ export function createStarterHostGame({ createCabinetGame, displayName, instruct
       spaceDown = false;
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      synth.close(); // Leave silences: the audio context closes with the cabinet
     },
   };
 }

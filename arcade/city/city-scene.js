@@ -306,7 +306,13 @@ function openInterior(target) {
     // In tests we mount a tiny placeholder (the real /arcade/ needs the arcade WS and
     // would add cross-frame noise); real use loads the existing arcade floor unchanged.
     if (TEST) interiorFrame.srcdoc = '<!doctype html><meta charset="utf-8"><title>arcade interior</title><body style="margin:0;background:#080610;color:#9fb9c9;font:14px monospace;display:grid;place-items:center;height:100vh">ARCADE INTERIOR (test shell)</body>';
-    else interiorFrame.src = target;
+    else {
+      // floor-feel sprint: pass the BLOCK ORIGIN so the arcade shelf can lead with this
+      // block's anchor starter. Closed-list validated HERE (getCity) and re-validated by
+      // the floor (orderShelf membership) — an unknown id is simply omitted.
+      const from = getCity(net.cityId) ? '?from=' + encodeURIComponent(net.cityId) : '';
+      interiorFrame.src = target + from;
+    }
   }
 }
 function closeInterior() {

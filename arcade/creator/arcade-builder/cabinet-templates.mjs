@@ -53,6 +53,20 @@ export const INPUT_MODE_COPY = Object.freeze({
   drag_track:     'Keep your pointer moving with it.',
 });
 
+/**
+ * MODE TUNING — one closed table of feel numbers (strings; embedded verbatim into
+ * generated source). Hands-on sprint values: hold/drag score slower than the juice
+ * branch's first pass (less over-scoring in 30-60s rounds), swipes need real travel
+ * but must complete quickly (a slow swipe is a hold, not a swipe).
+ */
+export const MODE_TUNING = Object.freeze({
+  hold_cadence_s: '0.3',      // hold_band: +1 per 0.3s held inside the hot window
+  drag_cadence_s: '0.35',     // drag_track: +1 per 0.35s tracked inside the hot window
+  drag_move_window_s: '0.4',  // drag_track: pointer must have moved within this window
+  swipe_min_px: '64',         // swipe_lane: minimum horizontal travel (native px)
+  swipe_max_s: '0.6',         // swipe_lane: press->release faster than this, else not a swipe
+});
+
 export const VARIANTS = Object.freeze([
   'pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate',
   'split-pulse', 'rail-runner', 'echo-grid',
@@ -317,12 +331,14 @@ export function gameSource(variant, accentHex, speed, difficultyKey, motionKey, 
     '  let t = 0;',
     '  let score = 0;',
     '  let running = false;',
-    '  let held = false, heldHot = 0, downX = 0, moveAt = 0;',
+    '  let held = false, heldHot = 0, downX = 0, downT = 0, moveAt = 0, moved = false;',
     "  const ACCENT = '" + accentHex + "';",
     '  const SPEED = ' + speed + ';',
     '  const WIN = ' + win + ';   // hot-window scale (difficulty)',
     '  const MOT = ' + mot + ';   // motion amplitude scale (motion)',
     "  const MODE = '" + mode + "';",
+    '  const HOLD_CAD = ' + MODE_TUNING.hold_cadence_s + ', DRAG_CAD = ' + MODE_TUNING.drag_cadence_s + ';',
+    '  const DRAG_WIN = ' + MODE_TUNING.drag_move_window_s + ', SWIPE_PX = ' + MODE_TUNING.swipe_min_px + ', SWIPE_T = ' + MODE_TUNING.swipe_max_s + ';',
     '  // visual feel: fixed pool, decay-only state, reduced-motion clamps to 0 (no shake ever)',
     '  const RM = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;',
     '  const FX = RM ? 0 : ' + fx + ';',
@@ -362,10 +378,13 @@ export function gameSource(variant, accentHex, speed, difficultyKey, motionKey, 
     '      t += dt;',
     '      fxStep(dt);',
     "      if (MODE === 'hold_band' || MODE === 'drag_track') {",
-    "        const engaged = MODE === 'hold_band' ? held : (held && (t - moveAt) < 0.35);",
+    "        const cad = MODE === 'hold_band' ? HOLD_CAD : DRAG_CAD;",
+    "        const engaged = MODE === 'hold_band' ? held : (held && moved && (t - moveAt) < DRAG_WIN);",
     '        if (engaged && this.hot()) {',
     '          heldHot += dt;',
-    '          if (heldHot >= 0.25) { heldHot -= 0.25; score += 1; fxBurst((this.w || 360) / 2, (this.h || 640) / 2); }',
+    '          if (heldHot >= cad) { heldHot -= cad; score += 1; fxBurst((this.w || 360) / 2, (this.h || 640) / 2); }',
+    '        } else if (!engaged) {',
+    '          heldHot = 0;  // leaving the gesture resets accrual — no banked fractions',
     '        }',
     '      }',
     '    },',
@@ -378,16 +397,16 @@ export function gameSource(variant, accentHex, speed, difficultyKey, motionKey, 
     '      const hit = () => { score += 1; fxBurst(cx, cy); };',
     "      if (ev.type === 'tap') { if (this.hot()) hit(); return; } // degenerate press+release: every mode",
     "      if (ev.type === 'press') {",
-    '        held = true; downX = cx; moveAt = t;',
+    '        held = true; downX = cx; downT = t; moveAt = t; moved = false;',
     "        if (MODE === 'tap_window' && this.hot()) hit();",
     '        return;',
     '      }',
-    "      if (ev.type === 'move') { if (held) moveAt = t; return; }",
+    "      if (ev.type === 'move') { if (held) { moveAt = t; moved = true; } return; }",
     "      if (ev.type === 'release') {",
     '        if (!held) return;',
     '        held = false;',
     "        if (MODE === 'release_timing' && this.hot()) hit();",
-    "        if (MODE === 'swipe_lane' && Math.abs(cx - downX) >= 48 && this.hot()) hit();",
+    "        if (MODE === 'swipe_lane' && Math.abs(cx - downX) >= SWIPE_PX && (t - downT) <= SWIPE_T && this.hot()) hit();",
     '      }',
     '    },',
     '    render(ctx) {',
@@ -547,7 +566,7 @@ export const STARTERS = Object.freeze([
     explain: 'A light climbs six rungs. Tap when it reaches the crown.',
     input: 'tap', round_s: 30, result_note: 'Score counts crown taps.',
     mobile_note: 'Vertical ladder fits portrait frames.', reduced_motion_note: 'Discrete rung steps only.',
-    params: Object.freeze({ variant: 'signal-climb', accent: 'amber', speed: 'medium', difficulty: 'standard', motion: 'standard', input_mode: 'hold_band', juice: 'standard' }) },
+    params: Object.freeze({ variant: 'signal-climb', accent: 'amber', speed: 'slow', difficulty: 'standard', motion: 'standard', input_mode: 'hold_band', juice: 'standard' }) },
   { id: 'ember-sync', name: 'Ember Sync', category: 'Atmosphere', tags: Object.freeze(['Atmosphere', 'Puzzle']),
     pitch: 'Foundry heat runs hot — hold the safe arc.',
     explain: 'The gauge surges. Tap inside the narrow safe arc.',
