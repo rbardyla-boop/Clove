@@ -13,6 +13,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
 const { chromium } = require('playwright');
 import { moodCopyTable } from '../../arcade/city/city-block-mood.mjs';
+import { streetLines } from '../../arcade/city/city-street-life.mjs';
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8788/arcade/city/ws';
@@ -55,6 +56,17 @@ try {
     return mood > tag && mood < tour;
   }));
   check('SCOPED no-digit rule on the mood line', !/[0-9%]/.test(t0));
+  // next-density pass: STREET LIFE — one ambient scenery line directly under the mood line,
+  // always a member of the block's closed street table; plain text, no live region of its own.
+  check('street-life line renders from the closed table, below the mood line', await page.evaluate((lines) => {
+    const el = document.querySelector('#cityDistrict .dist-street');
+    if (!el || !lines.includes(el.textContent)) return false;
+    const kids = [...document.querySelectorAll('#cityDistrict > div')].map((d) => d.className);
+    const street = kids.findIndex((c) => c.includes('dist-street'));
+    const mood = kids.findIndex((c) => c.includes('dist-mood'));
+    const tour = kids.findIndex((c) => c.includes('dist-tour'));
+    return street > mood && street < tour && !el.getAttribute('aria-live') && !el.querySelector('button, a, input');
+  }, streetLines('downtown-01')));
   check('no forbidden economy vocabulary on the line or the panel', await page.evaluate((reSrc) => {
     const re = new RegExp(reSrc, 'i');
     return !re.test(document.querySelector('#cityDistrict .dist-mood').textContent) && !re.test(document.getElementById('cityDistrict').textContent);
@@ -130,6 +142,10 @@ try {
     if (!el) return false;
     const noPageOverflow = document.documentElement.scrollWidth <= window.innerWidth + 1;
     return noPageOverflow && el.scrollWidth <= el.clientWidth + 1 && getComputedStyle(el).textOverflow !== 'ellipsis';
+  }));
+  check('phone: street-life line is hidden (narrow-tray budget)', await pp.evaluate(() => {
+    const el = document.querySelector('#cityDistrict .dist-street');
+    return !el || getComputedStyle(el).display === 'none';
   }));
   await phone.close();
 
