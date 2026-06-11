@@ -58,9 +58,28 @@ test('selectivity: ids ⊂ starter library; ≥8 starters intentionally absent; 
   }
 });
 
-test('one anchor per block: home_blocks cover all six city blocks exactly once', () => {
-  const blocks = CURATED_STARTERS.map((e) => e.home_block).sort();
-  assert.deepEqual(blocks, ['downtown-01', 'foundry-04', 'garden-06', 'harbor-02', 'nexus-05', 'skyline-03']);
+test('one ANCHOR per block (flex never displaces); ≤2 flex; shelf capped at 8', () => {
+  const anchors = CURATED_STARTERS.filter((e) => e.role === 'anchor');
+  const flex = CURATED_STARTERS.filter((e) => e.role === 'flex');
+  assert.deepEqual(anchors.map((e) => e.home_block).sort(),
+    ['downtown-01', 'foundry-04', 'garden-06', 'harbor-02', 'nexus-05', 'skyline-03']);
+  assert.ok(flex.length <= 2 && CURATED_STARTERS.length <= 8);
+  assert.deepEqual(flex.map((e) => e.starter_id).sort(), ['flash-three', 'spire-pulse']);
+});
+
+test('orderShelf: every valid block leads with its anchor; hostile/unknown values fall back', async () => {
+  const { orderShelf } = await import('../../arcade/cabinets/starters/curated-floor.mjs');
+  const anchorFor = { 'downtown-01': 'crosswalk-window', 'harbor-02': 'crane-gate', 'skyline-03': 'beacon-climb', 'foundry-04': 'ember-sync', 'nexus-05': 'phase-lock', 'garden-06': 'arbor-bloom' };
+  for (const [block, first] of Object.entries(anchorFor)) {
+    const order = orderShelf(CURATED_STARTERS, block);
+    assert.equal(order[0].starter_id, first, block);
+    assert.equal(order.length, CURATED_STARTERS.length, 'ordering only — nothing added or dropped');
+    assert.ok(order.slice(0, 6).every((e) => e.role === 'anchor'), 'anchors stay ahead of flex');
+  }
+  for (const bad of ['<script>alert(1)</script>', 'mystery-99', '', null, 42, 'downtown-01; DROP']) {
+    const order = orderShelf(CURATED_STARTERS, bad);
+    assert.equal(order[0].starter_id, 'crosswalk-window', `fallback for ${String(bad)}`);
+  }
 });
 
 test('all player-facing shelf copy is clean of economy vocabulary', () => {
