@@ -170,6 +170,12 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 /* Phase 8C-2: route readability — YOU ARE HERE, corridor group headings, district-map graph inset */
 .city-district .dist-here { font-family: var(--mono); font-size: 9px; letter-spacing: .6px; color: var(--cy); opacity: .85; }
 .city-district .dist-group { font-family: var(--mono); font-size: 9px; letter-spacing: .7px; text-transform: uppercase; color: var(--ink); opacity: .55; margin-top: 7px; }
+/* load-test density pass: corridor wayfinding voice — desktop flavor, hidden on phones to keep the tray tight */
+.city-district .dist-corridor-voice { font-size: 10px; line-height: 1.35; letter-spacing: .2px; margin: 1px 0 2px; }
+@media (max-width: 560px) {
+  .city-district .dist-corridor-voice { display: none; }
+  .city-district .dist-act-list { max-height: 92px; overflow-y: auto; } /* bound the feed on phones; content stays in DOM */
+}
 .city-district .dist-map { margin: 7px 0 4px; }
 .city-district .dist-map-cap { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; color: var(--ink); opacity: .55; margin-bottom: 2px; }
 .city-district .dist-map-svg { width: 100%; height: auto; max-height: 116px; display: block; }

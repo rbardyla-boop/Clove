@@ -31,7 +31,7 @@ import {
 import { districtEventWindow, deriveDistrictAnnouncements, formatCountdown } from './city-district-events.mjs';
 import { blockIdentity, tourProgress } from './city-block-identity.mjs'; // Phase 8C: display-only per-block identity + District Tour
 import { districtGraphModel, groupAdjacentByCorridor, corridorOf } from './city-district-graph.mjs'; // Phase 8C-2: district graph + route readability
-import { eventVoiceLine, blockVoice } from './city-district-flavor.mjs'; // Phase 8C-3: per-block voice (display-only overlay)
+import { eventVoiceLine, blockVoice, corridorVoice } from './city-district-flavor.mjs'; // Phase 8C-3 voice + load-test corridor wayfinding (display-only)
 import { blockAccent, planNextHop } from './city-world-map.mjs'; // Phase W-1: zone accents + waypoint hop planning (display/client-only)
 import { createCanvas2DRenderer } from './city-render-canvas2d.js';
 import { createThreeRenderer } from './city-render-three.js';
@@ -595,7 +595,8 @@ function renderDistrict() {
   const curId = cur ? blockIdentity(cur.city_id) : null;
   if (curId && curId.tagline) {
     const tag = document.createElement('div'); tag.className = 'dist-tag';
-    tag.textContent = `${cur.display_name} — ${curId.tagline}`;
+    // load-test density pass: the block's landmark rides the identity line (no extra row on phones)
+    tag.textContent = `${cur.display_name} — ${curId.tagline}${curId.landmark ? ' · ' + curId.landmark : ''}`;
     const here = document.createElement('span'); here.className = 'dist-here'; here.textContent = ' · YOU ARE HERE';
     tag.appendChild(here);
     districtEl.appendChild(tag);
@@ -673,6 +674,9 @@ function renderDistrict() {
     if (!blocks.length) return;
     const gh = document.createElement('div'); gh.className = 'dist-group'; gh.textContent = label;
     districtEl.appendChild(gh);
+    // load-test density pass: corridor wayfinding voice (display-only; hidden on phones via CSS)
+    const cv = corridorVoice(corridor);
+    if (cv) { const cvEl = document.createElement('div'); cvEl.className = 'dist-corridor-voice dist-quiet'; cvEl.textContent = cv; districtEl.appendChild(cvEl); }
     for (const b of blocks) renderRow(b, corridor);
   };
   if (!groups.ring.length && !groups.new.length) {

@@ -50,9 +50,9 @@ test('identityCopyIsClean rejects forbidden words, overflow, and empties', () =>
 
 test('blockIdentity is fallback-safe and immutable', () => {
   // unknown / garbage → neutral empty (renders no extra copy, never throws)
-  assert.deepEqual(blockIdentity('nope-99'), { tagline: '', why_visit: '' });
-  assert.deepEqual(blockIdentity(''), { tagline: '', why_visit: '' });
-  assert.deepEqual(blockIdentity(null), { tagline: '', why_visit: '' });
+  assert.deepEqual(blockIdentity('nope-99'), { tagline: '', why_visit: '', landmark: '' });
+  assert.deepEqual(blockIdentity(''), { tagline: '', why_visit: '', landmark: '' });
+  assert.deepEqual(blockIdentity(null), { tagline: '', why_visit: '', landmark: '' });
   // returns a fresh object — a caller mutating it cannot corrupt the canonical config
   const a = blockIdentity('garden-06'); a.tagline = 'TAMPERED';
   assert.equal(blockIdentity('garden-06').tagline, 'the green');
