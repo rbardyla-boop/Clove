@@ -11,6 +11,7 @@
 import { createRequire } from 'node:module';
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
 const { chromium } = require('playwright');
+import { buildStarterPackage } from '../../arcade/creator/arcade-builder/cabinet-templates.mjs';
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8096';
 const URL_ = `${BASE}/arcade/creator/arcade-sandbox/index.html`;
@@ -56,6 +57,27 @@ try {
   check('received a result proposal over the frame contract', !!proposal && !!proposal.proposal);
   check('result proposal is NOT server-authorized', !!proposal && proposal.server_authorized === false && proposal.trust === 'untrusted_local_proposal');
   check('proposal carries no ticket/prize/balance authority field', !!proposal && !/ticket|prize|balance|credit|ledger|award/i.test(JSON.stringify(proposal.proposal)));
+
+  // STARTER LIBRARY representative set — one per category runs END TO END in the sandbox:
+  // import gate → null-origin frame → ready → taps → untrusted numeric proposal.
+  for (const id of ['neon-pulse', 'echo-four', 'orbit-snag', 'phase-lock', 'crosswalk-window']) {
+    const pkg = buildStarterPackage(id);
+    const ran = await page.evaluate(async (p) => {
+      window.__cf4_sandbox.teardown();
+      const rep = window.__cf4_sandbox.run(p.manifest, p.files);
+      if (!rep.ok) return { ok: false, errors: rep.errors };
+      for (let i = 0; i < 60 && !window.__cf4_sandbox.ready; i++) await new Promise((r) => setTimeout(r, 100));
+      for (let i = 0; i < 4; i++) { window.__cf4_sandbox.sendTap(); await new Promise((r) => setTimeout(r, 40)); }
+      window.__cf4_sandbox.requestResult();
+      for (let i = 0; i < 40 && !window.__cf4_sandbox.lastProposal; i++) await new Promise((r) => setTimeout(r, 100));
+      const prop = window.__cf4_sandbox.lastProposal;
+      return { ok: true, ready: window.__cf4_sandbox.ready, proposal: prop && prop.proposal, trust: prop && prop.trust };
+    }, pkg);
+    check(`starter ${id} runs in the sandbox → untrusted numeric proposal`,
+      ran.ok && ran.ready && ran.proposal && Number.isInteger(ran.proposal.proposed_score)
+      && ran.proposal.public_safe === true && ran.trust === 'untrusted_local_proposal');
+    if (!ran.ok) console.log(`  ${id} errors:`, (ran.errors || []).join(' | '));
+  }
 
   // a MALFORMED package (network call in source) is BLOCKED by the importer — no iframe mounted
   const blocked = await page.evaluate(async () => {
