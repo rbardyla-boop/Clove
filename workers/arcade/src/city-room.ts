@@ -33,6 +33,7 @@ import { districtManifest, validateRouteRequest } from "../../../arcade/city/cit
 import { deriveDistrictPresenceDelta } from "../../../arcade/city/city-district-presence.mjs";
 import { districtEventSnapshot, resolveDistrictEventConfig } from "../../../arcade/city/city-district-events.mjs";
 import { buildInteractionReceipt } from "../../../arcade/city/city-interaction-receipts.mjs"; // Phase 7E
+import { createObjectiveState, activeObjective, stepObjectives, objectiveHintPayload, objectiveCompletedPayload } from "../../../arcade/city/city-objectives.mjs"; // Phase 7C
 
 interface CityEnv {
   CITY_ROOM: DurableObjectNamespace;
@@ -78,6 +79,8 @@ export class CityRoom implements DurableObject {
   private rankChangedLast = false;                     // did the last host-rank eval broadcast a change (for join-send dedup)
   private stewardship: any = null;                      // Phase 4F: canonical block style (server-owned; persisted, hibernation-safe)
   private trial: any = null;                             // Phase 4G: active Block Trial instance (in-memory, ephemeral; never persisted)
+  private objectives: any = null;                        // Phase 7C: objective cycle state (in-memory, EPHEMERAL by design; never persisted, never per-player)
+  private lastObjectiveId: string | null = null;         // Phase 7C: dedupe hint pushes (state broadcast only on change)
   private sockets: Map<WebSocket, SocketMeta>;
   private boundCityId: string = DEFAULT_CITY_ID;
   private interactionSeq = 0;                            // Phase 7E: monotonic counter for ephemeral receipt ids
@@ -279,6 +282,9 @@ export class CityRoom implements DurableObject {
     this.send(ws, { t: "city_stewardship_state", ...stewardshipStatePayload(this.stewardship) });
     // Phase 4G: a (re)connect to a warm DO sees an in-progress Block Trial, if any.
     if (this.trial) this.send(ws, { t: "city_block_trial_state", ...trialStatePayload(this.trial) });
+    // Phase 7C: a (re)connect always sees the current objective hint (display state; server truth).
+    if (!this.objectives) this.objectives = createObjectiveState(now);
+    this.send(ws, { t: "city_objective_state", ...objectiveHintPayload(activeObjective(this.boundCityId, this.objectives, now)) });
     // Phase 5A/5C: a (re)connect always sees the public-safe district manifest for discovery,
     // enriched with live per-block presence (refresh first so this join counts).
     await this.reportPresence();
@@ -303,6 +309,33 @@ export class CityRoom implements DurableObject {
       this.broadcastSnapshot(now);
       // Phase 4G: a member's accepted move may stabilize a signal node — step the trial.
       if (this.tickTrial()) await this.persist();
+      // Phase 7C: accepted CANONICAL movement is the only thing that can complete an objective.
+      this.tickObjectives(now);
+    }
+  }
+
+  // ==================== Phase 7C: activity objectives WITHOUT rewards ====================
+  // Completion is SERVER-OWNED: evaluated purely from this.state.players (the canonical
+  // positions this DO already authors). There is NO inbound objective message — a client
+  // attempting one falls into the existing unknown_type rejection. State is ephemeral by
+  // design (a DO restart simply restarts the cycle; nothing accumulable exists to lose).
+  private tickObjectives(now = Date.now()): void {
+    if (!this.objectives) this.objectives = createObjectiveState(now);
+    const positions: Record<string, { x: number; y: number }> = {};
+    for (const [pid, p] of Object.entries(this.state.players as Record<string, any>)) positions[pid] = { x: p.x, y: p.y };
+    const r = stepObjectives(this.boundCityId, this.objectives, positions, now);
+    this.objectives = r.state;
+    if (r.completed) {
+      // acknowledgment only — appended through the SAME allowlist-projected world log as
+      // every other server-authored event (sanitizeEventPayload drops anything off-list).
+      this.emit("city_objective_completed", null, objectiveCompletedPayload(r.completed));
+    }
+    // push the hint state only when the ACTIVE objective actually changed (dedupe/anti-flood)
+    const active = activeObjective(this.boundCityId, this.objectives, now);
+    const id = active ? active.objective_id : null;
+    if (id !== this.lastObjectiveId || r.completed) {
+      this.lastObjectiveId = id;
+      this.broadcast({ t: "city_objective_state", ...objectiveHintPayload(active) });
     }
   }
 
@@ -501,6 +534,7 @@ export class CityRoom implements DurableObject {
     if (changed) this.broadcastSnapshot(now);
     this.evaluateScheduler(); // Phase 4D: periodic decay (activity ages out of the window)
     this.tickTrial();         // Phase 4G: time-based trial completion when idle (no movement)
+    this.tickObjectives(now); // Phase 7C: cooldown expiry re-activates the next objective (hint refresh)
     // Phase 5C: keepalive — keep this block's presence fresh. Phase 5D: the periodic refresh is
     // also how this block learns OTHER blocks' changes; push any resulting delta to clients live.
     this.ctx.waitUntil(this.reportPresence().then(() => this.broadcastDistrictPresence()));

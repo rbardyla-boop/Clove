@@ -86,6 +86,7 @@ export class CityNet {
       case 'city_district_presence': this.h.onDistrictPresence?.(m); break;   // Phase 5D: push-on-change presence delta
       case 'city_route_result': this.h.onRouteResult?.(m); break;             // Phase 5A: server-validated route confirmation
       case 'city_interaction_receipt': this.h.onInteractionReceipt?.(m); break; // Phase 7E: server-confirmed interaction receipt
+      case 'city_objective_state': this.h.onObjectiveState?.(m); break;           // Phase 7C: active objective hint (server-owned truth; display only)
       case 'city_error': this.h.onError?.(m); break;
       default: break;
     }

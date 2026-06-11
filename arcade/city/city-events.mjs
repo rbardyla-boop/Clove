@@ -49,6 +49,8 @@ export const EVENT_TYPES = Object.freeze([
   'city_block_trial_completed',
   'city_block_trial_rejected',
   'city_block_trial_closed',
+  // Phase 7C — Activity objectives WITHOUT rewards (server-evaluated acknowledgment only):
+  'city_objective_completed',
 ]);
 const TYPE_SET = new Set(EVENT_TYPES);
 export function isCityEventType(t) { return TYPE_SET.has(t); }
@@ -56,8 +58,9 @@ export function isCityEventType(t) { return TYPE_SET.has(t); }
 /** Public-safe scalar payload fields. Anything else is dropped.
  *  (4D adds pressure/severity; 4E adds tier/support_signal/score/score_cap;
  *   4F adds the stewardship visual tokens palette/sign_variant/intensity;
- *   4G adds the trial scalars instance_id/objective/status/node_count/stabilized_count/duration_ms.) */
-const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity', 'tier', 'support_signal', 'score', 'score_cap', 'palette', 'sign_variant', 'intensity', 'instance_id', 'objective', 'status', 'node_count', 'stabilized_count', 'duration_ms'];
+ *   4G adds the trial scalars instance_id/objective/status/node_count/stabilized_count/duration_ms;
+ *   7C adds the objective acknowledgment scalars objective_id/kind/ack/count.) */
+const ALLOWED_PAYLOAD_KEYS = ['portalId', 'target', 'reason', 'pressure', 'severity', 'tier', 'support_signal', 'score', 'score_cap', 'palette', 'sign_variant', 'intensity', 'instance_id', 'objective', 'status', 'node_count', 'stabilized_count', 'duration_ms', 'objective_id', 'kind', 'ack', 'count'];
 /** Cap allowlisted string values so a crafted client field can't bloat storage/broadcasts. */
 const MAX_PAYLOAD_STR = 64;
 

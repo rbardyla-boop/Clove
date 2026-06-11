@@ -79,12 +79,13 @@ test('recentEvents + cityEventsPayload return the last N, schema-versioned and b
   assert.ok(Array.isArray(payload.events));
 });
 
-test('the city event types are exactly the documented set (4C facts + 4D scheduler + 4E host rank + 4F stewardship + 4G trial); unknown types are not honored', () => {
+test('the city event types are exactly the documented set (4C facts + 4D scheduler + 4E host rank + 4F stewardship + 4G trial + 7C objectives); unknown types are not honored', () => {
   assert.deepEqual([...EVENT_TYPES].sort(), [
     'city_arcade_interior_closed', 'city_arcade_interior_opened',
     'city_block_trial_closed', 'city_block_trial_completed', 'city_block_trial_joined',
     'city_block_trial_rejected', 'city_block_trial_requested', 'city_block_trial_started', 'city_block_trial_updated',
     'city_host_rank_changed', 'city_host_rank_evaluated',
+    'city_objective_completed', // Phase 7C: server-evaluated acknowledgment (no value of any shape)
     'city_player_joined', 'city_player_left',
     'city_portal_enter_accepted', 'city_portal_enter_rejected', 'city_portal_enter_requested',
     'city_pressure_suggested', 'city_scheduler_tick',

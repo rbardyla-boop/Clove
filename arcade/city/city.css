@@ -202,6 +202,9 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 /* Phase W-5 (ADR-042): block mood — ONE constant treatment across all tones (a tone→color map
    would itself be a visible gauge). Wraps, never truncates; no live region; plain text only. */
 .city-district .dist-mood { font-size: 10px; line-height: 1.35; letter-spacing: .2px; color: var(--ink); opacity: .7; margin: 2px 0 3px; overflow-wrap: break-word; }
+/* Phase 7C: active objective HINT — server-pushed display state. One quiet accent line; no
+   counter, no progress bar, no reward styling (acknowledgment arrives via the world log). */
+.city-district .dist-objective { font-size: 10px; line-height: 1.35; letter-spacing: .3px; color: var(--am); opacity: .85; margin: 2px 0 3px; overflow-wrap: break-word; }
 /* next-density pass: STREET LIFE ambient line — same flavor treatment as the mood line; italic
    to read as scenery, not status. Desktop-only (phones keep the tight tray). */
 .city-district .dist-street { font-size: 10px; line-height: 1.35; letter-spacing: .2px; font-style: italic; margin: 1px 0 3px; overflow-wrap: break-word; }
