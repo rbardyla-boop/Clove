@@ -23,27 +23,31 @@ import { FORBIDDEN_RE } from './city-interactions.mjs';
 /** Longest a tagline/why_visit may be (keeps the district panel readable on a 360px phone). */
 export const IDENTITY_TAGLINE_MAX = 24;
 export const IDENTITY_WHY_MAX = 64;
+/** Landmark name bound (world-bible §7.3: one unmistakable landmark per block; display-only). */
+export const IDENTITY_LANDMARK_MAX = 24;
 
 /** The neutral fallback for a block with no configured identity (renders no extra copy). */
-const NEUTRAL = Object.freeze({ tagline: '', why_visit: '' });
+const NEUTRAL = Object.freeze({ tagline: '', why_visit: '', landmark: '' });
 
 /**
  * Per-block display identity (STATIC CONFIG, display-only). Keyed by canonical city_id; values are pure
  * copy. Every string is screened by the canonical FORBIDDEN_RE guard (see identityCopyIsClean / tests).
+ * `landmark` is the block's signature structure (the world-bible "marquee") — pure wayfinding flavor;
+ * it names a PLACE, never a person, and grants nothing.
  */
 const BLOCK_IDENTITY = Object.freeze({
-  'downtown-01': Object.freeze({ tagline: 'the hub',        why_visit: 'Central crossroads — three ways out.' }),
-  'harbor-02':   Object.freeze({ tagline: 'the waterfront', why_visit: 'Quiet dockside route toward Skyline.' }),
-  'skyline-03':  Object.freeze({ tagline: 'the heights',    why_visit: 'High ground where both corridors meet.' }),
-  'foundry-04':  Object.freeze({ tagline: 'the works',      why_visit: 'Industrial spur on the original ring.' }),
-  'nexus-05':    Object.freeze({ tagline: 'the crossing',   why_visit: "New corridor's pivot, Garden to Skyline." }),
-  'garden-06':   Object.freeze({ tagline: 'the green',      why_visit: 'Calm new-corridor entry from Downtown.' }),
+  'downtown-01': Object.freeze({ tagline: 'the hub',        why_visit: 'Central crossroads — three ways out.',       landmark: 'the Signal Spire' }),
+  'harbor-02':   Object.freeze({ tagline: 'the waterfront', why_visit: 'Quiet dockside route toward Skyline.',       landmark: 'the Tide Crane' }),
+  'skyline-03':  Object.freeze({ tagline: 'the heights',    why_visit: 'High ground where both corridors meet.',     landmark: 'the Beacon Crown' }),
+  'foundry-04':  Object.freeze({ tagline: 'the works',      why_visit: 'Industrial spur on the original ring.',      landmark: 'the Ember Gantry' }),
+  'nexus-05':    Object.freeze({ tagline: 'the crossing',   why_visit: "New corridor's pivot, Garden to Skyline.",   landmark: 'the Junction Ring' }),
+  'garden-06':   Object.freeze({ tagline: 'the green',      why_visit: 'Calm new-corridor entry from Downtown.',     landmark: 'the Glass Arbor' }),
 });
 
 /** Display identity for a block (fresh object). Unknown/missing cityId → the neutral (empty) fallback. */
 export function blockIdentity(cityId) {
   const src = (typeof cityId === 'string' && BLOCK_IDENTITY[cityId]) || NEUTRAL;
-  return { tagline: src.tagline, why_visit: src.why_visit };
+  return { tagline: src.tagline, why_visit: src.why_visit, landmark: src.landmark || '' };
 }
 
 /** The block ids that carry an identity entry (a fresh array). */

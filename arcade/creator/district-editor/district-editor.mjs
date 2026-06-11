@@ -195,6 +195,30 @@ function wire() {
     rebuildPalette();
     await refresh();
   });
+  // load-test ergonomics: import an EXISTING pack JSON to continue editing it. The grid is
+  // populated exactly as authored; the shared validator (not this UI) judges every tile —
+  // unapproved/missing hashes simply surface as BLOCKED issues.
+  el('importPack').addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try {
+      const pack = await readJsonFile(f);
+      if (pack && typeof pack === 'object') {
+        if (typeof pack.pack_id === 'string') el('packId').value = pack.pack_id;
+        el('displayName').value = typeof pack.display_name === 'string' ? pack.display_name : '';
+        const g = pack.grid || {};
+        state.cols = Math.min(MAX_COLS, Math.max(1, Number(g.cols) || state.cols));
+        state.rows = Math.min(MAX_ROWS, Math.max(1, Number(g.rows) || state.rows));
+        el('cols').value = String(state.cols); el('rows').value = String(state.rows);
+        state.tiles.clear();
+        for (const t of Array.isArray(pack.tiles) ? pack.tiles : []) {
+          if (t && Number.isInteger(t.gx) && Number.isInteger(t.gy)) {
+            state.tiles.set(`${t.gx},${t.gy}`, { package_hash: t.package_hash, package_kind: t.package_kind });
+          }
+        }
+      }
+    } catch { /* unreadable file → nothing imported; the panel keeps its current state */ }
+    await refresh();
+  });
   loadSample().catch(() => { el('verdict').textContent = 'BLOCKED'; el('issues').textContent = 'sample load failed — import a registry + packages'; });
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();

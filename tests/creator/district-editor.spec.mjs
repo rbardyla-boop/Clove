@@ -62,6 +62,16 @@ try {
   await page.evaluate(() => window.__cf35_editor.placeAt(1, 1));
   check('clicking an occupied cell clears the tile', await page.evaluate(() => window.__cf35_editor.tileCount === 1));
 
+  // load-test ergonomics: import an existing pack JSON → grid repopulates and validates
+  const { fileURLToPath } = await import('node:url');
+  const SAMPLE_PACK = fileURLToPath(new URL('../../arcade/creator/samples/sample-asset-pack/pack.json', import.meta.url));
+  await page.setInputFiles('#importPack', SAMPLE_PACK);
+  await page.waitForFunction(() => window.__cf35_editor.tileCount === 2, null, { timeout: 4000 });
+  check('pack import repopulates the grid from the file (2 tiles)', await page.evaluate(() => window.__cf35_editor.tileCount === 2));
+  check('pack import restores pack id + grid dims', await page.evaluate(() => document.getElementById('packId').value === 'downtown-mini-map' && document.getElementById('cols').value === '2'));
+  await page.waitForFunction(() => window.__cf35_editor.lastReport && window.__cf35_editor.lastReport.ok === true, null, { timeout: 4000 });
+  check('imported sample pack validates VALID against the sample registry', /VALID/.test(await page.evaluate(() => document.getElementById('verdict').textContent)));
+
   check('no off-host network requests', offHost.length === 0);
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log(errors.slice(0, 5).join('\n'));

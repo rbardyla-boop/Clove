@@ -46,6 +46,21 @@ const EVENT_VOICE = Object.freeze({
   'garden-06':   Object.freeze({ _: 'Garden keeps a slow, green calm.', district_quiet_window: 'Garden hushes — a slow lap of the green suits this window.', district_block_focus: 'Garden holds the focus — the calm way across is lit.' }),
 });
 
+/**
+ * Per-corridor VOICE (display-only) — one quiet wayfinding line under each adjacency group
+ * header in the district panel, so the two traversal paths read as PLACES, not list labels.
+ * Static closed copy; same screens as every flavor line; hidden on phones (density).
+ */
+const CORRIDOR_VOICE = Object.freeze({
+  ring: 'The old ring road — four blocks, one familiar loop.',
+  new: 'The new corridor — a green cut from Downtown to the heights.',
+});
+
+/** PURE: the wayfinding voice for a corridor group ('ring' | 'new'). Unknown → ''. */
+export function corridorVoice(corridor) {
+  return (typeof corridor === 'string' && CORRIDOR_VOICE[corridor]) || '';
+}
+
 /** PURE: the standing activity-board voice for a block (fresh string). Unknown block → ''. */
 export function blockVoice(cityId) {
   return (typeof cityId === 'string' && BLOCK_VOICE[cityId]) || '';

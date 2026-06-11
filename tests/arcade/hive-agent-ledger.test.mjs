@@ -110,6 +110,40 @@ test('no cash-out kind exists, and unknown kinds are rejected', () => {
   assert.equal(s.agents[ROOM].balance, 100);
 });
 
+// ── audit convergence under duplicate delivery of REJECTED events ───────────
+// (the W-6 lab evidence pack's C3 probe found this gap; fix ported from attention-ledger)
+test('duplicate delivery of a REJECTED event does not grow the rejection log', () => {
+  const bad = agentTransfer({ event_id: 'bad1', seq: 9, from: ROOM, to: CAB, amount: TRANSFER_MAX_PER_EVENT + 1, round_id: 'rx', memo_token: 'round_played' });
+  const once = foldLedger([...funded(), bad]);
+  const tripled = foldLedger([...funded(), bad, bad, bad]);
+  assert.equal(once.rejected.length, 1);
+  assert.equal(tripled.rejected.length, 1);
+  assert.equal(tripled.rejected[0].reason, 'transfer_out_of_bounds'); // reason not weakened
+});
+
+test('audit fingerprint is stable under duplicate AND reordered delivery of rejected events', () => {
+  const bad1 = ticketsMinted({ event_id: 'badm', seq: 8, agent_id: ROOM, amount: MINT_MAX_PER_EVENT + 5, round_id: 'rb' });
+  const bad2 = { event_id: 'badk', seq: 9, kind: 'cash_out', agent_id: ROOM, amount: 5 };
+  const events = [...funded(), bad1, bad2];
+  const fp = ledgerFingerprint(foldLedger(events));
+  const dupShuffled = [bad2, events[2], bad1, events[0], bad2, events[3], bad1, events[1], events[4], bad2];
+  const refolded = foldLedger(dupShuffled);
+  assert.equal(ledgerFingerprint(refolded), fp);
+  assert.equal(refolded.rejected.length, 2);                  // one entry per rejected identity
+  assert.ok(supplyConserved(refolded));
+});
+
+test('first-seen invalid evidence is kept: distinct rejected events each log once with their reason', () => {
+  const s = foldLedger([
+    ...funded(),
+    ticketsMinted({ event_id: 'r1', seq: 8, agent_id: ROOM, amount: 0, round_id: 'ra' }),
+    agentTransfer({ event_id: 'r2', seq: 9, from: ROOM, to: ROOM, amount: 5, round_id: 'rb', memo_token: 'round_played' }),
+    agentRegistered({ event_id: 'r3', seq: 10, agent_id: 'player:nope', node_kind: 'cabinet' }),
+  ]);
+  assert.deepEqual(s.rejected.map((r) => [r.event_id, r.reason]).sort(),
+    [['r1', 'mint_out_of_bounds'], ['r2', 'self_transfer'], ['r3', 'bad_agent_id']]);
+});
+
 // ── convergence: canonical fold ≡ under reorder + duplication ────────────────
 test('reordered and duplicated delivery folds to the SAME fingerprint', () => {
   const events = [

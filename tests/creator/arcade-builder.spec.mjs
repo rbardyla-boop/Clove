@@ -36,20 +36,20 @@ try {
     return m.package_kind === 'arcade_game' && m.entry === 'game.mjs' && m.adapter === 'adapter.mjs' && m.assets.length === 0 && m.capabilities.length === 0;
   }));
 
-  // all three closed variants generate importer-clean source
-  for (const v of ['pulse-ring', 'drift-band', 'tri-light']) {
+  // all five closed variants generate importer-clean source
+  for (const v of ['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate']) {
     await page.selectOption('#variant', v);
     await page.waitForTimeout(100);
     check(`variant ${v} → importer VALID`, await page.evaluate(() => window.__cf_builder.lastReport.ok === true));
   }
   check('variants generate different game source', await page.evaluate(async () => {
     const srcs = new Set();
-    for (const v of ['pulse-ring', 'drift-band', 'tri-light']) {
+    for (const v of ['pulse-ring', 'drift-band', 'tri-light', 'orbit-catch', 'tide-gate']) {
       document.getElementById('variant').value = v;
       window.__cf_builder.refresh();
       srcs.add(window.__cf_builder.lastBuild.files['game.mjs']);
     }
-    return srcs.size === 3;
+    return srcs.size === 5;
   }));
   check('generated source proposes results only (no authority claims)', await page.evaluate(() => /proposeResult/.test(window.__cf_builder.lastBuild.files['game.mjs']) && /public_safe: true/.test(window.__cf_builder.lastBuild.files['game.mjs'])));
   check('generated adapter imports only ./game.mjs', await page.evaluate(() => {
