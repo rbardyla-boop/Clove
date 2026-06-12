@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- STATIC/LAB ONLY. Local workshop index for creator tools. No upload, no submit, no live-world loader. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<title>Creator Corner - Local Workshop</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #06070c;
+    --panel: #0d1422;
+    --line: #243047;
+    --text: #d8ecff;
+    --muted: #91a8c2;
+    --cyan: #22e0ff;
+    --green: #72ffaf;
+    --warn: #ffd166;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  header { padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 18px; letter-spacing: .02em; }
+  h1 span { color: var(--cyan); }
+  .sub { margin-top: 6px; color: var(--muted); max-width: 860px; }
+  main { max-width: 1120px; margin: 0 auto; padding: 18px; }
+  .banner { border: 1px solid var(--line); background: #10192a; padding: 12px; border-radius: 8px; color: var(--warn); margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .tool { min-height: 170px; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .tool h2 { margin: 0; font-size: 15px; }
+  .tool p { margin: 0; color: var(--muted); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+  .tag { border: 1px solid #30415f; color: #b9d8ef; border-radius: 999px; padding: 2px 7px; font-size: 11px; }
+  a.tool-link { color: var(--green); text-decoration: none; font-weight: 700; }
+  a.tool-link:focus, a.tool-link:hover { color: var(--cyan); outline: none; }
+  .rules { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; color: var(--muted); }
+  .rule { border-left: 3px solid var(--cyan); padding-left: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CREATOR CORNER <span>//</span> LOCAL WORKSHOP BETA</h1>
+  <div class="sub">Build and test local creator packages. Files can be exported for review, but this surface does not send anything to the live city.</div>
+</header>
+<main>
+  <div class="banner">Local workshop only: no account write, no Worker authority, no live floor loading, no value systems, no remote submission.</div>
+  <section class="grid" aria-label="Creator tools">
+    <article class="tool">
+      <h2>Arcade Builder</h2>
+      <p>Compose starter cabinets and the Reaction Lane rule graph from closed controls.</p>
+      <a class="tool-link" href="../arcade-builder/">Open builder</a>
+      <div class="tags"><span class="tag">closed controls</span><span class="tag">Reaction Lane</span><span class="tag">export files</span></div>
+    </article>
+    <article class="tool">
+      <h2>Arcade Sandbox</h2>
+      <p>Run exported arcade packages in a hardened local iframe. Results are untrusted local proposals.</p>
+      <a class="tool-link" href="../arcade-sandbox/">Open sandbox</a>
+      <div class="tags"><span class="tag">local iframe</span><span class="tag">no authority</span><span class="tag">no network</span></div>
+    </article>
+    <article class="tool">
+      <h2>Block Editor</h2>
+      <p>Create data-only block style packages with local validation and local preview.</p>
+      <a class="tool-link" href="../block-editor/">Open block editor</a>
+      <div class="tags"><span class="tag">data only</span><span class="tag">local preview</span><span class="tag">validated export</span></div>
+    </article>
+    <article class="tool">
+      <h2>Layered Editor</h2>
+      <p>Build layered block packages from constrained procedural choices and local receipts.</p>
+      <a class="tool-link" href="../layered-editor/">Open layered editor</a>
+      <div class="tags"><span class="tag">six layers</span><span class="tag">local receipt</span><span class="tag">no server write</span></div>
+    </article>
+  </section>
+  <section class="rules" aria-label="Safety boundary">
+    <div class="rule">Tools may generate local data and export files for review.</div>
+    <div class="rule">Tools may run packages only inside the local sandbox.</div>
+    <div class="rule">Tools do not register cabinets, districts, maps, or packages with live rooms.</div>
+    <div class="rule">Tools do not affect tickets, prizes, ledgers, ranks, ownership, accounts, or city state.</div>
+  </section>
+</main>
+</body>
+</html>
