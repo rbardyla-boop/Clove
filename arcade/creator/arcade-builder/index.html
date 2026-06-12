@@ -40,9 +40,16 @@
 <header><h1>CREATOR FOUNDATION <span>//</span> LOCAL ARCADE BUILDER</h1></header>
 <main>
   <div class="col">
+    <label for="builderMode">builder mode</label>
+    <select id="builderMode">
+      <option value="preset">starter cabinet generator</option>
+      <option value="reaction_lane">CF-4A Reaction Lane rule graph</option>
+    </select>
+    <div id="presetControls">
     <label for="template">starter cabinet (named presets by category — the importer still gates everything)</label>
     <select id="template"></select>
     <div id="starterMeta" class="starter-meta" hidden></div>
+    </div>
     <label for="packageId">package id (kebab, 3–48)</label>
     <input id="packageId" value="my-first-cabinet" maxlength="48">
     <label for="displayName">display name (≤40 bytes)</label>
@@ -51,6 +58,7 @@
     <select id="variant"></select>
     <label for="accent">accent (closed set)</label>
     <select id="accent"></select>
+    <div id="presetTokenControls">
     <label for="speed">speed (closed set)</label>
     <select id="speed"></select>
     <label for="difficulty">difficulty (hot-window scale, closed set)</label>
@@ -61,6 +69,31 @@
     <select id="juice"></select>
     <label for="inputMode">input mode (closed verb grammar — tap always works as a fallback)</label>
     <select id="inputMode"></select>
+    </div>
+    <div id="reactionLaneControls" hidden>
+      <label for="rlLaneCount">Reaction Lane lanes</label>
+      <select id="rlLaneCount"></select>
+      <label for="rlSpawnCadence">spawn cadence ms</label>
+      <select id="rlSpawnCadence"></select>
+      <label for="rlHitWindow">hit window ms</label>
+      <select id="rlHitWindow"></select>
+      <label for="rlTargetCount">target count</label>
+      <select id="rlTargetCount"></select>
+      <label for="rlComboCap">combo cap</label>
+      <select id="rlComboCap"></select>
+      <label for="rlMissLimit">miss limit</label>
+      <select id="rlMissLimit"></select>
+      <label for="rlDifficultyRamp">difficulty ramp</label>
+      <select id="rlDifficultyRamp"></select>
+      <label for="rlParticles">particle effects</label>
+      <select id="rlParticles"></select>
+      <label for="rlShake">screen shake (bounded, reduced-motion clamped)</label>
+      <select id="rlShake"></select>
+      <label for="rlContrast">contrast</label>
+      <select id="rlContrast"></select>
+      <label for="rlMobileControls">mobile controls</label>
+      <select id="rlMobileControls"></select>
+    </div>
     <label for="frame">frame contract</label>
     <select id="frame"></select>
     <label for="budget">declared size budget (1024–65536 bytes)</label>
@@ -81,6 +114,8 @@
     <pre id="issues">(none)</pre>
     <p class="note">generated game.mjs</p>
     <pre id="srcView">(none)</pre>
+    <p class="note">rule graph JSON</p>
+    <pre id="graphView">(none)</pre>
   </div>
 </main>
 <script type="module" src="./arcade-builder.mjs"></script>

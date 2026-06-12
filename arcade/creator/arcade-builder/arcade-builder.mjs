@@ -19,26 +19,54 @@ import {
   ACCENTS, SPEEDS, DIFFICULTY, MOTION, JUICE, INPUT_MODES, INPUT_MODE_COPY, VARIANTS, STARTERS,
   getStarter, startersByCategory, buildPackage,
 } from './cabinet-templates.mjs';
+import {
+  COMBO_CAPS,
+  CONTRAST,
+  defaultReactionLaneGraph,
+  DIFFICULTY_RAMPS,
+  HIT_WINDOW_MS,
+  LANE_COUNTS,
+  MISS_LIMITS,
+  MOBILE_CONTROLS,
+  PARTICLE_EFFECTS,
+  SCREEN_SHAKE,
+  SPAWN_CADENCE_MS,
+  TARGET_COUNTS,
+  buildReactionLanePackage,
+} from './rule-graph-templates.mjs';
 
 const el = (id) => document.getElementById(id);
 
 // ── build + gate + report ─────────────────────────────────────────────────────
-const state = { lastReport: null, lastBuild: null };
+const state = { lastReport: null, lastBuild: null, lastGraph: null };
 
 function currentParams() {
   return {
+    builder_mode: el('builderMode')?.value || 'preset',
     package_id: String(el('packageId').value || ''),
     display_name: String(el('displayName').value || ''),
     variant: el('variant').value, accent: el('accent').value, speed: el('speed').value,
     difficulty: el('difficulty').value, motion: el('motion').value,
     juice: el('juice').value, input_mode: el('inputMode').value,
     frame: el('frame').value, budget: Number(el('budget').value) || SIZE_BUDGET_MIN_BYTES,
+    rl_lane_count: Number(el('rlLaneCount')?.value) || 3,
+    rl_spawn_cadence_ms: Number(el('rlSpawnCadence')?.value) || 650,
+    rl_hit_window_ms: Number(el('rlHitWindow')?.value) || 180,
+    rl_target_count: Number(el('rlTargetCount')?.value) || 16,
+    rl_combo_cap: Number(el('rlComboCap')?.value) || 5,
+    rl_miss_limit: Number(el('rlMissLimit')?.value) || 5,
+    rl_difficulty_ramp: el('rlDifficultyRamp')?.value || 'gentle',
+    rl_particle_effects: el('rlParticles')?.value || 'soft',
+    rl_screen_shake: el('rlShake')?.value || 'soft',
+    rl_contrast: el('rlContrast')?.value || 'high',
+    rl_mobile_controls: el('rlMobileControls')?.value || 'tap_or_swipe_lanes',
   };
 }
 
 /** Restore CLOSED controls from a params object — unknown values fall back to defaults; refresh re-gates. */
 function applyParams(p) {
   if (!p || typeof p !== 'object') return;
+  if (p.builder_mode === 'reaction_lane' || p.builder_mode === 'preset') el('builderMode').value = p.builder_mode;
   if (typeof p.package_id === 'string') el('packageId').value = p.package_id.slice(0, 48);
   if (typeof p.display_name === 'string') el('displayName').value = p.display_name.slice(0, 40);
   if (VARIANTS.includes(p.variant)) el('variant').value = p.variant;
@@ -51,11 +79,57 @@ function applyParams(p) {
   if (FRAME_CONTRACTS.includes(p.frame)) el('frame').value = p.frame;
   const b = Number(p.budget);
   if (Number.isInteger(b) && b >= SIZE_BUDGET_MIN_BYTES && b <= SIZE_BUDGET_MAX_BYTES) el('budget').value = String(b);
+  setIfClosed('rlLaneCount', p.rl_lane_count, LANE_COUNTS);
+  setIfClosed('rlSpawnCadence', p.rl_spawn_cadence_ms, SPAWN_CADENCE_MS);
+  setIfClosed('rlHitWindow', p.rl_hit_window_ms, HIT_WINDOW_MS);
+  setIfClosed('rlTargetCount', p.rl_target_count, TARGET_COUNTS);
+  setIfClosed('rlComboCap', p.rl_combo_cap, COMBO_CAPS);
+  setIfClosed('rlMissLimit', p.rl_miss_limit, MISS_LIMITS);
+  setIfClosed('rlDifficultyRamp', p.rl_difficulty_ramp, DIFFICULTY_RAMPS);
+  setIfClosed('rlParticles', p.rl_particle_effects, PARTICLE_EFFECTS);
+  setIfClosed('rlShake', p.rl_screen_shake, SCREEN_SHAKE);
+  setIfClosed('rlContrast', p.rl_contrast, CONTRAST);
+  setIfClosed('rlMobileControls', p.rl_mobile_controls, MOBILE_CONTROLS);
+  updateModePanels();
   refresh();
+}
+
+function setIfClosed(id, value, allowed) {
+  const target = el(id);
+  if (target && allowed.includes(value)) target.value = String(value);
+}
+
+function reactionLaneGraphFromParams(p) {
+  const contrast = CONTRAST.includes(p.rl_contrast) ? p.rl_contrast : 'high';
+  const mobile = MOBILE_CONTROLS.includes(p.rl_mobile_controls) ? p.rl_mobile_controls : 'tap_or_swipe_lanes';
+  return defaultReactionLaneGraph({
+    package_id: p.package_id,
+    display_name: p.display_name.trim() || 'Reaction Lane Demo',
+    frame_contract_id: p.frame,
+    rules: {
+      objective: { target_count: p.rl_target_count },
+      input: { grammar: mobile },
+      scoring: { combo_cap: p.rl_combo_cap },
+      timer: { spawn_cadence_ms: p.rl_spawn_cadence_ms, hit_window_ms: p.rl_hit_window_ms, difficulty_ramp: p.rl_difficulty_ramp },
+      fail: { miss_limit: p.rl_miss_limit },
+    },
+    layout: { frame: p.frame, lane_count: p.rl_lane_count },
+    visuals: {
+      palette: p.accent,
+      particle_effects: p.rl_particle_effects,
+      screen_shake: p.rl_screen_shake,
+      contrast,
+    },
+    accessibility: { contrast, mobile_controls: mobile },
+    size_budget_bytes: Number.isInteger(p.budget) ? p.budget : SIZE_BUDGET_MIN_BYTES,
+  });
 }
 
 function build() {
   const p = currentParams();
+  if (p.builder_mode === 'reaction_lane') {
+    return buildReactionLanePackage(reactionLaneGraphFromParams(p));
+  }
   return buildPackage({
     ...p,
     display_name: p.display_name.trim() || 'Untitled Cabinet',
@@ -76,7 +150,7 @@ function drawFramePreview(report, buildOut) {
   const accent = ACCENTS[el('accent').value] || ACCENTS.cyan;
   ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
   ctx.fillStyle = accent; ctx.font = '11px monospace'; ctx.textAlign = 'center';
-  ctx.fillText(`${dims.width}×${dims.height} · ${buildOut.variant}`, canvas.width / 2, y + h + 14);
+  ctx.fillText(`${dims.width}×${dims.height} · ${buildOut.variant || buildOut.template}`, canvas.width / 2, y + h + 14);
 }
 
 /** Starter METADATA preview — static closed copy from the library (textContent only). */
@@ -102,18 +176,21 @@ function renderStarterMeta(starterId) {
 function refresh() {
   const out = build();
   state.lastBuild = out;
+  state.lastGraph = out.rule_graph || null;
   const report = importArcadePackage({ manifest: out.manifest, files: out.files });
-  state.lastReport = report;
+  const graphErrors = out.graphValidation?.errors || [];
+  state.lastReport = graphErrors.length ? { ...report, ok: false, errors: [...graphErrors, ...report.errors] } : report;
   const verdict = el('verdict');
-  verdict.textContent = report.ok ? 'VALID (untrusted local proposal)' : 'BLOCKED';
-  verdict.className = 'verdict ' + (report.ok ? 'v-ok' : 'v-bad');
-  el('issues').textContent = report.errors.length
-    ? explainIssues(report.errors).map(({ error, hint }) => (hint ? `${error}\n  → ${hint}` : error)).join('\n')
+  verdict.textContent = state.lastReport.ok ? 'VALID (untrusted local proposal)' : 'BLOCKED';
+  verdict.className = 'verdict ' + (state.lastReport.ok ? 'v-ok' : 'v-bad');
+  el('issues').textContent = state.lastReport.errors.length
+    ? explainIssues(state.lastReport.errors).map(({ error, hint }) => (hint ? `${error}\n  → ${hint}` : error)).join('\n')
     : '(none)';
   el('sizes').textContent = `${report.limits.total_bytes} / ${report.limits.size_budget_bytes} bytes · trust=${report.result_trust}`;
-  el('exportAll').disabled = !report.ok;
-  el('exportBundle').disabled = !report.ok;
+  el('exportAll').disabled = !state.lastReport.ok;
+  el('exportBundle').disabled = !state.lastReport.ok;
   el('srcView').textContent = out.files['game.mjs'];
+  el('graphView').textContent = out.rule_graph ? JSON.stringify(out.rule_graph, null, 2) : '(preset builder: no rule graph)';
   drawFramePreview(report, out);
 }
 
@@ -134,9 +211,29 @@ function applyStarter(id) {
   applyParams({ ...currentParams(), ...s.params, package_id: s.id, display_name: s.name });
 }
 
+function updateModePanels() {
+  const isReaction = el('builderMode').value === 'reaction_lane';
+  el('presetControls').hidden = isReaction;
+  el('presetTokenControls').hidden = isReaction;
+  el('reactionLaneControls').hidden = !isReaction;
+}
+
+function addOptions(id, values) {
+  for (const v of values) {
+    const o = document.createElement('option');
+    o.value = String(v);
+    o.textContent = String(v);
+    el(id).appendChild(o);
+  }
+}
+
 function wire() {
   for (const id of ['packageId', 'displayName']) el(id).addEventListener('input', refresh);
   for (const id of ['variant', 'accent', 'speed', 'difficulty', 'motion', 'juice', 'inputMode', 'frame', 'budget']) el(id).addEventListener('change', refresh);
+  el('builderMode').addEventListener('change', () => { updateModePanels(); refresh(); });
+  for (const id of ['rlLaneCount', 'rlSpawnCadence', 'rlHitWindow', 'rlTargetCount', 'rlComboCap', 'rlMissLimit', 'rlDifficultyRamp', 'rlParticles', 'rlShake', 'rlContrast', 'rlMobileControls']) {
+    el(id).addEventListener('change', refresh);
+  }
   el('exportAll').addEventListener('click', () => {
     if (!state.lastBuild || !state.lastReport?.ok) return;
     const { manifest, files } = state.lastBuild;
@@ -153,6 +250,8 @@ function wire() {
       schema_version: 1,
       bundle_kind: 'arcade_builder_bundle',
       builder_params: currentParams(),
+      rule_graph: state.lastBuild.rule_graph || null,
+      graph_validation: state.lastBuild.graphValidation || null,
       manifest: state.lastBuild.manifest,
       files: state.lastBuild.files,
     };
@@ -182,11 +281,34 @@ function wire() {
   for (const k of Object.keys(JUICE)) { const o = document.createElement('option'); o.value = k; o.textContent = k; el('juice').appendChild(o); }
   for (const m of INPUT_MODES) { const o = document.createElement('option'); o.value = m; o.textContent = m; el('inputMode').appendChild(o); }
   for (const f of FRAME_CONTRACTS) { const o = document.createElement('option'); o.value = f; o.textContent = f; el('frame').appendChild(o); }
+  addOptions('rlLaneCount', LANE_COUNTS);
+  addOptions('rlSpawnCadence', SPAWN_CADENCE_MS);
+  addOptions('rlHitWindow', HIT_WINDOW_MS);
+  addOptions('rlTargetCount', TARGET_COUNTS);
+  addOptions('rlComboCap', COMBO_CAPS);
+  addOptions('rlMissLimit', MISS_LIMITS);
+  addOptions('rlDifficultyRamp', DIFFICULTY_RAMPS);
+  addOptions('rlParticles', PARTICLE_EFFECTS);
+  addOptions('rlShake', SCREEN_SHAKE);
+  addOptions('rlContrast', CONTRAST);
+  addOptions('rlMobileControls', MOBILE_CONTROLS);
   el('speed').value = 'medium';
   el('difficulty').value = 'standard';
   el('motion').value = 'standard';
   el('juice').value = 'standard';
   el('inputMode').value = 'tap_window';
+  el('rlLaneCount').value = '3';
+  el('rlSpawnCadence').value = '650';
+  el('rlHitWindow').value = '180';
+  el('rlTargetCount').value = '16';
+  el('rlComboCap').value = '5';
+  el('rlMissLimit').value = '5';
+  el('rlDifficultyRamp').value = 'gentle';
+  el('rlParticles').value = 'soft';
+  el('rlShake').value = 'soft';
+  el('rlContrast').value = 'high';
+  el('rlMobileControls').value = 'tap_or_swipe_lanes';
+  updateModePanels();
   renderStarterMeta('');
   refresh();
 }
@@ -196,6 +318,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 window.__cf_builder = {
   get lastReport() { return state.lastReport; },
   get lastBuild() { return state.lastBuild; },
+  get lastGraph() { return state.lastGraph; },
   get starterCount() { return STARTERS.length; },
   refresh,
   currentParams,
