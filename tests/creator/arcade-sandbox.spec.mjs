@@ -12,6 +12,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
 const { chromium } = require('playwright');
 import { buildStarterPackage } from '../../arcade/creator/arcade-builder/cabinet-templates.mjs';
+import { buildReactionLanePackage, defaultReactionLaneGraph } from '../../arcade/creator/arcade-builder/rule-graph-templates.mjs';
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8096';
 const URL_ = `${BASE}/arcade/creator/arcade-sandbox/index.html`;
@@ -77,6 +78,33 @@ try {
       ran.ok && ran.ready && ran.proposal && Number.isInteger(ran.proposal.proposed_score)
       && ran.proposal.public_safe === true && ran.trust === 'untrusted_local_proposal');
     if (!ran.ok) console.log(`  ${id} errors:`, (ran.errors || []).join(' | '));
+  }
+
+  // CF-4A Reaction Lane rule graph representative: generated package runs only in this local sandbox.
+  {
+    const pkg = buildReactionLanePackage(defaultReactionLaneGraph({
+      package_id: 'reaction-lane-sandbox',
+      display_name: 'Reaction Lane Sandbox',
+      layout: { lane_count: 5 },
+      visuals: { particle_effects: 'arcade', screen_shake: 'soft', contrast: 'high' },
+    }));
+    const ran = await page.evaluate(async (p) => {
+      window.__cf4_sandbox.teardown();
+      const rep = window.__cf4_sandbox.run(p.manifest, p.files);
+      if (!rep.ok) return { ok: false, errors: rep.errors };
+      for (let i = 0; i < 60 && !window.__cf4_sandbox.ready; i++) await new Promise((r) => setTimeout(r, 100));
+      for (let i = 0; i < 6; i++) { window.__cf4_sandbox.sendTap(); await new Promise((r) => setTimeout(r, 40)); }
+      window.__cf4_sandbox.requestResult();
+      for (let i = 0; i < 40 && !window.__cf4_sandbox.lastProposal; i++) await new Promise((r) => setTimeout(r, 100));
+      const prop = window.__cf4_sandbox.lastProposal;
+      return { ok: true, ready: window.__cf4_sandbox.ready, proposal: prop && prop.proposal, trust: prop && prop.trust, frameCount: document.querySelectorAll('#sandboxMount iframe').length };
+    }, pkg);
+    check('CF-4A Reaction Lane generated package runs in local sandbox only',
+      ran.ok && ran.ready && ran.frameCount === 1 && ran.proposal && Number.isInteger(ran.proposal.proposed_score)
+      && ran.proposal.public_safe === true && ran.trust === 'untrusted_local_proposal');
+    check('CF-4A Reaction Lane proposal carries no economy/value authority field',
+      ran.ok && !/ticket|prize|balance|credit|ledger|award|payout|wallet/i.test(JSON.stringify(ran.proposal || {})));
+    if (!ran.ok) console.log('  reaction-lane errors:', (ran.errors || []).join(' | '));
   }
 
   // a MALFORMED package (network call in source) is BLOCKED by the importer — no iframe mounted

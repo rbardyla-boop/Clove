@@ -10,7 +10,7 @@
  */
 import { createRequire } from 'node:module';
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
-const { chromium } = require('playwright');
+const { chromium, devices } = require('playwright');
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8096';
 
 let fail = 0;
@@ -88,6 +88,52 @@ try {
   await page.selectOption('#inputMode', 'tap_window');
   await page.waitForTimeout(100);
 
+  // CF-4A: Reaction Lane rule graph mode proves the first fine-grained builder rail.
+  await page.selectOption('#builderMode', 'reaction_lane');
+  await page.fill('#packageId', 'reaction-lane-local');
+  await page.fill('#displayName', 'Reaction Lane Local');
+  await page.selectOption('#accent', 'cyan');
+  await page.selectOption('#rlLaneCount', '5');
+  await page.selectOption('#rlSpawnCadence', '450');
+  await page.selectOption('#rlHitWindow', '120');
+  await page.selectOption('#rlTargetCount', '24');
+  await page.selectOption('#rlComboCap', '8');
+  await page.selectOption('#rlMissLimit', '8');
+  await page.selectOption('#rlDifficultyRamp', 'standard');
+  await page.selectOption('#rlParticles', 'arcade');
+  await page.selectOption('#rlShake', 'arcade');
+  await page.selectOption('#rlContrast', 'high');
+  await page.selectOption('#rlMobileControls', 'tap_or_swipe_lanes');
+  await page.waitForFunction(() => window.__cf_builder.lastGraph && window.__cf_builder.lastReport.ok === true, null, { timeout: 4000 });
+  check('Reaction Lane rule graph mode is importer-VALID', await page.evaluate(() =>
+    window.__cf_builder.lastGraph.template === 'reaction_lane'
+    && window.__cf_builder.lastBuild.graphValidation.ok === true
+    && window.__cf_builder.lastReport.ok === true));
+  check('Reaction Lane manifest remains local arcade_game with no capabilities', await page.evaluate(() => {
+    const m = window.__cf_builder.lastBuild.manifest;
+    return m.package_kind === 'arcade_game' && m.capabilities.length === 0 && m.assets.length === 0;
+  }));
+  check('Reaction Lane generated source carries bounded particles, shake, high contrast, reduced motion', await page.evaluate(() => {
+    const src = window.__cf_builder.lastBuild.files['game.mjs'];
+    return /const LANES = 5/.test(src)
+      && /const FX = RM \? 0 : 2, SHAKE = RM \? 0 : 2/.test(src)
+      && /const HIGH = true/.test(src)
+      && /prefers-reduced-motion: reduce/.test(src);
+  }));
+  check('Reaction Lane bundle export includes rule graph + validation report', await page.evaluate(() =>
+    window.__cf_builder.lastBuild.rule_graph.template === 'reaction_lane'
+    && window.__cf_builder.lastBuild.graphValidation.ok === true
+    && !document.getElementById('exportBundle').disabled));
+  await page.fill('#displayName', 'Reaction Prize Lane');
+  await page.waitForFunction(() => window.__cf_builder.lastReport.ok === false, null, { timeout: 4000 });
+  check('Reaction Lane economy term is BLOCKED by graph/package gate', await page.evaluate(() =>
+    /BLOCKED/.test(document.getElementById('verdict').textContent)
+    && document.getElementById('exportAll').disabled === true));
+  await page.fill('#displayName', 'Reaction Lane Local');
+  await page.waitForFunction(() => window.__cf_builder.lastReport.ok === true, null, { timeout: 4000 });
+  await page.selectOption('#builderMode', 'preset');
+  await page.waitForFunction(() => window.__cf_builder.lastReport.ok === true, null, { timeout: 4000 });
+
   // throughput: bundle import restores PARAMS ONLY — bundled source is ignored and regenerated
   await page.setInputFiles('#importBundle', {
     name: 'evil.builder.json',
@@ -132,6 +178,24 @@ try {
   check('no off-host network requests', offHost.length === 0);
   check('no console / page errors', errors.length === 0);
   if (errors.length) console.log(errors.slice(0, 5).join('\n'));
+
+  const mobileCtx = await browser.newContext({ ...devices['Pixel 5'] });
+  const mobile = await mobileCtx.newPage();
+  const mobileErrors = [];
+  mobile.on('pageerror', (e) => mobileErrors.push('pageerror: ' + e.message));
+  mobile.on('console', (m) => { if (m.type() === 'error') mobileErrors.push('console: ' + m.text()); });
+  await mobile.goto(`${BASE}/arcade/creator/arcade-builder/`, { waitUntil: 'load', timeout: 20000 });
+  await mobile.waitForFunction(() => window.__cf_builder && window.__cf_builder.lastReport, null, { timeout: 8000 });
+  await mobile.selectOption('#builderMode', 'reaction_lane');
+  await mobile.selectOption('#rlMobileControls', 'tap_or_swipe_lanes');
+  await mobile.waitForFunction(() => window.__cf_builder.lastGraph && window.__cf_builder.lastReport.ok === true, null, { timeout: 4000 });
+  check('mobile viewport Reaction Lane builder validates and exposes mobile controls', await mobile.evaluate(() =>
+    window.__cf_builder.currentParams().builder_mode === 'reaction_lane'
+    && window.__cf_builder.lastGraph.accessibility.mobile_controls === 'tap_or_swipe_lanes'
+    && window.__cf_builder.lastReport.ok === true));
+  check('mobile viewport has no console/page errors', mobileErrors.length === 0);
+  if (mobileErrors.length) console.log(mobileErrors.join('\n'));
+  await mobileCtx.close();
 } finally {
   await browser.close();
 }
