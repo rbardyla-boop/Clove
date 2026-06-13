@@ -31,12 +31,13 @@ const browser = await chromium.launch({ headless: true });
 try {
   const ctx = await browser.newContext();
 
-  // 1. HUB — loads, exposes exactly the four tool links, and carries no active/live-floor control.
+  // 1. HUB — loads, exposes exactly the five tool links, and carries no active/live-floor control.
+  // (Arcade Studio is the 5th: a repo-local sibling app, linked but not copied into this bundle.)
   {
     const { page, errors } = await openClean(ctx, `${BASE}/arcade/creator/creator-corner/`);
     const links = await page.$$eval('a.tool-link', (as) => as.map((a) => a.getAttribute('href')).sort());
-    check('hub serves from bundle and exposes exactly the 4 tool links', JSON.stringify(links) ===
-      JSON.stringify(['../arcade-builder/', '../arcade-sandbox/', '../block-editor/', '../layered-editor/'].sort()));
+    check('hub serves from bundle and exposes exactly the 5 tool links', JSON.stringify(links) ===
+      JSON.stringify(['../../../arcade-studio/dist/', '../arcade-builder/', '../arcade-sandbox/', '../block-editor/', '../layered-editor/'].sort()));
     const activeControls = await page.$$eval('button, form, input, [onclick]', (n) => n.length);
     check('hub has NO active control (button/form/input) — static workshop index', activeControls === 0);
     check('hub loads with no console/page errors', errors.length === 0);
