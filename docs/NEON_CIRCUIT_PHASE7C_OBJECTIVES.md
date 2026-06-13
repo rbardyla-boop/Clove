@@ -75,6 +75,14 @@ is the spawn plaza. Identical across blocks (blocks share canonical geometry by 
 
 ## 7C-V — Objective Variety (2026-06-11, local build)
 
+> **Audit note — read the graded close-out first.** The wording in this section is 2026-06-11
+> *local-build* history (e.g. "staging-proven", "smoke now covers") and is **subordinate** to the
+> graded production close-out in the "7C-V — Production Close-Out (Graded)" section below, which is
+> authoritative. Per that grading: **production-observed** = reach, per-block flavor, no reward/value
+> copy, no duplicate reach completion, two-device co-location, Host Rank/objective decoupling;
+> **staging-equivalent** on byte-identical bundle `86d9c117` (live `d9a6dbf5`) = gather, dwell,
+> ordered visit; **not claimed** = all four objective types manually observed on production.
+
 The closed cycle grows 2 → 4 kinds, all per-block authority, all evaluated from canonical
 positions only, zero Worker/shim wiring changes (the tick is kind-generic):
 

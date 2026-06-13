@@ -49,6 +49,16 @@ test('includes the live client (arcade/city, root pages, fonts, vendored libs)',
   ]) assert.equal(isExcludedFromUpload(p), false, p);
 });
 
+test('excludes the local dev workshop bundler but keeps runtime vendored libs in scripts/', () => {
+  // Dev tooling must not ride along in the public payload...
+  assert.equal(isExcludedFromUpload('scripts/build-creator-workshop-bundle.mjs'), true);
+  // ...while the runtime vendored libs the shipped pages load from /scripts/ MUST still ship.
+  for (const p of ['scripts/three.min.js', 'scripts/pdf.min.js', 'scripts/pdf.worker.min.js',
+    'scripts/tesseract.min.js', 'scripts/tesseract-worker.min.js']) {
+    assert.equal(isExcludedFromUpload(p), false, p);
+  }
+});
+
 test('real repo: arcade/creator EXCLUDED, arcade/city INCLUDED, root index INCLUDED', () => {
   const { included, excluded } = curatedUploadFileList();
   assert.ok(included.length > 0, 'expected a non-empty upload set');

@@ -50,9 +50,12 @@ export const FORBIDDEN_UPLOAD_PREFIXES = Object.freeze([
   'dist/',             // build output (gitignored; defensive)
 ]);
 
-/** Exact repo-relative files that must never be uploaded (secrets / dev manifests). */
+/** Exact repo-relative files that must never be uploaded (secrets / dev manifests / local dev tooling). */
 export const FORBIDDEN_UPLOAD_FILES = Object.freeze([
   '.gitignore', 'package.json', 'package-lock.json',
+  // Local-only Creator Corner workshop bundler — dev tooling, must not ride along in the public payload.
+  // (scripts/ is otherwise NOT excluded because the production city loads vendored libs like three.min.js.)
+  'scripts/build-creator-workshop-bundle.mjs',
 ]);
 
 /** PURE: is this POSIX repo-relative path excluded from the curated client upload? */
