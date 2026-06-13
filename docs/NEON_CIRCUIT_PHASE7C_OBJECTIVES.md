@@ -1,7 +1,11 @@
 # Phase 7C — Activity Objectives Without Rewards
 
-**Status:** BUILT (local-only; no deploy, no push). Branch `feat/neon-circuit-phase7c-objectives`
-(stacked on the floor-feel sprint — the two share `city-scene.js`; rebases clean once PR #68 merges).
+**Status:** CLOSED — Phase 7 production-accepted on graded evidence (2026-06-12). The 7C-V
+Worker is live as version `d9a6dbf5` (bundle `86d9c117`), production health verified. Production
+gameplay was **graded, not fully smoke-verified on production**: reach was production-observed;
+gather, dwell, and ordered visit are staging-equivalent on the byte-identical bundle, **not**
+manually observed on production. Earlier 7C build history below is retained for audit continuity;
+the authoritative close-out is the "7C-V — Production Close-Out (Graded)" section.
 
 ## What it is
 
@@ -92,3 +96,68 @@ negative) across two real cooldowns; visit_in_order is pure-proven (same kind-ge
 path; a third cooldown buys no new authority evidence). Worker bundle re-grows to 215,246 B
 (86d9c117…) — the expanded pure module only. Staging + Worker-only production redeploy
 required before players see it.
+
+## 7C-V — Production Close-Out (Graded, 2026-06-12)
+
+**Status: CLOSED — Phase 7 production-accepted on graded evidence.**
+
+The 7C-V Worker is deployed and health-verified on production. Production gameplay was
+**graded, not fully smoke-verified on production**. This grading is the authoritative close-out
+wording: it deliberately does **not** claim that all four objective types were manually observed
+on production in the operator run.
+
+### Deployment facts (production-observed)
+
+- Worker deployed: `neon-arcade-mesh-production`
+- Accepted live version: `d9a6dbf5` (Worker bundle `86d9c117`). The Worker-only redeploy replaced
+  the prior production version `aa5f3a94`, which is no longer the active artifact.
+- Production config: PASS; `ENVIRONMENT=production`; `ADMIN_ENABLED=false`; 4 DO bindings;
+  v1–v4 migrations.
+- Production reachability: `clovelearn.io/arcade/health` 200; `clovelearn.io/arcade/rooms/health`
+  200; `clovelearn.io/arcade/city/` 200 from the static host.
+- Deployment scope: Worker only — no static/client deploy, no route change, no migration change;
+  unrelated worktree drift untouched.
+
+### Evidence grade
+
+**Production-observed** (directly seen on production this run):
+
+- reach objective
+- per-block flavor (district-specific hint vocabulary)
+- no reward/value copy (zero ticket/prize/ledger/economy wording or payloads)
+- no duplicate reach completion
+- two-device co-location on the real `downtown-01` CityRoom
+- Host Rank / objective decoupling (objective completion does not feed reputation)
+
+**Staging-equivalent** on the byte-identical production bundle `86d9c117` (live as `d9a6dbf5`) —
+proven against the real staging CityRoom but **not** manually re-observed on production:
+
+- gather
+- dwell
+- ordered visit (visit_in_order)
+
+**Not claimed:** all four objective types were not all manually observed on production in that
+operator run. reach was production-observed; gather, dwell, and ordered visit are carried by the
+staging-equivalent proof on the identical artifact, not by a live production observation.
+
+### Two-device co-location & disconnect cleanliness (production-observed)
+
+Two production city sockets connected to the same `downtown-01` CityRoom. Client A disconnected
+via the production protocol (`city_leave`); the WebSocket close was observed with code `1000`,
+reason `left`, readyState `CLOSED` within a 10s timeout. Client B stayed connected (`OPEN`),
+observed A's departure (`city_player_left`), and remained healthy after heartbeat and snapshot
+requests. During the post-disconnect window the only message types were `city_player_left`,
+`city_event`, `city_snapshot`, and `city_district_presence` — zero objective messages/events,
+zero ticket/prize/ledger/economy messages/events, and zero value-shaped payloads. Production
+health remained 200 afterward.
+
+### Hash-audit note
+
+The reviewed preflight guard named `86d9c117789e5d83 / 215,246 B`. The production dry-run/deploy
+reported `210.20 KiB / 46.67 KiB gzip` (consistent with 215,246 B expressed in KiB), and the
+Worker-only redeploy makes the live artifact provably the `86d9c117` bundle as version `d9a6dbf5`.
+The hash-audit detail is separate from the gameplay grading above.
+
+**Verdict:** Phase 7 is CLOSED, production-accepted on graded evidence. No rollback is indicated
+from current evidence. The objective types not observed live on production (gather, dwell, ordered
+visit) are not blockers — they are staging-proven on the same Worker artifact that is now live.
