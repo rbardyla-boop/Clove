@@ -30,8 +30,8 @@ anywhere; export/import is in-page + local file download.
 
 **Consequences.** Additive only — no change to the prod app, `arcade/**`, or Workers. New paths:
 `arcade-studio/{src,test,scripts}`. `arcade-studio/dist/` and `node_modules/` are build output
-(gitignore). Verification: 67 Node tests green (schema, hostile-fail-closed, forbidden-surface,
-round-trip, determinism, exhaustive-token, fuzz); `vite build` green (77 modules); headless Playwright
+(gitignore). Verification: 75 Node tests green (schema, hostile-fail-closed, forbidden-surface,
+round-trip, determinism, exhaustive-token, unicode-normalization, fuzz); `vite build` green (77 modules); headless Playwright
 smoke green (WebGL renders, 164 draw calls, in-page export→import hash-stable, orbit↔player toggle,
 debug panel live, zero console/page errors); a multi-agent adversarial audit
 (forbidden-surface / closed-schema / criteria-coverage / three.js-correctness, each finding
