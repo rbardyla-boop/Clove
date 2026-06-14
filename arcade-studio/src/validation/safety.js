@@ -40,6 +40,17 @@ export const FORBIDDEN_CONTENT_RE =
 export const FORBIDDEN_TERMS_RE =
   /\b(buy|sell|trade|rent|rental|own|owner|ownership|profit|payout|payment|wager|bet|loot|raid|steal|stake|staking|yield|crypto|token|nft|market|marketplace|landlord|tenant|income|cashout|cash-?out|jackpot|multiplier|withdraw|price|for\s*sale|airdrop|mint)\b/i;
 
+/**
+ * Normalize a string VALUE before forbidden-pattern matching. NFKC folds compatibility / fullwidth /
+ * ligature / circled code points onto their canonical ASCII (e.g. `ｂｕｙ`→`buy`, `ｊａｃｋｐｏｔ`→`jackpot`),
+ * so evasion via lookalike Unicode cannot slip economy/markup/url terms past the deny regexes.
+ * Lowercased for consistency. NFKC is a no-op on plain ASCII, so existing matches are preserved
+ * exactly — this only TIGHTENS detection. Used for MATCHING only; stored/exported text is never rewritten.
+ */
+export function normalizeForMatch(value) {
+  return typeof value === 'string' ? value.normalize('NFKC').toLowerCase() : value;
+}
+
 /** Keys implying private data / identity — have no place in a public, shareable asset. */
 export const FORBIDDEN_PRIVATE_KEY_RE =
   /(player_?id|account|email|secret|session|connection|\bip\b|geo|balance|ledger|inventory|password|auth|wallet)/i;
@@ -106,7 +117,7 @@ export function scanSafety(obj, errors) {
   }
   let bad = null;
   eachString(obj, (s, p) => {
-    if (bad === null && FORBIDDEN_CONTENT_RE.test(s)) bad = p;
+    if (bad === null && FORBIDDEN_CONTENT_RE.test(normalizeForMatch(s))) bad = p;
   });
   if (bad) errors.push(`forbidden content (code/markup/url/template) at ${bad}`);
 
@@ -177,11 +188,12 @@ export function isCleanText(value, maxBytes, label, errors, { allowEmpty = true 
     errors.push(`${label} exceeds ${maxBytes} bytes`);
     return false;
   }
-  if (FORBIDDEN_CONTENT_RE.test(value)) {
+  const matchable = normalizeForMatch(value);
+  if (FORBIDDEN_CONTENT_RE.test(matchable)) {
     errors.push(`${label} contains code/markup/url/template content`);
     return false;
   }
-  if (FORBIDDEN_TERMS_RE.test(value)) {
+  if (FORBIDDEN_TERMS_RE.test(matchable)) {
     errors.push(`${label} contains a forbidden economy/ownership term`);
     return false;
   }
