@@ -57,6 +57,8 @@ export const FORBIDDEN_UPLOAD_FILES = Object.freeze([
   // Local-only Creator Corner workshop bundler — dev tooling, must not ride along in the public payload.
   // (scripts/ is otherwise NOT excluded because the production city loads vendored libs like three.min.js.)
   'scripts/build-creator-workshop-bundle.mjs',
+  // Local-only Creator Editor staging assembler (R3) — same reason; assembles a staging root, never ships.
+  'scripts/build-creator-editor-staging.mjs',
 ]);
 
 /** PURE: is this POSIX repo-relative path excluded from the curated client upload? */
