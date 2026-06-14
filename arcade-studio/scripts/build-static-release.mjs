@@ -4,7 +4,10 @@
  *
  * Builds the relocatable `arcade-studio/dist/` and assembles a release candidate into a temp dir
  * (default /tmp/arcade-studio-static-release). Then GUARDS the artifact — exits non-zero if:
- *   - any source / test / dev / config file leaked (only index.html + assets/* may ship),
+ *   - any source / test / dev / config file leaked (only index.html + assets/{js,css} may ship),
+ *   - any sourcemap reaches the publish candidate — .map files embed first-party source via
+ *     `sourcesContent`, so they (and the `sourceMappingURL` pointers) are stripped here; the local
+ *     dist/ keeps its maps for debugging,
  *   - the page-level CSP is missing or weakened (must keep connect-src/form-action/frame-src/
  *     object-src/base-uri locked and script-src 'self'; no 'unsafe-eval'; no external domains),
  *   - an inline <script> appears in index.html (only the external module bundle is allowed).
@@ -16,7 +19,7 @@
  * Usage:  node arcade-studio/scripts/build-static-release.mjs [--out <dir>] [--no-build]
  */
 import { execFileSync } from 'node:child_process';
-import { cpSync, readdirSync, readFileSync, rmSync, mkdirSync, statSync } from 'node:fs';
+import { cpSync, readdirSync, readFileSync, writeFileSync, rmSync, mkdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, resolve, extname } from 'node:path';
 
@@ -28,7 +31,9 @@ const OUT = outIdx >= 0 ? resolve(args[outIdx + 1]) : '/tmp/arcade-studio-static
 const noBuild = args.includes('--no-build');
 
 // Only these may appear in a published static artifact. Anything else is a leak.
-const ALLOWED_EXT = new Set(['.html', '.js', '.css', '.map']);
+// '.map' is intentionally EXCLUDED — sourcemaps embed first-party source (sourcesContent); they are
+// stripped from the publish candidate below, and a residual .map here would fail this allowlist.
+const ALLOWED_EXT = new Set(['.html', '.js', '.css']);
 const REQUIRED_CSP_DIRECTIVES = [
   "script-src 'self'", "connect-src 'none'", "form-action 'none'",
   "frame-src 'none'", "object-src 'none'", "base-uri 'none'",
@@ -44,17 +49,33 @@ if (!noBuild) {
 }
 if (!statSync(DIST).isDirectory()) { fail('dist/ not found — build first'); process.exit(1); }
 
-// 2. Assemble the candidate into the temp output (never committed).
-rmSync(OUT, { recursive: true, force: true });
-mkdirSync(OUT, { recursive: true });
-cpSync(DIST, OUT, { recursive: true });
-console.log(`[release] candidate assembled → ${OUT}`);
-
-// 3. Guard: only built assets may be present (no source/test/dev/config leak).
 const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
   const p = join(dir, d.name);
   return d.isDirectory() ? walk(p) : [p];
 });
+
+// 2. Assemble the candidate into the temp output (never committed).
+rmSync(OUT, { recursive: true, force: true });
+mkdirSync(OUT, { recursive: true });
+cpSync(DIST, OUT, { recursive: true });
+
+// 2b. Strip sourcemaps from the PUBLISH candidate only (dist/ keeps its maps for local debug):
+//     delete every .map, and remove the trailing sourceMappingURL comment from each .js/.css so no
+//     dangling source pointer ships. This keeps the artifact "built output only — no source".
+let strippedMaps = 0;
+for (const abs of walk(OUT)) {
+  if (abs.endsWith('.map')) { rmSync(abs); strippedMaps++; continue; }
+  if (abs.endsWith('.js') || abs.endsWith('.css')) {
+    const before = readFileSync(abs, 'utf8');
+    const after = before
+      .replace(/\n?\/\/[#@]\s*sourceMappingURL=\S*[ \t]*$/gm, '')      // JS  //# sourceMappingURL=…
+      .replace(/\n?\/\*[#@]\s*sourceMappingURL=\S*\s*\*\/[ \t]*$/gm, ''); // CSS /*# sourceMappingURL=… */
+    if (after !== before) writeFileSync(abs, after);
+  }
+}
+console.log(`[release] candidate assembled → ${OUT} (stripped ${strippedMaps} sourcemap file(s))`);
+
+// 3. Guard: only built assets may be present (no source/test/dev/config leak).
 const files = walk(OUT).map((f) => relative(OUT, f));
 const leaks = files.filter((f) => {
   if (f === 'index.html') return false;
@@ -68,6 +89,20 @@ else ok(`artifact contains built assets only (${files.length} files: index.html 
 const suspicious = files.filter((f) => /(^|\/)(src|test|tests|node_modules|scripts|docs|\.claude)\//.test(f) || /package(-lock)?\.json$|vite\.config|\.test\.|\.spec\./.test(f));
 if (suspicious.length) fail(`suspicious source-like paths in artifact:\n    ${suspicious.join('\n    ')}`);
 else ok('no source-like paths (src/test/scripts/config) in artifact');
+
+// No sourcemap (file, embedded sourcesContent, or dangling pointer) may reach the publish candidate —
+// maps embed first-party source, which would defeat the "built artifact only / no source leak" purpose.
+const mapFiles = files.filter((f) => f.endsWith('.map'));
+if (mapFiles.length) fail(`sourcemap files in release artifact: ${mapFiles.join(', ')}`);
+else ok('no .map sourcemap files in artifact');
+let srcLeak = null;
+for (const f of files) {
+  const c = readFileSync(join(OUT, f), 'utf8');
+  if (/sourcesContent/.test(c)) { srcLeak = `${f} embeds sourcesContent`; break; }
+  if (/sourceMappingURL=/.test(c)) { srcLeak = `${f} has a sourceMappingURL pointer`; break; }
+}
+if (srcLeak) fail(`embedded source / sourcemap pointer in artifact: ${srcLeak}`);
+else ok('no sourcesContent / sourceMappingURL in artifact');
 
 // 4. Guard: CSP present, strict, no unsafe-eval, no external domains.
 const html = readFileSync(join(OUT, 'index.html'), 'utf8');
