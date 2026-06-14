@@ -2,8 +2,9 @@
  * R5 — particle effect verification.
  *
  * Proves particles are closed (frozen preset set), count-capped (≤600), bounds-clamped, schema-
- * validated (deny-by-default; hostile values rejected), reduced-motion-safe (motionScale=0 → no
- * movement, no recycle), recycle without explosion (finite, count-stable), and export/import stable.
+ * validated (deny-by-default; hostile values rejected), reduced-motion-safe (motionScale=0 freezes
+ * velocity-driven motion after the one ungated frame-1 recycle settle), recycle without explosion
+ * (finite, count-stable), and export/import stable.
  *
  * Behavioral proofs use the REAL ParticleSystem class (THREE typed-array buffers; no GL needed for
  * construction/update), so they are deterministic and need no browser. Live in-app wiring is proved
@@ -70,20 +71,50 @@ test('hostile particle values are rejected (object / array / number / boolean / 
   }
 });
 
-test('reduced motion: motionScale=0 freezes particle motion (no move, no recycle); scale=1 moves', () => {
-  const frozen = new ParticleSystem('sparks');
-  frozen.setMotionScale(0);
-  const before = Float32Array.from(frozen._pos);
-  for (let i = 0; i < 12; i++) frozen.update(1 / 60);
-  assert.deepEqual(Float32Array.from(frozen._pos), before, 'motionScale=0 must not move particles');
+// Reduced-motion proof uses a NON-PINNED preset ('dust' → box spawn). 'sparks' (cone spawn) writes
+// only velocities and pins every particle to the origin, so a position-freeze assertion on it passes
+// even if motionScale never gates position — vacuous. 'dust' spawns at varied offsets AND carries
+// real velocity, so freezing it proves motionScale actually stops motion, not that spawn pins it.
+//
+// One ungated effect exists by design: the recycle check (_age >= _life → _spawn) is NOT motionScale-
+// gated, so staggered-age particles that start already-expired recycle ONCE on frame 1 even at scale
+// 0, moving to a fresh spawn position. We absorb that single settle frame, THEN measure.
+const RM_PRESET = 'dust';
 
-  const live = new ParticleSystem('sparks');
+test('reduced motion: chosen preset is non-pinned (guards against a vacuous freeze)', () => {
+  // A cone/origin-pinned preset would give x-spread 0, making the freeze test below vacuous; this
+  // assertion fails if RM_PRESET is ever swapped back to a pinned preset (e.g. sparks). dust's box
+  // spawn spans ~1.6 on x.
+  const sys = new ParticleSystem(RM_PRESET);
+  const xs = [];
+  for (let i = 0; i < sys.count; i++) xs.push(sys._pos[i * 3]);
+  const spread = Math.max(...xs) - Math.min(...xs);
+  assert.ok(spread > 0.1, `RM_PRESET must spawn at varied positions (non-pinned); x-spread ${spread}`);
+});
+
+test('reduced motion: motionScale=0 freezes velocity-driven motion after the frame-1 settle; scale=1 keeps moving', () => {
+  const frozen = new ParticleSystem(RM_PRESET);
+  frozen.setMotionScale(0);
+  frozen.update(1 / 60); // absorb the one ungated frame-1 recycle settle
+  const settled = Float32Array.from(frozen._pos);
+  for (let i = 0; i < 30; i++) frozen.update(1 / 60);
+  assert.deepEqual(Float32Array.from(frozen._pos), settled,
+    'motionScale=0 must freeze velocity-driven motion after the settle frame');
+
+  // motionScale=1 over the SAME window keeps moving. "motionScale ignored" == scale stuck at 1, so
+  // this moving state is exactly what the freeze assertion above rejects if the step gate is removed.
+  const live = new ParticleSystem(RM_PRESET);
   live.setMotionScale(1);
-  const beforeLive = Float32Array.from(live._pos);
-  for (let i = 0; i < 12; i++) live.update(1 / 60);
-  let moved = false;
-  for (let i = 0; i < live._pos.length; i++) { if (live._pos[i] !== beforeLive[i]) { moved = true; break; } }
-  assert.ok(moved, 'motionScale=1 must move particles');
+  live.update(1 / 60); // absorb the same settle frame
+  const liveStart = Float32Array.from(live._pos);
+  for (let i = 0; i < 30; i++) live.update(1 / 60);
+  let moved = 0;
+  for (let i = 0; i < live._pos.length; i++) if (live._pos[i] !== liveStart[i]) moved++;
+  assert.ok(moved > live._pos.length / 2, `motionScale=1 must keep moving particles after settle (moved ${moved}/${live._pos.length})`);
+
+  // Reduced motion must not corrupt the buffer: finite + count-stable.
+  for (let i = 0; i < frozen._pos.length; i++) assert.ok(Number.isFinite(frozen._pos[i]), `frozen pos[${i}] finite`);
+  assert.equal(frozen.count, DECLARED_COUNT[RM_PRESET], 'count stays the declared cap under reduced motion');
 });
 
 test('particle buffer stays finite and count-stable across many frames (recycle, no explosion)', () => {
@@ -100,6 +131,23 @@ test('export/import preserves the selected particle preset, hash-stable', async 
   assert.equal(exp.ok, true, exp.report?.errors?.join('; '));
   const imp = await importArcadeLayout(exp.json);
   assert.equal(imp.ok, true, imp.errors?.join('; '));
+  assert.equal(imp.layout.effects.particle, 'portal-shimmer');
+  assert.equal(imp.hash, exp.hash);
+});
+
+test('partial effects block: either key alone (or an empty block) is accepted (both keys optional)', () => {
+  assert.deepEqual(fxErrors({}), [], 'empty effects block must be accepted');
+  assert.deepEqual(fxErrors({ screen_shake: 'impact' }), [], 'shake-only block must be accepted');
+  assert.deepEqual(fxErrors({ particle: 'sparks' }), [], 'particle-only block must be accepted');
+});
+
+test('combined effects: shake + particle both non-none survive export/import together, hash-stable', async () => {
+  const model = { ...validLayoutModel(), effects: { screen_shake: 'cinematic', particle: 'portal-shimmer' } };
+  const exp = await exportArcadeLayout(model);
+  assert.equal(exp.ok, true, exp.report?.errors?.join('; '));
+  const imp = await importArcadeLayout(exp.json);
+  assert.equal(imp.ok, true, imp.errors?.join('; '));
+  assert.equal(imp.layout.effects.screen_shake, 'cinematic');
   assert.equal(imp.layout.effects.particle, 'portal-shimmer');
   assert.equal(imp.hash, exp.hash);
 });

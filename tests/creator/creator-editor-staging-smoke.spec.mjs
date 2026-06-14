@@ -166,6 +166,11 @@ try {
       });
       check('particle: selecting "sparks" yields the declared live count (120)', partFx.count === 120);
       check(`particle: draw calls stay bounded (${partFx.draws})`, partFx.draws > 0 && partFx.draws < 5000);
+    } else {
+      // Do not silently skip the R4/R5 behavioral checks if the studio failed to boot — a boot
+      // regression must surface as effect-check failures, not absent checks.
+      check('shake: live preview proven (requires studio boot)', false);
+      check('particle: live preview proven (requires studio boot)', false);
     }
     check('Arcade Studio exposes no upload/submit/publish/live control', (await forbiddenControls(page)).length === 0);
     check('Arcade Studio loads with no console/page errors', errors.length === 0);
