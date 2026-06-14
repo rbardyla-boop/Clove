@@ -35,6 +35,26 @@ export const FORBIDDEN_TERMS_RE = /\b(buy|sell|trade|rent|rental|own|owner|owner
 /** Keys implying private data / identity — have no place in a public package. */
 export const FORBIDDEN_PRIVATE_KEY_RE = /(player_?id|account|email|secret|session|connection|\bip\b|geo|balance|ledger|inventory|password|auth)/i;
 
+/**
+ * Key NAMES that must never appear ANYWHERE in a package — capability, network, or economy/ownership
+ * surfaces. Defense-in-depth ON TOP of the closed-allowlist schemas (which already reject unknown keys):
+ * if a future schema change accidentally widened an allowlist, a key named e.g. `upload`/`fetch`/
+ * `marketplace`/`reward` still fails the package closed. Mirrors the Arcade Studio forbidden-surface key
+ * denylist so the block/layered editors share the same safety floor. Exact (case-insensitive) key-name
+ * match — none of these are valid keys in our closed schemas, so the blanket ban has no false positive. */
+export const FORBIDDEN_KEY_NAMES = Object.freeze([
+  'live_world_authorized', 'live_world_load', 'ticket_hooks', 'prize_hooks', 'ledger_hooks',
+  'reward_hooks', 'economy_hooks', 'upload_enabled', 'remote_submit', 'arbitrary_script',
+  'arbitrary_code', 'external_asset_url', 'external_assets', 'network', 'dom_escape',
+  'script', 'scripts', 'code', 'eval', 'fn', 'handler', 'callback',
+  'url', 'uri', 'href', 'src', 'endpoint', 'fetch', 'webhook',
+  'submit', 'upload', 'publish', 'remote', 'sync', 'push',
+  'economy', 'rewards', 'reward', 'prize', 'prizes', 'tickets', 'ticket',
+  'ledger', 'wallet', 'marketplace', 'market', 'crypto', 'nft', 'mint',
+  'owner', 'ownership', 'price', 'cost', 'currency', 'balance',
+]);
+const FORBIDDEN_KEY_SET = new Set(FORBIDDEN_KEY_NAMES.map((k) => k.toLowerCase()));
+
 export function eachString(v, fn, path = '$') {
   if (typeof v === 'string') { fn(v, path); return; }
   if (Array.isArray(v)) { v.forEach((x, i) => eachString(x, fn, `${path}[${i}]`)); return; }
@@ -55,9 +75,14 @@ export function scanSafety(pkg, errors) {
   eachString(pkg, (s, p) => { if (bad === null && FORBIDDEN_CONTENT_RE.test(s)) bad = `${p}`; });
   if (bad) { errors.push(`forbidden content (code/markup/url/template) at ${bad}`); }
   let badKey = null;
-  eachKey(pkg, (k, p) => { if (badKey === null && FORBIDDEN_PRIVATE_KEY_RE.test(k)) badKey = `${p}`; });
+  let badName = null;
+  eachKey(pkg, (k, p) => {
+    if (badKey === null && FORBIDDEN_PRIVATE_KEY_RE.test(k)) badKey = `${p}`;
+    if (badName === null && FORBIDDEN_KEY_SET.has(String(k).toLowerCase())) badName = `${p} (${k})`;
+  });
   if (badKey) { errors.push(`private/identity key at ${badKey}`); }
-  return !bad && !badKey;
+  if (badName) { errors.push(`forbidden capability/economy/network key at ${badName}`); }
+  return !bad && !badKey && !badName;
 }
 
 /**
