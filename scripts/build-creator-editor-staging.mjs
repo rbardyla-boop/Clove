@@ -62,13 +62,24 @@ const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
   return d.isDirectory() ? walk(p) : [p];
 });
 
-/** Refuse dangerous destinations (mirrors the workshop/curated guards). */
-function assertSafeOut(out) {
+/**
+ * PURE: is this --out destination dangerous? Refuses the filesystem root, home, the repo (or any
+ * ancestor of it), and the production upload dir OR ANY SUBDIRECTORY of it — a child path must never
+ * receive a staging artifact. `prodUpload + sep` matches only true children, so sibling names such as
+ * `clovelearn-phase6-client-upload-old` are NOT falsely rejected.
+ */
+export function isUnsafeOut(out, root = ROOT) {
   const abs = resolve(out);
   const prodUpload = resolve(join(homedir(), 'Downloads', 'clovelearn-phase6-client-upload'));
-  const exact = [resolve('/'), resolve(homedir()), resolve(ROOT), prodUpload];
-  const isAncestorOfRepo = ROOT === abs || ROOT.startsWith(abs + sep);
-  if (exact.includes(abs) || isAncestorOfRepo) { console.error(`refusing unsafe --out: ${abs}`); process.exit(1); }
+  const exact = [resolve('/'), resolve(homedir()), resolve(root), prodUpload];
+  const isAncestorOfRepo = root === abs || root.startsWith(abs + sep);
+  const underProdUpload = abs === prodUpload || abs.startsWith(prodUpload + sep);
+  return exact.includes(abs) || isAncestorOfRepo || underProdUpload;
+}
+
+/** Refuse dangerous destinations (mirrors the workshop/curated guards) — exact dir AND any subtree. */
+function assertSafeOut(out) {
+  if (isUnsafeOut(out)) { console.error(`refusing unsafe --out: ${resolve(out)}`); process.exit(1); }
 }
 
 /** The CF-2 live-loader kill-switch must be literally false (defense-in-depth, same check the workshop uses). */
