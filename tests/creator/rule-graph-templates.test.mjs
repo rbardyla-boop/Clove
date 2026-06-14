@@ -102,3 +102,51 @@ test('invalid and hostile rule graphs are rejected before generation can be trus
     assert.match(report.errors.join(' | '), pattern, name);
   }
 });
+
+test('hostile capabilities never survive the build→import composition (deny-by-default)', () => {
+  // A graph that tries to open EVERY dangerous capability at once.
+  const hostile = defaultReactionLaneGraph({
+    capabilities: {
+      network: true, storage: true, external_assets: true, dom_escape: true, arbitrary_code: true,
+      live_world_authorized: true, ticket_hooks: true, prize_hooks: true, ledger_hooks: true,
+    },
+  });
+
+  // (1) Graph validation fails, and every opened capability is rejected by name.
+  const gv = validateReactionLaneGraph(hostile);
+  assert.equal(gv.ok, false);
+  for (const cap of ['live_world_authorized', 'ticket_hooks', 'prize_hooks', 'ledger_hooks',
+    'network', 'storage', 'external_assets', 'dom_escape', 'arbitrary_code']) {
+    assert.match(gv.errors.join(' | '), new RegExp(`capabilities\\.${cap} must be false`), cap);
+  }
+
+  // (2) The BUILT manifest carries NO capability — the package layer is a closed/empty allowlist,
+  //     regardless of what the source graph asked for.
+  const pkg = buildReactionLanePackage(hostile);
+  assert.equal(pkg.graphValidation.ok, false);
+  assert.deepEqual(pkg.manifest.capabilities, []);
+
+  // (3) The importer composition confirms: zero capabilities survive, only an untrusted local proposal.
+  const report = importArcadePackage({ manifest: pkg.manifest, files: pkg.files });
+  assert.deepEqual(report.capabilities, []);
+  assert.equal(report.result_trust, 'untrusted_local_proposal');
+  assert.equal(/live_world|ticket|prize|ledger/i.test(JSON.stringify(report.capabilities)), false);
+});
+
+test('eval-like data smuggled into a rule-graph field is caught by the importer source scan', () => {
+  // spawn_pattern flows into generated game.mjs as a JSON-quoted string literal. A payload carrying
+  // eval( survives as DATA (it never executes), but the importer's code-aware scan must still reject it.
+  const hostile = defaultReactionLaneGraph({ layout: { spawn_pattern: '");eval("alert(1)");//' } });
+
+  // The graph validator already rejects the out-of-set, payload-bearing field...
+  assert.equal(validateReactionLaneGraph(hostile).ok, false);
+
+  // ...and even though buildReactionLanePackage does not gate generation on validation, the payload
+  // reaches game.mjs as data and the importer's source deny-list rejects the composed package.
+  const pkg = buildReactionLanePackage(hostile);
+  assert.match(pkg.files['game.mjs'], /eval\(/);            // present, but only inside a string literal
+  const report = importArcadePackage({ manifest: pkg.manifest, files: pkg.files });
+  assert.equal(report.ok, false);
+  assert.match(report.errors.join(' | '), /forbidden \(eval\)/);
+  assert.deepEqual(report.capabilities, []);                // no capability granted by the composition
+});

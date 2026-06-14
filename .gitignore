@@ -36,3 +36,6 @@ workers/arcade/dist/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+# Arcade Studio (Vite+Three.js creator tool) build output
+arcade-studio/dist/
+arcade-studio/node_modules/

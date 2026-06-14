@@ -34,6 +34,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
  */
 export const FORBIDDEN_UPLOAD_PREFIXES = Object.freeze([
   'arcade/creator/',   // creator/editor tooling — the CF-2 leak this script exists to prevent
+  'arcade-studio/',    // standalone local Vite+Three.js creator studio — local/data-only dev tool, never ships
   'arcade/hiveworld-agents/', // W-4 simulator lab (agent ledger) — never ships until W-6 is authorized
   'arcade/virtual-arcade/',   // design docs + v0 prototype reference — not a production surface
   'tests/',            // test code
@@ -50,9 +51,12 @@ export const FORBIDDEN_UPLOAD_PREFIXES = Object.freeze([
   'dist/',             // build output (gitignored; defensive)
 ]);
 
-/** Exact repo-relative files that must never be uploaded (secrets / dev manifests). */
+/** Exact repo-relative files that must never be uploaded (secrets / dev manifests / local dev tooling). */
 export const FORBIDDEN_UPLOAD_FILES = Object.freeze([
   '.gitignore', 'package.json', 'package-lock.json',
+  // Local-only Creator Corner workshop bundler — dev tooling, must not ride along in the public payload.
+  // (scripts/ is otherwise NOT excluded because the production city loads vendored libs like three.min.js.)
+  'scripts/build-creator-workshop-bundle.mjs',
 ]);
 
 /** PURE: is this POSIX repo-relative path excluded from the curated client upload? */

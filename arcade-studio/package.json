@@ -1,0 +1,19 @@
+{
+  "name": "arcade-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser-based Three.js/Vite creator studio for designing arcade buildings and producing validated, game-ready arcade cabinet + layout assets. Local-only, data-only, closed-vocabulary.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

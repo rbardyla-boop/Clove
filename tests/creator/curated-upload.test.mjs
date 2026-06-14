@@ -49,6 +49,33 @@ test('includes the live client (arcade/city, root pages, fonts, vendored libs)',
   ]) assert.equal(isExcludedFromUpload(p), false, p);
 });
 
+test('excludes the local dev workshop bundler but keeps runtime vendored libs in scripts/', () => {
+  // Dev tooling must not ride along in the public payload...
+  assert.equal(isExcludedFromUpload('scripts/build-creator-workshop-bundle.mjs'), true);
+  // ...while the runtime vendored libs the shipped pages load from /scripts/ MUST still ship.
+  for (const p of ['scripts/three.min.js', 'scripts/pdf.min.js', 'scripts/pdf.worker.min.js',
+    'scripts/tesseract.min.js', 'scripts/tesseract-worker.min.js']) {
+    assert.equal(isExcludedFromUpload(p), false, p);
+  }
+});
+
+test('excludes the standalone arcade-studio creator app (predicate + real repo)', () => {
+  // arcade-studio is a local/data-only Vite creator tool — its source must NEVER reach clovelearn.io.
+  for (const p of [
+    'arcade-studio/src/main.js',
+    'arcade-studio/index.html',
+    'arcade-studio/package.json',
+    'arcade-studio/package-lock.json',
+    'arcade-studio/vite.config.js',
+    'arcade-studio/test/grid.test.mjs',
+    'arcade-studio/scripts/smoke-headless.mjs',
+  ]) assert.equal(isExcludedFromUpload(p), true, p);
+  // and once it is git-tracked, none of it survives into the real curated upload set.
+  const { included, excluded } = curatedUploadFileList();
+  assert.equal(included.some((f) => f.startsWith('arcade-studio/')), false, 'arcade-studio must not be uploaded');
+  assert.ok(excluded.some((f) => f.startsWith('arcade-studio/')), 'arcade-studio should be in the excluded set');
+});
+
 test('real repo: arcade/creator EXCLUDED, arcade/city INCLUDED, root index INCLUDED', () => {
   const { included, excluded } = curatedUploadFileList();
   assert.ok(included.length > 0, 'expected a non-empty upload set');

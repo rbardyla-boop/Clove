@@ -5,6 +5,40 @@ Newest first.
 
 ---
 
+## ADR-044 — Arcade Studio: standalone Vite + Three.js creator tool for validated, data-only 3D arcade assets (2026-06-13)
+
+**Context.** The operator authorized building a reusable, high-quality arcade *building + asset
+creation* system as a browser `npm install && npm run dev` Three.js/Vite tool — treating "arcade
+quality" as an exportable-validated-data problem, not a one-off pretty room. The existing creator
+pipeline (`arcade/creator/**`) is 2D (iso/layered renderers, `.mjs` + HTML, vendored three global)
+and has no 3D editor or bundler. The forbidden-surface doctrine is firm across the whole repo:
+local-only, data-only, no live-world load, no economy/ownership/reward/ticket/upload/remote/script.
+
+**Decision.** A NEW, isolated subproject `arcade-studio/` (own `package.json`, Vite + `three`
+^0.169) rather than entangling the static prod app. It deliberately MIRRORS the 2D pipeline's
+security philosophy so it reads as a real extension: closed frozen token vocabularies
+(`src/validation/tokens.js`), canonical `sha256:` content hashing (`src/importExport/hashAsset.js`),
+and deny-by-default validators that reuse the same forbidden regexes / economy-terms / private-key /
+capability-flag bans (`src/validation/safety.js`, `forbiddenSurfaceChecks.js`). Two closed schemas —
+`arcade_cabinet_asset` and `arcade_building_layout` — are the export contract; every authorable option
+is a token or bounded-clean text (no free-form runtime surface). Screen-shake and particle systems are
+closed preset tables with clamped numerics (no arbitrary scripts/shaders). The render/editor layer
+(core renderer/scene/camera/lights/loop/input, cabinet geometry/materials, building/props/zones,
+effects, editor panels, orbit+player preview, debug panel) is kept SEPARATE from the pure data spine,
+which is fully Node-testable without a browser. Local-only: no network/fetch/upload/live-world loader
+anywhere; export/import is in-page + local file download.
+
+**Consequences.** Additive only — no change to the prod app, `arcade/**`, or Workers. New paths:
+`arcade-studio/{src,test,scripts}`. `arcade-studio/dist/` and `node_modules/` are build output
+(gitignore). Verification: 75 Node tests green (schema, hostile-fail-closed, forbidden-surface,
+round-trip, determinism, exhaustive-token, unicode-normalization, fuzz); `vite build` green (77 modules); headless Playwright
+smoke green (WebGL renders, 164 draw calls, in-page export→import hash-stable, orbit↔player toggle,
+debug panel live, zero console/page errors); a multi-agent adversarial audit
+(forbidden-surface / closed-schema / criteria-coverage / three.js-correctness, each finding
+independently verified) gated hardening. Local-only; not committed/pushed/deployed.
+
+---
+
 ## ADR-043 — Curated starter placement: checked-in manifest gates LOCAL showcase mounting; server catalog keeps gating ticketed play (2026-06-11)
 
 **Context.** PR #65 shipped a 16-starter cabinet library that lived only in the builder. The

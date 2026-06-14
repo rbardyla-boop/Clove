@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--
+      Conservative page-level CSP for the standalone studio. Same-origin script/style only, no eval,
+      and no network / form / frame / object / remote-asset surface — mirrors the data-only, local-only
+      contract so the editor carries the security posture expected of a first-class Creator surface.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>Arcade Studio — Creator</title>
+    <!--
+      Local-only creator tool. No remote submission, no upload path, no live-world load,
+      no economy/ownership/reward surface. All exports are validated JSON data.
+    -->
+    <link rel="stylesheet" href="./src/editor/editor.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="viewport" aria-label="Arcade scene viewport"></canvas>
+
+      <header id="toolbar" class="panel toolbar" role="toolbar" aria-label="Studio toolbar"></header>
+
+      <aside id="library-panel" class="panel side-left" aria-label="Asset library"></aside>
+      <aside id="inspector-panel" class="panel side-right" aria-label="Inspector"></aside>
+      <aside id="export-panel" class="panel side-right-lower" aria-label="Export and validation"></aside>
+
+      <section id="debug-panel" class="panel debug" aria-label="Debug stats"></section>
+
+      <div id="boot-error" class="boot-error" hidden></div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

@@ -11,6 +11,7 @@ const HTML = readFileSync(new URL('../../arcade/creator/creator-corner/index.htm
 test('Creator Corner exposes only approved local-workshop tool links', () => {
   const links = [...HTML.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).sort();
   assert.deepEqual(links, [
+    '../../../arcade-studio/dist/', // standalone local 3D editor (repo-local sibling, built dist)
     '../arcade-builder/',
     '../arcade-sandbox/',
     '../block-editor/',
@@ -23,6 +24,11 @@ test('Creator Corner is static-only and blocks form/script/network surfaces', ()
   assert.match(HTML, /script-src 'none'/);
   assert.match(HTML, /connect-src 'none'/);
   assert.match(HTML, /form-action 'none'/);
+  // Defense-in-depth: pin the remaining static-hub CSP directives so a future weakening is caught.
+  assert.match(HTML, /default-src 'self'/);
+  assert.match(HTML, /object-src 'none'/);
+  assert.match(HTML, /base-uri 'none'/);
+  assert.match(HTML, /frame-src 'none'/);
   assert.equal(/<script\b|<form\b|<input\b|<button\b|fetch\s*\(|WebSocket|EventSource/.test(HTML), false);
 });
 
