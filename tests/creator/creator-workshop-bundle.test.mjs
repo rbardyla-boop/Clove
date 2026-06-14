@@ -98,12 +98,11 @@ test('bundle is SELF-CONTAINED: every relative import/script/link resolves insid
     const src = readFileSync(new URL(`../../${rel}`, import.meta.url), 'utf8');
     for (const ref of refOf(src, ext)) {
       if (/^(node:|https?:|wss?:|data:|mailto:|#)/.test(ref)) continue; // external / non-file
-      if (!ref.startsWith('./') && !ref.startsWith('../')) continue;     // bare specifiers (none expected)
+      // Absolute/bare specifiers are external to the bundle — including the hub's production-path link to the
+      // Arcade Studio static editor ("/arcade-studio/"), which is deployed separately and never bundled here.
+      if (!ref.startsWith('./') && !ref.startsWith('../')) continue;
       checked++;
       let target = posix.normalize(posix.join(posix.dirname(rel), ref));
-      // The hub links Arcade Studio as an INTENTIONAL repo-local sibling (a separate Vite app served
-      // from its own built dist), deliberately NOT copied into this isolated bundle — not a dangling bug.
-      if (target.startsWith('arcade-studio/')) continue;
       if (target.endsWith('/')) target += 'index.html';                 // directory link → its index
       else if (!posix.basename(target).includes('.')) target += '/index.html';
       if (!inSet.has(target)) dangling.push(`${rel}  ->  ${ref}  (${target})`);

@@ -15,8 +15,6 @@ import { drawBlock } from '../render/iso-renderer.mjs';
 
 const $ = (id) => document.getElementById(id);
 const fill = (id, list, sel) => { $(id).innerHTML = list.map((v) => `<option${v === sel ? ' selected' : ''}>${v}</option>`).join(''); };
-/** Escape HTML metacharacters — defense-in-depth before any innerHTML interpolation of validator text. */
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 fill('target_city_id', TARGET_CITY_IDS, 'harbor-02');
 fill('palette', PALETTES, 'neon-cyan');
@@ -65,12 +63,13 @@ async function render() {
   const vEl = $('verdict');
   vEl.textContent = v.ok ? 'VALID (local)' : 'BLOCKED';
   vEl.className = `verdict ${v.ok ? 'v-ok' : 'v-bad'}`;
-  const lines = [];
-  lines.push(`<div class="lim">size ${v.limits.size_bytes} / ${v.limits.size_budget_bytes} bytes</div>`);
-  for (const e of v.errors) lines.push(`<div class="err">✗ ${esc(e)}</div>`);
-  for (const w of v.warnings) lines.push(`<div class="warn">! ${esc(w)}</div>`);
-  if (v.ok && !v.errors.length) lines.push('<div>✓ all checks passed</div>');
-  $('report').innerHTML = lines.join('');
+  const reportEl = $('report');
+  reportEl.replaceChildren(); // safe DOM construction — validator text is set via textContent, never innerHTML
+  const reportRow = (cls, text) => { const d = document.createElement('div'); if (cls) d.className = cls; d.textContent = text; reportEl.appendChild(d); };
+  reportRow('lim', `size ${v.limits.size_bytes} / ${v.limits.size_budget_bytes} bytes`);
+  for (const e of v.errors) reportRow('err', `✗ ${e}`);
+  for (const w of v.warnings) reportRow('warn', `! ${w}`);
+  if (v.ok && !v.errors.length) reportRow('', '✓ all checks passed');
   $('hash').textContent = report.package_hash;
   $('receiptNote').textContent = `receipt: ${report.receipt.status} · live_world_authorized=${report.receipt.live_world_authorized}`;
   $('exportPkg').disabled = false;
