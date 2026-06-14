@@ -46,6 +46,14 @@ async function openClean(ctx, url) {
   return { page, errors };
 }
 
+// Returns the text of any control whose label matches a forbidden upload/submit/publish/live action.
+async function forbiddenControls(page) {
+  return page.$$eval('button, a, [role=button]', (ns, reSrc) => {
+    const re = new RegExp(reSrc, 'i');
+    return ns.map((n) => (n.textContent || '') + ' ' + (n.getAttribute('aria-label') || '')).filter((tx) => re.test(tx));
+  }, FORBIDDEN_ACTION_RE.source).catch(() => []);
+}
+
 const browser = await chromium.launch({
   headless: true,
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--no-sandbox'],
@@ -84,10 +92,7 @@ try {
       (id) => { const el = document.getElementById(id); return !!el && el.options && el.options.length > 0; },
       t.marker, { timeout: 8000 }).then(() => true).catch(() => false);
     check(`${t.name} boots and its module populated #${t.marker}`, populated);
-    const forbiddenCtl = await page.$$eval('button, a, [role=button]', (ns, reSrc) => {
-      const re = new RegExp(reSrc, 'i');
-      return ns.map((n) => (n.textContent || '') + ' ' + (n.getAttribute('aria-label') || '')).filter((tx) => re.test(tx));
-    }, FORBIDDEN_ACTION_RE.source).catch(() => []);
+    const forbiddenCtl = await forbiddenControls(page);
     check(`${t.name} exposes no upload/submit/publish/live control`, forbiddenCtl.length === 0);
     check(`${t.name} loads with no console/page errors`, errors.length === 0);
     if (errors.length) console.log(`  ${t.name} errors:`, errors.join(' | '));
@@ -105,6 +110,7 @@ try {
     check('sandbox imports + runs the bundled sample (report.ok)', !!report && report.ok === true);
     check('sandbox result is an UNTRUSTED local proposal (no host authority)',
       !!report && report.result_trust === 'untrusted_local_proposal');
+    check('sandbox exposes no upload/submit/publish/live control', (await forbiddenControls(page)).length === 0);
     check('sandbox loads with no console/page errors', errors.length === 0);
     if (errors.length) console.log('  sandbox errors:', errors.join(' | '));
     await page.close();
@@ -123,18 +129,24 @@ try {
       const rt = await page.evaluate(() => window.__studio.roundTrip());
       check(`Arcade Studio export→import round-trip stable${rt && rt.hash ? ' (' + rt.hash.slice(0, 14) + '…)' : ''}`, !!rt && rt.ok && rt.stable);
     }
+    check('Arcade Studio exposes no upload/submit/publish/live control', (await forbiddenControls(page)).length === 0);
     check('Arcade Studio loads with no console/page errors', errors.length === 0);
     if (errors.length) console.log('  studio errors:', errors.join(' | '));
     await page.close();
   }
 
-  // 5. MOBILE viewport — hub + studio boot on a phone-sized context.
+  // 5. MOBILE viewport — hub + studio boot on a phone-sized context; the four core tools serve (200).
   {
     const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const { page: hp, errors: he } = await openClean(phone, hubUrl);
     const hubLinks = await hp.$$eval('a.tool-link', (as) => as.length);
     check('mobile: hub loads with 5 links', hubLinks === 5 && he.length === 0);
     await hp.close();
+    // Deterministic 200-check that the four core tools are served under the mobile context.
+    for (const tool of ['arcade-builder', 'arcade-sandbox', 'block-editor', 'layered-editor']) {
+      const resp = await phone.request.get(`${BASE}/arcade/creator/${tool}/`).catch(() => null);
+      check(`mobile: ${tool} serves (200)`, !!resp && resp.status() === 200);
+    }
     const { page: sp, errors: se } = await openClean(phone, `${BASE}/arcade-studio/`);
     const mReady = await sp.waitForFunction(() => !!(window.__studio && window.__studio.ready), null, { timeout: 20000 })
       .then(() => true).catch(() => false);

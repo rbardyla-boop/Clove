@@ -36,8 +36,11 @@ const HUB = `${CREATOR}/creator-corner/index.html`;
 const LOADER = `${CREATOR}/approval/approved-loader.mjs`;
 const STUDIO_RELEASE = join(ROOT, 'arcade-studio', 'scripts', 'build-static-release.mjs');
 
-// The entry HTML pages whose page-level meta-CSP is asserted (relative to the staging root).
-const ENTRY_HTML = Object.freeze([
+// The entry HTML pages that MUST be present and CSP-checked. Note: the guard does not trust this list
+// alone — it discovers every served *.html in the assembled root and CSP-checks all of them, then
+// asserts each expected entry is among them. So a future tool whose index.html is copied in (but not
+// added here) is still CSP-checked, never silently bypassed.
+const EXPECTED_ENTRY_HTML = Object.freeze([
   `${CREATOR}/creator-corner/index.html`,
   `${CREATOR}/arcade-builder/index.html`,
   `${CREATOR}/arcade-sandbox/index.html`,
@@ -45,6 +48,9 @@ const ENTRY_HTML = Object.freeze([
   `${CREATOR}/layered-editor/index.html`,
   'arcade-studio/index.html',
 ]);
+// The ONLY entry permitted the looser sandbox CSP (script-src 'unsafe-inline' for its srcdoc bootstrap,
+// frame-src 'self' for its hardened local iframe). Every other entry must be stricter.
+const SANDBOX_ENTRY = `${CREATOR}/arcade-sandbox/index.html`;
 // Only these extensions may appear in the mounted studio candidate (no .map — built output only).
 const STUDIO_ALLOWED_EXT = new Set(['.html', '.js', '.css']);
 // Belt-and-suspenders path patterns that must never appear anywhere in the staging root.
@@ -101,25 +107,64 @@ function parseCsp(csp) {
   return map;
 }
 
-/** Assert one entry page's meta-CSP is present and strict (no eval, no external host, locked directives). */
+/**
+ * PURE: return the list of CSP-policy violations for an entry page ([] = clean). Enforces, per page:
+ *  - meta-CSP present; no 'unsafe-eval'; no external http(s) host anywhere;
+ *  - script-src present; tokens ⊆ {'self','none'} (+ 'unsafe-inline' ONLY on the sandbox entry); no wildcard;
+ *  - frame-src bounded: explicit ∈ {'none','self'} (sandbox may use 'self'); if ABSENT it falls back to
+ *    default-src, which must itself be bounded (∈ {'none','self'}) — so block/layered (no frame-src,
+ *    default-src 'self') pass without an artifact edit, while an unbounded default-src would fail;
+ *  - connect-src ∈ {'self','none'}; object-src/base-uri/form-action = 'none'.
+ * The sandbox exception is intentionally the ONLY relaxation and is keyed to its exact path.
+ */
+function cspViolations(relPath, csp, sandboxEntry = SANDBOX_ENTRY) {
+  const out = [];
+  if (/unsafe-eval/i.test(csp)) out.push(`${relPath}: CSP allows 'unsafe-eval'`);
+  if (/https?:\/\//i.test(csp)) out.push(`${relPath}: CSP references an external http(s) host`);
+  const d = parseCsp(csp);
+  const isSandbox = relPath === sandboxEntry;
+  const hasWildcard = (toks) => toks.some((t) => t.includes('*'));
+
+  // script-src — must exist; bounded token set; sandbox alone may carry 'unsafe-inline'.
+  const script = d['script-src'] || [];
+  const scriptAllowed = isSandbox ? new Set(["'self'", "'none'", "'unsafe-inline'"]) : new Set(["'self'", "'none'"]);
+  if (!script.length) out.push(`${relPath}: CSP missing script-src`);
+  else {
+    const bad = script.filter((t) => !scriptAllowed.has(t));
+    if (bad.length) out.push(`${relPath}: script-src has disallowed token(s): ${bad.join(' ')}`);
+    if (hasWildcard(script)) out.push(`${relPath}: script-src has a wildcard`);
+  }
+
+  // connect-src — same-origin static or none.
+  const connect = d['connect-src'] || [];
+  if (!connect.length) out.push(`${relPath}: CSP missing connect-src`);
+  else if (!connect.every((t) => t === "'self'" || t === "'none'")) out.push(`${relPath}: connect-src beyond self/none → ${connect.join(' ')}`);
+
+  // frame-src — bounded explicitly, or via a bounded default-src fallback.
+  const frame = d['frame-src'];
+  const dflt = d['default-src'] || [];
+  if (frame && frame.length) {
+    if (!frame.every((t) => t === "'none'" || t === "'self'")) out.push(`${relPath}: frame-src beyond none/self → ${frame.join(' ')}`);
+  } else if (!(dflt.length && dflt.every((t) => t === "'self'" || t === "'none'"))) {
+    out.push(`${relPath}: frame-src absent and default-src not bounded → ${dflt.join(' ') || '(absent)'}`);
+  }
+
+  // Hard-locked directives on every entry page.
+  for (const dir of ['object-src', 'base-uri', 'form-action']) {
+    const v = d[dir] || [];
+    if (!(v.length === 1 && v[0] === "'none'")) out.push(`${relPath}: ${dir} is not 'none' → ${v.join(' ') || '(absent)'}`);
+  }
+  return out;
+}
+
+/** Read an entry page's meta-CSP and record violations (or an ok line). */
 function checkEntryCsp(relPath, abs) {
   const html = readFileSync(abs, 'utf8');
   const m = html.match(/http-equiv=["']Content-Security-Policy["'][^>]*?content="([^"]+)"/i);
   if (!m) { fail(`${relPath}: no Content-Security-Policy meta`); return; }
-  const csp = m[1];
-  if (/unsafe-eval/i.test(csp)) fail(`${relPath}: CSP allows 'unsafe-eval'`);
-  if (/https?:\/\//i.test(csp)) fail(`${relPath}: CSP references an external http(s) host`);
-  const d = parseCsp(csp);
-  // connect-src may be 'self' or 'none' only (same-origin static or no network) — never an external host.
-  const connect = d['connect-src'] || [];
-  if (!connect.length) fail(`${relPath}: CSP missing connect-src`);
-  else if (!connect.every((t) => t === "'self'" || t === "'none'")) fail(`${relPath}: connect-src beyond self/none → ${connect.join(' ')}`);
-  // These must be locked on every entry page.
-  for (const dir of ['object-src', 'base-uri', 'form-action']) {
-    const v = d[dir] || [];
-    if (!(v.length === 1 && v[0] === "'none'")) fail(`${relPath}: ${dir} is not 'none' → ${v.join(' ') || '(absent)'}`);
-  }
-  ok(`${relPath}: CSP strict (connect-src ${connect.join(' ')}; no eval/external)`);
+  const violations = cspViolations(relPath, m[1]);
+  if (violations.length) violations.forEach(fail);
+  else { const d = parseCsp(m[1]); ok(`${relPath}: CSP strict (script-src ${(d['script-src'] || []).join(' ')}; connect ${(d['connect-src'] || []).join(' ')})`); }
 }
 
 function main() {
@@ -209,12 +254,15 @@ function main() {
   if (mapHit) fail(`sourcemap / embedded source in staging root: ${mapHit}`);
   else ok('no .map / sourcesContent / sourceMappingURL anywhere');
 
-  // 3e. Per-entry CSP guards.
-  for (const rel of ENTRY_HTML) {
-    const abs = join(OUT, rel);
-    if (!existsSync(abs)) { fail(`entry page missing from staging root: ${rel}`); continue; }
-    checkEntryCsp(rel, abs);
+  // 3e. Per-entry CSP guards — DISCOVERED from the assembled root, not a hardcoded list. Every served
+  //     *.html is CSP-checked (so a future-copied entry can never bypass), and each EXPECTED entry must
+  //     be present among the discovered set.
+  const discovered = files.filter((f) => f.endsWith('.html')).sort();
+  for (const rel of EXPECTED_ENTRY_HTML) {
+    if (!discovered.includes(rel)) fail(`expected entry page missing from staging root: ${rel}`);
   }
+  for (const rel of discovered) checkEntryCsp(rel, join(OUT, rel));
+  ok(`CSP-checked ${discovered.length} discovered entry page(s): ${discovered.join(', ')}`);
 
   if (fails.length) {
     console.error(`\nCREATOR EDITOR STAGING: FAIL (${fails.length} issue(s)) — artifact left at ${OUT} for inspection, no manifest written`);
@@ -260,4 +308,4 @@ function main() {
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) main();
 
-export { ENTRY_HTML, parseCsp };
+export { EXPECTED_ENTRY_HTML, SANDBOX_ENTRY, parseCsp, cspViolations };
