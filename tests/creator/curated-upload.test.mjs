@@ -49,9 +49,11 @@ test('includes the live client (arcade/city, root pages, fonts, vendored libs)',
   ]) assert.equal(isExcludedFromUpload(p), false, p);
 });
 
-test('excludes the local dev workshop bundler but keeps runtime vendored libs in scripts/', () => {
-  // Dev tooling must not ride along in the public payload...
+test('excludes the local dev workshop + staging bundlers but keeps runtime vendored libs in scripts/', () => {
+  // Dev tooling must not ride along in the public payload (scripts/ is NOT a denied prefix, so each
+  // local-only assembler must be individually denylisted or it silently leaks into the upload)...
   assert.equal(isExcludedFromUpload('scripts/build-creator-workshop-bundle.mjs'), true);
+  assert.equal(isExcludedFromUpload('scripts/build-creator-editor-staging.mjs'), true);
   // ...while the runtime vendored libs the shipped pages load from /scripts/ MUST still ship.
   for (const p of ['scripts/three.min.js', 'scripts/pdf.min.js', 'scripts/pdf.worker.min.js',
     'scripts/tesseract.min.js', 'scripts/tesseract-worker.min.js']) {
