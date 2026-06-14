@@ -16,9 +16,11 @@
  *
  * Run: tests/creator/run-creator-editor-staging-smoke.sh  (builds the staging root, serves it, runs this)
  *
- * Dedicated screen-shake / particle-preview assertions are intentionally NOT made here: window.__studio
- * exposes no headless hook for them, so that verification belongs to R4/R5. draw-calls>0 proves the
- * render+effects pipeline is live.
+ * R4/R5: screen-shake + particle live preview is now asserted here via the already-exposed
+ * window.__studio.studio.effects / .reducedMotion / .camera surfaces (no new hook): triggering a shake
+ * deflects the camera, reduced-motion suppresses it, and selecting a particle preset yields its declared
+ * live count. The rigorous behavioral proofs (axis masking, envelope, motionScale=0 zeroing, count caps)
+ * live in arcade-studio/test/effects-{shake,particle}.test.mjs.
  */
 import { createRequire } from 'node:module';
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
@@ -128,6 +130,42 @@ try {
       check(`Arcade Studio renders (draw calls ${draws})`, draws > 0);
       const rt = await page.evaluate(() => window.__studio.roundTrip());
       check(`Arcade Studio export→import round-trip stable${rt && rt.hash ? ' (' + rt.hash.slice(0, 14) + '…)' : ''}`, !!rt && rt.ok && rt.stable);
+
+      // R4 — screen-shake live preview: triggering deflects the camera; reduced-motion suppresses it.
+      // Hook-free: drives the already-exposed studio.effects / reducedMotion and reads camera.position.
+      const shakeFx = await page.evaluate(() => {
+        const s = window.__studio, cam = s.camera, rm = s.studio.reducedMotion, eff = s.studio.effects;
+        const range = (a) => Math.max(...a) - Math.min(...a);
+        const sample = (frames) => {
+          const xs = [], ys = [], zs = [];
+          for (let i = 0; i < frames; i++) { s.step(1 / 60); xs.push(cam.position.x); ys.push(cam.position.y); zs.push(cam.position.z); }
+          return Math.max(range(xs), range(ys), range(zs));
+        };
+        rm.setOverride('off'); eff.triggerShake('impact');
+        const activeAfterTrigger = eff.shake.isActive;
+        const shakeRange = sample(6);
+        rm.setOverride('on'); eff.triggerShake('impact');
+        const rmShakeRange = sample(6);
+        rm.setOverride('auto'); eff.triggerShake('none');
+        return { activeAfterTrigger, shakeRange, rmShakeRange };
+      });
+      check('shake: triggering activates the effect', shakeFx.activeAfterTrigger === true);
+      check(`shake: camera deflects when triggered (range ${shakeFx.shakeRange.toFixed(3)})`, shakeFx.shakeRange > 0.03);
+      check(`shake: reduced-motion substantially damps it (${shakeFx.rmShakeRange.toFixed(3)} < ${shakeFx.shakeRange.toFixed(3)})`,
+        shakeFx.rmShakeRange < shakeFx.shakeRange * 0.5);
+
+      // R5 — particle live preview: selecting a preset yields its declared live count; draw calls bounded.
+      const partFx = await page.evaluate(() => {
+        const eff = window.__studio.studio.effects;
+        eff.setParticle('sparks');
+        for (let i = 0; i < 5; i++) window.__studio.step(1 / 60);
+        const count = eff.activeParticleCount;
+        const draws = window.__studio.drawCalls();
+        eff.setParticle('none'); // restore default ambient state
+        return { count, draws };
+      });
+      check('particle: selecting "sparks" yields the declared live count (120)', partFx.count === 120);
+      check(`particle: draw calls stay bounded (${partFx.draws})`, partFx.draws > 0 && partFx.draws < 5000);
     }
     check('Arcade Studio exposes no upload/submit/publish/live control', (await forbiddenControls(page)).length === 0);
     check('Arcade Studio loads with no console/page errors', errors.length === 0);
