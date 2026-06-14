@@ -11,7 +11,7 @@ const HTML = readFileSync(new URL('../../arcade/creator/creator-corner/index.htm
 test('Creator Corner exposes only approved local-workshop tool links', () => {
   const links = [...HTML.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).sort();
   assert.deepEqual(links, [
-    '../../../arcade-studio/dist/', // standalone local 3D editor (repo-local sibling, built dist)
+    '/arcade-studio/', // standalone static 3D editor — published separately at /arcade-studio/ (Option A), not bundled
     '../arcade-builder/',
     '../arcade-sandbox/',
     '../block-editor/',

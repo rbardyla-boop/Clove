@@ -34,32 +34,31 @@ try {
   const ctx = await browser.newContext();
 
   // 1. HUB — loads, exposes exactly the five tool links, and carries no active/live-floor control.
-  //    The 5th link is Arcade Studio: a repo-local SIBLING Vite app, linked but deliberately NOT copied
-  //    into this isolated bundle. We machine-check that contract below — the four core tools resolve from
-  //    the bundle (200) while the Arcade Studio sibling target is UNRESOLVED (404) from the bundle context,
-  //    proving it is not falsely bundled as an internal file. (Its positive boot proof lives in the
-  //    repo-root integration smoke, which serves the repo root where the sibling dist exists.)
+  //    The 5th link is Arcade Studio: an EXTERNAL static editor published separately at /arcade-studio/
+  //    (Option A), deliberately NOT copied into this isolated bundle. We machine-check that contract below
+  //    — the four core tools resolve from the bundle (200) while the /arcade-studio/ production path is
+  //    UNRESOLVED (404) from the bundle context, proving it is not falsely bundled as an internal file.
+  //    (Its positive boot proof lives in the integration smoke, which maps /arcade-studio/ → the built dist.)
   {
     const hubUrl = `${BASE}/arcade/creator/creator-corner/`;
     const { page, errors } = await openClean(ctx, hubUrl);
     const links = await page.$$eval('a.tool-link', (as) => as.map((a) => a.getAttribute('href')).sort());
     check('hub serves from bundle and exposes exactly the 5 tool links', JSON.stringify(links) ===
-      JSON.stringify(['../../../arcade-studio/dist/', '../arcade-builder/', '../arcade-sandbox/', '../block-editor/', '../layered-editor/'].sort()));
+      JSON.stringify(['/arcade-studio/', '../arcade-builder/', '../arcade-sandbox/', '../block-editor/', '../layered-editor/'].sort()));
 
-    // The Arcade Studio link must be a repo-local sibling reference (../../../arcade-studio/...), not a core tool.
+    // The Arcade Studio link must be the external production path (/arcade-studio/), not a bundle-relative tool.
     const studioHref = await page.$$eval('a.tool-link',
       (as) => { const a = as.find((x) => /arcade-studio/.test(x.getAttribute('href'))); return a ? a.getAttribute('href') : null; });
-    check('Arcade Studio is the 5th link and is a repo-local sibling ref (../../../arcade-studio/)',
-      !!studioHref && studioHref.startsWith('../../../arcade-studio/'));
+    check('Arcade Studio is the 5th link and is the /arcade-studio/ production path', studioHref === '/arcade-studio/');
 
-    // Machine-check the sibling-not-bundled contract against the live bundle server:
+    // Machine-check the not-bundled contract against the live bundle server:
     //  - a core bundled tool DOES resolve (200), so the server genuinely serves the bundle, AND
-    //  - the Arcade Studio sibling target does NOT resolve (404) — it is not an internal bundle file.
+    //  - the /arcade-studio/ production path does NOT resolve (404) — it is not an internal bundle file.
     const builderResp = await ctx.request.get(new URL('../arcade-builder/', hubUrl).href).catch(() => null);
     check('a core tool (arcade-builder) resolves from the isolated bundle (200)',
       !!builderResp && builderResp.status() === 200);
     const studioResp = studioHref ? await ctx.request.get(new URL(studioHref, hubUrl).href).catch(() => null) : null;
-    check('Arcade Studio sibling is NOT bundled — its link target is unresolved (404) from the bundle context',
+    check('Arcade Studio is NOT bundled — its /arcade-studio/ production path is unresolved (404) from the bundle',
       !!studioResp && studioResp.status() === 404);
 
     const activeControls = await page.$$eval('button, form, input, [onclick]', (n) => n.length);
