@@ -55,6 +55,7 @@ test('excludes the local dev workshop + staging bundlers but keeps runtime vendo
   assert.equal(isExcludedFromUpload('scripts/build-creator-workshop-bundle.mjs'), true);
   assert.equal(isExcludedFromUpload('scripts/build-creator-editor-staging.mjs'), true);
   assert.equal(isExcludedFromUpload('scripts/build-creator-editor-production-release.mjs'), true);
+  assert.equal(isExcludedFromUpload('scripts/build-creator-editor-standalone-production.mjs'), true);
   // ...while the runtime vendored libs the shipped pages load from /scripts/ MUST still ship.
   for (const p of ['scripts/three.min.js', 'scripts/pdf.min.js', 'scripts/pdf.worker.min.js',
     'scripts/tesseract.min.js', 'scripts/tesseract-worker.min.js']) {

@@ -62,6 +62,9 @@ export const FORBIDDEN_UPLOAD_FILES = Object.freeze([
   // Local-only Creator Editor PRODUCTION RELEASE assembler (R8) — same reason; assembles a deploy
   // bundle from the curated tree + reviewed editor overlay, never ships as a static asset itself.
   'scripts/build-creator-editor-production-release.mjs',
+  // Local-only Creator Editor STANDALONE production assembler (R8 remediation) — same reason; builds the
+  // editor-only surface for a separate Pages project, never ships in the clovelearn.io curated upload.
+  'scripts/build-creator-editor-standalone-production.mjs',
 ]);
 
 /** PURE: is this POSIX repo-relative path excluded from the curated client upload? */
