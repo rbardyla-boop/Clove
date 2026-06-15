@@ -25,6 +25,10 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BUILDER = join(REPO, 'scripts', 'build-creator-editor-production-release.mjs');
 const EXPECTED_EDITOR_AGGREGATE = 'a0bf7f97ae0edf7fef7a3607c92eaf3c878e7a2242b2779afb3adbc2dd3c562a';
 const OUT_A = '/tmp/cep-test-prod-A';
+// build-static-release shells `npm run build` into the SHARED arcade-studio/dist, so two build-heavy
+// test files Vite-building in parallel collide there. Serialize the build across test processes.
+const STUDIO_BUILD_LOCK = '/tmp/cei-studio-build.lock';
+const buildTo = (out) => execFileSync('flock', [STUDIO_BUILD_LOCK, 'node', BUILDER, '--out', out], { cwd: REPO, stdio: 'pipe' });
 
 const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
   const p = join(dir, d.name);
@@ -39,7 +43,7 @@ const metaCsp = (absHtml) => {
 // Build the production bundle ONCE for the inspection tests.
 let buildOk = false, buildErr = null, files = [];
 try {
-  execFileSync('node', [BUILDER, '--out', OUT_A], { cwd: REPO, stdio: 'pipe' });
+  buildTo(OUT_A);
   buildOk = true;
   files = relFiles(OUT_A);
 } catch (e) { buildErr = e.stderr ? e.stderr.toString() : e.message; }
@@ -151,7 +155,7 @@ test('6. boundary: no Worker/DO/config emitted into prod root; no enabling write
 test('7. determinism: rebuild yields identical editor aggregate + identical prod file list', () => {
   const OUT_B = '/tmp/cep-test-prod-B';
   try {
-    execFileSync('node', [BUILDER, '--out', OUT_B], { cwd: REPO, stdio: 'pipe' });
+    buildTo(OUT_B);
     const mB = JSON.parse(readFileSync(join(OUT_B, '_CREATOR_EDITOR_MANIFEST.json'), 'utf8'));
     assert.equal(mB.editor_aggregate_sha256, EXPECTED_EDITOR_AGGREGATE, 'editor aggregate stable across rebuilds');
     assert.deepEqual(relFiles(OUT_B).sort(), [...files].sort(), 'production file list stable across rebuilds');
