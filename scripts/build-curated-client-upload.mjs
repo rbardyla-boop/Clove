@@ -59,6 +59,9 @@ export const FORBIDDEN_UPLOAD_FILES = Object.freeze([
   'scripts/build-creator-workshop-bundle.mjs',
   // Local-only Creator Editor staging assembler (R3) — same reason; assembles a staging root, never ships.
   'scripts/build-creator-editor-staging.mjs',
+  // Local-only Creator Editor PRODUCTION RELEASE assembler (R8) — same reason; assembles a deploy
+  // bundle from the curated tree + reviewed editor overlay, never ships as a static asset itself.
+  'scripts/build-creator-editor-production-release.mjs',
 ]);
 
 /** PURE: is this POSIX repo-relative path excluded from the curated client upload? */
