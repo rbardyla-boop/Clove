@@ -5,6 +5,63 @@ Newest first.
 
 ---
 
+## ADR-045 — Creator Editor production release on a dedicated, separate Cloudflare Pages surface (RELEASE ACCEPTED, DONE) (2026-06-15)
+
+**Context.** The Creator Editor (Creator Corner hub + 4 tools + the ADR-044 Arcade Studio, assembled as
+a single static surface) was driven to production through a gated R0→R8 sprint (R1 safety floor, R2
+arcade-studio static release candidate, R3 single-root staging artifact, R4/R5 effects verification,
+R6 staging deploy, R7 staging security/header/isolation verification). The first production attempt
+(R8) overlaid the editor onto the existing `clovelearn.io` static host (`wild-hat-6257`, a Workers
+static-assets Worker) at `/arcade/creator/**` + `/arcade-studio/`. It went live and functioned, but
+the **live smoke failed**: the `clovelearn.io` zone **injects the Cloudflare Web Analytics beacon**
+(`static.cloudflareinsights.com/beacon.min.js`, conditional on a browser `Accept: text/html`) into HTML
+responses. The editor's strict CSP **correctly blocked** it (no external JS executed) but this produced
+console errors + a blocked external-request attempt — violating the no-external-network / clean-CSP
+release invariant on a public surface. That deploy was **rolled back** (to version `c907d5e9`); the main
+app was unaffected. Two host-specific facts were also confirmed live on `wild-hat-6257`: path-scoped
+`_headers` do NOT override the global `/*` for single-value headers (editor got `XFO: SAMEORIGIN`, not
+`DENY`), and the global app CSP coexisted with the editor CSP (two CSP headers, intersection).
+
+**Decision.** Ship the Creator Editor production from a **NEW, dedicated, isolated Cloudflare Pages
+project — `clove-creator-editor-production`** — NOT `clovelearn.io`, NOT `wild-hat-6257`, and NOT the
+under-`clovelearn.io` overlay model (which is **superseded** for editor production hosting). The served
+surface is **editor-only** (no curated `clovelearn.io` app), built reproducibly on `main` by
+`scripts/build-creator-editor-standalone-production.mjs` → `/tmp/creator-editor-standalone-production-root`
+(38 files; manifest `_CREATOR_EDITOR_MANIFEST.json`; aggregate
+`a0bf7f97ae0edf7fef7a3607c92eaf3c878e7a2242b2779afb3adbc2dd3c562a`; staging marker absent). Framing is
+delivered via **header CSP `frame-ancestors 'none'`** (header-only — browsers ignore + console-error on
+`frame-ancestors` in `<meta>`), with `X-Frame-Options: DENY` as the legacy complement; the editor source
+HTML is unchanged. The editor source stays denylisted from the curated production upload.
+
+**Production URLs.** Branch deployment: `https://609c6390.clove-creator-editor-production.pages.dev`
+(deployment id `609c6390-d7fe-47ef-9d7e-269319378359`, source `main` @ `f664498`). Project alias:
+`https://clove-creator-editor-production.pages.dev`. No custom domain.
+
+**Consequences.** RELEASE ACCEPTED, DONE bar met, **0 findings**. Live verification on the dedicated
+surface (the failure modes of the `wild-hat-6257` attempt are all fixed here): **beacon-absence = 0 hits
+on every editor entry with browser `Accept: text/html`** (control `clovelearn.io/arcade/city/` still = 1,
+confirming the injection is zone-specific); live browser smoke **35/35** incl. no console errors + no
+external network; **single** editor CSP header per entry (no broad-app coexistence); `X-Frame-Options:
+DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, nosniff, `Permissions-Policy: camera=(),
+microphone=(), geolocation=()`, HSTS; `frame-ancestors 'none'` present in the header CSP; per-entry
+`script-src` = hub `'none'` / sandbox `'self' 'unsafe-inline'` (exact-path) / studio `'self'` (no
+inline/eval); no `unsafe-eval`/external host/wildcard; manifest aggregate served and label-clean;
+`_STAGING_MANIFEST.json` → 404; all upload/submit/publish/`live_world_authorized`/`/arcade/ws`/
+`/arcade/health` → 404 (no write authority, no Worker/API/WS on this Pages project); sandbox stays an
+untrusted-local proposal; no upload/submit/publish, no live loader, no creator-output ingestion, no
+economy/ownership/reward surface. **Production isolation:** `clovelearn.io` unchanged (editor paths
+remain 404, `/` 200), `wild-hat-6257` untouched, no Worker/DO/D1/R2/migration/secret/config change, no
+custom domain, no DNS/routes; the staging project (`clove-creator-editor-staging`) is untouched.
+**Rollback** (isolated to this Pages project; not required, not executed): `wrangler pages deployment
+delete 609c6390-d7fe-47ef-9d7e-269319378359 --project-name=clove-creator-editor-production`.
+
+**Caveat.** The editor is production-live on a **`*.pages.dev`** URL, **not** under `clovelearn.io`. Any
+future custom domain or subdomain is a SEPARATE security/DNS release gate, not a cosmetic rename — and a
+subdomain *inside* the `clovelearn.io` zone may reintroduce the zone-level Web Analytics beacon unless
+proven otherwise (a separate zone or a confirmed analytics exclusion would be required).
+
+---
+
 ## ADR-044 — Arcade Studio: standalone Vite + Three.js creator tool for validated, data-only 3D arcade assets (2026-06-13)
 
 **Context.** The operator authorized building a reusable, high-quality arcade *building + asset
