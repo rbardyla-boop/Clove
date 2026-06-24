@@ -17,6 +17,7 @@
  * game's native logical size (360x640) and uniformly scales it to fit.
  */
 import { createCabinetFrame } from './cabinet-frame.js';
+import { createJuice, prefersReducedMotion } from './cabinet-juice.mjs';
 
 const ROUND_MS = 30000;
 const BEAT_MS_START = 850;
@@ -34,7 +35,11 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
   let isOpen = false;
   let lastHud = 0;
 
-  let phase = 'ready'; // ready | playing | grade
+  // Client-only feel layer (audio/haptic/motion). No economy, no scoring impact.
+  const juice = createJuice();
+  let countTimers = []; // pre-round 3-2-1-GO timers (cancellable on close/restart)
+
+  let phase = 'ready'; // ready | count | playing | grade
   let roundStart = 0;
   let beatStart = 0;
   let beatMs = BEAT_MS_START;
@@ -69,7 +74,9 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
         <div class="ptg-stage" data-act="tap" tabindex="0" aria-label="Tap when the ring meets the target">
           <div class="ptg-target"></div>
           <div class="ptg-pulse"></div>
+          <div class="ptg-burst" data-f="burst" aria-hidden="true"></div>
           <div class="ptg-center"></div>
+          <div class="ptg-count" data-f="count" aria-hidden="true" hidden></div>
           <div class="ptg-ready" data-screen="ready">
             <div class="ptg-big">READY?</div>
             <p>Tap when the ring meets the target.<br>Chain hits to build your streak.</p>
@@ -98,7 +105,7 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
     root.addEventListener('click', (e) => {
       const act = e.target.closest('[data-act]')?.dataset.act;
       if (act === 'leave') onLeave();
-      else if (act === 'start' || act === 'again') startRound();
+      else if (act === 'start' || act === 'again') { juice.resume(); startRound(); }
       else if (act === 'tap') tap();
     });
     addEventListener('keydown', (e) => {
@@ -140,6 +147,42 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
     fb.className = 'ptg-feedback show ' + kind;
   }
 
+  // ---- feel / juice (presentation only; nothing here affects scoring) ----
+  function setStreakGlow() {
+    if (root) root.style.setProperty('--ptg-streak', String(Math.min(streak, 20)));
+  }
+  function hitBurst(perfect) {
+    const b = $('burst');
+    if (!b || prefersReducedMotion()) return;
+    b.classList.remove('go', 'perfect');
+    void b.offsetWidth; // reflow so the keyframe restarts on rapid hits
+    b.classList.add('go');
+    if (perfect) b.classList.add('perfect');
+    setTimeout(() => { if (b) b.classList.remove('go', 'perfect'); }, 420);
+  }
+  function missShake() {
+    const stage = root && root.querySelector('.ptg-stage');
+    if (!stage || prefersReducedMotion()) return;
+    stage.classList.remove('shake');
+    void stage.offsetWidth;
+    stage.classList.add('shake');
+    setTimeout(() => { if (stage) stage.classList.remove('shake'); }, 300);
+  }
+  function gradeFlourish(g) {
+    // short synthesized flourish; higher grades get a brighter arpeggio (feel only)
+    const notes = g === 'S' ? [523, 659, 784, 1047]
+      : g === 'A' ? [523, 659, 784]
+      : g === 'B' ? [466, 587]
+      : g === 'F' ? [196, 165]
+      : [440, 554];
+    notes.forEach((f, i) => setTimeout(() => juice.tone(f, 150, { type: 'triangle', gain: 0.06 }), i * 110));
+    juice.vibrate(g === 'S' || g === 'A' ? [10, 40, 10] : 12);
+  }
+  function clearCountTimers() {
+    for (const t of countTimers) clearTimeout(t);
+    countTimers = [];
+  }
+
   function setAward(kind, text) {
     if (!root) return; // game overlay not built (e.g. a non-occupant got a reject)
     const el = $('award');
@@ -166,11 +209,23 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
       streak++;
       best = Math.max(best, streak);
       beatMs = Math.max(BEAT_MS_MIN, BEAT_MS_START - streak * 12);
-      flash(d <= HIT_WINDOW * 0.5 ? 'hit' : 'good');
+      const perfect = d <= HIT_WINDOW * 0.5;
+      flash(perfect ? 'hit' : 'good');
+      // feel only — pitch climbs with streak so a chain sounds rewarding
+      const lift = Math.min(streak, 16) * 18;
+      juice.tone((perfect ? 740 : 560) + lift, perfect ? 110 : 90,
+        { type: 'triangle', gain: 0.07, slideTo: (perfect ? 880 : 660) + lift });
+      juice.vibrate(perfect ? 14 : 9);
+      hitBurst(perfect);
+      setStreakGlow();
     } else {
       misses++;
       streak = 0;
       flash('miss');
+      juice.tone(150, 130, { type: 'square', gain: 0.05, slideTo: 96 });
+      juice.vibrate([5, 26, 5]);
+      missShake();
+      setStreakGlow();
     }
     updateHud();
   }
@@ -186,15 +241,22 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
       if (!beatHandled) {
         misses++;
         streak = 0;
+        flash('miss');
+        juice.tone(150, 120, { type: 'square', gain: 0.045, slideTo: 96 });
+        setStreakGlow();
       }
       beatStart = now;
       beatHandled = false;
       progress = 0;
+      juice.tone(190, 55, { type: 'sine', gain: 0.03 }); // soft downbeat — tempo cue
     }
     const scale = MAX_SCALE + (END_SCALE - MAX_SCALE) * progress;
     const pulse = root.querySelector('.ptg-pulse');
     pulse.style.transform = `translate(-50%,-50%) scale(${scale})`;
     pulse.classList.toggle('armed', Math.abs(progress - HIT_PROGRESS) <= HIT_WINDOW);
+    // anticipation ramp: 0..1 closeness to the hit point, drives the CSS glow
+    const near = Math.max(0, 1 - Math.abs(progress - HIT_PROGRESS) / (HIT_WINDOW * 2.2));
+    pulse.style.setProperty('--ptg-arm', near.toFixed(3));
     if (now - lastHud > 120) {
       updateHud();
       lastHud = now;
@@ -202,14 +264,49 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
     raf = requestAnimationFrame(loop);
   }
 
+  // Pre-round 3-2-1-GO. This is a purely client-side pre-roll: it does NOT touch
+  // ROUND_MS, the score, or the server round. `roundStart` is set (and
+  // onRoundStart fires) only in beginRound(), when play actually starts — so the
+  // measured durationMs and the scoring envelope are unchanged.
   function startRound() {
+    clearCountTimers();
+    cancelAnimationFrame(raf);
     hits = misses = streak = best = 0;
     beatMs = BEAT_MS_START;
+    submittedThisRound = false;
+    phase = 'count';
+    showScreen('play');
+    setStreakGlow();
+    updateHud();
+    const count = $('count');
+    if (count) { count.hidden = false; count.setAttribute('aria-hidden', 'false'); }
+    const steps = ['3', '2', '1', 'GO'];
+    const stepMs = 560;
+    steps.forEach((label, i) => {
+      countTimers.push(setTimeout(() => {
+        if (phase !== 'count') return;
+        if (count) {
+          count.textContent = label;
+          count.classList.remove('tick');
+          void count.offsetWidth;
+          count.classList.add('tick');
+        }
+        juice.tone(label === 'GO' ? 680 : 430, label === 'GO' ? 150 : 90,
+          { type: 'triangle', gain: 0.06, slideTo: label === 'GO' ? 880 : 430 });
+        if (label === 'GO') juice.vibrate(18);
+      }, i * stepMs));
+    });
+    countTimers.push(setTimeout(beginRound, steps.length * stepMs));
+  }
+
+  function beginRound() {
+    if (!isOpen) return;
+    const count = $('count');
+    if (count) { count.hidden = true; count.setAttribute('aria-hidden', 'true'); count.classList.remove('tick'); }
     phase = 'playing';
     roundStart = beatStart = performance.now();
     beatHandled = false;
     lastHud = 0;
-    submittedThisRound = false;
     showScreen('play');
     updateHud();
     root.querySelector('.ptg-stage').focus();
@@ -224,11 +321,16 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
     cancelAnimationFrame(raf);
     const acc = accuracy();
     const g = grade(acc, best);
-    $('grade').textContent = g;
+    const gl = $('grade');
+    gl.textContent = g;
+    gl.className = 'ptg-grade-letter g-' + g; // per-grade glow + reveal animation
+    void gl.offsetWidth;                      // restart the reveal each round
+    gl.classList.add('reveal');
     $('gacc').textContent = acc + '%';
     $('gstreak').textContent = best;
     $('ghits').textContent = hits;
     showScreen('grade');
+    gradeFlourish(g);
 
     // Tickets are SERVER-authoritative. Submit the result and wait for the
     // server's award; the client never finalizes tickets on its own.
@@ -254,6 +356,9 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
       isOpen = true;
       phase = 'ready';
       showScreen('ready');
+      const count = $('count');
+      if (count) { count.hidden = true; count.textContent = ''; count.classList.remove('tick'); }
+      root.style.setProperty('--ptg-streak', '0');
       root.querySelector('.ptg-target').style.transform = `translate(-50%,-50%) scale(${TARGET_SCALE})`;
       root.querySelector('.ptg-pulse').style.transform = `translate(-50%,-50%) scale(${MAX_SCALE})`;
       $('fb').className = 'ptg-feedback';
@@ -266,6 +371,7 @@ export function createPulseTapGame({ accent = '#ff2d95', onLeave = () => {}, onR
       isOpen = false;
       phase = 'ready';
       cancelAnimationFrame(raf);
+      clearCountTimers();
       frame.close();
     },
     isOpen() {
