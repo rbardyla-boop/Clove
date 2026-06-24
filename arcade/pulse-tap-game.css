@@ -86,7 +86,11 @@
   background:radial-gradient(circle at 50% 50%,
     color-mix(in srgb, var(--ptg-accent) 22%, transparent), transparent 62%);
   opacity:calc(var(--ptg-streak, 0) / 28);transition:opacity .25s ease;}
-.ptg-target,.ptg-pulse,.ptg-burst,.ptg-center{z-index:1;}
+.ptg-target,.ptg-pulse,.ptg-burst,.ptg-center{z-index:1;pointer-events:none;}
+/* The Ready / Grade overlays must stay above the play layer so their buttons
+   (Start, Play again, Leave) stay clickable — the decorative rings above are at
+   z-index:1, so these sit at 2; the countdown overlay is above both at 3. */
+.ptg-ready,.ptg-grade{z-index:2;}
 
 /* Hit burst — an expanding accent ring on a clean hit (green on PERFECT). */
 .ptg-burst{position:absolute;left:50%;top:50%;width:120px;height:120px;border-radius:50%;
