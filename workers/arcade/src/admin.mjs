@@ -25,6 +25,21 @@ export const ADMIN_OPS = Object.freeze([
 export function isAdminOp(op) { return ADMIN_OPS.includes(op); }
 
 /**
+ * Constant-time string comparison — PURE JS, no runtime crypto API.
+ * Early length check (length leakage is acceptable and standard), then
+ * XOR-accumulate over equal-length strings so the compare time does not
+ * depend on where the first mismatching char is.
+ */
+function safeStrEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+/**
  * Returns { ok, reason }. `enabled` is the dev/admin flag, `token` is the
  * server-side secret (may be undefined), `providedToken` is the caller's token.
  */
@@ -32,9 +47,11 @@ export function checkAdmin({ enabled, token, providedToken }) {
   if (enabled !== true) return { ok: false, reason: 'admin_disabled' };
   if (typeof token !== 'string' || token.length === 0) return { ok: false, reason: 'admin_not_configured' };
   if (typeof providedToken !== 'string' || providedToken.length === 0) return { ok: false, reason: 'missing_admin_token' };
-  // Length-checked equality (timing-safety is not meaningful in this single-process
-  // testbed/edge context; the token is an operational secret, not a user credential).
-  if (providedToken !== token) return { ok: false, reason: 'bad_admin_token' };
+  // Constant-time compare as cheap defense-in-depth. Timing-safety is not strictly
+  // required here (single-process testbed/edge context; the token is an operational
+  // secret, not a user credential), but the constant-time path is free and avoids
+  // leaking match progress via early-exit equality.
+  if (!safeStrEqual(providedToken, token)) return { ok: false, reason: 'bad_admin_token' };
   return { ok: true, reason: null };
 }
 

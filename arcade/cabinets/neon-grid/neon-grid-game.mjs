@@ -60,6 +60,7 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
   let correctSteps = 0, mistakes = 0, streak = 0, best = 0, completed = 0;
   let ticketBalance = 0;
   let submittedThisRound = false;
+  let keyListenerBound = false; // guard so build() can't double-register onKey
 
   const $ = (f) => root.querySelector(`[data-f="${f}"]`);
   const screen = (name) => root.querySelector(`[data-screen="${name}"]`);
@@ -120,7 +121,6 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
       const tile = e.target.closest('.ngg-tile');
       if (tile) onCellTap(Number(tile.dataset.i));
     });
-    addEventListener('keydown', onKey);
   }
 
   function buildGrid() {
@@ -313,6 +313,10 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
       if (!root) build();
       if (isOpen) return;
       isOpen = true;
+      // Bind the window keydown listener for this open session. onKey is a stable
+      // reference (named fn in this closure), so the matching remove in close()
+      // detaches the same handler. The guard prevents double-registration.
+      if (!keyListenerBound) { addEventListener('keydown', onKey); keyListenerBound = true; }
       phase = 'ready';
       showScreen('ready');
       setPrompt('');
@@ -325,6 +329,7 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
       isOpen = false;
       phase = 'ready';
       clearTimers();
+      if (keyListenerBound) { removeEventListener('keydown', onKey); keyListenerBound = false; }
     },
     isOpen() { return isOpen; },
     // ── server-authoritative ticket hooks (called by the floor) ──

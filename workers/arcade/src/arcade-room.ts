@@ -30,6 +30,7 @@ import { getLedger } from "./ledger.mjs";
 import { challengeCatalogPayload, getProgress, recordRoundAccepted, recordRedemption, claimReward } from "./challenges.mjs";
 import { getAchievements } from "./achievements.mjs";
 import { appendEvent, eventFeedPayload } from "./events.mjs";
+import { isValidPlayerId } from "../../../arcade/city/city-block.mjs";
 import { DEFAULT_ROOM_ID, resolveRoomId, isValidRoomId, roomListPayload, roomMetaPayload, hasCapacity, getRoom, HEARTBEAT_SCHEMA_VERSION } from "./rooms.mjs";
 import {
   annotateCatalogForRoom, roomEventListPayload,
@@ -382,6 +383,13 @@ export class ArcadeRoom implements DurableObject {
   private async handleJoin(ws: WebSocket, rawRoomId: any, playerId?: string, lobby = false): Promise<void> {
     if (!playerId || typeof playerId !== "string") {
       this.sendError(ws, "missing_player", "playerId is required");
+      return;
+    }
+    // Reject forged/oversized identities: a playerId becomes a Record key, a
+    // storage write, and a broadcast field, so an unvalidated string lets a client
+    // impersonate another player. Use the same canonical validator as CityRoom.
+    if (!isValidPlayerId(playerId)) {
+      this.sendError(ws, "invalid_player", "playerId must be 1-64 chars of letters, digits, ':', '_' or '-'");
       return;
     }
     const resolved = resolveRoomId(rawRoomId);

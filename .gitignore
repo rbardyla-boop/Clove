@@ -39,3 +39,11 @@ workers/arcade/dist/
 # Arcade Studio (Vite+Three.js creator tool) build output
 arcade-studio/dist/
 arcade-studio/node_modules/
+
+# ── Untracked sibling projects / local experiments ──────────────
+# Separate projects that live inside this worktree but are NOT part of the
+# CloveLearn deploy surface. Ignored so a `git add -A` can never sweep them
+# into a commit (and thence into the curated upload). See TRUST_STACK_FINAL_STATUS.
+prototype/
+artifacts/
+webbroswer assest creator/
