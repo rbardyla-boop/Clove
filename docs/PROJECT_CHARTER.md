@@ -5,6 +5,40 @@ Newest first.
 
 ---
 
+## ADR-046 — Consent Anchor bridge boundary (PLAN ONLY; read-only, no live authority) (2026-06-24)
+
+**Context.** The Trust Stack framing pairs Neon Circuit with a user-authorized cognitive/evidence
+system (cognitive-os / "Vibe" / the Sovereign Agent OS doctrine layer), which already ships **real**
+artifacts in the untracked `prototype/cognitive-os/`: `EpistemicLicense` (`core/cip/epistemic_license.rs`),
+`RecordedRun` (`vibe-run`), content-hash binding via `run_hash`, a `revocation` path, and a `signer`
+(`scripts/design_signing.py`). Neon will eventually want trusted signals it lacks today — creator trust,
+moderation evidence, review history, identity-adjacent consent, platform safety. The naive integration —
+letting an external agent write verdicts/approvals/ranks into Neon — would break the one invariant Neon's
+authority model depends on: **no external system authors canonical facts.** The cheapest moment to fix
+that boundary is before any bridge code exists.
+
+**Decision.** Author `docs/NEON_CIRCUIT_CONSENT_ANCHOR_BRIDGE_PLAN.md` — **PLAN ONLY, no code** — defining
+the **Consent Anchor** as a strictly **read-only, consent-gated, revocable** seam: a user-granted,
+scoped `EpistemicLicense` lets Neon read a **public-safe, allowlist-projected, hash-bound, signed**
+evidence summary into its **human** review/audit surfaces, and nothing more. Evidence flows toward a
+human; authority never flows toward the Anchor. The doc fixes the boundary (non-goals, consent +
+evidence models, the `CityRoom`/`CityRegistry` no-write line, the CF-8 human-review line), a threat model
+(forged/stale/revoked evidence, signer compromise, replay, prompt injection via the quarantine pattern,
+overbroad consent, privilege escalation, data leakage, reviewer overtrust), the deny-by-default tests a
+future build must pass, and hard acceptance gates before any code. Inferred-vs-real provenance is labelled
+honestly: `EpistemicLicense`/`RecordedRun`/`run_hash`/`revocation`/`signer` are real; `EpistemicReceipt`
+and the **Consent Anchor itself** are planned/inferred and marked as such.
+
+**Consequences.** New `docs/NEON_CIRCUIT_CONSENT_ANCHOR_BRIDGE_PLAN.md` + this ADR. **No code, no
+Worker/DO change, no deploy, no migration, no flag change.** `LIVE_WORLD_LOADER_ENABLED` stays false;
+no marketplace, chat, public-UGC, accounts/identity bridge, or economy/ownership authority is created or
+enabled. `prototype/` is untracked and out of scope — this plan only *names* its artifacts; nothing under
+it is read into, staged, or swept into git. The Anchor grants **zero** live authority by existing. The
+post-plan fork stays parked: a future, separately-ADR'd implementation sprint may begin **only** when the
+artifact schemas are identified, consent/revocation semantics are testable, no live authority is granted,
+the reader path is quarantined from the actor path, and the threat model is reviewed (per the plan's §13).
+Local-only; not pushed, not deployed.
+
 ## ADR-045 — Creator Editor production release on a dedicated, separate Cloudflare Pages surface (RELEASE ACCEPTED, DONE) (2026-06-15)
 
 **Context.** The Creator Editor (Creator Corner hub + 4 tools + the ADR-044 Arcade Studio, assembled as
