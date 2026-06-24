@@ -93,8 +93,8 @@ test('6D: routing respects the ring — adjacent foundry routes accepted; non-ad
 test('8A: nexus-05 and garden-06 are known blocks with their own adjacency', () => {
   assert.equal(isKnownBlock('nexus-05'), true);
   assert.equal(isKnownBlock('garden-06'), true);
-  assert.deepEqual(adjacentBlocks('nexus-05').slice().sort(), ['garden-06', 'skyline-03']);
-  assert.deepEqual(adjacentBlocks('garden-06').slice().sort(), ['downtown-01', 'nexus-05']);
+  assert.deepEqual(adjacentBlocks('nexus-05').slice().sort(), ['garden-06', 'lumen-09', 'skyline-03']);
+  assert.deepEqual(adjacentBlocks('garden-06').slice().sort(), ['aurora-07', 'downtown-01', 'nexus-05']);
 });
 
 test('8A: the new cross-path edges are symmetric and every Phase 6D edge is preserved', () => {
@@ -120,6 +120,45 @@ test('8A: routing accepts the new corridor and still rejects non-adjacent hops',
   // but a non-adjacent jump across the corridor is rejected (bounded routing holds at B=6)
   assert.deepEqual(validateRouteRequest('downtown-01', 'nexus-05'), { ok: false, reason: 'not_adjacent' });
   assert.deepEqual(validateRouteRequest('garden-06', 'skyline-03'), { ok: false, reason: 'not_adjacent' });
+});
+
+// ── Phase 8B: nine-block district (Aurora + Relay + Lumen outer corridor) ─────
+test('8B: aurora-07, relay-08, lumen-09 are known blocks on a third "outer" corridor', () => {
+  for (const id of ['aurora-07', 'relay-08', 'lumen-09']) assert.equal(isKnownBlock(id), true);
+  assert.deepEqual(adjacentBlocks('aurora-07').slice().sort(), ['garden-06', 'lumen-09', 'relay-08']);
+  assert.deepEqual(adjacentBlocks('relay-08').slice().sort(), ['aurora-07', 'lumen-09']);
+  assert.deepEqual(adjacentBlocks('lumen-09').slice().sort(), ['aurora-07', 'nexus-05', 'relay-08']);
+});
+
+test('8B: the outer-corridor edges are symmetric and the original 4-ring is unchanged', () => {
+  for (const [a, b] of [['garden-06', 'aurora-07'], ['aurora-07', 'relay-08'], ['relay-08', 'lumen-09'], ['lumen-09', 'nexus-05'], ['aurora-07', 'lumen-09']]) {
+    assert.equal(areAdjacent(a, b), true, `${a}<->${b} should be adjacent`);
+    assert.equal(areAdjacent(b, a), true, `adjacency symmetric ${a}<->${b}`);
+  }
+  for (const [a, b] of [['downtown-01', 'harbor-02'], ['harbor-02', 'skyline-03'], ['skyline-03', 'foundry-04'], ['foundry-04', 'downtown-01']]) {
+    assert.equal(areAdjacent(a, b), true, `ring edge ${a}<->${b} preserved`);
+  }
+  assert.deepEqual(adjacentBlocks('harbor-02'), ['downtown-01', 'skyline-03']);
+  assert.deepEqual(adjacentBlocks('foundry-04'), ['downtown-01', 'skyline-03']);
+});
+
+test('8B: routing accepts outer-corridor hops and rejects non-adjacent jumps', () => {
+  for (const [a, b] of [['garden-06', 'aurora-07'], ['aurora-07', 'relay-08'], ['relay-08', 'lumen-09'], ['lumen-09', 'nexus-05'], ['aurora-07', 'lumen-09']]) {
+    assert.equal(validateRouteRequest(a, b).ok, true, `${a}->${b} routable`);
+  }
+  for (const [a, b] of [['downtown-01', 'aurora-07'], ['harbor-02', 'aurora-07'], ['relay-08', 'downtown-01'], ['relay-08', 'nexus-05'], ['aurora-07', 'skyline-03'], ['downtown-01', 'lumen-09']]) {
+    assert.deepEqual(validateRouteRequest(a, b), { ok: false, reason: 'not_adjacent' }, `${a}->${b} not adjacent`);
+  }
+});
+
+test('8B: the nine-block district manifest stays public-safe and well under the 16 KB socket norm', () => {
+  const presence = Object.fromEntries(CITY_IDS.map((id) => [id, { population: 24, last_seen_at: Date.now() }]));
+  const m = districtManifest('aurora-07', presence);
+  assert.equal(m.blocks.length, 9);
+  assert.equal(m.current_city_id, 'aurora-07');
+  assert.equal(PRIVATE.test(JSON.stringify(m)), false);
+  const bytes = Buffer.byteLength(JSON.stringify(m), 'utf8');
+  assert.ok(bytes < 8192, `manifest ${bytes} B must stay well under the 16 KB norm (T1 guard)`);
 });
 
 // ── public summaries ─────────────────────────────────────────────────────────

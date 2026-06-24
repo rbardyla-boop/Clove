@@ -80,6 +80,9 @@ const BLOCK_HINTS = Object.freeze({
   'foundry-04':  Object.freeze({ 3: 'Objective: touch the gantry beacon, then the works floor.' }),
   'nexus-05':    Object.freeze({ 1: 'Objective: two together at the Junction Ring crossing.' }),
   'garden-06':   Object.freeze({ 1: 'Objective: two together on the green.' }),
+  'aurora-07':   Object.freeze({ 0: 'Objective: answer the Aurora Spire beacon on the arc.' }),
+  'relay-08':    Object.freeze({ 0: 'Objective: answer the Relay Tower beacon at the junction.' }),
+  'lumen-09':    Object.freeze({ 0: 'Objective: answer the Lumen Beacon on the outer loop.' }),
 });
 
 /** PURE: deterministic objective id from static config only. */

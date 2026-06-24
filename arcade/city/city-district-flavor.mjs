@@ -29,6 +29,9 @@ const BLOCK_VOICE = Object.freeze({
   'foundry-04':  'Foundry runs hot — the freight works.',
   'nexus-05':    'Nexus pulses — the crossing between corridors.',
   'garden-06':   'Garden keeps it calm — the green on-ramp.',
+  'aurora-07':   'Aurora glows cool — the polar arc lights up.',
+  'relay-08':    'Relay keeps the signal — the junction hums clear.',
+  'lumen-09':    'Lumen burns bright — the beacon marks the way.',
 });
 
 /**
@@ -44,6 +47,9 @@ const EVENT_VOICE = Object.freeze({
   'foundry-04':  Object.freeze({ _: 'Foundry glows amber and busy.', district_signal_surge: 'Foundry surges — the forge works are loud this window.' }),
   'nexus-05':    Object.freeze({ _: 'Nexus crackles at the crossing.', district_signal_surge: 'Nexus surges — the pulse pivot is busy this window.', district_block_focus: 'Nexus holds the focus — the new corridor pivots here.' }),
   'garden-06':   Object.freeze({ _: 'Garden keeps a slow, green calm.', district_quiet_window: 'Garden hushes — a slow lap of the green suits this window.', district_block_focus: 'Garden holds the focus — the calm way across is lit.' }),
+  'aurora-07':   Object.freeze({ _: 'Aurora shimmers along the polar arc.', district_block_focus: 'Aurora holds the focus — the outer arc is lit.' }),
+  'relay-08':    Object.freeze({ _: 'Relay clicks and hums at the junction.', district_route_warmup: 'Routes through Relay are warming — the junction opens.' }),
+  'lumen-09':    Object.freeze({ _: 'Lumen glows steady at the beacon.', district_block_focus: 'Lumen holds the focus — the beacon runs bright.' }),
 });
 
 /**
@@ -54,6 +60,7 @@ const EVENT_VOICE = Object.freeze({
 const CORRIDOR_VOICE = Object.freeze({
   ring: 'The old ring road — four blocks, one familiar loop.',
   new: 'The new corridor — a green cut from Downtown to the heights.',
+  outer: 'The outer arc — a bright loop past Garden and Nexus.',
 });
 
 /** PURE: the wayfinding voice for a corridor group ('ring' | 'new'). Unknown → ''. */

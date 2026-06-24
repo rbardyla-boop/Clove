@@ -42,6 +42,9 @@ const BLOCK_IDENTITY = Object.freeze({
   'foundry-04':  Object.freeze({ tagline: 'the works',      why_visit: 'Industrial spur on the original ring.',      landmark: 'the Ember Gantry' }),
   'nexus-05':    Object.freeze({ tagline: 'the crossing',   why_visit: "New corridor's pivot, Garden to Skyline.",   landmark: 'the Junction Ring' }),
   'garden-06':   Object.freeze({ tagline: 'the green',      why_visit: 'Calm new-corridor entry from Downtown.',     landmark: 'the Glass Arbor' }),
+  'aurora-07':   Object.freeze({ tagline: 'the polar arc',  why_visit: 'Outer-loop light where the arc turns cold.', landmark: 'the Aurora Spire' }),
+  'relay-08':    Object.freeze({ tagline: 'the junction',   why_visit: 'Outer-corridor link between Aurora and Lumen.', landmark: 'the Relay Tower' }),
+  'lumen-09':    Object.freeze({ tagline: 'the beacon',     why_visit: 'Outer-loop marker back toward Nexus.',       landmark: 'the Lumen Beacon' }),
 });
 
 /** Display identity for a block (fresh object). Unknown/missing cityId → the neutral (empty) fallback. */

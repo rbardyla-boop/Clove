@@ -79,6 +79,21 @@ const MOOD_COPY = Object.freeze({
     flow: "Garden's paths see a gentle back-and-forth right now.",
     surge: "Garden's paths are well walked — the green is alive.",
   }),
+  'aurora-07': Object.freeze({
+    ebb: 'Aurora drifts cool — a soft shimmer on the arc.',
+    flow: 'Aurora keeps a gentle glow along the polar arc.',
+    surge: 'Aurora lights up — the outer arc is alive right now.',
+  }),
+  'relay-08': Object.freeze({
+    ebb: 'Relay idles soft — a gentle hum at the junction.',
+    flow: 'Relay keeps a gentle hum across the junction.',
+    surge: 'Relay sparks alive — the junction runs full right now.',
+  }),
+  'lumen-09': Object.freeze({
+    ebb: 'Lumen rests soft — a gentle pulse at the beacon.',
+    flow: 'Lumen glows warm where the beacon stands.',
+    surge: 'Lumen burns bright — the beacon is alive right now.',
+  }),
 });
 
 /** PURE: block ids carrying mood copy (fresh array, for tests/tools). */

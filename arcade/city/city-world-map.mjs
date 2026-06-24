@@ -21,6 +21,9 @@ const BLOCK_ACCENTS = Object.freeze({
   'foundry-04':  '#ff5a5a', // the works — industrial red (racing red, not error)
   'nexus-05':    '#b14aff', // the crossing — violet pulse
   'garden-06':   '#3df58b', // the green — calm green
+  'aurora-07':   '#33e0c4', // the polar arc — bright teal
+  'relay-08':    '#ffa033', // the junction — signal orange-amber
+  'lumen-09':    '#bfeaff', // the beacon — halo ice-blue
 });
 const NEUTRAL_ACCENT = '#9d8fc4'; // muted fallback for unknown/future blocks
 

@@ -34,18 +34,19 @@ test('groupAdjacentByCorridor unions exactly equal real adjacency for every bloc
   // specific groupings (plan §4 Polish 2)
   assert.deepEqual(groupAdjacentByCorridor('downtown-01', adjacentBlocks('downtown-01')), { ring: ['harbor-02', 'foundry-04'], new: ['garden-06'] });
   assert.deepEqual(groupAdjacentByCorridor('skyline-03', adjacentBlocks('skyline-03')), { ring: ['harbor-02', 'foundry-04'], new: ['nexus-05'] });
-  assert.deepEqual(groupAdjacentByCorridor('garden-06', adjacentBlocks('garden-06')), { ring: [], new: ['downtown-01', 'nexus-05'] });
-  assert.deepEqual(groupAdjacentByCorridor('nexus-05', adjacentBlocks('nexus-05')), { ring: [], new: ['skyline-03', 'garden-06'] });
+  assert.deepEqual(groupAdjacentByCorridor('garden-06', adjacentBlocks('garden-06')), { ring: [], new: ['downtown-01', 'nexus-05', 'aurora-07'] });
+  assert.deepEqual(groupAdjacentByCorridor('nexus-05', adjacentBlocks('nexus-05')), { ring: [], new: ['skyline-03', 'garden-06', 'lumen-09'] });
   assert.deepEqual(groupAdjacentByCorridor('harbor-02', adjacentBlocks('harbor-02')), { ring: ['downtown-01', 'skyline-03'], new: [] });
   assert.deepEqual(groupAdjacentByCorridor('foundry-04', adjacentBlocks('foundry-04')), { ring: ['downtown-01', 'skyline-03'], new: [] });
 });
 
-test('districtGraphModel: six nodes, seven edges, every edge classified, current/adjacent/incident flags', () => {
+test('districtGraphModel: nine nodes, twelve edges, every edge classified, current/adjacent/incident flags', () => {
   const g = districtGraphModel(districtManifest('downtown-01'));
   assert.equal(g.nodes.length, CITY_IDS.length);
-  assert.equal(g.edges.length, 7);                                           // 4 ring + 3 new (undirected)
+  assert.equal(g.edges.length, 12);                                          // 4 ring + 3 new + 5 outer (undirected)
   assert.equal(g.edges.filter((e) => e.corridor === 'ring').length, 4);
   assert.equal(g.edges.filter((e) => e.corridor === 'new').length, 3);
+  assert.equal(g.edges.filter((e) => e.corridor === 'outer').length, 5);
   assert.equal(g.edges.filter((e) => e.corridor === null).length, 0);        // every edge classifies
   // from downtown's perspective: current flag, adjacency, and the non-adjacent hub
   assert.equal(g.nodes.find((n) => n.city_id === 'downtown-01').current, true);
@@ -62,11 +63,11 @@ test('districtGraphModel: six nodes, seven edges, every edge classified, current
 });
 
 test('districtGraphModel incident flags follow the current block (degree-2 source)', () => {
-  const g = districtGraphModel(districtManifest('garden-06')); // garden has degree 2 (downtown, nexus)
+  const g = districtGraphModel(districtManifest('relay-08')); // relay has degree 2 (aurora, lumen), both outer
   assert.equal(g.edges.filter((e) => e.incident).length, 2);
-  assert.equal(g.nodes.find((n) => n.city_id === 'garden-06').current, true);
-  // both of garden's edges are the NEW corridor
-  assert.equal(g.edges.filter((e) => e.incident && e.corridor === 'new').length, 2);
+  assert.equal(g.nodes.find((n) => n.city_id === 'relay-08').current, true);
+  // both of relay's edges are the OUTER corridor (grouped with the new corridor in the panel)
+  assert.equal(g.edges.filter((e) => e.incident && e.corridor === 'outer').length, 2);
 });
 
 test('districtGraphModel is robust to an empty/garbage manifest (display-only, never throws)', () => {

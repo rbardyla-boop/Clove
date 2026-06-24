@@ -25,6 +25,9 @@ const ARCADE_NAMES = Object.freeze({
   'foundry-04':  'Ember Gantry Arcade',
   'nexus-05':    'Junction Ring Arcade',
   'garden-06':   'Glass Arbor Arcade',
+  'aurora-07':   'Aurora Spire Arcade',
+  'relay-08':    'Relay Tower Arcade',
+  'lumen-09':    'Lumen Beacon Arcade',
 });
 
 /** PURE: the block's arcade house name (fresh string). Unknown/missing → ''. */

@@ -50,8 +50,11 @@ export const PLAYER_STALE_MS = 45_000;
  *  message set remain valid; a client that ignores district/trial state still works, and a
  *  no-id client still lands in the default block. v8 (7E): additive server-confirmed interaction
  *  receipts — city_interaction_request → city_interaction_receipt (ephemeral, public-safe; no new
- *  DO, no migration, no persisted ledger). A client that ignores the new message still works. */
-export const SCHEMA_VERSION = 8;
+ *  DO, no migration, no persisted ledger). A client that ignores the new message still works.
+ *  v9 (8B): additive — the single district grows to NINE blocks (Aurora/Relay/Lumen on a third
+ *  "outer" corridor); declarative config + adjacency only, geometry byte-identical, no new DO,
+ *  no migration. A client that ignores the new blocks still lands and routes among the prior six. */
+export const SCHEMA_VERSION = 9;
 /** Max pending client inputs before the client resyncs (bounds replay cost; Phase 4B). */
 export const MAX_INPUT_BACKLOG = 120;
 
@@ -140,6 +143,9 @@ const BLOCK_LABELS = Object.freeze({
   'foundry-04': Object.freeze({ 'data-spire': 'FORGE STACK', 'ramen': 'EMBER CANTEEN', 'maglev': 'FREIGHT LINE' }),
   'nexus-05': Object.freeze({ 'data-spire': 'NEXUS CORE', 'ramen': 'SYNAPSE BAR', 'maglev': 'TRANSIT NEXUS' }),
   'garden-06': Object.freeze({ 'data-spire': 'BIODOME SPIRE', 'ramen': 'GREENHOUSE GRILL', 'maglev': 'GARDEN HALT' }),
+  'aurora-07': Object.freeze({ 'data-spire': 'AURORA SPIRE', 'ramen': 'POLAR NOODLES', 'maglev': 'AURORA TRAM' }),
+  'relay-08': Object.freeze({ 'data-spire': 'RELAY TOWER', 'ramen': 'STATIC DINER', 'maglev': 'RELAY JUNCTION' }),
+  'lumen-09': Object.freeze({ 'data-spire': 'LUMEN BEACON', 'ramen': 'GLOW KITCHEN', 'maglev': 'LUMEN LINE' }),
 });
 
 /**
@@ -162,7 +168,8 @@ export const DEFAULT_CITY_ID = 'downtown-01';
 /**
  * Static, configured city block set. Phase 4A shipped exactly one; Phase 5A expanded to a
  * small district of three; Phase 6D added a fourth (Foundry) and a non-linear topology;
- * Phase 8A grows the SINGLE district to six (Nexus + Garden) — still STATIC CONFIG, still one
+ * Phase 8A grew the SINGLE district to six (Nexus + Garden), Phase 8B to nine (Aurora + Relay +
+ * Lumen on a third "outer" corridor) — still STATIC CONFIG, still one
  * district, geometry byte-identical (only display_name/theme/labels differ). Each block is its
  * OWN CityRoom DO (idFromName(city_id)), so adding blocks adds no DO class and needs no
  * migration. The district topology (adjacency/routing) lives in the pure city-district.mjs
@@ -175,6 +182,9 @@ export const CITY_ROOMS = Object.freeze([
   { city_id: 'foundry-04',  display_name: 'Foundry Block',  capacity: 24, theme: 'forge-ember' },
   { city_id: 'nexus-05',    display_name: 'Nexus Block',    capacity: 24, theme: 'pulse-magenta' },
   { city_id: 'garden-06',   display_name: 'Garden Block',   capacity: 24, theme: 'bloom-cyan' },
+  { city_id: 'aurora-07',   display_name: 'Aurora Block',   capacity: 24, theme: 'polar-teal' },
+  { city_id: 'relay-08',    display_name: 'Relay Block',    capacity: 24, theme: 'signal-amber' },
+  { city_id: 'lumen-09',    display_name: 'Lumen Block',    capacity: 24, theme: 'lumen-ice' },
 ]);
 export const CITY_IDS = Object.freeze(CITY_ROOMS.map((c) => c.city_id));
 

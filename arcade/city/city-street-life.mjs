@@ -58,6 +58,21 @@ const STREET_LINES = Object.freeze({
     'A sprinkler arcs slow rainbows over the green.',
     'Lanterns blink on one by one along the path.',
   ]),
+  'aurora-07': Object.freeze([
+    'Cold light ripples off the Aurora Spire panels.',
+    'A polar wind threads the arc, thin and bright.',
+    'The tram glides in along the Aurora line.',
+  ]),
+  'relay-08': Object.freeze([
+    'Relay boards click and re-sync down the junction.',
+    'Static hums in the diner sign by the tower.',
+    'A signal pulse runs the length of the line.',
+  ]),
+  'lumen-09': Object.freeze([
+    'The Lumen Beacon sweeps a slow arc of light.',
+    'Warm glow spills from the kitchen onto the path.',
+    'Lanterns of light blink along the beacon line.',
+  ]),
 });
 
 /**

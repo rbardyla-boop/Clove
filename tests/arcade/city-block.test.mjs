@@ -59,16 +59,16 @@ test('pickSpawn is deterministic and wraps by index', () => {
 });
 
 // ── city-room catalog ───────────────────────────────────────────────────────
-test('city catalog ships the Phase 8A district of six blocks and resolves safely', () => {
-  assert.equal(CITY_ROOMS.length, 6);
-  assert.deepEqual(CITY_IDS, ['downtown-01', 'harbor-02', 'skyline-03', 'foundry-04', 'nexus-05', 'garden-06']);
+test('city catalog ships the Phase 8B district of nine blocks and resolves safely', () => {
+  assert.equal(CITY_ROOMS.length, 9);
+  assert.deepEqual(CITY_IDS, ['downtown-01', 'harbor-02', 'skyline-03', 'foundry-04', 'nexus-05', 'garden-06', 'aurora-07', 'relay-08', 'lumen-09']);
   assert.equal(DEFAULT_CITY_ID, 'downtown-01'); // a no-id client still lands downtown
   for (const id of CITY_IDS) {
     assert.equal(resolveCityRoomId(id).cityId, id);
     assert.equal(resolveCityRoomId(id).ok, true);
   }
   // every block carries its own identity; ids/themes are unique, capacity unchanged at 24
-  assert.equal(new Set(CITY_ROOMS.map((c) => c.theme)).size, 6);
+  assert.equal(new Set(CITY_ROOMS.map((c) => c.theme)).size, 9);
   for (const c of CITY_ROOMS) { assert.ok(c.display_name.length > 0); assert.equal(c.capacity, 24); }
 });
 

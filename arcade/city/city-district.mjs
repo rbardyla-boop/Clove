@@ -28,24 +28,30 @@ export const DISTRICT_NAME = 'Neon District';
 
 /**
  * Block adjacency graph (the routing topology). Phase 6D made it NON-LINEAR (a 4-block ring
- * downtown — harbor — skyline — foundry — downtown). Phase 8A grows the SINGLE district to SIX
- * blocks, adding Nexus + Garden as a connected cross-path WITHOUT removing any Phase 6D edge:
- *   - every prior edge is preserved (downtown↔harbor, downtown↔foundry, harbor↔skyline,
- *     skyline↔foundry), so all existing routes still work;
- *   - new edges downtown↔garden, garden↔nexus, nexus↔skyline add a second corridor across the
- *     district (downtown ⇄ garden ⇄ nexus ⇄ skyline), giving downtown & skyline degree 3.
- * Still bounded to directly-adjacent blocks only; this is the "richer static graph = a different
- * frozen object" 8A baseline (see docs/PHASE_8_DISTRICT_SCALE_PLAN.md §1). Adjacency is symmetric;
- * every id here MUST be a known block (asserted in tests). Block ids only — already public-safe.
- * This is map topology, NOT ownership/economy.
+ * downtown — harbor — skyline — foundry — downtown). Phase 8A added Nexus + Garden as a second
+ * "new" corridor (downtown ⇄ garden ⇄ nexus ⇄ skyline). Phase 8B grows the SINGLE district to
+ * NINE blocks, adding Aurora + Relay + Lumen as a third "outer" corridor WITHOUT removing any
+ * prior edge:
+ *   - every Phase 6D ring edge and Phase 8A corridor edge is preserved (all existing routes work);
+ *   - the original 4-ring (downtown/harbor/skyline/foundry) is UNCHANGED;
+ *   - new edges garden↔aurora, aurora↔relay, relay↔lumen, lumen↔nexus, aurora↔lumen attach a
+ *     third corridor at garden & nexus, so the three new blocks form a bounded outer loop.
+ * 9 nodes / 12 edges — at the Phase-8A ceiling (B=9) the full manifest stays a few KB, well under
+ * the 16 KB norm, so no partial-manifest/sharding trigger fires (docs/PHASE_8_DISTRICT_SCALE_PLAN.md
+ * §1c, §3). Still bounded to directly-adjacent blocks only; adjacency is symmetric; every id here
+ * MUST be a known block (asserted in tests). Block ids only — already public-safe; map topology,
+ * NOT ownership/economy.
  */
 const ADJACENCY = Object.freeze({
   'downtown-01': Object.freeze(['harbor-02', 'foundry-04', 'garden-06']),
   'harbor-02': Object.freeze(['downtown-01', 'skyline-03']),
   'skyline-03': Object.freeze(['harbor-02', 'foundry-04', 'nexus-05']),
   'foundry-04': Object.freeze(['downtown-01', 'skyline-03']),
-  'nexus-05': Object.freeze(['skyline-03', 'garden-06']),
-  'garden-06': Object.freeze(['downtown-01', 'nexus-05']),
+  'nexus-05': Object.freeze(['skyline-03', 'garden-06', 'lumen-09']),
+  'garden-06': Object.freeze(['downtown-01', 'nexus-05', 'aurora-07']),
+  'aurora-07': Object.freeze(['garden-06', 'relay-08', 'lumen-09']),
+  'relay-08': Object.freeze(['aurora-07', 'lumen-09']),
+  'lumen-09': Object.freeze(['relay-08', 'nexus-05', 'aurora-07']),
 });
 
 /** True if cityId is a configured block. */

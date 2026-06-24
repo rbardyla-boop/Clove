@@ -2,15 +2,17 @@
  * Neon Circuit — District GRAPH model + corridor classifier (Phase 8C-2), PURE + cross-env.
  *
  * DISPLAY-ONLY route readability. Turns the public-safe district manifest (blocks + adjacency the client
- * already holds) into (a) a small fixed-layout graph model for a six-node "DISTRICT MAP" inset, and
+ * already holds) into (a) a small fixed-layout graph model for a nine-node "DISTRICT MAP" inset, and
  * (b) a corridor grouping so the panel can show adjacency as "Ring" vs "New corridor". It owns NO state,
  * adds NO wire field, and changes NO authority: the adjacent-only routing rule still lives entirely in
  * the server's validateRouteRequest — this module only *renders the same topology more legibly*.
  *
- * The two traversal paths downtown⇄skyline are static (city-district.mjs ADJACENCY):
- *   Ring         : downtown↔harbor, harbor↔skyline, skyline↔foundry, foundry↔downtown
- *   New corridor : downtown↔garden, garden↔nexus, nexus↔skyline   (Phase 8A)
- * Harbor and foundry are NOT adjacent — there is no edge between them.
+ * The traversal corridors are static (city-district.mjs ADJACENCY):
+ *   Ring          : downtown↔harbor, harbor↔skyline, skyline↔foundry, foundry↔downtown
+ *   New corridor  : downtown↔garden, garden↔nexus, nexus↔skyline   (Phase 8A)
+ *   Outer corridor: garden↔aurora, aurora↔relay, relay↔lumen, lumen↔nexus, aurora↔lumen  (Phase 8B)
+ * Harbor and foundry are NOT adjacent — there is no edge between them. The panel groups the outer
+ * corridor with the new corridor (two display buckets); routing stays adjacent-only on the server.
  *
  * Grants nothing economic. See docs/PHASE_8C_DISTRICT_CONTENT_DEPTH.md §4 (Polish 2/4/5).
  */
@@ -26,8 +28,13 @@ const RING_EDGES = Object.freeze([
 const NEW_EDGES = Object.freeze([
   ['downtown-01', 'garden-06'], ['garden-06', 'nexus-05'], ['nexus-05', 'skyline-03'],
 ]);
+const OUTER_EDGES = Object.freeze([
+  ['garden-06', 'aurora-07'], ['aurora-07', 'relay-08'], ['relay-08', 'lumen-09'],
+  ['lumen-09', 'nexus-05'], ['aurora-07', 'lumen-09'],
+]);
 const RING_SET = new Set(RING_EDGES.map(([a, b]) => edgeKey(a, b)));
 const NEW_SET = new Set(NEW_EDGES.map(([a, b]) => edgeKey(a, b)));
+const OUTER_SET = new Set(OUTER_EDGES.map(([a, b]) => edgeKey(a, b)));
 
 /** Fixed, stable 2D layout for the known six-block topology: a ring "diamond" + a lower new-corridor swoop. */
 const NODE_POS = Object.freeze({
@@ -37,14 +44,18 @@ const NODE_POS = Object.freeze({
   'foundry-04':  { x: 60, y: 80 }, // ring, bottom
   'garden-06':   { x: 44, y: 104 }, // new corridor, lower-left
   'nexus-05':    { x: 76, y: 104 }, // new corridor, lower-right
+  'aurora-07':   { x: 28, y: 124 }, // outer corridor, below garden
+  'lumen-09':    { x: 92, y: 124 }, // outer corridor, below nexus
+  'relay-08':    { x: 60, y: 140 }, // outer corridor, bottom bridge
 });
-export const DISTRICT_GRAPH_VIEWBOX = '0 0 120 120';
+export const DISTRICT_GRAPH_VIEWBOX = '0 0 120 152';
 
 /** PURE: which corridor an edge belongs to — 'ring' | 'new' | null (no direct edge / not adjacent). */
 export function corridorOf(a, b) {
   const k = edgeKey(a, b);
   if (RING_SET.has(k)) return 'ring';
   if (NEW_SET.has(k)) return 'new';
+  if (OUTER_SET.has(k)) return 'outer';
   return null;
 }
 
@@ -67,9 +78,10 @@ function fallbackPos(index, count) {
 export function groupAdjacentByCorridor(currentId, adjacentIds) {
   const ring = [], neu = [];
   for (const id of Array.isArray(adjacentIds) ? adjacentIds : []) {
-    // every real adjacency edge classifies as ring or new (proven for all six blocks in the unit test);
-    // a future edge in neither set falls back to the Ring group — a display default, never a routing change.
-    (corridorOf(currentId, id) === 'new' ? neu : ring).push(id);
+    // ring edges group under "Ring"; every non-ring edge (new + outer corridors) groups under "New
+    // corridor" so the panel keeps its two-bucket display contract as the map grows. Routing is
+    // unchanged — this is display grouping only.
+    (corridorOf(currentId, id) === 'ring' ? ring : neu).push(id);
   }
   return { ring, new: neu };
 }
