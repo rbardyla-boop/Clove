@@ -23,6 +23,8 @@
  *   -> { getRoot, open, close, isOpen, setBalance, roundAccepted, roundRejected }
  */
 
+import { createJuice, prefersReducedMotion } from '../../cabinet-juice.mjs';
+
 const ROUND_MS = 25000;
 const GRID_N = 4;               // 4x4 grid (16 cells)
 const CELLS = GRID_N * GRID_N;
@@ -30,6 +32,16 @@ const PATTERN_START = 3;        // first path length
 const PATTERN_MAX = 6;          // longest path
 const SHOW_STEP_MS = 460;       // per-cell reveal cadence
 const SHOW_GAP_MS = 220;        // gap between reveals
+
+// Per-cell Simon tones — a major-pentatonic scale across the 16 cells so a path
+// sounds melodic and each cell has a distinct, recognizable pitch (feel only;
+// no effect on scoring or which cells are correct).
+const PENTATONIC = [0, 2, 4, 7, 9];
+function cellFreq(i) {
+  const deg = i % PENTATONIC.length;
+  const oct = Math.floor(i / PENTATONIC.length);
+  return 294 * Math.pow(2, (PENTATONIC[deg] + 12 * oct) / 12);
+}
 
 let cssInjected = false;
 function ensureStyles() {
@@ -48,6 +60,9 @@ function ensureStyles() {
 export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onRoundStart = () => {}, onRoundSubmit = () => {} } = {}) {
   let root = null;       // the .ngg-panel (mounted into the cabinet frame by the runtime)
   let isOpen = false;
+
+  // Client-only feel layer (audio/haptic/motion). No economy, no scoring impact.
+  const juice = createJuice();
 
   let phase = 'ready';   // ready | show | input | grade
   let roundStart = 0;
@@ -127,8 +142,10 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
     const host = $('grid');
     if (!host) return;
     host.style.setProperty('--ngg-n', String(GRID_N));
+    // --h: a small per-cell hue offset (deg) so each lit cell reads as distinct
+    // (visual identity to match the per-cell tone). Cosmetic only.
     host.innerHTML = Array.from({ length: CELLS }, (_, i) =>
-      `<button class="ngg-tile" type="button" data-i="${i}" aria-label="cell ${i + 1}"></button>`).join('');
+      `<button class="ngg-tile" type="button" data-i="${i}" style="--h:${Math.round((i - 7.5) / 15 * 50)}" aria-label="cell ${i + 1}"></button>`).join('');
   }
 
   function onKey(e) {
@@ -152,6 +169,41 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
   function setPrompt(text) {
     const p = $('prompt');
     if (p) p.textContent = text || '';
+  }
+
+  // ---- feel / juice (presentation only; nothing here affects scoring) ----
+  function yourTurnCue() {
+    const p = $('prompt');
+    if (p && !prefersReducedMotion()) {
+      p.classList.remove('cue'); void p.offsetWidth; p.classList.add('cue');
+      setTimeout(() => { if (p) p.classList.remove('cue'); }, 600);
+    }
+    juice.tone(523, 120, { type: 'sine', gain: 0.05 });
+    juice.vibrate(10);
+  }
+  function pathCompleteCue() {
+    const grid = root && root.querySelector('.ngg-grid');
+    if (grid && !prefersReducedMotion()) {
+      grid.classList.remove('complete'); void grid.offsetWidth; grid.classList.add('complete');
+      setTimeout(() => { if (grid) grid.classList.remove('complete'); }, 420);
+    }
+    [659, 784, 988].forEach((f, i) => setTimeout(() => juice.tone(f, 130, { type: 'triangle', gain: 0.06 }), i * 70));
+    juice.vibrate([8, 30, 8]);
+  }
+  function gridShake() {
+    const stage = root && root.querySelector('.ngg-stage');
+    if (!stage || prefersReducedMotion()) return;
+    stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake');
+    setTimeout(() => { if (stage) stage.classList.remove('shake'); }, 300);
+  }
+  function gradeFlourish(g) {
+    const notes = g === 'S' ? [523, 659, 784, 1047]
+      : g === 'A' ? [523, 659, 784]
+      : g === 'B' ? [466, 587]
+      : g === 'F' ? [196, 165]
+      : [440, 554];
+    notes.forEach((f, i) => setTimeout(() => juice.tone(f, 150, { type: 'triangle', gain: 0.06 }), i * 110));
+    juice.vibrate(g === 'S' || g === 'A' ? [10, 40, 10] : 12);
   }
 
   function flash(kind) {
@@ -206,6 +258,7 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
         const el = tile(cellIndex);
         if (el) {
           el.classList.add('lit');
+          juice.tone(cellFreq(cellIndex), 230, { type: 'sine', gain: 0.06 }); // per-cell Simon tone
           showTimers.push(setTimeout(() => el && el.classList.remove('lit'), SHOW_STEP_MS - 60));
         }
       }, t));
@@ -215,7 +268,8 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
     showTimers.push(setTimeout(() => {
       if (phase === 'grade') return;
       phase = 'input';
-      setPrompt('Repeat the path');
+      setPrompt('Your turn — repeat the path');
+      yourTurnCue();
       root.querySelector('.ngg-grid')?.classList.remove('locked');
     }, t + 120));
   }
@@ -229,10 +283,17 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
       streak++;
       best = Math.max(best, streak);
       inputIndex++;
-      if (el) { el.classList.add('hit'); setTimeout(() => el && el.classList.remove('hit'), 180); }
+      if (el) {
+        el.classList.add('hit');                          // colour feedback (kept under reduced-motion)
+        if (!prefersReducedMotion()) el.classList.add('pop'); // scale pop is motion — JS-gated like the rest
+        setTimeout(() => el && el.classList.remove('hit', 'pop'), 220);
+      }
+      juice.tone(cellFreq(cellIndex), 150, { type: 'triangle', gain: 0.06 }); // tap echoes the cell's tone
+      juice.vibrate(7);
       if (inputIndex >= pattern.length) {
         completed++;
         flash('good');
+        pathCompleteCue();
         patternLen = Math.min(PATTERN_MAX, PATTERN_START + Math.floor(completed / 2));
         updateHud();
         setTimeout(() => { if (phase === 'input' || phase === 'show') nextPattern(); }, 260);
@@ -242,6 +303,9 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
       streak = 0;
       if (el) { el.classList.add('miss'); setTimeout(() => el && el.classList.remove('miss'), 220); }
       flash('bad');
+      juice.tone(140, 200, { type: 'square', gain: 0.05, slideTo: 90 }); // distinct error tone
+      juice.vibrate([6, 28, 6]);
+      gridShake();
       // Re-show the same path so the player can recover (does not advance difficulty).
       inputIndex = 0;
       setTimeout(() => { if (phase === 'input') showPattern(); }, 320);
@@ -261,6 +325,7 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
   }
 
   function startRound() {
+    juice.resume(); // unlock audio from the Start gesture (click/Enter/Space)
     correctSteps = mistakes = streak = best = completed = 0;
     patternLen = PATTERN_START;
     submittedThisRound = false;
@@ -283,11 +348,16 @@ export function createNeonGridGame({ accent = '#3df58b', onLeave = () => {}, onR
     clearTimers();
     const g = gradeFor();
     if (root) {
-      $('grade').textContent = g;
+      const gl = $('grade');
+      gl.textContent = g;
+      gl.className = 'ngg-grade-letter g-' + g; // per-grade glow + reveal animation
+      void gl.offsetWidth;                      // restart the reveal each round
+      gl.classList.add('reveal');
       $('gpatterns').textContent = completed;
       $('gstreak').textContent = best;
       $('gmistakes').textContent = mistakes;
       showScreen('grade');
+      gradeFlourish(g);
     }
     // Tickets are SERVER-authoritative. Submit the result and wait for the award.
     const result = {
