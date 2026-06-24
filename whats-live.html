@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#060410">
+<meta name="description" content="What's live in Neon Circuit: a nine-block neon city you walk in real time, with three playable arcade cabinets — Pulse Tap, Signal Sprint, and Neon Grid.">
+<meta property="og:title" content="NEON CIRCUIT — WHAT'S LIVE">
+<meta property="og:description" content="Walk a nine-block neon city and play three arcade cabinets. Live now at clovelearn.io/arcade/city/.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/whats-live.html">
+<title>NEON CIRCUIT — WHAT'S LIVE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#060410; --bg2:#0a0718; --ink:#eafff4; --dim:#8aa0b4; --line:rgba(120,160,200,.14);
+    --mag:#ff2d95;   /* Pulse Tap   */
+    --cyan:#19e3ff;  /* Signal Sprint */
+    --grn:#3df58b;   /* Neon Grid   */
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  html{height:100%}
+  body{
+    min-height:100dvh; color:var(--ink);
+    font-family:"Chakra Petch",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.6;
+    background:
+      radial-gradient(120% 80% at 12% -8%, rgba(255,45,149,.16), transparent 55%),
+      radial-gradient(120% 80% at 88% 0%, rgba(25,227,255,.14), transparent 55%),
+      radial-gradient(140% 90% at 50% 120%, rgba(61,245,139,.12), transparent 60%),
+      linear-gradient(180deg,#070512 0%, var(--bg) 60%, #04030c 100%);
+    background-attachment:fixed;
+  }
+
+  /* ---- top bar ---- */
+  .bar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; gap:12px;
+    padding:13px clamp(16px,4vw,28px);
+    background:rgba(6,4,16,.72); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .bar .mark{font-family:"Bungee",sans-serif; font-size:14px; letter-spacing:1px}
+  .bar .mark .s{color:var(--mag)}
+  .bar .mark .t{color:var(--cyan)}
+  .bar .back{
+    margin-left:auto; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--dim); text-decoration:none; padding:7px 13px; border-radius:999px;
+    border:1px solid var(--line); transition:color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .bar .back:hover,.bar .back:focus-visible{color:var(--ink); border-color:rgba(120,160,200,.4); outline:none}
+
+  .wrap{max-width:760px; margin:0 auto; padding:0 clamp(16px,4vw,28px) 64px}
+
+  /* ---- hero ---- */
+  .hero{padding:clamp(40px,8vw,76px) 0 clamp(28px,5vw,44px)}
+  .live{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:var(--grn);
+    border:1px solid rgba(61,245,139,.4); border-radius:999px; padding:5px 12px;
+    background:rgba(61,245,139,.06);
+  }
+  .live .dot{width:8px; height:8px; border-radius:50%; background:var(--grn);
+    box-shadow:0 0 10px 2px rgba(61,245,139,.8); animation:pulse 1.8s var(--ease) infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  h1{
+    font-family:"Bungee",sans-serif; font-weight:400; line-height:.96;
+    font-size:clamp(2.8rem,11vw,5.6rem); letter-spacing:1px; margin:18px 0 0;
+    text-shadow:0 0 30px rgba(255,45,149,.25);
+  }
+  h1 .c{color:var(--cyan)}
+  .lede{margin-top:16px; font-size:clamp(1rem,2.4vw,1.2rem); color:#cfe0ee; max-width:46ch}
+  .cta-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:26px}
+  .cta{
+    display:inline-flex; align-items:center; gap:10px; text-decoration:none;
+    font-weight:700; font-size:15px; letter-spacing:.4px;
+    padding:13px 22px; border-radius:999px; transition:transform .18s var(--ease), box-shadow .25s var(--ease);
+  }
+  .cta.primary{color:#08030f; background:var(--mag); box-shadow:0 0 22px rgba(255,45,149,.45)}
+  .cta.primary:hover,.cta.primary:focus-visible{transform:translateY(-2px); box-shadow:0 0 30px rgba(255,45,149,.7); outline:none}
+  .cta.ghost{color:var(--ink); border:1px solid rgba(120,160,200,.35)}
+  .cta.ghost:hover,.cta.ghost:focus-visible{border-color:var(--cyan); color:var(--cyan); outline:none}
+  .cta .arr{transition:transform .18s var(--ease)}
+  .cta:hover .arr{transform:translateX(3px)}
+
+  /* ---- section heads ---- */
+  .sec{padding-top:clamp(30px,5vw,46px)}
+  .eyebrow{font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--dim)}
+  .sec h2{font-family:"Bungee",sans-serif; font-weight:400; font-size:clamp(1.4rem,4.5vw,2rem); margin:8px 0 4px; letter-spacing:.5px}
+
+  /* ---- city facts ---- */
+  .facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-top:18px}
+  .fact{border:1px solid var(--line); border-radius:14px; padding:16px 16px 18px; background:rgba(255,255,255,.02)}
+  .fact .n{font-family:"Bungee",sans-serif; font-size:1.7rem; color:var(--cyan); line-height:1}
+  .fact .l{margin-top:8px; font-size:13px; color:var(--dim)}
+  .keys{margin-top:16px; font-size:14px; color:#cfe0ee}
+  .key{display:inline-block; font-family:"Bungee",sans-serif; font-size:12px; color:var(--ink);
+    border:1px solid var(--line); border-radius:7px; padding:3px 9px; margin:0 2px; background:rgba(255,255,255,.03)}
+
+  /* ---- cabinet cards ---- */
+  .cabs{display:grid; grid-template-columns:1fr; gap:14px; margin-top:18px}
+  @media(min-width:620px){.cabs{grid-template-columns:repeat(3,1fr)}}
+  .cab{
+    --a:var(--cyan);
+    position:relative; border:1px solid var(--line); border-radius:16px; overflow:hidden;
+    padding:20px 18px; background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+    transition:transform .2s var(--ease), border-color .2s var(--ease), box-shadow .25s var(--ease);
+  }
+  .cab::before{content:""; position:absolute; inset:0 0 auto 0; height:3px; background:var(--a); box-shadow:0 0 16px 1px var(--a)}
+  .cab:hover{transform:translateY(-3px); border-color:color-mix(in srgb,var(--a) 50%, transparent);
+    box-shadow:0 12px 30px -16px var(--a)}
+  .cab.mag{--a:var(--mag)} .cab.cyan{--a:var(--cyan)} .cab.grn{--a:var(--grn)}
+  .cab .tag{font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--a)}
+  .cab h3{font-family:"Bungee",sans-serif; font-weight:400; font-size:1.15rem; margin:6px 0 8px; letter-spacing:.5px}
+  .cab p{font-size:13.5px; color:#c2d4e2}
+  .cab .feel{margin-top:12px; font-size:12px; color:var(--dim); border-top:1px dashed var(--line); padding-top:10px}
+  .cab .feel b{color:var(--ink); font-weight:600}
+
+  /* ---- honest note ---- */
+  .note{
+    margin-top:clamp(30px,5vw,46px); border:1px solid rgba(120,160,200,.2); border-left:3px solid var(--grn);
+    border-radius:12px; padding:18px 18px; background:rgba(61,245,139,.04);
+  }
+  .note h2{font-family:"Bungee",sans-serif; font-weight:400; font-size:1.05rem; letter-spacing:.5px; margin-bottom:8px}
+  .note p{font-size:13.5px; color:#c2d4e2}
+  .note p + p{margin-top:8px}
+  .note b{color:var(--ink)}
+
+  footer{margin-top:clamp(34px,6vw,52px); padding-top:20px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--dim); display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center}
+  footer a{color:var(--dim); text-decoration:none; border-bottom:1px solid transparent; transition:color .2s,border-color .2s}
+  footer a:hover,footer a:focus-visible{color:var(--ink); border-color:var(--line); outline:none}
+  footer .sp{margin-left:auto}
+
+  @media (prefers-reduced-motion: reduce){
+    .live .dot{animation:none}
+    .cta,.cab,.cta .arr{transition:none}
+    body{background-attachment:scroll}
+  }
+</style>
+</head>
+<body>
+  <nav class="bar" aria-label="Site">
+    <span class="mark">NEON&nbsp;<span class="s">CIRCUIT</span>&nbsp;<span class="t">//</span>&nbsp;WHAT'S&nbsp;LIVE</span>
+    <a class="back" href="index.html">← Home</a>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <span class="live"><span class="dot" aria-hidden="true"></span>Live now</span>
+      <h1>WHAT'S <span class="c">PLAYABLE</span></h1>
+      <p class="lede">A nine-block neon city you walk in real time — with three arcade cabinets you can step up to and play. No install, no sign-up. Open it and move.</p>
+      <div class="cta-row">
+        <a class="cta primary" href="arcade/city/">Enter the city <span class="arr" aria-hidden="true">→</span></a>
+        <a class="cta ghost" href="arcade/">Classic arcade floor</a>
+      </div>
+    </header>
+
+    <section class="sec" aria-labelledby="city-h">
+      <span class="eyebrow">The world</span>
+      <h2 id="city-h">A city you walk</h2>
+      <p class="lede" style="margin-top:6px">Nine connected blocks linked by lit corridors. Other players are really there — shared presence, live district routing, and scheduled neon events as you move between blocks.</p>
+      <div class="facts">
+        <div class="fact"><div class="n">9</div><div class="l">connected city blocks to roam</div></div>
+        <div class="fact"><div class="n">3</div><div class="l">playable arcade cabinets</div></div>
+        <div class="fact"><div class="n">Live</div><div class="l">shared multiplayer presence</div></div>
+      </div>
+      <p class="keys">Move with <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> or the arrow keys · press <span class="key">E</span> at a cabinet to play. On a phone, just open the link and use the on-screen controls.</p>
+    </section>
+
+    <section class="sec" aria-labelledby="cabs-h">
+      <span class="eyebrow">Three cabinets</span>
+      <h2 id="cabs-h">Step up and play</h2>
+      <div class="cabs">
+        <article class="cab mag">
+          <div class="tag">Rhythm</div>
+          <h3>Pulse Tap</h3>
+          <p>Tap on the beat as the pulse hits the ring. Simple to start, tight to master.</p>
+          <p class="feel"><b>The feel:</b> 3·2·1 countdown, a hit burst on every clean tap, and an animated grade at the buzzer.</p>
+        </article>
+        <article class="cab cyan">
+          <div class="tag">Lane runner</div>
+          <h3>Signal Sprint</h3>
+          <p>Slide between lanes, catch the pulses, dodge the noise. Speeds up the longer you last.</p>
+          <p class="feel"><b>The feel:</b> smooth lane lean, a live distance readout, and clear collect / miss feedback.</p>
+        </article>
+        <article class="cab grn">
+          <div class="tag">Memory</div>
+          <h3>Neon Grid</h3>
+          <p>Watch the grid light a path, then play it back. Each round the path grows.</p>
+          <p class="feel"><b>The feel:</b> every cell has its own tone, a brighter reveal, and a "your turn" cue before you tap.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="note" aria-labelledby="note-h">
+      <h2 id="note-h">About tickets</h2>
+      <p>Playing well earns <b>tickets</b> inside the arcade. Tickets are a <b>score — a way to track attention and skill</b>, nothing more.</p>
+      <p>They are <b>not money and not a coin</b>. There is nothing to buy, nothing to deposit, no balance to cash out, and no trading. The whole experience is free to open and play.</p>
+    </section>
+
+    <footer>
+      <span>Neon Circuit · Public Arcade v1 · <a href="https://clovelearn.io/arcade/city/">clovelearn.io/arcade/city</a></span>
+      <a class="sp" href="changelog.html">Changelog →</a>
+    </footer>
+  </div>
+</body>
+</html>
