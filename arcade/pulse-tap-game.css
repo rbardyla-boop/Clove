@@ -68,3 +68,65 @@
 .ptg-award.submitting { color: var(--ptg-accent, #ff2d95); opacity: .85; }
 .ptg-award.accepted { color: #3df58b; text-shadow: 0 0 12px rgba(61, 245, 139, .45); }
 .ptg-award.rejected { color: #ff4d6d; }
+
+/* ============================================================
+   FEEL / JUICE PASS (Sprint A2) — client-side presentation ONLY.
+   Nothing here affects scoring, tickets, payout, or round duration.
+   ============================================================ */
+
+/* Anticipation: the pulse glow ramps as it nears the hit point (--ptg-arm 0..1,
+   set every frame by the game loop). Overrides only the box-shadow from above. */
+.ptg-pulse{--ptg-arm:0;
+  box-shadow:0 0 calc(22px + var(--ptg-arm) * 40px) -2px var(--ptg-accent),
+             inset 0 0 calc(var(--ptg-arm) * 22px) var(--ptg-accent);}
+
+/* Streak escalation: a soft accent wash over the stage that grows with the
+   current streak (--ptg-streak 0..20, set on the panel). */
+.ptg-stage::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 50% 50%,
+    color-mix(in srgb, var(--ptg-accent) 22%, transparent), transparent 62%);
+  opacity:calc(var(--ptg-streak, 0) / 28);transition:opacity .25s ease;}
+.ptg-target,.ptg-pulse,.ptg-burst,.ptg-center{z-index:1;}
+
+/* Hit burst — an expanding accent ring on a clean hit (green on PERFECT). */
+.ptg-burst{position:absolute;left:50%;top:50%;width:120px;height:120px;border-radius:50%;
+  transform:translate(-50%,-50%) scale(.3);border:3px solid var(--ptg-accent);
+  opacity:0;pointer-events:none;will-change:transform,opacity;}
+.ptg-burst.go{animation:ptg-burst .42s cubic-bezier(.16,1,.3,1);}
+.ptg-burst.perfect{border-color:var(--good, #3df58b);}
+@keyframes ptg-burst{
+  0%{opacity:.9;transform:translate(-50%,-50%) scale(.3);}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.9);}}
+
+/* Miss shake. */
+.ptg-stage.shake{animation:ptg-shake .3s ease;}
+@keyframes ptg-shake{
+  0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}
+  40%{transform:translateX(5px);}60%{transform:translateX(-4px);}80%{transform:translateX(3px);}}
+
+/* Pre-round 3-2-1-GO countdown overlay. */
+.ptg-count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:84px;color:#fff;
+  text-shadow:0 0 30px var(--ptg-accent);background:rgba(8,4,17,.55);
+  pointer-events:none;z-index:3;}
+.ptg-count[hidden]{display:none;}
+.ptg-count.tick{animation:ptg-count-pop .5s ease;}
+@keyframes ptg-count-pop{
+  0%{opacity:0;transform:scale(.5);}30%{opacity:1;transform:scale(1.08);}
+  100%{opacity:.85;transform:scale(1);}}
+
+/* Animated grade reveal + per-grade glow. */
+.ptg-grade-letter.reveal{animation:ptg-grade-in .5s cubic-bezier(.16,1,.3,1);}
+.ptg-grade-letter.g-S{color:#ffce3a;text-shadow:0 0 36px #ffce3a;}
+.ptg-grade-letter.g-A{color:var(--good, #3df58b);text-shadow:0 0 30px var(--good, #3df58b);}
+.ptg-grade-letter.g-F{color:var(--danger, #ff4d6d);text-shadow:0 0 22px var(--danger, #ff4d6d);}
+@keyframes ptg-grade-in{
+  0%{opacity:0;transform:scale(.4) rotate(-6deg);}
+  60%{opacity:1;transform:scale(1.12);}100%{transform:scale(1);}}
+
+/* Respect reduced-motion: keep gameplay, feedback text, and audio; drop big motion. */
+@media (prefers-reduced-motion: reduce){
+  .ptg-burst,.ptg-stage.shake,.ptg-count.tick,.ptg-grade-letter.reveal{animation:none;}
+  .ptg-stage::before{transition:none;}
+  .ptg-burst.go{opacity:0;}
+}
