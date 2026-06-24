@@ -171,15 +171,34 @@
         .card-arcade .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
         .card-arcade .card-cta { color: #e03030; }
 
+        /* Neon Circuit card — Public Arcade v1 (live multiplayer city + 3 cabinets) */
+        .card-neoncircuit {
+            border-color: rgba(255,45,149,0.28);
+            grid-column: span 2;
+        }
+        .card-neoncircuit:hover {
+            border-color: rgba(255,45,149,0.6);
+            box-shadow: 0 24px 60px rgba(255,45,149,0.12);
+        }
+        .card-neoncircuit .card-tag {
+            font-size: 9px; letter-spacing: 0.18em; color: #ff2d95;
+            background: rgba(255,45,149,0.1); border: 1px solid rgba(255,45,149,0.28);
+            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
+        }
+        .card-neoncircuit .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
+        .card-neoncircuit .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
+        .card-neoncircuit .card-cta { color: #ff2d95; }
+
         /* Mobile */
         @media (max-width: 580px) {
             .container { gap: 14px; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); }
             .cards { grid-template-columns: 1fr; max-width: 420px; gap: 14px; }
             .card { padding: 22px 18px; border-radius: 16px; }
-            .card-arcade { grid-column: span 1; }
+            .card-arcade, .card-neoncircuit { grid-column: span 1; }
             .card-game .card-title,
             .card-learn .card-title,
             .card-arcade .card-title,
+            .card-neoncircuit .card-title,
             .card-mindmachine .card-title,
             .card-nodehopper .card-title { font-size: 20px; }
         }
@@ -189,6 +208,16 @@
     <div class="container">
         <p class="eyebrow">Welcome</p>
         <div class="cards">
+
+            <a class="card card-neoncircuit" href="whats-live.html">
+                <span class="card-tag">NEW · LIVE MULTIPLAYER ARCADE</span>
+                <div class="card-title">NEON CIRCUIT</div>
+                <div class="card-subtitle">
+                    Walk a nine-block neon city in real time and play three arcade cabinets — Pulse Tap, Signal Sprint, and Neon Grid. No install, no sign-up.
+                </div>
+                <div class="card-divider"></div>
+                <span class="card-cta">SEE WHAT'S LIVE</span>
+            </a>
 
             <a class="card card-arcade" href="game/Arcade/index.html">
                 <span class="card-tag">MINI ARCADE · 6 GAMES</span>
