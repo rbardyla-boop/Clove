@@ -22,6 +22,7 @@
  * game's native logical size (360x640) and uniformly scales it to fit.
  */
 import { createCabinetFrame } from './cabinet-frame.js';
+import { createJuice, prefersReducedMotion } from './cabinet-juice.mjs';
 
 const ROUND_MS = 25000;
 const LANES = 3;
@@ -41,6 +42,7 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
   let roundStart = 0;
   let lastFrame = 0;
   let lastSpawn = 0;
+  let lastHud = 0; // throttle for the live HUD tick (readability — display only)
   let spawnMs = SPAWN_MS_START;
   let scrollPx = SCROLL_PX_START;
   let lane = 1;                 // 0..LANES-1, rider starts centre
@@ -49,6 +51,10 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
   let pulses = 0, noise = 0, streak = 0, best = 0, distance = 0;
   let ticketBalance = 0;        // server-authoritative; display only
   let submittedThisRound = false;
+
+  // Client-only feel layer (audio/haptic/motion). No economy, no scoring impact.
+  const juice = createJuice();
+  let countTimers = []; // pre-round 3-2-1-GO timers (cancellable on close/restart)
 
   const $ = (f) => root.querySelector(`[data-f="${f}"]`);
   const screen = (name) => root.querySelector(`[data-screen="${name}"]`);
@@ -71,12 +77,14 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
           <div class="ssg-cell"><span class="k">Pulses</span><span class="v" data-f="pulses">0</span></div>
           <div class="ssg-cell"><span class="k">Streak</span><span class="v" data-f="streak">0</span></div>
           <div class="ssg-cell"><span class="k">Noise</span><span class="v" data-f="noise">0</span></div>
+          <div class="ssg-cell"><span class="k">Dist</span><span class="v" data-f="dist">0</span></div>
           <div class="ssg-cell"><span class="k">Tickets</span><span class="v" data-f="bal">0</span></div>
         </div>
         <div class="ssg-stage" data-act="stage" tabindex="0" aria-label="Steer left or right to collect pulses and dodge static">
           <div class="ssg-lanes" data-f="lanes" aria-hidden="true"></div>
           <div class="ssg-band" aria-hidden="true"></div>
           <div class="ssg-rider" data-f="rider" aria-hidden="true"></div>
+          <div class="ssg-count" data-f="count" aria-hidden="true" hidden></div>
           <div class="ssg-ready" data-screen="ready">
             <div class="ssg-big">READY?</div>
             <p>Steer with ← → (or A / D).<br>Catch the pulses, dodge the static.</p>
@@ -111,7 +119,7 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
     root.addEventListener('click', (e) => {
       const act = e.target.closest('[data-act]')?.dataset.act;
       if (act === 'leave') onLeave();
-      else if (act === 'start' || act === 'again') startRound();
+      else if (act === 'start' || act === 'again') { juice.resume(); startRound(); }
       else if (act === 'left') steer(-1);
       else if (act === 'right') steer(1);
     });
@@ -145,13 +153,57 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
 
   function steer(dir) {
     if (phase !== 'playing') return;
+    const before = lane;
     lane = Math.max(0, Math.min(LANES - 1, lane + dir));
     positionRider();
+    if (lane !== before) leanRider(dir); // feel only — a brief tilt in the steer direction
   }
 
   function positionRider() {
     const rider = root.querySelector('.ssg-rider');
     if (rider) rider.style.left = laneX(lane) + '%';
+  }
+
+  // ---- feel / juice (presentation only; nothing here affects scoring) ----
+  function leanRider(dir) {
+    const rider = root && root.querySelector('.ssg-rider');
+    if (!rider || prefersReducedMotion()) return;
+    rider.classList.remove('lean-l', 'lean-r');
+    void rider.offsetWidth;
+    rider.classList.add(dir < 0 ? 'lean-l' : 'lean-r');
+    setTimeout(() => { if (rider) rider.classList.remove('lean-l', 'lean-r'); }, 150);
+  }
+  function riderPop() {
+    const rider = root && root.querySelector('.ssg-rider');
+    if (!rider || prefersReducedMotion()) return;
+    rider.classList.remove('pop');
+    void rider.offsetWidth;
+    rider.classList.add('pop');
+    setTimeout(() => { if (rider) rider.classList.remove('pop'); }, 220);
+  }
+  function stageShake() {
+    const stage = root && root.querySelector('.ssg-stage');
+    if (!stage || prefersReducedMotion()) return;
+    stage.classList.remove('shake');
+    void stage.offsetWidth;
+    stage.classList.add('shake');
+    setTimeout(() => { if (stage) stage.classList.remove('shake'); }, 300);
+  }
+  function setStreakGlow() {
+    if (root) root.style.setProperty('--ssg-streak', String(Math.min(streak, 20)));
+  }
+  function gradeFlourish(g) {
+    const notes = g === 'S' ? [523, 659, 784, 1047]
+      : g === 'A' ? [523, 659, 784]
+      : g === 'B' ? [466, 587]
+      : g === 'F' ? [196, 165]
+      : [440, 554];
+    notes.forEach((f, i) => setTimeout(() => juice.tone(f, 150, { type: 'triangle', gain: 0.06 }), i * 110));
+    juice.vibrate(g === 'S' || g === 'A' ? [10, 40, 10] : 12);
+  }
+  function clearCountTimers() {
+    for (const t of countTimers) clearTimeout(t);
+    countTimers = [];
   }
 
   function showScreen(s) {
@@ -176,6 +228,7 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
     $('pulses').textContent = pulses;
     $('streak').textContent = streak;
     $('noise').textContent = noise;
+    $('dist').textContent = distance; // display-only; distance already feeds the score
   }
 
   function flash(kind) {
@@ -249,8 +302,17 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
         if (e.node) e.node.classList.add('caught');
         if (e.type === 'pulse') {
           pulses++; streak++; best = Math.max(best, streak); flash('pulse');
+          // feel only — pitch climbs with streak so a run sounds rewarding
+          juice.tone(560 + Math.min(streak, 16) * 18, 90, { type: 'triangle', gain: 0.06, slideTo: 720 + Math.min(streak, 16) * 18 });
+          juice.vibrate(8);
+          riderPop();
+          setStreakGlow();
         } else {
           noise++; streak = 0; flash('noise');
+          juice.tone(150, 130, { type: 'square', gain: 0.05, slideTo: 96 });
+          juice.vibrate([5, 26, 5]);
+          stageShake();
+          setStreakGlow();
         }
         updateHud();
       } else if (e.pos > 108) {
@@ -263,20 +325,63 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
       entities = entities.filter((e) => !e.done);
     }
 
+    // live HUD tick (Time + Dist count smoothly, not only on a collection) — display only
+    if (now - lastHud > 120) { updateHud(); lastHud = now; }
+
     raf = requestAnimationFrame(loop);
   }
 
+  // Pre-round 3-2-1-GO. Purely a client pre-roll: it does NOT touch ROUND_MS,
+  // the score, or the server round (onRoundStart fires in beginRound, when play
+  // actually starts), so duration/scoring are unchanged.
   function startRound() {
+    clearCountTimers();
+    cancelAnimationFrame(raf);
     pulses = noise = streak = best = distance = 0;
     lane = 1;
     spawnMs = SPAWN_MS_START;
     scrollPx = SCROLL_PX_START;
     clearEntities();
-    phase = 'playing';
-    roundStart = lastFrame = lastSpawn = performance.now();
     submittedThisRound = false;
+    phase = 'count';
     showScreen('play');
     positionRider();
+    setStreakGlow();
+    // clean pre-round HUD during the countdown (roundStart isn't live yet, so
+    // updateHud() would show a stale/negative time on "Play again")
+    $('time').textContent = Math.ceil(ROUND_MS / 1000);
+    $('pulses').textContent = '0';
+    $('streak').textContent = '0';
+    $('noise').textContent = '0';
+    $('dist').textContent = '0';
+    const count = $('count');
+    if (count) { count.hidden = false; count.setAttribute('aria-hidden', 'false'); }
+    const steps = ['3', '2', '1', 'GO'];
+    const stepMs = 560;
+    steps.forEach((label, i) => {
+      countTimers.push(setTimeout(() => {
+        if (phase !== 'count') return;
+        if (count) {
+          count.textContent = label;
+          count.classList.remove('tick');
+          void count.offsetWidth;
+          count.classList.add('tick');
+        }
+        juice.tone(label === 'GO' ? 680 : 430, label === 'GO' ? 150 : 90,
+          { type: 'triangle', gain: 0.06, slideTo: label === 'GO' ? 880 : 430 });
+        if (label === 'GO') juice.vibrate(18);
+      }, i * stepMs));
+    });
+    countTimers.push(setTimeout(beginRound, steps.length * stepMs));
+  }
+
+  function beginRound() {
+    if (!isOpen) return;
+    const count = $('count');
+    if (count) { count.hidden = true; count.setAttribute('aria-hidden', 'true'); count.classList.remove('tick'); }
+    phase = 'playing';
+    roundStart = lastFrame = lastSpawn = performance.now();
+    lastHud = 0;
     updateHud();
     root.querySelector('.ssg-stage').focus();
     // Ask the server to register this round (issues the authoritative round id).
@@ -290,11 +395,16 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
     cancelAnimationFrame(raf);
     clearEntities();
     const g = grade();
-    $('grade').textContent = g;
+    const gl = $('grade');
+    gl.textContent = g;
+    gl.className = 'ssg-grade-letter g-' + g; // per-grade glow + reveal animation
+    void gl.offsetWidth;                      // restart the reveal each round
+    gl.classList.add('reveal');
     $('gpulses').textContent = pulses;
     $('gstreak').textContent = best;
     $('gnoise').textContent = noise;
     showScreen('grade');
+    gradeFlourish(g);
 
     // Tickets are SERVER-authoritative. Submit the result and wait for the award.
     const result = {
@@ -320,6 +430,9 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
       isOpen = true;
       phase = 'ready';
       showScreen('ready');
+      const count = $('count');
+      if (count) { count.hidden = true; count.textContent = ''; count.classList.remove('tick'); }
+      root.style.setProperty('--ssg-streak', '0');
       positionRider();
       $('fb').className = 'ssg-feedback';
       setBalanceUI(ticketBalance);
@@ -331,6 +444,7 @@ export function createSignalSprintGame({ accent = '#19e3ff', onLeave = () => {},
       isOpen = false;
       phase = 'ready';
       cancelAnimationFrame(raf);
+      clearCountTimers();
       clearEntities();
       frame.close();
     },
