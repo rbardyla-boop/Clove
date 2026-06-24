@@ -5,6 +5,30 @@ Newest first.
 
 ---
 
+## ADR-047 — CF-7 live loader stays DISABLED until the Phase 9A.5 economy legal/safety review resolves (2026-06-24)
+
+**Context.** The Phase 9A.5 read-only audit (`docs/PHASE9A5_ECONOMY_LEGAL_SAFETY_AUDIT.md`) recorded
+that the live arcade ticket→prize economy is **persistent** (DO-durable `arcadeState`,
+`arcade-room.ts:156`), **keyed by a client-supplied `playerId`** (no account/auth), publicly
+reachable on `clovelearn.io` with **no age gate**, and **not yet through a documented legal review**.
+It is non-cash, non-transferable, and capped, but the §7 counsel questions (minors/child-privacy,
+chance/prize mechanics, stored-value, consumer/dark-pattern, data-retention) are open. CF-7
+(operator-approved live creator loading) is already SHIPPED DISABLED via
+`LIVE_WORLD_LOADER_ENABLED=false` (`arcade/creator/approval/approved-loader.mjs`). Enabling CF-7
+could let creator-authored content reach the same rewards/economy surface, compounding an
+as-yet-unreviewed risk.
+
+**Decision.** CF-7 stays disabled. `LIVE_WORLD_LOADER_ENABLED` remains `false` — no flag flip, no
+live creator loading, no public UGC reaching the live world — **until** the §7 counsel questions are
+answered and the economy acceptance criteria (audit §12) are met. This ADR records the operator
+decision binding CF-7 enablement to the economy/legal review; it changes no code (the flag is
+already false) and is a governance gate, not an implementation change.
+
+**Consequences.** Live creator loading and any economy expansion remain gated behind counsel review;
+the audit's §12 acceptance criteria are the explicit gate. No deploy, no flag change, and no economy
+or UGC enablement may proceed without first satisfying that review. Revisit this ADR only when the
+9A.5 review is recorded as resolved.
+
 ## ADR-046 — Consent Anchor bridge boundary (PLAN ONLY; read-only, no live authority) (2026-06-24)
 
 **Context.** The Trust Stack framing pairs Neon Circuit with a user-authorized cognitive/evidence
