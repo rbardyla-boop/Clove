@@ -12,8 +12,10 @@
  * Run: see tests/arcade/run-city-district.sh
  */
 import { createRequire } from 'node:module';
+import { CITY_IDS } from '../../arcade/city/city-block.mjs'; // canonical roster — node/tour counts derive from B
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
 const { chromium } = require('playwright');
+const B = CITY_IDS.length; // current block count (B=9 at the Phase 8B outer corridor)
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8788/arcade/city/ws';
@@ -54,7 +56,7 @@ try {
   // ── discovery ──────────────────────────────────────────────────────────────
   const d0 = await A.page.evaluate(() => window.__neon_city.district());
   check('district manifest received on join', !!d0 && d0.district_id === 'neon-district-01');
-  check('district lists all six blocks (Phase 8A)', !!d0 && Array.isArray(d0.blocks) && d0.blocks.length === 6);
+  check('district lists every block (Phase 8B)', !!d0 && Array.isArray(d0.blocks) && d0.blocks.length === B);
   check('current block is downtown-01 (server-owned)', !!d0 && d0.current_city_id === 'downtown-01');
   check('DISTRICT panel renders the current block name', await A.page.evaluate(() => /DISTRICT/.test(document.getElementById('cityDistrict').textContent) && /Downtown Block/.test(document.getElementById('cityDistrict').textContent)));
   check('adjacent block (Harbor) is shown with a Travel control', await A.page.evaluate(() => { const el = document.getElementById('cityDistrict'); return /Harbor Block/.test(el.textContent) && !!el.querySelector('.dist-travel'); }));
@@ -71,15 +73,16 @@ try {
 
   // ── Phase 8C: per-block identity + District Tour (display-only content depth) ──
   check('current block tagline renders (Downtown — the hub)', await A.page.evaluate(() => /Downtown Block — the hub/.test(document.getElementById('cityDistrict').textContent)));
-  check('District Tour shows 1/6 on arrival at downtown (non-reward, session-local)', await A.page.evaluate(() => /District Tour · 1\/6 blocks seen/.test(document.getElementById('cityDistrict').textContent)));
+  check(`District Tour shows 1/${B} on arrival at downtown (non-reward, session-local)`, await A.page.evaluate((b) => new RegExp(`District Tour · 1/${b} blocks seen`).test(document.getElementById('cityDistrict').textContent), B));
   check('adjacent block carries a why-go-there affordance (Garden calm corridor)', await A.page.evaluate(() => /Calm new-corridor entry from Downtown\./.test(document.getElementById('cityDistrict').textContent)));
   check('Travel control exposes the why-go-there as an aria-label', await A.page.evaluate(() => [...document.querySelectorAll('#cityDistrict .dist-travel')].some((b) => /Travel to .+ — /.test(b.getAttribute('aria-label') || ''))));
   check('8C content adds no reward/economy vocabulary to the panel', await A.page.evaluate(() => !/\b(reward|earn|prize|bonus|unlock|token|payout|loot|wager|jackpot|stake)\b/i.test(document.getElementById('cityDistrict').textContent)));
 
   // ── Phase 8C-2: district-graph inset + corridor grouping + route readability (display-only) ──
-  check('DISTRICT MAP graph renders six nodes', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-node').length === 6));
-  check('DISTRICT MAP graph renders seven edges (4 ring + 3 new)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-edge').length === 7));
+  check('DISTRICT MAP graph renders one node per block', await A.page.evaluate((b) => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-node').length === b, B));
+  check('DISTRICT MAP graph renders twelve edges (4 ring + 3 new + 5 outer)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-edge').length === 12));
   check('the new Garden⇄Nexus corridor is visually distinguished (dm-new edges)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-new').length === 3));
+  check('the outer Aurora⇄Relay⇄Lumen corridor is visually distinguished (dm-outer edges)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-outer').length === 5));
   check('current block is highlighted on the map (exactly one dm-current)', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-current').length === 1));
   check('downtown shows its three adjacent (routable) nodes emphasized', await A.page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-adjacent').length === 3));
   check('adjacency is grouped by corridor — from downtown BOTH headers show (Ring + New corridor)', await A.page.evaluate(() => { const h = [...document.querySelectorAll('#cityDistrict .dist-group')].map((e) => e.textContent); return h.includes('Ring') && h.includes('New corridor'); }));
@@ -158,13 +161,13 @@ try {
   check('host rank panel still present (4E intact)', await A.page.evaluate(() => window.__neon_city.hostRank() !== null));
   check('stewardship panel still present (4F intact)', await A.page.evaluate(() => window.__neon_city.stewardship() !== null));
 
-  // Phase 8C: after downtown → harbor → skyline, the District Tour has counted 3 of 6 blocks seen.
+  // Phase 8C: after downtown → harbor → skyline, the District Tour has counted 3 of B blocks seen.
   // The Tour count is rendered by renderDistrict() — which is driven by the skyline district MANIFEST,
   // not the client-side cityId/palette the prior checks waited on. On a remote Worker that manifest
   // re-render lands a few hundred ms after reconnect, so wait for the rendered text before asserting
   // (same poll-then-assert pattern as the harbor/skyline checks above; display-only, no authority).
-  await A.page.waitForFunction(() => /District Tour · 3\/6 blocks seen/.test(document.getElementById('cityDistrict').textContent), null, { timeout: 9000 }).catch(() => {});
-  check('District Tour counted 3/6 after traversing three blocks', await A.page.evaluate(() => /District Tour · 3\/6 blocks seen/.test(document.getElementById('cityDistrict').textContent)));
+  await A.page.waitForFunction((b) => new RegExp(`District Tour · 3/${b} blocks seen`).test(document.getElementById('cityDistrict').textContent), B, { timeout: 9000 }).catch(() => {});
+  check(`District Tour counted 3/${B} after traversing three blocks`, await A.page.evaluate((b) => new RegExp(`District Tour · 3/${b} blocks seen`).test(document.getElementById('cityDistrict').textContent), B));
 
   check('no console / page errors', A.errors.length === 0);
   if (A.errors.length) console.log('  errors:', JSON.stringify(A.errors, null, 2));

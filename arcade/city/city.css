@@ -172,7 +172,7 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-district .dist-tag { font-size: 11px; line-height: 1.4; color: var(--ink); opacity: .82; letter-spacing: .2px; } /* Phase 8C: block tagline (what this place is) */
 .city-district .dist-tour { font-family: var(--mono); font-size: 10px; line-height: 1.5; letter-spacing: .4px; color: var(--ink); opacity: .7; margin-top: 3px; } /* Phase 8C: District Tour (non-reward, session-local) */
 .city-district .dist-why { font-size: 10px; line-height: 1.35; letter-spacing: .2px; margin: 1px 0 4px; } /* Phase 8C: why-go-there affordance */
-.city-district .dist-tour.dist-good { color: #7cffb2; opacity: .9; } /* Phase 8C: District Tour complete (6/6) — visual-only cue */
+.city-district .dist-tour.dist-good { color: #7cffb2; opacity: .9; } /* Phase 8C: District Tour complete (all blocks) — visual-only cue */
 /* Phase 8C-2: route readability — YOU ARE HERE, corridor group headings, district-map graph inset */
 .city-district .dist-here { font-family: var(--mono); font-size: 9px; letter-spacing: .6px; color: var(--cy); opacity: .85; }
 .city-district .dist-group { font-family: var(--mono); font-size: 9px; letter-spacing: .7px; text-transform: uppercase; color: var(--ink); opacity: .55; margin-top: 7px; }
@@ -188,6 +188,7 @@ body { font-family: var(--mono); color: var(--ink); -webkit-tap-highlight-color:
 .city-district .dist-map-svg .dm-edge { stroke: var(--edge, #34465a); stroke-width: 1.4; opacity: .55; fill: none; }
 .city-district .dist-map-svg .dm-new { stroke: var(--mg); stroke-dasharray: 4 3; opacity: .65; } /* new corridor = magenta dashed */
 .city-district .dist-map-svg .dm-ring { stroke: var(--cy); opacity: .5; }                          /* original ring = cyan solid */
+.city-district .dist-map-svg .dm-outer { stroke: #33e0c4; stroke-dasharray: 1.5 3; opacity: .6; }   /* outer corridor = teal dotted */
 .city-district .dist-map-svg .dm-incident { stroke-width: 2.2; opacity: .95; }                      /* directly routable from here */
 .city-district .dist-map-svg .dm-node { fill: #5a6b80; }
 .city-district .dist-map-svg .dm-adjacent { fill: var(--am); }                                      /* an adjacent (routable) block */

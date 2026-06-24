@@ -2,7 +2,7 @@
  * Phase W-1 — World Map fast travel browser smoke.
  *
  * Proves against the local city dev shim (parity twin of the CityRoom DO): map nodes are
- * travel controls (5 clickable + 1 current), a NON-adjacent waypoint chains legal hops and
+ * travel controls (B-1 clickable + 1 current), a NON-adjacent waypoint chains legal hops and
  * arrives (every hop server-validated — the client never skips adjacency), an adjacent map
  * click is a plain single hop, an unknown waypoint is rejected client-side and you stay put,
  * the zone-accent CSS var is painted, and no private/economy copy appears. 2D renderer.
@@ -10,8 +10,10 @@
  * Run: tests/arcade/run-city-world-map.sh
  */
 import { createRequire } from 'node:module';
+import { CITY_IDS } from '../../arcade/city/city-block.mjs'; // canonical roster — node/clickable counts derive from B
 const require = createRequire(process.env.PW_REQUIRE_BASE || import.meta.url);
 const { chromium } = require('playwright');
+const B = CITY_IDS.length; // current block count (B=9 at the Phase 8B outer corridor)
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const WS = process.env.WS_URL || 'ws://127.0.0.1:8788/arcade/city/ws';
@@ -35,11 +37,11 @@ try {
   await page.waitForFunction(() => window.__neon_city.district() !== null, null, { timeout: 6000 });
 
   // ── map nodes are travel controls ──────────────────────────────────────────
-  check('world map renders six nodes', await page.evaluate(() => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-node').length === 6));
-  check('five non-current nodes are clickable controls (dm-click + role=button)', await page.evaluate(() => {
+  check('world map renders one node per block', await page.evaluate((b) => document.querySelectorAll('#cityDistrict .dist-map-svg .dm-node').length === b, B));
+  check('every non-current node is a clickable control (dm-click + role=button)', await page.evaluate((b) => {
     const c = [...document.querySelectorAll('#cityDistrict .dist-map-svg .dm-click')];
-    return c.length === 5 && c.every((n) => n.getAttribute('role') === 'button' && n.getAttribute('tabindex') === '0');
-  }));
+    return c.length === b - 1 && c.every((n) => n.getAttribute('role') === 'button' && n.getAttribute('tabindex') === '0');
+  }, B));
   check('nodes carry zone-accent fills (inline style set)', await page.evaluate(() => [...document.querySelectorAll('#cityDistrict .dist-map-svg .dm-node')].every((n) => /^#[0-9a-f]{6}$/i.test(n.style.fill) || n.style.fill.startsWith('rgb'))));
   check('zone accent painted on the panel (CSS var --blk-accent)', await page.evaluate(() => /^#[0-9a-f]{6}$/i.test(document.getElementById('cityDistrict').style.getPropertyValue('--blk-accent').trim())));
 

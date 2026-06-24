@@ -1,18 +1,18 @@
 /**
  * Neon Circuit — Per-block DISPLAY IDENTITY + District Tour (Phase 8C), PURE + cross-env.
  *
- * Content depth, DISPLAY-ONLY. Gives each of the six static blocks a short "what is this place"
+ * Content depth, DISPLAY-ONLY. Gives each static block a short "what is this place"
  * (`tagline`) and a one-line "why go there" (`why_visit`), drawn to be consistent with the signage the
  * player already reads (the per-block `BLOCK_LABELS` + `theme` in city-block.mjs). It is rendered as
  * supplementary copy ALONGSIDE the existing `display_name`; it interpolates no runtime, player, or
  * economic data, adds NO wire field / DO behaviour / schema bump, and grants NOTHING economic. "Crossing",
  * "calm", "industrial", "hub" are mood/wayfinding copy — not a toll, fee, reward, or buff.
  *
- * The District Tour (OBJ-1) is a SESSION-LOCAL, NON-REWARD traversal count: "N of 6 blocks seen". It is
+ * The District Tour (OBJ-1) is a SESSION-LOCAL, NON-REWARD traversal count: "N of all blocks seen". It is
  * derived purely client-side from the blocks the session has been in, resets on reload, and is never
- * written to a DO/account/ledger. Completing it (6/6) structurally requires using BOTH corridors (the new
- * downtown⇄garden⇄nexus⇄skyline path can't be skipped) — that is the new corridor's "reason to move".
- * It unlocks nothing.
+ * written to a DO/account/ledger. Completing it (every block) structurally requires using all corridors
+ * (the newer downtown⇄garden⇄nexus and outer aurora⇄relay⇄lumen paths can't be skipped) — that is the
+ * corridors' "reason to move". It unlocks nothing.
  *
  * Imported by the browser scene (arcade/city/city-scene.js) and the unit tests. See
  * docs/PHASE_8C_DISTRICT_CONTENT_DEPTH.md §1, §3 (OBJ-1), §4 (Polish 1).

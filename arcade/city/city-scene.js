@@ -502,7 +502,7 @@ function updateEventCountdown(now = Date.now()) {
   if (nxc && cityEvent.next) nxc.textContent = 'in ' + formatCountdown(cityEvent.next.starts_at - now);
 }
 // Phase 8C — District Tour (OBJ-1): a SESSION-LOCAL, NON-REWARD set of blocks this session has been in.
-// Display-only; resets on reload; never written to a DO/account/ledger. Reaching 6/6 needs both corridors.
+// Display-only; resets on reload; never written to a DO/account/ledger. Reaching every block needs all corridors.
 const visitedBlocks = new Set();
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -524,7 +524,7 @@ function appendDistrictMap(container, model) {
   svg.setAttribute('viewBox', model.viewBox);
   svg.setAttribute('class', 'dist-map-svg');
   svg.setAttribute('role', 'group');
-  svg.setAttribute('aria-label', 'World map: six blocks, the original ring and the new Garden to Nexus corridor. Your current block is highlighted; activate any other block to travel there.');
+  svg.setAttribute('aria-label', `World map: ${model.nodes.length} blocks across the original ring and its outer corridors. Your current block is highlighted; activate any other block to travel there.`);
 
   const nodeById = (id) => model.nodes.find((n) => n.city_id === id);
   for (const e of model.edges) {
@@ -676,14 +676,14 @@ function renderDistrict() {
     ob.textContent = cityObjective.hint;
     districtEl.appendChild(ob);
   }
-  // Phase 8C: District Tour (OBJ-1) — non-reward, session-local "N/6 blocks seen". Grants nothing.
+  // Phase 8C: District Tour (OBJ-1) — non-reward, session-local "N/total blocks seen". Grants nothing.
   const tour = tourProgress(visitedBlocks);
   const tourEl = document.createElement('div'); tourEl.className = 'dist-tour' + (tour.complete ? ' dist-good' : '');
   tourEl.textContent = `District Tour · ${tour.seen}/${tour.total} blocks seen${tour.complete ? ' · complete' : ''}`;
   districtEl.appendChild(tourEl);
 
-  // Phase 8C-2: DISTRICT MAP — a small six-node graph (SVG) showing the topology: the original ring + the
-  // new Garden⇄Nexus corridor visually distinguished, the current block highlighted, and which neighbours
+  // Phase 8C-2: DISTRICT MAP — a small node graph (SVG) showing the topology: the original ring + the
+  // newer corridors visually distinguished, the current block highlighted, and which neighbours
   // are directly routable (incident edges). Display-only over the public manifest; routing authority is
   // untouched (the adjacent-only rule still lives in the server's validateRouteRequest).
   appendDistrictMap(districtEl, districtGraphModel(cityDistrict));

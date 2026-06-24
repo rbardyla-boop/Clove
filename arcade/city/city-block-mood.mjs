@@ -42,7 +42,7 @@ const TONES = Object.freeze(['ebb', 'flow', 'surge']);
 const TONE_THRESHOLDS = Object.freeze({ flow: 2, surge: 5 }); // 0-1 ebb · 2-4 flow · >=5 surge (uniform weights + clamp)
 
 /**
- * The frozen 6×3 copy table — six blocks × three internal tones, nothing more. Authoring
+ * The frozen per-block copy table — every block × three internal tones, nothing more. Authoring
  * rules (all mechanically screened in tests): block-name lead, present tense, place/crew as
  * subject, <=60 chars authored (hard cap VOICE_LINE_MAX=72), no numerals, no prose
  * quantities, no second person, no tone/host-rank vocabulary, no other block's name, ebb
