@@ -179,6 +179,37 @@ test('isWalkable rejects positions inside buildings and out of bounds', () => {
   assert.equal(isWalkable(500, 500), true);  // open plaza
 });
 
+// ── Phase 7B: collision-authority hardening (one shared geometry, no tunneling) ─
+test('all nine blocks share byte-identical walkable geometry, portals, and spawns', () => {
+  // Collision authority is ONE geometry for the whole district — per-block identity is
+  // labels/theme only (city-identity.test covers the labels). If a future block drifts its
+  // buildings/portals/spawns, collision/portal authority would silently differ per block.
+  const base = publicLayout('downtown-01');
+  const geom = (L) => L.buildings.map((b) => ({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind }));
+  const baseGeom = geom(base);
+  for (const id of CITY_IDS) {
+    const L = publicLayout(id);
+    assert.deepEqual(geom(L), baseGeom, `${id} building geometry must be byte-identical to downtown`);
+    assert.deepEqual(L.portals, base.portals, `${id} portals must be byte-identical`);
+    assert.deepEqual(L.spawns, base.spawns, `${id} spawns must be byte-identical`);
+    assert.deepEqual(L.world, base.world, `${id} world bounds must be byte-identical`);
+    assert.deepEqual(L.props, base.props, `${id} collidable props must be byte-identical`);
+  }
+});
+
+test('a single capped step cannot tunnel the thinnest solid obstacle (point-collision is safe)', () => {
+  // resolveCollision tests the DESTINATION point (not the swept path), so it is tunnel-proof
+  // ONLY while one capped step is shorter than the thinnest obstacle inflated by the player
+  // radius. This guards the invariant: bumping MAX_SPEED/MAX_DT_MS past it would let a fast
+  // mover skip across a thin prop in one step (then swept collision would be required).
+  const maxStep = MOVEMENT.MAX_SPEED * (MOVEMENT.MAX_DT_MS / 1000);
+  const collidables = [...CITY_BLOCK.buildings, ...CITY_BLOCK.props]; // server resolves vs buildings + props
+  const thinnest = Math.min(...collidables.map((o) => Math.min(o.w, o.h)));
+  const thinnestSpan = thinnest + 2 * MOVEMENT.PLAYER_RADIUS; // inflated blocking band
+  assert.ok(maxStep < thinnestSpan,
+    `one step (${maxStep}u) must stay below the thinnest obstacle span (${thinnestSpan}u) or point-collision can tunnel`);
+});
+
 // ── snapshot shape (public-safe) ────────────────────────────────────────────
 test('citySnapshot exposes only id/x/y/facing/seq — no private liveness fields', () => {
   let s = createCityState();

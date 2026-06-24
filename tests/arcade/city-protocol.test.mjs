@@ -176,6 +176,35 @@ test('enterPortal rejects players outside the zone, unknown portals, and unknown
   assert.equal(enterPortal(createCityState(), A, 'arcade').reason, 'not_joined');
 });
 
+// ── Phase 7B: no canonical-coordinate bypass, no dt-tunnel ───────────────────
+test('forged x/y/position/velocity cannot move the player OR unlock a portal (end-to-end)', () => {
+  const { state, player } = withA(); // A on the plaza, NOT inside the arcade portal zone
+  const start = { x: player.x, y: player.y };
+  // Forge every canonical field a cheater might send, aimed at the portal (240,580), zero real intent.
+  const forged = applyInput(state, A, {
+    dx: 0, dy: 0, seq: 1,
+    x: 240, y: 580, position: { x: 240, y: 580 }, velocity: { x: 9999, y: 9999 },
+  }, T0 + 100);
+  // The accepted (canonical) position is unchanged — the forged coordinates are ignored entirely.
+  assert.equal(forged.player.x, start.x, 'forged x ignored — canonical position unchanged');
+  assert.equal(forged.player.y, start.y, 'forged y ignored — canonical position unchanged');
+  // And the portal is still gated on the real canonical position, not the forged one.
+  const portal = enterPortal(forged.state, A, 'arcade');
+  assert.equal(portal.ok, false);
+  assert.equal(portal.reason, 'not_in_zone', 'cannot teleport into a portal by forging coordinates');
+});
+
+test('an inflated client dt cannot tunnel a player through a solid prop (dt clamp + collision compose)', () => {
+  // Seed A just LEFT of the south parked car (car-s: x470..530, y800..896), on its row.
+  let state = createCityState();
+  state = { ...state, players: { [A]: { id: A, x: 452, y: 848, facing: 0, lastSeq: 0, lastInputAt: T0, lastSeen: T0 } } };
+  // One forged-huge-dt shove straight EAST into the car, after a long real gap so the cap (not
+  // the elapsed clock) is what bounds the step → exercises the true max single-step displacement.
+  const r = applyInput(state, A, { dx: 1, dy: 0, seq: 1, dt: 9_999 }, T0 + 60_000);
+  assert.equal(r.accepted, true);
+  assert.ok(r.player.x < 470 - MOVEMENT.PLAYER_RADIUS + 1, 'blocked at the car wall, never tunneled through it');
+});
+
 // ── liveness / eviction ───────────────────────────────────────────────────────
 test('stalePlayerIds flags players past PLAYER_STALE_MS; touchPlayer refreshes liveness', () => {
   const { state } = withA();
