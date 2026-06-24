@@ -80,6 +80,19 @@ test('excludes the standalone arcade-studio creator app (predicate + real repo)'
   assert.ok(excluded.some((f) => f.startsWith('arcade-studio/')), 'arcade-studio should be in the excluded set');
 });
 
+test('excludes the operator-sensitive atip/ namespace (predicate + real repo)', () => {
+  // atip/ is ATIP/CFHS document tooling — operator-marked "sensitive, not web content" and gitignored.
+  // atip/ocr_pdf.py was committed BEFORE the gitignore rule, so .gitignore cannot un-track it; the upload
+  // denylist is what keeps the sensitive namespace out of the public clovelearn.io payload.
+  assert.equal(isExcludedFromUpload('atip/ocr_pdf.py'), true);
+  assert.equal(isExcludedFromUpload('atip/P-2025-01679.pdf'), true);
+  assert.equal(isExcludedFromUpload('atip'), true);
+  // Forward-compatible: assert the SAFETY property (no atip/ in the upload), not that it stays tracked —
+  // so this still holds if the operator later `git rm --cached`s the stray file.
+  const { included } = curatedUploadFileList();
+  assert.equal(included.some((f) => f.startsWith('atip/')), false, 'atip/ must not be uploaded');
+});
+
 test('real repo: arcade/creator EXCLUDED, arcade/city INCLUDED, root index INCLUDED', () => {
   const { included, excluded } = curatedUploadFileList();
   assert.ok(included.length > 0, 'expected a non-empty upload set');
