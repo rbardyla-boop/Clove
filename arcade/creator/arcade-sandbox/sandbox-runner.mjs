@@ -16,6 +16,7 @@
  * from the frame. Local creator tooling only.
  */
 import { importArcadePackage } from '../arcade-importer/import-arcade-package.mjs';
+import { packageHash } from '../validator/package-hash.mjs';
 
 const SAMPLE_DIR = '../samples/arcade-sample/';
 
@@ -25,6 +26,15 @@ const SAMPLE_DIR = '../samples/arcade-sample/';
 // UNTRUSTED boundary input: parsed defensively, ignored on any malformed shape. Keep this literal
 // identical to HANDOFF_KEY in arcade-builder/arcade-builder.mjs (a node test asserts they match).
 const HANDOFF_KEY = 'cf_builder_sandbox_handoff_v1';
+
+// CR1D — LOCAL share code import. A creator can paste a NCLOCAL1:<base64({manifest,files})> code (or a raw
+// {manifest,files} / .builder.json) from ANOTHER browser. We decode the DATA only, shape-validate it, and
+// route it through the EXISTING run() gate (importArcadePackage + null-origin iframe). builder_params are
+// NEVER trusted as executable state. Keep SHARE_PREFIX identical to the builder encoder (a node test asserts).
+const SHARE_PREFIX = 'NCLOCAL1:';
+const SHARE_CODE_MAX_CHARS = 200000; // reject oversized text before decoding (the importer re-checks 64 KiB)
+
+let fpSeq = 0; // guards async fingerprint writes
 
 let currentFrame = null; // the active sandbox iframe
 let currentWrap = null;  // the frame's wrapper (holds the iframe + the pointer-input overlay)
@@ -47,6 +57,20 @@ function setStatus(text, cls) {
 function setNowPlaying(manifest) {
   const n = el('nowPlaying');
   if (n) n.textContent = (manifest && (manifest.display_name || manifest.package_id)) || 'Your cabinet';
+}
+
+/** Show the LOCAL package fingerprint (sha256 of canonical {manifest,files}) so two people can confirm the
+ *  same local build. NOT proof of ownership, a token, a receipt, or approval. Async, race-guarded. */
+function showFingerprint(pkg) {
+  const h = el('importHash');
+  if (!h) return;
+  if (!pkg) { h.textContent = '—'; return; }
+  const seq = ++fpSeq;
+  h.textContent = '…';
+  packageHash({ manifest: pkg.manifest, files: pkg.files }).then(
+    (v) => { if (seq === fpSeq) h.textContent = v; },
+    () => { if (seq === fpSeq) h.textContent = '(unavailable)'; },
+  );
 }
 
 /** Strip the adapter's `import {...} from './game.mjs';` (multiline-tolerant) — createGame is
@@ -103,10 +127,11 @@ export function run(manifest, files) {
   state.lastReport = report;
   const reportEl = el('sandboxReport');
   if (reportEl) reportEl.textContent = report.ok ? 'IMPORT OK — running in local sandbox (untrusted)' : ('BLOCKED:\n' + report.errors.join('\n'));
-  if (!report.ok) { setStatus('BLOCKED — package rejected', 'sb-bad'); return report; }
+  if (!report.ok) { setStatus('BLOCKED — package rejected', 'sb-bad'); showFingerprint(null); return report; }
 
   state.lastManifest = manifest; state.lastFiles = files; // remembered so "Restart" can re-run this package
   setNowPlaying(manifest);
+  showFingerprint({ manifest, files }); // CR1D: local fingerprint for every load path (handoff/sample/paste/restart)
   const dims = report.frame_dims || { width: 360, height: 640 };
   state.frameDims = dims;
   const host = el('sandboxMount');
@@ -192,6 +217,62 @@ export async function loadSample() {
   return { manifest, files };
 }
 
+/** UTF-8-safe base64 decode (mirror of the builder encoder). */
+function fromBase64Utf8(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+/**
+ * Parse UNTRUSTED shared text into {manifest, files}, or throw a friendly Error. PURE — it never runs or
+ * trusts anything (run()/importArcadePackage is the real gate). Accepts:
+ *   - NCLOCAL1:<base64(JSON {manifest,files})>  (the local share code),
+ *   - raw {manifest,files} JSON, or a .builder.json bundle (manifest/files taken; builder_params IGNORED —
+ *     builder settings are NOT executable state).
+ */
+export function parseSharedText(text) {
+  const t = String(text == null ? '' : text).trim();
+  if (!t) throw new Error('Paste a share code or package JSON first.');
+  if (t.length > SHARE_CODE_MAX_CHARS) throw new Error('That input is too large to be a local cabinet.');
+  let json;
+  if (t.slice(0, SHARE_PREFIX.length) === SHARE_PREFIX) {
+    let decoded;
+    try { decoded = fromBase64Utf8(t.slice(SHARE_PREFIX.length)); } catch { throw new Error('This NCLOCAL1 share code is corrupted (bad encoding).'); }
+    try { json = JSON.parse(decoded); } catch { throw new Error('This NCLOCAL1 share code is corrupted (bad data).'); }
+  } else {
+    try { json = JSON.parse(t); } catch { throw new Error('Not a valid share code or package JSON.'); }
+  }
+  if (!json || typeof json !== 'object') throw new Error('Shared data is not a package.');
+  const manifest = json.manifest;
+  const files = json.files;
+  if (!manifest || typeof manifest !== 'object' || !files || typeof files !== 'object') {
+    throw new Error('No usable manifest/files in that data — builder settings alone cannot be played here.');
+  }
+  return { manifest, files };
+}
+
+/** Decode + shape-validate UNTRUSTED shared text, then run it through the normal gate. Rejects malformed
+ *  input with a readable message BEFORE any run. Returns true only if the package gated + ran. */
+export function importSharedText(text) {
+  const errEl = el('importError');
+  if (errEl) { errEl.textContent = ''; errEl.hidden = true; }
+  let pkg;
+  try { pkg = parseSharedText(text); }
+  catch (e) {
+    if (errEl) { errEl.textContent = e.message; errEl.hidden = false; }
+    setStatus('import rejected', 'sb-bad');
+    return false;
+  }
+  const out = el('sandboxResult');
+  if (out) out.textContent = '(none yet — play a round, then press “Finish & score”)';
+  setStatus('imported a shared cabinet — gating + running locally (untrusted)', 'sb-run');
+  const report = run(pkg.manifest, pkg.files); // re-gates via importArcadePackage; runs in the null-origin iframe
+  if (!report.ok && errEl) { errEl.textContent = 'This cabinet was blocked by the importer — see Technical details below.'; errEl.hidden = false; }
+  return report.ok;
+}
+
 function sendInput(event) { if (currentFrame && currentFrame.contentWindow) currentFrame.contentWindow.postMessage({ type: 'input', event }, '*'); }
 function requestResult() { if (currentFrame && currentFrame.contentWindow) currentFrame.contentWindow.postMessage({ type: 'request_result' }, '*'); }
 
@@ -238,6 +319,16 @@ function wire() {
   el('resultBtn')?.addEventListener('click', () => requestResult());
   // Restart: re-run the same package from scratch (no-op until something has been loaded).
   el('restartBtn')?.addEventListener('click', () => { if (state.lastManifest && state.lastFiles) run(state.lastManifest, state.lastFiles); });
+  // CR1D: import a LOCAL share code / package by paste or file (decoded, shape-validated, then re-gated by run()).
+  el('importCodeBtn')?.addEventListener('click', () => importSharedText(el('importCode')?.value || ''));
+  el('importFile')?.addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    let text = '';
+    try { text = await f.text(); } catch { text = ''; }
+    if (el('importCode')) el('importCode').value = text;
+    importSharedText(text);
+    e.target.value = ''; // allow re-importing the same file
+  });
   consumeBuilderHandoff(); // one-click playtest: auto-load a build handed off from the arcade-builder
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();

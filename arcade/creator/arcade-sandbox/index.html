@@ -101,6 +101,21 @@
   pre { white-space:pre-wrap; word-break:break-word; background:var(--inset); border:1px solid var(--line); border-radius:9px; padding:10px 12px; font-size:12.5px; color:var(--muted); max-width:100%; overflow:auto; }
   .note { color:var(--dim); font-size:11.5px; line-height:1.5; }
   .note b { color:var(--muted); }
+
+  code { font-family:var(--body); color:var(--cyan); word-break:break-all; }
+  .fingerprint { max-width:520px; margin:8px auto 0; font-size:11.5px; color:var(--dim); text-align:left; }
+  /* CR1D — import a shared cabinet (local only) */
+  .share-import { max-width:560px; margin:22px auto 0; padding:16px 18px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(180deg, var(--panel), var(--panel-2)); text-align:left; }
+  .share-import h2 { font-family:var(--display); font-size:12px; font-weight:400; letter-spacing:.5px; margin:0 0 8px; color:var(--cyan); }
+  .share-import .si-copy { font-size:12.5px; color:var(--muted); margin:0 0 10px; line-height:1.5; }
+  .share-import textarea { width:100%; background:var(--inset); color:var(--ink); border:1px solid var(--line-2); border-radius:9px; padding:9px 11px; font:12px/1.5 var(--body); resize:vertical; min-height:62px; outline:none; }
+  .share-import textarea:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,224,255,.16); }
+  .share-import .controls { justify-content:flex-start; align-items:center; margin-top:10px; }
+  .si-file { font-size:12px; color:var(--muted); display:inline-flex; flex-direction:column; gap:4px; }
+  .si-file input[type=file] { font:inherit; }
+  .si-error { color:var(--red); font-size:12.5px; margin:10px 0 0; }
+  .si-note { color:var(--dim); font-size:11.5px; margin:10px 0 0; line-height:1.5; }
+  .si-note b { color:var(--muted); }
 </style>
 </head>
 <body>
@@ -136,6 +151,23 @@
       <h3>Your local result</h3>
       <div id="sandboxResult">(none yet — play a round, then press “Finish &amp; score”)</div>
     </div>
+    <p class="fingerprint">Local package fingerprint: <code id="importHash">—</code></p>
+
+    <section class="share-import" aria-label="Import a shared cabinet">
+      <h2>Import a shared cabinet</h2>
+      <p class="si-copy">Paste a <b>local share code</b> (starts with <code>NCLOCAL1:</code>) from another browser, or
+        open a file. It runs right here, locally — <b>nothing is uploaded, nothing is published, no tickets</b>.</p>
+      <textarea id="importCode" rows="3" spellcheck="false" placeholder="Paste NCLOCAL1:… or package JSON here"></textarea>
+      <div class="controls">
+        <button id="importCodeBtn" class="btn-primary" type="button">Load pasted cabinet</button>
+        <label class="si-file">…or open a file
+          <input id="importFile" type="file" accept=".nclocal,.json,application/json,text/plain">
+        </label>
+      </div>
+      <p id="importError" class="si-error" hidden></p>
+      <p class="si-note">Imported cabinets are re-checked by the same importer and run in the null-origin sandbox.
+        Results stay <b>untrusted local proposals</b> — never a server ticket/prize/score.</p>
+    </section>
 
     <details>
       <summary>Technical details</summary>

@@ -13,6 +13,7 @@
  * See arcade/virtual-arcade/HIVE_WORLD_ALIGNMENT.md §5.
  */
 import { importArcadePackage, FRAME_CONTRACT_DIMS } from '../arcade-importer/import-arcade-package.mjs';
+import { packageHash } from '../validator/package-hash.mjs';
 import { FRAME_CONTRACTS, SIZE_BUDGET_MIN_BYTES, SIZE_BUDGET_MAX_BYTES } from '../schemas/arcade-game-package-schema.mjs';
 import { explainIssues } from '../validator/issue-explainer.mjs'; // throughput: friendly hints (explanatory only — importer stays the gate)
 import {
@@ -44,8 +45,17 @@ const el = (id) => document.getElementById(id);
 // arcade-sandbox/sandbox-runner.mjs (a node test asserts they match).
 const HANDOFF_KEY = 'cf_builder_sandbox_handoff_v1';
 
+// CR1D — LOCAL share code: a self-contained text encoding of the gated {manifest, files} so a creator can
+// hand a cabinet to ANOTHER browser without any server/upload/account. It is a LOCAL package share code —
+// NOT a link, token, or proof of ownership. The sandbox decodes it and re-gates through importArcadePackage;
+// the builder only ENCODES data (it never runs the game). Keep SHARE_PREFIX identical to the sandbox decoder
+// (a node test asserts they match).
+const SHARE_PREFIX = 'NCLOCAL1:';
+const SHARE_CODE_MAX_CHARS = 200000; // generous ceiling; the package itself is hard-capped at 64 KiB
+
 // ── build + gate + report ─────────────────────────────────────────────────────
-const state = { lastReport: null, lastBuild: null, lastGraph: null };
+const state = { lastReport: null, lastBuild: null, lastGraph: null, lastShareCode: null, lastHash: null };
+let hashSeq = 0; // guards async fingerprint writes against rapid rebuilds
 
 function currentParams() {
   return {
@@ -197,6 +207,16 @@ function refresh() {
   el('exportAll').disabled = !state.lastReport.ok;
   el('exportBundle').disabled = !state.lastReport.ok;
   el('testInSandbox').disabled = !state.lastReport.ok;
+  // CR1D: the local Share-locally panel exists only for a VALID build.
+  const sharePanel = el('sharePanel');
+  if (sharePanel) sharePanel.hidden = !state.lastReport.ok;
+  if (state.lastReport.ok) {
+    updateShareArtifacts(out);
+  } else {
+    state.lastShareCode = null; state.lastHash = null;
+    const ta = el('shareCode'); if (ta) ta.value = '';
+    const hEl = el('packageHash'); if (hEl) hEl.textContent = '—';
+  }
   el('srcView').textContent = out.files['game.mjs'];
   el('graphView').textContent = out.rule_graph ? JSON.stringify(out.rule_graph, null, 2) : '(preset builder: no rule graph)';
   drawFramePreview(report, out);
@@ -209,6 +229,65 @@ function download(name, text, type) {
   a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+/** UTF-8-safe base64 (chunked so a ~64 KiB package never blows the call stack). Dependency-free. */
+function toBase64Utf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  return btoa(bin);
+}
+
+/** Compact LOCAL share code for a gated build: NCLOCAL1:<base64(JSON {manifest, files})>. Returns null if
+ *  it would exceed the size ceiling. Pure data — the builder never executes the game. */
+function shareCodeFor(build) {
+  const code = SHARE_PREFIX + toBase64Utf8(JSON.stringify({ manifest: build.manifest, files: build.files }));
+  return code.length <= SHARE_CODE_MAX_CHARS ? code : null;
+}
+
+/** Plain-text, copyable summary — closed metadata + the local fingerprint. Never an economy receipt. */
+function summaryText(build) {
+  const m = build.manifest;
+  const p = currentParams();
+  const template = p.builder_mode === 'reaction_lane' ? 'reaction_lane' : (p.input_mode || 'tap_window');
+  return [
+    `Game: ${m.display_name || m.package_id || 'Untitled'}`,
+    `Template: ${template}`,
+    `Accent: ${p.accent}`,
+    `Difficulty: ${p.difficulty}`,
+    `Frame: ${m.frame_contract_id}`,
+    `Package fingerprint: ${state.lastHash || '(computing…)'}`,
+    'Local-only. No tickets. No live publishing.',
+  ].join('\n');
+}
+
+/** Best-effort clipboard copy with a transient button label; falls back to a manual-copy hint. */
+function copyToClipboard(text, btn, restore) {
+  const flash = (msg) => { if (btn) { btn.textContent = msg; setTimeout(() => { btn.textContent = restore; }, 1400); } };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => flash('Copied ✓'), () => flash('Press Ctrl+C'));
+      return;
+    }
+  } catch { /* fall through to manual hint */ }
+  flash('Press Ctrl+C');
+}
+
+/** Refresh the Share-locally panel for a VALID build: the share code + the async local fingerprint. */
+function updateShareArtifacts(build) {
+  const code = shareCodeFor(build);
+  state.lastShareCode = code;
+  const ta = el('shareCode');
+  if (ta) { ta.value = code || ''; if (!code) ta.placeholder = 'This build is too large for a share code — use Export files instead.'; }
+  const seq = ++hashSeq;
+  const hEl = el('packageHash');
+  if (hEl) hEl.textContent = '…';
+  packageHash({ manifest: build.manifest, files: build.files }).then(
+    (h) => { if (seq === hashSeq) { state.lastHash = h; if (hEl) hEl.textContent = h; } },
+    () => { if (seq === hashSeq) { state.lastHash = null; if (hEl) hEl.textContent = '(unavailable)'; } },
+  );
 }
 
 /** Apply a STARTER: parameters + naming from the library; the importer re-gates as always. */
@@ -284,6 +363,17 @@ function wire() {
       const bundle = JSON.parse(await f.text());
       applyParams(bundle && typeof bundle === 'object' ? bundle.builder_params : null);
     } catch { /* unreadable file → nothing restored; the panel keeps its current state */ }
+  });
+  // CR1D: copy the LOCAL share code (select the field too, so manual Ctrl+C always works) + a plain summary.
+  el('copyShareBtn')?.addEventListener('click', () => {
+    const ta = el('shareCode');
+    if (!ta || !ta.value) return;
+    try { ta.focus(); ta.select(); } catch { /* selection optional */ }
+    copyToClipboard(ta.value, el('copyShareBtn'), 'Copy share code');
+  });
+  el('copySummaryBtn')?.addEventListener('click', () => {
+    if (!state.lastBuild || !state.lastReport?.ok) return;
+    copyToClipboard(summaryText(state.lastBuild), el('copySummaryBtn'), 'Copy summary');
   });
   // closed select options come from the closed tables — single source of truth
   { const o = document.createElement('option'); o.value = ''; o.textContent = '(custom)'; el('template').appendChild(o); }
