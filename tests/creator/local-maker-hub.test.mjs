@@ -10,9 +10,15 @@ import { isExcludedFromUpload, curatedUploadFileList } from '../../scripts/build
 
 const HTML = readFileSync(new URL('../../arcade/creator/local-maker/index.html', import.meta.url), 'utf8');
 
-test('public maker hub links ONLY to Arcade Builder + Arcade Sandbox', () => {
-  const links = [...HTML.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).sort();
-  assert.deepEqual(links, ['../arcade-builder/', '../arcade-sandbox/'].sort());
+test('public maker hub links ONLY to the two local tools + safe public up-navigation', () => {
+  // The hub may link to the two safe local tools (Builder + Sandbox) and UP to the public landing pages it
+  // is reached from (home + whats-live) — nothing else. This stays a strict allowlist; the gated-surface
+  // ban below is the real security guard and is unchanged. (v2: added home / whats-live breadcrumb.)
+  const links = [...HTML.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+  const ALLOWED = new Set(['../arcade-builder/', '../arcade-sandbox/', '/', '/whats-live.html']);
+  for (const l of links) assert.ok(ALLOWED.has(l), `unexpected hub link: ${l}`);
+  assert.ok(links.includes('../arcade-builder/'), 'links to the builder');
+  assert.ok(links.includes('../arcade-sandbox/'), 'links to the sandbox');
 });
 
 test('public maker hub never links to a gated / non-public creator tool', () => {

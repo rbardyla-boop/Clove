@@ -57,6 +57,22 @@ const SHARE_CODE_MAX_CHARS = 200000; // generous ceiling; the package itself is 
 const state = { lastReport: null, lastBuild: null, lastGraph: null, lastShareCode: null, lastHash: null };
 let hashSeq = 0; // guards async fingerprint writes against rapid rebuilds
 
+// Local DRAFT retention (host-only, NEVER part of the package): the builder remembers your last control
+// state on THIS device so you can return and keep going. localStorage lives on the trusted host page only —
+// it is never read by the generated game (the importer's source scan bans storage in package code) and is
+// never written into the manifest/files. Cleared by "Start fresh".
+const DRAFT_KEY = 'cf_builder_draft_v1';
+function saveDraft(params) { try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, params })); } catch { /* storage blocked → simply no draft */ } }
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    return (o && o.v === 1 && o.params && typeof o.params === 'object') ? o.params : null;
+  } catch { return null; }
+}
+function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch { /* no-op */ } }
+
 function currentParams() {
   return {
     builder_mode: el('builderMode')?.value || 'preset',
@@ -217,6 +233,7 @@ function refresh() {
     const ta = el('shareCode'); if (ta) ta.value = '';
     const hEl = el('packageHash'); if (hEl) hEl.textContent = '—';
   }
+  saveDraft(currentParams()); // host-only local retention (never part of the package)
   el('srcView').textContent = out.files['game.mjs'];
   el('graphView').textContent = out.rule_graph ? JSON.stringify(out.rule_graph, null, 2) : '(preset builder: no rule graph)';
   drawFramePreview(report, out);
@@ -419,6 +436,10 @@ function wire() {
   el('rlMobileControls').value = 'tap_or_swipe_lanes';
   updateModePanels();
   renderStarterMeta('');
+  // Local retention: restore the last on-device draft (if any) and offer "Start fresh".
+  const __draft = loadDraft();
+  if (__draft) { applyParams(__draft); const dn = el('draftNote'); if (dn) dn.hidden = false; }
+  el('clearDraftBtn')?.addEventListener('click', () => { clearDraft(); try { location.reload(); } catch { /* no-op */ } });
   refresh();
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();

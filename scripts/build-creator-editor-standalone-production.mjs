@@ -48,7 +48,7 @@ const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
 // Restart, and again for playable-input: a transparent overlay forwards real pointer gestures to the game
 // via the SAME postMessage input channel (no new capability; iframe stays null-origin). No gate/CSP/boundary
 // change in any of these. Security-reviewed re-bless of the reviewed bundle, not unreviewed drift.
-const EXPECTED_EDITOR_AGGREGATE = 'd48a6a58ce7c19f17386bc40f7d74902e6acbc13764d8f7b084512905ff4e32b';
+const EXPECTED_EDITOR_AGGREGATE = '3912178753dec80d9408efdb676d4a2827b9d1ce5a295ac5700c99241bdfa0be';
 const HEADER_POLICY_MODE = 'editor-strict-standalone';
 
 // Strings that must NEVER appear in the standalone surface (the production-zone analytics that broke deploy #1).
