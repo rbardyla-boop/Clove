@@ -102,6 +102,8 @@ test('obfuscation / capability vectors are rejected (review hardening)', () => {
     ['const m = import.meta.url', 'import.meta'],
     ['parent.postMessage({x:1}, "*")', 'postMessage'],
     ['const fn = "\\u0066etch"', 'unicode escape'],
+    ['const e = (0, eval)("1")', 'indirect eval (0,eval)'],
+    ['const c = this["constructor"]', 'bracket access on this'],
   ]) {
     const files = SAMPLE_FILES();
     files['game.mjs'] = files['game.mjs'] + '\nfunction _z(){ ' + snippet + '; }';

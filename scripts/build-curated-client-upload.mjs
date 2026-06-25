@@ -69,11 +69,41 @@ export const FORBIDDEN_UPLOAD_FILES = Object.freeze([
   'scripts/build-creator-editor-standalone-production.mjs',
 ]);
 
+/**
+ * PUBLIC LOCAL-MAKER allow-exception (CR1B). The blanket `arcade/creator/` denial stays; these EXACT,
+ * ENUMERATED paths are the ONLY creator files that ship publicly — the local-only maker loop (Builder +
+ * Sandbox + Importer + the validator/schema/sample modules they import, plus the separate public hub).
+ * It is an exact-match allowlist (no prefixes) so it can never widen to a directory. Everything else
+ * under arcade/creator/ — approval, moderation, live-loader, block/layered/district/map editors,
+ * hive-validation, render, arcade-sdk, AND the internal creator-corner hub — stays excluded.
+ * These surfaces are local-only by construction: a hardened null-origin sandbox iframe, no network,
+ * no live loader, no tickets/economy. See docs and the CR1A security review.
+ */
+export const PUBLIC_CREATOR_ALLOW = Object.freeze(new Set([
+  'arcade/creator/local-maker/index.html',
+  'arcade/creator/arcade-builder/index.html',
+  'arcade/creator/arcade-builder/arcade-builder.mjs',
+  'arcade/creator/arcade-builder/cabinet-templates.mjs',
+  'arcade/creator/arcade-builder/rule-graph-templates.mjs',
+  'arcade/creator/arcade-sandbox/index.html',
+  'arcade/creator/arcade-sandbox/sandbox-runner.mjs',
+  'arcade/creator/arcade-importer/import-arcade-package.mjs',
+  'arcade/creator/validator/validate-arcade-package.mjs',
+  'arcade/creator/validator/validation-report.mjs',
+  'arcade/creator/validator/package-hash.mjs',
+  'arcade/creator/validator/issue-explainer.mjs',
+  'arcade/creator/schemas/arcade-game-package-schema.mjs',
+  'arcade/creator/samples/arcade-sample/manifest.json',
+  'arcade/creator/samples/arcade-sample/game.mjs',
+  'arcade/creator/samples/arcade-sample/adapter.mjs',
+]));
+
 /** PURE: is this POSIX repo-relative path excluded from the curated client upload? */
 export function isExcludedFromUpload(relPath) {
   const p = String(relPath).split('\\').join('/').replace(/^\.\//, '');
   if (FORBIDDEN_UPLOAD_FILES.includes(p)) return true;
   if (/^\.env(\.|$)/.test(p)) return true;                 // .env, .env.local, .env.production, …
+  if (PUBLIC_CREATOR_ALLOW.has(p)) return false;           // explicit local-maker carve-out (exact match only)
   return FORBIDDEN_UPLOAD_PREFIXES.some((pre) =>
     pre.endsWith('/') ? (p === pre.slice(0, -1) || p.startsWith(pre)) : (p === pre || p.startsWith(pre + '/')));
 }
@@ -117,7 +147,7 @@ function main() {
 
   // Hard guards (defense-in-depth — the predicate already filtered, but never trust one layer).
   const leaked = included.filter(isExcludedFromUpload);
-  const creatorLeak = included.filter((f) => f.startsWith('arcade/creator/'));
+  const creatorLeak = included.filter((f) => f.startsWith('arcade/creator/') && !PUBLIC_CREATOR_ALLOW.has(f));
   if (leaked.length || creatorLeak.length) {
     console.error(`REFUSING: ${leaked.length + creatorLeak.length} forbidden path(s) in upload set:`);
     for (const f of [...new Set([...leaked, ...creatorLeak])].slice(0, 12)) console.error(`  ✗ ${f}`);

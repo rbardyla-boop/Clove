@@ -142,11 +142,23 @@ function wire() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
 
-window.__cf4_sandbox = {
-  get lastReport() { return state.lastReport; },
-  get ready() { return state.ready; },
-  get lastProposal() { return state.lastProposal; },
-  get frameDims() { return state.frameDims; },
-  run, loadSample, sendTap: () => sendInput({ type: 'tap' }), requestResult, teardown,
-  async loadSampleAndRun() { const p = await loadSample(); return run(p.manifest, p.files); },
-};
+// Test/automation hook — NOT part of the user path (the page buttons drive everything via wire()).
+// Exposed only on local dev hosts or with ?__debug=1 so it is never a public global entrypoint once
+// this surface ships in the curated upload. The real import/play flow uses the on-page buttons.
+function debugHookAllowed() {
+  try {
+    const h = location.hostname;
+    return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '' ||
+      location.protocol === 'file:' || /[?&]__debug=1\b/.test(location.search);
+  } catch { return false; }
+}
+if (debugHookAllowed()) {
+  window.__cf4_sandbox = {
+    get lastReport() { return state.lastReport; },
+    get ready() { return state.ready; },
+    get lastProposal() { return state.lastProposal; },
+    get frameDims() { return state.frameDims; },
+    run, loadSample, sendTap: () => sendInput({ type: 'tap' }), requestResult, teardown,
+    async loadSampleAndRun() { const p = await loadSample(); return run(p.manifest, p.files); },
+  };
+}

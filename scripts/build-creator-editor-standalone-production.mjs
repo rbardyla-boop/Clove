@@ -40,7 +40,10 @@ const STAGING_MANIFEST = '_STAGING_MANIFEST.json';
 const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
 // Editor canonical aggregate. frame-ancestors is added in the deploy-bundle _headers (it is HEADER-ONLY:
 // the browser IGNORES + errors on frame-ancestors in a <meta>), so the editor HTML/artifact is unchanged.
-const EXPECTED_EDITOR_AGGREGATE = 'a0bf7f97ae0edf7fef7a3607c92eaf3c878e7a2242b2779afb3adbc2dd3c562a';
+// Re-pinned once for CR1B: the reviewed maker surfaces sandbox-runner.mjs (debug-hook gating) +
+// import-arcade-package.mjs ((0,eval)/this[ scan hardening) changed. Security-reviewed re-bless of the
+// reviewed bundle, not unreviewed drift.
+const EXPECTED_EDITOR_AGGREGATE = '2ae2a90dfaf54c0b171396a635a3da1b8c9833790e269f555c99e7681909c1aa';
 const HEADER_POLICY_MODE = 'editor-strict-standalone';
 
 // Strings that must NEVER appear in the standalone surface (the production-zone analytics that broke deploy #1).

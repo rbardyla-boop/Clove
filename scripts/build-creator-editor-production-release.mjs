@@ -35,6 +35,7 @@ import { dirname, join, resolve, sep, relative, extname } from 'node:path';
 import { homedir } from 'node:os';
 import { workshopFileList } from './build-creator-workshop-bundle.mjs';
 import { EXPECTED_ENTRY_HTML, SANDBOX_ENTRY, parseCsp, cspViolations } from './build-creator-editor-staging.mjs';
+import { PUBLIC_CREATOR_ALLOW } from './build-curated-client-upload.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CURATED_BUILDER = join(ROOT, 'scripts', 'build-curated-client-upload.mjs');
@@ -45,7 +46,10 @@ const DEFAULT_PROD_ROOT = '/tmp/creator-editor-production-root';
 const EDITOR_STAGING_ROOT = '/tmp/creator-editor-production-staging-src'; // editor artifact source (separate temp)
 const STAGING_MANIFEST = '_STAGING_MANIFEST.json';
 const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
-const EXPECTED_EDITOR_AGGREGATE = 'a0bf7f97ae0edf7fef7a3607c92eaf3c878e7a2242b2779afb3adbc2dd3c562a';
+// Re-pinned once for CR1B: the reviewed maker surfaces sandbox-runner.mjs (debug-hook gating) +
+// import-arcade-package.mjs ((0,eval)/this[ scan hardening) changed. Security-reviewed re-bless of the
+// reviewed bundle, not unreviewed drift.
+const EXPECTED_EDITOR_AGGREGATE = '2ae2a90dfaf54c0b171396a635a3da1b8c9833790e269f555c99e7681909c1aa';
 const HEADER_POLICY_MODE = 'preserve-live-global-editor-strict';
 
 // The two global headers that drifted (committed = stricter, live = looser). The operator decision for
@@ -225,10 +229,12 @@ function main() {
   if (studioLeak.length) fail(`arcade-studio non-built-asset leak: ${studioLeak.slice(0, 8).join(', ')}`);
   else ok('arcade-studio overlay = built index.html + assets only (no src/test/package/vite.config)');
 
-  // Every arcade/creator file in prod root must be in the reviewed workshop set (no raw extra source).
-  const creatorLeak = files.filter((f) => f.startsWith('arcade/creator/') && !workshopSet.has(f));
+  // Every arcade/creator file in prod root must be reviewed: either in the editor workshop overlay set,
+  // or in the enumerated CR1B public local-maker carve-out (the reviewed local-only maker loop the
+  // curated upload ships separately from the editor overlay). No raw extra creator source.
+  const creatorLeak = files.filter((f) => f.startsWith('arcade/creator/') && !workshopSet.has(f) && !PUBLIC_CREATOR_ALLOW.has(f));
   if (creatorLeak.length) fail(`arcade/creator file(s) outside reviewed set: ${creatorLeak.slice(0, 8).join(', ')}`);
-  else ok('arcade/creator overlay ⊆ reviewed workshop set');
+  else ok('arcade/creator overlay ⊆ reviewed workshop set ∪ public local-maker carve-out');
 
   // .map / sourcesContent / sourceMappingURL anywhere in the EDITOR overlay subtrees (curated app trusted separately).
   const overlaySubtree = (f) => f.startsWith('arcade/creator/') || f.startsWith('arcade-studio/');

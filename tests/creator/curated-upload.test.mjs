@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  isExcludedFromUpload, curatedUploadFileList,
+  isExcludedFromUpload, curatedUploadFileList, PUBLIC_CREATOR_ALLOW,
 } from '../../scripts/build-curated-client-upload.mjs';
 
 test('excludes arcade/creator tooling', () => {
@@ -93,13 +93,42 @@ test('excludes the operator-sensitive atip/ namespace (predicate + real repo)', 
   assert.equal(included.some((f) => f.startsWith('atip/')), false, 'atip/ must not be uploaded');
 });
 
-test('real repo: arcade/creator EXCLUDED, arcade/city INCLUDED, root index INCLUDED', () => {
+test('real repo: ONLY the 16-file local-maker carve-out ships from arcade/creator; everything else excluded', () => {
+  // CR1B: the blanket arcade/creator/ denial stays, with an exact 16-path allow-exception for the
+  // local-only maker loop (Builder + Sandbox + Importer + validator/schema/sample + the public hub).
   const { included, excluded } = curatedUploadFileList();
   assert.ok(included.length > 0, 'expected a non-empty upload set');
-  assert.equal(included.some((f) => f.startsWith('arcade/creator/')), false, 'creator tooling must not be uploaded');
-  assert.ok(excluded.some((f) => f.startsWith('arcade/creator/')), 'creator tooling should be in the excluded set');
+  const creatorIncluded = included.filter((f) => f.startsWith('arcade/creator/')).sort();
+  assert.deepEqual(creatorIncluded, [...PUBLIC_CREATOR_ALLOW].sort(),
+    'exactly the enumerated local-maker files ship from arcade/creator — nothing else');
+  // every gated tool + the INTERNAL creator-corner hub stays excluded
+  for (const f of [
+    'arcade/creator/creator-corner/index.html',
+    'arcade/creator/approval/approved-loader.mjs',
+    'arcade/creator/moderation/review-queue.mjs',
+    'arcade/creator/block-editor/block-editor.mjs',
+    'arcade/creator/layered-editor/layered-editor.mjs',
+    'arcade/creator/district-editor/district-editor.mjs',
+    'arcade/creator/map-viewer/map-viewer.mjs',
+  ]) {
+    assert.equal(included.includes(f), false, `must stay excluded: ${f}`);
+    assert.ok(excluded.includes(f), `should be in the excluded set: ${f}`);
+  }
   assert.ok(included.some((f) => f.startsWith('arcade/city/')), 'the live city must be uploaded');
   assert.ok(included.includes('index.html'), 'the root index.html must be uploaded');
+});
+
+test('PUBLIC_CREATOR_ALLOW: every allow-exception is an exact arcade/creator path that the predicate ships', () => {
+  // The allow-list overrides the blanket deny ONLY for exact matches (never a prefix), and never re-allows
+  // a denied secret/dev-manifest file. Guard against a future typo widening the public surface.
+  assert.equal(PUBLIC_CREATOR_ALLOW.size, 16);
+  for (const f of PUBLIC_CREATOR_ALLOW) {
+    assert.ok(f.startsWith('arcade/creator/'), `allow entry must be under arcade/creator/: ${f}`);
+    assert.equal(isExcludedFromUpload(f), false, `allow entry must ship: ${f}`);
+  }
+  // a sibling path NOT in the list still stays denied (no accidental prefix widening)
+  assert.equal(isExcludedFromUpload('arcade/creator/arcade-builder/write-starter-statics.mjs'), true);
+  assert.equal(isExcludedFromUpload('arcade/creator/validator/package-validator.mjs'), true);
 });
 
 test('real repo: ADR-043 curated starter statics SHIP (and the writer tool does not)', () => {
