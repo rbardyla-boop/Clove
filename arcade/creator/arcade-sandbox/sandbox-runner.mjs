@@ -27,6 +27,7 @@ const SAMPLE_DIR = '../samples/arcade-sample/';
 const HANDOFF_KEY = 'cf_builder_sandbox_handoff_v1';
 
 let currentFrame = null; // the active sandbox iframe
+let currentWrap = null;  // the frame's wrapper (holds the iframe + the pointer-input overlay)
 
 const state = {
   lastReport: null,
@@ -88,7 +89,8 @@ function buildSrcdoc(gameSource, adapterSource, dims) {
 }
 
 function teardown() {
-  if (currentFrame && currentFrame.parentNode) currentFrame.parentNode.removeChild(currentFrame);
+  if (currentWrap && currentWrap.parentNode) currentWrap.parentNode.removeChild(currentWrap);
+  currentWrap = null;
   currentFrame = null;
   state.ready = false;
   state.lastProposal = null;
@@ -115,11 +117,66 @@ export function run(manifest, files) {
   frame.height = String(dims.height);
   frame.style.border = '0';
   frame.style.background = '#05060c';
+  frame.style.display = 'block';
   frame.srcdoc = buildSrcdoc(files[report.entry], files[report.adapter], dims);
-  if (host) { host.innerHTML = ''; host.appendChild(frame); }
+
+  // Wrap the frame with a transparent input overlay so REAL gestures (tap/hold/release/swipe/drag) over
+  // the cabinet are forwarded to the game — not just a single Tap button. The overlay lives in THIS page
+  // and forwards via the same postMessage input channel; the frame stays a null-origin sandbox.
+  const wrap = document.createElement('div');
+  wrap.className = 'sb-frame-wrap';
+  wrap.style.cssText = 'position:relative;display:block;width:' + dims.width + 'px;height:' + dims.height + 'px;';
+  const overlay = document.createElement('div');
+  overlay.className = 'sb-input-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  overlay.style.cssText = 'position:absolute;inset:0;touch-action:none;cursor:crosshair;background:transparent;';
+  wireOverlay(overlay, frame, dims);
+  wrap.appendChild(frame);
+  wrap.appendChild(overlay);
+  if (host) { host.innerHTML = ''; host.appendChild(wrap); fitFrame(host, wrap, dims); }
   currentFrame = frame;
+  currentWrap = wrap;
   setStatus('running (local sandbox — results untrusted)', 'sb-run');
   return report;
+}
+
+/** Scale the native-size cabinet down to fit the available width (handles 360×640 / 640×360 / 480×480
+ *  frame contracts + small screens). The WRAP becomes the scaled-size box (so the mount can center it
+ *  with no overflow); the iframe stays native dims and is transform-scaled to fill it. The overlay covers
+ *  the wrap, and frame.getBoundingClientRect() reflects the scale → coordinate mapping stays correct. */
+function fitFrame(host, wrap, dims) {
+  if (!host || !wrap) return;
+  const avail = host.clientWidth || (host.parentElement && host.parentElement.clientWidth) || dims.width;
+  const scale = Math.min(1, avail / dims.width);
+  wrap.style.width = (dims.width * scale) + 'px';
+  wrap.style.height = (dims.height * scale) + 'px';
+  const frame = wrap.querySelector('iframe');
+  if (frame) {
+    frame.style.transformOrigin = 'top left';
+    frame.style.transform = scale < 1 ? 'scale(' + scale + ')' : 'none';
+  }
+}
+
+/** Forward REAL pointer gestures over the cabinet to the game as press/move/release with frame-space
+ *  coordinates, so every input mode is playable (tap_window/hold_band/release_timing/swipe_lane/drag_track).
+ *  Uses the SAME postMessage input channel as the Tap button — no new capability, the iframe stays
+ *  null-origin with no network. */
+function wireOverlay(overlay, frame, dims) {
+  let down = false;
+  const xy = (e) => {
+    const r = frame.getBoundingClientRect();
+    const sx = r.width ? (e.clientX - r.left) / r.width * dims.width : dims.width / 2;
+    const sy = r.height ? (e.clientY - r.top) / r.height * dims.height : dims.height / 2;
+    return { x: Math.max(0, Math.min(dims.width, sx)), y: Math.max(0, Math.min(dims.height, sy)) };
+  };
+  overlay.addEventListener('pointerdown', (e) => {
+    down = true; try { overlay.setPointerCapture(e.pointerId); } catch { /* capture optional */ }
+    const p = xy(e); sendInput({ type: 'press', x: p.x, y: p.y }); e.preventDefault();
+  });
+  overlay.addEventListener('pointermove', (e) => { if (!down) return; const p = xy(e); sendInput({ type: 'move', x: p.x, y: p.y }); });
+  const up = (e) => { if (!down) return; down = false; const p = xy(e); sendInput({ type: 'release', x: p.x, y: p.y }); };
+  overlay.addEventListener('pointerup', up);
+  overlay.addEventListener('pointercancel', up);
 }
 
 /** Fetch the bundled sample package (same-origin local files; the FRAME still has no network). */
@@ -149,6 +206,9 @@ window.addEventListener('message', (e) => {
     if (out) out.textContent = 'UNTRUSTED LOCAL PROPOSAL (not server-authorized): ' + JSON.stringify(m.proposal);
   }
 });
+
+// Keep the cabinet fitted to the viewport (orientation change / resize).
+window.addEventListener('resize', () => { if (currentWrap && state.frameDims) fitFrame(el('sandboxMount'), currentWrap, state.frameDims); });
 
 /**
  * One-click playtest: if the builder handed off a gated build via same-origin sessionStorage, read it

@@ -45,8 +45,10 @@ const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
 // sessionStorage write in arcade-builder.mjs + the auto-load consume in sandbox-runner.mjs (data handoff
 // only; the sandbox re-gates via importArcadePackage + null-origin iframe). Re-pinned again for the maker-UX
 // pass: PRESENTATION-ONLY restyle of the builder/sandbox HTML to the arcade identity + sandbox NOW PLAYING /
-// Restart (no gate/CSP/boundary change). Security-reviewed re-bless of the reviewed bundle, not unreviewed drift.
-const EXPECTED_EDITOR_AGGREGATE = 'a4ff5d23bc8ae76e734a1aa220aef06c2410912cafd8f76bd90e4bc310f2ea11';
+// Restart, and again for playable-input: a transparent overlay forwards real pointer gestures to the game
+// via the SAME postMessage input channel (no new capability; iframe stays null-origin). No gate/CSP/boundary
+// change in any of these. Security-reviewed re-bless of the reviewed bundle, not unreviewed drift.
+const EXPECTED_EDITOR_AGGREGATE = '48ac852d3e6b4546d066c92fe40a44aafdbfd9c9d2d955e1e597362f6a27d174';
 const HEADER_POLICY_MODE = 'editor-strict-standalone';
 
 // Strings that must NEVER appear in the standalone surface (the production-zone analytics that broke deploy #1).
