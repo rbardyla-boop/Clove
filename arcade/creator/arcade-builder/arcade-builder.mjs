@@ -37,6 +37,13 @@ import {
 
 const el = (id) => document.getElementById(id);
 
+// One-click playtest handoff: the SAME-ORIGIN sessionStorage key the arcade-sandbox reads on load.
+// Carries ONLY the gated build {manifest, files} so the sandbox can run it without a manual file
+// export/import. The sandbox re-gates with importArcadePackage and runs in its null-origin iframe —
+// this is a data handoff, not a trust transfer. Keep this literal identical to HANDOFF_KEY in
+// arcade-sandbox/sandbox-runner.mjs (a node test asserts they match).
+const HANDOFF_KEY = 'cf_builder_sandbox_handoff_v1';
+
 // ── build + gate + report ─────────────────────────────────────────────────────
 const state = { lastReport: null, lastBuild: null, lastGraph: null };
 
@@ -189,6 +196,7 @@ function refresh() {
   el('sizes').textContent = `${report.limits.total_bytes} / ${report.limits.size_budget_bytes} bytes · trust=${report.result_trust}`;
   el('exportAll').disabled = !state.lastReport.ok;
   el('exportBundle').disabled = !state.lastReport.ok;
+  el('testInSandbox').disabled = !state.lastReport.ok;
   el('srcView').textContent = out.files['game.mjs'];
   el('graphView').textContent = out.rule_graph ? JSON.stringify(out.rule_graph, null, 2) : '(preset builder: no rule graph)';
   drawFramePreview(report, out);
@@ -240,6 +248,17 @@ function wire() {
     download('manifest.json', JSON.stringify(manifest, null, 2), 'application/json');
     download('game.mjs', files['game.mjs']);
     download('adapter.mjs', files['adapter.mjs']);
+  });
+  // one-click playtest: stash the gated build same-origin, then open the sandbox (which auto-loads it).
+  // No download/upload. The sandbox re-gates + runs in its null-origin iframe — handoff is DATA only.
+  el('testInSandbox').addEventListener('click', () => {
+    if (!state.lastBuild || !state.lastReport?.ok) return;
+    try {
+      sessionStorage.setItem(HANDOFF_KEY, JSON.stringify({
+        v: 1, manifest: state.lastBuild.manifest, files: state.lastBuild.files,
+      }));
+    } catch { /* storage blocked/full → navigate anyway; the sandbox simply stays idle */ }
+    location.href = '../arcade-sandbox/';
   });
   // starter picker: named presets from the closed library — picking one re-runs the full gate
   el('template').addEventListener('change', () => applyStarter(el('template').value));

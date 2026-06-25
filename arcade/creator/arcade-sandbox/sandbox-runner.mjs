@@ -19,6 +19,13 @@ import { importArcadePackage } from '../arcade-importer/import-arcade-package.mj
 
 const SAMPLE_DIR = '../samples/arcade-sample/';
 
+// One-click playtest handoff: the SAME-ORIGIN sessionStorage key the arcade-builder writes its gated
+// build to. We read it ONCE on load, clear it immediately, and run it through the normal run() gate
+// (importArcadePackage + null-origin iframe) — identical isolation to a manual import. Treated as
+// UNTRUSTED boundary input: parsed defensively, ignored on any malformed shape. Keep this literal
+// identical to HANDOFF_KEY in arcade-builder/arcade-builder.mjs (a node test asserts they match).
+const HANDOFF_KEY = 'cf_builder_sandbox_handoff_v1';
+
 let currentFrame = null; // the active sandbox iframe
 
 const state = {
@@ -134,11 +141,33 @@ window.addEventListener('message', (e) => {
   }
 });
 
+/**
+ * One-click playtest: if the builder handed off a gated build via same-origin sessionStorage, read it
+ * ONCE, clear it, and run it through the normal gate. UNTRUSTED boundary input — parsed in try/catch,
+ * shape-validated, ignored on anything malformed (run()/importArcadePackage is the real gate). Returns
+ * true if a handoff was consumed; a plain sandbox visit with no handoff stays idle as before.
+ */
+export function consumeBuilderHandoff() {
+  let raw = null;
+  try { raw = sessionStorage.getItem(HANDOFF_KEY); } catch { return false; }
+  if (!raw) return false;
+  try { sessionStorage.removeItem(HANDOFF_KEY); } catch { /* best-effort clear; the run still gates */ }
+  let payload = null;
+  try { payload = JSON.parse(raw); } catch { return false; }
+  if (!payload || typeof payload !== 'object') return false;
+  const { manifest, files } = payload;
+  if (!manifest || typeof manifest !== 'object' || !files || typeof files !== 'object') return false;
+  setStatus('loaded from builder — gating + running locally (untrusted)', 'sb-run');
+  run(manifest, files); // re-gates via importArcadePackage, then runs in the null-origin iframe
+  return true;
+}
+
 // wire the page controls + expose a test/automation hook
 function wire() {
   el('runSampleBtn')?.addEventListener('click', async () => { const p = await loadSample(); run(p.manifest, p.files); });
   el('tapBtn')?.addEventListener('click', () => sendInput({ type: 'tap' }));
   el('resultBtn')?.addEventListener('click', () => requestResult());
+  consumeBuilderHandoff(); // one-click playtest: auto-load a build handed off from the arcade-builder
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
 
