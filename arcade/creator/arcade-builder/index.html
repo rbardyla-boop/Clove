@@ -83,12 +83,14 @@
   label { display:block; font-size:12px; font-weight:600; color:var(--ink); margin:0 0 5px; letter-spacing:.2px; }
   .hint { margin:4px 0 0; font-size:11.5px; color:var(--dim); line-height:1.4; }
   input, select, button, textarea { font:inherit; }
-  input, select {
+  input, select, textarea {
     width:100%; background:var(--inset); color:var(--ink); border:1px solid var(--line-2);
     padding:9px 11px; border-radius:9px; outline:none; transition:border-color .15s, box-shadow .15s;
   }
-  input:focus, select:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,224,255,.16); }
+  input:focus, select:focus, textarea:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,224,255,.16); }
   select { cursor:pointer; }
+  textarea { resize:vertical; min-height:64px; font:12px/1.5 var(--body); }
+  code { font-family:var(--body); color:var(--cyan); word-break:break-all; }
 
   /* ── actions ── */
   .actions { display:flex; flex-direction:column; gap:9px; }
@@ -273,6 +275,25 @@
             <p class="hint">Restores settings only — the game source always regenerates and the importer re-gates.</p>
           </div>
         </div>
+      </div>
+
+      <div class="group" id="sharePanel" hidden>
+        <h2><span class="n">★</span> Share locally</h2>
+        <p class="hint">Export a file or copy a local <b>share code</b>. Nothing is uploaded. Nothing is published —
+          the code is just your cabinet's data, for another browser to import and play locally.</p>
+        <div class="field">
+          <label for="shareCode">Local share code</label>
+          <textarea id="shareCode" rows="3" readonly spellcheck="false" placeholder="Build a valid cabinet to get a share code"></textarea>
+          <p class="hint">Starts with <code>NCLOCAL1:</code> — paste it into the sandbox on another browser to play.
+            Local-only · no server upload · no live publishing · no tickets/rewards · files or local text only.</p>
+        </div>
+        <div class="actions">
+          <button id="copyShareBtn" type="button">Copy share code</button>
+          <button id="copySummaryBtn" type="button">Copy summary</button>
+        </div>
+        <p class="hint">Local package fingerprint: <code id="packageHash">—</code><br>
+          Lets two people confirm they're testing the same local build. Not proof of ownership, not a token,
+          not a receipt, not approval.</p>
       </div>
     </div>
 
