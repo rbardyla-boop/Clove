@@ -23,7 +23,8 @@ import { isExcludedFromUpload } from '../../scripts/build-curated-client-upload.
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BUILDER = join(REPO, 'scripts', 'build-creator-editor-production-release.mjs');
-const EXPECTED_EDITOR_AGGREGATE = 'a0bf7f97ae0edf7fef7a3607c92eaf3c878e7a2242b2779afb3adbc2dd3c562a';
+// Re-pinned once for CR1B (security-reviewed maker hardening: sandbox-runner hook gate + importer scan).
+const EXPECTED_EDITOR_AGGREGATE = '2ae2a90dfaf54c0b171396a635a3da1b8c9833790e269f555c99e7681909c1aa';
 const OUT_A = '/tmp/cep-test-prod-A';
 // build-static-release shells `npm run build` into the SHARED arcade-studio/dist, so two build-heavy
 // test files Vite-building in parallel collide there. Serialize the build across test processes.

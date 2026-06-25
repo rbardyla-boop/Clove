@@ -43,8 +43,11 @@ test('Creator Corner copy is local-only and has no affirmative publish/upload/li
 });
 
 test('Creator Corner remains outside curated production upload', () => {
+  // The internal creator-corner hub stays excluded even after the CR1B local-maker carve-out (which ships
+  // the separate arcade/creator/local-maker hub instead). Only the enumerated maker loop is public.
   assert.equal(isExcludedFromUpload('arcade/creator/creator-corner/index.html'), true);
   const { included } = curatedUploadFileList();
   assert.equal(included.includes('arcade/creator/creator-corner/index.html'), false);
-  assert.equal(included.some((f) => f.startsWith('arcade/creator/')), false);
+  // the public maker hub IS shipped; creator-corner is NOT
+  assert.equal(included.includes('arcade/creator/local-maker/index.html'), true);
 });

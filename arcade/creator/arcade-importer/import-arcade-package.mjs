@@ -57,7 +57,9 @@ export const SOURCE_FORBIDDEN = Object.freeze([
   ['cross-window open', /\bwindow\s*\.\s*open\s*\(/],
   ['postMessage from package', /\bpostMessage\s*\(/],            // the trusted bootstrap owns the channel
   ['Function-constructor escape', /\.\s*constructor\s*\.\s*constructor|\[\s*['"]constructor['"]\s*\]/],
+  ['indirect eval', /\(\s*0\s*,\s*eval\s*\)/],                  // (0, eval)('...') sidesteps /\beval\s*\(/
   ['bracket access on a global', /\b(?:window|globalThis|self|top|parent|frames|document)\s*\[/], // window['fe'+'tch']
+  ['bracket access on this', /\bthis\s*\[/],                    // this['constructor']['constructor'] etc.
   ['blob object url', /createObjectURL/],
   ['import.meta', /\bimport\s*\.\s*meta\b/],
   ['unicode/hex identifier escape', /\\u00|\\x[0-9a-f]{2}/i],     // obfuscated identifiers (fetch via \u..)
