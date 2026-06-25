@@ -46,10 +46,12 @@ const DEFAULT_PROD_ROOT = '/tmp/creator-editor-production-root';
 const EDITOR_STAGING_ROOT = '/tmp/creator-editor-production-staging-src'; // editor artifact source (separate temp)
 const STAGING_MANIFEST = '_STAGING_MANIFEST.json';
 const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
-// Re-pinned once for CR1B: the reviewed maker surfaces sandbox-runner.mjs (debug-hook gating) +
-// import-arcade-package.mjs ((0,eval)/this[ scan hardening) changed. Security-reviewed re-bless of the
-// reviewed bundle, not unreviewed drift.
-const EXPECTED_EDITOR_AGGREGATE = '2ae2a90dfaf54c0b171396a635a3da1b8c9833790e269f555c99e7681909c1aa';
+// Re-pinned for CR1B (sandbox-runner.mjs debug-hook gating + import-arcade-package.mjs (0,eval)/this[
+// scan hardening) and again for CR1C: the one-click builder→sandbox playtest handoff adds a same-origin
+// sessionStorage write in arcade-builder.mjs + the auto-load consume in sandbox-runner.mjs (data handoff
+// only; the sandbox re-gates via importArcadePackage + null-origin iframe). Security-reviewed re-bless of
+// the reviewed bundle, not unreviewed drift.
+const EXPECTED_EDITOR_AGGREGATE = '113fca485e25e45888023adb0b172a26b0aa888790a8b35aeb6bf44b8fceb0a5';
 const HEADER_POLICY_MODE = 'preserve-live-global-editor-strict';
 
 // The two global headers that drifted (committed = stricter, live = looser). The operator decision for
