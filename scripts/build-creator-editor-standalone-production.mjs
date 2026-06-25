@@ -43,9 +43,10 @@ const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
 // Re-pinned for CR1B (sandbox-runner.mjs debug-hook gating + import-arcade-package.mjs (0,eval)/this[
 // scan hardening) and again for CR1C: the one-click builder→sandbox playtest handoff adds a same-origin
 // sessionStorage write in arcade-builder.mjs + the auto-load consume in sandbox-runner.mjs (data handoff
-// only; the sandbox re-gates via importArcadePackage + null-origin iframe). Security-reviewed re-bless of
-// the reviewed bundle, not unreviewed drift.
-const EXPECTED_EDITOR_AGGREGATE = '113fca485e25e45888023adb0b172a26b0aa888790a8b35aeb6bf44b8fceb0a5';
+// only; the sandbox re-gates via importArcadePackage + null-origin iframe). Re-pinned again for the maker-UX
+// pass: PRESENTATION-ONLY restyle of the builder/sandbox HTML to the arcade identity + sandbox NOW PLAYING /
+// Restart (no gate/CSP/boundary change). Security-reviewed re-bless of the reviewed bundle, not unreviewed drift.
+const EXPECTED_EDITOR_AGGREGATE = 'a4ff5d23bc8ae76e734a1aa220aef06c2410912cafd8f76bd90e4bc310f2ea11';
 const HEADER_POLICY_MODE = 'editor-strict-standalone';
 
 // Strings that must NEVER appear in the standalone surface (the production-zone analytics that broke deploy #1).

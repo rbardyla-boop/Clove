@@ -33,12 +33,19 @@ const state = {
   ready: false,
   lastProposal: null,
   frameDims: null,
+  lastManifest: null, // kept so "Restart" can re-run the same package
+  lastFiles: null,
 };
 
 function el(id) { return document.getElementById(id); }
 function setStatus(text, cls) {
   const s = el('sandboxStatus');
-  if (s) { s.textContent = text; s.className = 'sb-status ' + (cls || ''); }
+  if (s) { s.textContent = text; s.className = 'status ' + (cls || ''); }
+}
+/** Presentation only: show which cabinet is being playtested. */
+function setNowPlaying(manifest) {
+  const n = el('nowPlaying');
+  if (n) n.textContent = (manifest && (manifest.display_name || manifest.package_id)) || 'Your cabinet';
 }
 
 /** Strip the adapter's `import {...} from './game.mjs';` (multiline-tolerant) — createGame is
@@ -96,6 +103,8 @@ export function run(manifest, files) {
   if (reportEl) reportEl.textContent = report.ok ? 'IMPORT OK — running in local sandbox (untrusted)' : ('BLOCKED:\n' + report.errors.join('\n'));
   if (!report.ok) { setStatus('BLOCKED — package rejected', 'sb-bad'); return report; }
 
+  state.lastManifest = manifest; state.lastFiles = files; // remembered so "Restart" can re-run this package
+  setNowPlaying(manifest);
   const dims = report.frame_dims || { width: 360, height: 640 };
   state.frameDims = dims;
   const host = el('sandboxMount');
@@ -167,6 +176,8 @@ function wire() {
   el('runSampleBtn')?.addEventListener('click', async () => { const p = await loadSample(); run(p.manifest, p.files); });
   el('tapBtn')?.addEventListener('click', () => sendInput({ type: 'tap' }));
   el('resultBtn')?.addEventListener('click', () => requestResult());
+  // Restart: re-run the same package from scratch (no-op until something has been loaded).
+  el('restartBtn')?.addEventListener('click', () => { if (state.lastManifest && state.lastFiles) run(state.lastManifest, state.lastFiles); });
   consumeBuilderHandoff(); // one-click playtest: auto-load a build handed off from the arcade-builder
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();

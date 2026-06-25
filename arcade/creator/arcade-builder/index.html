@@ -3,121 +3,308 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- LOCAL-ONLY, OFFLINE tool. Same-origin modules; NO external code/assets/connections. GENERATES
-     package data only — it never executes the generated game (the arcade-sandbox does that). -->
+<!-- LOCAL-ONLY, OFFLINE tool. Same-origin modules + same-origin fonts; NO external code/assets/connections.
+     GENERATES package data only — it never executes the generated game (the arcade-sandbox does that). -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
-<title>Creator Foundation — Local Arcade Builder</title>
+<title>Arcade Maker — Build a cabinet</title>
 <!--
   Assembles a complete arcade_game package (manifest.json + game.mjs + adapter.mjs) from closed
   parameter tables, gates it through the CF-4 importer (manifest validation + code-aware source scan
-  + size budget + frame contract), and exports the files. Run the result in the arcade-sandbox.
+  + size budget + frame contract), and exports the files. Test the result in the arcade-sandbox.
   No submit, no upload, no live registration. Serve from repo root:
       python3 -m http.server 8099   →   /arcade/creator/arcade-builder/
 -->
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
-  body { margin: 0; background: #07080f; color: #cfe9ff; font: 14px/1.5 ui-monospace, monospace; }
-  header { padding: 12px 16px; border-bottom: 1px solid #1b2740; }
-  h1 { font-size: 15px; margin: 0; letter-spacing: .04em; } h1 span { color: #22e0ff; }
-  main { display: flex; gap: 16px; padding: 16px; flex-wrap: wrap; }
-  .col { min-width: 300px; max-width: 560px; }
-  label { display: block; margin: 8px 0 2px; color: #8aa0c0; font-size: 12px; }
-  input, select, button { background: #112; color: #cfe9ff; border: 1px solid #2a3a5a; padding: 8px 10px; border-radius: 6px; font: inherit; }
-  button { cursor: pointer; min-height: 40px; } button:hover { border-color: #22e0ff; } button:disabled { opacity: .45; cursor: not-allowed; }
-  .verdict { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #0d1424; font-weight: 700; }
-  .v-ok { color: #7CFFB0; } .v-bad { color: #ff6b6b; }
-  #framePreview { width: 300px; height: 280px; background: #05060c; border: 1px solid #1b2740; border-radius: 8px; }
-  pre { white-space: pre-wrap; background: #0a1120; border: 1px solid #1b2740; border-radius: 6px; padding: 8px; max-height: 320px; overflow: auto; }
-  .note { color: #8aa0c0; font-size: 12px; }
-  /* starter metadata card — mobile-first readable preview of the picked starter */
-  .starter-meta { margin: 8px 0; padding: 10px 12px; border: 1px solid #2a3a5a; border-radius: 8px; background: #0a1120; }
-  .starter-meta .sm-pitch { color: #cfe9ff; font-weight: 700; }
-  .starter-meta .sm-explain { color: #9fb9c9; margin-top: 2px; }
-  .starter-meta .sm-tags { color: #22e0ff; font-size: 11px; letter-spacing: .4px; margin-top: 6px; text-transform: uppercase; }
-  .starter-meta .sm-note { color: #8aa0c0; font-size: 11px; margin-top: 4px; }
+  :root {
+    --bg:#06070d; --bg-2:#0a0c16; --panel:#0c1322; --panel-2:#0a1120; --inset:#070b16;
+    --line:#1b2740; --line-2:#26324d; --ink:#dbeeff; --muted:#93a8c6; --dim:#62769a;
+    --magenta:#ff2d95; --cyan:#22e0ff; --green:#7CFFB0; --red:#ff6b6b; --amber:#ffce5c;
+    --display:'Bungee', system-ui, sans-serif;
+    --body:'Chakra Petch', ui-monospace, monospace;
+    --r:12px;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; color:var(--ink); font:15px/1.55 var(--body);
+    background:
+      radial-gradient(1100px 520px at 12% -8%, rgba(255,45,149,.10), transparent 60%),
+      radial-gradient(1000px 520px at 96% 0%, rgba(34,224,255,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg-2), var(--bg) 60%);
+    min-height:100vh;
+  }
+  a { color:var(--cyan); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  /* ── top bar ── */
+  .topbar {
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:14px 22px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(12,19,34,.85), rgba(12,19,34,.35)); backdrop-filter:blur(4px);
+    position:sticky; top:0; z-index:5;
+  }
+  .brand { font-family:var(--display); font-size:18px; letter-spacing:.5px; line-height:1; }
+  .brand .pink { color:var(--magenta); } .brand .sub { color:var(--cyan); }
+  .badge {
+    font-family:var(--display); font-size:10px; letter-spacing:1.5px; color:var(--bg);
+    background:var(--cyan); padding:4px 9px; border-radius:999px;
+  }
+  .topbar .back { margin-left:auto; font-size:13px; color:var(--muted); }
+
+  /* ── step strip ── */
+  .steps { display:flex; gap:10px; flex-wrap:wrap; padding:16px 22px 4px; }
+  .step {
+    display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted);
+    padding:7px 13px; border:1px solid var(--line); border-radius:999px; background:rgba(10,17,32,.6);
+  }
+  .step b { font-family:var(--display); font-size:11px; color:var(--bg); background:var(--dim);
+    width:19px; height:19px; border-radius:50%; display:grid; place-items:center; }
+  .step.s1 b{ background:var(--magenta);} .step.s2 b{ background:var(--amber);}
+  .step.s3 b{ background:var(--cyan);} .step.s4 b{ background:var(--green);}
+  .step .arw { color:var(--dim); margin-left:2px; }
+
+  /* ── layout ── */
+  main { display:grid; grid-template-columns: minmax(320px, 1fr) minmax(300px, 1.05fr); gap:18px; padding:14px 22px 40px; align-items:start; }
+  @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
+
+  .panel { background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--line); border-radius:var(--r); box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 16px 40px -28px rgba(0,0,0,.9); }
+  .panel + .panel { margin-top:16px; }
+  .group { padding:16px 18px 18px; }
+  .group + .group { border-top:1px solid var(--line); }
+  .group > h2 {
+    font-family:var(--display); font-size:12.5px; font-weight:400; letter-spacing:.6px;
+    margin:0 0 12px; color:var(--ink); display:flex; align-items:center; gap:9px;
+  }
+  .group > h2 .n { font-size:10px; color:var(--bg); background:var(--cyan); width:20px; height:20px; border-radius:6px; display:grid; place-items:center; }
+  .group.g1 > h2 .n{ background:var(--magenta);} .group.g2 > h2 .n{ background:var(--amber);} .group.g3 > h2 .n{ background:var(--cyan);}
+
+  .field { margin:0 0 13px; }
+  .field:last-child { margin-bottom:0; }
+  label { display:block; font-size:12px; font-weight:600; color:var(--ink); margin:0 0 5px; letter-spacing:.2px; }
+  .hint { margin:4px 0 0; font-size:11.5px; color:var(--dim); line-height:1.4; }
+  input, select, button, textarea { font:inherit; }
+  input, select {
+    width:100%; background:var(--inset); color:var(--ink); border:1px solid var(--line-2);
+    padding:9px 11px; border-radius:9px; outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus, select:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,224,255,.16); }
+  select { cursor:pointer; }
+
+  /* ── actions ── */
+  .actions { display:flex; flex-direction:column; gap:9px; }
+  button {
+    cursor:pointer; min-height:44px; border-radius:10px; border:1px solid var(--line-2);
+    background:var(--inset); color:var(--ink); font-weight:600; letter-spacing:.3px;
+    transition:border-color .15s, box-shadow .15s, transform .05s, background .15s;
+  }
+  button:hover:not(:disabled) { border-color:var(--cyan); }
+  button:active:not(:disabled) { transform:translateY(1px); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-primary {
+    font-family:var(--display); font-size:13px; letter-spacing:.5px; min-height:52px;
+    color:#1a0512; background:linear-gradient(180deg, #ff4da6, var(--magenta)); border-color:#ff5fb0;
+    box-shadow:0 8px 26px -10px rgba(255,45,149,.7);
+  }
+  .btn-primary:hover:not(:disabled) { box-shadow:0 10px 30px -8px rgba(255,45,149,.85); border-color:#ff8cc6; }
+  .file-field { font-size:12px; color:var(--muted); }
+  .file-field input[type=file] { margin-top:6px; padding:7px; }
+
+  /* ── preview / status column ── */
+  .verdict-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .verdict {
+    font-family:var(--display); font-size:12px; letter-spacing:.5px; padding:7px 13px; border-radius:8px;
+    background:var(--inset); border:1px solid var(--line-2);
+  }
+  .verdict.v-ok { color:var(--green); border-color:rgba(124,255,176,.4); box-shadow:0 0 18px -6px rgba(124,255,176,.5); }
+  .verdict.v-bad { color:var(--red); border-color:rgba(255,107,107,.4); }
+  .sizes { font-size:11.5px; color:var(--muted); }
+  #framePreview { width:100%; max-width:300px; height:280px; background:var(--inset); border:1px solid var(--line); border-radius:10px; display:block; margin:14px auto 2px; }
+  .preview-cap { text-align:center; font-size:11px; color:var(--dim); }
+  .pre-label { font-size:11px; color:var(--muted); margin:14px 0 5px; letter-spacing:.3px; text-transform:uppercase; }
+  pre {
+    white-space:pre-wrap; word-break:break-word; background:var(--inset); border:1px solid var(--line);
+    border-radius:9px; padding:10px 12px; max-height:300px; overflow:auto; font-size:12.5px; color:var(--muted);
+  }
+  details { margin-top:14px; border:1px solid var(--line); border-radius:9px; background:rgba(7,11,22,.5); }
+  details > summary { cursor:pointer; padding:10px 13px; font-size:12px; color:var(--muted); list-style:none; user-select:none; }
+  details > summary::-webkit-details-marker { display:none; }
+  details > summary::before { content:'▸ '; color:var(--cyan); }
+  details[open] > summary::before { content:'▾ '; }
+  details .body { padding:0 13px 13px; }
+
+  /* ── starter meta card ── */
+  .starter-meta { margin:8px 0 0; padding:11px 13px; border:1px solid var(--line-2); border-radius:9px; background:var(--inset); }
+  .starter-meta .sm-pitch { color:var(--ink); font-weight:700; }
+  .starter-meta .sm-explain { color:var(--muted); margin-top:3px; font-size:13px; }
+  .starter-meta .sm-tags { color:var(--cyan); font-size:11px; letter-spacing:.4px; margin-top:7px; text-transform:uppercase; }
+  .starter-meta .sm-note { color:var(--dim); font-size:11.5px; margin-top:4px; }
+
+  .footnote { color:var(--dim); font-size:11.5px; line-height:1.5; padding:2px 2px 0; }
+  .footnote b { color:var(--muted); }
 </style>
 </head>
 <body>
-<header><h1>CREATOR FOUNDATION <span>//</span> LOCAL ARCADE BUILDER</h1></header>
-<main>
-  <div class="col">
-    <label for="builderMode">builder mode</label>
-    <select id="builderMode">
-      <option value="preset">starter cabinet generator</option>
-      <option value="reaction_lane">CF-4A Reaction Lane rule graph</option>
-    </select>
-    <div id="presetControls">
-    <label for="template">starter cabinet (named presets by category — the importer still gates everything)</label>
-    <select id="template"></select>
-    <div id="starterMeta" class="starter-meta" hidden></div>
-    </div>
-    <label for="packageId">package id (kebab, 3–48)</label>
-    <input id="packageId" value="my-first-cabinet" maxlength="48">
-    <label for="displayName">display name (≤40 bytes)</label>
-    <input id="displayName" value="My First Cabinet" maxlength="40">
-    <label for="variant">game variant (closed set)</label>
-    <select id="variant"></select>
-    <label for="accent">accent (closed set)</label>
-    <select id="accent"></select>
-    <div id="presetTokenControls">
-    <label for="speed">speed (closed set)</label>
-    <select id="speed"></select>
-    <label for="difficulty">difficulty (hot-window scale, closed set)</label>
-    <select id="difficulty"></select>
-    <label for="motion">motion (amplitude scale, closed set — pick calm for reduced motion)</label>
-    <select id="motion"></select>
-    <label for="juice">juice (visual feel, closed set — generated games clamp to off under reduced motion)</label>
-    <select id="juice"></select>
-    <label for="inputMode">input mode (closed verb grammar — tap always works as a fallback)</label>
-    <select id="inputMode"></select>
-    </div>
-    <div id="reactionLaneControls" hidden>
-      <label for="rlLaneCount">Reaction Lane lanes</label>
-      <select id="rlLaneCount"></select>
-      <label for="rlSpawnCadence">spawn cadence ms</label>
-      <select id="rlSpawnCadence"></select>
-      <label for="rlHitWindow">hit window ms</label>
-      <select id="rlHitWindow"></select>
-      <label for="rlTargetCount">target count</label>
-      <select id="rlTargetCount"></select>
-      <label for="rlComboCap">combo cap</label>
-      <select id="rlComboCap"></select>
-      <label for="rlMissLimit">miss limit</label>
-      <select id="rlMissLimit"></select>
-      <label for="rlDifficultyRamp">difficulty ramp</label>
-      <select id="rlDifficultyRamp"></select>
-      <label for="rlParticles">particle effects</label>
-      <select id="rlParticles"></select>
-      <label for="rlShake">screen shake (bounded, reduced-motion clamped)</label>
-      <select id="rlShake"></select>
-      <label for="rlContrast">contrast</label>
-      <select id="rlContrast"></select>
-      <label for="rlMobileControls">mobile controls</label>
-      <select id="rlMobileControls"></select>
-    </div>
-    <label for="frame">frame contract</label>
-    <select id="frame"></select>
-    <label for="budget">declared size budget (1024–65536 bytes)</label>
-    <input id="budget" type="number" min="1024" max="65536" value="32768">
-    <p><button id="testInSandbox" type="button" disabled>Test in sandbox ▶</button></p>
-    <p><button id="exportAll" type="button" disabled>Export manifest + game + adapter</button></p>
-    <p><button id="exportBundle" type="button" disabled>Export builder bundle (.builder.json)</button></p>
-    <label for="importBundle">import a builder bundle (restores PARAMETERS only — source always regenerates)</label>
-    <input id="importBundle" type="file" accept="application/json,.json">
+<header class="topbar">
+  <span class="brand"><span class="pink">ARCADE</span> MAKER <span class="sub">//</span> BUILD</span>
+  <span class="badge">LOCAL</span>
+  <a class="back" href="/arcade/creator/local-maker/">← Maker lab</a>
+</header>
 
-    <p class="note">This page generates DATA only — it never runs the game. Test the exported package
-      in the arcade-sandbox (the only place creator code executes, inside a closed-CSP iframe).
-      The CF-4 importer gate re-scans everything regardless. No submit, no upload, no live world.</p>
-  </div>
-  <div class="col">
-    <p><span class="verdict" id="verdict">—</span> <span class="note" id="sizes"></span></p>
-    <canvas id="framePreview" width="300" height="280" aria-label="Frame contract outline preview"></canvas>
-    <p class="note">issues</p>
-    <pre id="issues">(none)</pre>
-    <p class="note">generated game.mjs</p>
-    <pre id="srcView">(none)</pre>
-    <p class="note">rule graph JSON</p>
-    <pre id="graphView">(none)</pre>
-  </div>
+<nav class="steps" aria-label="How it works">
+  <span class="step s1"><b>1</b> Pick a starter <span class="arw">→</span></span>
+  <span class="step s2"><b>2</b> Tweak the feel <span class="arw">→</span></span>
+  <span class="step s3"><b>3</b> Test in sandbox <span class="arw">→</span></span>
+  <span class="step s4"><b>4</b> Play</span>
+</nav>
+
+<main>
+  <!-- ── controls column ── -->
+  <section aria-label="Cabinet settings">
+    <div class="panel">
+      <div class="group g1">
+        <h2><span class="n">1</span> Start</h2>
+        <div class="field">
+          <label for="builderMode">Mode</label>
+          <select id="builderMode">
+            <option value="preset">Starter cabinet generator</option>
+            <option value="reaction_lane">Reaction Lane rule graph (advanced)</option>
+          </select>
+          <p class="hint">Start from a ready-made cabinet, or hand-tune an advanced Reaction Lane rule graph.</p>
+        </div>
+        <div id="presetControls">
+          <div class="field">
+            <label for="template">Starter cabinet</label>
+            <select id="template"></select>
+            <p class="hint">Pick a ready-made game to start from — you can change everything below. The importer still gates the result.</p>
+            <div id="starterMeta" class="starter-meta" hidden></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="packageId">Package id</label>
+          <input id="packageId" value="my-first-cabinet" maxlength="48">
+          <p class="hint">A short file name — lowercase-with-dashes, 3–48 chars.</p>
+        </div>
+        <div class="field">
+          <label for="displayName">Display name</label>
+          <input id="displayName" value="My First Cabinet" maxlength="40">
+          <p class="hint">The title players see (up to 40 characters).</p>
+        </div>
+      </div>
+
+      <div class="group g2">
+        <h2><span class="n">2</span> The feel</h2>
+        <!-- variant + accent stay outside presetTokenControls: accent drives the Reaction Lane palette too,
+             so both must remain visible when the mode panel is hidden (matches the legacy control contract). -->
+        <div class="field">
+          <label for="variant">Game type</label>
+          <select id="variant"></select>
+          <p class="hint">What kind of game it plays like.</p>
+        </div>
+        <div class="field">
+          <label for="accent">Accent colour</label>
+          <select id="accent"></select>
+          <p class="hint">The main neon colour.</p>
+        </div>
+        <div id="presetTokenControls">
+          <div class="field">
+            <label for="speed">Speed</label>
+            <select id="speed"></select>
+            <p class="hint">How fast things move.</p>
+          </div>
+          <div class="field">
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty"></select>
+            <p class="hint">How tight the timing window is.</p>
+          </div>
+          <div class="field">
+            <label for="motion">Motion</label>
+            <select id="motion"></select>
+            <p class="hint">How much things move — pick <b>calm</b> for reduced motion.</p>
+          </div>
+          <div class="field">
+            <label for="juice">Juice</label>
+            <select id="juice"></select>
+            <p class="hint">Extra visual flair. Generated games tone this down automatically under reduced motion.</p>
+          </div>
+          <div class="field">
+            <label for="inputMode">Input</label>
+            <select id="inputMode"></select>
+            <p class="hint">How players act. Tap always works as a fallback.</p>
+          </div>
+        </div>
+
+        <div id="reactionLaneControls" hidden>
+          <div class="field"><label for="rlLaneCount">Lanes</label><select id="rlLaneCount"></select></div>
+          <div class="field"><label for="rlSpawnCadence">Spawn cadence (ms)</label><select id="rlSpawnCadence"></select></div>
+          <div class="field"><label for="rlHitWindow">Hit window (ms)</label><select id="rlHitWindow"></select></div>
+          <div class="field"><label for="rlTargetCount">Target count</label><select id="rlTargetCount"></select></div>
+          <div class="field"><label for="rlComboCap">Combo cap</label><select id="rlComboCap"></select></div>
+          <div class="field"><label for="rlMissLimit">Miss limit</label><select id="rlMissLimit"></select></div>
+          <div class="field"><label for="rlDifficultyRamp">Difficulty ramp</label><select id="rlDifficultyRamp"></select></div>
+          <div class="field"><label for="rlParticles">Particle effects</label><select id="rlParticles"></select></div>
+          <div class="field"><label for="rlShake">Screen shake</label><select id="rlShake"></select><p class="hint">Bounded; clamped under reduced motion.</p></div>
+          <div class="field"><label for="rlContrast">Contrast</label><select id="rlContrast"></select></div>
+          <div class="field"><label for="rlMobileControls">Mobile controls</label><select id="rlMobileControls"></select></div>
+        </div>
+      </div>
+
+      <div class="group g3">
+        <h2><span class="n">3</span> Frame &amp; size</h2>
+        <div class="field">
+          <label for="frame">Frame contract</label>
+          <select id="frame"></select>
+          <p class="hint">The screen shape and size of the cabinet.</p>
+        </div>
+        <div class="field">
+          <label for="budget">Size budget (bytes)</label>
+          <input id="budget" type="number" min="1024" max="65536" value="32768">
+          <p class="hint">Max file size for the generated game (1024–65536).</p>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="actions">
+          <button id="testInSandbox" class="btn-primary" type="button" disabled>▶ Test in sandbox</button>
+          <button id="exportAll" type="button" disabled>Export files (manifest + game + adapter)</button>
+          <button id="exportBundle" type="button" disabled>Export builder bundle (.builder.json)</button>
+          <div class="file-field">
+            <label for="importBundle">Import a builder bundle</label>
+            <input id="importBundle" type="file" accept="application/json,.json">
+            <p class="hint">Restores settings only — the game source always regenerates and the importer re-gates.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="footnote">This page makes <b>data only</b> — it never runs the game. Press <b>Test in sandbox</b> to
+      play it in the hardened sandbox (the only place creator code runs, inside a closed-CSP iframe). No submit,
+      no upload, no live world.</p>
+  </section>
+
+  <!-- ── preview / status column ── -->
+  <section aria-label="Status and preview">
+    <div class="panel">
+      <div class="group">
+        <div class="verdict-row">
+          <span class="verdict" id="verdict">—</span>
+          <span class="sizes" id="sizes"></span>
+        </div>
+        <canvas id="framePreview" width="300" height="280" aria-label="Frame contract outline preview"></canvas>
+        <p class="preview-cap">cabinet frame preview</p>
+        <p class="pre-label">Issues</p>
+        <pre id="issues">(none)</pre>
+        <details>
+          <summary>Show generated code (for the curious)</summary>
+          <div class="body">
+            <p class="pre-label">generated game.mjs</p>
+            <pre id="srcView">(none)</pre>
+            <p class="pre-label">rule graph JSON</p>
+            <pre id="graphView">(none)</pre>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
 </main>
 <script type="module" src="./arcade-builder.mjs"></script>
 </body>
