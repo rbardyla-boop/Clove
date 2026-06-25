@@ -85,6 +85,30 @@ export function getCabinet(id) {
 const FORBIDDEN_CATALOG_RE = /\b(buy|sell|sale|rent|own(?:ership)?|trade|cash|payout|coin|token|crypto|nft|wallet|price|purchase|marketplace|account|login|sign[- ]?in|upload|publish|reward|prize|redeem|ledger|balance)\b/i;
 const ID_RE = /^[a-z0-9](?:[a-z0-9-]{1,46}[a-z0-9])$/;
 
+/**
+ * Fail-closed same-origin guard for static catalog hrefs. The catalog only ever points at LOCAL relative
+ * paths (e.g. "arcade/city/"), so the safe rule is: no whitespace/control chars, no URI scheme at all, no
+ * absolute-root or protocol-relative path, no backslashes. This rejects scheme-only `javascript:` / `data:` /
+ * `vbscript:` URIs (which carry no "//" and so slipped past the old protocol-relative check), external
+ * `https://` and protocol-relative `//host` links, and root-absolute `/x` paths — while preserving plain
+ * relative paths. A leading colon-before-slash is treated as a scheme per RFC 3986 (a relative-ref's first
+ * segment may not contain ":"), so "arcade/city/" passes but "javascript:alert(1)" does not.
+ *
+ * Whitespace/control-char rejection is load-bearing: browsers strip leading whitespace and intra-token C0
+ * controls (TAB/LF/CR/NUL) before parsing, so " javascript:..." and "java\tscript:..." would normalize back
+ * into an active scheme. We reject any C0/space/DEL/C1 char (and backslash) outright so the post-strip form
+ * can never differ from what we validated.
+ */
+export function isSameOriginRelativeHref(href) {
+  if (typeof href !== 'string' || href === '') return false;
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u0020\u007f-\u009f\\]/.test(href)) return false; // C0 controls + space, DEL/C1 controls, backslash
+  // scheme = colon appearing before any "/", "?" or "#" (RFC 3986: a relative-ref first segment has no ":")
+  if (/^[^/?#]*:/.test(href)) return false; // javascript:, data:, vbscript:, http(s):, mailto:, …
+  if (href.startsWith('/')) return false; // absolute-root "/x" and protocol-relative "//host"
+  return true;
+}
+
 export function validateCatalog(cabinets = OFFICIAL_LIVE_CABINETS, entries = PLAY_ENTRIES) {
   const errors = [];
   const seen = new Set();
@@ -102,7 +126,7 @@ export function validateCatalog(cabinets = OFFICIAL_LIVE_CABINETS, entries = PLA
     if (FORBIDDEN_CATALOG_RE.test(blob)) errors.push(`${c.id}: forbidden economy/account term in metadata`);
   }
   for (const e of entries) {
-    if (typeof e.href !== 'string' || /^(?:[a-z]+:)?\/\//i.test(e.href) || e.href.startsWith('/')) {
+    if (!isSameOriginRelativeHref(e.href)) {
       errors.push(`play entry href must be a same-origin relative path: ${e.href}`);
     }
   }
