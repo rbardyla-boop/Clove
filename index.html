@@ -43,6 +43,11 @@
             color: rgba(158,203,255,0.35); margin-bottom: 8px;
             text-transform: uppercase;
         }
+        .lede {
+            max-width: 640px; text-align: center; margin: -8px 0 4px;
+            font-size: 14px; line-height: 1.6; color: rgba(210,230,255,0.62);
+        }
+        .lede b { color: #e6edff; font-weight: 600; }
 
         .cards {
             display: grid; grid-template-columns: 1fr 1fr;
@@ -189,16 +194,35 @@
         .card-neoncircuit .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
         .card-neoncircuit .card-cta { color: #ff2d95; }
 
+        /* Local Maker card — make + playtest arcade games locally (no upload, no publish) */
+        .card-maker {
+            border-color: rgba(167,139,250,0.26);
+            grid-column: span 2;
+        }
+        .card-maker:hover {
+            border-color: rgba(167,139,250,0.6);
+            box-shadow: 0 24px 60px rgba(167,139,250,0.10);
+        }
+        .card-maker .card-tag {
+            font-size: 9px; letter-spacing: 0.18em; color: #a78bfa;
+            background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.28);
+            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
+        }
+        .card-maker .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
+        .card-maker .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
+        .card-maker .card-cta { color: #a78bfa; }
+
         /* Mobile */
         @media (max-width: 580px) {
             .container { gap: 14px; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); }
             .cards { grid-template-columns: 1fr; max-width: 420px; gap: 14px; }
             .card { padding: 22px 18px; border-radius: 16px; }
-            .card-arcade, .card-neoncircuit { grid-column: span 1; }
+            .card-arcade, .card-neoncircuit, .card-maker { grid-column: span 1; }
             .card-game .card-title,
             .card-learn .card-title,
             .card-arcade .card-title,
             .card-neoncircuit .card-title,
+            .card-maker .card-title,
             .card-mindmachine .card-title,
             .card-nodehopper .card-title { font-size: 20px; }
         }
@@ -206,7 +230,8 @@
 </head>
 <body>
     <div class="container">
-        <p class="eyebrow">Welcome</p>
+        <p class="eyebrow">Welcome to Clove</p>
+        <p class="lede">A free place to <b>play</b> games and <b>make</b> small arcade games locally — no account, no install. Some games are live and multiplayer; anything you make stays on your device.</p>
         <div class="cards">
 
             <a class="card card-neoncircuit" href="whats-live.html">
@@ -217,6 +242,16 @@
                 </div>
                 <div class="card-divider"></div>
                 <span class="card-cta">SEE WHAT'S LIVE</span>
+            </a>
+
+            <a class="card card-maker" href="arcade/creator/local-maker/">
+                <span class="card-tag">MAKE · LOCAL ONLY</span>
+                <div class="card-title">ARCADE MAKER LAB</div>
+                <div class="card-subtitle">
+                    Build a small arcade game from simple controls, playtest it right in your browser, and share it as a local file or share code. Nothing is uploaded or published — it stays on your device.
+                </div>
+                <div class="card-divider"></div>
+                <span class="card-cta">MAKE A GAME</span>
             </a>
 
             <a class="card card-arcade" href="game/Arcade/index.html">
@@ -270,7 +305,7 @@
             </a>
 
         </div>
-        <p class="footer-note">All free. No accounts. No ads.</p>
+        <p class="footer-note">All free. No accounts. No ads. Anything you make stays on your device.</p>
     </div>
 </body>
 </html>

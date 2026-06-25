@@ -55,9 +55,11 @@ const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
 // via the SAME postMessage input channel (no new capability; iframe stays null-origin). Re-pinned again for
 // CR1D local-share: builder encodes the gated {manifest,files} as a LOCAL NCLOCAL1:<base64> share code + a
 // local package fingerprint (existing packageHash), and the sandbox decodes paste/file imports and routes
-// them through the SAME importArcadePackage gate (no server/upload/economy; iframe stays null-origin). No
-// gate/CSP/boundary change in any of these. Security-reviewed re-bless of the reviewed bundle, not unreviewed drift.
-const EXPECTED_EDITOR_AGGREGATE = 'd48a6a58ce7c19f17386bc40f7d74902e6acbc13764d8f7b084512905ff4e32b';
+// them through the SAME importArcadePackage gate (no server/upload/economy; iframe stays null-origin). Re-pinned
+// again for Public Arcade v2 / Local Maker v1: builder gains a HOST-ONLY local draft (localStorage on the
+// trusted page only — never in the package; the importer still bans storage in package source) + clarity copy;
+// no gate/CSP/boundary change in any of these. Security-reviewed re-bless of the reviewed bundle, not unreviewed drift.
+const EXPECTED_EDITOR_AGGREGATE = '3912178753dec80d9408efdb676d4a2827b9d1ce5a295ac5700c99241bdfa0be';
 const HEADER_POLICY_MODE = 'preserve-live-global-editor-strict';
 
 // The two global headers that drifted (committed = stricter, live = looser). The operator decision for
