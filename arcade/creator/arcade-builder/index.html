@@ -152,6 +152,42 @@
   .draft-note button { min-height:32px; padding:0 12px; font-size:12px; border-radius:8px;
     border:1px solid var(--line-2); background:var(--inset); color:var(--ink); cursor:pointer; }
   .draft-note button:hover { border-color:var(--cyan); }
+
+  /* ── Free Sandbox editor ── */
+  #freeSandboxRoot { grid-column: 1 / -1; }
+  .fs-editor { display:grid; grid-template-columns: minmax(0,1.4fr) minmax(280px,.9fr); gap:18px; align-items:start; }
+  @media (max-width: 920px){ .fs-editor{ grid-template-columns:1fr; } }
+  .fs-controls { display:flex; flex-direction:column; gap:14px; }
+  .fs-card { background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; }
+  .fs-card h3 { font-family:var(--display); font-size:12px; font-weight:400; letter-spacing:.6px; margin:0 0 11px; color:var(--ink); }
+  .fs-field { margin:0 0 10px; }
+  .fs-field:last-child { margin-bottom:0; }
+  .fs-field > label { font-size:12px; }
+  .fs-list { display:flex; flex-direction:column; gap:9px; }
+  .fs-row { display:flex; flex-wrap:wrap; gap:7px; align-items:flex-end; padding:9px; border:1px solid var(--line-2); border-radius:9px; background:var(--inset); }
+  .fs-cell { display:flex; flex-direction:column; gap:3px; font-size:10px; color:var(--dim); letter-spacing:.3px; text-transform:uppercase; }
+  .fs-cell span { padding-left:2px; }
+  .fs-cell select, .fs-cell input { width:auto; min-width:66px; padding:6px 8px; font-size:12px; }
+  .fs-cell input[type=number] { width:74px; }
+  .fs-rule { align-items:center; }
+  .fs-rule select { width:auto; min-width:120px; padding:6px 8px; font-size:12px; }
+  .fs-when, .fs-then { font-family:var(--display); font-size:10px; letter-spacing:.5px; padding:3px 7px; border-radius:6px; }
+  .fs-when { color:var(--bg); background:var(--amber); } .fs-then { color:var(--bg); background:var(--cyan); }
+  .fs-rm { min-height:32px; width:32px; padding:0; color:var(--red); border-color:var(--line-2); margin-left:auto; }
+  .fs-rm:hover { border-color:var(--red); }
+  .fs-add { min-height:38px; align-self:flex-start; padding:0 14px; font-size:12px; color:var(--cyan); }
+  .fs-status { position:sticky; top:80px; display:flex; flex-direction:column; gap:10px; padding:16px; background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--line); border-radius:var(--r); }
+  .fs-verdict { font-family:var(--display); font-size:12px; letter-spacing:.5px; padding:8px 12px; border-radius:8px; background:var(--inset); border:1px solid var(--line-2); }
+  .fs-verdict.ok { color:var(--green); border-color:rgba(124,255,176,.4); box-shadow:0 0 18px -6px rgba(124,255,176,.5); }
+  .fs-verdict.bad { color:var(--red); border-color:rgba(255,107,107,.4); }
+  .fs-summary { font-size:12px; color:var(--muted); }
+  .fs-actions { display:flex; flex-direction:column; gap:8px; }
+  .fs-primary { font-family:var(--display); font-size:12px; letter-spacing:.5px; min-height:48px; color:#1a0512; background:linear-gradient(180deg,#ff4da6,var(--magenta)); border-color:#ff5fb0; }
+  .fs-label { font-size:11px; color:var(--muted); margin:6px 0 0; letter-spacing:.3px; text-transform:uppercase; }
+  .fs-issues { margin:0; max-height:200px; }
+  .fs-fp { font-size:11.5px; color:var(--muted); } .fs-fp code { font-size:11px; }
+  .fs-note { font-size:11px; color:var(--dim); line-height:1.5; margin:2px 0 0; }
+  .fs-share-out { width:100%; font:11px/1.4 var(--body); margin-top:4px; }
 </style>
 </head>
 <body>
@@ -180,8 +216,10 @@
           <select id="builderMode">
             <option value="preset">Starter cabinet generator</option>
             <option value="reaction_lane">Reaction Lane rule graph (advanced)</option>
+            <option value="free_sandbox">Free Sandbox — build from mechanics (advanced)</option>
           </select>
-          <p class="hint">Start from a ready-made cabinet, or hand-tune an advanced Reaction Lane rule graph.</p>
+          <p class="hint">Start from a ready-made cabinet, hand-tune a Reaction Lane rule graph, or open the
+            <b>Free Sandbox</b> to compose a game from arena, entities, rules, waves &amp; objectives.</p>
         </div>
         <div id="presetControls">
           <div class="field">
@@ -191,19 +229,21 @@
             <div id="starterMeta" class="starter-meta" hidden></div>
           </div>
         </div>
-        <div class="field">
-          <label for="packageId">Package id</label>
-          <input id="packageId" value="my-first-cabinet" maxlength="48">
-          <p class="hint">A short file name — lowercase-with-dashes, 3–48 chars.</p>
-        </div>
-        <div class="field">
-          <label for="displayName">Display name</label>
-          <input id="displayName" value="My First Cabinet" maxlength="40">
-          <p class="hint">The title players see (up to 40 characters).</p>
+        <div id="presetMeta">
+          <div class="field">
+            <label for="packageId">Package id</label>
+            <input id="packageId" value="my-first-cabinet" maxlength="48">
+            <p class="hint">A short file name — lowercase-with-dashes, 3–48 chars.</p>
+          </div>
+          <div class="field">
+            <label for="displayName">Display name</label>
+            <input id="displayName" value="My First Cabinet" maxlength="40">
+            <p class="hint">The title players see (up to 40 characters).</p>
+          </div>
         </div>
       </div>
 
-      <div class="group g2">
+      <div class="group g2" id="feelGroup">
         <h2><span class="n">2</span> The feel</h2>
         <!-- variant + accent stay outside presetTokenControls: accent drives the Reaction Lane palette too,
              so both must remain visible when the mode panel is hidden (matches the legacy control contract). -->
@@ -260,7 +300,7 @@
         </div>
       </div>
 
-      <div class="group g3">
+      <div class="group g3" id="frameGroup">
         <h2><span class="n">3</span> Frame &amp; size</h2>
         <div class="field">
           <label for="frame">Frame contract</label>
@@ -274,7 +314,7 @@
         </div>
       </div>
 
-      <div class="group">
+      <div class="group" id="actionsGroup">
         <div class="actions">
           <button id="testInSandbox" class="btn-primary" type="button" disabled>▶ Test in sandbox</button>
           <button id="exportAll" type="button" disabled>Export files (manifest + game + adapter)</button>
@@ -313,7 +353,7 @@
   </section>
 
   <!-- ── preview / status column ── -->
-  <section aria-label="Status and preview">
+  <section aria-label="Status and preview" id="builderStatus">
     <div class="panel">
       <div class="group">
         <div class="verdict-row">
@@ -336,6 +376,9 @@
       </div>
     </div>
   </section>
+
+  <!-- ── Free Sandbox editor (full width; mounted lazily when its mode is selected) ── -->
+  <section id="freeSandboxRoot" aria-label="Free Sandbox editor" hidden></section>
 </main>
 <script type="module" src="./arcade-builder.mjs"></script>
 </body>

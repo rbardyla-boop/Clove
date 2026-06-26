@@ -56,8 +56,14 @@ test('builder has a host-only local draft (save/restore/clear) — never part of
 });
 
 test('TRUST BOUNDARY UNCHANGED: storage is host-only; the package can never use storage', () => {
-  // localStorage appears only on the trusted builder host page, never in the sandbox runner...
-  assert.equal((SANDBOX_JS.match(/localStorage/g) || []).length, 0, 'sandbox runner uses no localStorage');
+  // The package (iframe) can never reach host storage because the sandbox frame is NULL ORIGIN:
+  // 'allow-scripts' only, and 'allow-same-origin' is NEVER granted. This — not the host's own storage
+  // abstinence — is the guarantee. (Creator Freedom v1 added HOST-ONLY play retention via window.localStorage
+  // on the trusted sandbox page, exactly like the builder's host-only draft; it is never handed to the frame.)
+  assert.match(SANDBOX_JS, /setAttribute\('sandbox', 'allow-scripts'\)/, 'sandbox frame is allow-scripts');
+  assert.equal((SANDBOX_JS.match(/allow-same-origin/g) || []).length, 0, 'sandbox iframe is never granted allow-same-origin (null origin → no storage in the frame)');
+  // any localStorage the host page uses is read via window.localStorage on the trusted page (host-only retention).
+  assert.doesNotMatch(SANDBOX_JS, /srcdoc[\s\S]*localStorage/, 'localStorage is never embedded into the iframe srcdoc');
   // ...and the importer still bans storage APIs in package SOURCE (defense in depth for the iframe).
   assert.match(IMPORTER, /storage: localStorage[\s\S]*localStorage/);
   assert.match(IMPORTER, /sessionStorage/);

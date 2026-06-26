@@ -17,6 +17,9 @@
  */
 import { importArcadePackage } from '../arcade-importer/import-arcade-package.mjs';
 import { packageHash } from '../validator/package-hash.mjs';
+// Creator Freedom v1 — LOCAL-ONLY play retention (host page; never the sandbox iframe). Records best
+// score / grade / plays by local package fingerprint in localStorage. No server, no account, no economy.
+import { readStore, writeStore, recordResult, getStats } from './free-sandbox-retention.mjs';
 
 const SAMPLE_DIR = '../samples/arcade-sample/';
 
@@ -46,6 +49,7 @@ const state = {
   frameDims: null,
   lastManifest: null, // kept so "Restart" can re-run the same package
   lastFiles: null,
+  lastFingerprint: null, // local package fingerprint of the running package (for play retention)
 };
 
 function el(id) { return document.getElementById(id); }
@@ -64,13 +68,56 @@ function setNowPlaying(manifest) {
 function showFingerprint(pkg) {
   const h = el('importHash');
   if (!h) return;
-  if (!pkg) { h.textContent = '—'; return; }
+  if (!pkg) { h.textContent = '—'; state.lastFingerprint = null; return; }
   const seq = ++fpSeq;
   h.textContent = '…';
   packageHash({ manifest: pkg.manifest, files: pkg.files }).then(
-    (v) => { if (seq === fpSeq) h.textContent = v; },
+    (v) => { if (seq === fpSeq) { h.textContent = v; state.lastFingerprint = v; } },
     () => { if (seq === fpSeq) h.textContent = '(unavailable)'; },
   );
+}
+
+/**
+ * LOCAL-ONLY play retention: record a result PROPOSAL against the running package's local fingerprint
+ * (best score / personal grade / play count). Host page localStorage only — the sandbox iframe never
+ * touches storage; this grants no authority (every score is an untrusted local self-report). Degrades to
+ * a no-op if storage is blocked or the fingerprint is not yet known.
+ */
+function recordPlay(proposal) {
+  if (!proposal || !state.lastFingerprint || !state.lastManifest) return;
+  let storage = null;
+  try { storage = window.localStorage; } catch { return; }
+  if (!storage) return;
+  const name = state.lastManifest.display_name || state.lastManifest.package_id || 'cabinet';
+  const out = recordResult(readStore(storage), {
+    fp: state.lastFingerprint, name,
+    score: Number(proposal.proposed_score) || 0,
+    seed: Number(proposal.seed) || 0,
+    won: !!proposal.won,
+  });
+  writeStore(storage, out.state);
+  renderStats(getStats(out.state, state.lastFingerprint), out.grade, out.is_best);
+}
+
+/** Render the retention line with safe DOM nodes (no innerHTML; values are numbers/closed grades). */
+function renderStats(stats, grade, isBest) {
+  const box = el('fsStats');
+  if (!box || !stats) return;
+  box.textContent = '';
+  box.hidden = false;
+  const chip = (label, value, cls) => {
+    const s = document.createElement('span');
+    if (cls) s.className = cls;
+    s.appendChild(document.createTextNode(label));
+    const b = document.createElement('b');
+    b.textContent = String(value);
+    s.appendChild(b);
+    return s;
+  };
+  box.appendChild(chip('grade ', grade, 'grade'));
+  box.appendChild(chip('best ', stats.best));
+  box.appendChild(chip('plays ', stats.plays));
+  if (isBest && stats.plays > 1) { const nb = document.createElement('span'); nb.className = 'grade'; nb.textContent = 'new best!'; box.appendChild(nb); }
 }
 
 /** Strip the adapter's `import {...} from './game.mjs';` (multiline-tolerant) — createGame is
@@ -123,6 +170,7 @@ function teardown() {
 /** Import + vet a package and (if ok) run it in the hardened sandbox. Returns the import report. */
 export function run(manifest, files) {
   teardown();
+  const st = el('fsStats'); if (st) { st.hidden = true; st.textContent = ''; } // clear prior package's retention line
   const report = importArcadePackage({ manifest, files });
   state.lastReport = report;
   const reportEl = el('sandboxReport');
@@ -285,6 +333,7 @@ window.addEventListener('message', (e) => {
     state.lastProposal = m;
     const out = el('sandboxResult');
     if (out) out.textContent = 'UNTRUSTED LOCAL PROPOSAL (not server-authorized): ' + JSON.stringify(m.proposal);
+    recordPlay(m.proposal); // LOCAL-ONLY play retention by fingerprint (best/grade/plays)
   }
 });
 

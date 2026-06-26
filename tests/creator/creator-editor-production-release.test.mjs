@@ -23,8 +23,10 @@ import { isExcludedFromUpload } from '../../scripts/build-curated-client-upload.
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BUILDER = join(REPO, 'scripts', 'build-creator-editor-production-release.mjs');
-// Re-pinned once for CR1B (security-reviewed maker hardening: sandbox-runner hook gate + importer scan).
-const EXPECTED_EDITOR_AGGREGATE = '3912178753dec80d9408efdb676d4a2827b9d1ce5a295ac5700c99241bdfa0be';
+// Re-pinned for Creator Freedom v1 / Free Sandbox: +5 reviewed DATA-ONLY modules in the builder (schema, fixed
+// interpreter, generator, editor, host-only retention). Output = a standard arcade_game package gated by the
+// unchanged importArcadePackage scan; builder never runs the game; sandbox stays null-origin.
+const EXPECTED_EDITOR_AGGREGATE = 'b1a5734d2812e5313643996f9b1717f7848f2b64a8371ef79b272e79d3e325d6';
 const OUT_A = '/tmp/cep-test-prod-A';
 // build-static-release shells `npm run build` into the SHARED arcade-studio/dist, so two build-heavy
 // test files Vite-building in parallel collide there. Serialize the build across test processes.
@@ -66,9 +68,10 @@ test('2. manifest: staging marker renamed to production manifest; aggregate + co
   assert.ok(files.includes('_CREATOR_EDITOR_MANIFEST.json'), '_CREATOR_EDITOR_MANIFEST.json must be present');
   const m = JSON.parse(readFileSync(join(OUT_A, '_CREATOR_EDITOR_MANIFEST.json'), 'utf8'));
   assert.equal(m.editor_aggregate_sha256, EXPECTED_EDITOR_AGGREGATE, 'canonical editor aggregate preserved');
-  // staging manifest file_count = CONTENT files only (excludes the manifest itself); 36 content + 1
-  // manifest = the canonical "37 files incl. manifest" used in gate language.
-  assert.equal(m.editor_file_count, 36, 'editor canonical content file count = 36 (37 incl. manifest)');
+  // staging manifest file_count = CONTENT files only (excludes the manifest itself); 41 content + 1
+  // manifest = the canonical "42 files incl. manifest" used in gate language. (+5 vs prior 36: the
+  // Creator Freedom v1 free-sandbox modules — schema, interpreter, templates, editor, sandbox retention.)
+  assert.equal(m.editor_file_count, 41, 'editor canonical content file count = 41 (42 incl. manifest)');
   assert.equal(m.deployed, false, 'manifest must not claim deployed');
   assert.equal(m.header_policy_mode, 'preserve-live-global-editor-strict');
   assert.ok(!('generated' in m), 'production manifest must be deterministic (no timestamp)');

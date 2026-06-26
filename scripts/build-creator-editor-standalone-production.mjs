@@ -48,7 +48,10 @@ const PRODUCTION_MANIFEST = '_CREATOR_EDITOR_MANIFEST.json';
 // Restart, and again for playable-input: a transparent overlay forwards real pointer gestures to the game
 // via the SAME postMessage input channel (no new capability; iframe stays null-origin). No gate/CSP/boundary
 // change in any of these. Security-reviewed re-bless of the reviewed bundle, not unreviewed drift.
-const EXPECTED_EDITOR_AGGREGATE = '3912178753dec80d9408efdb676d4a2827b9d1ce5a295ac5700c99241bdfa0be';
+// Re-pinned again for Creator Freedom v1 / Free Sandbox: DATA-ONLY declarative editor in the builder (+5 reviewed
+// modules — schema, fixed interpreter, generator/templates, editor, host-only play retention). Output = a STANDARD
+// arcade_game package gated by the UNCHANGED importer scan; builder never executes the game; sandbox stays null-origin.
+const EXPECTED_EDITOR_AGGREGATE = 'b1a5734d2812e5313643996f9b1717f7848f2b64a8371ef79b272e79d3e325d6';
 const HEADER_POLICY_MODE = 'editor-strict-standalone';
 
 // Strings that must NEVER appear in the standalone surface (the production-zone analytics that broke deploy #1).
