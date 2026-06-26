@@ -93,9 +93,11 @@ test('excludes the operator-sensitive atip/ namespace (predicate + real repo)', 
   assert.equal(included.some((f) => f.startsWith('atip/')), false, 'atip/ must not be uploaded');
 });
 
-test('real repo: ONLY the 16-file local-maker carve-out ships from arcade/creator; everything else excluded', () => {
-  // CR1B: the blanket arcade/creator/ denial stays, with an exact 16-path allow-exception for the
-  // local-only maker loop (Builder + Sandbox + Importer + validator/schema/sample + the public hub).
+test('real repo: ONLY the enumerated local-maker carve-out ships from arcade/creator; everything else excluded', () => {
+  // The blanket arcade/creator/ denial stays, with an exact allow-exception (21 paths after Creator
+  // Freedom v1 added the 5 data-only Free Sandbox modules) for the local-only maker loop:
+  // Builder + Sandbox + Importer + validator/schema/sample + the public hub + Free Sandbox schema/
+  // interpreter/templates/editor/retention. The assertion derives the expected set from the constant.
   const { included, excluded } = curatedUploadFileList();
   assert.ok(included.length > 0, 'expected a non-empty upload set');
   const creatorIncluded = included.filter((f) => f.startsWith('arcade/creator/')).sort();
@@ -121,7 +123,9 @@ test('real repo: ONLY the 16-file local-maker carve-out ships from arcade/creato
 test('PUBLIC_CREATOR_ALLOW: every allow-exception is an exact arcade/creator path that the predicate ships', () => {
   // The allow-list overrides the blanket deny ONLY for exact matches (never a prefix), and never re-allows
   // a denied secret/dev-manifest file. Guard against a future typo widening the public surface.
-  assert.equal(PUBLIC_CREATOR_ALLOW.size, 16);
+  // 21 = the original 16 local-maker files + 5 Creator Freedom v1 Free Sandbox modules (schema, interpreter,
+  // templates, editor, retention) the builder/sandbox statically import.
+  assert.equal(PUBLIC_CREATOR_ALLOW.size, 21);
   for (const f of PUBLIC_CREATOR_ALLOW) {
     assert.ok(f.startsWith('arcade/creator/'), `allow entry must be under arcade/creator/: ${f}`);
     assert.equal(isExcludedFromUpload(f), false, `allow entry must ship: ${f}`);

@@ -85,14 +85,21 @@ export const PUBLIC_CREATOR_ALLOW = Object.freeze(new Set([
   'arcade/creator/arcade-builder/arcade-builder.mjs',
   'arcade/creator/arcade-builder/cabinet-templates.mjs',
   'arcade/creator/arcade-builder/rule-graph-templates.mjs',
+  // Creator Freedom v1 — Free Sandbox: DATA-ONLY authoring the builder/sandbox statically import. Output is a
+  // standard arcade_game package gated by the unchanged importer; same local-only safety class as the rest.
+  'arcade/creator/arcade-builder/free-sandbox-editor.mjs',
+  'arcade/creator/arcade-builder/free-sandbox-templates.mjs',
+  'arcade/creator/arcade-builder/free-sandbox-interpreter.mjs',
   'arcade/creator/arcade-sandbox/index.html',
   'arcade/creator/arcade-sandbox/sandbox-runner.mjs',
+  'arcade/creator/arcade-sandbox/free-sandbox-retention.mjs', // host-only play retention (localStorage on the trusted page)
   'arcade/creator/arcade-importer/import-arcade-package.mjs',
   'arcade/creator/validator/validate-arcade-package.mjs',
   'arcade/creator/validator/validation-report.mjs',
   'arcade/creator/validator/package-hash.mjs',
   'arcade/creator/validator/issue-explainer.mjs',
   'arcade/creator/schemas/arcade-game-package-schema.mjs',
+  'arcade/creator/schemas/free-sandbox-schema.mjs', // Creator Freedom v1 closed declarative schema + validator
   'arcade/creator/samples/arcade-sample/manifest.json',
   'arcade/creator/samples/arcade-sample/game.mjs',
   'arcade/creator/samples/arcade-sample/adapter.mjs',

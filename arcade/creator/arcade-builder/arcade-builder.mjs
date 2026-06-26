@@ -35,6 +35,7 @@ import {
   TARGET_COUNTS,
   buildReactionLanePackage,
 } from './rule-graph-templates.mjs';
+import { mountFreeSandboxEditor } from './free-sandbox-editor.mjs';
 
 const el = (id) => document.getElementById(id);
 
@@ -56,6 +57,7 @@ const SHARE_CODE_MAX_CHARS = 200000; // generous ceiling; the package itself is 
 // ── build + gate + report ─────────────────────────────────────────────────────
 const state = { lastReport: null, lastBuild: null, lastGraph: null, lastShareCode: null, lastHash: null };
 let hashSeq = 0; // guards async fingerprint writes against rapid rebuilds
+let freeSandboxEditor = null; // lazily mounted Free Sandbox editor controller (Creator Freedom v1)
 
 // Local DRAFT retention (host-only, NEVER part of the package): the builder remembers your last control
 // state on THIS device so you can return and keep going. localStorage lives on the trusted host page only —
@@ -207,6 +209,7 @@ function renderStarterMeta(starterId) {
 }
 
 function refresh() {
+  if (el('builderMode').value === 'free_sandbox') return; // the Free Sandbox editor self-manages its own build/gate/preview
   const out = build();
   state.lastBuild = out;
   state.lastGraph = out.rule_graph || null;
@@ -316,10 +319,22 @@ function applyStarter(id) {
 }
 
 function updateModePanels() {
-  const isReaction = el('builderMode').value === 'reaction_lane';
-  el('presetControls').hidden = isReaction;
-  el('presetTokenControls').hidden = isReaction;
+  const mode = el('builderMode').value;
+  const isReaction = mode === 'reaction_lane';
+  const isFree = mode === 'free_sandbox';
+  el('presetControls').hidden = isReaction || isFree;
+  el('presetTokenControls').hidden = isReaction || isFree;
   el('reactionLaneControls').hidden = !isReaction;
+  // Free Sandbox swaps the preset/reaction body for the declarative editor; the mode selector stays visible.
+  for (const id of ['presetMeta', 'feelGroup', 'frameGroup', 'actionsGroup', 'builderStatus']) {
+    const node = el(id); if (node) node.hidden = isFree;
+  }
+  if (isFree) { const sp = el('sharePanel'); if (sp) sp.hidden = true; } // refresh() re-gates it when leaving Free mode
+  const free = el('freeSandboxRoot');
+  if (free) {
+    free.hidden = !isFree;
+    if (isFree && !freeSandboxEditor) freeSandboxEditor = mountFreeSandboxEditor(free);
+  }
 }
 
 function addOptions(id, values) {

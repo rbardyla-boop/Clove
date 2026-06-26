@@ -5,6 +5,42 @@ Newest first.
 
 ---
 
+## ADR-048 — Creator Freedom v1 / Free Sandbox: graph-as-data + a fixed interpreter (no new trust surface) (2026-06-26)
+
+**Context.** The Local Maker's authoring depth was thin: one fixed rule-graph template (CF-4A Reaction
+Lane) plus closed-token preset variants, so creator games risked feeling like reskins. The goal was a
+much wider *local* sandbox where creators combine arena, entities, movement, rules, waves and objectives
+— without crossing into arbitrary JavaScript, network/storage, live publishing, accounts, or economy.
+The shipped runtime already enforces "no arbitrary JS reaches the live surface" via a hardened model
+(creators author closed data; the importer source-scans; a null-origin iframe runs it), so the question
+was how to broaden the vocabulary without weakening or duplicating that boundary.
+
+**Decision.** Adopt **graph-as-data + one fixed interpreter** (chosen over per-graph specialized codegen
+and over a brand-new data interpreter / new package kind). A creator authors a closed-vocabulary
+declarative graph (`schemas/free-sandbox-schema.mjs`); the generator emits a **standard `arcade_game`
+package** whose `game.mjs` is `const GRAPH = {…}` followed by a single FIXED, reviewed deterministic
+interpreter (`free-sandbox-interpreter.mjs`, emitted verbatim via `.toString()`). Because the output is
+an ordinary `arcade_game` package, the **importer gate and the null-origin sandbox are unchanged** — the
+new trust surface is zero. The validator is fail-closed (closed enums, hard caps on entity types / live
+instances / rules / waves / spawn rate, deny-by-default capabilities, no URLs/economy vocabulary, reachable
+objective). Five example games ship as graph fixtures (survival dodge, collect-and-escape, wave clear,
+timed route, combo score) — five distinct objectives, ≈26 KB each. A data-only editor mode in the
+arcade-builder (`free-sandbox-editor.mjs`) composes the graph, validates live, shows the fingerprint, and
+hands off to the sandbox; host-only play retention (`arcade-sandbox/free-sandbox-retention.mjs`) records
+best/grade/plays by package fingerprint in the trusted page's `localStorage` only (never the iframe).
+
+**Consequences.** Additive only under `arcade/creator/` (+5 reviewed modules) plus the builder/sandbox
+HTML wiring; the importer, validator-core, and sandbox iframe are untouched. The reviewed Creator Editor
+bundle legitimately grows by these modules, so `EXPECTED_EDITOR_AGGREGATE` is re-pinned (security-reviewed
+re-bless, not unreviewed drift; content file count 36 → 41). No Worker/DO/D1/R2/migration/secret change, no
+Cloudflare/deploy, no flag flip, no live-world / economy / account / upload surface. Validation: full
+`tests/arcade/*` + `tests/creator/*` node suite green (1151), the new `free-sandbox-*` suites + editor
+browser smoke green, builder + sandbox smokes green, production-config + city-size + curated-upload gates
+green. Local-only; not pushed/deployed. Detail: `docs/CREATOR_FREEDOM_V1_FREE_SANDBOX.md`. Live publishing
+stays gated by ADR-047.
+
+---
+
 ## ADR-047 — CF-7 live loader stays DISABLED until the Phase 9A.5 economy legal/safety review resolves (2026-06-24)
 
 **Context.** The Phase 9A.5 read-only audit (`docs/PHASE9A5_ECONOMY_LEGAL_SAFETY_AUDIT.md`) recorded
