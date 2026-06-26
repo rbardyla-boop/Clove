@@ -5,6 +5,40 @@ Newest first.
 
 ---
 
+## ADR-049 — Creator Freedom v1 / Free Sandbox: live release on clovelearn.io (2026-06-26)
+
+**Context.** ADR-048 landed the Free Sandbox on `main` (merge `c20d486`) but did not deploy it. The
+production static site (`clovelearn.io`, Pages project `wild-hat-6257`) is updated by a manual operator
+dashboard upload, not by CI/CLI. This ADR records the live release and its verification.
+
+**Decision.** Ship the reviewed `c20d486` curated upload package to production via the operator's manual
+dashboard upload, gated behind a read-only pre-upload review and a read-only live verification — no code
+change, no flag flip, no Cloudflare-config mutation. The agent does not (and cannot) perform the upload;
+it verifies fidelity before and liveness after.
+
+**Consequences.** Creator Freedom v1 / Free Sandbox is **live and verified** at `https://clovelearn.io`.
+The curated package (293 files / 16.77 MiB, aggregate
+`8c863852a6438af887e55991e66e1e8f54e01e7a251abacae609520002bc8c42`) was built faithfully from a clean
+detached worktree at `c20d486`, so no dirty working-tree content shipped. Live identity is proven: all 18
+creator `.mjs` files plus `arcade/cabinet-catalog.mjs` are byte-identical (sha256) to the reviewed
+package, all 5 Free Sandbox modules serve 200, and the live `sandbox-runner.mjs` carries the
+`free-sandbox-retention` import. A 20/20 headless live smoke passed end-to-end (builder → Free Sandbox →
+gate → one-click test-in-sandbox handoff → the sandbox ran the generated game and surfaced an
+untrusted-local proposal), with zero off-host network, zero 404s, and zero console errors on the creator
+path. The trust boundary holds in served bytes (`allow-scripts` only, `allow-same-origin`=0, child CSP
+`default-src 'none'`, importer deny-list present); blocked surfaces (approval/moderation/live-loader,
+arcade-studio, workers/tests/docs, block/layered/district editors, creator-corner) return 404; secrets are
+not exposed. Findings: zero Critical/High/Medium; Low only — Cloudflare's edge-injected
+`/cdn-cgi/challenge-platform/` inline script blocked by the site CSP (one cosmetic console message),
+`.env` → 403 (dotfile protection, content not served), and the previously-recorded pre-existing items
+(legacy fonts/CDN, legacy same-origin arcade WebSocket clients, inert dev scripts served as static text).
+**Verdict: shipped; no rollback.** Optional follow-ups remain their own gates: self-hosting legacy
+fonts/CDN, and scoping the unrelated graphics-degradation task. Live publishing of *third-party* creator
+packages into the live world stays gated by ADR-047 (this release ships only the local authoring +
+null-origin sandbox surface). Release record: `docs/CREATOR_FREEDOM_V1_LIVE_RELEASE.md`.
+
+---
+
 ## ADR-048 — Creator Freedom v1 / Free Sandbox: graph-as-data + a fixed interpreter (no new trust surface) (2026-06-26)
 
 **Context.** The Local Maker's authoring depth was thin: one fixed rule-graph template (CF-4A Reaction
