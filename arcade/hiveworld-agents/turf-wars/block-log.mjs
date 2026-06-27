@@ -110,7 +110,7 @@ const emptyState = () => ({
   structures: {}, occupied: {}, collected_at: {},
   crew: null, published_snapshot: null,
   seq_height: 0, chain_head: null,
-  applied: [], econ_rejected: [], rejected: [],
+  applied: [], econ_rejected: [], rejected: [], settlement_deferred: [],
 });
 
 /**
@@ -194,6 +194,16 @@ export function foldBlock(ops) {
       case 'join_crew': {
         s.crew = p.crew_id;
         s.applied.push(op.hash);
+        break;
+      }
+      case 'record_attack_result': {
+        // Phase-2 SEAM. The op is structurally valid (verifyOp passed), but applying an attack outcome to
+        // block state is DEFERRED: live settlement requires O1 (the settlement seed / commit-reveal so the
+        // outcome cannot be ground) and O2 (the fraud-proof liveness window, esp. for an offline victim),
+        // both still open. So the fold RECORDS it as settlement-deferred and mutates NOTHING — no scorch,
+        // no counter change, no structure change. The actual outcome is computed/verified out-of-band by
+        // attack-sim.mjs; wiring it into settlement is a later, separately-gated step.
+        s.settlement_deferred.push({ ref: op.hash, reason: 'settlement_deferred_pending_o1_o2' });
         break;
       }
       default:

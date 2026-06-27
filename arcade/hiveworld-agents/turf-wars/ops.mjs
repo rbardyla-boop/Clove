@@ -8,8 +8,11 @@
  * admits the exact keys with the exact primitive/enum/int types, and a defense-in-depth scan rejects
  * any string that smells like a URL or a code/markup field name. There is NO transfer / trade / sell /
  * cash-out op: those are not "guarded", they are ABSENT from the grammar, so value cannot leave a
- * block by construction. `record_attack_result` is RESERVED for Phase 2 and the fold rejects it — the
- * schema reserves the name without implementing combat settlement.
+ * block by construction. `record_attack_result` is, as of the Phase-2 foundation, a STRUCTURALLY
+ * VALIDATED op (closed schema + signature) whose SETTLEMENT is DEFERRED: the fold records it as
+ * settlement-deferred rather than applying it, because live settlement depends on Phase-2 O1 (the
+ * settlement seed / commit-reveal) and O2 (fraud-proof liveness vs. an offline victim) — both still
+ * open. It still carries no transfer/cash semantics; an attack yields cosmetic, reversible scorch only.
  *
  * Each op carries: v, block_id, prev (content-address of the previous op | null at genesis), seq,
  * tick (logical clock), actor (raw Ed25519 pubkey hex), type, payload, hash (content-address of the
@@ -35,15 +38,17 @@ export const OP_ENVELOPE_KEYS = Object.freeze([
 ]);
 const ENVELOPE_KEY_SET = new Set(OP_ENVELOPE_KEYS);
 
-/** Phase-1 accepted op vocabulary. Nothing else folds. */
+/** Accepted op vocabulary. `record_attack_result` (Phase-2 foundation) is structurally valid but
+ * settlement-deferred in the fold; everything else folds normally. Nothing outside this list folds. */
 export const OP_TYPES = Object.freeze([
   'init_block', 'build_structure', 'upgrade_structure', 'collect_resource',
-  'publish_base_snapshot', 'join_crew',
+  'publish_base_snapshot', 'join_crew', 'record_attack_result',
 ]);
 
 /** Reserved for later phases — the fold REJECTS these with `reserved_for_phase2` (schema reservation
- * only; combat settlement is NOT implemented in Phase 1). */
-export const RESERVED_OP_TYPES = Object.freeze(['record_attack_result']);
+ * only). Empty since the Phase-2 foundation promoted `record_attack_result` to a structurally-validated,
+ * settlement-deferred op; the mechanism stays for any genuinely-future reserved op type. */
+export const RESERVED_OP_TYPES = Object.freeze([]);
 
 /** Closed structure model. Each kind has a deterministic build cost, production, and max level — no
  * free-form fields. `produces` is per-collect output BEFORE the per-level multiplier. */
@@ -90,7 +95,10 @@ export function scanForbidden(value) {
   const walk = (v, depth) => {
     if (depth > 6) return 'too_deep';
     if (typeof v === 'string') {
-      if (v.length > 64) return 'string_too_long';
+      // Cap free-text length, but allow long HEX / content-address strings — the closed schema already
+      // pins those fields (e.g. `sha256:<64hex>` content addresses = 71 chars, Ed25519 sigs = 128 hex),
+      // and a hex/content-address string carries no free text. Long NON-hex strings are still rejected.
+      if (v.length > 64 && !/^(sha256:)?[0-9a-f]+$/.test(v)) return 'string_too_long';
       if (URLISH.test(v)) return 'url_or_markup';
       return null;
     }
@@ -147,6 +155,17 @@ export function validatePayload(type, payload) {
     case 'join_crew':
       if (!only(['crew_id'])) return 'join_crew_shape';
       if (!CREW_ID_RE.test(payload.crew_id)) return 'bad_crew_id';
+      return null;
+    case 'record_attack_result':
+      // Phase-2 foundation: closed schema only. References to the three public attack inputs (the
+      // defender's base snapshot, the attacker's plan, the settlement seed) plus the claimed outcome
+      // digest. Structurally validated here; the FOLD defers settlement (see block-log.mjs). The seed
+      // FORMAT is fixed (closed hex token); its provenance/binding is O1, deferred.
+      if (!only(['base_address', 'plan_hash', 'seed', 'outcome_digest'])) return 'record_attack_result_shape';
+      if (!isContentAddress(payload.base_address)) return 'bad_base_address';
+      if (!isContentAddress(payload.plan_hash)) return 'bad_plan_hash';
+      if (!isContentAddress(payload.outcome_digest)) return 'bad_outcome_digest';
+      if (typeof payload.seed !== 'string' || !/^[0-9a-f]{16,64}$/.test(payload.seed)) return 'bad_seed';
       return null;
     default:
       return 'unknown_op';

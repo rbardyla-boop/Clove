@@ -22,12 +22,18 @@ const TURF_PREFIX = 'arcade/hiveworld-agents/turf-wars/';
 
 test('every Turf Wars lab module is excluded from the curated upload (predicate)', () => {
   for (const f of [
+    // Phase 1 substrate
     'arcade/hiveworld-agents/turf-wars/canonical.mjs',
     'arcade/hiveworld-agents/turf-wars/identity.mjs',
     'arcade/hiveworld-agents/turf-wars/ops.mjs',
     'arcade/hiveworld-agents/turf-wars/block-log.mjs',
     'arcade/hiveworld-agents/turf-wars/snapshot.mjs',
     'arcade/hiveworld-agents/turf-wars/turf-evidence.mjs',
+    // Phase 2 foundation (attack simulator + fraud-proof primitive)
+    'arcade/hiveworld-agents/turf-wars/attack-plan.mjs',
+    'arcade/hiveworld-agents/turf-wars/scorch.mjs',
+    'arcade/hiveworld-agents/turf-wars/attack-sim.mjs',
+    'arcade/hiveworld-agents/turf-wars/attack-evidence.mjs',
   ]) {
     assert.equal(isExcludedFromUpload(f), true, `${f} must be excluded`);
     assert.equal(PUBLIC_CREATOR_ALLOW.has(f), false, `${f} must not be on the public allow-list`);
