@@ -56,9 +56,10 @@ test('a forged signature fails (origin)', () => {
 test('a snapshot signed by a non-owner key is rejected (owner binding)', () => {
   const mallory = identityFromSeed('mallory');
   const rec = signSnapshot(alice, honestState());
-  // mallory re-signs the same address with her key and claims ownership
+  // mallory re-signs the same address with her key and claims ownership, but the snapshot body still
+  // names alice as owner → the record owner no longer matches the snapshot owner.
   const forged = { ...rec, owner: mallory.publicRawHex, owner_player_id: mallory.playerId, sig: signSnapshot(mallory, honestState()).sig };
-  assert.notEqual(verifySnapshot(forged), null, 'owner mismatch / bad signature must reject');
+  assert.equal(verifySnapshot(forged), 'owner_mismatch', 'pins the exact rejection reason, not just non-null');
 });
 
 test('a cached record verifies with NO access to the signer (offline reachability)', () => {

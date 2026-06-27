@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { identityFromSeed } from '../../arcade/hiveworld-agents/turf-wars/identity.mjs';
 import {
   makeOp, verifyOp, validatePayload, scanForbidden,
-  OP_TYPES, RESERVED_OP_TYPES, STRUCTURE_KINDS, BLOCK_THEMES, COUNTERS,
+  OP_TYPES, OP_ENVELOPE_KEYS, RESERVED_OP_TYPES, STRUCTURE_KINDS, STRUCTURE_SPEC, BLOCK_THEMES, COUNTERS,
   STARTER_GRANT, FLUX_MINT_CAP, MAX_STRUCTURES,
 } from '../../arcade/hiveworld-agents/turf-wars/ops.mjs';
 import {
@@ -67,6 +67,47 @@ test('a foreign signature on an owner op is rejected (bad_signature)', () => {
   const spoof = { ...ops[1], sig: foreign.sig };
   const s = foldBlock([ops[0], spoof]);
   assert.ok(s.rejected.some((r) => r.ref === spoof.hash && r.reason === 'bad_signature'));
+});
+
+// ── PR #103 review hardening (M1 envelope strictness, M2 type tamper, M3 actor tamper) ──
+test('M1: verifyOp rejects an op carrying unknown top-level envelope keys (fail closed)', () => {
+  // the closed envelope is exactly the 8 signed core keys + hash + sig
+  assert.deepEqual([...OP_ENVELOPE_KEYS].sort(),
+    ['actor', 'block_id', 'hash', 'payload', 'prev', 'seq', 'sig', 'tick', 'type', 'v'].sort());
+  const good = makeOp(alice, { block_id: BLOCK, prev: null, seq: 0, tick: 0, type: 'init_block', payload: { theme: 'neon' } });
+  assert.equal(verifyOp(good), null, 'a clean op still verifies');
+  // any extra top-level key is rejected BEFORE signature verification — an unsigned field cannot ride along
+  assert.equal(verifyOp({ ...good, evil: { hidden: true } }), 'unknown_op_key');
+  assert.equal(verifyOp({ ...good, amount: 999 }), 'unknown_op_key');
+  // and such an op never enters the fold
+  const ops = buildSignedChain(alice, BLOCK, honestSteps());
+  const sneaky = { ...ops[1], rogue: 'smuggled' };
+  const s = foldBlock([ops[0], sneaky]);
+  assert.ok(!s.applied.includes(sneaky.hash));
+  assert.ok(s.rejected.some((r) => r.ref === sneaky.hash && r.reason === 'unknown_op_key'));
+});
+
+test('M2: mutating a signed op\'s type is rejected and never applied', () => {
+  const ops = buildSignedChain(alice, BLOCK, honestSteps());
+  // (a) swap to a type whose strict schema rejects the original payload → schema rejection
+  const buildOp = ops[1]; // build_structure payload {structure_id, kind, x, y}
+  const swappedIncompatible = { ...buildOp, type: 'collect_resource' }; // collect_resource expects only {structure_id}
+  assert.equal(verifyOp(swappedIncompatible), 'collect_resource_shape');
+  const sa = foldBlock([ops[0], swappedIncompatible]);
+  assert.ok(!sa.applied.includes(swappedIncompatible.hash));
+  // (b) swap between two same-shaped types ({structure_id}) so the schema passes but the HASH no longer matches
+  const collectOp = ops[2]; // collect_resource payload {structure_id} — also a valid upgrade_structure shape
+  const swappedSameShape = { ...collectOp, type: 'upgrade_structure' };
+  assert.equal(verifyOp(swappedSameShape), 'hash_mismatch', 'type is in the signed core → hash breaks');
+});
+
+test('M3: mutating a signed op\'s actor is rejected (hash_mismatch) and never applied', () => {
+  const ops = buildSignedChain(alice, BLOCK, honestSteps());
+  const actorSwapped = { ...ops[1], actor: mallory.publicRawHex }; // actor is part of the signed core
+  assert.equal(verifyOp(actorSwapped), 'hash_mismatch');
+  const s = foldBlock([ops[0], actorSwapped]);
+  assert.ok(!s.applied.includes(actorSwapped.hash));
+  assert.ok(s.rejected.some((r) => r.ref === actorSwapped.hash && r.reason === 'hash_mismatch'));
 });
 
 test('a wrong prev hash breaks the chain (chain_break)', () => {
@@ -176,6 +217,22 @@ test('upgrade cost and collect yield scale deterministically with level', () => 
   assert.equal(collectYield('resource_node', 1), 10);
   assert.equal(collectYield('resource_node', 3), 30);
   assert.equal(collectYield('signage', 5), 0, 'non-producers yield nothing');
+});
+
+test('M4: over-upgrading past maxLevel is rejected; level never exceeds the cap', () => {
+  const node = structureId('maxlvl');
+  const max = STRUCTURE_SPEC.resource_node.maxLevel; // reachable within the starter grant (build 5 + up 5 + up 10 = 20 cores)
+  const steps = [
+    { type: 'init_block', payload: { theme: 'neon' }, tick: 0 },
+    { type: 'build_structure', payload: { structure_id: node, kind: 'resource_node', x: 0, y: 0 }, tick: 1 },
+  ];
+  // upgrade up to the cap, then attempt one upgrade beyond it
+  for (let i = 0; i < max; i++) steps.push({ type: 'upgrade_structure', payload: { structure_id: node }, tick: 10 + i });
+  const s = foldBlock(buildSignedChain(alice, BLOCK, steps));
+  assert.equal(s.structures[node].level, max, 'reached exactly the cap, no further');
+  assert.ok(s.econ_rejected.some((r) => r.reason === 'max_level'), 'the over-cap upgrade is rejected max_level');
+  assert.ok(s.counters.cores >= 0 && s.counters.flux >= 0, 'no balance went negative');
+  assert.ok(boundsHold(s));
 });
 
 // ── closed vocabulary ─────────────────────────────────────────────────────────

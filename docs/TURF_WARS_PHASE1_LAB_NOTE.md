@@ -39,6 +39,15 @@ rejected (flux cap) · C5 negative balance rejected · C6 unknown op rejected ·
 C8 snapshot tamper rejected · C9 forbidden content + reserved combat op rejected · C10
 production-denylist proven.
 
+## Post-review hardening (PR #103 review close-out)
+
+The PR #103 review returned ACCEPT-WITH-FINDINGS (0 critical, 0 high, 4 medium). All four mediums were closed in a follow-up commit — three were missing hostile-test coverage for behavior that already passed, one was a fail-closed strictness improvement:
+
+- **Envelope strictness (M1):** `verifyOp` now rejects any op carrying an unknown **top-level** key (`unknown_op_key`), before signature verification, via the closed `OP_ENVELOPE_KEYS` set. Previously only *payload* keys were strictly closed; an extra top-level field was inert in the Phase-1 fold (the hash/signature only cover the 8 signable core keys) but could have been read unverified by a future Phase-3 gossip consumer. Now it fails closed.
+- **Type-tamper / actor-tamper tests (M2, M3):** added — a mutated `.type` is rejected (`*_shape` or `hash_mismatch`) and a mutated `.actor` is rejected (`hash_mismatch`); neither is ever applied.
+- **Reachable max-level cap (M4):** `resource_node.maxLevel` lowered 5 → **3** so the ceiling is reachable within the starter grant (build 5 + upgrade 5 + upgrade 10 = exactly 20 starter cores) — a reachable cap is an enforceable, testable cap. The over-cap upgrade is now exercised and rejected `max_level`. (Other kinds' core costs exceed the starter grant before level 5, so their ceilings remain latent — a tightening, never a loosening.)
+- The snapshot owner-binding test was tightened to pin the exact `owner_mismatch` reason.
+
 ## What Phase 1 deliberately does NOT build
 
 - **No combat / attack settlement.** `record_attack_result` is reserved and rejected. Attack

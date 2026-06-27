@@ -22,6 +22,19 @@ import { signBytes, verifyBytes, PLAYER_ID_RE } from './identity.mjs';
 
 export const OP_VERSION = 1;
 
+/**
+ * The CLOSED top-level op envelope. An op record may carry EXACTLY these keys — `verifyOp` rejects any
+ * op with an unknown top-level key (`unknown_op_key`) BEFORE signature verification, so an extra field
+ * can never ride along on a "valid" op. This matters because `opCore` (and therefore the hash and
+ * signature) only commit to the 8 signable keys; without this guard an extra unsigned top-level field
+ * would be inert in the Phase-1 fold but could be picked up unverified by a future consumer that reads
+ * the raw op object (e.g. a Phase-3 gossip/availability layer). Fail closed now, not later.
+ */
+export const OP_ENVELOPE_KEYS = Object.freeze([
+  'v', 'block_id', 'prev', 'seq', 'tick', 'actor', 'type', 'payload', 'hash', 'sig',
+]);
+const ENVELOPE_KEY_SET = new Set(OP_ENVELOPE_KEYS);
+
 /** Phase-1 accepted op vocabulary. Nothing else folds. */
 export const OP_TYPES = Object.freeze([
   'init_block', 'build_structure', 'upgrade_structure', 'collect_resource',
@@ -35,7 +48,10 @@ export const RESERVED_OP_TYPES = Object.freeze(['record_attack_result']);
 /** Closed structure model. Each kind has a deterministic build cost, production, and max level — no
  * free-form fields. `produces` is per-collect output BEFORE the per-level multiplier. */
 export const STRUCTURE_SPEC = Object.freeze({
-  resource_node: { build: { flux: 0, cores: 5 }, produces: { flux: 10 }, maxLevel: 5 },
+  // resource_node caps at level 3 so its ceiling is REACHABLE within the starter grant (build 5 cores +
+  // upgrade 5 + upgrade 10 = exactly 20 starter cores). A reachable cap is an enforceable, testable cap;
+  // the other kinds' core costs exceed the starter grant before level 5, so their ceilings stay latent.
+  resource_node: { build: { flux: 0, cores: 5 }, produces: { flux: 10 }, maxLevel: 3 },
   signage: { build: { flux: 8, cores: 2 }, produces: {}, maxLevel: 5 },
   light_rig: { build: { flux: 12, cores: 4 }, produces: {}, maxLevel: 5 },
   crowd_beacon: { build: { flux: 20, cores: 8 }, produces: {}, maxLevel: 5 },
@@ -165,7 +181,10 @@ export function makeOp(identity, { block_id, prev = null, seq, tick, type, paylo
  * reason. This is ORIGIN + INTEGRITY only — economic/authority legality is enforced by the fold.
  */
 export function verifyOp(op) {
-  if (!op || typeof op !== 'object') return 'malformed_op';
+  if (!op || typeof op !== 'object' || Array.isArray(op)) return 'malformed_op';
+  // fail-closed envelope: reject any unknown top-level key BEFORE verification (missing/malformed
+  // known keys are still caught by the per-field checks below, preserving their specific reasons).
+  for (const k of Object.keys(op)) if (!ENVELOPE_KEY_SET.has(k)) return 'unknown_op_key';
   if (op.v !== OP_VERSION) return 'bad_version';
   if (!BLOCK_ID_RE.test(op.block_id || '')) return 'bad_block_id';
   if (!(op.prev === null || isContentAddress(op.prev))) return 'bad_prev';
