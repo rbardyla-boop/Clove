@@ -5,6 +5,50 @@ Newest first.
 
 ---
 
+## ADR-050 — Turf Wars Phase 1: lab-only signed-CRDT substrate (merged, prod-denylisted) (2026-06-27)
+
+**Context.** The Turf Wars roadmap (`docs/NEON_CIRCUIT_TURF_WARS_ROADMAP.md` — a DESIGN-ONLY document on
+the unpushed `docs/turf-wars-roadmap` branch @ `f0fcfa5`) proposes a decentralized, no-central-server
+GTA-80 / async turf-control direction. That vision is **charter-illegal by construction** until a Phase 0
+counsel ruling and a charter-superseding ADR clear a bounded version; the live gameplay charter still
+treats raiding/loot/economy/ownership as hard non-goals. Phases 1–4 of the roadmap are explicitly
+LAB-ONLY and buildable in parallel with that legal review; only the Phase 5 live pilot waits on counsel.
+This ADR records that **Phase 1 — the cryptographic/CRDT substrate — was built and merged as lab-only
+code with zero production exposure**. It authorizes nothing live.
+
+**Decision.** Land the signed-CRDT substrate under `arcade/hiveworld-agents/turf-wars/` (6 pure,
+dependency-free `.mjs` modules: canonical, identity, ops, block-log, snapshot, turf-evidence), covered by
+the **existing** `arcade/hiveworld-agents/` entry in the curated-upload denylist (no new denylist entry
+required), imported by no Worker/DO/client path. Prove the foundations deterministically; record the
+boundary; ship via PR with a normal merge commit and **no deploy/upload/Cloudflare mutation**.
+
+**Consequences.** Merged to `main` via **PR #103** (merge commit `c9c11b5`, 2 parents — `9444a4e` build +
+`455d38e` post-review hardening, preserved, not squashed). The substrate proves, under 52 lab assertions
+(full repo suite 1203/1203 at merge): per-device **Ed25519** identity (player id = hash of public key; no
+accounts/PII/server identity); a signed, hash-chained, append-only op log folded by a **pure,
+order-independent, convergent** function (tamper → `hash_mismatch`, forged sig → `bad_signature`, wrong
+prev → `chain_break`, gap → `seq_gap`, fork → `fork_detected`, replay → idempotent, foreign writer →
+`not_owner`, unknown top-level key → `unknown_op_key`); **bounded non-cash** counters (`flux`/`cores`:
+no negative balance, capped+clamped mint, per-`(structure,tick)` collect) with **no transfer / trade /
+sell / cash-out op in the grammar** — value cannot leave a block by construction; content-addressed,
+host-signed snapshots that verify **offline** from the record alone; a closed op + structure vocabulary
+(the combat op `record_attack_result` is **reserved and rejected** = `reserved_for_phase2`); and a C1–C10
+adversarial matrix with byte-identical replay. Two independent reviews (an 11-lane + 2-synthesizer
+workflow, then a focused re-review) plus independent fresh-context verifiers all returned ACCEPT.
+
+Boundary held throughout: `LIVE_WORLD_LOADER_ENABLED` remains `false`; the curated production upload
+excludes every Turf Wars file (`--list | grep -c turf-wars` = `0`); no Worker/DO/D1/R2/migration/secret/
+config was touched; no deploy or upload occurred. Detail lives in the on-`main` lab note
+`docs/TURF_WARS_PHASE1_LAB_NOTE.md`.
+
+This ADR **does not**: supersede the live gameplay charter (a counsel-ruled superseding ADR is still
+required); satisfy or substitute for the Phase 0 legal/safety review (which remains **blocking** for any
+live or minors-facing use); authorize live Turf Wars, attacks, decentralized production state,
+minors-facing UGC, economy, territory combat, ownership, or publishing; or authorize Phase 2 (deterministic
+attack simulator + fraud-proof — see `docs/NEON_CIRCUIT_TURF_WARS_PHASE2_PLAN.md`, design-only), Phase 3
+(availability fabric), Phase 4 (safety quorum), or Phase 5 (live pilot). It records a proven lab
+foundation, nothing more.
+
 ## ADR-049 — Creator Freedom v1 / Free Sandbox: live release on clovelearn.io (2026-06-26)
 
 **Context.** ADR-048 landed the Free Sandbox on `main` (merge `c20d486`) but did not deploy it. The
