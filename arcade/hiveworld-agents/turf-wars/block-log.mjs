@@ -26,6 +26,8 @@
  */
 import { verifyOp, STRUCTURE_SPEC, STARTER_GRANT, FLUX_MINT_CAP, MAX_STRUCTURES } from './ops.mjs';
 import { verifyBytes, playerIdFromPublicRawHex } from './identity.mjs';
+import { sha256Hex } from './canonical.mjs';
+import { applyScorch } from './scorch.mjs';
 
 /** PURE: deterministic upgrade cost for a structure currently at `level` (>=1). */
 export function upgradeCost(kind, level) {
@@ -111,6 +113,11 @@ const emptyState = () => ({
   crew: null, published_snapshot: null,
   seq_height: 0, chain_head: null,
   applied: [], econ_rejected: [], rejected: [], settlement_deferred: [],
+  // Phase-2 settlement: a SEPARATE, bounded, cosmetic scorch overlay (never a base/counter/structure
+  // mutation) and the applied-settlement history. Reversible: scorch self-heals via decayScorch.
+  // `attack_commits` records the attacker's prior binding commitments (O1 temporal ordering): a
+  // settle_attack only folds if a matching attack_commit was folded at an EARLIER seq.
+  scorch: {}, settlements: [], attack_commits: {},
 });
 
 /**
@@ -204,6 +211,36 @@ export function foldBlock(ops) {
         // no counter change, no structure change. The actual outcome is computed/verified out-of-band by
         // attack-sim.mjs; wiring it into settlement is a later, separately-gated step.
         s.settlement_deferred.push({ ref: op.hash, reason: 'settlement_deferred_pending_o1_o2' });
+        break;
+      }
+      case 'attack_commit': {
+        // Phase-2 SETTLEMENT (O1) — the attacker's BINDING COMMITMENT, folded BEFORE its settle_attack.
+        // Record the commit keyed by seed_commit. A later settle_attack must reference a matching one;
+        // this is what locks the attacker to a single pre-beacon seed (the O1 temporal ordering invariant).
+        if (!s.attack_commits[p.seed_commit]) {
+          s.attack_commits[p.seed_commit] = { seq: op.seq, base_address: p.base_address, plan_hash: p.plan_hash };
+        }
+        s.applied.push(op.hash);
+        break;
+      }
+      case 'settle_attack': {
+        // Phase-2 SETTLEMENT (O1/O2). The op is structurally valid (verifyOp passed: closed schema +
+        // signature + bounded scorch). Apply OPTIMISTICALLY: require a PRIOR matching attack_commit (O1
+        // temporal ordering — the attacker committed this seed at an earlier seq, before the beacon),
+        // verify the commit↔reveal binding, then apply the BOUNDED, cosmetic scorch to the SEPARATE overlay
+        // (never the base/counters/structures), for structures that exist in this block only, and record
+        // the settlement. Correctness vs the deterministic recompute is the delegable fraud-proof's job
+        // (settlement.mjs); no value is transferred; attacker_reward is credited to NOTHING.
+        const prior = s.attack_commits[p.seed_commit];
+        if (!prior || prior.seq >= op.seq || prior.base_address !== p.base_address || prior.plan_hash !== p.plan_hash) {
+          econReject(op, 'no_prior_commit'); break;
+        }
+        if (sha256Hex(p.seed_reveal) !== p.seed_commit) { econReject(op, 'bad_seed_commit'); break; }
+        const onExisting = {};
+        for (const sid of Object.keys(p.scorch)) if (s.structures[sid]) onExisting[sid] = p.scorch[sid];
+        s.scorch = applyScorch(s.scorch, onExisting);
+        s.settlements.push({ ref: op.hash, base_address: p.base_address, plan_hash: p.plan_hash, outcome_digest: p.outcome_digest });
+        s.applied.push(op.hash);
         break;
       }
       default:
