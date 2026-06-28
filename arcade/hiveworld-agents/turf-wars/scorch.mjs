@@ -60,11 +60,12 @@ export function ticksToHeal(overlay) {
   return Math.ceil(max / SCORCH_DECAY_PER_TICK);
 }
 
-/** PURE: invariant — every scorch value is an integer-ish number within [0, SCORCH_CAP]. */
+/** PURE: invariant — every scorch value is an INTEGER within [0, SCORCH_CAP] (non-integer, NaN,
+ * Infinity, and non-number values all fail; runtime values arrive as integers via Math.round). */
 export function scorchBoundsHold(overlay) {
   for (const id of Object.keys(overlay || {})) {
     const v = overlay[id];
-    if (typeof v !== 'number' || v < 0 || v > SCORCH_CAP) return false;
+    if (typeof v !== 'number' || !Number.isInteger(v) || v < 0 || v > SCORCH_CAP) return false;
   }
   return true;
 }

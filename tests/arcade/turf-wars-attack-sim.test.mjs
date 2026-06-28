@@ -128,3 +128,14 @@ test('applyScorch and decayScorch never mutate their inputs', () => {
   decayScorch(ov, 2);
   assert.equal(JSON.stringify(ov), snapshot, 'inputs immutable');
 });
+
+test('scorchBoundsHold accepts only integers in [0, CAP] and rejects non-integer / out-of-range / non-number', () => {
+  for (const v of [0, 1, 50, SCORCH_CAP]) assert.equal(scorchBoundsHold({ x: v }), true, `${v} should pass`);
+  for (const v of [-1, SCORCH_CAP + 1, 50.5, 0.1, NaN, Infinity, -Infinity, '50', null, undefined, {}]) {
+    assert.equal(scorchBoundsHold({ x: v }), false, `${String(v)} should fail`);
+  }
+  // runtime overlays from the real apply/decay path stay integer-bounded
+  const ov = applyScorch(emptyScorch(), { 's:1': SCORCH_CAP * 3, 's:2': 137, 's:3': 40 });
+  assert.ok(scorchBoundsHold(ov), 'applyScorch output passes the tightened predicate');
+  assert.ok(scorchBoundsHold(decayScorch(ov, 1)), 'decayScorch output passes the tightened predicate');
+});

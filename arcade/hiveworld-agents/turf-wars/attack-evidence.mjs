@@ -18,7 +18,7 @@
  *   D4 tampered / foreign-signed plan -> rejected
  *   D6 replay determinism (same inputs -> same digest; duplicate op deduped in fold)
  *   D8 scorch is bounded and reversible (clamps to cap, self-heals to empty)
- *   D9 no value transfer (base structures/counters untouched; reward bounded; no transfer op exists)
+ *   D9 no value transfer (base untouched; reward bounded AND the REWARD_CAP clamp is exercised; no transfer op)
  *   D10 base snapshot is immutable across simulation
  *   DRAR record_attack_result is structurally valid but settlement-deferred
  */
@@ -119,12 +119,29 @@ export function buildAttackEvidencePack({ seed = 42 } = {}) {
     ov[targetSign] === SCORCH_CAP && scorchBoundsHold(ov) && Object.keys(healed).length === 0,
     `over-cap scorch clamps to ${SCORCH_CAP}; fully self-heals to empty in ${ticksToHeal(ov)} ticks`);
 
-  // ── D9 no value transfer (base untouched; reward bounded; no transfer op) ──
+  // ── D9 no value transfer (base untouched; reward bounded AND the REWARD_CAP clamp exercised; no transfer op) ──
   const noTransferOp = !['transfer', 'cash_out', 'sell', 'buy', 'trade', 'payout'].some((t) => OP_TYPES.includes(t));
+  // A dedicated decoy-free, 3-signage base whose UNCAPPED reward (30) exceeds REWARD_CAP (25), so the
+  // `Math.min(REWARD_CAP, …)` clamp in simulateAttack is genuinely exercised — not vacuously bounded.
+  // Deterministic for ANY seed: 4 intensity-3 moves per structure reach SCORCH_CAP=100 even in the
+  // all-glancing worst case (4×25), so total_scorch=300 → uncapped floor(300/10)=30 → clamped to exactly 25.
+  const capDef = identityFromSeed(`capdef/${seed}`);
+  const capBlock = blockIdFor(capDef);
+  const capBase = signSnapshot(capDef, foldBlock(buildSignedChain(capDef, capBlock, [
+    { type: 'init_block', payload: { theme: 'chrome' }, tick: 0 },
+    { type: 'build_structure', payload: { structure_id: structureId('cap1'), kind: 'signage', x: 1, y: 1 }, tick: 1 },
+    { type: 'build_structure', payload: { structure_id: structureId('cap2'), kind: 'signage', x: 2, y: 2 }, tick: 2 },
+    { type: 'build_structure', payload: { structure_id: structureId('cap3'), kind: 'signage', x: 3, y: 3 }, tick: 3 },
+  ])));
+  const capMoves = ['cap1', 'cap2', 'cap3'].flatMap((c) => Array.from({ length: 4 }, () => ({ structure_id: structureId(c), intensity: 3 })));
+  const capPlan = makeAttackPlan(attacker, { target_block: capBlock, base_address: capBase.address, nonce: 'cafebabedeadbeef', moves: capMoves });
+  const capOut = simulateAttack(capBase, capPlan, settlementSeed).outcome;
+  const capUncapped = Math.floor(capOut.total_scorch / 10); // REWARD_DIVISOR=10 → uncapped would be 30
   claim('D9_no_value_transfer',
     noTransferOp && r1.outcome.attacker_reward <= 25
+      && capOut.total_scorch === 300 && capUncapped > 25 && capOut.attacker_reward === 25
       && JSON.stringify(defState.structures) === JSON.stringify(foldBlock(buildSignedChain(defender, block, defenderSteps())).structures),
-    `no transfer/cash op exists; attacker_reward=${r1.outcome.attacker_reward} (bounded); defender structures unchanged`);
+    `no transfer/cash op; reward bounded (${r1.outcome.attacker_reward}); REWARD_CAP exercised: uncapped=${capUncapped}>25 → attacker_reward clamped to ${capOut.attacker_reward}; defender structures unchanged`);
 
   // ── D10 base snapshot immutable across simulation ──
   claim('D10_base_immutable',
