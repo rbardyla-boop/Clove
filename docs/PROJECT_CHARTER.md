@@ -5,6 +5,47 @@ Newest first.
 
 ---
 
+## ADR-051 — Turf Wars Phase 2 foundation: deterministic attack simulator + one-op fraud-proof (O1/O2-agnostic, merged, prod-denylisted) (2026-06-28)
+
+**Context.** ADR-050 landed the Phase 1 substrate and reserved the combat op. The Phase 2 plan
+(`docs/NEON_CIRCUIT_TURF_WARS_PHASE2_PLAN.md`, design-only) left two settlement decisions open: **O1** (the
+settlement seed / commit-reveal so the outcome cannot be ground) and **O2** (fraud-proof liveness for an
+offline victim). The operator authorized building only the **O1/O2-agnostic foundation** — the parts that do
+not depend on those open decisions — leaving O1/O2 as explicit, documented seams. This ADR records that the
+foundation **was built and merged as lab-only code with zero production exposure**. It authorizes nothing
+live.
+
+**Decision.** Land the deterministic attack-settlement foundation under `arcade/hiveworld-agents/turf-wars/`
+(`attack-plan.mjs` — closed Ed25519-signed attack grammar; `scorch.mjs` — bounded, reversible, self-healing
+cosmetic overlay; `attack-sim.mjs` — pure `simulateAttack(base, plan, seed)` fixed interpreter +
+`verifyAttackOutcome` one-op fraud-proof; `attack-evidence.mjs` — the D-matrix), covered by the existing
+`arcade/hiveworld-agents/` upload-denylist entry, imported by no Worker/DO/client path. Promote the combat op
+`record_attack_result` from reserved → a **structurally-validated, settlement-deferred** op whose fold
+records it and mutates **nothing**. Prove D1–D10 deterministically; defer **D5** (seed grinding → O1) and
+**D7** (offline-victim liveness → O2) explicitly rather than faking them; ship via PR with a normal merge
+commit and **no deploy/upload/Cloudflare mutation**.
+
+**Consequences.** Merged to `main` via **PR #105** (merge commit `828f33c`; history `4c96f33` evidence-gap
+closure ← `cb3e327` foundation). Authority = **replay determinism**, the same property as Phase 1: the
+attack outcome is a pure, deterministic function of three public, signed inputs, so any peer recomputes the
+identical outcome and a forged digest fails a one-op fraud-proof. Hard invariants hold: the defender's base
+snapshot is **never mutated** (scorch is a separate, bounded, decaying overlay); there is **no transfer /
+cash-out / marketplace op** — an attack yields a bounded **non-cash** `attacker_reward` minted by nothing;
+scorch is bounded + reversible. D5 and D7 are listed in the evidence pack's `deferred` array (not asserted as
+passing). Validation at merge: targeted turf-wars 77/77, full repo suite 1228/1228, prod-config + city-size +
+curated-upload gates PASS, `--list | grep -c turf-wars` = `0`. Independent review (a 10-lane + 2-synthesizer
+workflow, ACCEPT-WITH-FINDINGS → amend closing two MEDIUMs → re-review ACCEPT 0 Critical/High/Medium).
+Boundary held: `LIVE_WORLD_LOADER_ENABLED` remains `false`; no Worker/DO/D1/R2/migration/secret/config
+touched. Detail lives in `docs/TURF_WARS_PHASE2_FOUNDATION_LAB_NOTE.md`.
+
+This ADR **does not**: supersede the live gameplay charter (a counsel-ruled superseding ADR is still
+required); satisfy or substitute for the Phase 0 legal/safety review (which remains **blocking** for any live
+or minors-facing use); authorize live Turf Wars, attacks, decentralized production state, economy, territory
+combat, ownership, or publishing. **It does not resolve or build settlement** — wiring O1 (commit-reveal seed)
+and O2 (delegable fraud-proof) is the subject of a separate, later, lab-only gate
+(`docs/TURF_WARS_O1_O2_SETTLEMENT_DESIGN.md` + the Phase 2 settlement build), which also stays prod-denylisted
+and counsel-gated for any live use. It records a proven lab foundation, nothing more.
+
 ## ADR-050 — Turf Wars Phase 1: lab-only signed-CRDT substrate (merged, prod-denylisted) (2026-06-27)
 
 **Context.** The Turf Wars roadmap (`docs/NEON_CIRCUIT_TURF_WARS_ROADMAP.md` — a DESIGN-ONLY document on
