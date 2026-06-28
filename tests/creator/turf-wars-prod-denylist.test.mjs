@@ -49,6 +49,10 @@ test('every Turf Wars lab module is excluded from the curated upload (predicate)
     'arcade/hiveworld-agents/turf-wars/settlement-mini-log.mjs',
     'arcade/hiveworld-agents/turf-wars/overlay-dag.mjs',
     'arcade/hiveworld-agents/turf-wars/overlay-evidence.mjs',
+    // Phase 3d integration: NO-CENTRAL-AUTHORITY AVAILABILITY EXERCISED (compose 3a/3b/3c end-to-end)
+    'arcade/hiveworld-agents/turf-wars/availability-fabric.mjs',
+    'arcade/hiveworld-agents/turf-wars/fabric-evidence.mjs',
+    'arcade/hiveworld-agents/turf-wars/fabric-stress.mjs',
   ]) {
     assert.equal(isExcludedFromUpload(f), true, `${f} must be excluded`);
     assert.equal(PUBLIC_CREATOR_ALLOW.has(f), false, `${f} must not be on the public allow-list`);
