@@ -61,9 +61,11 @@ export function deriveSettlementSeed({ base_address, plan_hash, seed_reveal, bea
  * { ok:true, settlement } where `settlement` is the full, recomputable settlement record. The settlement
  * mutates nothing — it is data a fold (settle_attack) or a verifier consumes.
  */
-export function settleAttack(baseRecord, plan, { seed_reveal, beacon } = {}) {
+export function settleAttack(baseRecord, plan, { seed_reveal, beacon, beacon_height } = {}) {
   if (typeof seed_reveal !== 'string' || !SEED_TOKEN_RE.test(seed_reveal)) return { ok: false, reason: 'bad_seed_reveal' };
   if (typeof beacon !== 'string' || !SEED_TOKEN_RE.test(beacon)) return { ok: false, reason: 'bad_beacon' };
+  // beacon_height (H_b) is fold/schema METADATA threaded through the settlement object — it is NOT a seed
+  // input (deriveSettlementSeed stays the unchanged 4-input boundary). The fold enforces the window-close.
   const settlement_seed = deriveSettlementSeed({ base_address: baseRecord.address, plan_hash: plan.hash, seed_reveal, beacon });
   const sim = simulateAttack(baseRecord, plan, settlement_seed);
   if (!sim.ok) return { ok: false, reason: sim.reason };
@@ -76,6 +78,7 @@ export function settleAttack(baseRecord, plan, { seed_reveal, beacon } = {}) {
       seed_commit: makeSeedCommit(seed_reveal),
       seed_reveal,
       beacon,
+      beacon_height,
       settlement_seed,
       scorch: sim.outcome.scorch,
       total_scorch: sim.outcome.total_scorch,
@@ -121,10 +124,10 @@ export function proveFraud(baseRecord, plan, claim) {
 
 /** Build a signed `attack_commit` op — the attacker's binding commitment, folded BEFORE its settle_attack
  * (O1 temporal ordering). Carries seed_commit only; no reveal, no beacon. */
-export function makeCommitOp(identity, { block_id, prev, seq, tick }, { base_address, plan_hash, seed_commit }) {
+export function makeCommitOp(identity, { block_id, prev, seq, tick }, { base_address, plan_hash, seed_commit, beacon_height }) {
   return makeOp(identity, {
     block_id, prev, seq, tick, type: 'attack_commit',
-    payload: { base_address, plan_hash, seed_commit },
+    payload: { base_address, plan_hash, seed_commit, beacon_height },
   });
 }
 
@@ -138,6 +141,7 @@ export function makeSettleOp(identity, { block_id, prev, seq, tick }, settlement
       seed_commit: settlement.seed_commit,
       seed_reveal: settlement.seed_reveal,
       beacon: settlement.beacon,
+      beacon_height: settlement.beacon_height,
       scorch: settlement.scorch,
       outcome_digest: settlement.outcome_digest,
     },

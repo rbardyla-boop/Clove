@@ -76,6 +76,9 @@ export const STARTER_GRANT = Object.freeze({ flux: 40, cores: 20 }); // minted o
 export const FLUX_MINT_CAP = 500;   // cumulative flux a block can ever collect (mint ceiling)
 export const GRID = Object.freeze({ min: 0, max: 15 }); // structure position bounds
 export const MAX_STRUCTURES = 32;   // a block cannot grow unbounded
+// Phase-3a BEACON SOURCE: H_b is a bounded positive LOGICAL seq-height (never a timestamp) naming the
+// future cohort height at which the beacon becomes computable. Bounded so it cannot encode unbounded data.
+export const BEACON_HEIGHT_MAX = 1_000_000;
 
 // ── id shapes (closed) ───────────────────────────────────────────────────────
 export const BLOCK_ID_RE = /^block:[0-9a-f]{16}$/;
@@ -173,10 +176,13 @@ export function validatePayload(type, payload) {
       // settle_attack that reveals it. It carries seed_commit = sha256(attacker_seed) but NO reveal and
       // NO beacon — so the attacker is locked to one seed BEFORE the post-commit beacon is known. The fold
       // (block-log.mjs) records it; a settle_attack with no matching prior attack_commit fails to fold.
-      if (!only(['base_address', 'plan_hash', 'seed_commit'])) return 'attack_commit_shape';
+      // Phase-3a: also carries beacon_height (H_b), the future LOGICAL seq-height naming when the
+      // commit-derived cross-block beacon becomes computable (the window-close height). Bounded int.
+      if (!only(['base_address', 'plan_hash', 'seed_commit', 'beacon_height'])) return 'attack_commit_shape';
       if (!isContentAddress(payload.base_address)) return 'bad_base_address';
       if (!isContentAddress(payload.plan_hash)) return 'bad_plan_hash';
       if (typeof payload.seed_commit !== 'string' || !/^[0-9a-f]{64}$/.test(payload.seed_commit)) return 'bad_seed_commit';
+      if (!isInt(payload.beacon_height) || payload.beacon_height < 1 || payload.beacon_height > BEACON_HEIGHT_MAX) return 'bad_beacon_height';
       return null;
     case 'settle_attack': {
       // Phase-2 SETTLEMENT (O1/O2): the optimistic, fold-applied settlement op. Closed schema only —
@@ -185,13 +191,16 @@ export function validatePayload(type, payload) {
       // fold verifies commit↔reveal and applies the bounded scorch; correctness-vs-recompute is the
       // delegable fraud-proof's job (settlement.mjs). No transfer/cash field exists; scorch is the only
       // effect, bounded to [0, SCORCH_CAP] integers over existing structures only.
-      if (!only(['base_address', 'plan_hash', 'seed_commit', 'seed_reveal', 'beacon', 'scorch', 'outcome_digest'])) return 'settle_attack_shape';
+      // Phase-3a: also carries beacon_height (H_b) — must equal the referenced attack_commit's H_b, and the
+      // fold enforces the window-close rule (commit folded strictly before H_b). Bounded int, like the commit.
+      if (!only(['base_address', 'plan_hash', 'seed_commit', 'seed_reveal', 'beacon', 'beacon_height', 'scorch', 'outcome_digest'])) return 'settle_attack_shape';
       if (!isContentAddress(payload.base_address)) return 'bad_base_address';
       if (!isContentAddress(payload.plan_hash)) return 'bad_plan_hash';
       if (!isContentAddress(payload.outcome_digest)) return 'bad_outcome_digest';
       if (typeof payload.seed_commit !== 'string' || !/^[0-9a-f]{64}$/.test(payload.seed_commit)) return 'bad_seed_commit';
       if (typeof payload.seed_reveal !== 'string' || !/^[0-9a-f]{16,64}$/.test(payload.seed_reveal)) return 'bad_seed_reveal';
       if (typeof payload.beacon !== 'string' || !/^[0-9a-f]{16,64}$/.test(payload.beacon)) return 'bad_beacon';
+      if (!isInt(payload.beacon_height) || payload.beacon_height < 1 || payload.beacon_height > BEACON_HEIGHT_MAX) return 'bad_beacon_height';
       const sc = payload.scorch;
       if (!sc || typeof sc !== 'object' || Array.isArray(sc)) return 'bad_scorch';
       const sk = Object.keys(sc);
