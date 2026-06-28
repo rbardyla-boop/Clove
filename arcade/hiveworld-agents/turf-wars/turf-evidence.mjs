@@ -180,20 +180,21 @@ export function buildEvidencePack({ seed = 42 } = {}) {
     goodVerify === null && addrFail === 'address_mismatch' && sigFail === 'bad_signature',
     `honest=OK; flipped flux → ${addrFail}; zero sig → ${sigFail}; cached verify needs no host`);
 
-  // ── C9 forbidden content + reserved combat op rejected ──
+  // ── C9 forbidden content + malformed combat op rejected by the closed schema ──
   // Two defenses: (1) the closed per-type schema rejects an unknown injected key (the URL never even
   // reaches an allowed field); (2) the defense-in-depth scanForbidden catches URL/markup strings
-  // directly. Plus the reserved combat op is refused (Phase 2, not implemented).
+  // directly. Plus the combat op `record_attack_result` — now a real Phase-2 op type — has a CLOSED
+  // schema that rejects a malformed payload (its live settlement is separately deferred; see block-log).
   const urlOp = makeOp(alice, { block_id: block, prev: okHead[0].hash, seq: 1, tick: 1, type: 'join_crew', payload: { crew_id: crewId('x'), url: 'http://evil.example' } });
-  const reservedOp = makeOp(alice, { block_id: block, prev: okHead[0].hash, seq: 1, tick: 1, type: 'record_attack_result', payload: { winner: 1 } });
+  const malformedCombatOp = makeOp(alice, { block_id: block, prev: okHead[0].hash, seq: 1, tick: 1, type: 'record_attack_result', payload: { winner: 1 } });
   const s9url = foldBlock([...okHead, urlOp]);
-  const s9res = foldBlock([...okHead, reservedOp]);
+  const s9res = foldBlock([...okHead, malformedCombatOp]);
   const urlReason = s9url.rejected.find((r) => r.ref === urlOp.hash)?.reason || 'NOT REJECTED';
   const scanCatchesUrl = scanForbidden({ crew_id: 'crew:abc', note: 'http://evil.example' }) === 'url_or_markup';
   claim('C9_forbidden_content_rejected',
     !s9url.applied.includes(urlOp.hash) && /(_shape|forbidden_content)/.test(urlReason) && scanCatchesUrl
-      && s9res.rejected.some((r) => r.ref === reservedOp.hash && r.reason === 'reserved_for_phase2'),
-    `injected url op → ${urlReason}; scanForbidden(url)=url_or_markup:${scanCatchesUrl}; combat op → ${s9res.rejected.find((r) => r.ref === reservedOp.hash)?.reason}`);
+      && s9res.rejected.some((r) => r.ref === malformedCombatOp.hash && r.reason === 'record_attack_result_shape'),
+    `injected url op → ${urlReason}; scanForbidden(url)=url_or_markup:${scanCatchesUrl}; malformed combat op → ${s9res.rejected.find((r) => r.ref === malformedCombatOp.hash)?.reason}`);
 
   // ── C10 production-denylist proven ──
   const allExcluded = LAB_MODULE_PATHS.every((p) => isExcludedFromUpload(p));

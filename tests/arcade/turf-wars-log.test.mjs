@@ -10,6 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { identityFromSeed } from '../../arcade/hiveworld-agents/turf-wars/identity.mjs';
+import { contentAddress } from '../../arcade/hiveworld-agents/turf-wars/canonical.mjs';
 import {
   makeOp, verifyOp, validatePayload, scanForbidden,
   OP_TYPES, OP_ENVELOPE_KEYS, RESERVED_OP_TYPES, STRUCTURE_KINDS, STRUCTURE_SPEC, BLOCK_THEMES, COUNTERS,
@@ -244,10 +245,27 @@ test('the op vocabulary is closed: an unknown op type is rejected, no transfer/c
   }
 });
 
-test('the reserved combat op is refused with reserved_for_phase2 (not implemented)', () => {
-  assert.ok(RESERVED_OP_TYPES.includes('record_attack_result'));
-  const op = makeOp(alice, { block_id: BLOCK, prev: null, seq: 0, tick: 0, type: 'record_attack_result', payload: { winner: 1 } });
-  assert.equal(verifyOp(op), 'reserved_for_phase2');
+test('record_attack_result (Phase-2) is structurally valid but settlement-deferred in the fold', () => {
+  // Promoted out of RESERVED by the Phase-2 foundation: a real op type with a closed schema, whose
+  // SETTLEMENT is deferred (live settlement needs O1 seed + O2 fraud-proof liveness, both open).
+  assert.ok(!RESERVED_OP_TYPES.includes('record_attack_result'), 'no longer reserved');
+  assert.ok(OP_TYPES.includes('record_attack_result'), 'now a real op type');
+  const validPayload = {
+    base_address: contentAddress({ b: 1 }), plan_hash: contentAddress({ p: 1 }),
+    seed: 'abcd1234ef567890', outcome_digest: contentAddress({ o: 1 }),
+  };
+  assert.equal(verifyOp(makeOp(alice, { block_id: BLOCK, prev: null, seq: 0, tick: 0, type: 'record_attack_result', payload: validPayload })), null,
+    'a well-formed signed record_attack_result verifies structurally');
+  assert.equal(verifyOp(makeOp(alice, { block_id: BLOCK, prev: null, seq: 0, tick: 0, type: 'record_attack_result', payload: { winner: 1 } })), 'record_attack_result_shape',
+    'a bogus payload is rejected by the closed schema');
+  // in a fold it is recorded settlement-deferred and mutates NOTHING (no scorch/counter/structure change)
+  const head = buildSignedChain(alice, BLOCK, [{ type: 'init_block', payload: { theme: 'neon' }, tick: 0 }]);
+  const rar = makeOp(alice, { block_id: BLOCK, prev: head[0].hash, seq: 1, tick: 1, type: 'record_attack_result', payload: validPayload });
+  const s = foldBlock([...head, rar]);
+  assert.equal(s.settlement_deferred.length, 1);
+  assert.equal(s.settlement_deferred[0].reason, 'settlement_deferred_pending_o1_o2');
+  assert.ok(!s.applied.includes(rar.hash), 'not applied — settlement deferred');
+  assert.equal(Object.keys(s.structures).length, 0, 'no state mutation');
 });
 
 test('an unknown structure kind and an off-grid position are rejected', () => {
