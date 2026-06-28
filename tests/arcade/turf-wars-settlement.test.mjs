@@ -26,6 +26,9 @@ const attacker = identityFromSeed('s-atk');
 const BLOCK = blockIdFor(defender);
 const SEED = 'abcd1234ef567890';
 const BEACON = 'deadbeefdeadbeef';
+// Phase-3a: the test fixture chain has 2 ops, so the commit folds at seq=2 and the settle at seq=3;
+// H_b must be strictly greater than the commit's fold height for the window-close rule to pass.
+const BEACON_HEIGHT = 3;
 
 function fixture() {
   const chain = buildSignedChain(defender, BLOCK, [
@@ -45,7 +48,7 @@ function honestPlan(base) {
 function commitThenSettle(chain, settlement, tamperReveal) {
   const head = chain[chain.length - 1].hash;
   const commitOp = makeCommitOp(defender, { block_id: BLOCK, prev: head, seq: chain.length, tick: chain.length },
-    { base_address: settlement.base_address, plan_hash: settlement.plan_hash, seed_commit: settlement.seed_commit });
+    { base_address: settlement.base_address, plan_hash: settlement.plan_hash, seed_commit: settlement.seed_commit, beacon_height: settlement.beacon_height });
   const s = tamperReveal ? { ...settlement, seed_reveal: tamperReveal } : settlement;
   const settleOp = makeSettleOp(defender, { block_id: BLOCK, prev: commitOp.hash, seq: chain.length + 1, tick: chain.length + 1 }, s);
   return { commitOp, settleOp };
@@ -53,8 +56,8 @@ function commitThenSettle(chain, settlement, tamperReveal) {
 
 test('settleAttack is deterministic and the commit binds the reveal', () => {
   const { base } = fixture();
-  const a = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON });
-  const b = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON });
+  const a = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
+  const b = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
   assert.equal(a.ok, true);
   assert.equal(a.settlement.outcome_digest, b.settlement.outcome_digest, 'same inputs -> same settlement');
   assert.equal(a.settlement.seed_commit, makeSeedCommit(SEED));
@@ -63,7 +66,7 @@ test('settleAttack is deterministic and the commit binds the reveal', () => {
 
 test('O1: a wrong reveal is rejected and a post-commit beacon changes the outcome (grind resistance)', () => {
   const { base } = fixture();
-  const a = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON });
+  const a = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
   assert.equal(verifySeedReveal(a.settlement.seed_commit, 'ffffffffffffffff'), false, 'reveal must match commit');
   const other = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: '00000000ffffffff' });
   assert.notEqual(other.settlement.outcome_digest, a.settlement.outcome_digest, 'beacon binds the seed');
@@ -81,7 +84,7 @@ test('O1: bad seed/beacon tokens are rejected', () => {
 test('O2: verification is delegable to any peer; a forged settlement against an offline victim is caught', () => {
   const { base } = fixture();
   const plan = honestPlan(base);
-  const st = settleAttack(base, plan, { seed_reveal: SEED, beacon: BEACON });
+  const st = settleAttack(base, plan, { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
   // a third party (only public inputs) verifies the honest settlement and finds NO fraud
   assert.equal(verifySettlement(base, plan, st.settlement), true);
   assert.equal(proveFraud(base, plan, st.settlement), null);
@@ -95,7 +98,7 @@ test('O2: verification is delegable to any peer; a forged settlement against an 
 
 test('settle_attack folds (after its prior commit): bounded cosmetic scorch only — base, counters, structures untouched', () => {
   const { chain, state, base } = fixture();
-  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON });
+  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
   const { commitOp, settleOp } = commitThenSettle(chain, st.settlement);
   const settled = foldBlock([...chain, commitOp, settleOp]);
   assert.ok(settled.applied.includes(settleOp.hash));
@@ -111,7 +114,7 @@ test('settle_attack folds (after its prior commit): bounded cosmetic scorch only
 
 test('O1: a settle_attack with NO prior attack_commit fails to fold (no_prior_commit) — commit-before-settle enforced', () => {
   const { chain, base } = fixture();
-  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON });
+  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
   const settleOp = makeSettleOp(defender, { block_id: BLOCK, prev: chain[chain.length - 1].hash, seq: chain.length, tick: chain.length }, st.settlement);
   const settled = foldBlock([...chain, settleOp]);
   assert.ok(!settled.applied.includes(settleOp.hash));
@@ -121,7 +124,7 @@ test('O1: a settle_attack with NO prior attack_commit fails to fold (no_prior_co
 
 test('settled scorch is reversible — it self-heals to empty', () => {
   const { chain, base } = fixture();
-  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON });
+  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
   const { commitOp, settleOp } = commitThenSettle(chain, st.settlement);
   const settled = foldBlock([...chain, commitOp, settleOp]);
   assert.deepEqual(decayScorch(settled.scorch, ticksToHeal(settled.scorch)), {});
@@ -129,7 +132,7 @@ test('settled scorch is reversible — it self-heals to empty', () => {
 
 test('a settle_attack whose reveal does not match its commit fails to fold (bad_seed_commit)', () => {
   const { chain, base } = fixture();
-  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON });
+  const st = settleAttack(base, honestPlan(base), { seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT });
   const { commitOp, settleOp } = commitThenSettle(chain, st.settlement, '0000000011111111'); // reveal sha256 != commit
   const settled = foldBlock([...chain, commitOp, settleOp]);
   assert.ok(!settled.applied.includes(settleOp.hash));
@@ -138,17 +141,18 @@ test('a settle_attack whose reveal does not match its commit fails to fold (bad_
 });
 
 test('attack_commit op schema is closed', () => {
-  const good = { base_address: contentAddress({ b: 1 }), plan_hash: contentAddress({ p: 1 }), seed_commit: makeSeedCommit(SEED) };
+  const good = { base_address: contentAddress({ b: 1 }), plan_hash: contentAddress({ p: 1 }), seed_commit: makeSeedCommit(SEED), beacon_height: BEACON_HEIGHT };
   assert.equal(validatePayload('attack_commit', good), null);
   assert.equal(validatePayload('attack_commit', { ...good, seed_commit: 'short' }), 'bad_seed_commit');
   assert.equal(validatePayload('attack_commit', { ...good, base_address: 'nope' }), 'bad_base_address');
+  assert.equal(validatePayload('attack_commit', { ...good, beacon_height: -1 }), 'bad_beacon_height');
   assert.equal(validatePayload('attack_commit', { ...good, evil: 1 }), 'attack_commit_shape');
 });
 
 test('settle_attack op schema is closed: out-of-range scorch, unknown key, bad beacon all rejected', () => {
   const good = {
     base_address: contentAddress({ b: 1 }), plan_hash: contentAddress({ p: 1 }),
-    seed_commit: makeSeedCommit(SEED), seed_reveal: SEED, beacon: BEACON,
+    seed_commit: makeSeedCommit(SEED), seed_reveal: SEED, beacon: BEACON, beacon_height: BEACON_HEIGHT,
     scorch: { [structureId('sign')]: 50 }, outcome_digest: contentAddress({ o: 1 }),
   };
   assert.equal(validatePayload('settle_attack', good), null);
@@ -156,6 +160,7 @@ test('settle_attack op schema is closed: out-of-range scorch, unknown key, bad b
   assert.equal(validatePayload('settle_attack', { ...good, scorch: { 'not-an-id': 10 } }), 'bad_scorch_key');
   assert.equal(validatePayload('settle_attack', { ...good, beacon: 'nothex!!' }), 'bad_beacon');
   assert.equal(validatePayload('settle_attack', { ...good, seed_commit: 'short' }), 'bad_seed_commit');
+  assert.equal(validatePayload('settle_attack', { ...good, beacon_height: 0 }), 'bad_beacon_height');
   assert.equal(validatePayload('settle_attack', { ...good, evil: 1 }), 'settle_attack_shape');
 });
 

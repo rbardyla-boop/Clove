@@ -52,6 +52,9 @@ export function buildSettlementEvidencePack({ seed = 42 } = {}) {
   const attacker = identityFromSeed(`settle-atk/${seed}`);
   const seedReveal = contentAddress({ seed }).slice(7, 7 + 32); // a closed hex token (attacker's secret)
   const beacon = contentAddress({ beacon: seed }).slice(7, 7 + 16); // post-commit beacon (O1 residual = input)
+  // Phase-3a: the commit folds at seq=chain.length (3), the settle at chain.length+1 (4); H_b must be
+  // strictly greater than the commit's fold height so the window is open (window-close rule). Fixed int.
+  const beaconHeight = chain.length + 1;
   const claims = [];
   const claim = (id, ok, detail) => claims.push({ id, ok: !!ok, detail });
 
@@ -61,10 +64,10 @@ export function buildSettlementEvidencePack({ seed = 42 } = {}) {
   });
 
   // honest settlement
-  const st = settleAttack(base, plan, { seed_reveal: seedReveal, beacon });
+  const st = settleAttack(base, plan, { seed_reveal: seedReveal, beacon, beacon_height: beaconHeight });
 
   // ── S1 settlement deterministic; recompute matches; commit verifies ──
-  const st2 = settleAttack(base, plan, { seed_reveal: seedReveal, beacon });
+  const st2 = settleAttack(base, plan, { seed_reveal: seedReveal, beacon, beacon_height: beaconHeight });
   claim('S1_settlement_deterministic',
     st.ok && st2.ok && st.settlement.outcome_digest === st2.settlement.outcome_digest
       && verifySeedReveal(st.settlement.seed_commit, seedReveal),
@@ -73,7 +76,7 @@ export function buildSettlementEvidencePack({ seed = 42 } = {}) {
   // ── D5 (RESOLVED) seed grinding resistance: commit-BEFORE-settle is ENFORCED in-fold; reveal must match
   //    commit; a post-commit beacon binds the seed (so a committed attacker cannot enumerate reveals) ──
   const wrongReveal = verifySeedReveal(st.settlement.seed_commit, 'ffffffffffffffff') === false;
-  const stOtherBeacon = settleAttack(base, plan, { seed_reveal: seedReveal, beacon: '00000000ffffffff' });
+  const stOtherBeacon = settleAttack(base, plan, { seed_reveal: seedReveal, beacon: '00000000ffffffff', beacon_height: beaconHeight });
   const beaconBinds = stOtherBeacon.ok && stOtherBeacon.settlement.outcome_digest !== st.settlement.outcome_digest;
   const commitBindsReveal = makeSeedCommit(seedReveal) === st.settlement.seed_commit;
   // a settle_attack with NO prior attack_commit fails to fold (no_prior_commit) — the temporal-ordering invariant
@@ -104,7 +107,7 @@ export function buildSettlementEvidencePack({ seed = 42 } = {}) {
   //    base/counters/structures UNCHANGED ──
   const head = chain[chain.length - 1].hash;
   const commitOp = makeCommitOp(defender, { block_id: block, prev: head, seq: chain.length, tick: chain.length },
-    { base_address: st.settlement.base_address, plan_hash: st.settlement.plan_hash, seed_commit: st.settlement.seed_commit });
+    { base_address: st.settlement.base_address, plan_hash: st.settlement.plan_hash, seed_commit: st.settlement.seed_commit, beacon_height: beaconHeight });
   const op = makeSettleOp(defender, { block_id: block, prev: commitOp.hash, seq: chain.length + 1, tick: chain.length + 1 }, st.settlement);
   const settled = foldBlock([...chain, commitOp, op]);
   const baseUnchanged = canonicalize(signSnapshot(defender, foldBlock(chain))) === canonicalize(base);

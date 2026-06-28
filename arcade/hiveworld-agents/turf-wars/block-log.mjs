@@ -218,7 +218,9 @@ export function foldBlock(ops) {
         // Record the commit keyed by seed_commit. A later settle_attack must reference a matching one;
         // this is what locks the attacker to a single pre-beacon seed (the O1 temporal ordering invariant).
         if (!s.attack_commits[p.seed_commit]) {
-          s.attack_commits[p.seed_commit] = { seq: op.seq, base_address: p.base_address, plan_hash: p.plan_hash };
+          // Phase-3a: also record beacon_height (H_b) so the settle fold can enforce the window-close rule
+          // (the commit must have folded strictly BELOW its declared H_b — see settle_attack).
+          s.attack_commits[p.seed_commit] = { seq: op.seq, base_address: p.base_address, plan_hash: p.plan_hash, beacon_height: p.beacon_height };
         }
         s.applied.push(op.hash);
         break;
@@ -234,6 +236,13 @@ export function foldBlock(ops) {
         const prior = s.attack_commits[p.seed_commit];
         if (!prior || prior.seq >= op.seq || prior.base_address !== p.base_address || prior.plan_hash !== p.plan_hash) {
           econReject(op, 'no_prior_commit'); break;
+        }
+        // Phase-3a WINDOW-CLOSE (bounds K-of-N): the commit must have folded STRICTLY below its declared H_b
+        // (so the beacon provably did not yet exist), and the settle must reference that SAME H_b. Since H_b is
+        // defined by FOREIGN heads the attacker cannot advance/stall on demand, this caps how long the attacker
+        // can keep committing fresh seeds — K is bounded by the pre-H_b chain-op budget. Apply NO scorch on fail.
+        if (!(prior.seq < prior.beacon_height) || p.beacon_height !== prior.beacon_height) {
+          econReject(op, 'commit_window_closed'); break;
         }
         if (sha256Hex(p.seed_reveal) !== p.seed_commit) { econReject(op, 'bad_seed_commit'); break; }
         const onExisting = {};
