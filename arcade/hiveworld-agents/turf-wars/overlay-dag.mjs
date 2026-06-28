@@ -116,8 +116,11 @@ export function verifyRevocationEntry(entry, baseRecord, plan, claim) {
   if (!entry || typeof entry !== 'object') return false;
   if (typeof entry.mini_log_id !== 'string' || !HASH64.test(entry.mini_log_id)) return false;
   if (!claim || typeof claim !== 'object') return false;
-  // the claim must concern the SAME settlement the entry points at (digest binding)
-  if (entry.outcome_digest && claim.outcome_digest !== entry.outcome_digest) return false;
+  // the claim must concern the SAME settlement the entry points at (digest binding — MANDATORY).
+  // verifyRevocationEntry is exported and may be called directly, so it does NOT assume an upstream
+  // validateEntry has run: the entry must itself carry a non-empty digest the claim has to match.
+  if (typeof entry.outcome_digest !== 'string' || entry.outcome_digest.length === 0) return false;
+  if (claim.outcome_digest !== entry.outcome_digest) return false;
   const fraud = proveFraud(baseRecord, plan, claim);
   return !!fraud && fraud.mismatch === true;
 }

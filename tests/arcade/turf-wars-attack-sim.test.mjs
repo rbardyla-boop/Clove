@@ -139,3 +139,16 @@ test('scorchBoundsHold accepts only integers in [0, CAP] and rejects non-integer
   assert.ok(scorchBoundsHold(ov), 'applyScorch output passes the tightened predicate');
   assert.ok(scorchBoundsHold(decayScorch(ov, 1)), 'decayScorch output passes the tightened predicate');
 });
+
+test('applyScorch rounds fractional amounts so the integer scorchBoundsHold invariant always holds', () => {
+  // a fractional outcome amount must NOT leak a non-integer into the overlay (the comment-documented
+  // Math.round path) — otherwise scorchBoundsHold would reject the module's own output.
+  const ov = applyScorch(emptyScorch(), { 's:1': 12.5, 's:2': 0.4, 's:3': 39.6 });
+  assert.ok(scorchBoundsHold(ov), 'fractional inputs round to integers and pass the invariant');
+  assert.equal(ov['s:1'], 13, '12.5 rounds to 13');
+  assert.equal(ov['s:3'], 40, '39.6 rounds to 40');
+  assert.equal(ov['s:2'], undefined, '0.4 rounds to 0 and is dropped (zero entries pruned)');
+  // accumulation stays integer too
+  const ov2 = applyScorch(ov, { 's:1': 1.5 });
+  assert.ok(scorchBoundsHold(ov2) && ov2['s:1'] === 15, '13 + 1.5 rounds to 15');
+});

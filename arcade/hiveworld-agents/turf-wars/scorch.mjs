@@ -33,7 +33,9 @@ export function applyScorch(overlay, outcomeScorch) {
   const next = { ...(overlay || {}) };
   for (const id of Object.keys(outcomeScorch || {})) {
     const add = Number(outcomeScorch[id]) || 0;
-    const total = clamp((next[id] || 0) + add, 0, SCORCH_CAP);
+    // Math.round keeps scorch INTEGER-valued (the scorchBoundsHold invariant) even when an outcome
+    // carries a fractional amount; integer inputs are unaffected (Math.round(n) === n for integers).
+    const total = clamp(Math.round((next[id] || 0) + add), 0, SCORCH_CAP);
     if (total > 0) next[id] = total; else delete next[id];
   }
   return next;
