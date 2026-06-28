@@ -22,6 +22,7 @@
  */
 import { contentAddress, isContentAddress } from './canonical.mjs';
 import { signBytes, verifyBytes, PLAYER_ID_RE } from './identity.mjs';
+import { SCORCH_CAP } from './scorch.mjs';
 
 export const OP_VERSION = 1;
 
@@ -42,7 +43,7 @@ const ENVELOPE_KEY_SET = new Set(OP_ENVELOPE_KEYS);
  * settlement-deferred in the fold; everything else folds normally. Nothing outside this list folds. */
 export const OP_TYPES = Object.freeze([
   'init_block', 'build_structure', 'upgrade_structure', 'collect_resource',
-  'publish_base_snapshot', 'join_crew', 'record_attack_result',
+  'publish_base_snapshot', 'join_crew', 'record_attack_result', 'attack_commit', 'settle_attack',
 ]);
 
 /** Reserved for later phases — the fold REJECTS these with `reserved_for_phase2` (schema reservation
@@ -167,6 +168,41 @@ export function validatePayload(type, payload) {
       if (!isContentAddress(payload.outcome_digest)) return 'bad_outcome_digest';
       if (typeof payload.seed !== 'string' || !/^[0-9a-f]{16,64}$/.test(payload.seed)) return 'bad_seed';
       return null;
+    case 'attack_commit':
+      // Phase-2 SETTLEMENT (O1): the attacker's BINDING COMMITMENT, folded at an EARLIER seq than the
+      // settle_attack that reveals it. It carries seed_commit = sha256(attacker_seed) but NO reveal and
+      // NO beacon — so the attacker is locked to one seed BEFORE the post-commit beacon is known. The fold
+      // (block-log.mjs) records it; a settle_attack with no matching prior attack_commit fails to fold.
+      if (!only(['base_address', 'plan_hash', 'seed_commit'])) return 'attack_commit_shape';
+      if (!isContentAddress(payload.base_address)) return 'bad_base_address';
+      if (!isContentAddress(payload.plan_hash)) return 'bad_plan_hash';
+      if (typeof payload.seed_commit !== 'string' || !/^[0-9a-f]{64}$/.test(payload.seed_commit)) return 'bad_seed_commit';
+      return null;
+    case 'settle_attack': {
+      // Phase-2 SETTLEMENT (O1/O2): the optimistic, fold-applied settlement op. Closed schema only —
+      // the public attack inputs (base snapshot + plan), the commit-reveal seed (seed_commit/seed_reveal),
+      // the post-commit beacon (O1), a BOUNDED cosmetic scorch map, and the claimed outcome digest. The
+      // fold verifies commit↔reveal and applies the bounded scorch; correctness-vs-recompute is the
+      // delegable fraud-proof's job (settlement.mjs). No transfer/cash field exists; scorch is the only
+      // effect, bounded to [0, SCORCH_CAP] integers over existing structures only.
+      if (!only(['base_address', 'plan_hash', 'seed_commit', 'seed_reveal', 'beacon', 'scorch', 'outcome_digest'])) return 'settle_attack_shape';
+      if (!isContentAddress(payload.base_address)) return 'bad_base_address';
+      if (!isContentAddress(payload.plan_hash)) return 'bad_plan_hash';
+      if (!isContentAddress(payload.outcome_digest)) return 'bad_outcome_digest';
+      if (typeof payload.seed_commit !== 'string' || !/^[0-9a-f]{64}$/.test(payload.seed_commit)) return 'bad_seed_commit';
+      if (typeof payload.seed_reveal !== 'string' || !/^[0-9a-f]{16,64}$/.test(payload.seed_reveal)) return 'bad_seed_reveal';
+      if (typeof payload.beacon !== 'string' || !/^[0-9a-f]{16,64}$/.test(payload.beacon)) return 'bad_beacon';
+      const sc = payload.scorch;
+      if (!sc || typeof sc !== 'object' || Array.isArray(sc)) return 'bad_scorch';
+      const sk = Object.keys(sc);
+      if (sk.length > MAX_STRUCTURES) return 'scorch_too_many';
+      for (const k of sk) {
+        if (!STRUCTURE_ID_RE.test(k)) return 'bad_scorch_key';
+        const val = sc[k];
+        if (!isInt(val) || val < 0 || val > SCORCH_CAP) return 'bad_scorch_value';
+      }
+      return null;
+    }
     default:
       return 'unknown_op';
   }
