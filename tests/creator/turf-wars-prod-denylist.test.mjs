@@ -40,6 +40,11 @@ test('every Turf Wars lab module is excluded from the curated upload (predicate)
     // Phase 3a beacon source (commit-derived cross-block checkpoint + window-close)
     'arcade/hiveworld-agents/turf-wars/beacon.mjs',
     'arcade/hiveworld-agents/turf-wars/beacon-evidence.mjs',
+    // Phase 3b availability + challenge window (seeded holder-set + finalization predicate)
+    'arcade/hiveworld-agents/turf-wars/availability.mjs',
+    'arcade/hiveworld-agents/turf-wars/challenge-window.mjs',
+    'arcade/hiveworld-agents/turf-wars/availability-evidence.mjs',
+    'arcade/hiveworld-agents/turf-wars/availability-stress.mjs',
   ]) {
     assert.equal(isExcludedFromUpload(f), true, `${f} must be excluded`);
     assert.equal(PUBLIC_CREATOR_ALLOW.has(f), false, `${f} must not be on the public allow-list`);
