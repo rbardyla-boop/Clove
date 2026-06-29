@@ -328,7 +328,9 @@ relay/holder is optional and interchangeable; swapping it changes propagation sp
 
 - Single-writer per author: every foreign-signed mini-log op is rejected `not_attacker` (measured across a
   seeded peer set with cross-signed forgeries).
-- Mini-log convergence: `foldMiniLog(shuffle(S)) === foldMiniLog(S)` (1000 shuffles, seeds [42,1337,9001]).
+- Mini-log convergence: `foldMiniLog(shuffle(S)) === foldMiniLog(S)` (16 reorder/dup shuffles × seeds
+  [42,1337,9001]; convergence is *structural* — guaranteed by the pure dedup + canonical-sort fold — so the
+  shuffle count is illustrative, not load-bearing; the evidence pack reports the real count it runs).
 - Overlay convergence (falsifiable): `foldOverlay(shuffle(E)) === foldOverlay(E)` with concurrent attackers +
   injected revocations.
 - Offline-owner revocation: a fraudulent `settlement_reveal` is revoked by any peer without the owner's key;

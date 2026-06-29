@@ -198,6 +198,20 @@ test('verifyRevocationEntry: a forged settlement verifies a revocation; an hones
   assert.equal(proveFraud(base, a.plan, a.settlement), null, 'honest settlement has no fraud-proof');
 });
 
+test('verifyRevocationEntry: hardening — digest binding is mandatory (an entry with no/empty digest is rejected even when the claim proves fraud)', () => {
+  const { base, block } = fixture();
+  const a = buildAttacker(7, 0, base, block);
+  const forgedClaim = { ...a.settlement, outcome_digest: contentAddress({ forged: true }) };
+  const forgedEntry = { ...a.entry, outcome_digest: forgedClaim.outcome_digest };
+  // control: with the digest present, the forged settlement verifies the revocation
+  assert.equal(verifyRevocationEntry(forgedEntry, base, a.plan, forgedClaim), true, 'control: digest present → verifies');
+  // verifyRevocationEntry is exported and self-defending: it must NOT rely on an upstream validateEntry,
+  // so an entry that omits / empties its digest cannot revoke, even with a genuinely fraudulent claim.
+  const noDigest = { ...forgedEntry }; delete noDigest.outcome_digest;
+  assert.equal(verifyRevocationEntry(noDigest, base, a.plan, forgedClaim), false, 'missing digest → rejected');
+  assert.equal(verifyRevocationEntry({ ...forgedEntry, outcome_digest: '' }, base, a.plan, forgedClaim), false, 'empty digest → rejected');
+});
+
 test('foldOverlay: a verified revocation marks the entry revoked and EXCLUDES its scorch', () => {
   const { base, block } = fixture();
   const a = buildAttacker(7, 0, base, block, structureId('t-sign'));
