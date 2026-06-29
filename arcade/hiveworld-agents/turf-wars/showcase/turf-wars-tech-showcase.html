@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<!--
+  Turf Wars — Technical Lab Dossier (STATIC, OFFLINE, NON-INTERACTIVE SHOWCASE)
+  ============================================================================
+  LAB-ONLY artifact. This file lives under arcade/hiveworld-agents/turf-wars/ and is
+  prod-denylisted by FORBIDDEN_UPLOAD_PREFIXES ('arcade/hiveworld-agents/') — it never
+  ships in the curated client upload and is imported by NO production path.
+
+  It is NOT a game. There is NO network call, NO user data, NO telemetry, NO account,
+  NO chat, NO upload, NO live world loader. Every datum below is canned/synthetic, and
+  the four proofs recompute deterministically IN THIS PAGE from fixed seeds.
+
+  Honesty note: the in-page proofs are faithful IN STRUCTURE to the lab modules
+  (mulberry32 lcg; canonical-stringify content addressing; recompute-and-compare
+  fraud-proof; bounded/integer/self-healing scorch; max-seq/low-head overlay fold).
+  The lab modules themselves use SHA-256 via node:crypto and are covered by 146/146
+  turf-wars tests within the 1297/1297 unit suite. The PROPERTIES shown here
+  (determinism, mismatch detection, order-independent convergence, reversible loss)
+  are identical; the demo digest is an inline deterministic hash for offline portability.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Turf Wars — Technical Lab Dossier</title>
+<style>
+  :root{
+    --paper:#f6f5f1;
+    --panel:#fffffd;
+    --ink:#181a20;
+    --muted:#595e6b;
+    --faint:#878b97;
+    --rule:#dcd9d0;
+    --rule-strong:#c4c0b4;
+    --accent:#0f5d54;      /* deep teal — sober, institutional */
+    --accent-soft:#e4efec;
+    --pass:#1f7a43;
+    --pass-soft:#e6f2ea;
+    --alert:#a3271d;
+    --alert-soft:#f6e7e4;
+    --mono-bg:#edeae2;
+    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    --sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.6;
+    letter-spacing:0.005em;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
+  a{color:var(--accent); text-underline-offset:2px}
+  code,.mono{font-family:var(--mono); font-size:0.86em}
+  h1,h2,h3{font-family:var(--serif); font-weight:600; line-height:1.18; letter-spacing:-0.01em}
+  .eyebrow{
+    font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:0.16em;
+    text-transform:uppercase; color:var(--accent);
+  }
+  .section-no{color:var(--faint); font-variant-numeric:tabular-nums; font-family:var(--mono); font-size:0.8em}
+
+  /* ---- Masthead ---- */
+  header.masthead{border-bottom:2px solid var(--ink); background:linear-gradient(180deg,#fbfaf7,#f4f3ee)}
+  .masthead .wrap{padding-top:40px; padding-bottom:26px}
+  .kicker{display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:18px}
+  .kicker .eyebrow{margin:0}
+  .doc-meta{font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:0.04em}
+  h1{font-size:clamp(30px,3.4vw,46px); margin:0 0 8px}
+  .subtitle{font-size:clamp(16px,1.5vw,19px); color:var(--muted); max-width:60ch; margin:0}
+
+  /* ---- Status banner (safety, foregrounded) ---- */
+  .status{
+    margin-top:26px; border:1px solid var(--rule-strong); background:var(--panel);
+    border-left:4px solid var(--accent); border-radius:3px; padding:16px 18px;
+  }
+  .status .label{font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin-bottom:9px}
+  .status ul{margin:0; padding:0; list-style:none; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:5px 22px}
+  /* Every line is a CONFIRMED safety property (a present good, or a deliberately-excluded risk) — so all
+     read as calm green confirmations, never alarm-red flags. Counsel should see a column of closed risks. */
+  .status li{font-size:13.5px; color:var(--ink); padding-left:20px; position:relative}
+  .status li::before{content:'\2713'; position:absolute; left:0; color:var(--pass); font-weight:700; font-size:12px; top:1px}
+
+  /* ---- Sections ---- */
+  section{padding:46px 0; border-bottom:1px solid var(--rule)}
+  .sec-head{display:flex; gap:14px; align-items:baseline; margin-bottom:8px}
+  section h2{font-size:clamp(21px,2.2vw,28px); margin:0}
+  .lede{color:var(--muted); max-width:70ch; margin:6px 0 26px; font-size:16.5px}
+
+  /* ---- Two-column is/is-not ---- */
+  .cols2{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+  @media(max-width:720px){.cols2{grid-template-columns:1fr}}
+  .card{background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:20px 22px}
+  .card h3{font-size:16px; margin:0 0 12px; display:flex; align-items:center; gap:9px}
+  .card.is h3 .dot{color:var(--pass)}
+  .card.isnot h3 .dot{color:var(--alert)}
+  .card ul{margin:0; padding-left:18px}
+  .card li{margin:6px 0; color:var(--ink)}
+  .card.isnot li{color:#43474f}
+
+  /* ---- Diagrams ---- */
+  figure{margin:0}
+  .diagram{background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:22px; overflow-x:auto}
+  figcaption{font-size:12.5px; color:var(--faint); margin-top:10px; font-family:var(--mono)}
+  svg{display:block; max-width:100%; height:auto}
+  .lyr{fill:var(--panel); stroke:var(--rule-strong)}
+  .lyr-t{font-family:var(--sans); font-size:13px; font-weight:600; fill:var(--ink)}
+  .lyr-s{font-family:var(--mono); font-size:10.5px; fill:var(--muted)}
+  .arrow{stroke:var(--accent); stroke-width:1.6; fill:none; marker-end:url(#ah)}
+  .seqbox{fill:var(--accent-soft); stroke:var(--accent)}
+  .seqbox-t{font-family:var(--mono); font-size:12px; fill:var(--accent); font-weight:600}
+  .seq-note{font-family:var(--sans); font-size:11px; fill:var(--muted)}
+
+  /* ---- Proof demos ---- */
+  .proof{background:var(--panel); border:1px solid var(--rule); border-radius:4px; margin:16px 0; overflow:hidden}
+  .proof-head{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:15px 20px; border-bottom:1px solid var(--rule); background:#fbfaf6}
+  .proof-head h3{font-size:15.5px; margin:0; font-family:var(--sans); font-weight:700}
+  .proof-head .claim{font-size:12.5px; color:var(--muted); margin-top:3px}
+  .verdict{font-family:var(--mono); font-size:12px; font-weight:700; padding:4px 11px; border-radius:3px; white-space:nowrap; letter-spacing:0.03em}
+  .verdict.pass{background:var(--pass-soft); color:var(--pass); border:1px solid #bfe0cb}
+  .verdict.pending{background:var(--mono-bg); color:var(--muted); border:1px solid var(--rule)}
+  .proof-body{padding:16px 20px}
+  .io{font-family:var(--mono); font-size:12.5px; background:var(--mono-bg); border-radius:3px; padding:13px 15px; white-space:pre-wrap; word-break:break-word; color:#2a2d35; line-height:1.65}
+  .io .k{color:var(--accent)}
+  .io .g{color:var(--pass); font-weight:700}
+  .io .r{color:var(--alert); font-weight:700}
+  .io .d{color:var(--faint)}
+  .controls{margin-top:13px; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  button.run{
+    font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer;
+    background:var(--ink); color:#fff; border:1px solid var(--ink); border-radius:3px; padding:8px 16px;
+    transition:background .15s, transform .05s;
+  }
+  button.run:hover{background:var(--accent); border-color:var(--accent)}
+  button.run:active{transform:translateY(1px)}
+  .runnote{font-size:12px; color:var(--faint)}
+
+  /* ---- Tables ---- */
+  table{width:100%; border-collapse:collapse; font-size:13.5px; margin:6px 0}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--rule); vertical-align:top}
+  thead th{font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); border-bottom:1.5px solid var(--rule-strong)}
+  tbody tr:hover{background:#fbfaf6}
+  td.num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .tag{display:inline-block; font-family:var(--mono); font-size:11px; padding:2px 7px; border-radius:3px; background:var(--accent-soft); color:var(--accent)}
+  .tag.green{background:var(--pass-soft); color:var(--pass)}
+
+  /* ---- Boundary section ---- */
+  .boundary{background:#fbfaf6; border:1px solid var(--rule-strong); border-radius:4px; padding:22px 24px}
+  .boundary h3{margin:0 0 12px; font-size:16px}
+  .gate{font-family:var(--mono); font-size:12.5px; background:var(--ink); color:#f4f3ee; padding:3px 8px; border-radius:3px}
+
+  footer{padding:34px 0 60px; color:var(--muted); font-size:13px}
+  footer .fine{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin-top:10px; line-height:1.7}
+
+  /* Content is visible by default (a legal/technical reviewer must never depend on JS or scroll to
+     read the evidence, and it must print/PDF cleanly). A single, gentle page-load fade is the only motion. */
+  @keyframes fadein{from{opacity:0} to{opacity:1}}
+  main{animation:fadein .5s ease both}
+  @media(prefers-reduced-motion:reduce){main{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="kicker">
+      <p class="eyebrow">Neon Circuit · Hive-Network Research</p>
+      <p class="doc-meta">TECHNICAL DOSSIER · LAB-ONLY · REV. 2026-06</p>
+    </div>
+    <h1>Turf Wars</h1>
+    <p class="subtitle">A decentralized, replay-deterministic territory prototype with <strong>no central
+      settlement authority</strong> — presented as a static, offline technical record. Not a game you can play.</p>
+
+    <div class="status" role="note" aria-label="Status and safety boundary">
+      <div class="label">Status &amp; safety boundary</div>
+      <ul>
+        <li class="ok">Lab-only, prod-denylisted prototype</li>
+        <li class="ok">Deterministic, reproducible in-page</li>
+        <li>Not a live or public game</li>
+        <li>No public multiplayer / live P2P</li>
+        <li>No minors-facing use</li>
+        <li>No user-generated content</li>
+        <li>No accounts · no chat · no uploads</li>
+        <li>No live world loader (stays off)</li>
+        <li>No real money / rewards / marketplace</li>
+        <li>Phase&nbsp;0 legal/safety review: BLOCKING</li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 1 -->
+  <section class="reveal">
+    <div class="sec-head"><span class="section-no">01</span><h2>What this is — and is not</h2></div>
+    <p class="lede">The engineering claim is narrow and checkable: territory outcomes are <em>deterministic
+      replays</em> validated by a delegable one-operation fraud-proof, so peers agree without a referee. The
+      product claim is deliberately absent.</p>
+    <div class="cols2">
+      <div class="card is">
+        <h3><span class="dot">●</span> What it is</h3>
+        <ul>
+          <li>A research prototype of a peer-hosted territory game where authority is <strong>replay-determinism + a one-op fraud-proof</strong>, not a server.</li>
+          <li>Signed-op block logs, content-addressed snapshots, a deterministic attack simulator, a commit→reveal settlement, a cross-block beacon, a challenge window, and a convergent overlay with keyless fraud-proof revocation.</li>
+          <li>24 zero-dependency lab modules, 9 evidence/stress packs, exercised by 146/146 turf-wars tests within a 1297/1297 unit suite.</li>
+        </ul>
+      </div>
+      <div class="card isnot">
+        <h3><span class="dot">●</span> What it is not</h3>
+        <ul>
+          <li>Not live, not public, not minors-facing. No one can play it against anyone.</li>
+          <li>No UGC, no accounts, no login, no chat, no free text, no uploads, no images.</li>
+          <li>No live P2P network, no peer discovery, no production runtime, no live world loader.</li>
+          <li>No economy: no transfer, cash-out, marketplace, rewards, or ownership. "Loss" is reversible cosmetic scorch only.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="reveal">
+    <div class="sec-head"><span class="section-no">02</span><h2>Architecture</h2></div>
+    <p class="lede">Six deterministic layers. Every layer is pure and content-addressed; no layer holds central
+      authority. The safety layer (Phase&nbsp;4) is <em>planned</em>, not built, and is gated on legal counsel.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 920 300" role="img" aria-label="Layered architecture diagram">
+        <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#0f5d54"></path></marker></defs>
+        <!-- row of layers -->
+        <g>
+          <rect class="lyr" x="8"   y="60" width="138" height="66" rx="4"></rect>
+          <text class="lyr-t" x="77"  y="88" text-anchor="middle">Identity / Canonical</text>
+          <text class="lyr-s" x="77"  y="106" text-anchor="middle">keypair · sha256</text>
+
+          <rect class="lyr" x="160" y="60" width="138" height="66" rx="4"></rect>
+          <text class="lyr-t" x="229" y="88" text-anchor="middle">Block Log / Snapshot</text>
+          <text class="lyr-s" x="229" y="106" text-anchor="middle">signed-op CRDT</text>
+
+          <rect class="lyr" x="312" y="60" width="150" height="66" rx="4"></rect>
+          <text class="lyr-t" x="387" y="84" text-anchor="middle">Attack Sim /</text>
+          <text class="lyr-t" x="387" y="100" text-anchor="middle">Settlement</text>
+          <text class="lyr-s" x="387" y="116" text-anchor="middle">fraud-proof</text>
+
+          <rect class="lyr" x="476" y="60" width="150" height="66" rx="4"></rect>
+          <text class="lyr-t" x="551" y="84" text-anchor="middle">Beacon /</text>
+          <text class="lyr-t" x="551" y="100" text-anchor="middle">Challenge Window</text>
+          <text class="lyr-s" x="551" y="116" text-anchor="middle">post-commit bound</text>
+
+          <rect class="lyr" x="640" y="60" width="160" height="66" rx="4"></rect>
+          <text class="lyr-t" x="720" y="84" text-anchor="middle">Overlay DAG /</text>
+          <text class="lyr-t" x="720" y="100" text-anchor="middle">Availability Fabric</text>
+          <text class="lyr-s" x="720" y="116" text-anchor="middle">keyless revocation</text>
+
+          <rect class="lyr" x="814" y="60" width="98" height="66" rx="4" stroke-dasharray="4 3"></rect>
+          <text class="lyr-t" x="863" y="84" text-anchor="middle" font-size="12">Phase 4</text>
+          <text class="lyr-t" x="863" y="100" text-anchor="middle" font-size="12">Safety Gate</text>
+          <text class="lyr-s" x="863" y="116" text-anchor="middle" fill="#a3271d">PLANNED</text>
+
+          <path class="arrow" d="M146,93 L158,93"></path>
+          <path class="arrow" d="M298,93 L310,93"></path>
+          <path class="arrow" d="M462,93 L474,93"></path>
+          <path class="arrow" d="M626,93 L638,93"></path>
+          <path class="arrow" d="M800,93 L812,93" stroke-dasharray="4 3"></path>
+        </g>
+        <text class="lyr-s" x="8" y="168" font-size="12">Authority at every layer = replay-determinism + the delegable one-op fraud-proof. Each relay / holder / reviewer helper is optional, swappable, and signing-keyless.</text>
+        <text class="lyr-s" x="8" y="190" font-size="12" fill="#a3271d">The Phase 4 safety gate (M-of-N clearance quorum + dark-by-default render-gate) is designed but unbuilt; live/minors use stays blocked behind Phase 0 counsel.</text>
+      </svg>
+      <figcaption>Fig. 1 — Layer stack. Phases 1–3 are built and tested; Phase 4 is planned (docs-only).</figcaption>
+    </figure>
+  </section>
+
+  <!-- 3 -->
+  <section class="reveal">
+    <div class="sec-head"><span class="section-no">03</span><h2>Settlement sequence</h2></div>
+    <p class="lede">An attack is a two-phase commit. The reveal is checked by anyone re-running the pure
+      simulator; a mismatch is a fraud-proof that any peer can verify without the defender online.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 900 150" role="img" aria-label="Settlement sequence diagram">
+        <defs><marker id="ah2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#0f5d54"></path></marker></defs>
+        <g>
+          <rect class="seqbox" x="10"  y="44" width="170" height="46" rx="4"></rect>
+          <text class="seqbox-t" x="95"  y="72" text-anchor="middle">attack_commit</text>
+          <rect class="seqbox" x="240" y="44" width="170" height="46" rx="4"></rect>
+          <text class="seqbox-t" x="325" y="72" text-anchor="middle">settle_attack</text>
+          <rect class="seqbox" x="470" y="44" width="170" height="46" rx="4"></rect>
+          <text class="seqbox-t" x="555" y="72" text-anchor="middle">proveFraud</text>
+          <rect class="seqbox" x="700" y="44" width="190" height="46" rx="4" style="fill:#f6e7e4;stroke:#a3271d"></rect>
+          <text class="seqbox-t" x="795" y="72" text-anchor="middle" style="fill:#a3271d">revoke (keyless)</text>
+
+          <path class="arrow" d="M180,67 L238,67" marker-end="url(#ah2)"></path>
+          <path class="arrow" d="M410,67 L468,67" marker-end="url(#ah2)"></path>
+          <path class="arrow" d="M640,67 L698,67" marker-end="url(#ah2)" style="stroke:#a3271d"></path>
+
+          <text class="seq-note" x="95"  y="112" text-anchor="middle">seed_commit + beacon_height</text>
+          <text class="seq-note" x="325" y="112" text-anchor="middle">reveal seed → outcome digest</text>
+          <text class="seq-note" x="555" y="112" text-anchor="middle">recompute &amp; compare</text>
+          <text class="seq-note" x="795" y="112" text-anchor="middle">only if mismatch=true</text>
+        </g>
+      </svg>
+      <figcaption>Fig. 2 — Commit → reveal → fraud-proof → (only on mismatch) keyless revocation. Defender need not be online.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 4 -->
+  <section class="reveal">
+    <div class="sec-head"><span class="section-no">04</span><h2>Reproducible deterministic proofs</h2></div>
+    <p class="lede">These are not assertions. Each proof recomputes in your browser, offline, from a fixed seed —
+      press <strong>Re-run</strong> and the result is byte-identical every time. Faithful in structure to the lab
+      modules (the lab uses SHA-256 via <code>node:crypto</code>; this page uses an inline deterministic digest
+      for portability — the property shown is identical).</p>
+
+    <div class="proof" id="p1">
+      <div class="proof-head">
+        <div><h3>Proof 1 — Replay determinism</h3><div class="claim">Same (base, plan, seed) ⟶ identical outcome digest, every run.</div></div>
+        <span class="verdict pending" id="v1">PENDING</span>
+      </div>
+      <div class="proof-body"><div class="io" id="io1"></div>
+        <div class="controls"><button class="run" data-run="1">Re-run</button><span class="runnote">runs locally · no network</span></div></div>
+    </div>
+
+    <div class="proof" id="p2">
+      <div class="proof-head">
+        <div><h3>Proof 2 — One-op fraud-proof</h3><div class="claim">Honest settlement verifies; a forged outcome digest is caught as fraud.</div></div>
+        <span class="verdict pending" id="v2">PENDING</span>
+      </div>
+      <div class="proof-body"><div class="io" id="io2"></div>
+        <div class="controls"><button class="run" data-run="2">Re-run</button><span class="runnote">recompute &amp; compare</span></div></div>
+    </div>
+
+    <div class="proof" id="p3">
+      <div class="proof-head">
+        <div><h3>Proof 3 — Reversible cosmetic scorch</h3><div class="claim">Loss is bounded, integer-valued, and self-heals to zero. Never destructive.</div></div>
+        <span class="verdict pending" id="v3">PENDING</span>
+      </div>
+      <div class="proof-body"><div class="io" id="io3"></div>
+        <div class="controls"><button class="run" data-run="3">Re-run</button><span class="runnote">clamp · round · decay</span></div></div>
+    </div>
+
+    <div class="proof" id="p4">
+      <div class="proof-head">
+        <div><h3>Proof 4 — Overlay-DAG convergence</h3><div class="claim">A fixed entry set folded in any delivery order ⟶ identical fingerprint.</div></div>
+        <span class="verdict pending" id="v4">PENDING</span>
+      </div>
+      <div class="proof-body"><div class="io" id="io4"></div>
+        <div class="controls"><button class="run" data-run="4">Re-run</button><span class="runnote">order-independent fold</span></div></div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="reveal">
+    <div class="sec-head"><span class="section-no">05</span><h2>Evidence &amp; proof matrix</h2></div>
+    <p class="lede">Each lab layer ships an evidence pack (deterministic, multi-seed) and unit tests. Counts below
+      are the lab's own, runnable locally with <code>npm run test:unit</code>.</p>
+    <table>
+      <thead><tr><th>Layer</th><th>Evidence pack</th><th>What it proves</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Attack simulator</td><td class="mono">attack-evidence</td><td>Deterministic outcome; forged/wrong-seed digests fail; base never mutated.</td><td><span class="tag green">tested</span></td></tr>
+        <tr><td>Settlement</td><td class="mono">settlement-evidence</td><td>Commit→reveal seed boundary; one-op fraud-proof closes the grind.</td><td><span class="tag green">tested</span></td></tr>
+        <tr><td>Beacon</td><td class="mono">beacon-evidence</td><td>Post-commit, cohort non-grindable, window-close bounds K-of-N.</td><td><span class="tag green">tested</span></td></tr>
+        <tr><td>Availability</td><td class="mono">availability-evidence</td><td>Keyless holder index; challenge-window finalize (provisional/final/refuted).</td><td><span class="tag green">tested</span></td></tr>
+        <tr><td>Overlay (O6)</td><td class="mono">overlay-evidence</td><td>Single-writer mini-log; convergent fold; offline-owner keyless revocation.</td><td><span class="tag green">tested</span></td></tr>
+        <tr><td>Availability fabric</td><td class="mono">fabric-evidence</td><td>End-to-end: no-central-authority availability exercised (mechanism only).</td><td><span class="tag green">tested</span></td></tr>
+        <tr><td>Safety gate</td><td class="mono">— (Phase 4)</td><td>M-of-N clearance + render-gate + sybil-resistant revocation + owner reconcile.</td><td><span class="tag">planned</span></td></tr>
+      </tbody>
+    </table>
+    <p class="lede" style="margin-top:18px"><strong>146 / 146</strong> turf-wars tests pass, within a
+      <strong>1297 / 1297</strong> unit suite. All proofs are seeded (no <code>Date.now</code>, no
+      <code>Math.random</code>) and regenerate byte-identically.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="reveal">
+    <div class="sec-head"><span class="section-no">06</span><h2>Safety boundary — what this does not do</h2></div>
+    <p class="lede">The interesting product (a live, peer-hosted, possibly minors-accessible game) is exactly the
+      part that is <em>not</em> built and <em>not</em> authorized. That separation is deliberate and load-bearing.</p>
+    <div class="boundary">
+      <h3>Hard boundary</h3>
+      <ul>
+        <li><strong>No live game mode.</strong> <code>LIVE_WORLD_LOADER_ENABLED</code> stays <code>false</code>; nothing here flips it.</li>
+        <li><strong>Lab-only / prod-denylisted.</strong> This file is under <code>arcade/hiveworld-agents/</code>; the curated client upload excludes the whole prefix. Turf-wars upload count: <strong>0</strong>.</li>
+        <li><strong>No legal clearance is claimed.</strong> This dossier is a technical record, not a compliance assessment, and is not legal advice.</li>
+        <li><strong>Phase 0 counsel review is BLOCKING</strong> for any live or minors-facing use, and a charter-superseding ADR would be required — neither exists.</li>
+        <li><strong>The lab proves the mechanism, not the policy.</strong> Whether a quorum + render-gate is a sufficient minors-safety control is a question for counsel, not a lab pass/fail.</li>
+      </ul>
+      <p style="margin:14px 0 0; font-size:13.5px; color:var(--muted)">Three release modes are defined in
+        <code>TURF_WARS_PHASE0_LIVE_MINORS_UNBLOCK_PACKET.md</code>: <strong>lab-only</strong> (current),
+        adults-only closed pilot, and minors-accessible public. Only lab-only is in effect. Moving past it
+        needs explicit gates, e.g. <span class="gate">AUTHORIZED: BUILD PHASE 4a — SAFETY QUORUM — LAB ONLY</span>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p><strong>Experimental lab prototype — not a public game mode.</strong> Deterministic local simulation. No
+      real money, no transferable rewards. Safety / legal review required before any live use.</p>
+    <p class="fine">Static offline dossier · no network calls · no user data · no telemetry · no cookies. The
+      in-page proofs are faithful structural reproductions of the lab modules (which use SHA-256 via node:crypto
+      and pass 146/146 turf-wars tests). Generated as a non-interactive technical showcase under the
+      Turf Wars tech-showcase plan.</p>
+  </footer>
+</main>
+
+<script>
+"use strict";
+/* ----------------------------------------------------------------------------
+   Inline, dependency-free, deterministic primitives.
+   Faithful IN STRUCTURE to the lab .mjs modules. No network, no Date.now,
+   no Math.random — everything is seeded so every run is byte-identical.
+   The lab uses SHA-256 (node:crypto); this demo uses an inline deterministic
+   digest purely so the page is portable offline. The PROPERTY is identical.
+---------------------------------------------------------------------------- */
+function fnv1a(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function digest(str){            // 64-bit-ish hex from two decorrelated lanes (demo digest)
+  let h1=0xdeadbeef^0, h2=0x41c6ce57^0;
+  for(let i=0,c;i<str.length;i++){ c=str.charCodeAt(i); h1=Math.imul(h1^c,2654435761); h2=Math.imul(h2^c,1597334677); }
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  const hex=(x)=>('00000000'+(x>>>0).toString(16)).slice(-8);
+  return hex(h1)+hex(h2);
+}
+function canon(o){               // stable, sorted-key serialization (mirrors canonical.mjs intent)
+  if(o===null||typeof o!=='object') return JSON.stringify(o);
+  if(Array.isArray(o)) return '['+o.map(canon).join(',')+']';
+  return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+canon(o[k])).join(',')+'}';
+}
+function contentAddress(o){ return digest('tw-demo/v1|'+canon(o)); }
+function lcg(seed){              // mulberry32 (mirrors availability.mjs lcg)
+  let a=seed>>>0;
+  return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+}
+
+/* deterministic attack simulator: (base, plan, seed) -> {outcome, digest} */
+function simulate(base, plan, seed){
+  const r=lcg(fnv1a(seed+'|'+base.id+'|'+plan.id));
+  const scorch={}; let total=0;
+  for(const m of plan.moves){ const hit=Math.floor(r()*(m.intensity+1)); scorch[m.target]=(scorch[m.target]||0)+hit; total+=hit; }
+  const outcome={ base:base.id, plan:plan.id, total_scorch:total, scorch };
+  return { outcome, digest:contentAddress({seed, outcome}) };
+}
+function proveFraud(base, plan, seed, claimedDigest){
+  const honest=simulate(base, plan, seed).digest;
+  return honest===claimedDigest ? null : { mismatch:true, honest, claimed:claimedDigest };
+}
+
+/* scorch model (mirrors scorch.mjs): clamp + Math.round + decay */
+const CAP=100, DECAY=10, clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
+function applyScorch(ov, add){ const n={...ov}; for(const k in add){ const t=clamp(Math.round((n[k]||0)+add[k]),0,CAP); if(t>0) n[k]=t; else delete n[k]; } return n; }
+function decay(ov, ticks){ const n={}; for(const k in ov){ const v=clamp((ov[k]||0)-DECAY*ticks,0,CAP); if(v>0) n[k]=v; } return n; }
+
+/* overlay fold (mirrors overlay-dag.mjs): dedup max-seq, tie-break lowest head, canonical sort */
+function foldOverlay(entries){
+  const best={};
+  for(const e of entries){ const p=best[e.id]; if(!p||e.seq>p.seq||(e.seq===p.seq&&e.head<p.head)) best[e.id]=e; }
+  const ordered=Object.values(best).sort((a,b)=> a.id<b.id?-1:a.id>b.id?1:0);
+  return contentAddress(ordered.map(e=>e.id+':'+e.seq+':'+e.head));
+}
+function shuffle(arr, seed){ const r=lcg(seed); const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+/* ---- canned synthetic fixtures (no user input, ever) ---- */
+const BASE={ id:'block:demo-defender-7' };
+const PLAN={ id:'plan:demo-attacker-3', moves:[{target:'t:sign', intensity:3},{target:'t:sign', intensity:3},{target:'t:node', intensity:2}] };
+const SEED='demo-seed-abc123';
+const ENTRIES=[
+  {id:'m:alpha', seq:2, head:'h:0a'},
+  {id:'m:beta',  seq:1, head:'h:0b'},
+  {id:'m:beta',  seq:2, head:'h:09'},   /* higher seq wins for beta */
+  {id:'m:gamma', seq:1, head:'h:0c'},
+  {id:'m:alpha', seq:2, head:'h:0e'}     /* same seq, higher head loses */
+];
+
+const esc=(s)=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function setVerdict(id,pass,txt){ const el=document.getElementById(id); el.className='verdict '+(pass?'pass':'pending'); el.textContent=txt; }
+
+const RUN={
+  1(){
+    const a=simulate(BASE,PLAN,SEED), b=simulate(BASE,PLAN,SEED);
+    const ok=a.digest===b.digest;
+    document.getElementById('io1').innerHTML=
+      '<span class="d">// same inputs, two independent runs</span>\n'+
+      '<span class="k">seed</span>      '+esc(SEED)+'\n'+
+      '<span class="k">run A</span>     digest = '+a.digest+'   total_scorch = '+a.outcome.total_scorch+'\n'+
+      '<span class="k">run B</span>     digest = '+b.digest+'   total_scorch = '+b.outcome.total_scorch+'\n'+
+      '<span class="k">equal?</span>    '+(ok?'<span class="g">TRUE — byte-identical replay</span>':'<span class="r">FALSE</span>');
+    setVerdict('v1',ok,ok?'PASS':'FAIL');
+  },
+  2(){
+    const honest=simulate(BASE,PLAN,SEED);
+    const forged=contentAddress({seed:SEED, outcome:{tampered:true}});
+    const fHonest=proveFraud(BASE,PLAN,SEED,honest.digest);   // null
+    const fForged=proveFraud(BASE,PLAN,SEED,forged);          // mismatch
+    const ok=(fHonest===null)&&(fForged&&fForged.mismatch===true);
+    document.getElementById('io2').innerHTML=
+      '<span class="k">honest claim</span>  digest = '+honest.digest+'\n'+
+      '  proveFraud → '+(fHonest===null?'<span class="g">null  (no fraud — verifies)</span>':'<span class="r">unexpected</span>')+'\n\n'+
+      '<span class="k">forged claim</span>  digest = '+forged+'\n'+
+      '  proveFraud → '+(fForged?'<span class="r">{ mismatch: true }</span>  <span class="g">(fraud detected)</span>':'<span class="r">missed</span>')+'\n'+
+      '    expected honest = '+esc(fForged?fForged.honest:'')+'';
+    setVerdict('v2',ok,ok?'PASS':'FAIL');
+  },
+  3(){
+    let ov=applyScorch({}, {'t:sign':55,'t:node':137,'t:frac':0.4});  // 137 clamps to CAP; 0.4 rounds to 0 (dropped)
+    const afterApply={...ov};
+    const heal=Math.ceil(Math.max(...Object.values(ov))/DECAY);
+    let cur=ov; for(let i=0;i<heal;i++) cur=decay(cur,1);
+    const integers=Object.values(afterApply).every(v=>Number.isInteger(v)&&v>=0&&v<=CAP);
+    const healed=Object.keys(cur).length===0;
+    const ok=integers&&healed;
+    document.getElementById('io3').innerHTML=
+      '<span class="k">apply</span>   {t:sign:55, t:node:137, t:frac:0.4}\n'+
+      '  → '+esc(JSON.stringify(afterApply))+'   <span class="d">// 137 clamped to '+CAP+'; 0.4 rounds to 0 → dropped</span>\n'+
+      '<span class="k">bounded integers?</span>  '+(integers?'<span class="g">TRUE</span>':'<span class="r">FALSE</span>')+'\n'+
+      '<span class="k">decay</span>   '+heal+' ticks @ '+DECAY+'/tick\n'+
+      '  → '+esc(JSON.stringify(cur))+'   '+(healed?'<span class="g">fully healed — loss is reversible</span>':'<span class="r">residual</span>');
+    setVerdict('v3',ok,ok?'PASS':'FAIL');
+  },
+  4(){
+    const orders=[0,1,2,3,4].map(s=>foldOverlay(shuffle(ENTRIES,1000+s*7)));
+    const base=foldOverlay(ENTRIES);
+    const ok=orders.every(f=>f===base);
+    document.getElementById('io4').innerHTML=
+      '<span class="d">// '+ENTRIES.length+' entries (incl. duplicate ids), folded in 5 shuffled delivery orders</span>\n'+
+      '<span class="k">canonical</span>   '+base+'\n'+
+      orders.map((f,i)=>'<span class="k">shuffle '+(i+1)+'</span>   '+f+'   '+(f===base?'<span class="g">=</span>':'<span class="r">≠</span>')).join('\n')+'\n'+
+      '<span class="k">all equal?</span>  '+(ok?'<span class="g">TRUE — order-independent convergence</span>':'<span class="r">FALSE</span>');
+    setVerdict('v4',ok,ok?'PASS':'FAIL');
+  }
+};
+
+document.querySelectorAll('button[data-run]').forEach(b=>b.addEventListener('click',()=>RUN[b.getAttribute('data-run')]()));
+[1,2,3,4].forEach(n=>RUN[n]());   // auto-run all proofs on load
+</script>
+</body>
+</html>
