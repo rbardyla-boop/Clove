@@ -53,6 +53,8 @@ test('every Turf Wars lab module is excluded from the curated upload (predicate)
     'arcade/hiveworld-agents/turf-wars/availability-fabric.mjs',
     'arcade/hiveworld-agents/turf-wars/fabric-evidence.mjs',
     'arcade/hiveworld-agents/turf-wars/fabric-stress.mjs',
+    // Static, offline, non-interactive technical showcase dossier (HTML; lab-only, never ships)
+    'arcade/hiveworld-agents/turf-wars/showcase/turf-wars-tech-showcase.html',
   ]) {
     assert.equal(isExcludedFromUpload(f), true, `${f} must be excluded`);
     assert.equal(PUBLIC_CREATOR_ALLOW.has(f), false, `${f} must not be on the public allow-list`);
