@@ -14,11 +14,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- Three.js r152 + cannon-es via importmap -->
+  <!-- three.js r152 + cannon-es 0.20.0 vendored in-repo (game/vendor/) for offline play — see docs/ARCADE_VENDOR_MANIFEST.md -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js",
-      "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+      "three": "../vendor/three/three.module-0.152.2.js",
+      "cannon-es": "../vendor/cannon-es/cannon-es-0.20.0.js"
     }
   }
   </script>
@@ -1457,8 +1458,10 @@ init().catch(err => {
 // ---------- SERVICE WORKER (inline, blob) ----------
 if ('serviceWorker' in navigator && location.protocol !== 'blob:' && location.protocol !== 'about:') {
   const SW = `
-    const CACHE = 'mindmachine-v0-5';
-    const SHELL = [self.location.origin + '/', self.location.origin + '/index.html'];
+    const CACHE = 'mindmachine-v0-6';
+    // Scope-relative shell + vendored runtime libs (three r152 + cannon-es) so an
+    // offline-after-first-visit serve has every file the game needs locally.
+    const SHELL = ['./', './index.html', '../vendor/three/three.module-0.152.2.js', '../vendor/cannon-es/cannon-es-0.20.0.js'];
     self.addEventListener('install', e => {
       e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL).catch(()=>{})).then(()=>self.skipWaiting()));
     });
@@ -1472,7 +1475,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'blob:' && location.pr
           const copy = resp.clone();
           caches.open(CACHE).then(c => { try { c.put(e.request, copy); } catch(_){} });
           return resp;
-        }).catch(()=>caches.match('/index.html')))
+        }).catch(()=>caches.match('./index.html')))
       );
     });
   `;
@@ -1487,7 +1490,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'blob:' && location.pr
 </html>
 <!--
 Metrics & Verification
-1. Bundle Size: 47 KB uncompressed / ~13 KB gzipped (HTML + inline CSS + inline ES module script; external libs Three.js r152 + cannon-es loaded via importmap from CDN and are NOT counted in the payload).
-2. Offline Confirmation: An inline blob-URL Service Worker registers on first load, pre-caches the app shell, and serves cache-first with network fallback so the game is fully playable offline after one online visit.
+1. Bundle Size: 47 KB uncompressed / ~13 KB gzipped (HTML + inline CSS + inline ES module script). Three.js r152 + cannon-es 0.20.0 are now vendored in-repo (game/vendor/) and loaded same-origin via importmap — NO CDN — so they add to the served payload but are reproducible and offline-safe (sha256 in docs/ARCADE_VENDOR_MANIFEST.md).
+2. Offline Confirmation: The game has ZERO external/CDN runtime requests — all libraries are local same-origin files, so a CDN or network outage cannot prevent it from loading once the page and game/vendor/ assets are served. A best-effort inline service worker additionally caches the shell for offline-after-first-visit where the browser registers it (blob-URL registration is not guaranteed in all browsers); the local-asset guarantee does not depend on it.
 3. Test notes: Verified on desktop + mobile that placed parts (rope/balloon/box) respond instantly to pointer drag (mouse + touch with preventDefault), keyboard nudge (arrows), rotate (R), delete (Del/Backspace), and physics sync; procedural Web Audio click / collision / win-cascade fire correctly with the volume slider applied live; light/dark theme toggle persists in IndexedDB and re-tints fog, lights, grid, and every mesh instantly; ARIA labels exist on every button and the canvas, Tab navigation covers all controls, and the Cloudflare Pages deploy block expands with copy-pasteable instructions.
 -->
