@@ -274,6 +274,16 @@
       display: none; pointer-events: none;
     }
     .selected-info.show { display: inline-flex; align-items: center; gap: 8px; }
+    /* Touch-reachable rotate/delete (the bar itself is pointer-events:none) */
+    .selected-info .sel-btn {
+      pointer-events: auto; cursor: pointer;
+      min-width: 34px; height: 30px; padding: 0 9px;
+      border: 1px solid var(--accent); border-radius: 6px;
+      background: transparent; color: var(--text);
+      font-family: var(--font-mono); font-size: 15px; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .selected-info .sel-btn:active { background: var(--accent); color: var(--bg); }
 
     @media (max-width: 720px) {
       .brand h1 { font-size: 16px; }
@@ -292,6 +302,18 @@
     #game-canvas:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: -3px;
+    }
+
+    /* Accessibility: honor reduced-motion. Neutralizes CSS transitions/animations;
+       the goal spin, win particle burst, ball flash and goal pulse are gated by the
+       same query in JS so gameplay stays readable while motion is removed. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
@@ -330,8 +352,12 @@
   </div>
 </div>
 
-<!-- SELECTION TOAST -->
-<div class="selected-info" id="selected-info" aria-live="polite"></div>
+<!-- SELECTION TOAST + touch-reachable rotate/delete -->
+<div class="selected-info" id="selected-info" aria-live="polite">
+  <span id="selected-label"></span>
+  <button class="sel-btn" id="rotate-btn" type="button" aria-label="Rotate selected part">⟳</button>
+  <button class="sel-btn" id="delete-btn" type="button" aria-label="Delete selected part">✕</button>
+</div>
 
 <!-- PARTS PALETTE -->
 <div class="hud palette" id="palette" role="toolbar" aria-label="Parts inventory. Click a part to add it to the board.">
@@ -908,7 +934,7 @@ function buildLevel() {
   ballBody.type = CANNON.Body.STATIC; // freeze until run
   ballBody.addEventListener('collide', (e) => {
     const speed = Math.abs(e.contact.getImpactVelocityAlongNormal?.() ?? 0);
-    if (speed > 0.4) sndCollide(speed);
+    if (speed > 0.4) { sndCollide(speed); pulseBallFlash(Math.min(0.6, speed * 0.12)); }
   });
   world.addBody(ballBody);
   sceneBodies.push(ballBody);
@@ -1044,7 +1070,7 @@ function setSelectedPart(partOrNull) {
     const name = partOrNull.type === 'rope' ? 'Rope of Discipline'
               : partOrNull.type === 'balloon' ? 'Balloon of Focus'
               : 'Box of Action';
-    info.textContent = `${name} — ←↑↓→ nudge · R rotate · Del remove`;
+    document.getElementById('selected-label').textContent = `${name} — drag to move · ⟳ rotate · ✕ remove`;
     info.classList.add('show');
   } else {
     info.classList.remove('show');
@@ -1189,10 +1215,14 @@ async function onWin() {
   await maybeAdvanceStreak();
 
   sndWin();
-  document.getElementById('win-modal').classList.add('active');
+  spawnWinBurst(goalMesh.position.x, goalMesh.position.y);
+  showModal('win-modal');
 }
 
 async function maybeAdvanceStreak() {
+  // Only the daily puzzle advances the daily streak (matches the call-site comment);
+  // clearing a regular level must not bump it.
+  if (!STATE.daily) return;
   const today = utcDate();
   const last = await dbGet("settings", "lastWin", null);
   if (last === today) return;
@@ -1261,13 +1291,21 @@ async function applyTransfer() {
 }
 
 // ---------- UI HELPERS ----------
+let _modalReturnFocus = null;
 function showModal(id) {
-  document.getElementById(id).classList.add('active');
+  _modalReturnFocus = document.activeElement;
+  const el = document.getElementById(id);
+  el.classList.add('active');
   STATE.paused = id === 'pause-modal';
+  // Move focus into the dialog so keyboard/AT users are not left behind the overlay.
+  const focusTarget = el.querySelector('button, textarea, input, [tabindex]');
+  if (focusTarget && focusTarget.focus) { try { focusTarget.focus(); } catch (_) {} }
 }
 function hideModal(id) {
   document.getElementById(id).classList.remove('active');
   STATE.paused = false;
+  if (_modalReturnFocus && _modalReturnFocus.focus) { try { _modalReturnFocus.focus(); } catch (_) {} }
+  _modalReturnFocus = null;
 }
 let toastTimer = 0;
 function showToast(msg) {
@@ -1275,6 +1313,58 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ---------- MOTION PREFERENCE + JUICE ----------
+const motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+let reduceMotion = !!(motionQuery && motionQuery.matches);
+if (motionQuery && motionQuery.addEventListener) {
+  motionQuery.addEventListener('change', (e) => { reduceMotion = e.matches; });
+}
+
+// Bounded kinetic feedback: a win particle burst, a goal scale-pulse, and a ball
+// emissive flash on hard collisions. All gated/reduced under prefers-reduced-motion.
+let ballFlash = 0, goalPulse = 0;
+const fxParticles = [];
+function pulseBallFlash(amount) { ballFlash = Math.min(1, ballFlash + amount); }
+function spawnWinBurst(x, y) {
+  goalPulse = 1;
+  if (reduceMotion) return; // calm: no particle spray under reduced-motion
+  const pal = PAL[STATE.theme];
+  for (let i = 0; i < 14; i++) {
+    const g = new THREE.SphereGeometry(0.09, 6, 6);
+    const m = new THREE.MeshBasicMaterial({ color: pal.goal, transparent: true, opacity: 1 });
+    const mesh = new THREE.Mesh(g, m);
+    mesh.position.set(x, y, 0.3);
+    scene.add(mesh);
+    const a = Math.random() * Math.PI * 2;
+    const s = 2 + Math.random() * 4;
+    fxParticles.push({ mesh, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.8 + Math.random() * 0.4, max: 1.2 });
+  }
+}
+function updateFx(dt) {
+  for (let i = fxParticles.length - 1; i >= 0; i--) {
+    const fp = fxParticles[i];
+    fp.life -= dt;
+    if (fp.life <= 0) {
+      scene.remove(fp.mesh); fp.mesh.geometry.dispose(); fp.mesh.material.dispose();
+      fxParticles.splice(i, 1); continue;
+    }
+    fp.mesh.position.x += fp.vx * dt; fp.mesh.position.y += fp.vy * dt;
+    fp.vy -= 4 * dt; fp.vx *= 0.96;
+    const k = fp.life / fp.max;
+    fp.mesh.material.opacity = Math.max(0, k);
+    const sc = 0.4 + 0.6 * k; fp.mesh.scale.set(sc, sc, sc);
+  }
+  if (ballFlash > 0 && ballMesh && ballMesh.material) {
+    ballFlash = Math.max(0, ballFlash - dt * 3);
+    ballMesh.material.emissiveIntensity = 0.4 + ballFlash * (reduceMotion ? 0.25 : 0.85);
+  }
+  if (goalPulse > 0 && goalMesh) {
+    goalPulse = Math.max(0, goalPulse - dt * 2);
+    const s = 1 + goalPulse * (reduceMotion ? 0.1 : 0.32);
+    goalMesh.scale.set(s, s, s);
+  }
 }
 
 // ---------- GAME LOOP ----------
@@ -1303,12 +1393,13 @@ function loop(now) {
     }
   }
 
-  // Goal idle rotation
-  if (goalMesh) {
+  // Goal idle rotation (skipped under reduced-motion)
+  if (goalMesh && !reduceMotion) {
     goalMesh.rotation.y += 0.018;
     goalMesh.rotation.x += 0.012;
   }
 
+  updateFx(Math.min(elapsed / 1000, 0.05));
   renderer.render(scene, camera);
 }
 
@@ -1383,6 +1474,17 @@ function wireEvents() {
     hideModal('win-modal'); resetRun(); STATE.parts = []; buildLevel();
   });
 
+  // Touch-reachable rotate / delete for the selected part (same as keyboard R / Del),
+  // so rotation-mandatory levels are solvable without a keyboard.
+  document.getElementById('rotate-btn').addEventListener('click', () => {
+    const sel = STATE.parts.find(p => p.selected);
+    if (sel) { sel.r += Math.PI / 12; syncPartTransform(sel); sndClick(); }
+  });
+  document.getElementById('delete-btn').addEventListener('click', () => {
+    const sel = STATE.parts.find(p => p.selected);
+    if (sel) deletePart(sel);
+  });
+
   // Keyboard
   window.addEventListener('keydown', (e) => {
     // Ignore modifier-only combinations and typing in inputs
@@ -1398,6 +1500,8 @@ function wireEvents() {
       ['pause-modal','win-modal','transfer-modal'].forEach(id => hideModal(id));
       return;
     }
+    // Don't let gameplay keys (run / nudge / rotate / delete) leak through an open modal.
+    if (document.querySelector('.overlay.active')) return;
     if (e.key === ' ') {
       e.preventDefault(); startRun(); return;
     }
@@ -1454,6 +1558,16 @@ init().catch(err => {
   console.error("Init error:", err);
   document.getElementById('level-info').textContent = "Init failed — see console.";
 });
+
+// ---------- DEBUG / HEADLESS VERIFICATION HANDLE ----------
+window.__mm = {
+  get reduceMotion() { return reduceMotion; },
+  get state() { return STATE; },
+  get fxCount() { return fxParticles.length; },
+  get modalOpen() { return !!document.querySelector('.overlay.active'); },
+  addPart, setSelectedPart,
+  get selected() { return STATE.parts.find(p => p.selected) || null; },
+};
 
 // ---------- SERVICE WORKER (inline, blob) ----------
 if ('serviceWorker' in navigator && location.protocol !== 'blob:' && location.protocol !== 'about:') {
