@@ -221,6 +221,38 @@
   }
   .brand-corner b { color: var(--cyan); font-weight: 500; }
 
+  /* Touch utility bar (mute + respawn), top-center, away from the thumb zones */
+  #touch-util {
+    display: none;
+    position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+    gap: 10px; z-index: 7; pointer-events: none;
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+  #touch-util .util-btn {
+    pointer-events: auto;
+    min-width: 46px; height: 38px; padding: 0 12px;
+    border: 1.5px solid rgba(64, 250, 255, 0.4);
+    background: rgba(8, 12, 22, 0.6);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    cursor: pointer;
+  }
+  #touch-util .util-btn:active { background: rgba(64, 250, 255, 0.15); }
+  /* The desktop AUDIO/MUTED indicator is clickable even though the HUD bar isn't */
+  #hud-mute { pointer-events: auto; cursor: pointer; }
+
+  /* Accessibility: honor reduced-motion — disable decorative looping/transition
+     motion. In-game screen shake and particle bursts are gated by the same query
+     in game.js, so gameplay stays readable while flashing/jitter is removed. */
+  @media (prefers-reduced-motion: reduce) {
+    /* match the base #title-card .title-glyph specificity so this actually wins */
+    #title-card .title-glyph { animation: none; }
+    .card-cta { transition: none; }
+    .card-cta:hover { transform: none; }
+  }
+
   /* Mobile */
   @media (max-width: 520px) {
     .hud { padding: 8px 10px; gap: 5px; font-size: 9px; letter-spacing: 0.1em; }
@@ -270,7 +302,7 @@
     </div>
     <div class="hud-cell" style="min-width:0">
       <div class="label">SYS</div>
-      <div class="value" id="hud-mute" style="font-size:11px;">AUDIO</div>
+      <div class="value" id="hud-mute" role="button" tabindex="0" aria-label="Toggle sound" title="Toggle sound (M)" style="font-size:11px;">AUDIO</div>
     </div>
   </div>
 </div>
@@ -332,12 +364,18 @@
 <!-- Touch controls -->
 <div id="touch-ui">
   <div class="touch-grp">
-    <div class="touch-btn" id="btn-left">◀</div>
-    <div class="touch-btn" id="btn-right">▶</div>
+    <div class="touch-btn" id="btn-left" role="button" aria-label="Move left">◀</div>
+    <div class="touch-btn" id="btn-right" role="button" aria-label="Move right">▶</div>
   </div>
   <div class="touch-grp">
-    <div class="touch-btn" id="btn-jump">▲</div>
+    <div class="touch-btn" id="btn-jump" role="button" aria-label="Jump">▲</div>
   </div>
+</div>
+
+<!-- Touch utility bar: respawn + mute, top-center, away from the movement/jump thumb zones -->
+<div id="touch-util">
+  <div class="util-btn" id="btn-respawn" role="button" tabindex="0" aria-label="Respawn at start of chamber">↻ RESPAWN</div>
+  <div class="util-btn" id="btn-mute" role="button" tabindex="0" aria-label="Toggle sound">♪ SOUND</div>
 </div>
 
 <div class="brand-corner"><b>NODE HOPPER</b> · v1.0 · clovelearn.io</div>

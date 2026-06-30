@@ -5,7 +5,26 @@
   const ctx = new AC();
   let master = ctx.createGain();
   master.gain.value = 0.5;
-  master.connect(ctx.destination);
+  // Limiter on the master bus so rapidly stacked one-shots (pickups, landings,
+  // hits firing on the same frame) sum without clipping.
+  const limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = -10;
+  limiter.knee.value = 6;
+  limiter.ratio.value = 12;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.12;
+  master.connect(limiter);
+  limiter.connect(ctx.destination);
+
+  // Per-sound voice throttle: collapse repeats of the same one-shot fired within
+  // minSec of each other (uses the audio clock), so multi-pickup/land frames
+  // don't spawn a wall of overlapping voices.
+  const lastPlay = Object.create(null);
+  function throttle(name, minSec, fn) {
+    if (lastPlay[name] !== undefined && ctx.currentTime - lastPlay[name] < minSec) return;
+    lastPlay[name] = ctx.currentTime;
+    fn();
+  }
 
   function ensure() { if (ctx.state === 'suspended') ctx.resume(); }
 
@@ -73,11 +92,11 @@
 
   window.SFX = {
     jump: () => blip({ freq: 280, freqEnd: 720, type: 'square', dur: 0.11, vol: 0.09 }),
-    land: () => noise({ dur: 0.06, vol: 0.05, filterFreq: 500 }),
-    pickup: () => seq([
+    land: () => throttle('land', 0.045, () => noise({ dur: 0.06, vol: 0.05, filterFreq: 500 })),
+    pickup: () => throttle('pickup', 0.04, () => seq([
       { freq: 880,  freqEnd: 1320, type: 'square', dur: 0.07, vol: 0.1 },
       { freq: 1320, freqEnd: 1980, type: 'square', dur: 0.09, vol: 0.1 },
-    ], 0.05),
+    ], 0.05)),
     hit: () => {
       blip({ freq: 220, freqEnd: 40, type: 'sawtooth', dur: 0.35, vol: 0.18 });
       noise({ dur: 0.25, vol: 0.12, filterFreq: 1200 });

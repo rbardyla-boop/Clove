@@ -39,6 +39,16 @@
     FLIP_COOLDOWN: 0.55,  // gravity flip pad cooldown
   };
 
+  // ─── Motion preference (accessibility) ─────────────────
+  // Respect prefers-reduced-motion: suppress screen shake and heavy particle
+  // bursts (the CSS title pulse is gated in the stylesheet) for photosensitive
+  // users. Tracked live so an OS-level change takes effect without reload.
+  const motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  let reduceMotion = !!(motionQuery && motionQuery.matches);
+  if (motionQuery && motionQuery.addEventListener) {
+    motionQuery.addEventListener('change', (e) => { reduceMotion = e.matches; });
+  }
+
   // ─── Three.js scene ────────────────────────────────────
   const canvas = document.getElementById('canvas');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -229,7 +239,7 @@
     grp.add(halo); grp.add(core);
     grp.position.set(x, y, 0);
     world.add(grp);
-    return { x, y, w: 0.5, h: 0.5, type: 'hazard', mesh: grp, dir, halo, core, baseY: y };
+    return { x, y, w: 0.5, h: 0.5, type: 'hazard', mesh: grp, dir, halo, core, baseY: y, spawnX: x, spawnDir: dir };
   }
 
   // ─── Player ────────────────────────────────────────────
@@ -270,6 +280,10 @@
   };
 
   function clearChamber() {
+    // Flush in-flight particles so the previous chamber's sparks don't bleed
+    // into the next one's first frame.
+    for (const p of particles) world.remove(p.mesh);
+    particles.length = 0;
     [...chamberState.solids, ...chamberState.thins, ...chamberState.spikes,
      ...chamberState.dissolves, ...chamberState.flips, ...chamberState.nodes,
      ...chamberState.hazards].forEach(e => world.remove(e.mesh));
@@ -407,6 +421,7 @@
   }
 
   function burst(x, y, color, count = 14) {
+    if (reduceMotion) count = Math.min(count, 2); // calm feedback, no spray, for reduced-motion
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
       const s = 3 + Math.random() * 5;
@@ -446,6 +461,7 @@
   // ─── Screen shake (offset on world group) ──────────────
   let shakeT = 0, shakeAmp = 0;
   function shake(amp = 0.4, dur = 0.35) {
+    if (reduceMotion) return; // no screen shake under prefers-reduced-motion
     shakeAmp = Math.max(shakeAmp, amp);
     shakeT = Math.max(shakeT, dur);
   }
@@ -469,7 +485,7 @@
     keys[e.code] = true;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') input.jumpPressed = true;
     if (e.code === 'KeyR') { if (game.state === 'playing') killPlayer('reset'); }
-    if (e.code === 'KeyM') { audioMuted = !audioMuted; SFX.setVolume(audioMuted ? 0 : 0.5); updateHud(); }
+    if (e.code === 'KeyM') { toggleMute(); }
     if (e.code === 'Enter' || e.code === 'Space') {
       if (game.state === 'title' || game.state === 'gameover') { startRun(); }
     }
@@ -520,16 +536,41 @@
   bindButton('btn-right', 'right');
   bindButton('btn-jump', 'jump');
 
+  // Tap-style buttons (respawn, mute) — single action, not a held control.
+  function bindTap(id, fn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const onTap = (e) => { e.preventDefault(); SFX.resume(); fn(); };
+    el.addEventListener('pointerdown', onTap);
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap(e); } });
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+  bindTap('btn-respawn', requestRespawn);
+  bindTap('btn-mute', toggleMute);
+  bindTap('hud-mute', toggleMute); // desktop AUDIO indicator is clickable too
+
   // Show touch UI on touch / coarse-pointer devices
   const coarse = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
   if (coarse) {
     document.getElementById('touch-ui').style.display = 'flex';
+    const tu = document.getElementById('touch-util');
+    if (tu) tu.style.display = 'flex';
   }
   // Clear held movement if the window loses focus (alt-tab, app switch).
   window.addEventListener('blur', resetTouch);
 
   // ─── Game state machine ───────────────────────────────
   let audioMuted = false;
+  function toggleMute() {
+    audioMuted = !audioMuted;
+    SFX.setVolume(audioMuted ? 0 : 0.5);
+    updateHud();
+  }
+  // Touch-reachable respawn: same path as the keyboard 'R', so a player who
+  // soft-locks in a sealed chamber can always recover without a keyboard.
+  function requestRespawn() {
+    if (game.state === 'playing') killPlayer('reset');
+  }
   const game = {
     state: 'title',     // 'title' | 'intro' | 'playing' | 'dying' | 'clear' | 'gameover'
     stateTime: 0,
@@ -683,9 +724,10 @@
           gameOver();
         } else {
           resetPlayerToSpawn();
-          // Reset dissolves & hazards to initial state for fairness
+          // Reset dissolves & hazards to initial state so a retry is deterministic
+          // (matters more now that respawn is reachable from the touch UI).
           chamberState.dissolves.forEach(d => { d.state = 'solid'; d.timer = 0; d.fade = 1; d.mesh.visible = true; });
-          chamberState.hazards.forEach(h => { /* keep their position, ok */ });
+          chamberState.hazards.forEach(h => { h.x = h.spawnX; h.dir = h.spawnDir; });
           game.state = 'playing';
           game.stateTime = 0;
         }
@@ -877,6 +919,7 @@
         world.remove(n.mesh);
         SFX.pickup();
         burst(n.x, n.y, COL.node, 10);
+        shake(0.06, 0.08); // tiny tactile pop on pickup (no-op under reduced-motion)
         game.score += 50;
         updateHud();
       }
@@ -927,6 +970,12 @@
 
   requestAnimationFrame(frame);
 
-  // Expose for debugging
-  window.__nh = { game, player, chamberState, PHYS };
+  // Expose for debugging / headless verification
+  window.__nh = {
+    game, player, chamberState, PHYS,
+    toggleMute, requestRespawn,
+    get reduceMotion() { return reduceMotion; },
+    get muted() { return audioMuted; },
+    get particleCount() { return particles.length; },
+  };
 })();
