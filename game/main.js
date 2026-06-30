@@ -1,3 +1,7 @@
+// ─── Config ───────────────────────────────────────────────────────────────────
+// Non-personal feedback inbox for the public build. Change to the desired project alias.
+const FEEDBACK_EMAIL = 'feedback@clovelearn.io';
+
 // ─── Scene Setup ──────────────────────────────────────────────────────────────
 const scene    = new THREE.Scene();
 const camera   = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
@@ -3149,7 +3153,7 @@ ${(() => {
         `Type: [Bug Report / Feedback / Idea]\n\nArchetype: ${archKey}\nOutcome: ${outcome}\nTurns: ${turn}\nOversight: ${Math.round(resistanceMeter)}%\n\nDescription:\n`
     );
     document.getElementById('feedback-btn').onclick = () =>
-        window.open(`mailto:rbardyla@gmail.com?subject=Singularity+Inc+Feedback&body=${body}`, '_blank');
+        window.open(`mailto:${FEEDBACK_EMAIL}?subject=Singularity+Inc+Feedback&body=${body}`, '_blank');
 }
 
 // ─── Cycle Report ─────────────────────────────────────────────────────────────
@@ -3734,7 +3738,7 @@ function updateBetaFeedbackBtn() {
     const body = encodeURIComponent(
         `Type: [Bug / Feedback / UX Friction]\n\nArchetype: ${archKey}\nCycle: ${turn}\nOversight: ${Math.round(resistanceMeter)}%\nMachine Confidence: ${conf}\nCollapsed: ${collapsedCount}\nStage: ${gameStage}\n\nDescription:\n`
     );
-    btn.onclick = () => window.open(`mailto:rbardyla@gmail.com?subject=Singularity+Beta+Report&body=${body}`, '_blank');
+    btn.onclick = () => window.open(`mailto:${FEEDBACK_EMAIL}?subject=Singularity+Beta+Report&body=${body}`, '_blank');
 }
 
 function updateHUD() {
