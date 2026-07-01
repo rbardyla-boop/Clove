@@ -37,6 +37,7 @@ export const FORBIDDEN_UPLOAD_PREFIXES = Object.freeze([
   'arcade-studio/',    // standalone local Vite+Three.js creator studio — local/data-only dev tool, never ships
   'arcade/hiveworld-agents/', // W-4 simulator lab (agent ledger) — never ships until W-6 is authorized
   'arcade/virtual-arcade/',   // design docs + v0 prototype reference — not a production surface
+  'labs/',             // Voxel Lab Bench + future experimental engine labs — research/prototype namespace, never ships
   'atip/',             // ATIP/CFHS document tooling — operator-marked sensitive ("not web content", gitignored).
                        // ocr_pdf.py was tracked before the atip/ ignore rule, so the denylist (not gitignore) keeps it out of the upload.
   'tests/',            // test code

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--
+      Conservative page-level CSP for this research/prototype bench: same-origin
+      script/style only, no eval, no network/form/frame/object surface. Mirrors the
+      local-only, offline-first posture already used by arcade-studio (see
+      arcade-studio/index.html) and Voxel Lab's own local-only authority boundary
+      (docs/VOXEL_LAB_BENCH_PLAN.md Section 6).
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>Voxel Lab Bench — Gate A Slice 2 (Tier-1 Instanced Renderer Shell)</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0b0d12; color: #d7e0ea; font: 13px/1.4 system-ui, sans-serif; }
+      #viewport { display: block; width: 100%; height: 100%; }
+      #readout {
+        position: fixed; top: 10px; left: 10px; padding: 8px 12px;
+        background: rgba(10, 12, 16, 0.75); border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 6px; pointer-events: none; white-space: pre;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="viewport"></canvas>
+    <div id="readout">Voxel Lab Bench — booting…</div>
+
+    <!--
+      Vendored Three.js r152 ES module only — no CDN reference, no other version.
+      This bench serves from the REPO ROOT (so this relative path resolves the same
+      way it does for every other Slice-2 file); see the headless proof script.
+      Boot logic lives in an external same-origin module (not an inline <script>) so
+      the strict `script-src 'self'` CSP above can be enforced without an
+      'unsafe-inline'/hash/nonce carve-out — the same externalized-entry-point
+      convention arcade-studio/index.html already uses for its own main.js.
+    -->
+    <script type="module" src="./src/bench-boot.mjs"></script>
+  </body>
+</html>
