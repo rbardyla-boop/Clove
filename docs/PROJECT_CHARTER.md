@@ -5,6 +5,85 @@ Newest first.
 
 ---
 
+## ADR-052 — Sealed-local experiment model; decentralization deferred to verifiable package receipts, not peer-delivered content (DECISION RECORDED; DOCS-ONLY, no code) (2026-07-02)
+
+**Context.** The operator's 2026-07-01 `/goal` asked to rework clovelearn.io into a "decentralized
+learning/experiment world." A full-repo read-only security sweep (recorded in session memory
+`project_decentralized_world_security_review`) surfaced a class of DOM-XSS sinks on shipped, minors-facing
+mental-health pages (an `esc()` helper defined-but-unapplied at an `innerHTML` sink), plaintext crisis/clinical
+`localStorage` keys, and a `?ws=` endpoint redirect — findings whose **severity depends entirely on whether
+data that did not originate in the user's own browser can reach a render sink**. That single question — "does
+peer / outside-origin / user-authored content render in another player's browser?" — was put to the operator.
+The operator's answer is **NO, for this phase.** This ADR records that answer as a binding architectural
+decision and re-scopes the security work accordingly.
+
+The decision is consistent with two boundaries already in the codebase: (1) the kernel rule that client
+display may be **predicted** but **truth is server-owned, allowlist-projected, and clients cannot author
+canonical facts**; and (2) the creator boundary — package preview is local/offline, packages are
+**data-only, bounded, no scripts / URLs / images, unknown keys rejected**, and live package loading stays
+gated behind approved-hash + registry membership + receipt checks + `LIVE_WORLD_LOADER_ENABLED = false`
+(`arcade/creator/approval/approved-loader.mjs:31` — verified literal-`false` and empirically enforced against a
+forged-but-valid approval chain this session).
+
+**Decision — the sealed-local model.** For this phase, "interact with the experiments" means the user
+interacts with experiments shipped **by us** as static/operator-authored code, or as **local-only, validated,
+data-only** packages previewed offline. It explicitly **does not** include: peer-authored worlds, peer state,
+peer/shared/downloaded replays, public or user-authored labels/names/notes/avatars, comments/chat, downloaded
+experiments from another user, or **any content that originated in another human's browser**. "Decentralized"
+is **deferred** and, when it arrives, must mean **verifiable package receipts / validation** — not arbitrary
+peer content rendering. In scope terms: no economy, no chat, no peer-authored content rendered in another
+browser, no downloaded peer worlds, no shared user-authored replays, no live UGC, no vault import, no sync in
+this phase.
+
+**Consequences — re-scoped security ladder.** Under the sealed-local model the previously-catalogued ladder
+collapses to a small, bounded set (observation vs. inference kept separate per
+`.claude/rules/research-evidence.md`):
+
+- **`cfhs-analyzer.html` — remains HIGH; its own fix gate.** *Observation (verified this session):* the page
+  has a real file drop-zone (`<input type="file" accept=".pdf" multiple>` at `:618`; drag/drop handlers
+  `:1140-1144`; OCR pipeline) and routes uploaded **filename + OCR/extracted text** into `main.innerHTML`. A
+  PDF someone hands you is **untrusted third-party input**, so this XSS vector **survives the pivot** — file
+  import is the tool's purpose, not a feature we can drop. Filename, OCR text, extracted PDF text, metadata,
+  and any derived labels must never reach `innerHTML` unescaped. This is the one confirmed high-priority fix
+  and is authorized separately (`AUTHORIZED: FIX CFHS ANALYZER IMPORT XSS — NO FEATURE CHANGE`).
+- **`chain-analysis-drill.html` and `dopamine-depot.html` — downgraded to LOW (local self-XSS / hygiene).**
+  *Observation (verified this session):* neither reads URL params / `location.search` / hash to seed fields,
+  neither has a file input or paste-into-render path; each renders only its **own self-typed** keys
+  (`od_chain_analysis`; `od_dd_activities`/`od_dd_log`/`od_dd_streak`/`od_dd_lastdate`). *Inference:* with no
+  import, URL-seed, or peer route, a payload can only be authored **and** executed by the same user in the same
+  browser — self-XSS, not a cross-user threat. They are **not urgent** under sealed-local. They re-arm to HIGH
+  the instant any future feature writes those keys from an outside-origin source (see the future gate).
+- **Plaintext crisis / local clinical keys (`od-core.js:262-274`) — local device-access hygiene, not a
+  blocker.** *Inference:* their exposure is realized through a reachable XSS, sync, or physical device access;
+  with no reachable XSS, no sync, no cloud, and no peer-import route, they are a **local-device** risk. Worth
+  scoping / encrypting / reducing retention where practical, but this **does not block** the sealed-local
+  voxel-lab path on a full counsel/economy ladder.
+- **No repo-wide "escape everything" migration now.** That architecture-wide hardening is deferred to the
+  future gate below; doing it pre-emptively is out of scope for the sealed-local phase.
+- **Economy / identity / `?ws=` / counsel gates — mostly dissolved for this phase.** They were load-bearing
+  only under a shared-authority, peer-content, or economy model; the sealed-local model removes those
+  preconditions. They return if and only if that model changes.
+
+**The hard future gate.** Any feature that would render **peer-origin, downloaded-user-origin, or
+public-user-origin** content must **stop** and require a new, code-free planning gate:
+
+> `AUTHORIZED: PLAN PEER CONTENT THREAT MODEL — NO CODE`
+
+Triggers (non-exhaustive): peer state · shared/downloaded experiment definitions · imported experiments from
+another user · shared replays · public labels from users · avatars/names/messages · comments/chat · P2P rooms ·
+federated worlds · Obsidian import/sync · remote package feeds. Until that gate passes, the standing rule is:
+**no data from another human's browser renders in mine; no local analyzer import becomes public content; no
+peer package bypasses validation / human review.** Decentralizing **inverts the threat model** — peers become
+authorities and removing the central mediator unmasks every `innerHTML` sink as peer-delivered — so
+escape-everything-first plus a nonce CSP are preconditions of *that* later gate, not this one.
+
+This ADR **does not**: change any code (docs-only — the `cfhs-analyzer` fix is a separate authorized gate);
+authorize deploy, upload, or any Cloudflare / Worker / DO / D1 / R2 / config / secret mutation; flip
+`LIVE_WORLD_LOADER_ENABLED` (stays `false`); authorize live decentralization, peer content, economy, chat,
+UGC, sync, or vault import; or satisfy/replace the Phase 0 counsel review for any future peer-content or
+economy feature. It records a design decision, a re-scoped security ladder, and a binding future stop-gate —
+nothing more.
+
 ## ADR-051 — Turf Wars Phase 2 foundation: deterministic attack simulator + one-op fraud-proof (O1/O2-agnostic, merged, prod-denylisted) (2026-06-28)
 
 **Context.** ADR-050 landed the Phase 1 substrate and reserved the combat op. The Phase 2 plan
