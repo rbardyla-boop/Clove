@@ -862,6 +862,14 @@ function formatTimeRemaining(pagesLeft) {
 let files = [];       // { file, name, pages, text, analysis }
 let activeIdx = 0;
 
+// Escape untrusted, file-import-derived text before it reaches any innerHTML sink
+// (filename, extracted PDF excerpts/dates, raw document-type captures) — see ADR-052.
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 // OCR state
 let ocrWorker = null;
 let ocrReady = false;
@@ -1169,7 +1177,7 @@ function renderQueue() {
   q.innerHTML = files.map((f, i) => `
     <div class="file-item ${f.status} ${i === activeIdx ? 'active' : ''}" onclick="showResult(${i})">
       <span class="file-status">${icons[f.status] || '○'}</span>
-      <span class="file-name" title="${f.name}">${f.name}</span>
+      <span class="file-name" title="${esc(f.name)}">${esc(f.name)}</span>
       <span class="file-pages">${f.pages ? f.pages + 'p' : ''}</span>
     </div>
   `).join('');
@@ -1552,7 +1560,7 @@ function showFileView(fileIdx) {
 
   const tabs = files.map((ff, i) => `
     <div class="file-tab ${i === fileIdx ? 'active' : ''}" onclick="selectFile(${i})"
-         title="${ff.name}">${ff.name.replace('.pdf', '')}</div>
+         title="${esc(ff.name)}">${esc(ff.name.replace('.pdf', ''))}</div>
   `).join('');
 
   const critCount   = f.documents.filter(d => d.priority === 'CRITICAL').length;
@@ -1584,10 +1592,10 @@ function showFileView(fileIdx) {
         <div class="doc-card-header" onclick="toggleDocCard(${fileIdx},${di})">
           <div class="doc-card-meta">
             <span class="doc-priority-badge" style="color:${pc};border-color:${pc}">${doc.priority}</span>
-            <span class="doc-type-label">${doc.rawType || doc.label}</span>
+            <span class="doc-type-label">${esc(doc.rawType || doc.label)}</span>
           </div>
           <div class="doc-card-info">
-            <span>${doc.dateFormatted || doc.date}</span>
+            <span>${esc(doc.dateFormatted || doc.date)}</span>
             <span>${doc.pageCount} p.</span>
             ${hasFd ? '<span style="color:var(--gold)">●</span>' : ''}
             <span class="doc-toggle-icon">▶</span>
@@ -1614,7 +1622,7 @@ function showFileView(fileIdx) {
     <div class="file-nav">${tabs}</div>
     <div class="result-header">
       <div>
-        <div class="result-title">${f.name}</div>
+        <div class="result-title">${esc(f.name)}</div>
         <div class="result-meta">${f.pages} pages · ${f.documents.length} documents identified</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
@@ -1665,7 +1673,7 @@ function showResult(idx, forceFlat = false) {
     document.getElementById('mainContent').innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">${f ? (f.status === 'error' ? '✗' : '◌') : '?'}</div>
-        <div class="empty-text">${f ? (f.error || 'Run analysis to see results') : 'No file selected'}</div>
+        <div class="empty-text">${f ? esc(f.error || 'Run analysis to see results') : 'No file selected'}</div>
       </div>`;
     return;
   }
@@ -1676,7 +1684,7 @@ function showResult(idx, forceFlat = false) {
   // File navigation tabs
   const tabs = files.map((ff, i) => `
     <div class="file-tab ${i === idx ? 'active' : ''}" onclick="showResult(${i})"
-         title="${ff.name}">${ff.name.replace('.pdf', '')}</div>
+         title="${esc(ff.name)}">${esc(ff.name.replace('.pdf', ''))}</div>
   `).join('');
 
   // Score grid
@@ -1769,7 +1777,7 @@ function showResult(idx, forceFlat = false) {
   const excerptSection = a.excerpts.length > 0 ? `
     <div class="section">
       <div class="section-title">// Key Excerpts — High Value for Application</div>
-      ${a.excerpts.map(e => `<div class="quote-box">${e}</div>`).join('')}
+      ${a.excerpts.map(e => `<div class="quote-box">${esc(e)}</div>`).join('')}
       <button class="copy-btn" onclick="copyExcerpts(${idx})">COPY ALL EXCERPTS</button>
     </div>
   ` : '';
@@ -1791,7 +1799,7 @@ function showResult(idx, forceFlat = false) {
 
     <div class="result-header">
       <div>
-        <div class="result-title">${f.name}</div>
+        <div class="result-title">${esc(f.name)}</div>
         <div class="result-meta">
           ${f.pages} pages
           · ${a.wordCount.toLocaleString()} words extracted
@@ -1799,7 +1807,7 @@ function showResult(idx, forceFlat = false) {
               ${f.mode === 'ocr' ? 'OCR' : 'EMBEDDED TEXT'}
             </span>
           ${a.docTypes.length > 0 ? ' · ' + a.docTypes.join(', ') : ''}
-          ${a.dates.length > 0 ? ' · ' + a.dates.slice(0,3).join(', ') : ''}
+          ${a.dates.length > 0 ? ' · ' + a.dates.slice(0,3).map(esc).join(', ') : ''}
           ${f.hasRedactions
             ? ' · <span style="color:var(--gold);font-family:var(--mono);font-size:10px">⚠ REDACTIONS DETECTED</span>'
             : ''}
