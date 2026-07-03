@@ -284,6 +284,7 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 
 <div class="toast" id="toast"></div>
 
+<script src="od-core.js"></script>
 <script src="intel-engine.js"></script>
 <script>
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
@@ -501,13 +502,18 @@ function renderAll(){
 }
 
 // Foreground catch-up on page load (respects 6h throttle)
-var config={};
-try{config=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
-if(config.nightShift!==false){
-  IntelEngine.runNightShift();
+// Wait for od-core's crisis-key warm-cache before the first render so encrypted
+// RED PROTOCOL history ranks correctly (never reads as count 0). Falls back to
+// immediate render if od-core absent.
+function initIntel(){
+  var config={};
+  try{config=JSON.parse(localStorage.getItem('od_intel_config')||'{}');}catch(e){}
+  if(config.nightShift!==false){
+    IntelEngine.runNightShift();
+  }
+  renderAll();
 }
-
-renderAll();
+(window.whenIntelReady ? window.whenIntelReady() : Promise.resolve()).then(initIntel);
 
 // ── EMBEDDING MEMORY PHASE 3 ─────────────────────────────────────────────────
 
@@ -701,7 +707,6 @@ checkStaleFlag();
 </script>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
-<script src="od-core.js"></script>
 <script>injectHelpButton();</script>
 </body>
 </html>
