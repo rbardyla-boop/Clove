@@ -193,6 +193,7 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="od-core.js"></script>
 <script>
 var KEY='od_clinical_scores';
 
@@ -234,7 +235,7 @@ var TESTS={
 
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
-function loadScores(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function loadScores(){ if(window.intelGet) return window.intelGet(KEY,[]); try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]} }
 
 // ── RENDER ───────────────────────────────────────────────────────
 function render(){
@@ -407,14 +408,19 @@ function exportText(){
   showToast('REPORT EXPORTED');
 }
 
-render();
+(window.whenIntelReady ? window.whenIntelReady() : Promise.resolve()).then(render);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
-// Re-render now that annotation plugin is registered (script load is synchronous/blocking)
+// Re-render now that annotation plugin is registered (script load is synchronous/blocking).
+// Chained on the same whenIntelReady() promise as the first render() above, so this
+// always fires after that one resolves (Promise .then() callbacks run in registration
+// order), regardless of whether warm-cache had already finished by the time this runs.
 if(typeof Chart!=='undefined'&&Chart.registry){
-  Object.keys(Chart.instances).forEach(function(k){Chart.instances[k].destroy()});
-  render();
+  (window.whenIntelReady ? window.whenIntelReady() : Promise.resolve()).then(function(){
+    Object.keys(Chart.instances).forEach(function(k){Chart.instances[k].destroy()});
+    render();
+  });
 }
 </script>
 <script src="/scripts/three.min.js"></script>

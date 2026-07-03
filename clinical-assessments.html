@@ -124,6 +124,7 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 </nav>
 </div>
 <div class="toast" id="toast"></div>
+<script src="od-core.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var KEY='od_clinical_scores';
@@ -216,7 +217,7 @@ var TESTS={phq9:PHQ9,gad7:GAD7,pcl5:PCL5};
 
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
-function loadScores(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function loadScores(){ if(window.intelGet) return window.intelGet(KEY,[]); try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]} }
 
 function render(){
   if(view==='test')return renderTest();
@@ -334,7 +335,7 @@ function scoreTest(){
   var scores=loadScores();
   scores.push(record);
   if(scores.length>500)scores.splice(0,scores.length-500);
-  try{localStorage.setItem(KEY,JSON.stringify(scores))}catch(e){}
+  if(window.intelSet){window.intelSet(KEY,scores);}else{try{localStorage.setItem(KEY,JSON.stringify(scores))}catch(e){}}
   view='result';render();
 }
 
@@ -427,11 +428,10 @@ function exportReport(){
   showToast('REPORT EXPORTED');
 }
 
-render();
+(window.whenIntelReady ? window.whenIntelReady() : Promise.resolve()).then(render);
 </script>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
-<script src="od-core.js"></script>
 <script>injectHelpButton();</script>
 </body>
 </html>

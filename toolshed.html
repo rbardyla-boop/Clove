@@ -768,6 +768,7 @@ const KEYS = {
 };
 
 function safeGet(key) {
+  if (typeof window.intelGet === 'function') { var v = window.intelGet(key, []); return Array.isArray(v) ? v : []; }
   try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
 }
 
@@ -860,7 +861,8 @@ function setStatLabel(id, count, unit) {
 }
 
 // ─── EXPORT ENGINE ────────────────────────────────────────────────────────────
-function exportAll() {
+async function exportAll() {
+  if (window.whenIntelReady) { try { await window.whenIntelReady(); } catch(e){} }
   try {
     const lines = [];
     const ts = new Date().toLocaleString();

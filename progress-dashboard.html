@@ -160,9 +160,10 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="od-core.js"></script>
 <script>
 // ── SAFE READ ────────────────────────────────────────────────────
-function sg(k,fb){try{var r=localStorage.getItem(k);if(r===null)return fb;return JSON.parse(r)}catch(e){return fb}}
+function sg(k,fb){ if(typeof window.intelGet==='function') return window.intelGet(k,fb); try{var r=localStorage.getItem(k);if(r===null)return fb;return JSON.parse(r)}catch(e){return fb} }
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
 // ── DATA HARVEST ─────────────────────────────────────────────────
@@ -554,7 +555,7 @@ function render(){
   el.innerHTML=h;
 }
 
-render();
+(window.whenIntelReady ? window.whenIntelReady() : Promise.resolve()).then(render);
 </script>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
