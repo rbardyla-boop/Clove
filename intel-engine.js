@@ -33,10 +33,20 @@
   ];
 
   // ── INTERNAL HELPERS ─────────────────────────────────────────────────────
+  // Read through od-core's warm-cache when available (handles the encrypted crisis
+  // key transparently); fall back to a raw read so this engine still works standalone.
   function _load(key) {
+    if (typeof window !== 'undefined' && typeof window.intelGet === 'function') {
+      var v = window.intelGet(key, []);
+      return Array.isArray(v) ? v : [];
+    }
     try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
   }
   function _loadObj(key) {
+    if (typeof window !== 'undefined' && typeof window.intelGet === 'function') {
+      var v = window.intelGet(key, {});
+      return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+    }
     try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { return {}; }
   }
   function _save(key, val) {
