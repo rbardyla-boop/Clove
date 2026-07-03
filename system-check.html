@@ -213,6 +213,22 @@ var REGISTRY = [
   {key:'od_routine_log',   type:'array',  src:'routine-builder.html',    desc:'Routine completion log'}
 ];
 
+// ── ENCRYPTED-KEY AWARENESS ─────────────────────────────────────
+// Keys od-core.js stores encrypted at rest (its ENCRYPT_KEYS list — not exposed
+// publicly by od-core.js, so mirrored here as a closed, intentional list; keep
+// in sync with od-core.js if that list ever changes).
+var ENCRYPTED_KEYS = ['od_redprotocol_log'];
+
+// od-core.js's AES-GCM payload is base64(12-byte IV + ciphertext + 16-byte GCM
+// tag) — never valid JSON, minimum ~28 raw bytes (~40 base64 chars incl. padding).
+// Used only to avoid misclassifying a known-encrypted key's ciphertext as
+// corrupt JSON; does not attempt to decrypt or verify the payload.
+function isKnownEncryptedPayload(key, raw){
+  if (ENCRYPTED_KEYS.indexOf(key) === -1) return false;
+  if (typeof raw !== 'string' || raw.length < 36) return false;
+  return /^[A-Za-z0-9+/]+=*$/.test(raw);
+}
+
 // ── DIAGNOSTIC ENGINE ─────────────────────────────────────────
 function runDiagnostics(){
   var t0 = performance.now();
@@ -284,10 +300,16 @@ function runDiagnostics(){
             issues.push({icon:'⚠️', text:'<strong>' + esc(entry.key) + '</strong>: type mismatch. Expected <strong>' + entry.type + '</strong>, found <strong>' + actualType + '</strong>.'});
           }
         } catch(e) {
-          r.status = 'err';
-          r.detail = 'CORRUPT — JSON parse failed';
-          errCount++;
-          issues.push({icon:'🔴', text:'<strong>' + esc(entry.key) + '</strong> contains corrupt data that cannot be parsed. This key may need to be deleted and rebuilt.'});
+          if (isKnownEncryptedPayload(entry.key, raw)) {
+            r.status = 'ok';
+            r.detail = 'Encrypted at rest (protected)';
+            okCount++;
+          } else {
+            r.status = 'err';
+            r.detail = 'CORRUPT — JSON parse failed';
+            errCount++;
+            issues.push({icon:'🔴', text:'<strong>' + esc(entry.key) + '</strong> contains corrupt data that cannot be parsed. This key may need to be deleted and rebuilt.'});
+          }
         }
       }
     } catch(e) {
@@ -612,6 +634,7 @@ function purgeCorrupt() {
       if (raw !== null) {
         try { JSON.parse(raw); }
         catch(e) {
+          if (isKnownEncryptedPayload(entry.key, raw)) return; // protected — encrypted, not corrupt
           localStorage.removeItem(entry.key);
           purged++;
         }
