@@ -296,6 +296,102 @@
     }
   };
 
+  // ── INTEL WARM-CACHE + AT-REST ENCRYPTION FOR CRISIS KEYS ─────
+  // ADR-052 local-device hygiene. Web Crypto is async but many INTEL readers are
+  // sync, so we warm an in-memory cache on load and expose a synchronous intelGet()
+  // with a legacy-plaintext fallback (so existing data NEVER silently vanishes) plus
+  // a whenIntelReady() barrier for the one page that DISPLAYS an encrypted key.
+  // ENCRYPT_KEYS is a closed, intentional list — only these are encrypted at rest.
+  var ENCRYPT_KEYS = ['od_redprotocol_log'];
+  // Retention ceilings (keep newest; entries are unshifted to the front by writers).
+  var RETENTION = { od_redprotocol_log: 200, od_clinical_scores: 500 };
+  var _intelCache = {};
+  var _intelWarmed = false;
+  var _intelReadyResolve;
+  var _intelReady = (typeof Promise !== 'undefined')
+    ? new Promise(function(res) { _intelReadyResolve = res; })
+    : { then: function(f) { try { f(); } catch (e) {} } };
+
+  function _isEncryptKey(key) { return ENCRYPT_KEYS.indexOf(key) > -1; }
+
+  function _applyRetention(key, value) {
+    var cap = RETENTION[key];
+    if (cap && Array.isArray(value) && value.length > cap) return value.slice(0, cap);
+    return value;
+  }
+
+  // Synchronous read. Cache-first; else legacy-plaintext (always readable); else
+  // fallback. Ciphertext-before-warm or corrupt storage returns fallback WITHOUT
+  // deleting the raw value — data is preserved on disk, never silently destroyed.
+  if (typeof g.intelGet !== 'function') {
+    g.intelGet = function(key, fallback) {
+      if (typeof fallback === 'undefined') fallback = null;
+      if (Object.prototype.hasOwnProperty.call(_intelCache, key)) return _intelCache[key];
+      try {
+        var raw = localStorage.getItem(key);
+        if (raw === null) return fallback;
+        return JSON.parse(raw, _safeReviver);
+      } catch (_e) {
+        return fallback;
+      }
+    };
+  }
+
+  // Async write. Applies retention, updates the sync cache immediately, then persists
+  // (encrypted for ENCRYPT_KEYS, plaintext otherwise or if crypto is unavailable).
+  if (typeof g.intelSet !== 'function') {
+    g.intelSet = async function(key, value) {
+      var capped = _applyRetention(key, value);
+      _intelCache[key] = capped;
+      try {
+        if (_isEncryptKey(key)) {
+          if (!_vk) { try { await g.initVault(); } catch (_e) {} }
+          if (_vk) { await g.odSet(key, capped); return capped; }
+        }
+        localStorage.setItem(key, JSON.stringify(capped));
+      } catch (err) { console.error('intelSet failed:', key, err); }
+      return capped;
+    };
+  }
+
+  g.whenIntelReady = function() { return _intelReady; };
+  g.isIntelWarmed = function() { return _intelWarmed; };
+
+  // Populate the cache from disk. For ENCRYPT_KEYS: decrypt existing ciphertext, and
+  // migrate any legacy plaintext → ciphertext (WITHOUT retention-trimming, to preserve
+  // full history on first migration). Corrupt values are preserved (logged, skipped).
+  g.warmIntelCache = async function() {
+    try { await g.initVault(); } catch (_e) { /* no crypto → plaintext fallback only */ }
+    for (var i = 0; i < INTEL_KEYS.length; i++) {
+      var key = INTEL_KEYS[i];
+      try {
+        var raw = localStorage.getItem(key);
+        if (raw === null) continue;
+        var value = null, wasEncrypted = false;
+        if (_vk) {
+          try { value = await g.decryptValue(raw); wasEncrypted = true; } catch (_e) { /* plaintext */ }
+        }
+        if (!wasEncrypted) {
+          try { value = JSON.parse(raw, _safeReviver); }
+          catch (_e2) { console.error('warmIntelCache: corrupt key preserved (not deleted):', key); continue; }
+          if (_isEncryptKey(key) && _vk) { try { await g.odSet(key, value); } catch (_e3) {} }
+        }
+        _intelCache[key] = value;
+      } catch (err) { console.error('warmIntelCache error on ' + key, err); }
+    }
+    _intelWarmed = true;
+    if (_intelReadyResolve) _intelReadyResolve();
+    return _intelCache;
+  };
+
+  // Auto-warm once per load so pages that don't explicitly await still migrate/populate.
+  function _autoWarmIntel() { try { g.warmIntelCache(); } catch (e) { console.error('auto warmIntelCache failed', e); } }
+  if (typeof document !== 'undefined' && document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _autoWarmIntel, { once: true });
+  } else {
+    _autoWarmIntel();
+  }
+
   // List all OD-related keys (od_, od3, sp-plans, ops-, pd-).
   if (typeof g.odKeys !== 'function') {
     g.odKeys = function() {

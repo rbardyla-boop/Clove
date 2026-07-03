@@ -755,9 +755,13 @@ body::after {
 
 </div>
 
+<script src="od-core.js"></script>
 <script>
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
 function ldk(d){var y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dy=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dy}
+// od_redprotocol_log is encrypted at rest via od-core's vault; read/write through the warm-cache.
+function rpReadLogs(){ if(window.intelGet)return window.intelGet('od_redprotocol_log',[]); try{return JSON.parse(localStorage.getItem('od_redprotocol_log')||'[]')}catch(e){return[]} }
+function rpWriteLogs(logs){ if(window.intelSet){window.intelSet('od_redprotocol_log',logs);}else{try{localStorage.setItem('od_redprotocol_log',JSON.stringify(logs))}catch(e){}} }
 // ─── BREATHING (4-7-8) ───
 let breathActive = false;
 let breathInterval = null;
@@ -885,9 +889,9 @@ document.getElementById('personInput').addEventListener('input', function() {
 // ─── LOG ACTIVATION ───
 let todayLogged = false;
 
-(function checkTodayLog() {
+function checkTodayLog() {
   let logs = [];
-  try{logs = JSON.parse(localStorage.getItem('od_redprotocol_log') || '[]');}catch(e){}
+  logs = rpReadLogs();
   const today = ldk(new Date());
   if (logs.length && logs[0].date === today) {
     todayLogged = true;
@@ -896,7 +900,7 @@ let todayLogged = false;
     btn.textContent = 'LOGGED TODAY';
     document.getElementById('logConfirm').classList.add('show');
   }
-})();
+}
 
 function logActivation() {
   if (todayLogged) return;
@@ -909,10 +913,10 @@ function logActivation() {
   };
 
   let logs = [];
-  try{logs = JSON.parse(localStorage.getItem('od_redprotocol_log') || '[]');}catch(e){}
+  logs = rpReadLogs();
   logs.unshift(entry);
   if (logs.length > 100) logs.length = 100;
-  localStorage.setItem('od_redprotocol_log', JSON.stringify(logs));
+  rpWriteLogs(logs);
 
   todayLogged = true;
   const btn = document.getElementById('logBtn');
@@ -926,7 +930,7 @@ function logActivation() {
 // ─── HISTORY ───
 function renderHistory() {
   let logs = [];
-  try{logs = JSON.parse(localStorage.getItem('od_redprotocol_log') || '[]');}catch(e){}
+  logs = rpReadLogs();
   const container = document.getElementById('historyList');
   container.innerHTML = '';
 
@@ -950,14 +954,18 @@ function renderHistory() {
   }
 }
 
-renderHistory();
+// Wait for od-core's crisis-key warm-cache before the first render so encrypted
+// history displays (never blank). Falls back to immediate render if od-core absent.
+(window.whenIntelReady ? window.whenIntelReady() : Promise.resolve()).then(function(){
+  checkTodayLog();
+  renderHistory();
+});
 </script>
 
 <div style="max-width:480px;margin:20px auto;padding:0 16px"><div style="color:#d4a843;font-size:8px;font-family:monospace;letter-spacing:2px;margin-bottom:8px;text-align:center">NEXT STEP?</div><a href="safety-plan-drill.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#2c5282;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">SAFETY PLAN →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Build your floor before the next wave hits</span></a><a href="meditation-ops.html" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#0d9488;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">MEDITATION OPS →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">Ground the nervous system — breathing or body scan</span></a><a href="./deck.html?tab=home" style="display:block;background:#0a0a14;border:1px solid #1a1a28;border-radius:8px;padding:10px 14px;margin-top:6px;text-decoration:none;transition:border-color .2s"><span style="color:#d4a843;font-size:9px;font-weight:800;font-family:monospace;letter-spacing:1px">DRAW A CARD →</span><br><span style="color:#888;font-size:8px;font-family:Georgia,serif;font-style:italic">When you're stable — back to the mission</span></a></div>
 <div style="text-align:center;color:#444;font-size:8px;font-family:monospace;letter-spacing:.5px;line-height:1.8;padding:20px 16px 40px;max-width:480px;margin:0 auto">Crisis stabilization tool. Not a substitute for emergency services. Call 911 or 988 if in danger.</div>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>
-<script src="od-core.js"></script>
 <script>injectHelpButton();</script>
 </body>
 </html>
