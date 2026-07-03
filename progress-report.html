@@ -161,8 +161,9 @@ body{background:var(--bg);color:#ddd;font-family:-apple-system,BlinkMacSystemFon
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="od-core.js"></script>
 <script>
-function sg(k,fb){try{var r=localStorage.getItem(k);if(r===null)return fb;return JSON.parse(r)}catch(e){return fb}}
+function sg(k,fb){ if(typeof window.intelGet==='function') return window.intelGet(k,fb); try{var r=localStorage.getItem(k);if(r===null)return fb;return JSON.parse(r)}catch(e){return fb} }
 function esc(s){if(typeof s!=='string')return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
 
@@ -376,7 +377,8 @@ function render(){
 }
 
 // ── TEXT EXPORT ───────────────────────────────────────────────────
-function exportText(){
+async function exportText(){
+  if(window.whenIntelReady){try{await window.whenIntelReady();}catch(e){}}
   var od=sg('od3',{});var done=od.d||0;var total=od.t||0;var streak=od.s||0;
   var evidence=sg('od3ev',[]);var mirrors=sg('od3mr',[]);var stuckPts=sg('od3sp',[]);
   var goals=sg('od3_goals',[]);var clinical=sg('od_clinical_scores',[]);
@@ -454,7 +456,7 @@ function exportText(){
   showToast('REPORT EXPORTED');
 }
 
-render();
+(window.whenIntelReady ? window.whenIntelReady() : Promise.resolve()).then(render);
 </script>
 <script src="/scripts/three.min.js"></script>
 <script src="/particle-bg.js?v=1"></script>

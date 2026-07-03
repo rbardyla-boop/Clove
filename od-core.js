@@ -303,8 +303,13 @@
   // a whenIntelReady() barrier for the one page that DISPLAYS an encrypted key.
   // ENCRYPT_KEYS is a closed, intentional list — only these are encrypted at rest.
   var ENCRYPT_KEYS = ['od_redprotocol_log'];
-  // Retention ceilings (keep newest; entries are unshifted to the front by writers).
+  // Retention ceilings (keep newest). Writer ordering differs per key:
+  // od_redprotocol_log entries are unshifted to the front (newest-first);
+  // od_clinical_scores entries are pushed to the end (newest-last, matches
+  // clinical-assessments.html's scoreTest()) — RETENTION_NEWEST_LAST records
+  // which keys need the tail kept instead of the head.
   var RETENTION = { od_redprotocol_log: 200, od_clinical_scores: 500 };
+  var RETENTION_NEWEST_LAST = { od_clinical_scores: true };
   var _intelCache = {};
   var _intelWarmed = false;
   var _intelReadyResolve;
@@ -316,8 +321,8 @@
 
   function _applyRetention(key, value) {
     var cap = RETENTION[key];
-    if (cap && Array.isArray(value) && value.length > cap) return value.slice(0, cap);
-    return value;
+    if (!cap || !Array.isArray(value) || value.length <= cap) return value;
+    return RETENTION_NEWEST_LAST[key] ? value.slice(-cap) : value.slice(0, cap);
   }
 
   // Synchronous read. Cache-first; else legacy-plaintext (always readable); else
