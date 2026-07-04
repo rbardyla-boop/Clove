@@ -302,7 +302,7 @@
   // with a legacy-plaintext fallback (so existing data NEVER silently vanishes) plus
   // a whenIntelReady() barrier for the one page that DISPLAYS an encrypted key.
   // ENCRYPT_KEYS is a closed, intentional list — only these are encrypted at rest.
-  var ENCRYPT_KEYS = ['od_redprotocol_log'];
+  var ENCRYPT_KEYS = ['od_redprotocol_log', 'od_clinical_scores'];
   // Retention ceilings (keep newest). Writer ordering differs per key:
   // od_redprotocol_log entries are unshifted to the front (newest-first);
   // od_clinical_scores entries are pushed to the end (newest-last, matches

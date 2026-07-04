@@ -36,7 +36,12 @@ const PR = readFileSync(here('../../progress-report.html'), 'utf8');
 const PD = readFileSync(here('../../progress-dashboard.html'), 'utf8');
 const TS = readFileSync(here('../../toolshed.html'), 'utf8');
 
-check('od_clinical_scores NOT in ENCRYPT_KEYS (gate is compatibility-only)', /var ENCRYPT_KEYS = \['od_redprotocol_log'\];/.test(ODCORE));
+// Gate 3 (ADR-052) flipped od_clinical_scores into ENCRYPT_KEYS for real; the
+// structural wiring this suite otherwise checks (intelGet/intelSet/whenIntelReady
+// routing, script order, retention ordering, rendered/export content) is encryption-
+// agnostic and remains valid unchanged. See clinical-scores-encrypted.spec.mjs for
+// the dedicated encrypted-mode regression coverage.
+check('od_clinical_scores is in ENCRYPT_KEYS (Gate 3 — encryption now enabled)', /var ENCRYPT_KEYS = \['od_redprotocol_log', ?'od_clinical_scores'\];/.test(ODCORE));
 check('retention is ordering-aware (RETENTION_NEWEST_LAST for od_clinical_scores)', /var RETENTION_NEWEST_LAST = \{ od_clinical_scores: true \};/.test(ODCORE));
 check('_applyRetention keeps the tail for newest-last keys', /RETENTION_NEWEST_LAST\[key\] \? value\.slice\(-cap\) : value\.slice\(0, cap\)/.test(ODCORE));
 
@@ -87,7 +92,9 @@ try {
   await page.waitForFunction(() => typeof window.intelSet === 'function', null, { timeout: 10000 });
   await page.evaluate((scores) => localStorage.setItem('od_clinical_scores', JSON.stringify(scores)), existingScores);
 
-  // 2. clinical-assessments.html: reload, view history, confirm scores render + stay plaintext.
+  // 2. clinical-assessments.html: reload, view history, confirm scores render correctly.
+  //    Gate 3 (ADR-052) flipped od_clinical_scores into ENCRYPT_KEYS, so legacy plaintext
+  //    seeded above is now migrated to ciphertext on warm — content must still be correct.
   await page.goto(`${BASE}/clinical-assessments.html?view=history`, { waitUntil: 'load', timeout: 25000 });
   await page.waitForFunction(() => typeof window.whenIntelReady === 'function', null, { timeout: 10000 });
   await page.evaluate(() => window.whenIntelReady());
@@ -96,8 +103,8 @@ try {
   const caHistoryText = await page.evaluate(() => (document.getElementById('content') || {}).textContent || '');
   check('clinical-assessments history DISPLAYS existing scores after warm', /3 TOTAL ASSESSMENTS/.test(caHistoryText));
   const rawAfterWarm = await page.evaluate(() => localStorage.getItem('od_clinical_scores'));
-  const stillPlaintext = (() => { try { JSON.parse(rawAfterWarm); return true; } catch (_e) { return false; } })();
-  check('od_clinical_scores REMAINS PLAINTEXT after warm (gate is compat-only)', stillPlaintext);
+  const nowCiphertext = (() => { try { JSON.parse(rawAfterWarm); return false; } catch (_e) { return true; } })();
+  check('od_clinical_scores is now ENCRYPTED at rest after warm (Gate 3)', nowCiphertext);
 
   // 3. Write path: take-a-test flow via scoreTest(), confirm scoring math + retention.
   //    PHQ-9 has exactly 9 items; answering "1" on each must sum to a score of 9.
@@ -114,8 +121,8 @@ try {
   check('scoreTest() appends a new entry (existing history preserved, not overwritten)', writeResult.count === 4);
   check('scoreTest() advances view to result', writeResult.view === 'result');
   const rawAfterWrite = await page.evaluate(() => localStorage.getItem('od_clinical_scores'));
-  const writeStillPlaintext = (() => { try { JSON.parse(rawAfterWrite); return true; } catch (_e) { return false; } })();
-  check('write path keeps od_clinical_scores PLAINTEXT (no encryption enabled)', writeStillPlaintext);
+  const writeIsCiphertext = (() => { try { JSON.parse(rawAfterWrite); return false; } catch (_e) { return true; } })();
+  check('write path keeps od_clinical_scores ENCRYPTED (Gate 3)', writeIsCiphertext);
 
   // 4. Retention ordering: seed 600 push-ordered (newest-last) entries via intelSet,
   //    confirm the NEWEST 500 survive by identity, not just count.
@@ -211,5 +218,5 @@ try {
 
   await ctx.close();
 } finally { await browser.close(); }
-console.log(fail ? `\nCLINICAL-SCORES COMPATIBILITY (PLAINTEXT): ${fail} FAIL` : '\nCLINICAL-SCORES COMPATIBILITY (PLAINTEXT): PASS');
+console.log(fail ? `\nCLINICAL-SCORES COMPATIBILITY (Gate 3 — now encrypted): ${fail} FAIL` : '\nCLINICAL-SCORES COMPATIBILITY (Gate 3 — now encrypted): PASS');
 process.exit(fail ? 1 : 0);
