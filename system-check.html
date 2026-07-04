@@ -217,7 +217,7 @@ var REGISTRY = [
 // Keys od-core.js stores encrypted at rest (its ENCRYPT_KEYS list — not exposed
 // publicly by od-core.js, so mirrored here as a closed, intentional list; keep
 // in sync with od-core.js if that list ever changes).
-var ENCRYPTED_KEYS = ['od_redprotocol_log'];
+var ENCRYPTED_KEYS = ['od_redprotocol_log', 'od_clinical_scores'];
 
 // od-core.js's AES-GCM payload is base64(12-byte IV + ciphertext + 16-byte GCM
 // tag) — never valid JSON, minimum ~28 raw bytes (~40 base64 chars incl. padding).

@@ -12,6 +12,9 @@
  * a known-encrypted key as OK/protected and lets purgeCorrupt() skip deleting it, while
  * leaving genuine corrupt-JSON detection/purge for every other key unchanged.
  *
+ * Gate 3 (ADR-052): od_clinical_scores joined ENCRYPT_KEYS for real, so this closed
+ * list — and this suite's row/purge/missing-key coverage — now spans both keys.
+ *
  * Run: tests/security/run-system-check-ciphertext.sh
  */
 import { createRequire } from 'node:module';
@@ -28,13 +31,13 @@ const check = (n, c) => { console.log(`${c ? 'ok  ' : 'FAIL'} ${n}`); if (!c) fa
 // ── Static source scan ───────────────────────────────────────────────────────────
 const SC = readFileSync(here('../../system-check.html'), 'utf8');
 
-check('closed encrypted-key list (od_redprotocol_log only)', /var ENCRYPTED_KEYS = \['od_redprotocol_log'\];/.test(SC));
+check('closed encrypted-key list now includes od_clinical_scores (Gate 3)', /var ENCRYPTED_KEYS = \['od_redprotocol_log', ?'od_clinical_scores'\];/.test(SC));
+check('encrypted-key list has exactly the two expected keys (no others added)', (SC.match(/var ENCRYPTED_KEYS = \[([^\]]*)\];/) || [])[1]?.split(',').length === 2);
 check('isKnownEncryptedPayload defined', /function isKnownEncryptedPayload\(key, raw\)/.test(SC));
 check('runDiagnostics recognizes known-encrypted payloads before marking corrupt', /catch\(e\) \{\s*if \(isKnownEncryptedPayload\(entry\.key, raw\)\) \{/.test(SC));
 check('purgeCorrupt skips known-encrypted payloads', /if \(isKnownEncryptedPayload\(entry\.key, raw\)\) return;.*protected/.test(SC));
 check('purgeCorrupt is still confirm-gated', /function purgeCorrupt\(\) \{\s*if \(!confirm\(/.test(SC));
 check('no network/sync/cloud calls added to system-check.html', !/\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/.test(SC));
-check('od_clinical_scores NOT added to ENCRYPTED_KEYS', !/ENCRYPTED_KEYS\s*=\s*\[[^\]]*od_clinical_scores/.test(SC));
 
 // ── Behavioral (browser) ─────────────────────────────────────────────────────────
 const browser = await chromium.launch({ headless: true });
@@ -52,6 +55,17 @@ try {
   const seededRaw = await page.evaluate(() => localStorage.getItem('od_redprotocol_log'));
   const seededIsCiphertext = (() => { try { JSON.parse(seededRaw); return false; } catch (_e) { return true; } })();
   check('seed produced real ciphertext (precondition)', !!seededRaw && seededIsCiphertext);
+
+  // 1b. Seed REAL ciphertext for od_clinical_scores too (Gate 3 — now also encrypted)
+  //     via od-core.js on clinical-assessments.html (same origin/vault).
+  await page.goto(`${BASE}/clinical-assessments.html`, { waitUntil: 'load', timeout: 25000 });
+  await page.waitForFunction(() => typeof window.intelSet === 'function', null, { timeout: 10000 });
+  await page.evaluate(async () => {
+    await window.intelSet('od_clinical_scores', [{ test: 'phq9', score: 12, answers: {}, date: '2026-07-03', ts: 1 }]);
+  });
+  const seededClinicalRaw = await page.evaluate(() => localStorage.getItem('od_clinical_scores'));
+  const seededClinicalIsCiphertext = (() => { try { JSON.parse(seededClinicalRaw); return false; } catch (_e) { return true; } })();
+  check('od_clinical_scores seed produced real ciphertext (precondition)', !!seededClinicalRaw && seededClinicalIsCiphertext);
 
   // Also seed a genuinely corrupt, NON-encrypted registry key for contrast.
   await page.evaluate(() => localStorage.setItem('od_journal', 'CORRUPT{not-json'));
@@ -81,6 +95,11 @@ try {
   check('od_redprotocol_log rendered as ok (not err/corrupt)', !!redRow && / ok(\s|$)/.test(redRow.classes) && !/ err(\s|$)/.test(redRow.classes));
   check('od_redprotocol_log detail reads "Encrypted at rest (protected)"', !!redRow && redRow.detail === 'Encrypted at rest (protected)');
 
+  const clinicalRow = await rowFor('od_clinical_scores');
+  check('rendered Key Inventory row found for od_clinical_scores (Gate 3)', !!clinicalRow);
+  check('od_clinical_scores rendered as ok (not err/corrupt)', !!clinicalRow && / ok(\s|$)/.test(clinicalRow.classes) && !/ err(\s|$)/.test(clinicalRow.classes));
+  check('od_clinical_scores detail reads "Encrypted at rest (protected)"', !!clinicalRow && clinicalRow.detail === 'Encrypted at rest (protected)');
+
   const journalRow = await rowFor('od_journal');
   check('rendered Key Inventory row found for od_journal', !!journalRow);
   check('genuinely corrupt od_journal STILL rendered as err/corrupt', !!journalRow && / err(\s|$)/.test(journalRow.classes) && journalRow.detail === 'CORRUPT — JSON parse failed');
@@ -91,6 +110,12 @@ try {
     return window.isKnownEncryptedPayload('od_redprotocol_log', raw) === true;
   });
   check('encrypted od_redprotocol_log recognized as known-encrypted payload', redProtocolClassifiedOk);
+
+  const clinicalScoresClassifiedOk = await page.evaluate(() => {
+    var raw = localStorage.getItem('od_clinical_scores');
+    return window.isKnownEncryptedPayload('od_clinical_scores', raw) === true;
+  });
+  check('encrypted od_clinical_scores recognized as known-encrypted payload', clinicalScoresClassifiedOk);
 
   const journalStillCorrupt = await page.evaluate(() => {
     var raw = localStorage.getItem('od_journal');
@@ -106,6 +131,9 @@ try {
 
   const redAfterPurge = await page.evaluate(() => localStorage.getItem('od_redprotocol_log'));
   check('purgeCorrupt does NOT delete encrypted od_redprotocol_log', redAfterPurge === seededRaw);
+
+  const clinicalAfterPurge = await page.evaluate(() => localStorage.getItem('od_clinical_scores'));
+  check('purgeCorrupt does NOT delete encrypted od_clinical_scores (Gate 3)', clinicalAfterPurge === seededClinicalRaw);
 
   const journalAfterPurge = await page.evaluate(() => localStorage.getItem('od_journal'));
   check('purgeCorrupt STILL deletes genuinely corrupt od_journal', journalAfterPurge === null);
@@ -125,6 +153,13 @@ try {
     return raw === null && window.isKnownEncryptedPayload('od_redprotocol_log', raw) === false;
   });
   check('missing encrypted key -> not treated as corrupt/encrypted (empty path unaffected)', missingClassifiedOk);
+
+  await page.evaluate(() => localStorage.removeItem('od_clinical_scores'));
+  const missingClinicalClassifiedOk = await page.evaluate(() => {
+    var raw = localStorage.getItem('od_clinical_scores');
+    return raw === null && window.isKnownEncryptedPayload('od_clinical_scores', raw) === false;
+  });
+  check('missing od_clinical_scores -> not treated as corrupt/encrypted (empty path unaffected)', missingClinicalClassifiedOk);
 
   await ctx.close();
 } finally { await browser.close(); }

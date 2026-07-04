@@ -31,7 +31,10 @@ const ODCORE = readFileSync(here('../../od-core.js'), 'utf8');
 const INTEL = readFileSync(here('../../intel-engine.js'), 'utf8');
 const RP = readFileSync(here('../../red-protocol.html'), 'utf8');
 
-check('closed encrypt-key list (od_redprotocol_log only)', /var ENCRYPT_KEYS = \['od_redprotocol_log'\];/.test(ODCORE));
+// Gate 3 (ADR-052) authorized widening this closed list by exactly one key
+// (od_clinical_scores) — still closed/intentional, just no longer single-entry.
+check('encrypt-key list still contains od_redprotocol_log', /var ENCRYPT_KEYS = \[[^\]]*'od_redprotocol_log'/.test(ODCORE));
+check('encrypt-key list is closed to exactly the two authorized keys (no scope creep)', (ODCORE.match(/var ENCRYPT_KEYS = \[([^\]]*)\];/) || [])[1]?.split(',').length === 2);
 check('no network/sync/cloud calls in od-core.js', !/\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/.test(ODCORE));
 check('no network/sync/cloud calls added to intel-engine.js', !/\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/.test(INTEL));
 check('red-protocol loads od-core before its inline script', RP.indexOf('<script src="od-core.js"></script>') < RP.indexOf('function rpReadLogs'));
