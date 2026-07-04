@@ -319,7 +319,7 @@ function hap(arr){if(navigator.vibrate)navigator.vibrate(arr)}
 function charUpdate(el,id){const d=document.getElementById(id);if(d)d.textContent=el.value.length+' / '+el.maxLength}
 function btn(id,enabled){const b=document.getElementById(id);if(b)b.disabled=!enabled}
 function loadEntries(){try{return JSON.parse(localStorage.getItem('od_rsd'))||[]}catch(e){return[]}}
-function saveEntries(arr){try{localStorage.setItem('od_rsd',JSON.stringify(arr.slice(0,200)))}catch(e){}}
+function saveEntries(arr){try{localStorage.setItem('od_rsd',JSON.stringify(arr.slice(-200)))}catch(e){}}
 
 // NAV
 function goBack(){window.location.href='./deck.html?tab=tools'}
