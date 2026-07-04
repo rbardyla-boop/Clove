@@ -345,7 +345,7 @@ function logSession() {
     date: new Date().toLocaleDateString()
   };
   logs.unshift(entry);
-  localStorage.setItem('od_tipp_full', JSON.stringify(logs));
+  localStorage.setItem('od_tipp_full', JSON.stringify(logs.slice(0, 200)));
   renderSessions();
 
   const toast = document.createElement('div');
