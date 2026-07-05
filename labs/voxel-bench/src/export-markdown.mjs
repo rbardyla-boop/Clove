@@ -1,5 +1,6 @@
 /**
- * Voxel Lab Bench — "Export to second brain" Markdown artifact (Gate E, Slice 7).
+ * Voxel Lab Bench — "Export to second brain" Markdown + JSON artifacts (Gate E,
+ * Slice 7; JSON sibling closed out per Operator Decision #7, docs/VOXEL_LAB_BENCH_PLAN.md).
  *
  * Pure, dependency-free (no DOM, no THREE, no network) so it is directly node:test-
  * testable in isolation, matching the sibling deterministic modules (mesh-greedy.mjs,
@@ -30,6 +31,23 @@
  * Do not "clean up" this asymmetry — it is the plan's own worked example, verified
  * line-by-line against docs/VOXEL_LAB_BENCH_PLAN.md by test/export-markdown.test.mjs's
  * worked-example fidelity case.
+ *
+ * exportExperimentJson lives in this SAME file, deliberately, rather than a second
+ * module — Operator Decision #7 frames JSON as "a JSON sibling" of the one Slice-7
+ * export feature, not a separate feature with its own home. Markdown and JSON
+ * deliberately diverge on number/string handling for a reason, not by oversight:
+ * Markdown is for HUMAN reading (Obsidian), so it runs values through formatNumber()/
+ * escapeHeadingText()/escapeTableCell() for readability and Markdown structural safety
+ * (commas in big numbers, no stray `|` breaking a table). JSON is for MACHINE
+ * consumption ("replay, tests, receipts, and future import/export validation" per
+ * Operator Decision #7) — it preserves RAW values (numbers stay numbers, not
+ * comma-formatted strings) so a future consumer can actually parse and use them, and
+ * JSON.stringify already handles all escaping safely, so no escapeHeadingText/
+ * escapeTableCell pass is needed or wanted for JSON. Both formats share ONE
+ * normalization step (normalizeExperimentInput below) so the same ambiguous input
+ * (e.g. reproduction as a single multi-line string vs an array) is interpreted
+ * IDENTICALLY by both formats — only the render-time formatting/escaping/placeholder
+ * choices are allowed to differ per format.
  */
 
 /** Placeholder body text for each section when its input field is omitted/empty. */
@@ -94,54 +112,84 @@ function formatCell(value) {
   return escapeTableCell(text);
 }
 
+/**
+ * normalizeExperimentInput(input) -> { title, metadata, changes, metricsHistory,
+ *   lesson, reproduction }
+ *
+ * The ONE shared normalization step for BOTH exportExperiment (Markdown) and
+ * exportExperimentJson, so an ambiguous input field (e.g. reproduction as a single
+ * multi-line string vs an array of lines) is interpreted IDENTICALLY by both formats —
+ * this is what makes "required fields/sections map consistently between Markdown and
+ * JSON" (Operator Decision #7) true by construction instead of by two independently
+ * maintained copies of the same defaulting logic quietly drifting apart. Everything
+ * format-specific (Markdown's escapeHeadingText/escapeTableCell/formatNumber passes and
+ * placeholder prose strings; JSON's raw-value/null-vs-placeholder choices) is layered
+ * on top of this shared shape by each caller, never folded into it.
+ *
+ * Title contract (intentional, not incidental): `title` must be a non-blank string to
+ * be used as-is; a non-string value (e.g. a number) or a whitespace-only string both
+ * fall back to the same default as an omitted title, rather than being silently
+ * coerced (`String(5)`) or rendered as a degenerate empty "# " heading. This is a
+ * conscious, tested type-safety choice — see the two "title contract" tests in
+ * test/export-markdown.test.mjs.
+ */
+function normalizeExperimentInput(input) {
+  const rawTitle = typeof input.title === 'string' ? input.title.trim() : '';
+  const title = rawTitle.length > 0 ? rawTitle : 'Voxel Lab Experiment';
+  const metadata = input.metadata && typeof input.metadata === 'object' ? input.metadata : {};
+  const changes = Array.isArray(input.changes) ? input.changes : [];
+  const metricsHistory = Array.isArray(input.metricsHistory) ? input.metricsHistory : [];
+  const trimmedLesson = typeof input.lesson === 'string' ? input.lesson.trim() : '';
+  const lesson = trimmedLesson.length > 0 ? trimmedLesson : null;
+  const reproduction = Array.isArray(input.reproduction)
+    ? input.reproduction
+    : (typeof input.reproduction === 'string' && input.reproduction.length > 0 ? input.reproduction.split(/\r?\n/) : []);
+  return { title, metadata, changes, metricsHistory, lesson, reproduction };
+}
+
 /** Render the "## Metadata" body: one humanized "- Label: value" line per entry, in
- * Object.entries() order, or the placeholder if metadata is missing/empty. */
+ * Object.entries() order, or the placeholder if metadata is empty. Consumes the
+ * already-normalized metadata object. */
 function renderMetadataSection(metadata) {
-  const entries = metadata && typeof metadata === 'object' ? Object.entries(metadata) : [];
+  const entries = Object.entries(metadata);
   if (entries.length === 0) return PLACEHOLDER.metadata;
   return entries.map(([key, value]) => `- ${labelFromKey(key)}: ${escapeHeadingText(value)}`).join('\n');
 }
 
 /** Render the "## What I changed" body: one "- line" per changes entry, in array
- * order, or the placeholder if changes is missing/empty. */
+ * order, or the placeholder if changes is empty. Consumes the already-normalized
+ * changes array. */
 function renderChangesSection(changes) {
-  const list = Array.isArray(changes) ? changes : [];
-  if (list.length === 0) return PLACEHOLDER.changes;
-  return list.map((line) => `- ${escapeHeadingText(line)}`).join('\n');
+  if (changes.length === 0) return PLACEHOLDER.changes;
+  return changes.map((line) => `- ${escapeHeadingText(line)}`).join('\n');
 }
 
 /** Render the "## What I measured" body: a Markdown table with RAW (non-humanized)
  * column headers taken from Object.keys() of the FIRST row (see module-header note),
  * a divider row, and one body row per metricsHistory entry, or the placeholder if
- * metricsHistory is missing/empty. */
+ * metricsHistory is empty. Consumes the already-normalized metricsHistory array. */
 function renderMetricsHistorySection(metricsHistory) {
-  const rows = Array.isArray(metricsHistory) ? metricsHistory : [];
-  if (rows.length === 0) return PLACEHOLDER.metricsHistory;
-  const columns = Object.keys(rows[0]);
+  if (metricsHistory.length === 0) return PLACEHOLDER.metricsHistory;
+  const columns = Object.keys(metricsHistory[0]);
   const header = `| ${columns.map((c) => escapeTableCell(c)).join(' | ')} |`;
   const divider = `|${columns.map(() => '---').join('|')}|`;
-  const body = rows.map((row) => `| ${columns.map((c) => formatCell(row[c])).join(' | ')} |`);
+  const body = metricsHistory.map((row) => `| ${columns.map((c) => formatCell(row[c])).join(' | ')} |`);
   return [header, divider, ...body].join('\n');
 }
 
-/** Render the "## The lesson" body: the trimmed lesson string, or the placeholder if
- * missing/blank. */
+/** Render the "## The lesson" body: the (already-trimmed) lesson string, or the
+ * placeholder if normalization resolved it to null. */
 function renderLessonSection(lesson) {
-  const text = typeof lesson === 'string' ? lesson.trim() : '';
-  return text.length > 0 ? text : PLACEHOLDER.lesson;
+  return lesson !== null ? lesson : PLACEHOLDER.lesson;
 }
 
 /** Render the "## Reproduction" body: each line 4-space-indented (a Markdown code
  * block via indentation, matching the plan's `    world.setLightGridResolution(32);`
- * line), accepting EITHER an array of strings OR a single multi-line string (split on
- * newlines) so both produce identical output for equivalent content, or the placeholder
- * if missing/empty. */
+ * line), or the placeholder if empty. Consumes the already-normalized reproduction
+ * array (normalization is where array-vs-string equivalence is resolved). */
 function renderReproductionSection(reproduction) {
-  const lines = Array.isArray(reproduction)
-    ? reproduction
-    : (typeof reproduction === 'string' && reproduction.length > 0 ? reproduction.split(/\r?\n/) : []);
-  if (lines.length === 0) return PLACEHOLDER.reproduction;
-  return lines.map((line) => `    ${line}`).join('\n');
+  if (reproduction.length === 0) return PLACEHOLDER.reproduction;
+  return reproduction.map((line) => `    ${line}`).join('\n');
 }
 
 /**
@@ -162,24 +210,58 @@ function renderReproductionSection(reproduction) {
  * string (no wall-clock/random data touched internally).
  */
 export function exportExperiment(input = {}) {
-  const title = escapeHeadingText(input.title || 'Voxel Lab Experiment');
+  const normalized = normalizeExperimentInput(input);
+  const title = escapeHeadingText(normalized.title);
   return [
     `# ${title}`,
     '',
     '## Metadata',
-    renderMetadataSection(input.metadata),
+    renderMetadataSection(normalized.metadata),
     '',
     '## What I changed',
-    renderChangesSection(input.changes),
+    renderChangesSection(normalized.changes),
     '',
     '## What I measured',
-    renderMetricsHistorySection(input.metricsHistory),
+    renderMetricsHistorySection(normalized.metricsHistory),
     '',
     '## The lesson',
-    renderLessonSection(input.lesson),
+    renderLessonSection(normalized.lesson),
     '',
     '## Reproduction',
-    renderReproductionSection(input.reproduction),
+    renderReproductionSection(normalized.reproduction),
     '',
   ].join('\n');
+}
+
+/**
+ * exportExperimentJson(input = {}) -> string (JSON)
+ *
+ * The JSON sibling of exportExperiment, per Operator Decision #7 — same input shape,
+ * same normalizeExperimentInput() call, but built for MACHINE consumption ("replay,
+ * tests, receipts, and future import/export validation") rather than human reading:
+ *
+ *   - Numbers stay numbers. metricsHistory row values are NOT passed through
+ *     formatNumber()/escapeTableCell() — a future consumer needs to actually parse and
+ *     use them (e.g. `4096`, not the Markdown-table string `"4,096"`).
+ *   - metadata stays whatever object shape was normalized ({} when none was provided)
+ *     — NOT a placeholder string. {} is the deterministic "no metadata" representation
+ *     for a machine consumer.
+ *   - changes/metricsHistory/reproduction stay arrays ([] when none were provided) —
+ *     never a placeholder string.
+ *   - lesson stays the trimmed string, or the literal `null` when none was provided.
+ *     This is deliberately DIFFERENT from Markdown's placeholder prose string: a
+ *     machine consumer must be able to distinguish "no lesson" (null) from "lesson is
+ *     literally the text '_No lesson recorded._'" (a string), which a shared
+ *     placeholder string could never disambiguate. This is intentional, not a gap.
+ *
+ * Key order in the returned object is always exactly: title, metadata, changes,
+ * metricsHistory, lesson, reproduction — guaranteed because this function always
+ * builds the SAME object literal shape and JS object literals preserve insertion order.
+ *
+ * Deterministic and side-effect-free, same as exportExperiment: the SAME input always
+ * produces the SAME output string.
+ */
+export function exportExperimentJson(input = {}) {
+  const normalized = normalizeExperimentInput(input);
+  return JSON.stringify(normalized, null, 2);
 }

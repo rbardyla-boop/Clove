@@ -25,13 +25,19 @@
  * markdown.mjs) behind the #exportBtn button — a ONE-SAMPLE snapshot of the live
  * getMetricsRoom()/getLightMetrics() state, downloaded as a plain .md file via
  * Blob + URL.createObjectURL (plan Section 4.3/4.4), with NO persistent history added.
+ * A Gate E corrective pass (closing Operator Decisions #3 and #7,
+ * docs/VOXEL_LAB_BENCH_PLAN.md) additively wires a JSON sibling export
+ * (src/export-markdown.mjs's exportExperimentJson) behind a second #exportJsonBtn
+ * button, and extracts the readout panel's text-building into the shared,
+ * labs/-scoped src/readout-panel.mjs component — both changes are one-shot/stateless,
+ * same as the existing Markdown export; neither adds persistence or network.
  *
  * Exposes window.__bench mirroring arcade-studio's window.__studio shape: ready,
  * step(dt), drawCalls(), exportState(), importState(state), roundTrip(), plus the
  * Slice 3 setRenderStrategy()/getRenderStrategy()/meshStats() members, the Slice 4
  * setCameraDistance()/getLodLevel()/samplePixels() members, the Slice 5
- * setLightGridResolution()/getLightMetrics() members, and the Slice 7 exportMarkdown()
- * member.
+ * setLightGridResolution()/getLightMetrics() members, and the Slice 7
+ * exportMarkdown()/exportJson() members.
  */
 
 import * as THREE from '../../../game/vendor/three/three.module-0.152.2.js';
@@ -51,7 +57,8 @@ import {
   estimateLightVolumeBytes,
 } from './light-volume.mjs';
 import { buildMetricsRoomReport } from './metrics-room.mjs';
-import { exportExperiment } from './export-markdown.mjs';
+import { exportExperiment, exportExperimentJson } from './export-markdown.mjs';
+import { mountReadoutPanel } from './readout-panel.mjs';
 
 const RENDER_STRATEGIES = Object.freeze(['instanced-cubes', 'greedy-quads']);
 const DEFAULT_RENDER_STRATEGY = 'instanced-cubes';
@@ -73,6 +80,7 @@ const DEFAULT_LIGHT_GRID_RESOLUTION = 16;
 const LIGHT_PROPAGATION_ITERATIONS = 6;
 
 const readout = document.getElementById('readout');
+const readoutPanel = mountReadoutPanel(readout);
 
 /**
  * Hand-authored, fixed, deterministic occupancy fixture — a small "plus" cross made of
@@ -142,6 +150,7 @@ function disposeRenderable(renderable) {
 function boot() {
   const canvas = document.getElementById('viewport');
   const exportBtn = document.getElementById('exportBtn');
+  const exportJsonBtn = document.getElementById('exportJsonBtn');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 2));
   renderer.info.autoReset = false; // reset once per frame so drawCalls() reads a stable value
@@ -334,24 +343,23 @@ function boot() {
 
   function step(dt = 1 / 60) {
     render();
-    if (readout) {
-      const delta = computeStrategyDelta();
-      const lightMetrics = getLightMetrics();
-      readout.textContent =
-        `Voxel Lab Bench — Gate B Slice 5\n` +
-        `strategy: ${strategy}\n` +
-        `instances: ${current.instanceCount}\n` +
-        `quads: ${current.quadCount}  triangles: ${current.triangleCount}\n` +
-        `drawCalls: ${renderer.info.render.calls}\n` +
-        `— delta (same room, both strategies) —\n` +
-        `instanced-cubes: ${delta.instancedCubes.drawCalls} draw / ${delta.instancedCubes.triangleCount} tris\n` +
-        `greedy-quads:    ${delta.greedyQuads.drawCalls} draw / ${delta.greedyQuads.triangleCount} tris\n` +
-        `— LOD object (watch the seam) —\n` +
-        `active: ${lodActive}  cameraDistance: ${lodCameraDistance.toFixed(2)}  lodLevel: ${lodLevel}` +
-        (lodRenderable ? `  instances: ${lodRenderable.instanceCount}` : '  instances: n/a (not yet activated)') +
-        `\n— light volume (lighting-resolution cost lab) —\n` +
-        `resolution: ${lightMetrics.resolution}^3  buildTimeMs: ${lightMetrics.buildTimeMs.toFixed(3)}  lightVolumeBytes: ${lightMetrics.lightVolumeBytes}  drawCalls: ${lightMetrics.drawCalls}`;
-    }
+    const delta = computeStrategyDelta();
+    const lightMetrics = getLightMetrics();
+    readoutPanel.update({
+      strategy,
+      instanceCount: current.instanceCount,
+      quadCount: current.quadCount,
+      triangleCount: current.triangleCount,
+      drawCalls: renderer.info.render.calls,
+      delta,
+      lod: {
+        active: lodActive,
+        cameraDistance: lodCameraDistance,
+        lodLevel,
+        instanceCount: lodRenderable ? lodRenderable.instanceCount : null,
+      },
+      light: lightMetrics,
+    });
   }
   step(0);
 
@@ -432,16 +440,19 @@ function boot() {
   }
 
   /**
-   * triggerMarkdownDownload(markdown, filename)
+   * triggerDownload(content, filename, mimeType)
    *
    * Plain-file-download mechanism (Blob + URL.createObjectURL + a transient <a
    * download> click), matching the plan's Section 4.4 "plain file download... landable
    * directly in an Obsidian vault" requirement. No account, no server round-trip — a
    * Blob-URL download via an <a download> click is not a CSP-monitored request type, so
-   * this needs no CSP change.
+   * this needs no CSP change. Generalized (over the Slice 7 Markdown-only original)
+   * with an explicit mimeType parameter so the SAME mechanism serves the Gate E
+   * corrective pass's JSON sibling export (Operator Decision #7) without a second,
+   * near-duplicate download function.
    */
-  function triggerMarkdownDownload(markdown, filename) {
-    const blob = new Blob([markdown], { type: 'text/markdown' });
+  function triggerDownload(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -464,9 +475,26 @@ function boot() {
     return exportExperiment(buildExportInput());
   }
 
+  /**
+   * exportJson() -> string (JSON)
+   *
+   * The JSON sibling of exportMarkdown, per Operator Decision #7 — reuses the SAME
+   * buildExportInput() snapshot (never a second, potentially-diverging source of
+   * truth), just serialized through exportExperimentJson() instead of exportExperiment().
+   */
+  function exportJson() {
+    return exportExperimentJson(buildExportInput());
+  }
+
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      triggerMarkdownDownload(exportMarkdown(), 'voxel-lab-experiment.md');
+      triggerDownload(exportMarkdown(), 'voxel-lab-experiment.md', 'text/markdown');
+    });
+  }
+
+  if (exportJsonBtn) {
+    exportJsonBtn.addEventListener('click', () => {
+      triggerDownload(exportJson(), 'voxel-lab-experiment.json', 'application/json');
     });
   }
 
@@ -503,8 +531,11 @@ function boot() {
     getMetricsRoom,
     // Gate E Slice 7 additive API: the "Export to second brain" Markdown artifact — a
     // pure-string snapshot builder (see exportMarkdown/buildExportInput above), plus the
-    // #exportBtn click handler wired above triggers the real Blob download.
+    // #exportBtn click handler wired above triggers the real Blob download. Gate E
+    // corrective pass additive API: the JSON sibling (Operator Decision #7) — same
+    // buildExportInput() snapshot, exposed via the #exportJsonBtn click handler above.
     exportMarkdown,
+    exportJson,
     // Minimal in-memory export/import round-trip of grid occupancy state — NOT the
     // Markdown/JSON second-brain export feature (that is a later, separately gated
     // slice; see plan Section 4.1 item 8 / Slice 7).
