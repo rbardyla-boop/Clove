@@ -45,6 +45,7 @@ import {
   propagate,
   estimateLightVolumeBytes,
 } from './light-volume.mjs';
+import { buildMetricsRoomReport } from './metrics-room.mjs';
 
 const RENDER_STRATEGIES = Object.freeze(['instanced-cubes', 'greedy-quads']);
 const DEFAULT_RENDER_STRATEGY = 'instanced-cubes';
@@ -363,6 +364,23 @@ function boot() {
     step(0);
   }
 
+  /**
+   * getMetricsRoom() -> report (see src/metrics-room.mjs)
+   *
+   * Gate C additive API: the "budget/readout room" — a single deterministic snapshot
+   * combining instanced-cubes vs greedy-quads mesh stats, LOD fine/coarse instance
+   * reduction, and light-volume resolution cost, ALL computed over the SAME grids this
+   * bench is already using (the default fixture for mesh comparison, the Slice 4
+   * lodFineGrid for LOD comparison) — never a second, parallel set of grids. That reuse
+   * is what makes this room's numbers provably consistent with meshStats()/
+   * strategyDelta()/getLightMetrics() rather than a second, potentially-diverging
+   * source of truth (proven by scripts/metrics-room-headless.mjs). Never touches the
+   * active render strategy, scene contents, or draw-call count.
+   */
+  function getMetricsRoom() {
+    return buildMetricsRoomReport({ grid, lodFineGrid });
+  }
+
   window.__bench = {
     THREE,
     renderer,
@@ -392,6 +410,8 @@ function boot() {
     // decoupled from geometry cost.
     setLightGridResolution,
     getLightMetrics,
+    // Gate C additive API: the unified metrics/readout room (see getMetricsRoom above).
+    getMetricsRoom,
     // Minimal in-memory export/import round-trip of grid occupancy state — NOT the
     // Markdown/JSON second-brain export feature (that is a later, separately gated
     // slice; see plan Section 4.1 item 8 / Slice 7).
