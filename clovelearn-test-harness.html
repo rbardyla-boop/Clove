@@ -713,7 +713,7 @@ test('Delay logs capped at 200', () => {
 suite('EDGE CASES');
 
 test('XSS in input does not break analysis', () => {
-  const r = analyzeInput('<script>alert("xss")</script> I feel panic');
+  const r = analyzeInput('<script>alert("xss")<\/script> I feel panic');
   return r !== null; // should still work
 });
 
