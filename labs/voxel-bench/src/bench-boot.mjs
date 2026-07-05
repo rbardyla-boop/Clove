@@ -20,13 +20,18 @@
  * strategy or draw-call count (the light volume is CPU-side-only bookkeeping in Slice 5,
  * not yet sampled by the material/shader), which is itself the numeric proof that
  * lighting cost is decoupled from geometry cost (plan Section 4.3 / Section 7 Slice 5
- * Blocker #4 done-criteria). NO player movement — later slices.
+ * Blocker #4 done-criteria). NO player movement — later slices. Gate E Slice 7
+ * additively wires the "Export to second brain" Markdown artifact (src/export-
+ * markdown.mjs) behind the #exportBtn button — a ONE-SAMPLE snapshot of the live
+ * getMetricsRoom()/getLightMetrics() state, downloaded as a plain .md file via
+ * Blob + URL.createObjectURL (plan Section 4.3/4.4), with NO persistent history added.
  *
  * Exposes window.__bench mirroring arcade-studio's window.__studio shape: ready,
  * step(dt), drawCalls(), exportState(), importState(state), roundTrip(), plus the
  * Slice 3 setRenderStrategy()/getRenderStrategy()/meshStats() members, the Slice 4
- * setCameraDistance()/getLodLevel()/samplePixels() members, and the Slice 5
- * setLightGridResolution()/getLightMetrics() members.
+ * setCameraDistance()/getLodLevel()/samplePixels() members, the Slice 5
+ * setLightGridResolution()/getLightMetrics() members, and the Slice 7 exportMarkdown()
+ * member.
  */
 
 import * as THREE from '../../../game/vendor/three/three.module-0.152.2.js';
@@ -46,6 +51,7 @@ import {
   estimateLightVolumeBytes,
 } from './light-volume.mjs';
 import { buildMetricsRoomReport } from './metrics-room.mjs';
+import { exportExperiment } from './export-markdown.mjs';
 
 const RENDER_STRATEGIES = Object.freeze(['instanced-cubes', 'greedy-quads']);
 const DEFAULT_RENDER_STRATEGY = 'instanced-cubes';
@@ -135,6 +141,7 @@ function disposeRenderable(renderable) {
 
 function boot() {
   const canvas = document.getElementById('viewport');
+  const exportBtn = document.getElementById('exportBtn');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 2));
   renderer.info.autoReset = false; // reset once per frame so drawCalls() reads a stable value
@@ -381,6 +388,88 @@ function boot() {
     return buildMetricsRoomReport({ grid, lodFineGrid });
   }
 
+  /**
+   * buildExportInput() -> exportExperiment() input object
+   *
+   * Gate E Slice 7 additive helper: snapshots the CURRENT live bench state (render
+   * strategy, light-grid metrics, and the getMetricsRoom() report already built above)
+   * into the shape src/export-markdown.mjs's exportExperiment() expects. This is a
+   * ONE-SAMPLE snapshot only — this bench has no history-tracking concept, and Slice 7
+   * is explicitly scoped to NOT add one (see plan Section 7 Slice 7). Reuses
+   * getMetricsRoom()/getLightMetrics() rather than recomputing anything.
+   */
+  function buildExportInput() {
+    const metrics = getMetricsRoom();
+    const lightMetrics = getLightMetrics();
+    return {
+      title: 'Voxel Lab Bench Experiment',
+      metadata: {
+        date: new Date().toISOString(),
+        room: `${grid.aabb.max.x - grid.aabb.min.x}m x ${grid.aabb.max.y - grid.aabb.min.y}m x ${grid.aabb.max.z - grid.aabb.min.z}m, chunk resolution ${grid.resolution}`,
+        renderStrategy: strategy,
+      },
+      changes: [
+        `render strategy: ${strategy}`,
+        `light grid resolution: ${lightMetrics.resolution}`,
+      ],
+      metricsHistory: [{
+        strategy,
+        instancedTriangles: metrics.instancedCubes.triangleCount,
+        greedyTriangles: metrics.greedyQuads.triangleCount,
+        meshReductionRatio: metrics.meshReduction.ratio,
+        lodFineInstances: metrics.lod.fineInstanceCount,
+        lodCoarseInstances: metrics.lod.coarseInstanceCount,
+        lightGridResolution: lightMetrics.resolution,
+        lightVolumeBytes: lightMetrics.lightVolumeBytes,
+        drawCalls: lightMetrics.drawCalls,
+      }],
+      lesson: 'This export is a one-sample snapshot of the current Voxel Lab Bench state — render-strategy mesh cost, LOD reduction, and lighting-grid cost, all captured at the same instant. Compare exports across different render-strategy / light-grid-resolution settings to see how each cost axis moves independently of the others.',
+      reproduction: [
+        `window.__bench.setRenderStrategy('${strategy}');`,
+        `window.__bench.setLightGridResolution(${lightMetrics.resolution});`,
+      ],
+    };
+  }
+
+  /**
+   * triggerMarkdownDownload(markdown, filename)
+   *
+   * Plain-file-download mechanism (Blob + URL.createObjectURL + a transient <a
+   * download> click), matching the plan's Section 4.4 "plain file download... landable
+   * directly in an Obsidian vault" requirement. No account, no server round-trip — a
+   * Blob-URL download via an <a download> click is not a CSP-monitored request type, so
+   * this needs no CSP change.
+   */
+  function triggerMarkdownDownload(markdown, filename) {
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * exportMarkdown() -> string (Markdown)
+   *
+   * Pure-string wrapper around buildExportInput() + exportExperiment(), exposed on
+   * window.__bench so headless/Node callers can get the exact artifact string without
+   * needing to intercept a real download (matching this file's own convention of
+   * exposing every feature as a plain callable on window.__bench).
+   */
+  function exportMarkdown() {
+    return exportExperiment(buildExportInput());
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      triggerMarkdownDownload(exportMarkdown(), 'voxel-lab-experiment.md');
+    });
+  }
+
   window.__bench = {
     THREE,
     renderer,
@@ -412,6 +501,10 @@ function boot() {
     getLightMetrics,
     // Gate C additive API: the unified metrics/readout room (see getMetricsRoom above).
     getMetricsRoom,
+    // Gate E Slice 7 additive API: the "Export to second brain" Markdown artifact — a
+    // pure-string snapshot builder (see exportMarkdown/buildExportInput above), plus the
+    // #exportBtn click handler wired above triggers the real Blob download.
+    exportMarkdown,
     // Minimal in-memory export/import round-trip of grid occupancy state — NOT the
     // Markdown/JSON second-brain export feature (that is a later, separately gated
     // slice; see plan Section 4.1 item 8 / Slice 7).
