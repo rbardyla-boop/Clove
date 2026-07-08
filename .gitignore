@@ -47,3 +47,6 @@ arcade-studio/node_modules/
 prototype/
 artifacts/
 webbroswer assest creator/
+
+# Local foundry coordination state (tailnet addresses, agent message logs) — never commit.
+.foundry/

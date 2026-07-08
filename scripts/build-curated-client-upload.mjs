@@ -46,6 +46,7 @@ export const FORBIDDEN_UPLOAD_PREFIXES = Object.freeze([
   'tools/',            // local operator tooling (e.g. asset station), if present
   'electron-app/',     // desktop wrapper, not the web client
   '.claude/',          // agent config
+  '.foundry/',         // local multi-agent coordination state (tailnet addresses, message logs) — never web content
   '.powerplant/',      // dogfood tooling config
   '.github/',          // CI config
   '.git/',             // VCS (never tracked anyway; defensive)
