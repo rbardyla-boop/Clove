@@ -536,6 +536,11 @@ function load() { try { return JSON.parse(localStorage.getItem(STORE)) || []; } 
 function saveAll(entries) { try { localStorage.setItem(STORE, JSON.stringify(entries.slice(0, 100))); } catch(e) {} }
 function $(id) { return document.getElementById(id); }
 function val(id) { return ($( id) || {}).value || ''; }
+function emotionLabelText() {
+  if (selectedEmo === 'other') return val('otherEmoText') || 'Other';
+  if (!selectedEmo) return '';
+  return selectedEmo.charAt(0).toUpperCase() + selectedEmo.slice(1);
+}
 
 function goStep(n) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -694,7 +699,7 @@ function saveEntry() {
     ts: Date.now(),
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     emotion: selectedEmo,
-    emotionLabel: selectedEmo === 'other' ? (val('otherEmoText') || 'Other') : (selectedEmo.charAt(0).toUpperCase() + selectedEmo.slice(1)),
+    emotionLabel: emotionLabelText(),
     intensity,
     urges: [...selectedUrges],
     customUrge: val('customUrge'),
@@ -727,7 +732,7 @@ function showToast(msg) {
 function buildSummary() {
   const content = $('summaryContent');
   if (!content) return;
-  const emoLabel = selectedEmo === 'other' ? (val('otherEmoText') || 'Other') : (selectedEmo.charAt(0).toUpperCase() + selectedEmo.slice(1));
+  const emoLabel = emotionLabelText();
   const urgeList = [...selectedUrges, val('customUrge')].filter(Boolean);
   const actionList = [...selectedOppActions, val('customAction')].filter(Boolean);
 
