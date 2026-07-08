@@ -208,36 +208,37 @@ async function auditPage(path, viewportName, viewport) {
         errors: errors.slice(beforeErrors),
       });
       if (!page.url().startsWith(`${BASE}/${encodeURI(path)}`)) {
-        // A control's click can trigger a real navigation that is still resolving when
-        // we get here; racing a recovery goto()/evaluate() against that in-flight
-        // navigation can tear down the execution context mid-evaluate ("Execution
-        // context was destroyed, most likely because of a navigation"), which used to
-        // crash the entire audit run. Retry once after giving the page a chance to
-        // settle, and if it still fails, record the condition and move on — later
-        // controls on this page still need their index tags rewritten, but one flaky
-        // recovery must not take down the whole crawl.
-        try {
+        // A control's click can trigger a real navigation (legitimate product behavior:
+        // a nav link, tab, or flow step). Reload the page and re-tag controls so the
+        // crawl can continue. The recovery goto()/evaluate() can race the still-resolving
+        // navigation and throw "Execution context was destroyed, most likely because of a
+        // navigation" — an artifact of recovery TIMING, not a product defect. So a
+        // navigation we successfully recover from is recorded as an environment note, not
+        // an error; only a genuinely unrecoverable page (still failing after a settle +
+        // retry) is recorded as a real error so it surfaces as a failed run.
+        const reTagControls = async () => {
           await page.goto(`${BASE}/${encodeURI(path)}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
           await page.evaluate(() => {
             [...document.querySelectorAll('button,input,textarea,select,[role="button"],[role="checkbox"],[contenteditable="true"]')]
               .forEach((el, index) => el.dataset.productAuditIndex = String(index));
           });
-        } catch (error) {
-          errors.push(`recovery navigation after control ${control.index} (${tidy(control.label)}): ${error.message}`);
+        };
+        try {
+          await reTagControls();
+          environmentNotes.push(`Control ${control.index} (${tidy(control.label)}) triggered a navigation; page reloaded and re-tagged to continue auditing.`);
+        } catch {
           try {
             await page.waitForLoadState('domcontentloaded', { timeout: 15000 });
-            await page.goto(`${BASE}/${encodeURI(path)}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
-            await page.evaluate(() => {
-              [...document.querySelectorAll('button,input,textarea,select,[role="button"],[role="checkbox"],[contenteditable="true"]')]
-                .forEach((el, index) => el.dataset.productAuditIndex = String(index));
-            });
+            await reTagControls();
+            environmentNotes.push(`Control ${control.index} (${tidy(control.label)}) triggered a navigation; page reloaded after settle and re-tagged to continue auditing.`);
           } catch (retryError) {
-            errors.push(`recovery navigation retry after control ${control.index} (${tidy(control.label)}): ${retryError.message}`);
+            errors.push(`recovery navigation after control ${control.index} (${tidy(control.label)}): ${retryError.message}`);
           }
         }
       }
     }
     report.pageRuns.at(-1).errors = [...new Set(errors)];
+    report.pageRuns.at(-1).environmentNotes = [...new Set(environmentNotes)];
   }
   await context.close();
 }
