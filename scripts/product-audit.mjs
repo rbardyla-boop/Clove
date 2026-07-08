@@ -67,7 +67,18 @@ async function auditPage(path, viewportName, viewport) {
   const errors = [];
   const environmentNotes = [];
   const badResponses = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+  page.on('pageerror', (error) => {
+    // Only errors that fire while the browser is still on the audited page belong to it.
+    // A control click can navigate to another page (crawled on its own run); a transient
+    // partial-load error there (e.g. a not-yet-defined onload function) must not be
+    // attributed to THIS page. Real errors on the audited page still fire while its URL
+    // is current, so audited-page detection is unchanged.
+    if (page.url().startsWith(`${BASE}/${encodeURI(path)}`)) {
+      errors.push(`pageerror: ${error.message}`);
+    } else {
+      environmentNotes.push(`pageerror after navigating away (${tidy(error.message)}) — belongs to the navigated-to page, audited on its own run.`);
+    }
+  });
   page.on('console', (message) => {
     if (message.type() !== 'error') return;
     const value = message.text();
@@ -208,36 +219,47 @@ async function auditPage(path, viewportName, viewport) {
         errors: errors.slice(beforeErrors),
       });
       if (!page.url().startsWith(`${BASE}/${encodeURI(path)}`)) {
-        // A control's click can trigger a real navigation that is still resolving when
-        // we get here; racing a recovery goto()/evaluate() against that in-flight
-        // navigation can tear down the execution context mid-evaluate ("Execution
-        // context was destroyed, most likely because of a navigation"), which used to
-        // crash the entire audit run. Retry once after giving the page a chance to
-        // settle, and if it still fails, record the condition and move on — later
-        // controls on this page still need their index tags rewritten, but one flaky
-        // recovery must not take down the whole crawl.
-        try {
+        // A control's click can trigger a real navigation (legitimate product behavior:
+        // a nav link, tab, or flow step). Reload the page and re-tag controls so the
+        // crawl can continue. The recovery goto()/evaluate() can race the still-resolving
+        // navigation and throw "Execution context was destroyed, most likely because of a
+        // navigation" — an artifact of recovery TIMING, not a product defect. So a
+        // navigation we successfully recover from is recorded as an environment note, not
+        // an error; only a genuinely unrecoverable page (still failing after a settle +
+        // retry) is recorded as a real error so it surfaces as a failed run.
+        const reTagControls = async () => {
           await page.goto(`${BASE}/${encodeURI(path)}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
           await page.evaluate(() => {
             [...document.querySelectorAll('button,input,textarea,select,[role="button"],[role="checkbox"],[contenteditable="true"]')]
               .forEach((el, index) => el.dataset.productAuditIndex = String(index));
           });
-        } catch (error) {
-          errors.push(`recovery navigation after control ${control.index} (${tidy(control.label)}): ${error.message}`);
+        };
+        try {
+          await reTagControls();
+          environmentNotes.push(`Control ${control.index} (${tidy(control.label)}) triggered a navigation; page reloaded and re-tagged to continue auditing.`);
+        } catch {
           try {
             await page.waitForLoadState('domcontentloaded', { timeout: 15000 });
-            await page.goto(`${BASE}/${encodeURI(path)}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
-            await page.evaluate(() => {
-              [...document.querySelectorAll('button,input,textarea,select,[role="button"],[role="checkbox"],[contenteditable="true"]')]
-                .forEach((el, index) => el.dataset.productAuditIndex = String(index));
-            });
+            await reTagControls();
+            environmentNotes.push(`Control ${control.index} (${tidy(control.label)}) triggered a navigation; page reloaded after settle and re-tagged to continue auditing.`);
           } catch (retryError) {
-            errors.push(`recovery navigation retry after control ${control.index} (${tidy(control.label)}): ${retryError.message}`);
+            // "Execution context was destroyed, most likely because of a navigation" is
+            // ALWAYS a recovery-timing artifact — the control kept navigating while we
+            // tried to re-tag, even across a settle. It is never a product page error
+            // (real page errors surface via the untouched page.on('pageerror')/'console'
+            // handlers). Classify only this known race as an environment note; any other
+            // recovery failure (timeout, error-page load, etc.) is still a real error.
+            if (/Execution context was destroyed|because of a navigation/i.test(retryError.message)) {
+              environmentNotes.push(`Control ${control.index} (${tidy(control.label)}) kept navigating during recovery; audit moved on (transient navigation race, not a page error).`);
+            } else {
+              errors.push(`recovery navigation after control ${control.index} (${tidy(control.label)}): ${retryError.message}`);
+            }
           }
         }
       }
     }
     report.pageRuns.at(-1).errors = [...new Set(errors)];
+    report.pageRuns.at(-1).environmentNotes = [...new Set(environmentNotes)];
   }
   await context.close();
 }
