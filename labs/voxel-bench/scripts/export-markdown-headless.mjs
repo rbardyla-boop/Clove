@@ -17,6 +17,13 @@
  * (bench-headless.mjs, lod-pop-harness.mjs, light-volume-headless.mjs,
  * metrics-room-headless.mjs).
  *
+ * Gate E corrective pass: extended to also exercise the JSON sibling export
+ * (Operator Decision #7, docs/VOXEL_LAB_BENCH_PLAN.md) behind #exportJsonBtn. The
+ * probe now records an ARRAY of { blobType, blobSize, downloadAttr, blobRef } entries
+ * (one push per URL.createObjectURL call) instead of a single mutable object, so the
+ * two independent click-triggered downloads (#exportBtn then #exportJsonBtn) can be
+ * inspected without one clobbering the other.
+ *
  * Run from the REPO ROOT:
  *   node labs/voxel-bench/scripts/export-markdown-headless.mjs
  */
@@ -84,23 +91,23 @@ page.on('console', (m) => { if (m.type() === 'error' && !/favicon/i.test(m.text(
 page.on('pageerror', (e) => pageErrors.push(e.message));
 
 // Instrument URL.createObjectURL and HTMLAnchorElement.prototype.click BEFORE
-// navigation so the real click-triggered download can be observed deterministically,
-// without relying on the browser's OS-level download UI.
+// navigation so real click-triggered downloads can be observed deterministically,
+// without relying on the browser's OS-level download UI. `downloads` is an ARRAY (one
+// entry pushed per createObjectURL call) rather than a single mutable object, so two
+// separate button clicks each get their own independently-inspectable entry.
 await page.addInitScript(() => {
-  window.__exportProbe = { blobType: null, blobSize: null, downloadAttr: null, clicked: false, blobRef: null, createObjectURLCalls: 0 };
+  window.__exportProbe = { downloads: [], clicked: false };
   const origCreateObjectURL = URL.createObjectURL.bind(URL);
   URL.createObjectURL = (blob) => {
-    window.__exportProbe.blobType = blob.type;
-    window.__exportProbe.blobSize = blob.size;
-    window.__exportProbe.blobRef = blob;
-    window.__exportProbe.createObjectURLCalls += 1;
+    window.__exportProbe.downloads.push({ blobType: blob.type, blobSize: blob.size, downloadAttr: null, blobRef: blob });
     return origCreateObjectURL(blob);
   };
   const origClick = HTMLAnchorElement.prototype.click;
   HTMLAnchorElement.prototype.click = function patchedClick() {
     if (this.download) {
-      window.__exportProbe.downloadAttr = this.download;
       window.__exportProbe.clicked = true;
+      const last = window.__exportProbe.downloads[window.__exportProbe.downloads.length - 1];
+      if (last) last.downloadAttr = this.download;
     }
     return origClick.call(this);
   };
@@ -119,30 +126,48 @@ try {
 
   await page.evaluate(() => window.__bench.step(1 / 60));
 
-  // Reset the request tracker right before the click so only export-caused requests
+  // Reset the request tracker right before the clicks so only export-caused requests
   // (there should be none) are counted, not the page's own initial asset loads.
   requestsDuringClick.length = 0;
 
   await page.click('#exportBtn');
+  await page.click('#exportJsonBtn');
 
   const probe = await page.evaluate(() => ({
     clicked: window.__exportProbe.clicked,
-    downloadAttr: window.__exportProbe.downloadAttr,
-    blobType: window.__exportProbe.blobType,
-    createObjectURLCalls: window.__exportProbe.createObjectURLCalls,
+    downloads: window.__exportProbe.downloads.map((d) => ({ blobType: d.blobType, downloadAttr: d.downloadAttr })),
   }));
 
-  ok(probe.clicked === true, 'real #exportBtn click triggered a real <a download> click');
-  ok(typeof probe.downloadAttr === 'string' && probe.downloadAttr.endsWith('.md'), `download filename ends with .md (got "${probe.downloadAttr}")`);
-  ok(probe.blobType === 'text/markdown', `Blob type is text/markdown (got "${probe.blobType}")`);
-  ok(probe.createObjectURLCalls === 1, `URL.createObjectURL called exactly once (got ${probe.createObjectURLCalls})`);
+  ok(probe.clicked === true, 'real button clicks triggered real <a download> clicks');
+  ok(probe.downloads.length === 2, `URL.createObjectURL called exactly twice, one per button (got ${probe.downloads.length})`);
 
-  const blobText = await page.evaluate(() => window.__exportProbe.blobRef.text());
+  const [mdDownload, jsonDownload] = probe.downloads;
+
+  ok(typeof mdDownload?.downloadAttr === 'string' && mdDownload.downloadAttr.endsWith('.md'), `Markdown download filename ends with .md (got "${mdDownload?.downloadAttr}")`);
+  ok(mdDownload?.blobType === 'text/markdown', `Markdown Blob type is text/markdown (got "${mdDownload?.blobType}")`);
+
+  ok(typeof jsonDownload?.downloadAttr === 'string' && jsonDownload.downloadAttr.endsWith('.json'), `JSON download filename ends with .json (got "${jsonDownload?.downloadAttr}")`);
+  ok(jsonDownload?.blobType === 'application/json', `JSON Blob type is application/json (got "${jsonDownload?.blobType}")`);
+
+  const mdText = await page.evaluate(() => window.__exportProbe.downloads[0].blobRef.text());
   for (const heading of ['## Metadata', '## What I changed', '## What I measured', '## The lesson', '## Reproduction']) {
-    ok(blobText.includes(heading), `downloaded Blob content includes "${heading}"`);
+    ok(mdText.includes(heading), `downloaded Markdown Blob content includes "${heading}"`);
   }
 
-  ok(requestsDuringClick.length === 0, `zero network requests fired during/after the export click${requestsDuringClick.length ? ' → ' + requestsDuringClick.join(' | ') : ''}`);
+  const jsonText = await page.evaluate(() => window.__exportProbe.downloads[1].blobRef.text());
+  let parsedJson;
+  try {
+    parsedJson = JSON.parse(jsonText);
+    ok(true, 'downloaded JSON Blob content parses cleanly');
+  } catch (err) {
+    ok(false, `downloaded JSON Blob content parses cleanly (threw: ${err.message})`);
+    parsedJson = {};
+  }
+  for (const key of ['title', 'metadata', 'changes', 'metricsHistory', 'lesson', 'reproduction']) {
+    ok(Object.prototype.hasOwnProperty.call(parsedJson, key), `downloaded JSON contains "${key}" key`);
+  }
+
+  ok(requestsDuringClick.length === 0, `zero network requests fired during/after the export clicks${requestsDuringClick.length ? ' → ' + requestsDuringClick.join(' | ') : ''}`);
 
   ok(pageErrors.length === 0, `no uncaught page errors${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
   ok(consoleErrors.length === 0, `no console errors${consoleErrors.length ? ' → ' + consoleErrors.slice(0, 3).join(' | ') : ''}`);

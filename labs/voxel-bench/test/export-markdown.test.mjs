@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { exportExperiment } from '../src/export-markdown.mjs';
+import { exportExperiment, exportExperimentJson } from '../src/export-markdown.mjs';
 
 const REQUIRED_HEADINGS = [
   '## Metadata',
@@ -144,6 +144,21 @@ test('escaping: newline in title collapses the heading line to a single line', (
   assert.ok(!titleLine.includes('\n'));
 });
 
+test('title contract: a non-string title falls back to the default rather than being coerced', () => {
+  // Intentional, tested behavior (not a silent side-effect of the normalizeExperimentInput
+  // refactor): the documented `title` field is a string; a caller passing a number gets
+  // the same deterministic default as omitting title entirely, never a coerced "5".
+  const output = exportExperiment({ title: 5 });
+  assert.equal(output.split('\n')[0], '# Voxel Lab Experiment');
+});
+
+test('title contract: a whitespace-only title falls back to the default rather than producing an empty heading', () => {
+  // Intentional, tested behavior: an empty "# " heading is a degenerate Markdown artifact,
+  // so whitespace-only input is treated the same as omitted input, not rendered literally.
+  const output = exportExperiment({ title: '   ' });
+  assert.equal(output.split('\n')[0], '# Voxel Lab Experiment');
+});
+
 test('reproduction accepts a multi-line string OR an equivalent array with identical rendered output', () => {
   const asString = exportExperiment({ reproduction: 'line1\nline2' });
   const asArray = exportExperiment({ reproduction: ['line1', 'line2'] });
@@ -204,4 +219,90 @@ test('determinism holds across 10+ repeated calls of the rich fixture', () => {
   for (let i = 0; i < 12; i += 1) {
     assert.equal(exportExperiment(input), baseline, `mismatch on repeated call #${i}`);
   }
+});
+
+test('exportExperimentJson() with no arguments parses cleanly and matches the deterministic default shape', () => {
+  let output;
+  assert.doesNotThrow(() => { output = exportExperimentJson(); });
+  let parsed;
+  assert.doesNotThrow(() => { parsed = JSON.parse(output); });
+  assert.deepEqual(parsed, {
+    title: 'Voxel Lab Experiment',
+    metadata: {},
+    changes: [],
+    metricsHistory: [],
+    lesson: null,
+    reproduction: [],
+  });
+});
+
+test('exportExperimentJson(fixedRichInput) called twice is byte-for-byte identical', () => {
+  const input = buildRichFixture();
+  const first = exportExperimentJson(input);
+  const second = exportExperimentJson(input);
+  assert.equal(first, second);
+});
+
+test('exportExperimentJson keeps metricsHistory numbers as RAW numbers, not comma-formatted strings', () => {
+  const output = exportExperimentJson(buildRichFixture());
+  const parsed = JSON.parse(output);
+  assert.equal(parsed.metricsHistory[0].lightVolumeBytes, 4096);
+  assert.equal(typeof parsed.metricsHistory[0].lightVolumeBytes, 'number');
+  assert.notEqual(parsed.metricsHistory[0].lightVolumeBytes, '4,096');
+});
+
+test('exportExperimentJson key order is stable: title, metadata, changes, metricsHistory, lesson, reproduction', () => {
+  const output = exportExperimentJson(buildRichFixture());
+  const keys = Object.keys(JSON.parse(output));
+  assert.deepEqual(keys, ['title', 'metadata', 'changes', 'metricsHistory', 'lesson', 'reproduction']);
+});
+
+test('exportExperimentJson missing optional fields produce JSON-appropriate deterministic placeholders (not Markdown prose)', () => {
+  const parsed = JSON.parse(exportExperimentJson({}));
+  assert.deepEqual(parsed.metadata, {});
+  assert.deepEqual(parsed.changes, []);
+  assert.deepEqual(parsed.metricsHistory, []);
+  assert.equal(parsed.lesson, null);
+  assert.deepEqual(parsed.reproduction, []);
+});
+
+test('exportExperimentJson reproduction accepts a multi-line string OR an equivalent array with identical normalized output', () => {
+  const asString = JSON.parse(exportExperimentJson({ reproduction: 'line1\nline2' }));
+  const asArray = JSON.parse(exportExperimentJson({ reproduction: ['line1', 'line2'] }));
+  assert.deepEqual(asString.reproduction, ['line1', 'line2']);
+  assert.deepEqual(asString.reproduction, asArray.reproduction);
+});
+
+test('cross-format consistency: every metricsHistory value formatted in the Markdown table also appears raw in the JSON array at the same row/key position', () => {
+  const input = buildRichFixture();
+  const markdown = exportExperiment(input);
+  const json = JSON.parse(exportExperimentJson(input));
+
+  const lines = markdown.split('\n');
+  const columns = Object.keys(input.metricsHistory[0]);
+  const headerIdx = lines.indexOf(`| ${columns.join(' | ')} |`);
+  assert.ok(headerIdx >= 0, 'metrics table header not found');
+
+  input.metricsHistory.forEach((row, rowIndex) => {
+    const bodyLine = lines[headerIdx + 2 + rowIndex];
+    columns.forEach((col) => {
+      assert.equal(json.metricsHistory[rowIndex][col], row[col], `row ${rowIndex} col ${col} diverged`);
+      assert.ok(bodyLine.includes(String(row[col]).length > 0 ? formatForTableCheck(row[col]) : ''), `markdown row missing formatted value for ${col}`);
+    });
+  });
+});
+
+/** Mirrors export-markdown.mjs's own big-number comma formatting, ONLY for this
+ * cross-format consistency test's assertion that a Markdown cell contains the
+ * formatted counterpart of a raw JSON value — not a re-implementation the module
+ * itself depends on. */
+function formatForTableCheck(value) {
+  if (typeof value !== 'number' || !Number.isInteger(value)) return String(value);
+  const sign = value < 0 ? '-' : '';
+  return sign + Math.abs(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+test('exportExperimentJson: no raw "<script" substring appears anywhere in the output for a realistic fixture', () => {
+  const output = exportExperimentJson(buildRichFixture());
+  assert.ok(!output.includes('<script'));
 });

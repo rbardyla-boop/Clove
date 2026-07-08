@@ -21,25 +21,30 @@
         background: rgba(10, 12, 16, 0.75); border: 1px solid rgba(255,255,255,0.12);
         border-radius: 6px; pointer-events: none; white-space: pre;
       }
-      #exportBtn {
-        position: fixed; top: 10px; right: 10px; padding: 8px 12px;
+      #exportBtn, #exportJsonBtn {
+        position: fixed; right: 10px; padding: 8px 12px;
         background: rgba(10, 12, 16, 0.75); border: 1px solid rgba(255,255,255,0.12);
         border-radius: 6px; color: #d7e0ea; font: 13px/1.4 system-ui, sans-serif;
         cursor: pointer;
       }
-      #exportBtn:hover {
+      #exportBtn:hover, #exportJsonBtn:hover {
         background: rgba(20, 24, 32, 0.9); border-color: rgba(255,255,255,0.28);
       }
-      #exportBtn:focus-visible {
+      #exportBtn:focus-visible, #exportJsonBtn:focus-visible {
         outline: 2px solid #6fb1ff; outline-offset: 2px;
         border-color: rgba(111,177,255,0.6);
       }
+      #exportBtn { top: 10px; }
+      /* Stacked directly below #exportBtn, same top-right column — 10px top + ~37px
+         button height + 8px gap. */
+      #exportJsonBtn { top: 55px; }
     </style>
   </head>
   <body>
     <canvas id="viewport"></canvas>
     <div id="readout">Voxel Lab Bench — booting…</div>
     <button id="exportBtn" type="button">Export to second brain</button>
+    <button id="exportJsonBtn" type="button">Export JSON</button>
 
     <!--
       Vendored Three.js r152 ES module only — no CDN reference, no other version.
