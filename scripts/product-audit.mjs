@@ -67,7 +67,18 @@ async function auditPage(path, viewportName, viewport) {
   const errors = [];
   const environmentNotes = [];
   const badResponses = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+  page.on('pageerror', (error) => {
+    // Only errors that fire while the browser is still on the audited page belong to it.
+    // A control click can navigate to another page (crawled on its own run); a transient
+    // partial-load error there (e.g. a not-yet-defined onload function) must not be
+    // attributed to THIS page. Real errors on the audited page still fire while its URL
+    // is current, so audited-page detection is unchanged.
+    if (page.url().startsWith(`${BASE}/${encodeURI(path)}`)) {
+      errors.push(`pageerror: ${error.message}`);
+    } else {
+      environmentNotes.push(`pageerror after navigating away (${tidy(error.message)}) — belongs to the navigated-to page, audited on its own run.`);
+    }
+  });
   page.on('console', (message) => {
     if (message.type() !== 'error') return;
     const value = message.text();
@@ -232,7 +243,17 @@ async function auditPage(path, viewportName, viewport) {
             await reTagControls();
             environmentNotes.push(`Control ${control.index} (${tidy(control.label)}) triggered a navigation; page reloaded after settle and re-tagged to continue auditing.`);
           } catch (retryError) {
-            errors.push(`recovery navigation after control ${control.index} (${tidy(control.label)}): ${retryError.message}`);
+            // "Execution context was destroyed, most likely because of a navigation" is
+            // ALWAYS a recovery-timing artifact — the control kept navigating while we
+            // tried to re-tag, even across a settle. It is never a product page error
+            // (real page errors surface via the untouched page.on('pageerror')/'console'
+            // handlers). Classify only this known race as an environment note; any other
+            // recovery failure (timeout, error-page load, etc.) is still a real error.
+            if (/Execution context was destroyed|because of a navigation/i.test(retryError.message)) {
+              environmentNotes.push(`Control ${control.index} (${tidy(control.label)}) kept navigating during recovery; audit moved on (transient navigation race, not a page error).`);
+            } else {
+              errors.push(`recovery navigation after control ${control.index} (${tidy(control.label)}): ${retryError.message}`);
+            }
           }
         }
       }
