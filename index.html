@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Welcome</title>
+    <title>CloveLearn — free, private mental health tools</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -91,9 +91,10 @@
         .card-game .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
         .card-game .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
 
-        /* Learn card */
+        /* Learn card — the primary anchor */
         .card-learn {
-            border-color: rgba(96,165,250,0.18);
+            border-color: rgba(96,165,250,0.35);
+            grid-column: span 2;
         }
         .card-learn:hover {
             border-color: rgba(96,165,250,0.45);
@@ -158,6 +159,14 @@
             letter-spacing: 0.06em; margin-top: 8px;
         }
 
+        .shelf-label {
+            grid-column: 1 / -1;
+            font-size: 10px; letter-spacing: 0.22em;
+            color: rgba(158,203,255,0.35);
+            text-transform: uppercase;
+            margin-top: 12px;
+        }
+
         /* Arcade card */
         .card-arcade {
             border-color: rgba(192,57,43,0.22);
@@ -217,7 +226,8 @@
             .container { gap: 14px; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); }
             .cards { grid-template-columns: 1fr; max-width: 420px; gap: 14px; }
             .card { padding: 22px 18px; border-radius: 16px; }
-            .card-arcade, .card-neoncircuit, .card-maker { grid-column: span 1; }
+            .card-arcade, .card-neoncircuit, .card-maker, .card-learn { grid-column: span 1; }
+            .shelf-label { grid-column: span 1; }
             .card-game .card-title,
             .card-learn .card-title,
             .card-arcade .card-title,
@@ -230,9 +240,21 @@
 </head>
 <body>
     <div class="container">
-        <p class="eyebrow">Welcome to Clove</p>
-        <p class="lede">A free place to <b>play</b> games and <b>make</b> small arcade games locally — no account, no install. Some games are live and multiplayer; anything you make stays on your device.</p>
+        <p class="eyebrow">Welcome to CloveLearn</p>
+        <p class="lede">A free, private place to <b>grow</b> — build your personal mental growth plan, and when you need a break, <b>play</b>. No account, no install. Everything stays on your device.</p>
         <div class="cards">
+
+            <a class="card card-learn" id="plan-card" href="onboarding/onboarding.html" onclick="try{var d=JSON.parse(localStorage.getItem('clovelearn_onboarding_v1')||'null');if(d&&d.completedAt){event.preventDefault();location.href='growth-plan.html';}}catch(e){}">
+                <span class="card-tag">MENTAL HEALTH · FREE · PRIVATE</span>
+                <div class="card-title">YOUR GROWTH PLAN</div>
+                <div class="card-subtitle" id="plan-subtitle">
+                    Build your personal mental growth plan in 12 minutes. Free. Private. Yours.
+                </div>
+                <div class="card-divider"></div>
+                <span class="card-cta" id="plan-cta">BEGIN YOUR PATH</span>
+            </a>
+
+            <p class="shelf-label">Take a break · free games &amp; maker — no accounts, no ads</p>
 
             <a class="card card-neoncircuit" href="whats-live.html">
                 <span class="card-tag">NEW · LIVE MULTIPLAYER ARCADE</span>
@@ -274,16 +296,6 @@
                 <span class="card-cta">PLAY NOW</span>
             </a>
 
-            <a class="card card-learn" href="onboarding/onboarding.html" onclick="try{var d=JSON.parse(localStorage.getItem('clovelearn_onboarding_v1')||'null');if(d&&d.completedAt){event.preventDefault();location.href='growth-plan.html';}}catch(e){}">
-                <span class="card-tag">MENTAL HEALTH</span>
-                <div class="card-title">CloveLEarn</div>
-                <div class="card-subtitle">
-                    Build your personal mental growth plan in 12 minutes. Free. Private. Yours.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">BEGIN YOUR PATH</span>
-            </a>
-
             <a class="card card-mindmachine" href="game/theincrediblemindmachine/index.html">
                 <span class="card-tag">PUZZLE GAME</span>
                 <div class="card-title">MIND MACHINE</div>
@@ -307,5 +319,15 @@
         </div>
         <p class="footer-note">All free. No accounts. No ads. Anything you make stays on your device.</p>
     </div>
+    <script>
+        // Returning users with a completed plan see a continue state on the anchor card.
+        try {
+            var plan = JSON.parse(localStorage.getItem('clovelearn_onboarding_v1') || 'null');
+            if (plan && plan.completedAt) {
+                document.getElementById('plan-cta').textContent = 'CONTINUE YOUR PLAN';
+                document.getElementById('plan-subtitle').textContent = 'Welcome back — pick up where you left off.';
+            }
+        } catch (e) {}
+    </script>
 </body>
 </html>

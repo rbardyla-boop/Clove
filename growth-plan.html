@@ -354,8 +354,19 @@
     function renderPlan(data) {
       const a = data.answers;
       const day    = daysSince(data.completedAt);
-      const streak = a.streak || 7;
-      const pct    = Math.min(100, Math.round((day / streak) * 100));
+      const target = a.streak || 7;
+      // Real practice streak — read-only from the operator profile (field-ops
+      // owns every write). Only alive if the last practice was today or
+      // yesterday; an older last_seen resets on the next session anyway.
+      let realStreak = 0;
+      try {
+        const prof = JSON.parse(localStorage.getItem('od_operator_profile') || 'null');
+        if (prof && prof.streak > 0 && prof.last_seen) {
+          const gapDays = Math.floor((Date.now() - prof.last_seen) / 86400000);
+          if (gapDays <= 1) realStreak = prof.streak;
+        }
+      } catch (_) {}
+      const pct = Math.min(100, Math.round((realStreak / target) * 100));
       const name   = a.firstName ? `, ${esc(a.firstName)}` : '';
       const goals  = (a.goals || ['calm']).slice(0, 4);
       const tools  = buildTools(a);
@@ -372,12 +383,16 @@
         </div>
 
         <div class="section streak-card">
-          <div class="streak-num">${day}</div>
-          <div class="streak-label">of ${streak} days · your first streak</div>
+          <div class="streak-num">${realStreak}</div>
+          <div class="streak-label">${realStreak > 0 ? `day practice streak · goal ${target}` : 'no active streak'}</div>
           <div class="streak-bar-wrap">
             <div class="streak-bar" id="streakBar" style="width:0%"></div>
           </div>
-          <div class="streak-sub">${pct}% complete · ${Math.max(0, streak - day)} days to go</div>
+          <div class="streak-sub">${realStreak >= target
+            ? 'goal reached — one practice today keeps it alive'
+            : realStreak > 0
+              ? `${target - realStreak} to your goal · one practice today keeps it alive`
+              : 'your streak starts with one practice today — your tools are below'}</div>
         </div>
 
         <div class="section">
@@ -436,6 +451,18 @@
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
           </a>
           <a href="deck.html" class="btn btn-secondary">← Back to home</a>
+        </div>
+
+        <div class="section">
+          <div class="sec-header"><div class="sec-label">Take a break</div></div>
+          <a href="game/theincrediblemindmachine/index.html" class="tool-card" id="break-card">
+            <div class="tool-icon">◐</div>
+            <div class="tool-info">
+              <div class="tool-name">Mind Machine — a quiet physics puzzle</div>
+              <div class="tool-why">Ten minutes off is part of the practice. Your plan will be here when you're back.</div>
+            </div>
+            <div class="tool-arrow">→</div>
+          </a>
         </div>
 
         <div class="divider"></div>

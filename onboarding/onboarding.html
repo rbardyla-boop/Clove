@@ -2145,7 +2145,6 @@
 
     function buildReceiptSlide1(a) {
       const displayTime = RECEIPT_REMINDER[a.reminderTime];
-      const canNotify = displayTime && typeof Notification !== 'undefined' && Notification.permission !== 'granted';
 
       if (!displayTime) {
         return `
@@ -2163,14 +2162,15 @@
           <h1 class="title">Set for ${escapeHtml(displayTime)}.</h1>
           <div class="receipt-time">${escapeHtml(displayTime)}</div>
           <p class="receipt-body">Show up then. Or don't — it'll be here.</p>
-          ${canNotify ? `
-            <button id="btn-notify" class="btn btn-secondary" style="margin-bottom:12px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-              </svg>
-              Enable browser reminder
-            </button>` : ''}
+          <button id="btn-calendar" class="btn btn-secondary" style="margin-bottom:12px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Add daily reminder to your calendar
+          </button>
           <div class="receipt-spacer"></div>
         </div>`;
     }
@@ -2279,17 +2279,55 @@
         if (e.key === 'ArrowLeft')  goTo(current - 1);
       });
 
-      const notifyBtn = document.getElementById('btn-notify');
-      if (notifyBtn) {
-        notifyBtn.addEventListener('click', async () => {
-          notifyBtn.disabled = true;
-          const perm = await Notification.requestPermission().catch(() => 'denied');
-          if (perm === 'granted') {
-            notifyBtn.textContent = 'Reminder enabled ✓';
-            try { localStorage.setItem('cl_notify_granted', '1'); } catch (_) {}
-          } else {
-            notifyBtn.remove();
+      // Deliver the daily reminder as a calendar file — works with no server,
+      // no notification permission, and nothing leaves the device.
+      try { localStorage.removeItem('cl_notify_granted'); } catch (_) {}
+      const calBtn = document.getElementById('btn-calendar');
+      if (calBtn) {
+        calBtn.addEventListener('click', () => {
+          let time = (state && state.answers && state.answers.reminderTime) || null;
+          if (!time) {
+            try { time = ((JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {}).answers || {}).reminderTime; } catch (_) {}
           }
+          if (!/^\d{2}:\d{2}$/.test(time || '')) return;
+          const [hh, mm] = time.split(':').map(Number);
+          const start = new Date();
+          if (start.getHours() > hh || (start.getHours() === hh && start.getMinutes() >= mm)) {
+            start.setDate(start.getDate() + 1);
+          }
+          const p = (n) => String(n).padStart(2, '0');
+          const localStart = `${start.getFullYear()}${p(start.getMonth() + 1)}${p(start.getDate())}T${p(hh)}${p(mm)}00`;
+          const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+          const uid = `clove-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@clovelearn.io`;
+          const ics = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//CloveLearn//Daily Reminder//EN',
+            'BEGIN:VEVENT',
+            `UID:${uid}`,
+            `DTSTAMP:${stamp}`,
+            `DTSTART:${localStart}`,
+            'DURATION:PT10M',
+            'RRULE:FREQ=DAILY',
+            'SUMMARY:CloveLearn — 10-minute check-in',
+            'DESCRIPTION:Your daily practice: https://clovelearn.io/growth-plan.html',
+            'BEGIN:VALARM',
+            'TRIGGER:PT0S',
+            'ACTION:DISPLAY',
+            'DESCRIPTION:CloveLearn — 10-minute check-in',
+            'END:VALARM',
+            'END:VEVENT',
+            'END:VCALENDAR'
+          ].join('\r\n');
+          const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'clovelearn-daily-reminder.ics';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+          calBtn.textContent = 'Reminder saved — open the file to add it ✓';
         });
       }
     }
