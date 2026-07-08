@@ -1,11 +1,13 @@
-# Voxel Lab Bench — Status (Gates A–E merged; Slice 8 blocked)
+# Voxel Lab Bench — Status (Gates A–E COMPLETE / arc CLOSED; Slice 8 blocked)
 
 Consolidated status record for the **Micro-Voxel Lab Bench** (`labs/voxel-bench/`).
 This document records the **real merged state** of Gates A–E and the current block on
 Slice 8. It is a status record, not an authorization: it authorizes no build, no
 deploy, and no change to any trust or upload boundary.
 
-- **As of main commit:** `692bae7` (Merge PR #143 — `fix/voxel-gate-e-plan-gaps`).
+- **As of main commit:** `86cdd8d` (Merge PR #144 — this status doc + product fixes shipped
+  to `main`; the original A–E gates landed by `692bae7` / PR #143). **The Voxel Lab A–E arc
+  is CLOSED** — see the "Project closeout" section (§7) at the end of this document.
 - **Design source of truth:** [`docs/VOXEL_LAB_BENCH_PLAN.md`](./VOXEL_LAB_BENCH_PLAN.md)
   (the plan; Section 7 slices, Section 8 no-deploy guarantee, "Operator Decisions"
   recorded 2026-07-01).
@@ -149,7 +151,7 @@ authoritative map of what actually merged.
   **164 pass / 0 fail** (13 test modules), on **Node v22.22.3**.
 - **Curated upload proof:**
   `node scripts/build-curated-client-upload.mjs --list | grep -c '^labs/'` → **`0`**
-  (302 total curated files; none under `labs/`).
+  (296 curated live files; none under `labs/`).
 - **`git diff --check`:** clean.
 
 **Headless proof scripts present in repo** (Playwright + cached chromium + served root;
@@ -177,3 +179,56 @@ authoritative map of what actually merged.
   new isolated Durable Object and its own authorization; **not** implied by anything above.
 
 This document authorizes none of the above.
+
+---
+
+## 7. Project closeout (Voxel Lab A–E arc — DONE)
+
+Recorded so future sessions do not reopen completed gates.
+
+**Done (complete, shipped to `main`):**
+
+- Gates **A, B, C, D, E** — all merged (see §1–2). **Gate E repair (PR #143) complete.**
+- This status doc, the Slice 8 threat model, and 3 audit-surfaced product fixes shipped via
+  **PR #144** (`86cdd8d`).
+- **Product-audit closure:** the `deck.html` audit-harness recovery-race false positive was
+  fixed in `scripts/product-audit.mjs` (a control click that legitimately navigates the page
+  is now recorded as an *environment note*, not a page error). Post-fix full audit →
+  **1 flagged run**, which is a non-shipped page (`turf-wars-tech-showcase.html`, out of
+  curated scope); the transient `ERR_NETWORK_CHANGED` noise class did not recur.
+- **Release readiness** documented in
+  [`docs/PRODUCTION_RELEASE_READINESS.md`](./PRODUCTION_RELEASE_READINESS.md) (manual
+  dashboard upload only; no deploy performed).
+
+**Intentionally NOT done (must stay that way absent a new gate):**
+
+- **Slice 8 is NOT part of the completed A–E arc.** It is blocked, unimplemented, and
+  design-only (see [`docs/VOXEL_LAB_SLICE8_THREAT_MODEL.md`](./VOXEL_LAB_SLICE8_THREAT_MODEL.md)).
+- **Gate F** — does not exist; no scope; not started.
+- **No deploy** from any lab work; `labs/` is **excluded from curated upload** (verified 0)
+  and never ships.
+- No Worker/DO/D1/R2/live-loader, no persistence, no network, no new dependencies.
+
+**What would REOPEN the project (each its own explicit `AUTHORIZED:` gate):**
+
+- `AUTHORIZED: BUILD VOXEL LAB SLICE 8` — only after the threat-model hard blockers clear.
+- Any Gate F / new lab surface — requires its own plan + gate.
+- Any server-receipt tier — its own isolated Durable Object + its own gate.
+
+**What must NOT be inferred from the current state:**
+
+- The existence of the Slice 8 threat model does **not** authorize building Slice 8.
+- A merged `main` does **not** mean production ships this — production is unchanged; deploy
+  is a separate manual gate.
+- `labs/` being present in the repo does **not** mean it ships — it is denylisted from upload.
+
+**Final validation snapshot (closure sprint, 2026-07-08):**
+
+- Voxel Lab unit suite: **164 / 164** (`node --test labs/voxel-bench/test/*.test.mjs`).
+- Product audit: **1 flagged run** (non-shipped page only); `deck.html` harness false
+  positive resolved; **0 regressions** on the 3 PR #144 product pages.
+- Curated upload: **296 live files**; `labs/` = **0** (verified by `find` on the built
+  package plus the `--list` proof).
+- `npm run test:unit`: **1297 / 1297**.
+
+This document authorizes none of the above gates.
