@@ -1,0 +1,4 @@
+{"id": "msg-20260614T084109-330fd5a0", "payload": {"t": "2026-06-14T08:41:09Z"}, "recipient": "*", "sender": "healthcheck", "topic": "health.ping", "ts": "2026-06-14T08:41:09Z"}
+{"id": "msg-20260614T084109-f383d104", "payload": {"run_id": "run-20260614T084109-026f2fc2", "steps": ["noop"], "workflow": "health"}, "recipient": "*", "sender": "workflow", "topic": "workflow.start", "ts": "2026-06-14T08:41:09Z"}
+{"id": "msg-20260614T084109-ae8acd8d", "payload": {"run_id": "run-20260614T084109-026f2fc2", "status": "done", "step": "noop"}, "recipient": "*", "sender": "workflow", "topic": "workflow.step", "ts": "2026-06-14T08:41:09Z"}
+{"id": "msg-20260614T084109-3cd37a48", "payload": {"ok": true, "run_id": "run-20260614T084109-026f2fc2", "workflow": "health"}, "recipient": "*", "sender": "workflow", "topic": "workflow.finish", "ts": "2026-06-14T08:41:09Z"}
