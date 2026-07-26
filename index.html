@@ -221,18 +221,37 @@
         .card-maker .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
         .card-maker .card-cta { color: #a78bfa; }
 
+        /* VibeCenter card — browser tycoon public beta */
+        .card-vibecenter {
+            border-color: rgba(251,191,36,0.28);
+            grid-column: span 2;
+        }
+        .card-vibecenter:hover {
+            border-color: rgba(251,191,36,0.62);
+            box-shadow: 0 24px 60px rgba(251,191,36,0.11);
+        }
+        .card-vibecenter .card-tag {
+            font-size: 9px; letter-spacing: 0.18em; color: #fbbf24;
+            background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.28);
+            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
+        }
+        .card-vibecenter .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
+        .card-vibecenter .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
+        .card-vibecenter .card-cta { color: #fbbf24; }
+
         /* Mobile */
         @media (max-width: 580px) {
             .container { gap: 14px; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); }
             .cards { grid-template-columns: 1fr; max-width: 420px; gap: 14px; }
             .card { padding: 22px 18px; border-radius: 16px; }
-            .card-arcade, .card-neoncircuit, .card-maker, .card-learn { grid-column: span 1; }
+            .card-arcade, .card-neoncircuit, .card-maker, .card-vibecenter, .card-learn { grid-column: span 1; }
             .shelf-label { grid-column: span 1; }
             .card-game .card-title,
             .card-learn .card-title,
             .card-arcade .card-title,
             .card-neoncircuit .card-title,
             .card-maker .card-title,
+            .card-vibecenter .card-title,
             .card-mindmachine .card-title,
             .card-nodehopper .card-title { font-size: 20px; }
         }
@@ -274,6 +293,16 @@
                 </div>
                 <div class="card-divider"></div>
                 <span class="card-cta">MAKE A GAME</span>
+            </a>
+
+            <a class="card card-vibecenter" href="/game/vibecenter/">
+                <span class="card-tag">NEW · PUBLIC BETA · STRATEGY</span>
+                <div class="card-title">VIBECENTER</div>
+                <div class="card-subtitle">
+                    Build a city-scale compute empire, route payloads, survive utility events, and ship increasingly unnecessary models in this browser tycoon.
+                </div>
+                <div class="card-divider"></div>
+                <span class="card-cta">PLAY THE BETA</span>
             </a>
 
             <a class="card card-arcade" href="game/Arcade/index.html">
