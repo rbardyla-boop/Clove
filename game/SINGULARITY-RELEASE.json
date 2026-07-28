@@ -1,0 +1,12 @@
+{
+  "title": "Singularity Inc.",
+  "version": "1.0.0",
+  "source_commit": "5cc8015a5c975fc5a45bab778b0b58cd96ac409d",
+  "parity_baseline": "Steam Linux release source",
+  "gameplay_source": "src/",
+  "platform_exceptions": [
+    "Steam achievements are no-op in browsers",
+    "CloveLearn web build adds a return-to-site link",
+    "Sub-801px layouts stack without changing game rules or content"
+  ]
+}

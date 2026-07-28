@@ -1,5 +1,12 @@
 # CloveLearn Arcade Catalog — Read-Only Audit
 
+> **2026-07-28 update:** the legacy `game/` implementation described below has
+> been replaced by a build of the released Singularity Inc. Steam source. The
+> previous hard-coded email and external font/map dependencies are no longer in
+> the shipped game. See `game/SINGULARITY-RELEASE.json` and
+> `docs/GAME_SUITE_RETURN_ROADMAP.md`. The remainder of this document is kept as
+> the dated 2026-06-30 audit record.
+
 - **Date:** 2026-06-30
 - **Repo state:** `main` at `981aa42`
 - **Scope:** every playable arcade/game surface visible in the current repo
