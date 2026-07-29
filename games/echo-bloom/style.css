@@ -39,7 +39,7 @@ canvas { width:100%; height:100%; display:block; }
 #finalStats b { display:block; font-size:28px; color:var(--mint); }
 #finalStats span { font-size:10px; color:#aaa5bb; letter-spacing:.12em; }
 .end-actions { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
-.end-actions a { color:#ddd9ef; border:1px solid rgba(255,255,255,.15); padding:13px 16px; text-decoration:none; font-size:10px; letter-spacing:.08em; font-weight:900; }
+.end-actions a,.end-actions .secondary { color:#ddd9ef; border:1px solid rgba(255,255,255,.15); background:transparent; padding:13px 16px; text-decoration:none; font-size:10px; letter-spacing:.08em; font-weight:900; cursor:pointer; }
 .microcopy { display:flex; justify-content:center; flex-wrap:wrap; gap:18px; padding-top:10px; color:#817d94; font-size:9px; letter-spacing:.12em; font-weight:800; }
 @media (max-width:760px) {
   body{padding:8px;display:block}
@@ -72,6 +72,6 @@ canvas { width:100%; height:100%; display:block; }
   #finalStats{gap:7px;margin:8px 0 12px}
   #finalStats div{min-width:88px;padding-top:5px}
   #finalStats b{font-size:19px}
-  .end-actions{gap:6px}.end-actions a{padding:10px;font-size:8px}
+  .end-actions{gap:6px}.end-actions a,.end-actions .secondary{padding:10px;font-size:8px}
   .microcopy{display:none}
 }

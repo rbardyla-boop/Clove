@@ -144,6 +144,7 @@ test('front door, feedback, and mobile Echo Bloom work together', async t => {
   await mobile.goto(`${base}/games/echo-bloom/`, { waitUntil: 'networkidle' });
   assert.equal(await mobile.locator('#startButton').isVisible(), true);
   assert.equal(await mobile.locator('.quality-grid div').count(), 5);
+  assert.equal(await mobile.locator('#shareButton').count(), 1);
   await mobile.click('#startButton');
   const before = await mobile.evaluate(() => window.__echoBloom.state.player.x);
   await mobile.locator('[data-code="ArrowRight"]').dispatchEvent('pointerdown', { pointerId: 1, pointerType: 'touch' });

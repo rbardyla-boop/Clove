@@ -7,6 +7,7 @@
   const overPanel = document.getElementById('gameOverPanel');
   const startButton = document.getElementById('startButton');
   const restartButton = document.getElementById('restartButton');
+  const shareButton = document.getElementById('shareButton');
   const muteButton = document.getElementById('muteButton');
   const toastEl = document.getElementById('toast');
   const finalStats = document.getElementById('finalStats');
@@ -1056,8 +1057,28 @@
     if (audio) audio.master.gain.value = muted ? 0 : 0.16;
   }
 
+  async function shareGame() {
+    const share = {
+      title: 'Echo Bloom',
+      text: 'My movement came back as a living rail in Echo Bloom. Try a free three-minute run:',
+      url: 'https://clovelearn.io/games/echo-bloom/',
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(share);
+        toast('THE GARDEN TRAVELLED', palette.mint);
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(`${share.text} ${share.url}`);
+        toast('GAME LINK COPIED', palette.mint);
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') toast('SHARE DID NOT OPEN', palette.coral);
+    }
+  }
+
   startButton.addEventListener('click', resetGame);
   restartButton.addEventListener('click', resetGame);
+  shareButton.addEventListener('click', shareGame);
   muteButton.addEventListener('click', toggleMute);
 
   window.__echoBloom = {
