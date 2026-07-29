@@ -205,9 +205,12 @@
           }),
         });
         if (!response.ok) throw new Error('send_failed');
-        const eventName = category === 'helpful' ? 'feedback_helpful'
-          : category === 'not_for_me' ? 'feedback_not_for_me' : 'feedback_broken';
-        if (allowedEvents.has(eventName)) track(eventName);
+        const eventName = {
+          helpful: 'feedback_helpful',
+          not_for_me: 'feedback_not_for_me',
+          broken: 'feedback_broken',
+        }[category];
+        if (eventName) track(eventName);
         form.reset();
         status.textContent = 'Thank you. It reached the builder.';
       } catch {
