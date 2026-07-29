@@ -64,6 +64,14 @@ function tidy(value) {
 async function auditPage(path, viewportName, viewport) {
   const context = await browser.newContext({ viewport, reducedMotion: 'reduce', acceptDownloads: true });
   const page = await context.newPage();
+  // The static audit server cannot accept POSTs. Fulfil the first-party,
+  // aggregate-only endpoints locally so their expected 202 responses do not
+  // drown real page errors in unsupported-method noise.
+  await page.route('**/__clove/{signal,feedback}', (route) => route.fulfill({
+    status: 202,
+    contentType: 'application/json',
+    body: '{"ok":true}',
+  }));
   const errors = [];
   const environmentNotes = [];
   const badResponses = [];

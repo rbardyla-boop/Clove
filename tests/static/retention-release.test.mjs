@@ -131,6 +131,10 @@ test('front door, feedback, and mobile Echo Bloom work together', async t => {
   await page.goto(`${base}/wellbeing/`, { waitUntil: 'networkidle' });
   assert.equal(await page.locator('.need-group').count(), 4);
 
+  await page.goto(`${base}/parts-mapping-drill.html`, { waitUntil: 'networkidle' });
+  assert.equal(await page.evaluate(() => typeof window.goBack), 'function');
+  assert.equal(await page.evaluate(() => typeof window.goStep), 'function');
+
   await page.goto(`${base}/feedback.html`, { waitUntil: 'networkidle' });
   await page.selectOption('[name=category]', 'broken');
   await page.fill('[name=note]', 'The game restart button did not respond.');
