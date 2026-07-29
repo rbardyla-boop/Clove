@@ -62,6 +62,15 @@
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate
 
+/clove-signals.js
+  Cache-Control: public, max-age=300, must-revalidate
+
+/home.js
+  Cache-Control: public, max-age=300, must-revalidate
+
+/hub.css
+  Cache-Control: public, max-age=3600, must-revalidate
+
 ## ── HTML PAGES: SHORT CACHE ───────────────────────────────────
 ## Users should get fresh content on deploy
 ## But allow edge caching for speed

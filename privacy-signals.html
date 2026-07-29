@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Privacy contract — CloveLearn</title>
+  <meta name="description" content="The exact privacy contract for CloveLearn's aggregate diagnostics and voluntary feedback.">
+  <meta name="theme-color" content="#07111f">
+  <link rel="canonical" href="https://clovelearn.io/privacy-signals.html">
+  <link rel="stylesheet" href="/hub.css">
+</head>
+<body>
+  <header class="site-nav"><a class="wordmark" href="/">CLOVE<span>LEARN</span></a><nav><a href="/wellbeing/">Wellbeing</a><a href="/games/">Games</a><a href="/feedback.html">Feedback</a></nav></header>
+  <main>
+    <section class="page-head"><p class="eyebrow">PLAIN-LANGUAGE PRIVACY CONTRACT</p><h1>Useful signals.<br>No user profiles.</h1><p>CloveLearn uses a small first-party system to learn what works and what breaks without tracking individual people across sessions or sites.</p></section>
+    <article class="privacy-copy">
+      <div class="contract"><b>The short version:</b> wellbeing answers and game saves stay in your browser. If aggregate signals are enabled, the server receives coarse counters such as “a phone opened Echo Bloom.” It never receives the answer you typed, your save, a user ID, or the page that referred you.</div>
+      <h2>What can be sent</h2>
+      <ul>
+        <li>A coarse event such as site opened, tool started, game completed, or browser error.</li>
+        <li>A coarse area such as home, wellbeing, article, or a game title—not the full URL.</li>
+        <li>Phone, tablet, or desktop; a broad return window; and direct, search, social, or other referral.</li>
+        <li>For an error, a short one-way fingerprint created in your browser—not the message or stack trace.</li>
+        <li>Feedback you deliberately submit, after a warning not to include private information.</li>
+      </ul>
+      <h2>What is never collected</h2>
+      <ul>
+        <li>No name, email, account, advertising ID, cookie, cross-site identifier, or fingerprint of your device.</li>
+        <li>No IP address or user-agent is written to the CloveLearn database.</li>
+        <li>No full URL, full referrer, wellbeing answer, plan content, journal entry, game save, or raw error text.</li>
+        <li>No advertising, resale, third-party analytics, or behavioural targeting.</li>
+      </ul>
+      <h2>Retention</h2>
+      <p>Daily aggregate counters are automatically deleted after 400 days. Voluntary feedback notes are automatically deleted after 90 days. There is no public analytics dashboard and no user-level table to query.</p>
+      <h2>Your control</h2>
+      <p>Global Privacy Control and browser Do Not Track are honoured automatically. You can also turn aggregate signals off for this browser now:</p>
+      <p><button class="button" id="privacyToggle" type="button">Turn aggregate signals off</button></p>
+      <p id="privacyStatus" aria-live="polite"></p>
+      <h2>One important distinction</h2>
+      <p>Your wellbeing inputs, plans, and single-player saves remain local. Multiplayer games must send the actions needed to run the shared game through Cloudflare. The interface labels shared features when you enter them.</p>
+    </article>
+  </main>
+  <footer class="site-footer"><p>Last updated July 29, 2026.</p><nav><a href="/">Home</a><a href="/feedback.html">Feedback</a></nav></footer>
+  <script src="/clove-signals.js" defer></script>
+  <script src="/privacy-signals.js" defer></script>
+</body>
+</html>

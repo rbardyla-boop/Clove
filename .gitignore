@@ -31,6 +31,10 @@ workers/arcade/.env
 workers/arcade/.dev.vars
 # Wrangler build output (`wrangler deploy --dry-run --outdir dist`) — regenerated, never committed
 workers/arcade/dist/
+workers/insights/.wrangler/
+workers/insights/node_modules/
+workers/insights/dist/
+workers/insights/.dev.vars
 
 # Local DO SQLite storage (when running with --local)
 *.sqlite

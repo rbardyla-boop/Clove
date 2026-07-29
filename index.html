@@ -1,362 +1,103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>CloveLearn — free, private mental health tools</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            width: 100%; min-height: 100%; overflow-x: hidden;
-            background: #060d1a;
-            font-family: Inter, system-ui, sans-serif;
-            color: #e6edff;
-        }
-
-        /* Subtle animated background grid */
-        body::before {
-            content: '';
-            position: fixed; inset: 0;
-            background-image:
-                linear-gradient(rgba(46,196,182,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(46,196,182,0.04) 1px, transparent 1px);
-            background-size: 48px 48px;
-            animation: grid-drift 18s linear infinite;
-            pointer-events: none;
-        }
-        @keyframes grid-drift {
-            from { background-position: 0 0; }
-            to   { background-position: 48px 48px; }
-        }
-
-        .container {
-            position: relative; z-index: 1;
-            width: 100%; min-height: 100dvh;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            gap: 20px;
-            padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
-        }
-
-        .eyebrow {
-            font-size: 10px; letter-spacing: 0.22em;
-            color: rgba(158,203,255,0.35); margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-        .lede {
-            max-width: 640px; text-align: center; margin: -8px 0 4px;
-            font-size: 14px; line-height: 1.6; color: rgba(210,230,255,0.62);
-        }
-        .lede b { color: #e6edff; font-weight: 600; }
-
-        .cards {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 20px; width: 100%; max-width: 780px;
-        }
-
-        .card {
-            flex: 1; padding: 36px 32px; border-radius: 24px;
-            background: rgba(6,14,30,0.92);
-            border: 1px solid rgba(86,163,253,0.1);
-            display: flex; flex-direction: column; gap: 14px;
-            cursor: pointer; text-decoration: none; color: inherit;
-            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-            position: relative; overflow: hidden;
-        }
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 24px 60px rgba(0,0,0,0.4);
-        }
-        .card::after {
-            content: '→';
-            position: absolute; bottom: 28px; right: 28px;
-            font-size: 18px; opacity: 0;
-            transition: opacity 0.2s, right 0.2s;
-        }
-        .card:hover::after { opacity: 0.5; right: 22px; }
-
-        /* Game card */
-        .card-game {
-            border-color: rgba(46,196,182,0.18);
-        }
-        .card-game:hover {
-            border-color: rgba(46,196,182,0.5);
-            box-shadow: 0 24px 60px rgba(46,196,182,0.08);
-        }
-        .card-game .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #2ec4b6;
-            background: rgba(46,196,182,0.1); border: 1px solid rgba(46,196,182,0.2);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-game .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
-        .card-game .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-
-        /* Learn card — the primary anchor */
-        .card-learn {
-            border-color: rgba(96,165,250,0.35);
-            grid-column: span 2;
-        }
-        .card-learn:hover {
-            border-color: rgba(96,165,250,0.45);
-            box-shadow: 0 24px 60px rgba(96,165,250,0.06);
-        }
-        .card-learn .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #60a5fa;
-            background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.2);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-learn .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; color: #e6edff; line-height: 1.2; }
-        .card-learn .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-
-        /* Mind Machine card */
-        .card-mindmachine {
-            border-color: rgba(255,112,67,0.18);
-        }
-        .card-mindmachine:hover {
-            border-color: rgba(255,112,67,0.5);
-            box-shadow: 0 24px 60px rgba(255,112,67,0.08);
-        }
-        .card-mindmachine .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #FF7043;
-            background: rgba(255,112,67,0.1); border: 1px solid rgba(255,112,67,0.2);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-mindmachine .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
-        .card-mindmachine .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-        .card-mindmachine .card-cta { color: #FF7043; }
-
-        /* Node Hopper card */
-        .card-nodehopper {
-            border-color: rgba(64,250,255,0.18);
-        }
-        .card-nodehopper:hover {
-            border-color: rgba(64,250,255,0.5);
-            box-shadow: 0 24px 60px rgba(64,250,255,0.08);
-        }
-        .card-nodehopper .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #40faff;
-            background: rgba(64,250,255,0.1); border: 1px solid rgba(64,250,255,0.2);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-nodehopper .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
-        .card-nodehopper .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-        .card-nodehopper .card-cta { color: #40faff; }
-
-        .card-divider {
-            width: 100%; height: 1px;
-            background: rgba(86,163,253,0.07);
-            margin: 4px 0;
-        }
-
-        .card-cta {
-            font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
-        }
-        .card-game .card-cta  { color: #2ec4b6; }
-        .card-learn .card-cta { color: #60a5fa; }
-
-        .footer-note {
-            font-size: 10px; color: rgba(210,230,255,0.2);
-            letter-spacing: 0.06em; margin-top: 8px;
-        }
-
-        .shelf-label {
-            grid-column: 1 / -1;
-            font-size: 10px; letter-spacing: 0.22em;
-            color: rgba(158,203,255,0.35);
-            text-transform: uppercase;
-            margin-top: 12px;
-        }
-
-        /* Arcade card */
-        .card-arcade {
-            border-color: rgba(192,57,43,0.22);
-            grid-column: span 2;
-        }
-        .card-arcade:hover {
-            border-color: rgba(192,57,43,0.55);
-            box-shadow: 0 24px 60px rgba(192,57,43,0.10);
-        }
-        .card-arcade .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #e03030;
-            background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.25);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-arcade .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
-        .card-arcade .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-        .card-arcade .card-cta { color: #e03030; }
-
-        /* Neon Circuit card — Public Arcade v1 (live multiplayer city + 3 cabinets) */
-        .card-neoncircuit {
-            border-color: rgba(255,45,149,0.28);
-            grid-column: span 2;
-        }
-        .card-neoncircuit:hover {
-            border-color: rgba(255,45,149,0.6);
-            box-shadow: 0 24px 60px rgba(255,45,149,0.12);
-        }
-        .card-neoncircuit .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #ff2d95;
-            background: rgba(255,45,149,0.1); border: 1px solid rgba(255,45,149,0.28);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-neoncircuit .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
-        .card-neoncircuit .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-        .card-neoncircuit .card-cta { color: #ff2d95; }
-
-        /* Local Maker card — make + playtest arcade games locally (no upload, no publish) */
-        .card-maker {
-            border-color: rgba(167,139,250,0.26);
-            grid-column: span 2;
-        }
-        .card-maker:hover {
-            border-color: rgba(167,139,250,0.6);
-            box-shadow: 0 24px 60px rgba(167,139,250,0.10);
-        }
-        .card-maker .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #a78bfa;
-            background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.28);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-maker .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
-        .card-maker .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-        .card-maker .card-cta { color: #a78bfa; }
-
-        /* VibeCenter card — browser tycoon public beta */
-        .card-vibecenter {
-            border-color: rgba(251,191,36,0.28);
-            grid-column: span 2;
-        }
-        .card-vibecenter:hover {
-            border-color: rgba(251,191,36,0.62);
-            box-shadow: 0 24px 60px rgba(251,191,36,0.11);
-        }
-        .card-vibecenter .card-tag {
-            font-size: 9px; letter-spacing: 0.18em; color: #fbbf24;
-            background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.28);
-            border-radius: 999px; padding: 3px 10px; display: inline-block; width: fit-content;
-        }
-        .card-vibecenter .card-title { font-size: 24px; font-weight: 700; letter-spacing: 0.06em; color: #e6edff; line-height: 1.2; }
-        .card-vibecenter .card-subtitle { font-size: 13px; color: rgba(210,230,255,0.5); line-height: 1.6; }
-        .card-vibecenter .card-cta { color: #fbbf24; }
-
-        /* Mobile */
-        @media (max-width: 580px) {
-            .container { gap: 14px; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); }
-            .cards { grid-template-columns: 1fr; max-width: 420px; gap: 14px; }
-            .card { padding: 22px 18px; border-radius: 16px; }
-            .card-arcade, .card-neoncircuit, .card-maker, .card-vibecenter, .card-learn { grid-column: span 1; }
-            .shelf-label { grid-column: span 1; }
-            .card-game .card-title,
-            .card-learn .card-title,
-            .card-arcade .card-title,
-            .card-neoncircuit .card-title,
-            .card-maker .card-title,
-            .card-vibecenter .card-title,
-            .card-mindmachine .card-title,
-            .card-nodehopper .card-title { font-size: 20px; }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>CloveLearn — free wellbeing tools and browser games</title>
+  <meta name="description" content="Private, practical wellbeing tools and original browser games. Free forever, with no account, ads, streaks, or paywalls.">
+  <meta name="theme-color" content="#07111f">
+  <meta property="og:title" content="CloveLearn — feel better, build a plan, or play">
+  <meta property="og:description" content="Free wellbeing tools and original browser games. No account, ads, streaks, or paywalls.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://clovelearn.io/">
+  <meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+  <link rel="canonical" href="https://clovelearn.io/">
+  <link rel="stylesheet" href="/hub.css">
 </head>
 <body>
-    <div class="container">
-        <p class="eyebrow">Welcome to CloveLearn</p>
-        <p class="lede">A free, private place to <b>grow</b> — build your personal mental growth plan, and when you need a break, <b>play</b>. No account, no install. Everything stays on your device.</p>
-        <div class="cards">
+  <header class="site-nav">
+    <a class="wordmark" href="/">CLOVE<span>LEARN</span></a>
+    <nav aria-label="Main navigation">
+      <a href="/wellbeing/">Wellbeing</a>
+      <a href="/games/">Games</a>
+      <a href="/about-clovelearn.html">About</a>
+    </nav>
+  </header>
 
-            <a class="card card-learn" id="plan-card" href="onboarding/onboarding.html" onclick="try{var d=JSON.parse(localStorage.getItem('clovelearn_onboarding_v1')||'null');if(d&&d.completedAt){event.preventDefault();location.href='growth-plan.html';}}catch(e){}">
-                <span class="card-tag">MENTAL HEALTH · FREE · PRIVATE</span>
-                <div class="card-title">YOUR GROWTH PLAN</div>
-                <div class="card-subtitle" id="plan-subtitle">
-                    Build your personal mental growth plan in 12 minutes. Free. Private. Yours.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta" id="plan-cta">BEGIN YOUR PATH</span>
-            </a>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Welcome to CloveLearn · free forever · private by design</p>
+      <h1>What would help<br><span>right now?</span></h1>
+      <p class="lede">Use one practical tool, build a personal plan, or take a real break with an original game. No account. No ads. No pressure to keep a streak alive.</p>
+    </section>
 
-            <p class="shelf-label">Take a break · free games &amp; maker — no accounts, no ads</p>
+    <section class="choice-grid" aria-label="Choose your path">
+      <a class="choice calm" href="/tipp-drill-full.html" data-clove-event="tool_started" data-clove-detail="quick_action">
+        <span class="choice-time">ABOUT 90 SECONDS</span>
+        <h2>I need help now</h2>
+        <p>Settle the body first with a short, guided reset. No assessment required.</p>
+        <b>START A QUICK RESET →</b>
+      </a>
+      <a class="choice plan" id="planChoice" href="/onboarding/onboarding.html" data-clove-event="onboarding_started">
+        <span class="choice-time">SAVE LOCALLY · 12 MINUTES</span>
+        <h2>Build my plan</h2>
+        <p id="planChoiceText">Turn what is going on into a private, practical growth plan stored on this device.</p>
+        <b id="planChoiceCta">BUILD MY PLAN →</b>
+      </a>
+      <a class="choice play" href="/games/" data-clove-event="game_opened">
+        <span class="choice-time">ORIGINAL · NO ADS</span>
+        <h2>I want to play</h2>
+        <p>Pick a three-minute arcade run, a complete strategy game, or a neon multiplayer city.</p>
+        <b>OPEN THE FREE ARCADE →</b>
+      </a>
+    </section>
 
-            <a class="card card-neoncircuit" href="whats-live.html">
-                <span class="card-tag">NEW · LIVE MULTIPLAYER ARCADE</span>
-                <div class="card-title">NEON CIRCUIT</div>
-                <div class="card-subtitle">
-                    Walk a nine-block neon city in real time and play three arcade cabinets — Pulse Tap, Signal Sprint, and Neon Grid. No install, no sign-up.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">SEE WHAT'S LIVE</span>
-            </a>
+    <section class="continue-card" id="continueCard" hidden aria-live="polite">
+      <div>
+        <p class="eyebrow">CONTINUE ON THIS DEVICE</p>
+        <h2 id="continueTitle">Pick up where you left off</h2>
+        <p id="continueText">Your activity is remembered only in this browser.</p>
+      </div>
+      <a class="button" id="continueLink" href="/">Continue →</a>
+    </section>
 
-            <a class="card card-maker" href="arcade/creator/local-maker/">
-                <span class="card-tag">MAKE · LOCAL ONLY</span>
-                <div class="card-title">ARCADE MAKER LAB</div>
-                <div class="card-subtitle">
-                    Build a small arcade game from simple controls, playtest it right in your browser, and share it as a local file or share code. Nothing is uploaded or published — it stays on your device.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">MAKE A GAME</span>
-            </a>
-
-            <a class="card card-vibecenter" href="/game/vibecenter/">
-                <span class="card-tag">NEW · PUBLIC BETA · STRATEGY</span>
-                <div class="card-title">VIBECENTER</div>
-                <div class="card-subtitle">
-                    Build a city-scale compute empire, route payloads, survive utility events, and ship increasingly unnecessary models in this browser tycoon.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">PLAY THE BETA</span>
-            </a>
-
-            <a class="card card-arcade" href="game/Arcade/index.html">
-                <span class="card-tag">MINI ARCADE · 6 GAMES</span>
-                <div class="card-title">OPERATOR'S DECK</div>
-                <div class="card-subtitle">
-                    Six cognitive training games in one session: physics puzzle, block unlocker, pattern cure, 2048, focus serpent, and memory match.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">ENTER ARCADE</span>
-            </a>
-
-            <a class="card card-game" href="game/index.html">
-                <span class="card-tag">COMPLETE GAME · FREE WEB EDITION</span>
-                <div class="card-title">SINGULARITY INC.</div>
-                <div class="card-subtitle">
-                    The complete Steam-release strategy simulation: five AI archetypes, ten world regions, daily scenarios, crises, persistent runs, and multiple endings.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">PLAY THE COMPLETE GAME</span>
-            </a>
-
-            <a class="card card-mindmachine" href="game/theincrediblemindmachine/index.html">
-                <span class="card-tag">PUZZLE GAME</span>
-                <div class="card-title">MIND MACHINE</div>
-                <div class="card-subtitle">
-                    A physics puzzle about clarity and obstacles. Guide the Ball of Clarity to Insight.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">PLAY NOW</span>
-            </a>
-
-            <a class="card card-nodehopper" href="game/nodehopper/Node Hopper.html">
-                <span class="card-tag">ARCADE GAME</span>
-                <div class="card-title">NODE HOPPER</div>
-                <div class="card-subtitle">
-                    A neon platformer. Collect data nodes, dodge hazards, flip gravity. Survive the kernel panic.
-                </div>
-                <div class="card-divider"></div>
-                <span class="card-cta">PLAY NOW</span>
-            </a>
-
+    <section class="today">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">TODAY AT CLOVELEARN</p>
+          <h2>One useful thing. One good game.</h2>
         </div>
-        <p class="footer-note">All free. No accounts. No ads. Anything you make stays on your device.</p>
-    </div>
-    <script>
-        // Returning users with a completed plan see a continue state on the anchor card.
-        try {
-            var plan = JSON.parse(localStorage.getItem('clovelearn_onboarding_v1') || 'null');
-            if (plan && plan.completedAt) {
-                document.getElementById('plan-cta').textContent = 'CONTINUE YOUR PLAN';
-                document.getElementById('plan-subtitle').textContent = 'Welcome back — pick up where you left off.';
-            }
-        } catch (e) {}
-    </script>
+        <p>Changes each day. Missing a day changes nothing.</p>
+      </div>
+      <div class="today-grid">
+        <a id="todayTool" class="today-card tool" href="/mindfulness-drill-full.html" data-clove-event="tool_started" data-clove-detail="daily_pick">
+          <small>DAILY PRACTICE</small>
+          <h3>One-minute grounding</h3>
+          <p>Notice five things without trying to fix anything.</p>
+          <b>TRY IT →</b>
+        </a>
+        <a id="todayGame" class="today-card game" href="/games/echo-bloom/" data-clove-event="game_opened" data-clove-detail="daily_pick">
+          <small>TODAY'S CARTRIDGE</small>
+          <h3>Echo Bloom</h3>
+          <p>Your last seven seconds return as a living rail.</p>
+          <b>PLAY FREE →</b>
+        </a>
+      </div>
+    </section>
+
+    <section class="plain-links" aria-label="Browse more">
+      <a href="/wellbeing/"><b>Browse by what you need</b><span>Skip the assessment and find the right tool →</span></a>
+      <a href="/articles/"><b>Read the field guide</b><span>Plain-language articles for difficult patterns →</span></a>
+      <a href="/privacy-signals.html"><b>Our privacy contract</b><span>Exactly what leaves your device—and what never does →</span></a>
+      <a class="card card-maker" href="arcade/creator/local-maker/"><b>ARCADE MAKER LAB</b><span>Make and share-code a small game locally. It stays on your device →</span></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>All free. Always. No ads, accounts, paid tiers, or streak pressure.</p>
+    <nav><a href="/feedback.html">Feedback</a><a href="/changelog.html">Changelog</a><a href="/privacy-signals.html">Privacy</a></nav>
+  </footer>
+  <script src="/home.js" defer></script>
+  <script src="/clove-signals.js" defer></script>
 </body>
 </html>

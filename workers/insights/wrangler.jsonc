@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "clove-insights",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-29",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    { "pattern": "clovelearn.io/__clove/signal", "zone_name": "clovelearn.io" },
+    { "pattern": "clovelearn.io/__clove/feedback", "zone_name": "clovelearn.io" },
+    { "pattern": "clovelearn.io/__clove/health", "zone_name": "clovelearn.io" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "INSIGHTS_DB",
+      "database_name": "clove-insights",
+      "database_id": "4045c221-132d-4ad0-8e36-17fef769a99b",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["17 4 * * *"]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false,
+      "head_sampling_rate": 0.01
+    }
+  }
+}

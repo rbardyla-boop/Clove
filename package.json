@@ -1,6 +1,7 @@
 {
   "scripts": {
     "audit:product": "node scripts/product-audit.mjs",
+    "test:release": "node --test tests/static/retention-release.test.mjs",
     "test:unit": "node --test tests/arcade/*.test.mjs tests/creator/*.test.mjs",
     "test:singularity": "node --test tests/static/singularity-web-parity.test.mjs",
     "test:studio": "npm --prefix arcade-studio test"

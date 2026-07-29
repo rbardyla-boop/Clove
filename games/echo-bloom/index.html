@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Echo Bloom — Free three-minute arcade game | CloveLearn</title>
+  <meta name="description" content="Draw a route, hear it return, and turn living rails into bloom explosions in this free three-minute browser arcade game." />
+  <meta name="theme-color" content="#070812" />
+  <meta property="og:title" content="Echo Bloom — Your movement becomes the level" />
+  <meta property="og:description" content="A free three-minute arcade garden. Build echoes, bend enemies, complete harmonies, and bloom." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://clovelearn.io/games/echo-bloom/" />
+  <link rel="canonical" href="https://clovelearn.io/games/echo-bloom/" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="shell">
+    <header class="brandbar">
+      <div>
+        <div class="eyebrow">THREE-MINUTE ARCADE GARDEN</div>
+        <h1>ECHO <span>BLOOM</span></h1>
+      </div>
+      <div class="header-actions">
+        <button id="muteButton" aria-label="Toggle sound">SOUND ON</button>
+        <a href="/games/">ALL GAMES</a>
+      </div>
+    </header>
+
+    <section id="gameWrap">
+      <canvas id="game" width="960" height="540" aria-label="Echo Bloom game canvas"></canvas>
+      <div id="scanlines"></div>
+      <div id="touchControls" aria-label="Touch game controls">
+        <div class="dpad" aria-label="Movement controls">
+          <button class="touch-key up" data-code="ArrowUp" aria-label="Move up">▲</button>
+          <button class="touch-key left" data-code="ArrowLeft" aria-label="Move left">◀</button>
+          <button class="touch-key down" data-code="ArrowDown" aria-label="Move down">▼</button>
+          <button class="touch-key right" data-code="ArrowRight" aria-label="Move right">▶</button>
+        </div>
+        <div class="touch-actions">
+          <button class="touch-key dash" data-action="dash"><b>BLOOM</b><span>DASH / CUT</span></button>
+          <button class="touch-key pause" data-action="pause">PAUSE</button>
+        </div>
+      </div>
+      <div id="startPanel" class="panel show">
+        <div class="panel-kicker">GROW A ROUTE. HEAR IT RETURN.</div>
+        <h2>Your movement becomes the level.</h2>
+        <p>Collect the three-note pattern. Every seven seconds, your recent path returns as a living echo.</p>
+        <div class="quality-grid">
+          <div><b>MOVE</b><span>WASD / ARROWS / TOUCH</span></div>
+          <div><b>ECHO</b><span>YOUR LAST 7 SECONDS REPLAY</span></div>
+          <div><b>HARMONY</b><span>COLLECT NOTES IN ORDER</span></div>
+          <div><b>BLOOM CUT</b><span>CROSS A VINE + SPACE</span></div>
+          <div><b>REWIND</b><span>FIRST HIT UN-HAPPENS</span></div>
+        </div>
+        <button id="startButton" class="primary">ENTER THE GARDEN</button>
+      </div>
+      <div id="gameOverPanel" class="panel">
+        <div class="panel-kicker">THE GARDEN REMEMBERS</div>
+        <h2 id="gameOverTitle">Run complete.</h2>
+        <div id="finalStats"></div>
+        <div class="end-actions">
+          <button id="restartButton" class="primary">GROW AGAIN</button>
+          <a href="/games/">MORE FREE GAMES</a>
+          <a href="/wellbeing/">TAKE A BREATHER</a>
+        </div>
+      </div>
+      <div id="toast" aria-live="polite"></div>
+    </section>
+
+    <footer class="microcopy">
+      <span>MOVE: WASD / ARROWS</span><span>DASH + CUT: SPACE</span><span>PAUSE: P</span><span>RESTART: R</span>
+    </footer>
+  </main>
+  <script src="game.js"></script>
+  <script src="/clove-signals.js" defer></script>
+</body>
+</html>
