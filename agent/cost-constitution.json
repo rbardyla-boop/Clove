@@ -12,24 +12,47 @@
       "workers",
       "d1",
       "workers_ai",
-      "browser_run"
+      "browser_run",
+      "durable_objects"
     ]
   },
-  "free_limits": {
-    "worker_requests": 100000,
-    "ai_neurons": 10000,
-    "browser_ms": 600000,
-    "d1_rows_read": 5000000,
-    "d1_rows_written": 100000,
-    "d1_storage_bytes": 5000000000
-  },
-  "release_budgets": {
-    "worker_requests": 90000,
-    "ai_neurons": 9000,
-    "browser_ms": 540000,
-    "d1_rows_read": 4500000,
-    "d1_rows_written": 90000,
-    "d1_storage_bytes": 4500000000
+  "resources": {
+    "worker_requests": {
+      "unit": "requests_per_utc_day",
+      "cloudflare_limit": 100000,
+      "clove_hard_limit": 90000,
+      "default_reservation": 1
+    },
+    "ai_neurons": {
+      "unit": "neurons_per_utc_day",
+      "cloudflare_limit": 10000,
+      "clove_hard_limit": 9000,
+      "default_reservation": 900
+    },
+    "browser_ms": {
+      "unit": "milliseconds_per_utc_day",
+      "cloudflare_limit": 600000,
+      "clove_hard_limit": 540000,
+      "default_reservation": 60000
+    },
+    "d1_rows_read": {
+      "unit": "rows_per_utc_day",
+      "cloudflare_limit": 5000000,
+      "clove_hard_limit": 4500000,
+      "default_reservation": 250
+    },
+    "d1_rows_written": {
+      "unit": "rows_per_utc_day",
+      "cloudflare_limit": 100000,
+      "clove_hard_limit": 90000,
+      "default_reservation": 25
+    },
+    "d1_storage_bytes": {
+      "unit": "bytes_total",
+      "cloudflare_limit": 5000000000,
+      "clove_hard_limit": 4500000000,
+      "default_reservation": 0
+    }
   },
   "operation_costs": {
     "cached_evidence": {
@@ -65,6 +88,7 @@
     "worker_requests": "https://developers.cloudflare.com/workers/platform/limits/",
     "ai_neurons": "https://developers.cloudflare.com/workers-ai/platform/pricing/",
     "browser_ms": "https://developers.cloudflare.com/browser-run/pricing/",
-    "d1": "https://developers.cloudflare.com/d1/platform/pricing/"
+    "d1": "https://developers.cloudflare.com/d1/platform/pricing/",
+    "durable_objects": "https://developers.cloudflare.com/durable-objects/"
   }
 }

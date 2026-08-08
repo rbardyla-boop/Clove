@@ -5,15 +5,17 @@ release may run only on the Cloudflare Workers Free plan and has a hard paid-cos
 ceiling of **$0.00**.
 
 The machine-readable source is [`agent/cost-constitution.json`](../agent/cost-constitution.json).
-The admission kernel is [`agent/cost-firewall.mjs`](../agent/cost-firewall.mjs).
+The local admission kernel is [`agent/cost-firewall.mjs`](../agent/cost-firewall.mjs).
+The distributed reservation authority is [`workers/research-cost-authority/`](../workers/research-cost-authority/).
 
 ## Non-negotiable rules
 
 1. The release must be deployed under `workers_free`. A paid Workers plan is an
    installation failure, not an automatic upgrade path.
-2. App-controlled budgets stop at 90% of each published Free-plan allowance:
-   Worker requests, Workers AI neurons, Browser Run milliseconds, D1 rows read,
-   D1 rows written, and D1 storage.
+2. Each resource definition records `cloudflare_limit`, `clove_hard_limit`, and
+   `default_reservation`. App-controlled budgets stop at 90% of each published
+   Free-plan allowance: Worker requests, Workers AI neurons, Browser Run
+   milliseconds, D1 rows read, D1 rows written, and D1 storage.
 3. All resource reservations for an operation are atomic. If one resource would
    cross its release budget, none are reserved and the expensive callback is not
    invoked.
@@ -22,7 +24,8 @@ The admission kernel is [`agent/cost-firewall.mjs`](../agent/cost-firewall.mjs).
 5. After refusal, the request must not call Workers AI, Browser Run, or write new
    D1 evidence.
 6. The daily budget key is UTC. A production adapter must make admission globally
-   atomic; a per-isolate JavaScript counter is not sufficient for that job.
+   atomic; the SQLite-backed Cost Authority does this through a separate daily
+   Durable Object selected only for scarce-operation reservations.
 7. No release change may silently alter the paid ceiling, Free-plan requirement,
    resource list, or hard-stop behavior. Change the constitution and its tests
    together.
@@ -48,7 +51,16 @@ Workers Free-plan attestation.
 ```bash
 npm run check:cost-constitution
 npm run test:cost-constitution
+npm --prefix workers/research-cost-authority run check
+npm --prefix workers/research-cost-authority test
+npm --prefix workers/research-cost-authority run dry-run
 ```
+
+The Cost Authority test directly hammers the Durable Object with concurrent
+reservations and proves that the aggregate approved usage cannot exceed the
+locked hard budget. It also proves that a failed provider call releases its
+reservation, expired reservations are recoverable, and duplicate operation IDs
+do not double-spend.
 
 The deployment owner must additionally verify the account plan in Cloudflare
 before any production deploy. Cloudflare's Free plan currently fails further

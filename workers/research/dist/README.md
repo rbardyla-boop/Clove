@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "clove-research" generated at 2026-08-08T16:16:00.367Z.

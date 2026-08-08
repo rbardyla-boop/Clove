@@ -15,11 +15,12 @@ test('constitution is valid and every release budget stays below the Free-plan c
   assert.equal(COST_CONSTITUTION.release.required_plan, 'workers_free');
   assert.equal(COST_CONSTITUTION.release.maximum_paid_usd, 0);
 
-  for (const resource of Object.keys(COST_CONSTITUTION.free_limits)) {
+  for (const [resource, definition] of Object.entries(COST_CONSTITUTION.resources)) {
     assert.ok(
-      COST_CONSTITUTION.release_budgets[resource] < COST_CONSTITUTION.free_limits[resource],
+      definition.clove_hard_limit < definition.cloudflare_limit,
       `${resource} needs release headroom`,
     );
+    assert.ok(definition.default_reservation >= 0);
   }
 });
 
@@ -38,7 +39,7 @@ test('reservation is atomic when one resource is exhausted', () => {
   const firewall = createCostFirewall({ plan: 'workers_free', dayKey: '2026-08-08' });
   const before = firewall.snapshot().usage;
   const denied = firewall.reserve({
-    ai_neurons: COST_CONSTITUTION.release_budgets.ai_neurons + 1,
+    ai_neurons: COST_CONSTITUTION.resources.ai_neurons.clove_hard_limit + 1,
     d1_rows_written: 1,
   });
 
@@ -70,14 +71,14 @@ test('one million-request traffic spike cannot create a paid bill', async () => 
   const snapshot = firewall.snapshot();
   assert.equal(expensiveCalls, 10, 'only ten 900-neuron investigations fit');
   assert.ok(refusals > 999_000, 'the spike must be refused after exhaustion');
-  assert.ok(snapshot.usage.worker_requests <= COST_CONSTITUTION.release_budgets.worker_requests);
-  assert.ok(snapshot.usage.ai_neurons <= COST_CONSTITUTION.release_budgets.ai_neurons);
-  assert.ok(snapshot.usage.d1_rows_read <= COST_CONSTITUTION.release_budgets.d1_rows_read);
-  assert.ok(snapshot.usage.d1_rows_written <= COST_CONSTITUTION.release_budgets.d1_rows_written);
+  assert.ok(snapshot.usage.worker_requests <= COST_CONSTITUTION.resources.worker_requests.clove_hard_limit);
+  assert.ok(snapshot.usage.ai_neurons <= COST_CONSTITUTION.resources.ai_neurons.clove_hard_limit);
+  assert.ok(snapshot.usage.d1_rows_read <= COST_CONSTITUTION.resources.d1_rows_read.clove_hard_limit);
+  assert.ok(snapshot.usage.d1_rows_written <= COST_CONSTITUTION.resources.d1_rows_written.clove_hard_limit);
   assert.equal(snapshot.usage.browser_ms, 0, 'the default path does not launch Browser Run');
-  for (const resource of Object.keys(COST_CONSTITUTION.free_limits)) {
+  for (const [resource, definition] of Object.entries(COST_CONSTITUTION.resources)) {
     assert.ok(
-      snapshot.usage[resource] <= COST_CONSTITUTION.free_limits[resource],
+      snapshot.usage[resource] <= definition.cloudflare_limit,
       `${resource} must remain inside the published Free-plan limit`,
     );
   }

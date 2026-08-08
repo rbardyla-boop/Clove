@@ -24,7 +24,7 @@ const OPERATION_RESOURCES = Object.freeze([
   'browser_ms',
 ]);
 const REQUIRED_OPERATIONS = Object.freeze(['cached_evidence', 'deep_research', 'browser_source']);
-const REQUIRED_SERVICES = Object.freeze(['workers', 'd1', 'workers_ai', 'browser_run']);
+const REQUIRED_SERVICES = Object.freeze(['workers', 'd1', 'workers_ai', 'browser_run', 'durable_objects']);
 
 export const COST_CONSTITUTION = constitution;
 
@@ -51,8 +51,7 @@ function copyUsage(usage) {
 export function validateCostConstitution(config = constitution) {
   const errors = [];
   const release = config?.release;
-  const freeLimits = config?.free_limits;
-  const releaseBudgets = config?.release_budgets;
+  const resources = config?.resources;
   const operationCosts = config?.operation_costs;
 
   if (release?.required_plan !== 'workers_free') errors.push('required_plan_must_be_workers_free');
@@ -65,24 +64,27 @@ export function validateCostConstitution(config = constitution) {
   }
 
   for (const resource of USAGE_RESOURCES) {
-    if (!(resource in (freeLimits || {}))) errors.push(`missing_free_limit:${resource}`);
-    if (!(resource in (releaseBudgets || {}))) errors.push(`missing_release_budget:${resource}`);
+    if (!(resource in (resources || {}))) errors.push(`missing_resource:${resource}`);
   }
-  for (const resource of Object.keys(freeLimits || {})) {
-    if (!USAGE_RESOURCES.includes(resource)) errors.push(`unknown_free_limit:${resource}`);
-  }
-  for (const resource of Object.keys(releaseBudgets || {})) {
-    if (!USAGE_RESOURCES.includes(resource)) errors.push(`unknown_release_budget:${resource}`);
+  for (const resource of Object.keys(resources || {})) {
+    if (!USAGE_RESOURCES.includes(resource)) errors.push(`unknown_resource:${resource}`);
   }
 
   for (const resource of USAGE_RESOURCES) {
-    if (!isFiniteNonNegativeInteger(freeLimits?.[resource]) || freeLimits?.[resource] <= 0) {
-      errors.push(`invalid_free_limit:${resource}`);
+    const definition = resources?.[resource];
+    if (typeof definition?.unit !== 'string' || definition.unit.length === 0) {
+      errors.push(`invalid_resource_unit:${resource}`);
     }
-    if (!isFiniteNonNegativeInteger(releaseBudgets?.[resource]) || releaseBudgets?.[resource] <= 0) {
-      errors.push(`invalid_release_budget:${resource}`);
-    } else if (releaseBudgets[resource] >= freeLimits?.[resource]) {
-      errors.push(`release_budget_must_be_below_free_limit:${resource}`);
+    if (!isFiniteNonNegativeInteger(definition?.cloudflare_limit) || definition.cloudflare_limit <= 0) {
+      errors.push(`invalid_cloudflare_limit:${resource}`);
+    }
+    if (!isFiniteNonNegativeInteger(definition?.clove_hard_limit) || definition.clove_hard_limit <= 0) {
+      errors.push(`invalid_clove_hard_limit:${resource}`);
+    } else if (definition.clove_hard_limit >= definition?.cloudflare_limit) {
+      errors.push(`clove_hard_limit_must_be_below_cloudflare_limit:${resource}`);
+    }
+    if (!isFiniteNonNegativeInteger(definition?.default_reservation)) {
+      errors.push(`invalid_default_reservation:${resource}`);
     }
   }
 
@@ -152,15 +154,19 @@ export function createCostFirewall({ plan, dayKey = 'test-day', config = constit
       dayKey,
       plan,
       usage: copyUsage(usage),
-      budgets: copyUsage(config.release_budgets),
-      freeLimits: copyUsage(config.free_limits),
+      budgets: Object.freeze(Object.fromEntries(
+        USAGE_RESOURCES.map((resource) => [resource, config.resources[resource].clove_hard_limit]),
+      )),
+      freeLimits: Object.freeze(Object.fromEntries(
+        USAGE_RESOURCES.map((resource) => [resource, config.resources[resource].cloudflare_limit]),
+      )),
     });
   }
 
   function reserve(costs) {
     const normalized = normalizeCosts(costs);
     const exhausted = USAGE_RESOURCES.find(
-      (resource) => usage[resource] + normalized[resource] > config.release_budgets[resource],
+      (resource) => usage[resource] + normalized[resource] > config.resources[resource].clove_hard_limit,
     );
     if (exhausted) {
       return {

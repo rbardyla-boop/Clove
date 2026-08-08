@@ -1,0 +1,295 @@
+{
+  "name": "CLOVE_SOURCE_RECIPES",
+  "version": 1,
+  "recipes": {
+    "official_canadian_statistic": {
+      "label": "Official Canadian statistic",
+      "source_priority": [
+        {
+          "rank": 1,
+          "source_class": "Statistics Canada",
+          "role": "primary_measurement"
+        },
+        {
+          "rank": 2,
+          "source_class": "Relevant federal department or regulator",
+          "role": "independent_check_or_context"
+        },
+        {
+          "rank": 3,
+          "source_class": "Provincial or territorial statistical agency",
+          "role": "jurisdictional_detail"
+        }
+      ],
+      "preferred_access": [
+        "official_api",
+        "official_table",
+        "official_publication",
+        "ordinary_fetch"
+      ],
+      "mandatory_checks": [
+        {
+          "id": "geography",
+          "required": true,
+          "description": "Confirm the national, provincial, or territorial geography matches the question."
+        },
+        {
+          "id": "measurement_period",
+          "required": true,
+          "description": "Record the reference period and distinguish latest complete year from latest month."
+        },
+        {
+          "id": "unit",
+          "required": true,
+          "description": "Verify the unit and denominator before calculating a percentage."
+        },
+        {
+          "id": "annual_vs_monthly",
+          "required": true,
+          "description": "Reject a monthly observation when the claim asks for an annual statistic."
+        },
+        {
+          "id": "preliminary_vs_final",
+          "required": true,
+          "description": "Label preliminary estimates and prefer final releases when available."
+        },
+        {
+          "id": "revised_vs_original",
+          "required": true,
+          "description": "Preserve revision status and do not mix original and revised series silently."
+        }
+      ],
+      "freshness": {
+        "rule": "Use the latest complete period explicitly available from the authoritative source.",
+        "must_label": ["reference_period", "release_status", "revision_status"]
+      },
+      "challenge": {
+        "strategy": "Find another authoritative source and determine whether it derives from the same underlying dataset.",
+        "independence_check": "Repeated reporting of one table is not independent confirmation."
+      },
+      "prohibited_source_roles": [
+        "news_article_as_primary",
+        "commercial_data_summary_as_primary",
+        "AI_summary_as_primary"
+      ],
+      "routing": {
+        "all_of": ["canada"],
+        "any_of": [
+          "population",
+          "electricity",
+          "generation",
+          "percentage",
+          "percent",
+          "statistic",
+          "annual",
+          "latest complete year",
+          "how many"
+        ],
+        "none_of": [
+          "law",
+          "statute",
+          "regulation",
+          "cannabis",
+          "court",
+          "supplementation",
+          "randomized",
+          "peer reviewed"
+        ]
+      }
+    },
+    "canadian_law": {
+      "label": "Canadian legislation or regulation",
+      "source_priority": [
+        {
+          "rank": 1,
+          "source_class": "Justice Laws Website",
+          "role": "federal_primary_law"
+        },
+        {
+          "rank": 2,
+          "source_class": "Official provincial or territorial legislation",
+          "role": "provincial_primary_law"
+        },
+        {
+          "rank": 3,
+          "source_class": "CanLII",
+          "role": "interpretation_and_case_context"
+        }
+      ],
+      "preferred_access": [
+        "official_statute",
+        "official_regulation",
+        "official_legislation_search",
+        "ordinary_fetch",
+        "CanLII_interpretation"
+      ],
+      "mandatory_checks": [
+        {
+          "id": "jurisdiction",
+          "required": true,
+          "description": "Identify federal, provincial, territorial, or municipal authority before answering."
+        },
+        {
+          "id": "in_force_date",
+          "required": true,
+          "description": "Confirm the provision was in force on the relevant date."
+        },
+        {
+          "id": "amendment_status",
+          "required": true,
+          "description": "Check amendments, repeals, transitional provisions, and version status."
+        },
+        {
+          "id": "regulation_vs_statute",
+          "required": true,
+          "description": "Distinguish the enabling statute from regulations and subordinate instruments."
+        }
+      ],
+      "freshness": {
+        "rule": "Current and in-force status is mandatory; historical text cannot settle a present-tense claim.",
+        "must_label": ["jurisdiction", "in_force_date", "amendment_status", "instrument_type"]
+      },
+      "challenge": {
+        "strategy": "Check the authoritative instrument and then seek independent legal interpretation without allowing commentary to replace the text.",
+        "independence_check": "A commentary source may explain ambiguity but cannot establish the law by repetition."
+      },
+      "prohibited_source_roles": [
+        "law_firm_blog_as_primary",
+        "news_article_as_primary",
+        "AI_summary_as_primary",
+        "uncited_social_post"
+      ],
+      "routing": {
+        "all_of": ["canada"],
+        "any_of": [
+          "law",
+          "legal",
+          "statute",
+          "regulation",
+          "federal",
+          "provincial",
+          "territorial",
+          "in force",
+          "minimum age",
+          "possession",
+          "cannabis",
+          "court"
+        ],
+        "none_of": [
+          "supplementation",
+          "randomized",
+          "sample size",
+          "confidence interval"
+        ]
+      }
+    },
+    "scientific_finding": {
+      "label": "Scientific finding",
+      "source_priority": [
+        {
+          "rank": 1,
+          "source_class": "Systematic review or meta-analysis",
+          "role": "synthesis"
+        },
+        {
+          "rank": 2,
+          "source_class": "Original peer-reviewed study",
+          "role": "primary_result"
+        },
+        {
+          "rank": 3,
+          "source_class": "Trial registration",
+          "role": "protocol_and_outcome_context"
+        },
+        {
+          "rank": 4,
+          "source_class": "Underlying dataset",
+          "role": "reproducibility"
+        }
+      ],
+      "preferred_access": [
+        "PubMed",
+        "Crossref",
+        "OpenAlex",
+        "journal_full_text",
+        "trial_registry",
+        "underlying_dataset"
+      ],
+      "mandatory_checks": [
+        {
+          "id": "publication_date",
+          "required": true,
+          "description": "Record publication date and whether the evidence is current for the question."
+        },
+        {
+          "id": "sample_size",
+          "required": true,
+          "description": "Extract sample size and relevant population rather than relying on an abstracted conclusion."
+        },
+        {
+          "id": "effect_size",
+          "required": true,
+          "description": "Require an effect size or a clearly stated null/qualitative result."
+        },
+        {
+          "id": "confidence_interval",
+          "required": true,
+          "description": "Capture confidence intervals or uncertainty estimates where reported."
+        },
+        {
+          "id": "correction_retraction",
+          "required": true,
+          "description": "Check for corrections, expressions of concern, and retractions."
+        },
+        {
+          "id": "replication",
+          "required": true,
+          "description": "Search for independent replication or conflicting studies."
+        },
+        {
+          "id": "funding_conflict",
+          "required": true,
+          "description": "Record funding and declared conflicts of interest."
+        }
+      ],
+      "freshness": {
+        "rule": "Do not use age alone as a quality proxy; prefer current syntheses while retaining historically important primary studies.",
+        "must_label": ["publication_date", "evidence_status", "retraction_status"]
+      },
+      "challenge": {
+        "strategy": "Find an independent review or study, compare populations and outcomes, and retain disagreement when methods or results do not reconcile.",
+        "independence_check": "Multiple papers using one dataset or author group do not count as independent replication."
+      },
+      "prohibited_source_roles": [
+        "press_release_as_primary",
+        "news_article_as_primary",
+        "blog_as_primary",
+        "AI_summary_as_primary",
+        "uncited_social_post"
+      ],
+      "routing": {
+        "all_of": [],
+        "any_of": [
+          "improve",
+          "effect",
+          "evidence",
+          "study",
+          "research",
+          "supplementation",
+          "healthy adults",
+          "cognitive",
+          "trial",
+          "randomized",
+          "peer reviewed",
+          "association"
+        ],
+        "none_of": [
+          "statute",
+          "regulation",
+          "minimum age",
+          "in force"
+        ]
+      }
+    }
+  }
+}

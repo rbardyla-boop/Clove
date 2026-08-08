@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "clove-research",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "../../research",
+    "binding": "ASSETS",
+    "html_handling": "force-trailing-slash"
+  },
+  "routes": [
+    { "pattern": "clovelearn.io/research/*", "zone_name": "clovelearn.io" }
+  ],
+  "vars": {
+    "ENVIRONMENT": "internal-only",
+    "RESEARCH_QUESTION_VERSION": "2026-08-08"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "COST_AUTHORITY",
+        "class_name": "CostAuthority",
+        "script_name": "clove-research-cost-authority"
+      }
+    ]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false,
+      "head_sampling_rate": 0.01
+    }
+  }
+}
