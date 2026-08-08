@@ -1,0 +1,70 @@
+{
+  "name": "CLOVE_RESEARCH_COST_CONSTITUTION",
+  "version": 1,
+  "scope": "clove-research-beta",
+  "release": {
+    "required_plan": "workers_free",
+    "maximum_paid_usd": 0,
+    "budget_period": "utc_day",
+    "reserve_fraction": 0.9,
+    "over_limit_behavior": "fail_closed",
+    "allowed_services": [
+      "workers",
+      "d1",
+      "workers_ai",
+      "browser_run"
+    ]
+  },
+  "free_limits": {
+    "worker_requests": 100000,
+    "ai_neurons": 10000,
+    "browser_ms": 600000,
+    "d1_rows_read": 5000000,
+    "d1_rows_written": 100000,
+    "d1_storage_bytes": 5000000000
+  },
+  "release_budgets": {
+    "worker_requests": 90000,
+    "ai_neurons": 9000,
+    "browser_ms": 540000,
+    "d1_rows_read": 4500000,
+    "d1_rows_written": 90000,
+    "d1_storage_bytes": 4500000000
+  },
+  "operation_costs": {
+    "cached_evidence": {
+      "d1_rows_read": 10,
+      "d1_rows_written": 0,
+      "ai_neurons": 0,
+      "browser_ms": 0
+    },
+    "deep_research": {
+      "d1_rows_read": 250,
+      "d1_rows_written": 25,
+      "ai_neurons": 900,
+      "browser_ms": 0
+    },
+    "browser_source": {
+      "d1_rows_read": 0,
+      "d1_rows_written": 0,
+      "ai_neurons": 0,
+      "browser_ms": 60000
+    }
+  },
+  "hard_stop": {
+    "new_research_response_status": 429,
+    "new_research_response_code": "research_capacity_exhausted",
+    "existing_evidence_remains_available": true,
+    "must_not_call_after_refusal": [
+      "workers_ai",
+      "browser_run",
+      "d1_write"
+    ]
+  },
+  "sources": {
+    "worker_requests": "https://developers.cloudflare.com/workers/platform/limits/",
+    "ai_neurons": "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+    "browser_ms": "https://developers.cloudflare.com/browser-run/pricing/",
+    "d1": "https://developers.cloudflare.com/d1/platform/pricing/"
+  }
+}

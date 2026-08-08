@@ -1,6 +1,8 @@
 {
   "scripts": {
     "audit:product": "node scripts/product-audit.mjs",
+    "check:cost-constitution": "node agent/check-cost-constitution.mjs",
+    "test:cost-constitution": "node --test tests/agent/cost-constitution.test.mjs",
     "test:release": "node --test tests/static/retention-release.test.mjs",
     "test:unit": "node --test tests/arcade/*.test.mjs tests/creator/*.test.mjs",
     "test:singularity": "node --test tests/static/singularity-web-parity.test.mjs",
