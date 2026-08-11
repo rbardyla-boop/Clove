@@ -1,0 +1,133 @@
+name: AIS F1 Replay
+
+on:
+  push:
+    branches: [ais-f1-replay-20260811]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clove-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rbardyla-boop/Clove
+          ref: 2ef1e99938ae30cbe3864d2a078bd39892c83e5a
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Environment
+        run: |
+          node --version
+          npm --version
+          git rev-parse HEAD
+      - name: Replay pre-allocation budget regression
+        run: node --test labs/voxel-bench/test/chunk-manager.test.mjs
+
+  cognitive-llam:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rbardyla-boop/cognitive-os
+          ref: 76a369fb4a47054a35736126d91d65c7c3e4fbce
+      - name: Environment
+        run: |
+          rustc --version
+          cargo --version
+          git rev-parse HEAD
+      - name: Replay LLAM command/episode crate
+        run: cargo test -p cognitive-llam-episode
+
+  cognitive-panorama:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rbardyla-boop/cognitive-os
+          ref: f6768653555cbbd90d27acc8b15ca359a925aef2
+      - name: Environment
+        run: |
+          rustc --version
+          cargo --version
+          git rev-parse HEAD
+      - name: Replay terminal evidence-query/conversation/PANORAMA revision
+        run: cargo test -p cognitive-demo --lib
+
+  cognitive-session:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rbardyla-boop/cognitive-os
+          ref: 3b103a4d5a0a3be1a2bb290bbecb2848da73b9e8
+      - name: Environment
+        run: |
+          rustc --version
+          cargo --version
+          git rev-parse HEAD
+      - name: Replay terminal learner-memory/session revision
+        run: cargo test -p cognitive-demo --lib
+
+  cognitive-promotion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rbardyla-boop/cognitive-os
+          ref: e33701b7fa3ac23d6b40e12cc9f860b93b0fedde
+      - name: Environment
+        run: |
+          rustc --version
+          cargo --version
+          git rev-parse HEAD
+      - name: Replay terminal SCORE/FAIL/evaluation/promotion revision
+        run: cargo test -p cognitive-demo --lib
+
+  proto-llam:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rbardyla-boop/Proto
+          ref: 1ff334976d83a8785c806ae261b55432aef0c3b1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Environment and pinned harness inventory
+        run: |
+          python --version
+          git rev-parse HEAD
+          find harness -maxdepth 2 -type f -print | sort
+      - name: Compile pinned Python sources
+        run: python -m compileall -q harness cognitive-os
+      - name: Install replay test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Discover and run pinned tests
+        run: python -m pytest -q
+
+  powerplant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rbardyla-boop/claude_powerplant
+          ref: d024efa2bd0f0171c08eb1079983d81e77ab96b8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Environment
+        run: |
+          node --version
+          npm --version
+          git rev-parse HEAD
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Replay test suite
+        run: npm test
+      - name: Replay type/build gate
+        run: npm run build
