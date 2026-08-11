@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
 
+# F1 forensic replay only. No adaptive routing or F2 work.
 jobs:
   clove-budget:
     runs-on: ubuntu-latest
