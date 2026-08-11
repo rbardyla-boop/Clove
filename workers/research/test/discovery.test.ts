@@ -12,6 +12,7 @@ const NOW = new Date('2026-08-08T12:00:00.000Z');
 const populationQuestion = "What was Canada's population in the latest complete annual period?";
 const lawQuestion = 'What federal law governs possession of cannabis by young persons in Canada?';
 const scienceQuestion = 'Does creatine supplementation affect cognitive performance in healthy adults?';
+const tradeQuestion = 'how many cubic metres of softwood did Canada export to the US in 2025';
 
 function discoveryRequest(question: string): Request {
   return new Request('https://clovelearn.io/research/discover', {
@@ -22,6 +23,18 @@ function discoveryRequest(question: string): Request {
 }
 
 describe('Discovery Adapter Layer v1', () => {
+  it('discovers the specialized GAC trade path, broader context, and conversion-relevant source metadata', async () => {
+    const result = await discoverQuestion(tradeQuestion, { fetcher: discoveryFixtureFetcher, now: NOW });
+    expect(result.status).toBe('DISCOVERY_COMPLETE');
+    expect(result.recipeId).toBe('canadian_trade_statistic');
+    expect(result.candidates.filter((candidate) => candidate.identifiers.role === 'monthly_primary_measurement')).toHaveLength(12);
+    expect(result.candidates.some((candidate) => candidate.identifiers.role === 'annual_primary_measurement')).toBe(true);
+    expect(result.candidates.some((candidate) => candidate.identifiers.role === 'scope_definition')).toBe(true);
+    expect(result.candidates.some((candidate) => candidate.identifiers.role === 'broader_context')).toBe(true);
+    expect(result.candidates.find((candidate) => candidate.identifiers.role === 'annual_primary_measurement')?.identifiers.originalUnit).toContain('board feet');
+    expect(result.independence.groups.some((group) => group.candidateIds.includes('statcan-lumber-context-16100018'))).toBe(true);
+  });
+
   it('discovers a Canadian population cube through StatCan metadata without returning an answer', async () => {
     const result = await discoverQuestion(populationQuestion, { fetcher: discoveryFixtureFetcher, now: NOW });
     expect(result.status).toBe('DISCOVERY_COMPLETE');

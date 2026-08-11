@@ -2,6 +2,106 @@
   "name": "CLOVE_SOURCE_RECIPES",
   "version": 1,
   "recipes": {
+    "canadian_trade_statistic": {
+      "label": "Canadian trade statistic",
+      "source_priority": [
+        {
+          "rank": 1,
+          "source_class": "Specialized federal department or regulator",
+          "role": "commodity_aligned_primary_measurement"
+        },
+        {
+          "rank": 2,
+          "source_class": "Statistics Canada trade data",
+          "role": "broader_context_or_independent_check"
+        },
+        {
+          "rank": 3,
+          "source_class": "Other official Canadian dataset",
+          "role": "jurisdictional_or_measurement_detail"
+        }
+      ],
+      "preferred_access": [
+        "specialized_official_report",
+        "official_trade_api",
+        "official_table",
+        "ordinary_fetch"
+      ],
+      "mandatory_checks": [
+        {
+          "id": "commodity_scope",
+          "required": true,
+          "description": "Confirm the source commodity definition matches the requested product and disclose included or excluded product codes."
+        },
+        {
+          "id": "direction_partner",
+          "required": true,
+          "description": "Confirm export or import direction and the partner country rather than substituting a national or all-destination total."
+        },
+        {
+          "id": "reference_period",
+          "required": true,
+          "description": "Record the calendar year or other reference period and distinguish complete, preliminary, and revised values."
+        },
+        {
+          "id": "original_unit",
+          "required": true,
+          "description": "Preserve the source unit exactly before any conversion."
+        },
+        {
+          "id": "conversion_provenance",
+          "required": true,
+          "description": "If the requested unit differs, expose the factor, formula, original value, and converted value as linked evidence."
+        },
+        {
+          "id": "revision_reconciliation",
+          "required": true,
+          "description": "Label monthly aggregation, annual reconciliation, revisions, and any discrepancy instead of silently choosing a total."
+        }
+      ],
+      "freshness": {
+        "rule": "Use the latest complete requested period from the most directly aligned official source, retaining revision and reconciliation status.",
+        "must_label": ["reference_period", "release_status", "revision_status", "commodity_scope", "original_unit"]
+      },
+      "challenge": {
+        "strategy": "Compare a second official source only after checking whether it measures the same commodity, partner, period, unit, and destination universe.",
+        "independence_check": "A broader all-destination or all-lumber table is context, not a contradiction of a partner-specific softwood total."
+      },
+      "prohibited_source_roles": [
+        "news_article_as_primary",
+        "commercial_trade_summary_as_primary",
+        "uncited_conversion_as_primary",
+        "AI_summary_as_primary"
+      ],
+      "routing": {
+        "all_of": ["canada"],
+        "any_of": [
+          "export",
+          "exports",
+          "import",
+          "imports",
+          "trade",
+          "softwood",
+          "lumber",
+          "board feet",
+          "cubic metres",
+          "cubic meters",
+          "quantity",
+          "value",
+          "worth"
+        ],
+        "none_of": [
+          "law",
+          "statute",
+          "regulation",
+          "cannabis",
+          "court",
+          "supplementation",
+          "randomized",
+          "peer reviewed"
+        ]
+      }
+    },
     "official_canadian_statistic": {
       "label": "Official Canadian statistic",
       "source_priority": [

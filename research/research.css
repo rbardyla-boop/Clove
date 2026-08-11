@@ -34,6 +34,7 @@ a { color: inherit; }
 .hero h1 { margin: 0; font-size: clamp(48px, 8vw, 92px); line-height: .92; letter-spacing: -.06em; }
 .hero h1 span { color: var(--cyan); }
 .lede { max-width: 700px; margin: 25px 0 0; color: var(--muted); font-size: 17px; line-height: 1.7; }
+.principle { margin: 27px 0 0; color: var(--cyan); font-size: 18px; font-weight: 850; letter-spacing: -.015em; }
 .question-form { margin-top: 38px; }
 .question-form label { display: block; margin-bottom: 10px; color: var(--ink); font-size: 13px; font-weight: 850; }
 .question-row { display: flex; gap: 10px; }
@@ -46,6 +47,11 @@ a { color: inherit; }
 .examples > span { margin-right: 4px; color: var(--faint); font-size: 9px; font-weight: 900; letter-spacing: .14em; }
 .examples button { border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); padding: 7px 10px; font-size: 11px; }
 .examples button:hover { border-color: var(--cyan); color: var(--ink); }
+.answer-example { display: grid; grid-template-columns: .35fr 1fr 1.5fr; gap: 18px; align-items: start; margin-top: 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0; }
+.example-label { color: var(--faint); font-size: 9px; font-weight: 950; letter-spacing: .16em; }
+.answer-example strong { color: var(--gold); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+.answer-example div:last-child strong { color: var(--cyan); }
+.answer-example p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
 
 .workspace { padding: 12px 0 72px; }
 .workspace-empty { border: 1px dashed var(--line); border-radius: 22px; padding: 38px; background: rgba(11,25,42,.42); }
@@ -124,7 +130,7 @@ a { color: inherit; }
 }
 @media (max-width: 620px) {
   .research-nav { min-height: 60px; }.research-nav nav { gap: 12px; }.research-nav nav a { font-size: 11px; }
-  .hero { padding: 50px 0 32px; }.lede { font-size: 15px; }.question-row { flex-direction: column; }.primary-button { min-height: 48px; }
+  .hero { padding: 50px 0 32px; }.lede { font-size: 15px; }.answer-example { grid-template-columns: 1fr; gap: 10px; }.question-row { flex-direction: column; }.primary-button { min-height: 48px; }
   .result-top { padding: 20px; flex-direction: column; gap: 14px; }.result-body { padding: 20px; }
   .side-stack { grid-template-columns: 1fr; }.research-footer { flex-direction: column; }
 }

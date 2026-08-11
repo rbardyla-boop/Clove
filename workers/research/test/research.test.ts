@@ -83,6 +83,10 @@ describe('Clove Research nucleus', () => {
         'Does creatine supplementation improve cognitive performance in healthy adults?',
         'scientific_finding',
       ],
+      [
+        'how many cubic metres of softwood did Canada export to the US in 2025',
+        'canadian_trade_statistic',
+      ],
     ] as const;
 
     for (const [question, recipeId] of cases) {

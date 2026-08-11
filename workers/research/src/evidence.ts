@@ -12,6 +12,21 @@ import {
   type Investigation,
   type Fetcher,
 } from './research';
+import {
+  alignmentReportFor,
+  preflightAlignment,
+  researchIntentFor,
+  type AlignmentReport,
+  type ResearchIntent,
+} from './alignment';
+import { selectSourceRecipe } from './source-recipes';
+import {
+  parseAnnualSoftwoodBoardFeet,
+  parseSoftwoodBoardFeet,
+  parseStatsCanLumberContext,
+  STATCAN_LUMBER_CONTEXT_WDS_URL,
+} from './discovery/canadian-trade';
+import { BOARD_FEET_TO_CUBIC_METRES, isSupportedSoftwoodTrade, tradeSpecificationFor } from './trade';
 
 export type EvidenceClaimStatus =
   | 'ESTABLISHED'
@@ -21,6 +36,16 @@ export type EvidenceClaimStatus =
   | 'METADATA_ONLY';
 
 export type ResearchExperienceStatus = EvidenceClaimStatus | 'RESEARCH_REQUIRED' | 'SOURCE_UNAVAILABLE' | 'RATE_LIMITED';
+
+export interface EvidenceConversion {
+  fromUnit: string;
+  toUnit: string;
+  factor: number;
+  formula: string;
+  originalValue: number;
+  originalUnit: string;
+  convertedValue: number;
+}
 
 export interface EvidenceClaim {
   id: string;
@@ -56,6 +81,7 @@ export interface EvidenceClaim {
     operands: string[];
     formula: string;
   };
+  conversion?: EvidenceConversion;
 }
 
 export interface ResearchGraphNode {
@@ -128,6 +154,7 @@ export interface ResearchExperience {
   unknowns: string[];
   timeline: ResearchTimelineItem[];
   generatedAt: string;
+  alignment?: AlignmentReport;
   legal?: LegalPresentation;
   science?: SciencePresentation;
   export: ObsidianExport;
@@ -232,7 +259,10 @@ function fileSlug(value: string): string {
 function claimNote(item: EvidenceClaim, recipeId: string, checked: string): string {
   const source = `Sources/${fileSlug(item.sourceId)}`;
   const validationLines = Object.entries(item.validation).map(([key, value]) => `- ${key}: ${String(value)}`).join('\n');
-  return `---\ntype: claim\nstatus: ${item.status.toLowerCase()}\nchecked: ${checked}\nrecipe: ${recipeId}\nsource: "[[${source}]]"\nmeasurement_period: ${yaml(item.measurementPeriod ?? 'not_reported')}\n---\n\n# ${item.proposition}\n\n${item.value !== undefined ? `**Value:** ${item.value}${item.unit ? ` ${item.unit}` : ''}\n\n` : ''}**Evidence role:** ${item.evidenceRole}\n\n## Provenance\n\n- Source location: ${Object.values(item.sourceLocation).filter(Boolean).join(' · ') || 'source-defined'}\n- Extraction method: ${item.extractionMethod}\n- Retrieved: ${item.retrievedAt}\n\n## Validation\n\n${validationLines}\n\n## Source fragment\n\n${item.sourceFragment ? `> ${item.sourceFragment}` : 'No source fragment was available; this claim is metadata-only.'}\n`;
+  const conversion = item.conversion
+    ? `\n## Unit conversion\n\n- Original value: ${item.conversion.originalValue} ${item.conversion.originalUnit}\n- Factor: ${item.conversion.factor} ${item.conversion.toUnit}/${item.conversion.fromUnit}\n- Converted value: ${item.conversion.convertedValue} ${item.conversion.toUnit}\n- Formula: ${item.conversion.formula}\n`
+    : '';
+  return `---\ntype: claim\nstatus: ${item.status.toLowerCase()}\nchecked: ${checked}\nrecipe: ${recipeId}\nsource: "[[${source}]]"\nmeasurement_period: ${yaml(item.measurementPeriod ?? 'not_reported')}\n---\n\n# ${item.proposition}\n\n${item.value !== undefined ? `**Value:** ${item.value}${item.unit ? ` ${item.unit}` : ''}\n\n` : ''}**Evidence role:** ${item.evidenceRole}\n\n## Provenance\n\n- Source location: ${Object.values(item.sourceLocation).filter(Boolean).join(' · ') || 'source-defined'}\n- Extraction method: ${item.extractionMethod}\n- Retrieved: ${item.retrievedAt}\n\n## Validation\n\n${validationLines}\n\n## Source fragment\n\n${item.sourceFragment ? `> ${item.sourceFragment}` : 'No source fragment was available; this claim is metadata-only.'}\n${conversion}`;
 }
 
 function sourceNote(source: DiscoveryCandidate): string {
@@ -248,7 +278,12 @@ function buildExport(experience: Omit<ResearchExperience, 'export'>): ObsidianEx
   const calculationLinks = experience.claims.filter((item) => item.calculation).map((item) => `- [[Data/${fileSlug(item.id)}|${item.calculation?.formula}]]`).join('\n');
   const contradictionLinks = experience.claims.filter((item) => item.evidenceRole === 'qualifies' || item.evidenceRole === 'contradicts').map((item) => `- [[Contradictions/${fileSlug(item.id)}|${item.proposition}]]`).join('\n');
   const root = `---\ntype: investigation\nstatus: ${experience.status.toLowerCase()}\nchecked: ${checked}\nrecipe: ${experience.recipeId}\n---\n\n# ${experience.question}\n\n## Best supported answer\n\n${experience.answer.text}\n\n## Why Clove thinks that\n\n${experience.whyThisAnswer}\n\n## Claims\n\n${claimLinks || '- None established.'}\n\n## Sources\n\n${sourceLinks || '- None discovered.'}\n\n## Contradictions and qualifications\n\n${contradictionLinks || '- None recorded.'}\n\n## Calculations\n\n${calculationLinks || '- None.'}\n\n## What Clove still does not know\n\n${experience.unknowns.map((item) => `- ${item}`).join('\n') || '- Nothing recorded.'}\n\n## Evidence graph\n\n${experience.graph.edges.map((edge) => `- ${edge.from} —${edge.relation}→ ${edge.to}`).join('\n')}\n`;
-  files.push({ path: 'Research/Investigation.md', content: root });
+  const alignment = experience.alignment;
+  const alignmentSection = alignment
+    ? `## Question–evidence alignment\n\n- Status: ${alignment.status}\n- Subject: ${alignment.intent.subject}\n- Requested measure: ${alignment.intent.requestedMeasure}\n- Required concepts: ${alignment.intent.requiredConcepts.join(', ') || 'none recorded'}\n- Rejected claims: ${alignment.rejectedClaimIds.join(', ') || 'none'}\n- Decision: ${alignment.reason}\n\n`
+    : '';
+  const rootWithAlignment = root.replace('\n## Claims\n', `\n${alignmentSection}## Claims\n`);
+  files.push({ path: 'Research/Investigation.md', content: rootWithAlignment });
   for (const item of experience.claims) {
     files.push({ path: `Research/Claims/${fileSlug(item.id)}.md`, content: claimNote(item, experience.recipeId, checked) });
     if (item.evidenceRole === 'qualifies' || item.evidenceRole === 'contradicts') {
@@ -266,6 +301,78 @@ function makeExperience(
   input: Omit<ResearchExperience, 'export'>,
 ): ResearchExperience {
   return { ...input, export: buildExport(input) };
+}
+
+function alignmentRequiredExperience(
+  question: string,
+  intentValue: ResearchIntent,
+  reason: string,
+  generatedAt: string,
+  alignment?: AlignmentReport,
+): ResearchExperience {
+  const report = alignment ?? {
+    status: 'RESEARCH_REQUIRED' as const,
+    intent: intentValue,
+    claims: [],
+    survivingClaimIds: [],
+    rejectedClaimIds: [],
+    reason,
+  };
+  const ambiguities = intentValue.ambiguities.length > 0
+    ? intentValue.ambiguities
+    : ['The requested measure is not covered by the currently configured bounded source paths.'];
+  return makeExperience({
+    status: 'RESEARCH_REQUIRED',
+    question,
+    recipeId: 'question_evidence_alignment_firewall',
+    answer: {
+      text: `Clove recognized this as a ${intentValue.subject} question, but no configured evidence path measures ${intentValue.requestedMeasure}. No answer was synthesized from a different measure. Further research is required.`,
+      claimIds: [],
+    },
+    whyThisAnswer: `The question–evidence alignment firewall stopped the investigation before discovery or extraction could promote an inapplicable result. ${reason}`,
+    claims: [],
+    sources: [],
+    challenge: {
+      status: 'not_available',
+      label: 'Question-specific challenger',
+      detail: 'A source adapter for the requested measure is not configured in this bounded unit.',
+      claimIds: [],
+    },
+    graph: graphFor(question, [], [], []),
+    unknowns: [
+      ...ambiguities,
+      'No answer claim survived the applicability boundary.',
+    ],
+    timeline: [
+      { label: `Detected ${intentValue.subject} intent`, state: 'complete', detail: `Requested measure: ${intentValue.requestedMeasure}.` },
+      { label: 'Question–evidence alignment', state: 'blocked', detail: reason },
+      { label: 'Synthesis', state: 'blocked', detail: 'Stopped with RESEARCH_REQUIRED; no substitute measure was promoted.' },
+    ],
+    generatedAt,
+    alignment: report,
+  });
+}
+
+function applyAlignment(experience: ResearchExperience, intentValue: ResearchIntent): ResearchExperience {
+  const report = alignmentReportFor(intentValue, experience.claims, experience.answer.claimIds);
+  if (report.status === 'RESEARCH_REQUIRED') {
+    return alignmentRequiredExperience(experience.question, intentValue, report.reason, experience.generatedAt, report);
+  }
+  const surviving = new Set(report.survivingClaimIds);
+  const claims = experience.claims.filter((item) => surviving.has(item.id));
+  const answerClaimIds = experience.answer.claimIds.filter((id) => surviving.has(id));
+  const strongestDatapoint = experience.strongestDatapoint && surviving.has(experience.strongestDatapoint.id)
+    ? experience.strongestDatapoint
+    : undefined;
+  const { export: _export, ...withoutExport } = experience;
+  return makeExperience({
+    ...withoutExport,
+    claims,
+    answer: { ...experience.answer, claimIds: answerClaimIds },
+    strongestDatapoint,
+    graph: graphFor(experience.question, answerClaimIds, claims, experience.sources),
+    alignment: report,
+  });
 }
 
 function timelineForDiscovery(discovery: DiscoveryResult): ResearchTimelineItem[] {
@@ -361,6 +468,227 @@ async function extractPopulation(question: string, discovery: DiscoveryResult, o
     graph: graphFor(question, [datapoint.id], claims, discovery.candidates),
     unknowns: ['No independent non-Statistics Canada corroboration was run for this population datapoint.', 'This extraction does not answer age-specific, provincial, or projection questions.'],
     timeline,
+    generatedAt: retrievedAt,
+  });
+}
+
+function tradeFragment(text: string, needle: string): string {
+  const normalized = stripTags(text);
+  const index = normalized.toLowerCase().indexOf(needle.toLowerCase());
+  if (index < 0) return normalized.slice(0, 600);
+  return normalized.slice(Math.max(0, index - 120), Math.min(normalized.length, index + 900));
+}
+
+async function fetchTradeText(url: string, options: EvidenceResearchOptions, message: string): Promise<string> {
+  try {
+    return await fetchText(url, discoveryContext(options), { maxBytes: 512 * 1024 });
+  } catch (error) {
+    throw new EvidenceExtractionError(
+      error instanceof Error && 'status' in error ? (error as { status: 'SOURCE_UNAVAILABLE' | 'RATE_LIMITED' }).status : 'SOURCE_UNAVAILABLE',
+      error instanceof Error ? error.message : message,
+    );
+  }
+}
+
+async function extractTrade(question: string, discovery: DiscoveryResult, options: EvidenceResearchOptions): Promise<ResearchExperience> {
+  const retrievedAt = nowIso(options);
+  const specification = tradeSpecificationFor(question);
+  if (!isSupportedSoftwoodTrade(specification)) throw new EvidenceExtractionError('INSUFFICIENT_EVIDENCE', 'trade_specification_not_supported');
+
+  const annual = discovery.candidates.find((source) => source.identifiers.role === 'annual_primary_measurement');
+  const aggregate = discovery.candidates.find((source) => source.identifiers.role === 'monthly_aggregate');
+  const monthly = discovery.candidates.filter((source) => source.identifiers.role === 'monthly_primary_measurement');
+  let originalValue: number | undefined;
+  let originalSource: DiscoveryCandidate | undefined;
+  let originalFragment: string | undefined;
+  let measurementMode: 'annual_report' | 'monthly_aggregate' | undefined;
+  const unknowns: string[] = [];
+
+  if (annual) {
+    try {
+      const annualText = await fetchTradeText(annual.url, options, 'gac_annual_report_unavailable');
+      const parsed = parseAnnualSoftwoodBoardFeet(annualText);
+      if (parsed === null) throw new EvidenceExtractionError('INSUFFICIENT_EVIDENCE', 'gac_annual_board_feet_not_found');
+      originalValue = parsed;
+      originalSource = annual;
+      originalFragment = tradeFragment(annualText, 'board feet');
+      measurementMode = 'annual_report';
+    } catch (error) {
+      if (!(error instanceof EvidenceExtractionError) || error.code !== 'SOURCE_UNAVAILABLE') throw error;
+      unknowns.push('The canonical Global Affairs Canada annual report was unavailable during this run; the monthly-report fallback is disclosed below.');
+    }
+  }
+  if (originalValue === undefined) {
+    if (monthly.length !== 12 || !aggregate) {
+      throw new EvidenceExtractionError('INSUFFICIENT_EVIDENCE', 'complete_gac_annual_or_monthly_trade_path_not_found');
+    }
+    const monthlyValues: Array<{ source: DiscoveryCandidate; value: number }> = [];
+    for (const source of monthly) {
+      const monthlyText = await fetchTradeText(source.url, options, 'gac_monthly_report_unavailable');
+      const parsed = parseSoftwoodBoardFeet(monthlyText);
+      if (parsed === null) throw new EvidenceExtractionError('INSUFFICIENT_EVIDENCE', `gac_monthly_board_feet_not_found:${source.measurementPeriod}`);
+      monthlyValues.push({ source, value: parsed });
+    }
+    originalValue = monthlyValues.reduce((sum, item) => sum + item.value, 0);
+    originalSource = aggregate;
+    originalFragment = monthlyValues
+      .map((item) => `${item.source.measurementPeriod}: ${item.value.toLocaleString('en-CA')} FBM`)
+      .join('; ');
+    measurementMode = 'monthly_aggregate';
+    unknowns.push('This value is the sum of the twelve retrieved monthly GAC reports and may differ from a later revised annual reconciliation.');
+  }
+  if (originalValue === undefined || !originalSource || !originalFragment || !measurementMode) {
+    throw new EvidenceExtractionError('INSUFFICIENT_EVIDENCE', 'trade_datapoint_not_available');
+  }
+
+  const convertedValue = Math.round(originalValue * BOARD_FEET_TO_CUBIC_METRES);
+  const originalClaim = claim({
+    id: `gac-softwood-${specification.period}-board-feet`,
+    proposition: `Global Affairs Canada recorded ${originalValue.toLocaleString('en-CA')} board feet of Canadian softwood-lumber products exported to the United States in ${specification.period}.`,
+    value: originalValue,
+    unit: 'board feet',
+    geography: 'Canada',
+    population: 'Defined softwood lumber products monitored by Global Affairs Canada',
+    measurementPeriod: specification.period,
+    sourceId: originalSource.sourceId,
+    sourceType: 'Global Affairs Canada softwood-lumber export monitoring',
+    sourceLocation: { section: measurementMode === 'annual_report' ? 'Annual report' : 'Region Exports (FBM)', table: measurementMode === 'annual_report' ? 'Annual total' : '2025 monthly report aggregation' },
+    sourceFragment: originalFragment,
+    evidenceRole: 'supports',
+    extractionMethod: 'deterministic_parser',
+    validation: validation({ geographyMatched: true, periodMatched: true, unitMatched: true, populationMatched: true }),
+    status: 'ESTABLISHED',
+  }, retrievedAt);
+  const conversionFormula = `${originalValue.toLocaleString('en-CA')} board feet × ${BOARD_FEET_TO_CUBIC_METRES} m³/board foot = ${convertedValue.toLocaleString('en-CA')} m³`;
+  const convertedClaim = claim({
+    id: `gac-softwood-${specification.period}-cubic-metres`,
+    proposition: `Canada exported approximately ${convertedValue.toLocaleString('en-CA')} cubic metres of softwood-lumber products to the United States in ${specification.period}.`,
+    value: convertedValue,
+    unit: 'cubic metres',
+    geography: 'Canada',
+    population: 'Defined softwood lumber products monitored by Global Affairs Canada',
+    measurementPeriod: specification.period,
+    sourceId: originalSource.sourceId,
+    sourceType: 'Clove deterministic unit conversion from Global Affairs Canada data',
+    sourceLocation: originalClaim.sourceLocation,
+    sourceFragment: conversionFormula,
+    evidenceRole: 'supports',
+    extractionMethod: 'deterministic_parser',
+    validation: validation({ geographyMatched: true, periodMatched: true, unitMatched: true, populationMatched: true }),
+    status: 'ESTABLISHED',
+    calculation: { operands: [originalClaim.id], formula: conversionFormula },
+    conversion: {
+      fromUnit: 'board feet',
+      toUnit: 'cubic metres',
+      factor: BOARD_FEET_TO_CUBIC_METRES,
+      formula: conversionFormula,
+      originalValue,
+      originalUnit: 'board feet',
+      convertedValue,
+    },
+  }, retrievedAt);
+  const claims: EvidenceClaim[] = [originalClaim, convertedClaim];
+
+  const scopeSource = discovery.candidates.find((source) => source.identifiers.role === 'scope_definition');
+  if (scopeSource) {
+    try {
+      const scopeText = await fetchTradeText(scopeSource.url, options, 'gac_scope_definition_unavailable');
+      const scopeFragment = tradeFragment(scopeText, 'softwood lumber');
+      if (scopeFragment) claims.push(claim({
+        id: 'gac-softwood-scope-definition',
+        proposition: 'Global Affairs Canada’s monitoring path covers a defined category of softwood lumber products exported to the United States; it is not a claim about every product made from softwood.',
+        geography: 'Canada',
+        population: 'Defined softwood lumber products',
+        sourceId: scopeSource.sourceId,
+        sourceType: 'Global Affairs Canada H-1 commodity-scope definition',
+        sourceLocation: { section: 'H-1 monitoring scope' },
+        sourceFragment: scopeFragment,
+        evidenceRole: 'qualifies',
+        extractionMethod: 'deterministic_parser',
+        validation: validation({ geographyMatched: true, populationMatched: true }),
+        status: 'QUALIFIED',
+      }, retrievedAt));
+    } catch {
+      unknowns.push('The Global Affairs Canada product-scope page was not retrieved during this run.');
+    }
+  }
+
+  const contextSource = discovery.candidates.find((source) => source.identifiers.role === 'broader_context');
+  if (contextSource) {
+    try {
+      let contextValue: number | null = null;
+      let contextFragment = '';
+      try {
+        const response = await fetchJson<Array<{ object?: { vectorDataPoint?: Array<{ value?: number | string; refPerRaw?: string; vectorId?: number | string }> } }>>(
+          contextSource.identifiers.dataEndpoint ?? STATCAN_LUMBER_CONTEXT_WDS_URL,
+          discoveryContext(options),
+          { maxBytes: 128 * 1024 },
+        );
+        const point = response[0]?.object?.vectorDataPoint?.find((item) => item.refPerRaw?.startsWith(specification.period));
+        const value = Number(point?.value);
+        if (Number.isFinite(value)) {
+          contextValue = value;
+          contextFragment = `vectorId=${point?.vectorId ?? contextSource.identifiers.vectorId}; refPerRaw=${point?.refPerRaw ?? specification.period}-01-01; value=${value}; unit=thousand cubic metres`;
+        }
+      } catch {
+        const contextText = await fetchTradeText(contextSource.url, options, 'statcan_lumber_context_unavailable');
+        contextValue = parseStatsCanLumberContext(contextText);
+        contextFragment = tradeFragment(contextText, specification.period);
+      }
+      if (contextValue !== null) claims.push(claim({
+        id: 'statcan-lumber-context-2025',
+        proposition: `Statistics Canada reports ${contextValue.toLocaleString('en-CA')} thousand cubic metres of total Canadian lumber exports in ${specification.period}; the table covers all destinations and includes softwood and hardwood.`,
+        value: contextValue,
+        unit: 'thousand cubic metres',
+        geography: 'Canada',
+        population: 'Total lumber exports; softwood and hardwood; all destinations',
+        measurementPeriod: specification.period,
+        sourceId: contextSource.sourceId,
+        sourceType: 'Statistics Canada official trade table',
+        sourceLocation: { table: '1610001801', row: 'Total lumber exports', column: specification.period },
+        sourceFragment: contextFragment,
+        evidenceRole: 'context',
+        extractionMethod: 'deterministic_parser',
+        validation: validation({ geographyMatched: true, periodMatched: true, unitMatched: true }),
+        status: 'QUALIFIED',
+      }, retrievedAt));
+    } catch {
+      unknowns.push('The Statistics Canada broader-context table was not retrieved during this run.');
+    }
+  }
+
+  const scopeClaim = claims.find((item) => item.evidenceRole === 'qualifies');
+  const contextClaim = claims.find((item) => item.evidenceRole === 'context');
+  const answerClaimIds = [convertedClaim.id, ...(scopeClaim ? [scopeClaim.id] : [])];
+  const answer = measurementMode === 'annual_report'
+    ? `Canada exported approximately ${convertedValue.toLocaleString('en-CA')} cubic metres of softwood-lumber products to the United States in ${specification.period}. The source value is ${originalValue.toLocaleString('en-CA')} board feet; Clove converted it using ${BOARD_FEET_TO_CUBIC_METRES} cubic metres per board foot.`
+    : `The retrieved Global Affairs Canada monthly reports sum to approximately ${convertedValue.toLocaleString('en-CA')} cubic metres of defined softwood-lumber products exported from Canada to the United States in ${specification.period}. The source total is ${originalValue.toLocaleString('en-CA')} board feet; a later annual reconciliation may differ.`;
+  return makeExperience({
+    status: 'QUALIFIED',
+    question,
+    recipeId: discovery.recipeId,
+    answer: { text: answer, claimIds: answerClaimIds },
+    whyThisAnswer: `The trade recipe matched commodity, export direction, United States partner, calendar year, and requested physical unit. The original board-foot datapoint remains unchanged and the converted value is a linked derived claim. ${contextClaim ? 'The Statistics Canada figure is retained as broader all-destination context, not labeled a contradiction.' : ''}`,
+    strongestDatapoint: convertedClaim,
+    claims,
+    sources: discovery.candidates,
+    challenge: contextClaim
+      ? { status: 'executed', label: 'Statistics Canada broader trade context', detail: 'The comparison covers total Canadian lumber exports to all destinations, including softwood and hardwood. It does not measure the same partner-specific softwood proposition and is retained as context rather than contradiction.', claimIds: [contextClaim.id] }
+      : { status: 'incomplete', label: 'Statistics Canada broader trade context', detail: 'The broader context source was discovered but its value was not extracted in this run.', claimIds: [] },
+    graph: graphFor(question, answerClaimIds, claims, discovery.candidates),
+    unknowns: [
+      ...unknowns,
+      'The GAC category is defined softwood-lumber products, not every conceivable softwood-derived product.',
+      'The Statistics Canada context table is all destinations and includes softwood and hardwood; it cannot independently corroborate the partner-specific softwood total.',
+    ],
+    timeline: [
+      ...timelineForDiscovery(discovery),
+      { label: 'Matched Canadian trade dimensions', state: 'complete', detail: `${specification.commodity}; ${specification.direction}; ${specification.partner}; ${specification.period}; ${specification.requestedUnit}.` },
+      { label: 'Preserved original datapoint', state: 'complete', detail: `${originalValue.toLocaleString('en-CA')} board feet from the ${measurementMode === 'annual_report' ? 'annual report' : 'twelve monthly reports'}.` },
+      { label: 'Converted requested unit', state: 'complete', detail: conversionFormula },
+      { label: 'Challenger/context', state: contextClaim ? 'complete' : 'partial', detail: contextClaim ? 'Broader all-destination lumber context retained without false contradiction.' : 'No extracted broader context value.' },
+      { label: 'Synthesized supported answer', state: 'complete', detail: 'The answer is bounded to the GAC product definition and visible conversion.' },
+    ],
     generatedAt: retrievedAt,
   });
 }
@@ -703,21 +1031,31 @@ function fromInvestigation(investigation: Investigation): ResearchExperience {
 }
 
 export async function runResearchExperience(question: string, options: EvidenceResearchOptions = {}): Promise<ResearchExperience> {
+  const selectedRecipe = selectSourceRecipe(question);
+  const intentValue = researchIntentFor(question);
+  const preflight = preflightAlignment(intentValue, {
+    selectedRecipeId: selectedRecipe?.recipe.id,
+    boundedSpecification: Boolean(researchSpecFor(question)),
+  });
+  if (!preflight.allowed) {
+    return alignmentRequiredExperience(question, intentValue, preflight.reason, nowIso(options));
+  }
   if (researchSpecFor(question)) {
     const investigation = await investigate(question, {
       fetcher: options.fetcher,
       now: options.now,
     });
-    return fromInvestigation(investigation);
+    return applyAlignment(fromInvestigation(investigation), intentValue);
   }
   const discovery = await discoverQuestion(question, discoveryContext(options));
   if (discovery.status === 'RECIPE_NOT_FOUND') throw new EvidenceExtractionError('INSUFFICIENT_EVIDENCE', 'RECIPE_NOT_FOUND');
   if (discovery.status === 'SOURCE_UNAVAILABLE' || discovery.status === 'RATE_LIMITED') {
     throw new EvidenceExtractionError(discovery.status, discovery.errors[0] ?? discovery.status);
   }
-  if (discovery.recipeId === 'official_canadian_statistic') return extractPopulation(question, discovery, options);
-  if (discovery.recipeId === 'canadian_law') return extractLaw(question, discovery, options);
-  if (discovery.recipeId === 'scientific_finding') return extractScience(question, discovery, options);
+  if (discovery.recipeId === 'official_canadian_statistic') return applyAlignment(await extractPopulation(question, discovery, options), intentValue);
+  if (discovery.recipeId === 'canadian_trade_statistic') return applyAlignment(await extractTrade(question, discovery, options), intentValue);
+  if (discovery.recipeId === 'canadian_law') return applyAlignment(await extractLaw(question, discovery, options), intentValue);
+  if (discovery.recipeId === 'scientific_finding') return applyAlignment(await extractScience(question, discovery, options), intentValue);
   throw new EvidenceExtractionError('INSUFFICIENT_EVIDENCE', 'unsupported_extraction_recipe');
 }
 

@@ -8,6 +8,7 @@ import {
 } from './research';
 import { discoverQuestion } from './discovery/registry';
 import { buildResearchPlan, selectSourceRecipe } from './source-recipes';
+import { researchIntentFor } from './alignment';
 import {
   experienceErrorStatus,
   isEvidenceExtractionError,
@@ -93,8 +94,21 @@ export async function handleResearchRequest(
     if (!isRecord(body) || typeof body.question !== 'string' || body.question.trim().length === 0) {
       return json({ ok: false, code: 'question_required' }, 400);
     }
+    const intent = researchIntentFor(body.question);
     const selection = selectSourceRecipe(body.question);
-    if (!selection) return json({ ok: false, code: 'RECIPE_NOT_FOUND' }, 422);
+    if (!selection) {
+      if (intent.kind !== 'unknown' && (isChallengeRoute || body.mode === 'investigate')) {
+        const research = await runResearchExperience(body.question, {
+          fetcher: dependencies.fetcher,
+          now: dependencies.now?.(),
+        });
+        if (isChallengeRoute) {
+          return json({ ok: true, status: 'challenge_executed', challenge: research.challenge, claims: research.claims });
+        }
+        return json({ ok: true, status: 'research_complete', research });
+      }
+      return json({ ok: false, code: 'RECIPE_NOT_FOUND' }, 422);
+    }
     if (isDiscoveryRoute) {
       const discovery = await discoverQuestion(body.question, {
         fetcher: dependencies.fetcher,

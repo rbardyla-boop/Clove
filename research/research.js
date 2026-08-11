@@ -7,6 +7,33 @@
   const workspace = document.getElementById('workspace');
   let currentResearch = null;
 
+  function signal(event) {
+    if (window.cloveSignal && typeof window.cloveSignal.track === 'function' && window.cloveSignal.track(event) !== false) return;
+    try {
+      if (localStorage.getItem('clove_signals_optout_v1') === '1' || navigator.globalPrivacyControl === true || navigator.doNotTrack === '1') return;
+    } catch {
+      return;
+    }
+    const width = Math.min(screen.width || innerWidth, innerWidth || screen.width);
+    const device = width <= 600 ? 'phone' : width <= 1024 ? 'tablet' : 'desktop';
+    const body = JSON.stringify({
+      event,
+      surface: 'research',
+      device,
+      returnBucket: 'none',
+      referrerGroup: 'direct',
+      build: 'current',
+      variant: 'none',
+      detail: 'none',
+      diagnostic: 'none',
+    });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/__clove/signal', new Blob([body], { type: 'application/json' }));
+    } else {
+      fetch('/__clove/signal', { method: 'POST', headers: { 'content-type': 'application/json' }, body, credentials: 'same-origin', keepalive: true }).catch(() => {});
+    }
+  }
+
   const escapeText = (value) => String(value ?? '');
   const make = (tag, className, text) => {
     const node = document.createElement(tag);
@@ -183,6 +210,7 @@
     const note = document.getElementById('action-note');
     if (sourcePanel) sourcePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (note) note.textContent = source ? `Source selected: ${source.title}. Use the link in the Sources panel to open the first-party material.` : 'The source panel is shown below.';
+    signal('source_inspected');
   }
 
   function downloadExport() {
@@ -197,12 +225,14 @@
     URL.revokeObjectURL(url);
     const note = document.getElementById('action-note');
     if (note) note.textContent = `Downloaded ${currentResearch.export.files.length} Obsidian-compatible Markdown files as one portable bundle.`;
+    signal('research_exported');
   }
 
   async function challenge() {
     if (!currentResearch) return;
     const note = document.getElementById('action-note');
     if (note) note.textContent = 'Running the configured challenger…';
+    signal('challenge_opened');
     try {
       const response = await fetch('/research/challenge', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: currentResearch.question }) });
       const payload = await response.json();
@@ -294,19 +324,28 @@
     const question = input.value.trim();
     if (!question) return;
     investigateButton.disabled = true;
+    signal('research_submitted');
     showLoading(question);
     try {
-      const response = await fetch('/research', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, mode: 'investigate' }) });
+      const response = await fetch('/research/', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, mode: 'investigate' }) });
       const payload = await response.json();
-      if (payload.research) renderCurrent(payload.research);
-      else renderFailure(payload, question);
+      if (payload.research) {
+        renderCurrent(payload.research);
+        const insufficient = ['INSUFFICIENT_EVIDENCE', 'SOURCE_UNAVAILABLE', 'RATE_LIMITED', 'RESEARCH_REQUIRED'].includes(payload.research.status);
+        signal(insufficient ? 'research_insufficient' : 'research_completed');
+      } else {
+        renderFailure(payload, question);
+        signal('research_insufficient');
+      }
     } catch (error) {
       renderFailure({ status: 'SOURCE_UNAVAILABLE', error: error instanceof Error ? error.message : 'The research endpoint could not be reached.' }, question);
+      signal('research_insufficient');
     } finally {
       investigateButton.disabled = false;
     }
   }
 
+  signal('research_opened');
   form.addEventListener('submit', (event) => { event.preventDefault(); void investigate(); });
   document.querySelectorAll('[data-example]').forEach((button) => button.addEventListener('click', () => {
     input.value = button.dataset.example || '';

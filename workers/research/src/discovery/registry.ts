@@ -2,9 +2,11 @@ import { selectSourceRecipe, type RecipeId } from '../source-recipes';
 import { crossrefAdapter } from './crossref';
 import { justiceLawsAdapter } from './justice-laws';
 import { statcanAdapter } from './statcan';
+import { canadianTradeAdapter } from './canadian-trade';
 import type { DiscoveryContext, DiscoveryResult } from './types';
 
 export const DISCOVERY_REGISTRY = Object.freeze({
+  canadian_trade_statistic: canadianTradeAdapter,
   official_canadian_statistic: statcanAdapter,
   canadian_law: justiceLawsAdapter,
   scientific_finding: crossrefAdapter,
@@ -65,3 +67,4 @@ export * from './independence';
 export { crossrefAdapter } from './crossref';
 export { justiceLawsAdapter } from './justice-laws';
 export { statcanAdapter } from './statcan';
+export { canadianTradeAdapter } from './canadian-trade';

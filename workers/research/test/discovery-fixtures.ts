@@ -71,6 +71,19 @@ const STATCAN_POPULATION_POINTS = [
   { refPerRaw: '2025-07-01', value: '41651653', vectorId: 466668, frequencyCode: 12 },
 ];
 
+const GAC_MONTHLY_VALUES = [
+  993989072, 848139381, 1007666688, 911892727, 954273584, 903213602,
+  1042160946, 675120634, 777795044, 813544051, 690746976, 644220964,
+];
+
+const GAC_INDEX = `<html><body>
+  ${Array.from({ length: 12 }, (_, index) => `<a href="https://www.eics-scei.gc.ca/report-rapport/SWL monthly Exports Report_2025${String(index + 1).padStart(2, '0')}.htm">${index + 1}</a>`).join('\n')}
+  <a href="https://international.canada.ca/en/global-affairs/corporate/reports/export-import-controls/administration-2025">Annual report</a>
+</body></html>`;
+const GAC_ANNUAL = '<html><body>Softwood lumber products exported to the United States totalled 10,631,142,309 board feet in 2025.</body></html>';
+const GAC_SCOPE = '<html><body>ECL Item 5105 covers defined softwood lumber products exported to the United States under the monitoring program.</body></html>';
+const STATCAN_LUMBER_CONTEXT = '<html><body>2025 total Canadian lumber exports: 28,275.8 thousand cubic metres. The table includes softwood and hardwood and all destinations.</body></html>';
+
 const CROSSREF_ITEMS = [
   {
     DOI: '10.1097/ebp.0000000000002506',
@@ -113,6 +126,25 @@ function textResponse(value: string, contentType: string): Response {
 
 export const discoveryFixtureFetcher = async (input: string, init?: RequestInit): Promise<Response> => {
   const url = new URL(input);
+  if (url.href === 'https://www.international.gc.ca/controls-controles/softwood-bois_oeuvre/index.aspx?lang=eng') {
+    return textResponse(GAC_INDEX, 'text/html');
+  }
+  if (url.hostname === 'international.canada.ca' && decodeURIComponent(url.pathname).includes('administration-2025')) {
+    return textResponse(GAC_ANNUAL, 'text/html');
+  }
+  if (url.hostname === 'www.eics-scei.gc.ca' && decodeURIComponent(url.pathname).includes('SWL monthly Exports Report_2025')) {
+    const month = Number(decodeURIComponent(url.pathname).match(/Report_2025(\d{2})/)?.[1] ?? 0);
+    return textResponse(`<html><body><h1>Canada-US Softwood Lumber Exports Report</h1><p>Region Exports (FBM)</p><p>Total ${GAC_MONTHLY_VALUES[month - 1]?.toLocaleString('en-CA')}</p></body></html>`, 'text/html');
+  }
+  if (url.href === 'https://www.international.gc.ca/controls-controles/report-rapports/list_liste/handbook-manuel/H1-Mon.aspx?lang=eng') {
+    return textResponse(GAC_SCOPE, 'text/html');
+  }
+  if (url.href === 'https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorByReferencePeriodRange?vectorIds=%221066366737%22&startRefPeriod=2025-01-01&endReferencePeriod=2025-12-31') {
+    return jsonResponse([{ status: 'SUCCESS', object: { vectorDataPoint: [{ vectorId: 1066366737, refPerRaw: '2025-01-01', value: 28275.8 }] } }]);
+  }
+  if (url.href === 'https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1610001801') {
+    return textResponse(STATCAN_LUMBER_CONTEXT, 'text/html');
+  }
   if (url.href === 'https://www150.statcan.gc.ca/t1/wds/rest/getAllCubesListLite') {
     return jsonResponse(STATCAN_INDEX);
   }

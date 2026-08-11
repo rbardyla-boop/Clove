@@ -21,7 +21,8 @@
     <section class="hero" aria-labelledby="page-title">
       <p class="eyebrow">CLOVE RESEARCH · EVIDENCE BEFORE CONFIDENCE</p>
       <h1 id="page-title">Ask one factual<br><span>question.</span></h1>
-      <p class="lede">Clove shows what it found, where it found it, what challenged it, and what remains unknown. The first release is deliberately bounded to a few inspectable source recipes.</p>
+      <p class="principle">AI shouldn’t ask you to trust it.</p>
+      <p class="lede">Ask a question. Clove finds the strongest sources it can, shows exactly what they establish, looks for evidence against the answer, and lets you inspect the whole investigation.</p>
       <form id="research-form" class="question-form">
         <label for="question">What are you trying to find out?</label>
         <div class="question-row">
@@ -36,6 +37,11 @@
         <button type="button" data-example="Does creatine supplementation affect cognitive performance in healthy adults?">Science</button>
         <button type="button" data-example="What percentage of Canada's electricity generation came from nuclear power in the latest complete year?">Electricity</button>
       </div>
+      <aside class="answer-example" aria-label="Example of evidence-first research">
+        <span class="example-label">ONE EXAMPLE</span>
+        <div><strong>Instead of</strong><p>“Canada gets about 13% of its electricity from nuclear.”</p></div>
+        <div><strong>Clove shows</strong><p>80.7 TWh nuclear ÷ 622.2 TWh total generation = 13.0%, Statistics Canada, 2024 — plus the older CER figure and why it is not a direct contradiction.</p></div>
+      </aside>
     </section>
 
     <section id="workspace" class="workspace" aria-live="polite">
@@ -51,6 +57,7 @@
     <p>Bounded research. Public sources. Visible limits.</p>
     <p>Clove does not replace professional legal, medical, or financial advice.</p>
   </footer>
+  <script src="/clove-signals.js" defer></script>
   <script src="/research/research.js" defer></script>
 </body>
 </html>
