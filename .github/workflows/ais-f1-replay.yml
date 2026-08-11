@@ -1,4 +1,4 @@
-name: AIS F1 Poly Replay
+name: AIS F1 Powerplant Later Replay
 
 on:
   push:
@@ -10,24 +10,35 @@ permissions:
 
 # F1 forensic replay only. No adaptive routing or F2 work.
 jobs:
-  poly-r0-d4:
+  powerplant-later:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout exact archived Poly revision
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          repository: rbardyla-boop/poly
-          ref: bbe8fa1edae877f7a9f957adbaba3568c2b3ba45
-      - uses: actions/setup-python@v5
+          repository: rbardyla-boop/claude_powerplant
+          ref: 8c0c8d7e8c77a51ec7bd4ae6f846482f72e9acf9
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.11'
+          node-version: '20'
+          cache: npm
       - name: Environment
         run: |
-          python --version
+          node --version
+          npm --version
           git rev-parse HEAD
-      - name: Install trainer dependencies
-        run: python -m pip install --disable-pip-version-check numpy scikit-learn
-      - name: Replay exact R0-D4 trainer
-        run: python research_zoo/r0_data/r0_d4_trainer.py
-      - name: Replay D4 contract tests
-        run: python -m unittest discover -s research_zoo/r0_data/tests -p 'test_r0_d4_contract.py' -v
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Replay bounded-execution and verification subset
+        run: >-
+          npx vitest run
+          tests/verification-integrity.test.ts
+          tests/sanitized-workspace.test.ts
+          tests/isolation-proof-report.test.ts
+          tests/egress-boundary.test.ts
+          tests/credential-boundary.test.ts
+          tests/executor-launch-policy.test.ts
+          tests/project-tool-broker.test.ts
+          tests/tool-confirmation-policy.test.ts
+          tests/queue-isolation-policy.test.ts
+      - name: Replay build gate
+        run: npm run build
