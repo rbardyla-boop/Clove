@@ -1,4 +1,4 @@
-name: AIS F1 Replay Focused
+name: AIS F1 Poly Replay
 
 on:
   push:
@@ -8,39 +8,26 @@ on:
 permissions:
   contents: read
 
-# F1 forensic replay only. Historical source is checked out verbatim.
-# No adaptive routing, F2 work, or source repair.
+# F1 forensic replay only. No adaptive routing or F2 work.
 jobs:
-  powerplant-focused:
+  poly-r0-d4:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact archived Poly revision
+        uses: actions/checkout@v4
         with:
-          repository: rbardyla-boop/claude_powerplant
-          ref: d024efa2bd0f0171c08eb1079983d81e77ab96b8
-      - uses: actions/setup-node@v4
+          repository: rbardyla-boop/poly
+          ref: bbe8fa1edae877f7a9f957adbaba3568c2b3ba45
+      - uses: actions/setup-python@v5
         with:
-          node-version: '20'
-          cache: npm
+          python-version: '3.11'
       - name: Environment
         run: |
-          node --version
-          npm --version
+          python --version
           git rev-parse HEAD
-      - name: Install pinned dependencies
-        run: npm ci
-      - name: Replay AIS-relevant isolation and authority tests
-        run: >-
-          npx vitest run
-          tests/skill-ingestion.test.ts
-          tests/verification-integrity.test.ts
-          tests/sanitized-workspace.test.ts
-          tests/isolation-proof-report.test.ts
-          tests/egress-boundary.test.ts
-          tests/credential-boundary.test.ts
-          tests/executor-launch-policy.test.ts
-          tests/project-tool-broker.test.ts
-          tests/tool-confirmation-policy.test.ts
-          tests/queue-isolation-policy.test.ts
-      - name: Replay type/build gate
-        run: npm run build
+      - name: Install trainer dependencies
+        run: python -m pip install --disable-pip-version-check numpy scikit-learn
+      - name: Replay exact R0-D4 trainer
+        run: python research_zoo/r0_data/r0_d4_trainer.py
+      - name: Replay D4 contract tests
+        run: python -m unittest discover -s research_zoo/r0_data/tests -p 'test_r0_d4_contract.py' -v
