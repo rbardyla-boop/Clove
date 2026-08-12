@@ -12,7 +12,7 @@ permissions:
 jobs:
   verify-f1:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,6 +37,12 @@ jobs:
 
       - name: Mission JavaScript syntax check
         run: node --check /tmp/mission-001.js
+
+      - name: Install root verification dependency
+        run: npm ci
+
+      - name: Mission browser acceptance replay
+        run: npm run test:mission-browser
 
       - name: Install Insights verification dependencies
         run: npm ci --prefix workers/insights
