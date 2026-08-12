@@ -20,6 +20,7 @@ Safe exits:
 - any nonterminal stage → `STOPPED_SAFE`
 - REQUIRED → no change → COMPLETE
 - UNCLEAR → no change → COMPLETE
+- ACCOUNT LINKING / SIGN-IN → inspection only → COMPLETE
 
 ## Allowed setting classes
 
@@ -32,6 +33,8 @@ Safe exits:
 - `unknown`
 
 No provider/app/account name is entered.
+
+`account_linking` is **inspection-only in v0.1**. The drill must not instruct a novice to unlink, replace, remove, or otherwise alter a sign-in identity/recovery relationship.
 
 ## Stage contract
 
@@ -53,8 +56,18 @@ Choices:
 
 Explain: classification is about this task, not whether the provider is good/bad.
 
+If `settingClass === account_linking`, classification is still useful, but the drill routes to COMPLETE without a change. User-facing copy must explain that sign-in/account-linking changes can affect access and are outside this first-run experiment.
+
 ### CHANGE_DECISION
-Only reached after OPTIONAL.
+Reached only after OPTIONAL on a change-eligible setting class.
+
+Change-eligible classes:
+- location;
+- contacts;
+- photos/files;
+- ordinary app notifications;
+- marketing email/SMS.
+
 Instruction: use the operating system/service's normal settings to reduce **one** clearly optional permission/setting to the least exposure that still appears compatible with the task.
 Choices:
 - `I CHANGED ONE OPTIONAL SETTING`
@@ -88,6 +101,7 @@ Coarse result only:
 - `OPTIONAL — RESTORED`
 - `OPTIONAL — NO CHANGE`
 - `UNCLEAR — NO CHANGE`
+- `SIGN-IN / LINKING — INSPECTED ONLY`
 - `STOPPED SAFELY`
 
 No score, streak, shame, or rank.
@@ -110,6 +124,7 @@ Never teach:
 - geolocation spoofing/manipulation;
 - fraud-control bypass;
 - access-control circumvention;
+- unlinking/removing a sign-in identity as a first-run experiment;
 - deleting an account/device as a test;
 - spending money to complete the drill.
 
@@ -176,7 +191,8 @@ Harness must deliberately reject:
 3. illegal stage transition;
 4. instruction to disable MFA/security alerts;
 5. instruction to spoof location or use false identity;
-6. release package containing DS-I1 runtime.
+6. instruction to unlink/remove sign-in identity in the first-run experiment;
+7. release package containing DS-I1 runtime.
 
 ## Release boundary
 
