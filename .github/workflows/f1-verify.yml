@@ -50,5 +50,22 @@ jobs:
       - name: Insights dependency audit snapshot
         run: npm audit --prefix workers/insights --json || true
 
+      - name: Diagnose available dependency repair without committing it
+        run: |
+          npm audit fix --package-lock-only --prefix workers/insights || true
+          echo '--- candidate lockfile diff ---'
+          git diff -- workers/insights/package.json workers/insights/package-lock.json || true
+          echo '--- candidate versions ---'
+          npm ci --prefix workers/insights
+          npm ls --prefix workers/insights wrangler miniflare undici nanoid || true
+          echo '--- post-fix audit ---'
+          npm audit --prefix workers/insights --json || true
+
+      - name: Restore repository lockfile before contract verification
+        run: git checkout -- workers/insights/package.json workers/insights/package-lock.json
+
+      - name: Reinstall exact repository dependencies
+        run: npm ci --prefix workers/insights
+
       - name: Insights typecheck and privacy-contract tests
         run: npm --prefix workers/insights run check
