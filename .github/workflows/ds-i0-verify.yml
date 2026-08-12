@@ -1,9 +1,6 @@
 name: DS-I0 Verify
 
 on:
-  push:
-    branches:
-      - build/ds-i0-know-the-machine-2026-08-12
   pull_request:
     paths:
       - 'digital-stewardship-00.html'
@@ -28,10 +25,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Static privacy/copy contract
         run: node --test tests/static/ds-i0-contract.test.mjs

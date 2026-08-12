@@ -1,9 +1,6 @@
 name: DS-I3 Verify
 
 on:
-  push:
-    branches:
-      - build/ds-i3-attention-defense-2026-08-12
   pull_request:
     paths:
       - 'digital-stewardship-03.html'
@@ -28,10 +25,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
+          package-manager-cache: false
       - name: Static privacy/evidence contract
         run: node --test tests/static/ds-i3-contract.test.mjs
       - name: Branch-aware state oracle
