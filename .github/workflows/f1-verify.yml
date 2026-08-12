@@ -3,16 +3,31 @@ name: F1 Mission Verify
 on:
   push:
     branches:
-      - f0/brotherhood-salvage-audit-2026-08-12
+      - main
+      - hardening/mission-001-solo-2026-08-12
+  pull_request:
+    paths:
+      - 'mission-001.html'
+      - 'mission-001-app.js'
+      - 'mission-private-store.js'
+      - 'tests/static/mission-*'
+      - 'workers/insights/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/f1-verify.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: f1-mission-verify-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify-f1:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +38,10 @@ jobs:
           node-version: 22
 
       - name: Mission static acceptance contract
-        run: node --test tests/static/mission-001-contract.test.mjs
+        run: npm run test:mission
+
+      - name: Mission formal state-machine and negative controls
+        run: npm run test:mission-state
 
       - name: Mission HTML references encrypted persistence scripts
         run: |
@@ -39,11 +57,14 @@ jobs:
           node --check mission-private-store.js
           node --check mission-001-app.js
 
-      - name: Install root verification dependency
+      - name: Install exact root verification dependency
         run: npm ci
 
       - name: Mission browser acceptance replay
         run: npm run test:mission-browser
+
+      - name: Mission persisted-state and storage-failure adversarial replay
+        run: npm run test:mission-adversarial
 
       - name: Encrypted Mission store browser replay
         run: npm run test:mission-store-browser
