@@ -152,16 +152,28 @@ jobs:
           test ! -e dist/clove-upload/scripts/product-audit.mjs
           node scripts/release-preflight.mjs >/dev/null
 
-      - name: Generate SHA-256 inventory
+      - name: Generate and verify release SHA-256 inventory
         run: |
           cd dist/clove-upload
           find . -type f ! -name '_SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum > _SHA256SUMS.txt
           sha256sum -c _SHA256SUMS.txt >/dev/null
+          cd ../..
+          cp dist/clove-upload/_UPLOAD_MANIFEST.json artifacts/upload-manifest.json
+          cp dist/clove-upload/_SHA256SUMS.txt artifacts/production-sha256s.txt
+
+      - name: Strip release metadata from public tree
+        run: |
+          rm -f dist/clove-upload/_UPLOAD_MANIFEST.json dist/clove-upload/_SHA256SUMS.txt
+          test "$(find dist/clove-upload -type f | wc -l | tr -d ' ')" = "302"
+          test ! -e dist/clove-upload/_UPLOAD_MANIFEST.json
+          test ! -e dist/clove-upload/_SHA256SUMS.txt
 
       - name: Create dashboard-ready ZIP with site files at archive root
         run: |
           cd dist/clove-upload
           zip -qr ../clovelearn-production-${GITHUB_SHA}.zip .
+          cd ../..
+          sha256sum dist/clovelearn-production-${GITHUB_SHA}.zip | tee artifacts/production-zip-sha256.txt
 
       - name: Upload verified release artifact
         uses: actions/upload-artifact@v4
@@ -172,5 +184,8 @@ jobs:
             release-preflight.json
             artifacts/production-product-audit.json
             artifacts/production-product-audit-summary.json
+            artifacts/upload-manifest.json
+            artifacts/production-sha256s.txt
+            artifacts/production-zip-sha256.txt
           if-no-files-found: error
           retention-days: 30
