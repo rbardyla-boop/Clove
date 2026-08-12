@@ -12,6 +12,13 @@ export const EVENTS = [
   'feedback_helpful',
   'feedback_not_for_me',
   'feedback_broken',
+  'research_opened',
+  'research_submitted',
+  'research_completed',
+  'research_insufficient',
+  'source_inspected',
+  'challenge_opened',
+  'research_exported',
 ] as const;
 
 export const SURFACES = [
@@ -31,6 +38,7 @@ export const SURFACES = [
   'tool',
   'article',
   'feedback',
+  'research',
   'other',
 ] as const;
 

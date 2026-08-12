@@ -111,10 +111,32 @@ test('front door, feedback, and mobile Echo Bloom work together', async t => {
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
 
   await page.goto(base, { waitUntil: 'networkidle' });
-  assert.equal(await page.locator('.choice').count(), 3);
+  assert.equal(await page.locator('.choice').count(), 4);
+  assert.equal(await page.locator('.choice.research').getAttribute('href'), '/research/');
+  assert.match(await page.locator('.choice.research').innerText(), /INVESTIGATE SOMETHING/i);
+  assert.match(await page.locator('.choice.research').innerText(), /OPEN CLOVE RESEARCH/i);
   assert.match(await page.locator('h1').innerText(), /What would help/);
+  assert.match(await page.locator('.lede').innerText(), /evidence-first research/i);
   assert.equal(await page.locator('#continueCard').isVisible(), false);
 
+  await page.locator('.choice.research').click();
+  await page.waitForURL(`${base}/research/`);
+  await page.locator('#research-form').waitFor();
+  await page.waitForTimeout(100);
+  assert.ok(submissions.some(item => item.path === '/__clove/signal'
+    && item.body.event === 'research_opened'
+    && item.body.surface === 'research'));
+
+  const homeMobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  homeMobile.on('pageerror', error => errors.push(error.message));
+  homeMobile.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  await homeMobile.goto(base, { waitUntil: 'networkidle' });
+  assert.equal(await homeMobile.locator('.choice').count(), 4);
+  assert.ok((await homeMobile.locator('.choice.research').boundingBox()).width <= 358);
+  assert.ok(await homeMobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+  await homeMobile.close();
+
+  await page.goto(base, { waitUntil: 'networkidle' });
   await page.evaluate(() => localStorage.setItem('clove_last_activity_v1', JSON.stringify({
     kind: 'game', slug: 'echo-bloom', title: 'Echo Bloom', href: '/games/echo-bloom/', at: Date.now(),
   })));

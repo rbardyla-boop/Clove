@@ -1,0 +1,13 @@
+file,check,status,match_count
+F2F3_EVALUATOR_PACKET_v0.3.csv,internal_case_id,PASS,0
+F2F3_EVALUATOR_PACKET_v0.3.csv,class_label,PASS,0
+F2F3_EVALUATOR_PACKET_v0.3.csv,adjudication_prefix,PASS,0
+F2F3_EVALUATOR_AXIS_CLAIMS_v0.3.csv,internal_case_id,PASS,0
+F2F3_EVALUATOR_AXIS_CLAIMS_v0.3.csv,class_label,PASS,0
+F2F3_EVALUATOR_AXIS_CLAIMS_v0.3.csv,adjudication_prefix,PASS,0
+F2F3_EVALUATOR_RESPONSE_TEMPLATE_v0.3.csv,internal_case_id,PASS,0
+F2F3_EVALUATOR_RESPONSE_TEMPLATE_v0.3.csv,class_label,PASS,0
+F2F3_EVALUATOR_RESPONSE_TEMPLATE_v0.3.csv,adjudication_prefix,PASS,0
+F2F3_EVALUATOR_AXIS_SUMMARY_TEMPLATE_v0.3.csv,internal_case_id,PASS,0
+F2F3_EVALUATOR_AXIS_SUMMARY_TEMPLATE_v0.3.csv,class_label,PASS,0
+F2F3_EVALUATOR_AXIS_SUMMARY_TEMPLATE_v0.3.csv,adjudication_prefix,PASS,0

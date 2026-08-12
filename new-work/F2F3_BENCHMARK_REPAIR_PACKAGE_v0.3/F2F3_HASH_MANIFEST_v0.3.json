@@ -1,0 +1,70 @@
+{
+  "F2_CP-CDTT_FORMALISM_v0.3.md": {
+    "sha256": "1287b05f48ca4ffac623c9a952f361e7c0b124cb7008ca35f22028d1fc2e9419",
+    "bytes": 30252
+  },
+  "F2_CP-CDTT_EVALUATOR_SPEC_v0.3.md": {
+    "sha256": "78f44b6855692932074de4251ef6dddcee5ee904f521b668ba33a664bea91222",
+    "bytes": 24113
+  },
+  "F3_CP-CDTT_ONTOLOGY_v0.3.yaml": {
+    "sha256": "049090ca56f759433969ecd876fc73c6fd94904d88d8e735d136db8fb69b9338",
+    "bytes": 20883
+  },
+  "F2F3_BENCHMARK_CASES_v0.3.csv": {
+    "sha256": "25cdc5236aeedc4a6c7c9963a75b344402ec962b2233cb633e6f94388702259b",
+    "bytes": 38190
+  },
+  "F2F3_AXIS_CLAIMS_v0.3.csv": {
+    "sha256": "569802feaa9f1066f006254b4f2b02d40e71e35f772494442f2988e98797bcfd",
+    "bytes": 8822
+  },
+  "F2F3_BLIND_ID_MAP_v0.3.csv": {
+    "sha256": "c21df9d04867fbf532db2c7f06264b4ac248e2c37792275dbf99f4c8e520f9e1",
+    "bytes": 198
+  },
+  "F2F3_EVALUATOR_AXIS_CLAIMS_v0.3.csv": {
+    "sha256": "3c8708a178dba41854b973cef41abab764c20695a13c7561adc9aeff2ca0511a",
+    "bytes": 8823
+  },
+  "F2F3_BLIND_LEAKAGE_AUDIT_v0.3.csv": {
+    "sha256": "7788ca72c37a36e770597c70f12eee31359bdca9c889af160d29d98b0c8ef20b",
+    "bytes": 788
+  },
+  "F2F3_GOLD_PO_LONG_v0.3.csv": {
+    "sha256": "9af0ae49c2057c03b6e1190159506cee9361d6db0a2d50c94ca36b17ddbb53a4",
+    "bytes": 189397
+  },
+  "F2F3_GOLD_KEY_v0.3.csv": {
+    "sha256": "c10cf5d69e3ed118b5277590fb089323699626562eae55d9e042a1e90cdbfd3b",
+    "bytes": 4686
+  },
+  "F2F3_MECHANICAL_REPLAY_v0.3.csv": {
+    "sha256": "bc00f88305c6bd93343a0dda79b89549364da5ea39fab86718f5fd0f8fcca7d9",
+    "bytes": 4143
+  },
+  "F2F3_EVIDENCE_COMPLETENESS_AUDIT_v0.3.csv": {
+    "sha256": "16a3c9cccd018e2a6ecfcd93ea22d0809675a9d1e9c17e35aa7ebc1ca3fda95a",
+    "bytes": 634
+  },
+  "F2F3_EVALUATOR_PACKET_v0.3.csv": {
+    "sha256": "deff793e2a6b2d88ba47d4e5f5d6a9a71d1a042cd1832a83c1f4807df0140530",
+    "bytes": 38419
+  },
+  "F2F3_EVALUATOR_RESPONSE_TEMPLATE_v0.3.csv": {
+    "sha256": "9468a4b3639804e4788749bad39e81dc40edc8016eebbe4b56b504c8fb73591f",
+    "bytes": 24983
+  },
+  "F2F3_EVALUATOR_AXIS_SUMMARY_TEMPLATE_v0.3.csv": {
+    "sha256": "570e46c8c610c1c6a7d39a27daccd146586e46f73640aca200e9e983b66db532",
+    "bytes": 1569
+  },
+  "F2F3_INDEPENDENT_EVALUATOR_RUBRIC_v0.3.md": {
+    "sha256": "3d4060cce4896da4688fc8955b3cf06b31476dbe1efd3d273d00be035963870a",
+    "bytes": 1606
+  },
+  "F2F3_BENCHMARK_REPAIR_REPORT_v0.3.md": {
+    "sha256": "1969709ecc5eaa72a4d9a067106bbf0f67f9a50a118345fde8a8e7cd21f7d9bc",
+    "bytes": 3959
+  }
+}

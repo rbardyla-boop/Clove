@@ -1,0 +1,778 @@
+ontology:
+  id: cpcdtt
+  title: CP-CDTT Scientific Transfer Ontology
+  version: 0.3.0
+  date: '2026-08-10'
+  status: provisional-qualification-lattice-repair
+  purpose: Represent scientific domain theories, cross-domain transfers, proof obligations, failure reasons, predictions,
+    falsification tests, and provenance without conflating structural analogy with mechanistic identity.
+alignment:
+  prov_o: Use PROV-O concepts for Entity, Activity, Agent, derivation, generation, attribution, and specialization where implementation
+    permits.
+  qudt: Reuse QUDT quantity kinds, units, dimension vectors, uncertainty concepts, and conversion metadata where suitable.
+  owl2: Candidate formal serialization for classes/properties and logical axioms.
+  shacl: Candidate constraint layer for machine validation of required fields and level-specific shapes.
+  obo_principles:
+  - stable identifiers
+  - versioning
+  - reuse existing relations where semantically exact
+  - documentation
+  - maintenance
+enums:
+  ObligationStatus:
+  - PASS
+  - FAIL
+  - UNKNOWN
+  - NOT_APPLICABLE
+  Disposition:
+  - SUPPORTED
+  - UNRESOLVED
+  - CONTRADICTED
+  - RETIRED
+  ScientificRole:
+  - ENTITY
+  - STATE
+  - FLUX
+  - SOURCE
+  - SINK
+  - CONTROL
+  - RESPONSE
+  - POTENTIAL
+  - RATE
+  - NOISE
+  - PARAMETER
+  - CONSTRAINT
+  - OBSERVABLE
+  - LATENT
+  - BOUNDARY
+  - INVARIANT
+  EvidenceType:
+  - EXPERIMENT
+  - OBSERVATION
+  - SIMULATION
+  - THEOREM
+  - DERIVATION
+  - DATASET
+  - META_ANALYSIS
+  - REVIEW
+  - EXPERT_ANNOTATION
+  - SYNTHETIC_BENCHMARK
+  ParameterTransport:
+  - STRUCTURAL_ONLY
+  - REESTIMATED
+  - DERIVED
+  - DIMENSIONLESS_UNIVERSAL
+  - UNJUSTIFIED_COPY
+  AssumptionTransport:
+  - PRESERVED
+  - REPLACED
+  - TARGET_VERIFIED
+  - IRRELEVANT
+  - UNSATISFIED
+  - UNKNOWN
+  MappingKind:
+  - OBJECT
+  - ROLE
+  - QUANTITY
+  - PARAMETER
+  - RELATION
+  - EQUATION
+  - MECHANISM
+  - CONSTRAINT
+  - EMPIRICAL_BOUND
+  ValidationKind:
+  - SYMBOLIC
+  - DIMENSIONAL
+  - LOGICAL
+  - CAUSAL
+  - NUMERICAL
+  - EMPIRICAL
+  - PRIOR_ART
+  - HUMAN_REVIEW
+  IllegalAnalogyCode:
+  - IA01_LEXICAL_SUBSTITUTION
+  - IA02_TYPE_ROLE_MISMATCH
+  - IA03_RELATION_BREAK
+  - IA04_FORMAL_DOMAIN_ERROR
+  - IA05_DIMENSIONAL_ERROR
+  - IA06_ASSUMPTION_LAUNDERING
+  - IA07_REGIME_EXTRAPOLATION
+  - IA08_MECHANISM_SMUGGLING
+  - IA09_CAUSAL_INVERSION_CONFOUNDING
+  - IA10_INVARIANT_CONSERVATION_VIOLATION
+  - IA11_PARAMETER_SMUGGLING
+  - IA12_EMPIRICAL_COLLISION
+  - IA13_ONTOLOGICAL_IDENTITY_ERROR
+  - IA14_NONFALSIFIABLE_ESCALATION
+  - IA15_PROVENANCE_NOVELTY_FAILURE
+  QualificationAxis:
+  - S_STRUCTURAL
+  - F_FORMAL
+  - M_MECHANISTIC
+  - P_PREDICTIVE
+  - V_VALIDATED
+  AxisDisposition:
+  - SUPPORTED
+  - FAILED
+  - BLOCKED
+  - NOT_CLAIMED
+  PredictionDerivationBasis:
+  - FORMAL
+  - MECHANISTIC
+  - HYBRID
+  TransferLevelLegacy:
+  - L0_HEURISTIC
+  - L1_STRUCTURAL
+  - L2_FORMAL
+  - L3_MECHANISTIC
+  - L4_PREDICTIVE
+  - L5_VALIDATED
+classes:
+  DomainTheory:
+    description: A bounded scientific theory/model package for a source or target domain.
+    required:
+    - id
+    - label
+    - domain
+    - signature
+    - relations
+    - constraints
+    - empirical_envelope
+    - provenance
+    properties:
+      id: string
+      label: string
+      domain: string
+      description: string
+      signature: list[ScientificObject]
+      relations: list[Relation]
+      mechanisms: list[Mechanism]
+      constraints: list[Constraint]
+      empirical_envelope: list[EmpiricalConstraint]
+      provenance: list[ProvenanceRecord]
+  ScientificObject:
+    description: Typed entity, state, quantity, parameter, process, or observable.
+    required:
+    - id
+    - label
+    - role
+    - type
+    properties:
+      id: string
+      label: string
+      type: string
+      role: ScientificRole
+      description: string
+      quantity_kind: optional[string]
+      unit: optional[string]
+      dimension_vector: optional[DimensionVector]
+      value_domain: optional[string]
+      scale_regime: optional[string]
+      uncertainty: optional[Uncertainty]
+      provenance: list[ProvenanceRecord]
+  DimensionVector:
+    description: Exponent vector over SI base dimensions; other systems may be aligned explicitly.
+    required:
+    - length
+    - mass
+    - time
+    - electric_current
+    - temperature
+    - amount
+    - luminous_intensity
+    properties:
+      length: number
+      mass: number
+      time: number
+      electric_current: number
+      temperature: number
+      amount: number
+      luminous_intensity: number
+  Relation:
+    description: Formal relation, equation, inequality, logical rule, transformation, algorithm, or statistical relation.
+    required:
+    - id
+    - kind
+    - expression
+    - arguments
+    - outputs
+    properties:
+      id: string
+      kind: string
+      expression: string
+      arguments: list[object_id]
+      outputs: list[object_id]
+      assumptions: list[constraint_id]
+      regime: list[constraint_id]
+      tolerance: optional[number|string]
+      provenance: list[ProvenanceRecord]
+  Mechanism:
+    description: Causal/process claim linking scientific objects and events.
+    required:
+    - id
+    - statement
+    - nodes
+    - edges
+    - evidence_status
+    properties:
+      id: string
+      statement: string
+      nodes: list[object_id]
+      edges: list[CausalEdge]
+      structural_equations: list[string]
+      evidence_status: Disposition
+      provenance: list[ProvenanceRecord]
+  CausalEdge:
+    required:
+    - source
+    - target
+    - relation
+    properties:
+      source: object_id
+      target: object_id
+      relation: string
+      sign: optional[string]
+      lag: optional[string]
+      guard: optional[constraint_id]
+  Constraint:
+    description: Assumption, boundary condition, invariant, conservation law, or regime restriction.
+    required:
+    - id
+    - kind
+    - statement
+    properties:
+      id: string
+      kind: ASSUMPTION|BOUNDARY|REGIME|INVARIANT|CONSERVATION|SYMMETRY|ADMISSIBILITY
+      statement: string
+      formal_expression: optional[string]
+      provenance: list[ProvenanceRecord]
+  EmpiricalConstraint:
+    description: Observation, bound, null result, calibration, or known failure region.
+    required:
+    - id
+    - kind
+    - statement
+    - evidence
+    properties:
+      id: string
+      kind: OBSERVED_RANGE|UPPER_BOUND|LOWER_BOUND|NULL_RESULT|CALIBRATION|EXCLUSION|FAILURE_REGIME
+      statement: string
+      numeric_range: optional[string]
+      uncertainty: optional[Uncertainty]
+      evidence: list[EvidenceItem]
+  EvidenceItem:
+    required:
+    - id
+    - type
+    - citation
+    - supports
+    properties:
+      id: string
+      type: EvidenceType
+      citation: string
+      supports: list[id]
+      contradicts: list[id]
+      quality_notes: optional[string]
+      provenance: list[ProvenanceRecord]
+  ProvenanceRecord:
+    description: PROV-aligned lineage record.
+    required:
+    - id
+    - source
+    - activity
+    - agent
+    - timestamp_or_version
+    properties:
+      id: string
+      source: string
+      activity: string
+      agent: string
+      timestamp_or_version: string
+      derived_from: list[id]
+      hash: optional[string]
+  Mapping:
+    description: One explicit source→target correspondence.
+    required:
+    - id
+    - kind
+    - source_id
+    - target_id
+    - rationale
+    properties:
+      id: string
+      kind: MappingKind
+      source_id: id
+      target_id: id
+      rationale: string
+      transform: optional[string]
+      guard_conditions: list[constraint_id]
+      confidence: optional[number]
+      provenance: list[ProvenanceRecord]
+  TransferProposal:
+    required:
+    - id
+    - source_theory
+    - target_theory
+    - axis_claims
+    - guard_conditions
+    - proof_obligations
+    - disposition
+    properties:
+      id: string
+      source_theory: domain_theory_id
+      target_theory: domain_theory_id
+      mappings: list[Mapping]
+      unmapped_material_structure: list[id]
+      guard_conditions: list[constraint_id]
+      hypothesis: optional[Hypothesis]
+      proof_obligations: list[ProofObligationResult]
+      illegal_analogy_codes: list[IllegalAnalogyCode]
+      disposition: Disposition
+      provenance: list[ProvenanceRecord]
+      axis_claims: list[AxisClaim]
+      qualification_profile: QualificationProfile
+      legacy_scalar_projection: 'optional[TransferLevelLegacy]  # display-only; never primary scoring'
+      historical_literature_ceiling: optional[string]
+  Hypothesis:
+    required:
+    - id
+    - statement
+    - target_domain
+    - derived_from_transfer
+    properties:
+      id: string
+      statement: string
+      target_domain: string
+      derived_from_transfer: transfer_id
+      predictions: list[Prediction]
+      assumptions: list[constraint_id]
+      provenance: list[ProvenanceRecord]
+  Prediction:
+    required:
+    - id
+    - statement
+    - baseline_or_null
+    - decision_boundary
+    properties:
+      id: string
+      statement: string
+      numeric_expression: optional[string]
+      predicted_interval: optional[string]
+      baseline_or_null: string
+      decision_boundary: string
+      uncertainty: optional[Uncertainty]
+      falsification_test: optional[test_id]
+  FalsificationTest:
+    required:
+    - id
+    - procedure
+    - reject_if
+    - controls
+    properties:
+      id: string
+      procedure: string
+      reject_if: string
+      controls: list[string]
+      measurement_capability: optional[string]
+      preregistration: optional[string]
+      result: optional[ValidationResult]
+  ProofObligationResult:
+    required:
+    - obligation_id
+    - evaluated_axis
+    - status
+    - rationale
+    - validator_kind
+    properties:
+      obligation_id: proof_obligation_id
+      status: ObligationStatus
+      rationale: string
+      validator_kind: ValidationKind
+      evidence: list[evidence_id]
+      blocking: boolean
+      provenance: list[ProvenanceRecord]
+      evaluated_axis: QualificationAxis
+  Uncertainty:
+    properties:
+      kind: STANDARD|INTERVAL|DISTRIBUTION|QUALITATIVE
+      value: string
+      coverage: optional[string]
+      method: optional[string]
+  ValidationResult:
+    required:
+    - status
+    - criterion
+    - evidence
+    properties:
+      status: PASS|FAIL|INCONCLUSIVE
+      criterion: string
+      evidence: list[evidence_id]
+      notes: optional[string]
+  AxisClaim:
+    description: Frozen claim scoped to one qualification axis. F extends S; M and P independently extend F; V extends P.
+    required:
+    - id
+    - transfer_id
+    - axis
+    - statement
+    properties:
+      id: string
+      transfer_id: transfer_id
+      axis: QualificationAxis
+      statement: string
+      adds_semantics: list[string]
+      mappings: list[mapping_id]
+      assumptions: list[constraint_id]
+      prediction_ids: list[prediction_id]
+      prediction_derivation_basis: optional[PredictionDerivationBasis]
+      validation_result: optional[ValidationResult]
+      provenance: list[ProvenanceRecord]
+  QualificationProfile:
+    required:
+    - structural
+    - formal
+    - mechanistic
+    - predictive
+    - validated
+    properties:
+      structural: AxisDisposition
+      formal: AxisDisposition
+      mechanistic: AxisDisposition
+      predictive: AxisDisposition
+      validated: AxisDisposition
+  BenchmarkEvidenceBundle:
+    description: Closed-book evidence frozen for reproducibility scoring; absent historical facts remain UNKNOWN.
+    required:
+    - id
+    - case_id
+    - version
+    - grounding_evidence
+    - mapping_evidence
+    - formal_evidence
+    - assumptions_and_regime
+    - mechanism_evidence
+    - empirical_bounds
+    - parameter_calibration
+    - uncertainty_evidence
+    - prediction_evidence
+    - falsification_evidence
+    - validation_evidence
+    - provenance_evidence
+    properties:
+      id: string
+      case_id: string
+      version: string
+      grounding_evidence: string
+      mapping_evidence: string
+      formal_evidence: string
+      assumptions_and_regime: string
+      mechanism_evidence: string
+      empirical_bounds: string
+      parameter_calibration: string
+      uncertainty_evidence: string
+      prediction_evidence: string
+      falsification_evidence: string
+      validation_evidence: string
+      provenance_evidence: string
+proof_obligation_aliases:
+  PO00: PO00_GROUNDING
+  PO01: PO01_MAPPING_DECLARATION
+  PO02: PO02_TYPE_ROLE
+  PO03: PO03_RELATION_PRESERVATION
+  PO04: PO04_FORMAL_WELL_FORMED
+  PO05: PO05_DIMENSIONAL
+  PO06: PO06_ASSUMPTIONS
+  PO07: PO07_REGIME
+  PO08: PO08_MECHANISM
+  PO09: PO09_INVARIANTS
+  PO10: PO10_PARAMETERS
+  PO11: PO11_EMPIRICAL_ENVELOPE
+  PO12: PO12_UNCERTAINTY
+  PO13: PO13_PREDICTION
+  PO14: PO14_FALSIFICATION
+  PO15: PO15_PRIOR_ART
+  PO16: PO16_PROVENANCE
+  PO17: PO17_VALIDATION
+proof_obligations:
+  PO00_GROUNDING:
+    title: Source and target grounding
+    mandatory_on:
+    - S_STRUCTURAL
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO01_MAPPING_DECLARATION:
+    title: Explicit mapping and unmapped material structure
+    mandatory_on:
+    - S_STRUCTURAL
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO02_TYPE_ROLE:
+    title: Type and structural-role compatibility
+    mandatory_on:
+    - S_STRUCTURAL
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO03_RELATION_PRESERVATION:
+    title: Preservation of claimed relations
+    mandatory_on:
+    - S_STRUCTURAL
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO04_FORMAL_WELL_FORMED:
+    title: Target mathematical/logical well-formedness
+    mandatory_on:
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO05_DIMENSIONAL:
+    title: Dimensional/metrological validity
+    conditional: activate when physical measured quantities occur
+    conditional_on:
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+    activate_when: unit-bearing or measured physical quantities occur
+  PO06_ASSUMPTIONS:
+    title: Assumption transport
+    mandatory_on:
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO07_REGIME:
+    title: Boundary/scale/regime coverage
+    mandatory_on:
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO08_MECHANISM:
+    title: Causal/mechanistic compatibility
+    mandatory_on:
+    - M_MECHANISTIC
+    conditional_on:
+    - P_PREDICTIVE
+    - V_VALIDATED
+    activate_when: prediction derivation basis is MECHANISTIC/HYBRID or claim makes causal/mechanistic assertion
+  PO09_INVARIANTS:
+    title: Invariant/conservation compatibility
+    mandatory_on:
+    - M_MECHANISTIC
+    conditional_on:
+    - F_FORMAL
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO10_PARAMETERS:
+    title: Parameter transport/calibration
+    mandatory_on:
+    - M_MECHANISTIC
+    conditional_on:
+    - F_FORMAL
+    - P_PREDICTIVE
+    - V_VALIDATED
+    activate_when: parameters are transported, fitted, derived, or instantiated
+  PO11_EMPIRICAL_ENVELOPE:
+    title: Compatibility with target empirical bounds
+    mandatory_on:
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+    conditional_on:
+    - F_FORMAL
+  PO12_UNCERTAINTY:
+    title: Uncertainty and sensitivity
+    mandatory_on:
+    - P_PREDICTIVE
+    - V_VALIDATED
+    conditional_on:
+    - M_MECHANISTIC
+  PO13_PREDICTION:
+    title: Discriminating target prediction
+    mandatory_on:
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO14_FALSIFICATION:
+    title: Falsification route and controls
+    mandatory_on:
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO15_PRIOR_ART:
+    title: Novelty and prior-art check
+    conditional: mandatory whenever novelty is claimed
+    conditional_on:
+    - P_PREDICTIVE
+    - V_VALIDATED
+    activate_when: novelty is claimed
+  PO16_PROVENANCE:
+    title: Provenance completeness
+    mandatory_on:
+    - S_STRUCTURAL
+    - F_FORMAL
+    - M_MECHANISTIC
+    - P_PREDICTIVE
+    - V_VALIDATED
+  PO17_VALIDATION:
+    title: Validation of transferred prediction
+    mandatory_on:
+    - V_VALIDATED
+legality_semantics:
+  rule: An axis claim is SUPPORTED iff every dependency axis is supported and every mandatory/activated proof obligation evaluated
+    for that axis is PASS.
+  dependencies:
+    F_FORMAL:
+    - S_STRUCTURAL
+    M_MECHANISTIC:
+    - F_FORMAL
+    P_PREDICTIVE:
+    - F_FORMAL
+    V_VALIDATED:
+    - P_PREDICTIVE
+  prediction_branch: If P_PREDICTIVE derivation basis is MECHANISTIC or HYBRID, M_MECHANISTIC is an additional dependency;
+    FORMAL-basis P may pass without M.
+  fail: Any FAIL on a mandatory or activated obligation sets that axis claim to FAILED; sibling/lower supported axes remain
+    intact.
+  unknown: UNKNOWN blocks the axis but is not coerced to FAIL or PASS.
+  not_applicable: NOT_APPLICABLE is legal only for obligations conditional on that axis with an explicit applicability rationale;
+    mandatory obligations cannot be bypassed.
+  benchmark_boundary: Only frozen case evidence may be used in the closed-book classifier; external historical facts are UNKNOWN.
+  primary_output: QualificationProfile over S/F/M/P/V. Scalar maximum-level scoring is deprecated.
+validation_rules:
+- id: VR01
+  if: axis in F/M/P/V and any mapped object has quantity_kind
+  require: PO05_DIMENSIONAL active
+- id: VR02
+  if: axis == M_MECHANISTIC
+  require: PO08_MECHANISM=PASS
+- id: VR03
+  if: axis == P_PREDICTIVE
+  require: Prediction exists and PO13_PREDICTION=PASS and PO14_FALSIFICATION=PASS
+- id: VR04
+  if: parameter transport == UNJUSTIFIED_COPY
+  set: PO10_PARAMETERS=FAIL; add IA11_PARAMETER_SMUGGLING
+- id: VR05
+  if: required assumption transport == UNSATISFIED
+  set: PO06_ASSUMPTIONS=FAIL; add IA06_ASSUMPTION_LAUNDERING
+- id: VR06
+  if: target empirical constraint contradicts claim beyond uncertainty
+  set: PO11_EMPIRICAL_ENVELOPE=FAIL; add IA12_EMPIRICAL_COLLISION
+- id: VR07
+  if: formal similarity used as sole evidence for M_MECHANISTIC
+  set: PO08_MECHANISM=FAIL; add IA08_MECHANISM_SMUGGLING
+- id: VR08
+  if: target relation is dimensionally inhomogeneous
+  set: PO05_DIMENSIONAL=FAIL; add IA05_DIMENSIONAL_ERROR
+- id: VR09
+  if: P derivation basis in [MECHANISTIC,HYBRID] and M != SUPPORTED
+  set: P_PREDICTIVE=BLOCKED or FAILED according to dependency evidence
+- id: VR10
+  if: mandatory/activated obligation status UNKNOWN
+  set: axis disposition=BLOCKED; do not coerce UNKNOWN
+- id: VR11
+  if: axis == V_VALIDATED
+  require: PO17_VALIDATION=PASS with ValidationResult(PASS) tied to a frozen P prediction and checkable decision criterion
+- id: VR12
+  if: mandatory obligation status NOT_APPLICABLE
+  set: schema error; N/A is allowed only for conditional obligations
+- id: VR13
+  if: an axis claim rewrites a lower/sibling frozen claim rather than extending it
+  set: new transfer version required
+implementation_boundary:
+  next_formalization_if_gate_passes:
+  - map classes to OWL2
+  - encode level constraints as SHACL shapes
+  - reuse PROV-O/QUDT/RO identifiers where exact
+  - publish competency questions and conformance tests
+  v0_3_is: A conceptual and serialization ontology for axis-scoped S/F/M/P/V qualification, hand annotation, and later OWL/SHACL
+    implementation.
+  v0_3_is_not:
+  - a complete upper ontology
+  - a substitute for domain ontologies
+  - an automated theorem prover
+  - an autonomous science agent
+  - a validated novelty claim
+axis_requirements:
+  S_STRUCTURAL:
+  - PO00_GROUNDING
+  - PO01_MAPPING_DECLARATION
+  - PO02_TYPE_ROLE
+  - PO03_RELATION_PRESERVATION
+  - PO16_PROVENANCE
+  F_FORMAL:
+  - S_STRUCTURAL
+  - PO00_GROUNDING
+  - PO01_MAPPING_DECLARATION
+  - PO02_TYPE_ROLE
+  - PO03_RELATION_PRESERVATION
+  - PO04_FORMAL_WELL_FORMED
+  - PO06_ASSUMPTIONS
+  - PO07_REGIME
+  - PO05_DIMENSIONAL?
+  - PO09_INVARIANTS?
+  - PO10_PARAMETERS?
+  - PO11_EMPIRICAL_ENVELOPE?
+  - PO16_PROVENANCE
+  M_MECHANISTIC:
+  - F_FORMAL
+  - PO00_GROUNDING
+  - PO01_MAPPING_DECLARATION
+  - PO02_TYPE_ROLE
+  - PO03_RELATION_PRESERVATION
+  - PO04_FORMAL_WELL_FORMED
+  - PO05_DIMENSIONAL?
+  - PO06_ASSUMPTIONS
+  - PO07_REGIME
+  - PO08_MECHANISM
+  - PO09_INVARIANTS
+  - PO10_PARAMETERS
+  - PO11_EMPIRICAL_ENVELOPE
+  - PO12_UNCERTAINTY?
+  - PO16_PROVENANCE
+  P_PREDICTIVE:
+  - F_FORMAL
+  - PO00_GROUNDING
+  - PO01_MAPPING_DECLARATION
+  - PO02_TYPE_ROLE
+  - PO03_RELATION_PRESERVATION
+  - PO04_FORMAL_WELL_FORMED
+  - PO05_DIMENSIONAL?
+  - PO06_ASSUMPTIONS
+  - PO07_REGIME
+  - PO08_MECHANISM?
+  - PO09_INVARIANTS?
+  - PO10_PARAMETERS?
+  - PO11_EMPIRICAL_ENVELOPE
+  - PO12_UNCERTAINTY
+  - PO13_PREDICTION
+  - PO14_FALSIFICATION
+  - PO15_PRIOR_ART?
+  - PO16_PROVENANCE
+  V_VALIDATED:
+  - P_PREDICTIVE
+  - PO00_GROUNDING
+  - PO01_MAPPING_DECLARATION
+  - PO02_TYPE_ROLE
+  - PO03_RELATION_PRESERVATION
+  - PO04_FORMAL_WELL_FORMED
+  - PO05_DIMENSIONAL?
+  - PO06_ASSUMPTIONS
+  - PO07_REGIME
+  - PO08_MECHANISM?
+  - PO09_INVARIANTS?
+  - PO10_PARAMETERS?
+  - PO11_EMPIRICAL_ENVELOPE
+  - PO12_UNCERTAINTY
+  - PO13_PREDICTION
+  - PO14_FALSIFICATION
+  - PO15_PRIOR_ART?
+  - PO16_PROVENANCE
+  - PO17_VALIDATION

@@ -1,0 +1,26 @@
+{
+  "F2_CP-CDTT_FORMALISM_v0.3.md": {
+    "sha256": "1287b05f48ca4ffac623c9a952f361e7c0b124cb7008ca35f22028d1fc2e9419",
+    "bytes": 30252
+  },
+  "F2_CP-CDTT_EVALUATOR_SPEC_v0.3.md": {
+    "sha256": "78f44b6855692932074de4251ef6dddcee5ee904f521b668ba33a664bea91222",
+    "bytes": 24113
+  },
+  "F3_CP-CDTT_ONTOLOGY_v0.3.yaml": {
+    "sha256": "049090ca56f759433969ecd876fc73c6fd94904d88d8e735d136db8fb69b9338",
+    "bytes": 20883
+  },
+  "F2F3_EXTERNAL_BLIND_PACKET_v0.3.zip": {
+    "sha256": "65185a575801ff609d7952c1ddd5e4d12391de093d5e6d640ac5b2068c294bc2",
+    "bytes": 35441
+  },
+  "F2F3_BENCHMARK_REPAIR_PACKAGE_v0.3.zip": {
+    "sha256": "b6f49a4a25ce058755ddce63d2c53944a769069c162abb84921a24ad3859c0c4",
+    "bytes": 79607
+  },
+  "F2F3_PACKAGE_INTEGRITY_REPLAY_v0.3.md": {
+    "sha256": "e0b0bc192ae4f2ad123500dce2f1e524100fe233227c4f4513f0df27d0199bb1",
+    "bytes": 2326
+  }
+}

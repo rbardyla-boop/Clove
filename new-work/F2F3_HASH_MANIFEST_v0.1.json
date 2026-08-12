@@ -1,0 +1,37 @@
+[
+  {
+    "file": "F2_CP-CDTT_FORMALISM_v0.2.md",
+    "sha256": "651e85e2975dce29868367b1f2075cdaabee6dc78700889fa609342b38a42813",
+    "bytes": 27439
+  },
+  {
+    "file": "F3_CP-CDTT_ONTOLOGY_v0.2.yaml",
+    "sha256": "6bd44eb11fd73b0999dbc48ca900a765dde4353079dcc9958908027dacffeb4e",
+    "bytes": 15333
+  },
+  {
+    "file": "F2F3_GOLD_CORPUS_v0.1.csv",
+    "sha256": "fc5de7e4d14b2e2c2f684cf5b82e8a5fb0bea6296382b6deaa23f023854cb4f2",
+    "bytes": 13239
+  },
+  {
+    "file": "F2F3_EVALUATOR_PACKET_v0.1.csv",
+    "sha256": "c94f5e03f11f39b3781371cd967ad13c498ab9da6bb9b698121a9ed3b571677a",
+    "bytes": 6899
+  },
+  {
+    "file": "F2F3_GOLD_KEY_v0.1.csv",
+    "sha256": "3f2ac33d26c91f9437ec25ec45a7e0215cf7dcaf2398328f2d74f3a9d862ce9c",
+    "bytes": 5241
+  },
+  {
+    "file": "F2F3_INDEPENDENT_EVALUATOR_RUBRIC_v0.1.md",
+    "sha256": "45f7bff00af3a2fbf6cdc6341683891655c88aab114e35f6304209121829bb3f",
+    "bytes": 1291
+  },
+  {
+    "file": "F2F3_INTERNAL_REPLAY_v0.1.md",
+    "sha256": "252684f367afc7b65ab99fde8c2fee2eeb8499b67762e54659a90ce0ac3e91bc",
+    "bytes": 526
+  }
+]

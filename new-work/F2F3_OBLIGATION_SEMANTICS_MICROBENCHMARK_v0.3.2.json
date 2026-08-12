@@ -1,0 +1,21 @@
+{
+  "version": "0.3.2",
+  "cases": [
+    {"id":"M01","claim_activity":"NEGATED","axis":"M_MECHANISTIC","rows":[{"obligation_id":"PO08","requirement_mode":"M","status":"FAIL","failure_family":"MECHANISM_CAUSALITY"}],"expected_schema":"VALID","expected_axis":"FAILED"},
+    {"id":"M02","claim_activity":"NEGATED","axis":"M_MECHANISTIC","rows":[{"obligation_id":"PO08","requirement_mode":"M","status":"UNKNOWN","failure_family":""}],"expected_schema":"VALID","expected_axis":"BLOCKED"},
+    {"id":"M03","claim_activity":"NOT_CLAIMED","axis":"M_MECHANISTIC","rows":[],"expected_schema":"VALID","expected_axis":"NOT_CLAIMED"},
+    {"id":"M04","claim_activity":"NOT_CLAIMED","axis":"M_MECHANISTIC","rows":[{"obligation_id":"PO08","requirement_mode":"M","status":"PASS","failure_family":""}],"expected_schema":"SCHEMA_ERROR"},
+    {"id":"M05","claim_activity":"CLAIMED","axis":"M_MECHANISTIC","rows":[],"expected_schema":"SCHEMA_ERROR"},
+    {"id":"M06","claim_activity":"CLAIMED","axis":"F_FORMAL","rows":[{"obligation_id":"PO03","requirement_mode":"M","status":"PASS","failure_family":""}],"expected_schema":"VALID","expected_axis":"SUPPORTED"},
+    {"id":"M07","claim_activity":"CLAIMED","axis":"F_FORMAL","rows":[{"obligation_id":"PO03","requirement_mode":"M","status":"FAIL","failure_family":"FORMAL_METROLOGY"}],"expected_schema":"VALID","expected_axis":"FAILED"},
+    {"id":"M08","claim_activity":"CLAIMED","axis":"F_FORMAL","rows":[{"obligation_id":"PO03","requirement_mode":"M","status":"FAIL","failure_family":""}],"expected_schema":"SCHEMA_ERROR"},
+    {"id":"M09","claim_activity":"CLAIMED","axis":"F_FORMAL","rows":[{"obligation_id":"PO03","requirement_mode":"M","status":"UNKNOWN","failure_family":""}],"expected_schema":"VALID","expected_axis":"BLOCKED"},
+    {"id":"M10","claim_activity":"CLAIMED","axis":"P_PREDICTIVE","rows":[{"obligation_id":"PO15","requirement_mode":"C","status":"NOT_APPLICABLE","failure_family":"","applicability_reason":"No novelty claim is made."}],"expected_schema":"VALID","expected_axis":"SUPPORTED"},
+    {"id":"M11","claim_activity":"CLAIMED","axis":"P_PREDICTIVE","rows":[{"obligation_id":"PO13","requirement_mode":"M","status":"NOT_APPLICABLE","failure_family":"","applicability_reason":""}],"expected_schema":"SCHEMA_ERROR"},
+    {"id":"M12","claim_activity":"CLAIMED","axis":"M_MECHANISTIC","rows":[{"obligation_id":"PO08","requirement_mode":"M","status":"FAIL","failure_family":"IA08_MECHANISM_SMUGGLING"}],"expected_schema":"SCHEMA_ERROR"},
+    {"id":"M13","claim_activity":"NEGATED","axis":"M_MECHANISTIC","rows":[{"obligation_id":"PO08","requirement_mode":"M","status":"PASS","failure_family":""}],"expected_schema":"VALID","expected_axis":"SUPPORTED"},
+    {"id":"M14","claim_activity":"CLAIMED","axis":"M_MECHANISTIC","rows":[{"obligation_id":"PO08","requirement_mode":"M","status":"FAIL","failure_family":"MECHANISM_CAUSALITY"},{"obligation_id":"PO09","requirement_mode":"M","status":"UNKNOWN","failure_family":""}],"expected_schema":"VALID","expected_axis":"FAILED"},
+    {"id":"M15","claim_activity":"CLAIMED","axis":"F_FORMAL","rows":[{"obligation_id":"PO03","requirement_mode":"M","status":"PASS","failure_family":""},{"obligation_id":"PO03","requirement_mode":"M","status":"PASS","failure_family":""}],"expected_schema":"SCHEMA_ERROR"},
+    {"id":"M16","claim_activity":"CLAIMED","axis":"V_VALIDATED","rows":[{"obligation_id":"PO15","requirement_mode":"C","status":"NOT_APPLICABLE","failure_family":"","applicability_reason":"Validation case does not claim novelty."}],"expected_schema":"VALID","expected_axis":"SUPPORTED"}
+  ]
+}

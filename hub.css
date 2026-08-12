@@ -22,12 +22,12 @@ main{width:min(1120px,calc(100% - 32px));margin:auto}
 .eyebrow{margin:0 0 10px;color:#6f8cab;font-size:10px;font-weight:900;letter-spacing:.2em}
 .hero h1{margin:0;font-size:clamp(44px,8vw,88px);line-height:.93;letter-spacing:-.05em}.hero h1 span{color:var(--cyan)}
 .lede{max-width:720px;margin:24px auto 0;color:var(--muted);font-size:17px;line-height:1.7}
-.choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.choice-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .choice,.today-card,.game-card,.need-card{position:relative;text-decoration:none;border:1px solid var(--line);border-radius:22px;background:rgba(11,25,42,.82);padding:28px;transition:.18s ease;overflow:hidden}
 .today-card{display:block;width:100%}
 .choice:before,.game-card:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent,var(--cyan))}
 .choice:hover,.today-card:hover,.game-card:hover,.need-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent,var(--cyan)) 55%,transparent);box-shadow:0 22px 55px rgba(0,0,0,.28)}
-.choice.calm{--accent:var(--cyan)}.choice.plan{--accent:var(--blue)}.choice.play{--accent:var(--gold)}
+.choice.calm{--accent:var(--cyan)}.choice.plan{--accent:var(--blue)}.choice.research{--accent:var(--violet)}.choice.play{--accent:var(--gold)}
 .choice-time,.choice small,.today-card small,.game-card small{color:var(--accent,var(--cyan));font-size:9px;font-weight:900;letter-spacing:.15em}
 .choice h2{font-size:27px;margin:20px 0 8px}.choice p,.today-card p,.game-card p,.need-card p{color:var(--muted);line-height:1.6;margin:0 0 24px}.choice b,.today-card b,.game-card b{font-size:11px;letter-spacing:.08em;color:var(--accent,var(--cyan))}
 .continue-card{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid rgba(117,167,255,.28);background:rgba(117,167,255,.08);padding:22px 26px;border-radius:18px;margin:18px 0}
@@ -55,5 +55,8 @@ main{width:min(1120px,calc(100% - 32px));margin:auto}
   .choice{padding:24px}.continue-card,.section-heading,.site-footer{align-items:flex-start;flex-direction:column}.section-heading>p{text-align:left}
   .plain-links a{border-right:0;border-bottom:1px solid var(--line)}.plain-links a:last-child{border-bottom:0}
   .game-card{min-height:220px}.page-head{padding-top:42px}
+}
+@media(min-width:761px) and (max-width:980px){
+  .choice-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}

@@ -1,0 +1,76 @@
+blind_id,axis,axis_disposition,confidence,one_sentence_reason
+C01,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C01,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C01,M_MECHANISTIC,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C01,P_PREDICTIVE,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C01,V_VALIDATED,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C02,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C02,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C02,M_MECHANISTIC,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C02,P_PREDICTIVE,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C02,V_VALIDATED,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C03,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C03,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C03,M_MECHANISTIC,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C03,P_PREDICTIVE,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C03,V_VALIDATED,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C04,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C04,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C04,M_MECHANISTIC,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C04,P_PREDICTIVE,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C04,V_VALIDATED,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C05,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C05,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C05,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C06,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C06,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C06,M_MECHANISTIC,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C06,P_PREDICTIVE,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C06,V_VALIDATED,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C07,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C07,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C07,P_PREDICTIVE,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C07,V_VALIDATED,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C08,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C08,F_FORMAL,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C08,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C09,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C09,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C09,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C10,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C10,F_FORMAL,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C10,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C11,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C11,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C11,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C12,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C12,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C12,M_MECHANISTIC,NOT_CLAIMED,HIGH,The packet makes no positive claim on this axis.
+C13,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C13,F_FORMAL,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C13,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C14,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C14,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C14,M_MECHANISTIC,NOT_CLAIMED,HIGH,The packet makes no positive claim on this axis.
+C15,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C15,F_FORMAL,BLOCKED,MEDIUM,No local failure overrides the missing closed-book evidence required for qualification.
+C15,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C16,S_STRUCTURAL,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C16,F_FORMAL,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C16,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C17,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C17,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C17,M_MECHANISTIC,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C17,P_PREDICTIVE,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C17,V_VALIDATED,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C18,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C18,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C18,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C19,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C19,F_FORMAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C19,M_MECHANISTIC,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C19,P_PREDICTIVE,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C19,V_VALIDATED,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C20,S_STRUCTURAL,SUPPORTED,HIGH,All active local obligations pass and required dependencies are supported.
+C20,F_FORMAL,FAILED,HIGH,At least one active local obligation fails on packet evidence.
+C20,M_MECHANISTIC,FAILED,HIGH,At least one active local obligation fails on packet evidence.

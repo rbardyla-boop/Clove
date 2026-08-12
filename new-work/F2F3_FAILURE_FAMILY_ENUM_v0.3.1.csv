@@ -1,0 +1,10 @@
+failure_family,ia_codes,definition
+MAPPING_TYPE_RELATION,IA01_LEXICAL_SUBSTITUTION;IA02_TYPE_ROLE_MISMATCH;IA03_RELATION_BREAK,The source-to-target object or relation mapping is not preserved.
+FORMAL_METROLOGY,IA04_FORMAL_DOMAIN_ERROR;IA05_DIMENSIONAL_ERROR,The transferred mathematics or units are invalid for the target.
+ASSUMPTION_REGIME,IA06_ASSUMPTION_LAUNDERING;IA07_REGIME_EXTRAPOLATION,Required assumptions or regime limits are omitted or exceeded.
+MECHANISM_CAUSALITY,IA08_MECHANISM_SMUGGLING;IA09_CAUSAL_INVERSION_CONFOUNDING,Mechanism or causal force is asserted without target causal support.
+INVARIANT_PARAMETER,IA10_CONSERVATION_INVARIANT_VIOLATION;IA11_PARAMETER_SMUGGLING,Target invariants or parameter calibration are violated.
+EMPIRICAL,IA12_EMPIRICAL_COLLISION,The claim conflicts with frozen target evidence or bounds.
+ONTOLOGICAL_IDENTITY,IA13_ONTOLOGICAL_IDENTITY_ERROR,Representational similarity is treated as identity of the underlying things.
+FALSIFICATION,IA14_NONFALSIFIABLE_ESCALATION,The strong claim has no possible rejection test.
+PROVENANCE_NOVELTY,IA15_PROVENANCE_NOVELTY_FAILURE,Source, target evidence, or novelty provenance cannot be verified.

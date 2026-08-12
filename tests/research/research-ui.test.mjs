@@ -105,7 +105,7 @@ test('the research page visibly completes population, law, and science bounded p
   const page = await browser.newPage();
   await page.route('**/*', async (route) => {
     const url = new URL(route.request().url());
-    if (route.request().method() === 'POST' && (url.pathname === '/research' || url.pathname === '/research/challenge')) {
+    if (route.request().method() === 'POST' && (url.pathname === '/research' || url.pathname === '/research/' || url.pathname === '/research/challenge')) {
       const body = JSON.parse(route.request().postData() || '{}');
       const result = fixtureFor(body.question);
       if (url.pathname === '/research/challenge') {

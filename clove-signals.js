@@ -9,6 +9,9 @@
     'tool_started','tool_completed','game_opened','game_started',
     'game_completed','client_error',
     'feedback_helpful','feedback_not_for_me','feedback_broken',
+    'research_opened','research_submitted','research_completed',
+    'research_insufficient','source_inspected','challenge_opened',
+    'research_exported',
   ]);
   let lastError = 'none';
 
@@ -38,6 +41,7 @@
     if (p.includes('theincrediblemindmachine')) return 'mind_machine';
     if (p.includes('/creator/')) return 'maker';
     if (p.startsWith('/articles/')) return 'article';
+    if (p === '/research/' || p === '/research/index.html' || p.startsWith('/research/')) return 'research';
     if (p.includes('feedback')) return 'feedback';
     if (p.endsWith('.html')) return 'tool';
     return 'other';

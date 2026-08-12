@@ -1,0 +1,21 @@
+case_id,maximum_legal_level,claimed_level_legal,failed_or_unknown_obligations,primary_illegal_analogy_code,secondary_codes,one_sentence_reason,confidence
+V01,L5_VALIDATED,YES,,,,Fickian diffusion preserves the translated flux-gradient and conservation relations and the target behavior is empirically established.,0.94
+V02,L5_VALIDATED,YES,,,,Membrane circuit elements correspond to measurable target mechanisms and the model has independent experimental validation.,0.98
+V03,L4_PREDICTIVE,YES,,,,"The reaction-diffusion instability is a valid target prediction, but this packet does not itself document a qualifying independent validation of the transferred biological mechanism.",0.84
+V04,L4_PREDICTIVE,YES,,,,"The pricing PDE is a legal formal/predictive transfer under no-arbitrage and stochastic assumptions, but empirical deviations and assumption sensitivity block blanket validation.",0.95
+V05,L4_PREDICTIVE,YES,,,,"The energy-function transfer yields checkable attractor predictions, but the packet does not provide enough independent validation evidence to award L5 conservatively.",0.78
+V06,L4_PREDICTIVE,YES,,,,"The j-factor analogy is predictive within declared transport regimes, but the generic reference in the packet is insufficient by itself to certify the L5 validation obligation.",0.77
+V07,L2_FORMAL,YES,,,,The mapping is a formal variational correspondence and makes no mechanistic identity claim.,0.99
+V08,L5_VALIDATED,YES,,,,The control transfer is target-calibrated and independently tested in randomized closed-loop insulin trials.,0.99
+V09,L5_VALIDATED,YES,,,,Error-correcting code transfer has been physically implemented and independently checkable in synthesized/sequenced DNA storage.,0.99
+V10,L2_FORMAL,YES,,,,The nonlinear interaction form is transferable as mathematics with ecological parameterization while chemical mechanism identity is not asserted.,0.96
+I01,L1_STRUCTURAL,NO,PO04;PO07;PO08;PO11,IA-12,IA-08;IA-13,"The planetary picture preserves a coarse central-attraction relation, but its classical stability mechanism conflicts with established atomic behavior.",0.99
+I02,L2_FORMAL,NO,PO08;PO09;PO11,IA-08,IA-12,The formal weak-field analogy does not transport electrostatic conductor/shielding mechanisms into gravitation.,1.0
+I03,L2_FORMAL,NO,PO08;PO10;PO11,IA-08,IA-13;IA-12,"Shared entropy mathematics does not justify a physical energy reservoir per stored bit; the Landauer scale applies to constrained operations, not ontological bit energy.",0.98
+I04,L1_STRUCTURAL,NO,PO08;PO11,IA-13,IA-08;IA-12,Fluid-vortex structure is at most an analogy; electrons are not thereby identical to vortices in a mechanical substrate.,0.99
+I05,L1_STRUCTURAL,NO,PO06;PO08;PO11,IA-08,IA-13,"Genetic and software systems share coding metaphors and some information structure, but software semantics do not transfer as biological mechanism.",0.96
+I06,L0_HEURISTIC,NO,PO01;PO02;PO03;PO08,IA-01,IA-08,The proposal is metaphorical word/shape matching with no scientific mapping from quantum barrier penetration to decision causation.,1.0
+I07,L1_STRUCTURAL,NO,PO08;PO11,IA-08,IA-13,Functional analogy between learned representations does not establish identity of implementation or causal mechanism in brains.,0.96
+I08,L2_FORMAL,NO,PO06;PO07;PO08;PO10,IA-06,IA-08;IA-11,"SIR-like mathematics may model social spread, but importing epidemiological assumptions and interpreting fitted parameters as literal biological-style constants is unjustified.",0.91
+I09,L2_FORMAL,NO,PO07;PO08;PO11,IA-08,IA-13;IA-07,"Analogue horizons preserve selected kinematics, not the full gravitational field dynamics of astrophysical black holes.",0.99
+I10,L1_STRUCTURAL,NO,PO05;PO08;PO09;PO11,IA-10,IA-13;IA-08,"Equilibrium language can motivate structure, but literal thermodynamic variables and conservation/entropy laws do not automatically exist in markets.",0.97

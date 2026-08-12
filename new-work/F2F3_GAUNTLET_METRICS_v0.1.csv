@@ -1,0 +1,13 @@
+comparison,metric,value,threshold,verdict
+A,exact_vs_original_gold,0.85,0.85,PASS_AT_THRESHOLD
+B,exact_vs_original_gold,0.75,0.85,FAIL
+A,quadratic_kappa_vs_original_gold,0.9558823529,,DIAGNOSTIC_HIGH
+B,quadratic_kappa_vs_original_gold,0.921875,,DIAGNOSTIC_HIGH
+A-B,exact_level_agreement,0.9,,DIAGNOSTIC_HIGH
+A-B,quadratic_weighted_kappa,0.9669421488,0.8,PASS
+A,dangerous_overclaim_false_positive_rate,0.0,0.05,PASS
+B,dangerous_overclaim_false_positive_rate,0.0,0.05,PASS
+A,primary_IA_code_in_gold_allowed_set,1.0,0.75,PASS
+B,primary_IA_code_in_gold_allowed_set,1.0,0.75,PASS
+A-B,any_IA_code_overlap_rejected_cases,1.0,0.75,PASS
+A-B,exact_primary_IA_code_agreement,0.2,,DIAGNOSTIC_AMBIGUOUS_TAXONOMY

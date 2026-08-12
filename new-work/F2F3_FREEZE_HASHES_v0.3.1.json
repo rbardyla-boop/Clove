@@ -1,0 +1,18 @@
+{
+  "F2F3_EXTERNAL_BLIND_PACKET_v0.3.1.zip": {
+    "sha256": "cf22c23b10b9822e47125842ac00d7ec883018e7cb58939247cae5f417c6041b",
+    "bytes": 37352
+  },
+  "F2F3_EXTERNAL_BLIND_REPLAY_V0.3.1_REPAIR_ADDENDUM.md": {
+    "sha256": "bbf4e212e889ce7e697c40f9f3ba6a2da5f649b7a09570078c19dabeb758f53d",
+    "bytes": 1782
+  },
+  "F2F3_FAILURE_FAMILY_ENUM_v0.3.1.csv": {
+    "sha256": "93f3d61b3a04e0c64eac8920824a54c4149ed8f5ee197e9d320e1286805a9d81",
+    "bytes": 1181
+  },
+  "F2F3_GOLD_KEY_v0.3.1.csv": {
+    "sha256": "07643b109162b3628a13d7457122c04405f06235720f89e7de28ce5cb32f726c",
+    "bytes": 4449
+  }
+}
