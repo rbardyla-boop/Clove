@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const html = await readFile(new URL('../../mission-001.html', import.meta.url), 'utf8');
+const app = await readFile(new URL('../../mission-001-app.js', import.meta.url), 'utf8');
+const privateStore = await readFile(new URL('../../mission-private-store.js', import.meta.url), 'utf8');
 const contracts = await readFile(new URL('../../workers/insights/src/contracts.ts', import.meta.url), 'utf8');
 
 const MISSION_EVENTS = [
@@ -40,7 +42,7 @@ test('all four bounded mission classes exist', () => {
 test('offline-action gate is explicit and does not offer a feed after commitment', () => {
   assert.match(html, /CLOSE CLOVE[\s\S]*GO DO IT/);
   assert.match(html, /The website is not the mission\./);
-  assert.doesNotMatch(html, /JoyMesh|leaderboard|followers|social feed|mentor marketplace|AI companion/i);
+  assert.doesNotMatch(html + app, /JoyMesh|leaderboard|followers|social feed|mentor marketplace|AI companion/i);
 });
 
 test('return path includes success, partial, failure, and did-not-start states', () => {
@@ -58,19 +60,25 @@ test('return path includes success, partial, failure, and did-not-start states',
   assert.match(html, /DROP FOR A REASON/);
 });
 
-test('private evidence is local and public proof is not required', () => {
-  assert.match(html, /clove_v2_mission_001/);
-  assert.match(html, /localStorage\.setItem/);
+test('private evidence is encrypted locally and public proof is not required', () => {
+  assert.match(html, /mission-private-store\.js/);
+  assert.match(html, /mission-001-app\.js/);
+  assert.match(html, /encrypted locally in this browser before storage/i);
+  assert.match(app, /clove_v2_mission_001/);
+  assert.match(app, /ClovePrivateStore\.set/);
+  assert.match(privateStore, /AES-GCM/);
+  assert.match(privateStore, /localStorage\.setItem/);
+  assert.match(privateStore, /cloveenc:v1:/);
   assert.match(html, /does not send your mission text, debrief, location, contacts, or photos/i);
   assert.doesNotMatch(html, /type="file"/i);
-  assert.doesNotMatch(html, /navigator\.geolocation/i);
+  assert.doesNotMatch(html + app, /navigator\.geolocation/i);
 });
 
 test('safety boundary rejects courage framing and names high-risk categories', () => {
   for (const phrase of ['illegal activity', 'weapons', 'electrical', 'gas', 'structural', 'automotive', 'heights', 'confined spaces', 'chemicals', 'power tools', 'trespassing', 'minors']) {
     assert.match(html.toLowerCase(), new RegExp(phrase));
   }
-  assert.doesNotMatch(html, /prove yourself|be a man|man up|coward/i);
+  assert.doesNotMatch(html + app, /prove yourself|be a man|man up|coward/i);
 });
 
 test('Mission 001 aggregate vocabulary is server-enumerated', () => {
@@ -84,10 +92,10 @@ test('Mission 001 aggregate vocabulary is server-enumerated', () => {
 });
 
 test('client signal payload is coarse and does not serialize mission state', () => {
-  const signalStart = html.indexOf('function signal(event');
-  const signalEnd = html.indexOf('function summary(', signalStart);
+  const signalStart = app.indexOf('function signal(event');
+  const signalEnd = app.indexOf('function summary(', signalStart);
   assert.ok(signalStart > 0 && signalEnd > signalStart);
-  const signalCode = html.slice(signalStart, signalEnd);
+  const signalCode = app.slice(signalStart, signalEnd);
   for (const allowed of ['event', "surface:'mission'", 'device:device()', 'returnBucket', 'referrerGroup', "build:'v2'", 'variant', 'detail', 'diagnostic']) {
     assert.match(signalCode, new RegExp(allowed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
