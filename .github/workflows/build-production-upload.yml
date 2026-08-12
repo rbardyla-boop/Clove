@@ -34,11 +34,11 @@ jobs:
       - name: Mission encrypted-store replay
         run: npm run test:mission-store-browser
 
-      - name: Curated release preflight
+      - name: Hardened release preflight
         run: node scripts/release-preflight.mjs | tee release-preflight.json
 
-      - name: Build clean static upload
-        run: node scripts/build-curated-client-upload.mjs --out dist/clove-upload
+      - name: Build hardened static upload
+        run: node scripts/build-production-upload.mjs --out dist/clove-upload
 
       - name: Verify built upload boundary
         run: |
@@ -52,13 +52,18 @@ jobs:
           test ! -e dist/clove-upload/tests
           test ! -e dist/clove-upload/workers
           test ! -e dist/clove-upload/.github
+          test ! -e dist/clove-upload/agent
+          test ! -e dist/clove-upload/new-work
+          test ! -e dist/clove-upload/clovelearn-test-harness.html
+          test ! -e dist/clove-upload/master-map.md
+          ! find dist/clove-upload -type f \( -name '*.py' -o -name '*.sh' -o -name '*.xlsx' -o -name '*.csv' -o -name '*.yaml' -o -name '*.yml' \) -print -quit | grep -q .
           ! grep -RIl --exclude='_UPLOAD_MANIFEST.json' 'CLOVE-V2 F1.1 — Adult Pilot Protocol' dist/clove-upload
 
       - name: Generate SHA-256 inventory
         run: |
           cd dist/clove-upload
           find . -type f ! -name '_SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum > _SHA256SUMS.txt
-          sha256sum -c _SHA256SUMS.txt
+          sha256sum -c _SHA256SUMS.txt >/dev/null
 
       - name: Create dashboard-ready ZIP with site files at archive root
         run: |
