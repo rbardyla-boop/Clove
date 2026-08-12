@@ -24,7 +24,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 22
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,7 +44,7 @@ jobs:
         run: npm ci
 
       - name: Chromium replay
-        run: node --test tests/static/ds-i0-browser.test.mjs
+        run: node --test tests/static/ds-i0-browser.test.mjs tests/static/ds-i0-adversarial.test.mjs
 
       - name: Install Firefox
         run: npx playwright install --with-deps firefox
@@ -52,4 +52,4 @@ jobs:
       - name: Firefox replay
         env:
           DS_BROWSER: firefox
-        run: node --test tests/static/ds-i0-browser.test.mjs
+        run: node --test tests/static/ds-i0-browser.test.mjs tests/static/ds-i0-adversarial.test.mjs
