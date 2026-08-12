@@ -26,6 +26,8 @@ export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
   'digital-stewardship-03.js',
   'digital-stewardship-04.html',
   'digital-stewardship-04.js',
+  'digital-stewardship-05.html',
+  'digital-stewardship-05.js',
   'arcade/README.md',
   'arcade/cabinets/neon-grid/README.md',
   'arcade/cabinets/sample-import-game/README.md',
