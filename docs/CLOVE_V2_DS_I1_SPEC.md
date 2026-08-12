@@ -12,6 +12,8 @@ Whether Clove can guide one adult to inspect one low-risk digital permission/set
 
 Choose a service genuinely used for a real task, but do **not** use banking, government identity, critical health, emergency/safety, employer-admin, password-manager recovery, or another high-consequence account for the first run.
 
+Sign-in/account-linking changes are **outside DS-I1 v0.1 entirely**. They can affect account access and recovery, so they are deferred to a later evidence/test gate rather than offered as a first-run option.
+
 ## User flow
 
 `BOUNDARY → SETTING_CLASS → CLASSIFY → CHANGE_DECISION → TASK_CHECK → RECOVER_IF_NEEDED → COMPLETE`
@@ -20,7 +22,7 @@ Safe exits:
 - any nonterminal stage → `STOPPED_SAFE`
 - REQUIRED → no change → COMPLETE
 - UNCLEAR → no change → COMPLETE
-- ACCOUNT LINKING / SIGN-IN → inspection only → COMPLETE
+- OTHER / NOT SURE → inspection only → COMPLETE
 
 ## Allowed setting classes
 
@@ -29,12 +31,9 @@ Safe exits:
 - `photos_files`
 - `ordinary_notifications`
 - `marketing_messages`
-- `account_linking`
 - `unknown`
 
 No provider/app/account name is entered.
-
-`account_linking` is **inspection-only in v0.1**. The drill must not instruct a novice to unlink, replace, remove, or otherwise alter a sign-in identity/recovery relationship.
 
 ## Stage contract
 
@@ -45,7 +44,16 @@ No provider/app/account name is entered.
 
 ### SETTING_CLASS
 Question: “Which one setting are you inspecting?”
-Structured choices only.
+
+Choices:
+- LOCATION
+- CONTACTS
+- PHOTOS / FILES
+- ORDINARY APP NOTIFICATIONS
+- MARKETING EMAIL / SMS
+- OTHER / NOT SURE
+
+With STOP this yields a maximum of **7 visible buttons**, matching the low-literacy contract.
 
 ### CLASSIFY
 Question: “For the real task you want to do, is this setting required?”
@@ -54,9 +62,9 @@ Choices:
 - `OPTIONAL`
 - `UNCLEAR`
 
-Explain: classification is about this task, not whether the provider is good/bad.
+Classification is about this task, not whether the provider is good or bad.
 
-If `settingClass === account_linking`, classification is still useful, but the drill routes to COMPLETE without a change. User-facing copy must explain that sign-in/account-linking changes can affect access and are outside this first-run experiment.
+If `settingClass === unknown`, the drill is inspection-only and routes to COMPLETE without a change.
 
 ### CHANGE_DECISION
 Reached only after OPTIONAL on a change-eligible setting class.
@@ -68,12 +76,12 @@ Change-eligible classes:
 - ordinary app notifications;
 - marketing email/SMS.
 
-Instruction: use the operating system/service's normal settings to reduce **one** clearly optional permission/setting to the least exposure that still appears compatible with the task.
+Instruction: use normal operating-system/service settings to reduce **one** clearly optional permission/setting to the least exposure that still appears compatible with the task.
 Choices:
 - `I CHANGED ONE OPTIONAL SETTING`
 - `I DECIDED NOT TO CHANGE IT`
 
-Never tell the user which provider-specific setting value to select unless the provider's own documentation is being shown outside Clove. No free text.
+Never tell the user which provider-specific value to select unless the provider's own documentation is being shown outside Clove. No free text.
 
 ### TASK_CHECK
 If changed, ask the user to perform the real legitimate task.
@@ -82,7 +90,7 @@ Choices:
 - `THE TASK DOES NOT WORK`
 - `I'M NOT SURE`
 
-If no change was made, route to COMPLETE with `NO_CHANGE`.
+If no change was made, route to COMPLETE.
 
 ### RECOVER_IF_NEEDED
 Reached only after task failure/uncertainty following a change.
@@ -101,7 +109,7 @@ Coarse result only:
 - `OPTIONAL — RESTORED`
 - `OPTIONAL — NO CHANGE`
 - `UNCLEAR — NO CHANGE`
-- `SIGN-IN / LINKING — INSPECTED ONLY`
+- `OTHER / NOT SURE — INSPECTED ONLY`
 - `STOPPED SAFELY`
 
 No score, streak, shame, or rank.
@@ -124,7 +132,7 @@ Never teach:
 - geolocation spoofing/manipulation;
 - fraud-control bypass;
 - access-control circumvention;
-- unlinking/removing a sign-in identity as a first-run experiment;
+- unlinking/removing/changing a sign-in identity in this first-run module;
 - deleting an account/device as a test;
 - spending money to complete the drill.
 
@@ -191,7 +199,7 @@ Harness must deliberately reject:
 3. illegal stage transition;
 4. instruction to disable MFA/security alerts;
 5. instruction to spoof location or use false identity;
-6. instruction to unlink/remove sign-in identity in the first-run experiment;
+6. instruction to unlink/remove sign-in identity in this module;
 7. release package containing DS-I1 runtime.
 
 ## Release boundary
