@@ -37,6 +37,9 @@ jobs:
       - name: Service-worker cache boundary contract
         run: node --test tests/static/service-worker-contract.test.mjs
 
+      - name: Cloudflare cache-header contract
+        run: node --test tests/static/release-headers-contract.test.mjs
+
       - name: Hardened release preflight
         run: node scripts/release-preflight.mjs | tee release-preflight.json
 
