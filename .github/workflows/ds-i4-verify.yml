@@ -1,14 +1,14 @@
-name: DS-I1 Verify
+name: DS-I4 Verify
 
 on:
   pull_request:
     paths:
-      - 'digital-stewardship-01.html'
-      - 'digital-stewardship-01.js'
-      - 'tests/static/ds-i1-*'
+      - 'digital-stewardship-04.html'
+      - 'digital-stewardship-04.js'
+      - 'tests/static/ds-i4-*'
       - 'scripts/build-production-upload.mjs'
       - 'scripts/release-preflight.mjs'
-      - '.github/workflows/ds-i1-verify.yml'
+      - '.github/workflows/ds-i4-verify.yml'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ds-i1-verify-${{ github.ref }}
+  group: ds-i4-verify-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -30,25 +30,25 @@ jobs:
         with:
           node-version: 22
           package-manager-cache: false
-      - name: Static privacy/safety contract
-        run: node --test tests/static/ds-i1-contract.test.mjs
+      - name: Static privacy/evidence contract
+        run: node --test tests/static/ds-i4-contract.test.mjs
       - name: Branch-aware state oracle
-        run: node --test tests/static/ds-i1-state-machine.test.mjs
+        run: node --test tests/static/ds-i4-state-machine.test.mjs
       - name: Deliberate bad-variant rejection
-        run: node --test tests/static/ds-i1-mutation.test.mjs
+        run: node --test tests/static/ds-i4-mutation.test.mjs
       - name: Non-public production boundary
-        run: node --test tests/static/ds-i1-release-boundary.test.mjs
+        run: node --test tests/static/ds-i4-release-boundary.test.mjs
       - name: Existing production preflight
         run: node scripts/release-preflight.mjs
       - name: JavaScript syntax
-        run: node --check digital-stewardship-01.js
+        run: node --check digital-stewardship-04.js
       - name: Install browser-test dependency
         run: npm ci
       - name: Chromium replay
-        run: timeout 180s node --test --test-concurrency=1 tests/static/ds-i1-browser.test.mjs tests/static/ds-i1-adversarial.test.mjs
+        run: timeout 180s node --test tests/static/ds-i4-browser.test.mjs
       - name: Install Firefox
         run: npx playwright install --with-deps firefox
       - name: Firefox replay
         env:
           DS_BROWSER: firefox
-        run: timeout 180s node --test --test-concurrency=1 tests/static/ds-i1-browser.test.mjs tests/static/ds-i1-adversarial.test.mjs
+        run: timeout 180s node --test tests/static/ds-i4-browser.test.mjs

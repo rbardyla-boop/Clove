@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -8,6 +8,7 @@ const html=await readFile(new URL('../../digital-stewardship-00.html',import.met
 const js=await readFile(new URL('../../digital-stewardship-00.js',import.meta.url));
 const KEY='clove_ds_i0_v1';
 const engine=process.env.DS_BROWSER==='firefox'?'firefox':'chromium';
+let browser;
 
 function startServer(){
   const server=createServer((req,res)=>{
@@ -22,6 +23,14 @@ function startServer(){
 async function launch(){return engine==='firefox'?firefox.launch({headless:true}):chromium.launch({headless:true,channel:'chrome'});}
 async function choose(page,name){await page.getByRole('button',{name,exact:true}).click();}
 const words=s=>s.trim()?s.trim().split(/\s+/).length:0;
+
+before(async()=>{browser=await launch();});
+after(async()=>{if(browser)await browser.close();});
+
+async function isolatedPage(t,options={}){
+  const context=await browser.newContext(options);t.after(()=>context.close());
+  return context.newPage();
+}
 
 async function assertStageBudget(page){
   const q=page.locator('#question');
@@ -40,8 +49,7 @@ async function assertStageBudget(page){
 
 test(`start boundary exposes a no-pressure STOP and remains within simplicity budget (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();await page.goto(`${origin}/digital-stewardship-00.html`);
+  const page=await isolatedPage(t);await page.goto(`${origin}/digital-stewardship-00.html`);
   await assertStageBudget(page);
   assert.equal(await page.getByRole('button',{name:'STOP',exact:true}).isVisible(),true);
   await choose(page,'STOP');
@@ -50,8 +58,7 @@ test(`start boundary exposes a no-pressure STOP and remains within simplicity bu
 
 test(`malformed JSON is discarded without falsely disabling healthy storage (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const context=await browser.newContext();
+  const context=await browser.newContext();t.after(()=>context.close());
   await context.addInitScript(k=>localStorage.setItem(k,'{"schemaVersion":1,'),KEY);
   const page=await context.newPage();await page.goto(`${origin}/digital-stewardship-00.html`);
   assert.equal(await page.evaluate(k=>localStorage.getItem(k),KEY),null);
@@ -64,8 +71,7 @@ test(`malformed JSON is discarded without falsely disabling healthy storage (${e
 
 test(`storage read failure is explicit but does not trap the in-memory flow (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const context=await browser.newContext();
+  const context=await browser.newContext();t.after(()=>context.close());
   await context.addInitScript(()=>{
     const get=Storage.prototype.getItem;
     Storage.prototype.getItem=function(k){if(k==='clove_ds_i0_v1')throw new DOMException('blocked','SecurityError');return get.call(this,k);};
@@ -78,8 +84,7 @@ test(`storage read failure is explicit but does not trap the in-memory flow (${e
 
 test(`clearing local state and reloading returns to a safe start (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();await page.goto(`${origin}/digital-stewardship-00.html`);
+  const page=await isolatedPage(t);await page.goto(`${origin}/digital-stewardship-00.html`);
   await choose(page,'I HAVE ONE');await choose(page,'PHONE');
   await page.evaluate(k=>localStorage.removeItem(k),KEY);
   await page.reload();
@@ -88,15 +93,15 @@ test(`clearing local state and reloading returns to a safe start (${engine})`,as
 
 test(`browser back and forward resume only coarse local progress (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();
+  const page=await isolatedPage(t);
   await page.goto(`${origin}/before`);
   await page.goto(`${origin}/digital-stewardship-00.html`);
   await choose(page,'I HAVE ONE');await choose(page,'PHONE');
   assert.match(await page.locator('#question').innerText(),/app or a browser/i);
-  await page.goBack({waitUntil:'domcontentloaded'});
-  assert.match(page.url(),/\/before$/);
-  await page.goForward({waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>history.back());
+  await page.waitForURL(/\/before$/, {timeout:10000});
+  await page.evaluate(()=>history.forward());
+  await page.waitForURL(/\/digital-stewardship-00\.html$/, {timeout:10000});
   assert.match(await page.locator('#question').innerText(),/app or a browser/i);
   const raw=await page.evaluate(k=>localStorage.getItem(k),KEY);
   assert.equal(JSON.parse(raw).stage,'ACCESS_MODE');
@@ -104,8 +109,7 @@ test(`browser back and forward resume only coarse local progress (${engine})`,as
 
 test(`every knowledge screen stays within the one-question action budget (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();await page.goto(`${origin}/digital-stewardship-00.html`);
+  const page=await isolatedPage(t);await page.goto(`${origin}/digital-stewardship-00.html`);
   await assertStageBudget(page);
   for(const choice of ['I HAVE ONE','PHONE','BROWSER','YES','YES — IT WOULD STILL EXIST','YES — RECOVERY EMAIL / PHONE']){
     await choose(page,choice);

@@ -25,6 +25,8 @@ const FORBIDDEN_SENTINELS = Object.freeze([
   'digital-stewardship-02.js',
   'digital-stewardship-03.html',
   'digital-stewardship-03.js',
+  'digital-stewardship-04.html',
+  'digital-stewardship-04.js',
 ]);
 
 const RISKY_PUBLIC_EXTENSIONS = Object.freeze(['.py', '.sh', '.xlsx', '.csv', '.yaml', '.yml']);
