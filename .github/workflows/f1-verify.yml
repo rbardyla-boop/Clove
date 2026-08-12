@@ -43,6 +43,9 @@ jobs:
       - name: Mission formal state-machine and negative controls
         run: npm run test:mission-state
 
+      - name: Mission runtime size and dependency budget
+        run: npm run test:mission-budget
+
       - name: Mission HTML references encrypted persistence scripts
         run: |
           grep -F '<script src="mission-private-store.js"></script>' mission-001.html
