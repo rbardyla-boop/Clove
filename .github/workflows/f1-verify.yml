@@ -25,18 +25,19 @@ jobs:
       - name: Mission static acceptance contract
         run: node --test tests/static/mission-001-contract.test.mjs
 
-      - name: Extract Mission 001 browser script
+      - name: Mission HTML references encrypted persistence scripts
         run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const html = fs.readFileSync('mission-001.html', 'utf8');
-          const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
-          if (!scripts.length) throw new Error('mission_script_missing');
-          fs.writeFileSync('/tmp/mission-001.js', scripts.at(-1)[1]);
-          NODE
+          grep -F '<script src="mission-private-store.js"></script>' mission-001.html
+          grep -F '<script src="mission-001-app.js"></script>' mission-001.html
+          if grep -F 'function save(next){state=next;try{localStorage.setItem(KEY' mission-001.html; then
+            echo 'Legacy plaintext persistence controller still present'
+            exit 1
+          fi
 
-      - name: Mission JavaScript syntax check
-        run: node --check /tmp/mission-001.js
+      - name: Mission JavaScript syntax checks
+        run: |
+          node --check mission-private-store.js
+          node --check mission-001-app.js
 
       - name: Install root verification dependency
         run: npm ci
