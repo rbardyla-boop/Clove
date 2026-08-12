@@ -22,12 +22,27 @@ const enums = {
   recoveryClass: new Set(['contact','auth','support','unknown',null]),
   recoveryCheckResult: new Set(['current','location','unknown',null]),
 };
+const requiredBefore = {
+  BOUNDARY: [], DEVICE: [],
+  ACCESS_MODE: ['deviceClass'],
+  ACCOUNT: ['deviceClass','accessMode'],
+  SERVICE_CLOUD: ['deviceClass','accessMode','hasAccount'],
+  RECOVERY: ['deviceClass','accessMode','hasAccount','providerPersistenceBelief'],
+  SAFE_CHECK: ['deviceClass','accessMode','hasAccount','providerPersistenceBelief','recoveryClass'],
+  COMPLETE: ['deviceClass','accessMode','hasAccount','providerPersistenceBelief','recoveryClass','recoveryCheckResult'],
+  STOPPED_SAFE: [],
+};
 
 function blank(){return {schemaVersion:1,stage:'BOUNDARY',deviceClass:null,accessMode:null,hasAccount:null,providerPersistenceBelief:null,recoveryClass:null,recoveryCheckResult:null};}
 function canTransition(from,to){return next[from]?.has(to) === true;}
 function validState(s){
   if (!s || s.schemaVersion !== 1 || !stages.includes(s.stage)) return false;
-  return Object.entries(enums).every(([k,allowed]) => allowed.has(s[k] ?? null));
+  if (!Object.entries(enums).every(([k,allowed]) => allowed.has(s[k] ?? null))) return false;
+  return requiredBefore[s.stage].every(field => s[field] !== null && s[field] !== undefined);
+}
+
+function full(overrides={}){
+  return {...blank(),deviceClass:'phone',accessMode:'browser',hasAccount:'yes',providerPersistenceBelief:'yes',recoveryClass:'contact',recoveryCheckResult:'current',...overrides};
 }
 
 test('oracle accepts the intended full path only in order', () => {
@@ -55,6 +70,13 @@ test('unknown schema, stage, and enum values are rejected', () => {
   assert.equal(validState({...base,stage:'HACKED'}), false);
   assert.equal(validState({...base,deviceClass:'iphone-ryans-phone'}), false);
   assert.equal(validState({...base,recoveryClass:'john@example.com'}), false);
+});
+
+test('later stages require all prior coarse answers even when a forged state uses valid enums', () => {
+  assert.equal(validState({...blank(),stage:'SAFE_CHECK',recoveryClass:'contact'}), false);
+  assert.equal(validState(full({stage:'SAFE_CHECK',recoveryCheckResult:null})), true);
+  assert.equal(validState(full({stage:'COMPLETE',recoveryCheckResult:null})), false);
+  assert.equal(validState(full({stage:'COMPLETE'})), true);
 });
 
 test('privacy mutation controls reject identity-shaped values by enum design', () => {
