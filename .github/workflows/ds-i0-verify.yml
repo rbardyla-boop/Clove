@@ -10,6 +10,7 @@ on:
       - 'digital-stewardship-00.js'
       - 'tests/static/ds-i0-*'
       - 'scripts/build-production-upload.mjs'
+      - 'scripts/release-preflight.mjs'
       - '.github/workflows/ds-i0-verify.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -43,6 +44,9 @@ jobs:
 
       - name: Non-public production-package boundary
         run: node --test tests/static/ds-i0-release-boundary.test.mjs
+
+      - name: Existing production preflight remains green
+        run: node scripts/release-preflight.mjs
 
       - name: JavaScript syntax
         run: node --check digital-stewardship-00.js
