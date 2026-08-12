@@ -33,7 +33,7 @@ function validState(s){
   if(s.stage==='TASK_CHECK') return s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed';
   if(s.stage==='RECOVER') return s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed'&&['fails','unsure'].includes(s.taskResult);
   if(s.stage==='COMPLETE'){
-    if(s.settingClass==='account_linking') return true;
+    if(['account_linking','unknown'].includes(s.settingClass)) return true;
     if(['required','unclear'].includes(s.classification)) return true;
     if(s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='no_change') return true;
     if(s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed'&&s.taskResult==='works') return true;
@@ -61,6 +61,7 @@ test('branch-specific valid terminal states are accepted',()=>{
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'location',classification:'optional',changeDecision:'changed',taskResult:'works'}),true);
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'location',classification:'optional',changeDecision:'changed',taskResult:'fails',recoveryResult:'restored_works'}),true);
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'account_linking',classification:'optional'}),true);
+  assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'unknown',classification:'optional'}),true);
 });
 
 test('forged later-stage states are rejected',()=>{
@@ -69,9 +70,11 @@ test('forged later-stage states are rejected',()=>{
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'location',classification:'optional',changeDecision:'changed',taskResult:'fails'}),false);
 });
 
-test('account linking cannot enter the change stage',()=>{
-  assert.equal(validState({...blank(),stage:'CHANGE_DECISION',settingClass:'account_linking',classification:'optional'}),false);
-  assert.equal(validState({...blank(),stage:'TASK_CHECK',settingClass:'account_linking',classification:'optional',changeDecision:'changed'}),false);
+test('inspection-only setting classes cannot enter the change stage',()=>{
+  for(const settingClass of ['account_linking','unknown']){
+    assert.equal(validState({...blank(),stage:'CHANGE_DECISION',settingClass,classification:'optional'}),false,settingClass);
+    assert.equal(validState({...blank(),stage:'TASK_CHECK',settingClass,classification:'optional',changeDecision:'changed'}),false,settingClass);
+  }
 });
 
 test('identity-shaped and unknown enum values are rejected',()=>{
