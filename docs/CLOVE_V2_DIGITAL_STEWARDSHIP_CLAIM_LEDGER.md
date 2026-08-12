@@ -76,35 +76,44 @@ Admissible wording: a zero-dollar price does not identify the business model; fi
 Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_02_ATTENTION_FREE_APPS.md`.
 Status: `SUPPORTED FOR SPECIFIC AD-SUPPORTED SERVICES / RETIRE AS UNIVERSAL RULE`
 
----
-
-## PROVISIONAL — evidence required before public use
-
 ### DS-P06 — OnlyFans / subscription adult-content income is highly concentrated
 Claim class: earnings distribution.
-Need: primary platform financial data or reproducible independent dataset; do not use scraped marketing statistics as the sole evidence.
-Status: `PROVISIONAL`
+Ruling: Fenix International's public accounts establish billions in aggregate creator payouts and millions of creator accounts, but do not publish a creator-income median or percentile distribution. Selected research and proprietary datasets show very wide outcomes, but do not justify exact platform-wide top-percentile claims.
+Admissible wording: headline platform payouts do not tell you what a typical creator earns; require a disclosed dataset and denominator before repeating “average creator” or top-percentile income claims.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED AGGREGATE SCALE / CONCENTRATION PROBABLE / EXACT DISTRIBUTION UNSUPPORTED`
 
 ### DS-P07 — Adult subscription audiences are strongly male-skewed
 Claim class: audience demographics.
-Need: reliable platform or survey methodology, sample definition, geography, year, and distinction between visitors, subscribers, and paying customers.
-Status: `PROVISIONAL`
+Ruling: peer-reviewed samples of OnlyFans sexual-content users have generally contained more men than women, but observed male shares vary and the platform does not publish a representative customer gender census.
+Admissible wording: published sexual-use samples lean male; do not quote a platform-wide male percentage as settled fact without a representative sampling method.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED — NARROWED / STRONG PLATFORM-WIDE SKEW NOT ESTABLISHED`
 
 ### DS-P08 — Straight women have an easier path than straight men to monetize explicit content to the other sex
 Claim class: sex-specific market asymmetry.
-Need: demand-side spending data, creator earnings by sex/orientation where available, alternative explanations, and uncertainty bounds.
-Status: `PROVISIONAL`
+Ruling: the reviewed evidence does not provide the required representative creator-sex × creator-orientation × buyer-sex/orientation × earnings comparison. Pieces of a plausible mechanism do not establish the comparative claim.
+Admissible wording: none as fact. May remain an explicitly labeled research hypothesis.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `UNSUPPORTED / RETIRE AS PUBLIC FACT / MAY REMAIN A TESTABLE HYPOTHESIS`
 
 ### DS-P09 — Sexualized digital content creates future relationship or employment penalties
 Claim class: downstream reputational effect.
-Need: sector-specific employment evidence and relationship-preference research. Must distinguish individual preference, discrimination, occupational rules, security clearances, and speculation.
-Status: `PROVISIONAL`
+Ruling: split the claim. Experimental research supports context-dependent professional-selection risk from sexualized social-media imagery, including a disproportionate penalty for female candidates. Canadian sex-work research supports stigma/disclosure stress in some relationships but also documents supportive relationships. Universal career or relationship penalties are not established.
+Admissible wording: public sexualized content can create future-audience, professional-selection and relationship-stigma risks; these are probabilistic and context-dependent, not inevitable outcomes.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED AS CONTEXT-DEPENDENT RISK / UNIVERSAL PENALTY CLAIM RETIRED`
 
 ### DS-P10 — Content cannot be scrubbed from the internet
-Claim class: permanence.
-Allowed weaker statement: deletion from the original platform does not guarantee all copies are gone.
-Need: evidence on redistribution, caches, mirrors, archives, piracy, legal removal, delisting, and practical erasure limits.
-Status: `PROVISIONAL`
+Claim class: permanence / control loss.
+Ruling: the absolute claim is false, but the weaker claim is strongly supported. Deleting an original does not guarantee deletion of screenshots, downloads, scraped copies, reposts or archives; removal/delisting can still materially reduce exposure.
+Admissible wording: deleting the original does not guarantee every copy is gone; act early to remove/delist where possible, but do not assume one Delete button restores full control.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED — NARROWED / LOCKED FACT`
+
+---
+
+## PROVISIONAL — evidence required before public use
 
 ### DS-P11 — Men will withdraw from dating/adult-content markets in response to widespread sexualized content creation
 Claim class: forecast / cultural hypothesis.
