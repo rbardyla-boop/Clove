@@ -23,3 +23,11 @@ test('navigation and cross-origin requests are not intercepted', () => {
   assert.match(sw, /if \(request\.mode === 'navigate'\) return;/);
   assert.match(sw, /if \(!url\.startsWith\(self\.location\.origin\)\) return;/);
 });
+
+test('allowlisted assets are network-first with cache only as failure fallback', () => {
+  const fetchAt = sw.indexOf("fetch(request, { redirect: 'follow' })");
+  const fallbackAt = sw.indexOf('const cached = await caches.match(request);');
+  assert.ok(fetchAt >= 0, 'network fetch must exist in the fetch handler');
+  assert.ok(fallbackAt > fetchAt, 'cache lookup must occur only after network failure');
+  assert.doesNotMatch(sw, /caches\.match\(request\)\.then\(\(cached\) => \{\s*if \(cached\) return cached;/s);
+});
