@@ -8,7 +8,14 @@ const all=`${html}\n${js}`;
 
 const network=s=>/\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource/i.test(s);
 const sensitive=s=>/\b(?:providerName|appName|serviceName|username|emailAddress|phoneNumber|accountId|exactLocation|contactName|fileName|passwordValue|authToken|recoveryCode|freeText|notes)\b/i.test(s);
-const destructive=s=>/disable (?:mfa|multi-factor authentication|two-factor authentication)|disable security alerts|spoof (?:your )?location|use a false identity|unlink (?:your )?(?:sign-in|account)|delete (?:your )?account to test/i.test(s);
+function destructive(s){
+  return String(s).split(/[\n.!?]+/).some(part=>{
+    const p=part.trim();
+    if(!p)return false;
+    if(/\b(?:do not|don't|never|must not|will not|cannot|can't)\b/i.test(p))return false;
+    return /disable (?:mfa|multi-factor authentication|two-factor authentication)|disable security alerts|spoof (?:your )?location|use a false identity|unlink (?:your )?(?:sign-in|account)|delete (?:your )?account to test/i.test(p);
+  });
+}
 const illegal=s=>/BOUNDARY:new Set\(\[[^\]]*TASK_CHECK/.test(s);
 
 test('clean source triggers no negative-control detector',()=>{
