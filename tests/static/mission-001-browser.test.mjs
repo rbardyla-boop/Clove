@@ -182,3 +182,49 @@ test('mobile width has no horizontal document overflow at the entry and return s
   const returnOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   assert.equal(returnOverflow, false);
 });
+
+test('core choose and commit path is operable with keyboard alone', async t => {
+  const { server, url } = await startServer();
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const browser = await launchBrowser();
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+  await page.goto(url);
+
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-class')), 'fix');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#commit').isVisible(), true);
+
+  // Pass the three remaining class buttons to reach the first form control.
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'missionAction');
+  await page.keyboard.type('Repair one loose drawer handle');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'doneWhen');
+  await page.keyboard.type('The handle is secure and the drawer opens normally');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'duration');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'firstAction');
+  await page.keyboard.type('Get the correct screwdriver');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'startNote');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'safetyCheck');
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Tab');
+  assert.match(await page.evaluate(() => document.activeElement?.textContent || ''), /LOCK THE MISSION/);
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#locked').isVisible(), true);
+
+  // Hidden prior controls must not trap focus; the next Tab reaches the leave action.
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'leaveButton');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#away').isVisible(), true);
+});
