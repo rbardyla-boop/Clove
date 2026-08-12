@@ -24,7 +24,8 @@ test('safety copy forbids high-consequence and evasion experiments',()=>{
   assert.match(all,/Do not use banking, government identity, critical health/i);
   assert.match(all,/Do not disable emergency, medical, security, two-factor authentication, fraud, payment-verification, recovery, caregiver, or on-call controls/i);
   assert.match(all,/Do not spoof your location, use a false identity, bypass an age gate, or defeat an access or fraud control/i);
-  assert.match(all,/sign-in or account-linking.*inspection only/i);
+  assert.match(all,/Sign-in and account-linking changes are outside this first run/i);
+  assert.doesNotMatch(js,/SIGN-IN \/ ACCOUNT LINKING|account_linking/);
 });
 
 test('DS-I1 exposes only the coarse local-state allowlist',()=>{
