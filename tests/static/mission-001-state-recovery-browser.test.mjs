@@ -8,13 +8,21 @@ const missionHtml = await readFile(new URL('../../mission-001.html', import.meta
 const appJs = await readFile(new URL('../../mission-001-app.js', import.meta.url));
 const privateStoreJs = await readFile(new URL('../../mission-private-store.js', import.meta.url));
 const STORAGE_KEY = 'clove_v2_mission_001';
+const DB_NAME = 'clove_private_store_v1';
+const STORE_NAME = 'keys';
+const KEY_ID = 'mission_aes_main';
 
 function startServer() {
+  const signals = [];
   const server = createServer((req, res) => {
     if (req.method === 'POST' && req.url === '/__clove/signal') {
-      req.resume();
-      res.writeHead(202, { 'content-type': 'application/json' });
-      res.end('{"ok":true}');
+      const chunks = [];
+      req.on('data', chunk => chunks.push(chunk));
+      req.on('end', () => {
+        try { signals.push(JSON.parse(Buffer.concat(chunks).toString('utf8'))); } catch {}
+        res.writeHead(202, { 'content-type': 'application/json' });
+        res.end('{"ok":true}');
+      });
       return;
     }
     if (req.method === 'GET' && req.url === '/mission-private-store.js') {
@@ -37,7 +45,7 @@ function startServer() {
   return new Promise(resolve => {
     server.listen(0, '127.0.0.1', () => {
       const { port } = server.address();
-      resolve({ server, url: `http://127.0.0.1:${port}/mission-001.html` });
+      resolve({ server, signals, url: `http://127.0.0.1:${port}/mission-001.html` });
     });
   });
 }
@@ -64,6 +72,37 @@ function validCommitted(overrides = {}) {
 async function injectLegacyAndReload(page, value) {
   await page.evaluate(([key, payload]) => localStorage.setItem(key, JSON.stringify(payload)), [STORAGE_KEY, value]);
   await page.reload();
+}
+
+async function createCommittedMission(page) {
+  await page.locator('[data-class="fix"]').click();
+  await page.locator('#missionAction').fill('Tighten one loose drawer handle');
+  await page.locator('#doneWhen').fill('The handle is secure and the drawer opens normally');
+  await page.locator('#duration').selectOption('under30');
+  await page.locator('#firstAction').fill('Get the correct screwdriver');
+  await page.locator('#safetyCheck').check();
+  await page.getByRole('button', { name: 'LOCK THE MISSION' }).click();
+  await page.locator('#locked').waitFor({ state: 'visible' });
+}
+
+async function deletePrivateKey(page) {
+  await page.evaluate(async ({ dbName, storeName, keyId }) => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open(dbName, 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const request = tx.objectStore(storeName).delete(keyId);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    } finally {
+      db.close();
+    }
+  }, { dbName: DB_NAME, storeName: STORE_NAME, keyId: KEY_ID });
 }
 
 for (const [name, malformed] of [
@@ -130,6 +169,52 @@ test('corrupted encrypted ciphertext fails closed and is preserved for diagnosis
   assert.equal(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY), corrupt);
 });
 
+test('loss of the IndexedDB encryption key fails closed without deleting ciphertext', async t => {
+  const { server, url } = await startServer();
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const browser = await launch();
+  t.after(() => browser.close());
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await page.goto(url);
+  await createCommittedMission(page);
+  const before = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
+  assert.match(before, /^cloveenc:v1:/);
+  assert.doesNotMatch(before, /drawer handle|screwdriver/i);
+
+  await deletePrivateKey(page);
+  await page.reload();
+
+  assert.equal(await page.locator('#choose').isVisible(), true);
+  assert.match(await page.locator('#storageFailure').innerText(), /storage is unavailable|not saved/i);
+  const after = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
+  assert.equal(after, before, 'ciphertext must be preserved when its key is unavailable');
+  assert.doesNotMatch(after, /drawer handle|screwdriver/i);
+});
+
+test('hidden outcome controls cannot skip committed -> left -> return transition order', async t => {
+  const { server, signals, url } = await startServer();
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const browser = await launch();
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+
+  await page.goto(url);
+  await createCommittedMission(page);
+  const before = await page.evaluate(async key => window.ClovePrivateStore.get(key, null), STORAGE_KEY);
+  assert.equal(before.status, 'committed');
+
+  await page.evaluate(() => document.querySelector('[data-outcome="done"]').click());
+  await page.waitForTimeout(100);
+
+  const after = await page.evaluate(async key => window.ClovePrivateStore.get(key, null), STORAGE_KEY);
+  assert.equal(after.status, 'committed');
+  assert.equal(after.outcome, undefined);
+  assert.equal(await page.locator('#debriefSuccess').isVisible(), false);
+  assert.equal(signals.some(s => s.event === 'mission_done'), false);
+});
+
 test('a storage write failure does not reveal a commit form that cannot be persisted', async t => {
   const { server, url } = await startServer();
   t.after(() => new Promise(resolve => server.close(resolve)));
@@ -152,4 +237,29 @@ test('a storage write failure does not reveal a commit form that cannot be persi
   assert.equal(await page.locator('#commit').isVisible(), false);
   assert.equal(await page.locator('#choose').isVisible(), true);
   assert.equal(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY), null);
+});
+
+test('programmatic oversized mission text is rejected before persistence', async t => {
+  const { server, url } = await startServer();
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const browser = await launch();
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+
+  await page.goto(url);
+  await page.locator('[data-class="fix"]').click();
+  await page.locator('#commit').waitFor({ state: 'visible' });
+  await page.evaluate(() => {
+    document.querySelector('#missionAction').value = 'X'.repeat(501);
+    document.querySelector('#doneWhen').value = 'Observable result';
+    document.querySelector('#duration').value = 'under30';
+    document.querySelector('#firstAction').value = 'Get a hand tool';
+    document.querySelector('#safetyCheck').checked = true;
+    document.querySelector('#commitForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  });
+  await page.waitForTimeout(100);
+
+  assert.equal(await page.locator('#locked').isVisible(), false);
+  const stored = await page.evaluate(async key => window.ClovePrivateStore.get(key, null), STORAGE_KEY);
+  assert.equal(stored.status, 'planning');
 });
