@@ -1,9 +1,8 @@
 const CACHE_NAME = 'operators-deck-v55';
 
-// Only cache true static assets — never HTML files or mutable application JS.
-// Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)
-// and a redirected response passed to respondWith() can fail. More importantly,
-// a broad cache-first rule can keep stale application code alive after a deploy.
+// Only handle an explicit offline-safe asset allowlist. HTML and mutable Mission
+// runtime files are never intercepted. For allowlisted assets, prefer the network
+// so an online user receives the current deployment; cached copies are fallback.
 const STATIC_ASSETS = [
   '/particle-bg.js',
   '/manifest.json',
@@ -67,22 +66,22 @@ self.addEventListener('fetch', (event) => {
   // RULE 2: pass external URLs straight through.
   if (!url.startsWith(self.location.origin)) return;
 
-  // RULE 3: only intercept the explicit immutable/offline-safe asset allowlist.
-  // Mission 001 application code and other mutable scripts therefore follow the
-  // network/browser HTTP cache and cannot be pinned indefinitely by this SW.
+  // RULE 3: only intercept the explicit offline-safe asset allowlist.
   const pathname = new URL(url).pathname;
   if (!STATIC_ASSET_PATHS.has(pathname)) return;
 
+  // RULE 4: network first. Update the offline cache on a good response; use the
+  // cached copy only when the network is unavailable.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request, { redirect: 'follow' }).then((res) => {
-        if (res && res.ok && res.type === 'basic') {
-          const resClone = res.clone();
-          event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone)));
-        }
-        return res;
-      }).catch(() => new Response('', { status: 408 }));
+    fetch(request, { redirect: 'follow' }).then((res) => {
+      if (res && res.ok && res.type === 'basic') {
+        const resClone = res.clone();
+        event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone)));
+      }
+      return res;
+    }).catch(async () => {
+      const cached = await caches.match(request);
+      return cached || new Response('', { status: 408 });
     })
   );
 });
@@ -100,7 +99,6 @@ self.addEventListener('periodicsync', (event) => {
 
 async function handleNightShift() {
   try {
-    // Attempt to acquire lock — prevents overlapping runs.
     if (navigator.locks) {
       return await navigator.locks.request('clove_intel_lock', { ifAvailable: true }, async (lock) => {
         if (!lock) return;
@@ -114,7 +112,6 @@ async function handleNightShift() {
 }
 
 async function executeNightShiftSync() {
-  // 1. Battery check (optional — API may be unavailable in SW context).
   try {
     if (typeof navigator.getBattery === 'function') {
       const battery = await navigator.getBattery();
@@ -122,7 +119,6 @@ async function executeNightShiftSync() {
     }
   } catch (e) { /* Battery API unavailable in SW — proceed anyway. */ }
 
-  // 2. Storage headroom check.
   try {
     if (navigator.storage && navigator.storage.estimate) {
       const est = await navigator.storage.estimate();
@@ -130,7 +126,6 @@ async function executeNightShiftSync() {
     }
   } catch (e) { /* Estimate unavailable — proceed. */ }
 
-  // 3. Message any open client tabs to run analysis.
   const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
   let messaged = false;
 
@@ -139,7 +134,6 @@ async function executeNightShiftSync() {
     messaged = true;
   }
 
-  // 4. If no clients open, set IndexedDB stale flag for next foreground catch-up.
   if (!messaged) {
     try {
       const db = await openIntelDB();
@@ -151,7 +145,6 @@ async function executeNightShiftSync() {
   }
 }
 
-// Minimal IndexedDB helper for stale flag.
 function openIntelDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open('clove_intel', 1);
