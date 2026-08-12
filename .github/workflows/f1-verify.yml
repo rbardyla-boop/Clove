@@ -1,0 +1,45 @@
+name: F1 Mission Verify
+
+on:
+  push:
+    branches:
+      - f0/brotherhood-salvage-audit-2026-08-12
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-f1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Mission static acceptance contract
+        run: node --test tests/static/mission-001-contract.test.mjs
+
+      - name: Extract Mission 001 browser script
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('mission-001.html', 'utf8');
+          const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+          if (!scripts.length) throw new Error('mission_script_missing');
+          fs.writeFileSync('/tmp/mission-001.js', scripts.at(-1)[1]);
+          NODE
+
+      - name: Mission JavaScript syntax check
+        run: node --check /tmp/mission-001.js
+
+      - name: Install Insights verification dependencies
+        run: npm ci --prefix workers/insights
+
+      - name: Insights typecheck and privacy-contract tests
+        run: npm --prefix workers/insights run check
