@@ -98,9 +98,9 @@ test(`browser back and forward resume only coarse local progress (${engine})`,as
   await page.goto(`${origin}/digital-stewardship-00.html`);
   await choose(page,'I HAVE ONE');await choose(page,'PHONE');
   assert.match(await page.locator('#question').innerText(),/app or a browser/i);
-  await page.evaluate(()=>history.back());
+  await page.evaluate(()=>{setTimeout(()=>history.back(),0);return true;});
   await page.waitForURL(/\/before$/, {timeout:10000});
-  await page.evaluate(()=>history.forward());
+  await page.evaluate(()=>{setTimeout(()=>history.forward(),0);return true;});
   await page.waitForURL(/\/digital-stewardship-00\.html$/, {timeout:10000});
   assert.match(await page.locator('#question').innerText(),/app or a browser/i);
   const raw=await page.evaluate(k=>localStorage.getItem(k),KEY);
