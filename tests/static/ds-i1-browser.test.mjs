@@ -29,7 +29,7 @@ async function assertBudget(page){
   assert.equal(await page.locator('#question').isVisible(),true);
   assert.ok(words(await page.locator('#explain').innerText())<=70);
   const buttons=page.locator('button:visible');
-  assert.ok(await buttons.count()<=8);
+  assert.ok(await buttons.count()<=7,`too many visible buttons: ${await buttons.count()}`);
   for(let i=0;i<await buttons.count();i++){
     const b=buttons.nth(i), box=await b.boundingBox();
     assert.ok(box&&box.height>=44,`target under 44px: ${await b.innerText()}`);
@@ -80,14 +80,13 @@ test(`REQUIRED and UNCLEAR never enter change stage (${engine})`,async t=>{
   }
 });
 
-test(`sign-in/account linking is inspection-only even when classified OPTIONAL (${engine})`,async t=>{
+test(`sign-in/account linking is absent from first-run chooser (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
   const browser=await launch();t.after(()=>browser.close());
   const page=await browser.newPage();await page.goto(`${origin}/digital-stewardship-01.html`);
-  await enter(page,'SIGN-IN / ACCOUNT LINKING');await choose(page,'OPTIONAL');
-  assert.equal(await page.getByRole('heading',{name:'CHECK COMPLETE'}).isVisible(),true);
-  assert.match(await page.locator('#explain').innerText(),/inspection only|did not change/i);
-  assert.equal(await page.getByRole('button',{name:'I CHANGED ONE OPTIONAL SETTING'}).count(),0);
+  await choose(page,'I HAVE ONE');
+  assert.equal(await page.getByRole('button',{name:'SIGN-IN / ACCOUNT LINKING'}).count(),0);
+  await assertBudget(page);
 });
 
 test(`STOP is safe at boundary and after entry (${engine})`,async t=>{
