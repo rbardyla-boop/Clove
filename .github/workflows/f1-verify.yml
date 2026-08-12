@@ -27,7 +27,7 @@ concurrency:
 jobs:
   verify-f1:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 22
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,14 +60,20 @@ jobs:
       - name: Install exact root verification dependency
         run: npm ci
 
-      - name: Mission browser acceptance replay
+      - name: Mission Chromium acceptance replay
         run: npm run test:mission-browser
 
       - name: Mission persisted-state and storage-failure adversarial replay
         run: npm run test:mission-adversarial
 
-      - name: Encrypted Mission store browser replay
+      - name: Encrypted Mission store Chromium replay
         run: npm run test:mission-store-browser
+
+      - name: Install Playwright Firefox
+        run: npx playwright install --with-deps firefox
+
+      - name: Mission Firefox compatibility replay
+        run: npm run test:mission-firefox
 
       - name: Install exact Insights dependency graph
         run: npm ci --prefix workers/insights
