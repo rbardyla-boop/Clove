@@ -12,7 +12,7 @@ function unsafe(s){
   return String(s).split(/[\n.!?]+/).some(part=>{
     const p=part.trim();if(!p)return false;
     if(/bypass (?:official )?(?:account )?recovery|use someone else's recovery (?:code|method)/i.test(p))return true;
-    if(/\b(?:do not|don't|never|must not|will not|cannot|can't|does not|doesn't|is not|isn't)\b/i.test(p))return false;
+    if(/\b(?:do not|don't|never|must not|will not|cannot|can't|does not|doesn't|is not|isn't)\b|\bno answer proves\b/i.test(p))return false;
     return /reset your password now|disable two-factor authentication|remove your recovery method|revoke all sessions|delete the account now|this account is secure|your account is compromised/i.test(p);
   });
 }
