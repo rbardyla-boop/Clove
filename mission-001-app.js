@@ -31,6 +31,7 @@
   const notStartedNextValues = new Set(['shrink', 'replace', 'schedule', 'drop']);
   const sections = ['choose','commit','locked','away','return','debriefSuccess','debriefFailed','debriefNotStarted','complete'];
   let state = null;
+  let writeInFlight = false;
 
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -135,9 +136,15 @@
     if (!window.ClovePrivateStore) throw new Error('private_store_missing');
     if (!validPersistedState(next)) throw new Error('mission_state_invalid');
     if (!validStateTransition(state, next)) throw new Error('mission_transition_invalid');
-    await window.ClovePrivateStore.set(KEY, next);
-    state = next;
-    return state;
+    if (writeInFlight) throw new Error('mission_write_in_progress');
+    writeInFlight = true;
+    try {
+      await window.ClovePrivateStore.set(KEY, next);
+      state = next;
+      return state;
+    } finally {
+      writeInFlight = false;
+    }
   }
 
   function clear() {
@@ -160,7 +167,7 @@
 
   function isStateGuardError(error) {
     const code = String(error?.message || error || '');
-    return code === 'mission_state_invalid' || code === 'mission_transition_invalid';
+    return code === 'mission_state_invalid' || code === 'mission_transition_invalid' || code === 'mission_write_in_progress';
   }
 
   function missionWriteFailure(error) {
