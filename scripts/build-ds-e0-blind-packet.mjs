@@ -1,10 +1,16 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const CANDIDATE_SOURCE_COMMIT = '3c0883a94e5a816df87d31f90f51280f023845d6';
 const EXACT_TESTED_HEAD = 'd8727e7d5946f48ada39199e77df9564a62e4203';
+// This is the main commit immediately before DS-I3 opened. The owner-generated
+// Cloudflare package at this boundary passed preflight with exactly 302 public files.
+const KNOWN_302_PUBLIC_BASELINE_COMMIT = 'a2b7d8a35832a2eb75e0a8d8948ba1d2586032d1';
+const EXPECTED_PUBLIC_COUNT = 302;
 const OUT_DIR = path.resolve('dist/ds-e0');
 
 const foundationFiles = [
@@ -122,6 +128,47 @@ function assertCandidateFilesUnchanged() {
   if (diff) throw new Error(`Candidate source drift detected after frozen commit:\n${diff}`);
 }
 
+function parseProductionList(stdout) {
+  return stdout.split(/\r?\n/)
+    .map(line => /^\s*\+\s(.+)$/.exec(line))
+    .filter(Boolean)
+    .map(m => m[1]);
+}
+
+function currentProductionList() {
+  return parseProductionList(execFileSync(process.execPath, ['scripts/build-production-upload.mjs', '--list'], { encoding: 'utf8' }));
+}
+
+function productionListAtCommit(commit) {
+  const root = mkdtempSync(path.join(tmpdir(), 'clove-ds-e0-'));
+  const wt = path.join(root, 'repo');
+  try {
+    execFileSync('git', ['worktree', 'add', '--detach', wt, commit], { stdio: 'ignore' });
+    const stdout = execFileSync(process.execPath, [path.join(wt, 'scripts/build-production-upload.mjs'), '--list'], { cwd: wt, encoding: 'utf8' });
+    return parseProductionList(stdout);
+  } finally {
+    try { execFileSync('git', ['worktree', 'remove', '--force', wt], { stdio: 'ignore' }); } catch {}
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+function assertPublicSurfaceStable() {
+  execFileSync('git', ['cat-file', '-e', `${KNOWN_302_PUBLIC_BASELINE_COMMIT}^{commit}`], { stdio: 'inherit' });
+  const baseline = productionListAtCommit(KNOWN_302_PUBLIC_BASELINE_COMMIT);
+  const current = currentProductionList();
+  const baselineSet = new Set(baseline);
+  const currentSet = new Set(current);
+  const added = current.filter(f => !baselineSet.has(f));
+  const removed = baseline.filter(f => !currentSet.has(f));
+  if (baseline.length !== EXPECTED_PUBLIC_COUNT) {
+    throw new Error(`Known public baseline no longer reproduces ${EXPECTED_PUBLIC_COUNT}: got ${baseline.length}`);
+  }
+  if (added.length || removed.length) {
+    throw new Error(`Public release drift since known ${EXPECTED_PUBLIC_COUNT}-file baseline. added=${JSON.stringify(added)} removed=${JSON.stringify(removed)} current_count=${current.length}`);
+  }
+  return { baseline_commit: KNOWN_302_PUBLIC_BASELINE_COMMIT, baseline_count: baseline.length, current_count: current.length, added, removed };
+}
+
 function runPreflight() {
   const stdout = execFileSync(process.execPath, ['scripts/release-preflight.mjs'], { encoding: 'utf8' });
   const parsed = JSON.parse(stdout);
@@ -140,7 +187,9 @@ const rubric = `# Independent Evaluation Instructions\n\nYou are evaluating **Ca
 
 await mkdir(OUT_DIR, { recursive: true });
 assertCandidateFilesUnchanged();
+const surfaceComparison = assertPublicSurfaceStable();
 const preflight = runPreflight();
+if (preflight.included_count !== EXPECTED_PUBLIC_COUNT) throw new Error(`Preflight public count drift: expected ${EXPECTED_PUBLIC_COUNT}, got ${preflight.included_count}`);
 
 let packet = `# Candidate A — Digital Stewardship DS-00 through DS-06\n\n`;
 packet += `This is a frozen evaluation packet. Development chronology, issue/PR identifiers, prior test failures, mutation-test history, previous terminal verdicts, and next-step instructions have been intentionally omitted. Current substantive evidence rulings, prohibited claims, safety/privacy boundaries, implementation contracts, and runtime source are retained.\n\n`;
@@ -160,7 +209,7 @@ for (const file of specFiles) packet += fenced(file, sanitizeSpec(await readUtf8
 packet += `\n# Part IV — Exact runtime source\n\nThe following HTML/JavaScript is serialized verbatim from Candidate A.\n`;
 for (const file of runtimeFiles) packet += fenced(file, await readUtf8(file));
 
-packet += `\n# Part V — Release-integrity evidence\n\nThe production preflight was executed against the same frozen candidate tree. Its machine output follows. Digital Stewardship runtime files must appear in the forbidden-sentinel set.\n\n\`\`\`json\n${JSON.stringify(preflight, null, 2)}\n\`\`\`\n`;
+packet += `\n# Part V — Release-integrity evidence\n\nThe production preflight was executed against the same frozen candidate tree. Its machine output follows. Digital Stewardship runtime files must appear in the forbidden-sentinel set. The candidate public file list is also byte-path identical to the previously verified 302-file public baseline.\n\n\`\`\`json\n${JSON.stringify({ public_surface_comparison: surfaceComparison, production_preflight: preflight }, null, 2)}\n\`\`\`\n`;
 
 const packetPath = path.join(OUT_DIR, 'DS_E0_BLIND_PACKET_2026-08-12.md');
 await writeFile(packetPath, packet, 'utf8');
@@ -194,6 +243,7 @@ const manifest = {
     sha256: sha256(promptBytes),
     bytes: promptBytes.length,
   },
+  public_surface_comparison: surfaceComparison,
   source_files: sources,
   sanitization: {
     removed_metadata_classes: ['Status', 'Research branch', 'Program scope', 'Date', 'Parent issue', 'Issue'],
@@ -215,5 +265,6 @@ console.log(JSON.stringify({
   packet_bytes: manifest.evaluator_packet.bytes,
   prompt_sha256: manifest.evaluator_prompt.sha256,
   source_file_count: sources.length,
+  public_surface_comparison: surfaceComparison,
   preflight_included_count: preflight.included_count,
 }, null, 2));
