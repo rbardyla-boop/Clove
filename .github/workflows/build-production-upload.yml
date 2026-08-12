@@ -59,6 +59,9 @@ jobs:
           ! find dist/clove-upload -type f \( -name '*.py' -o -name '*.sh' -o -name '*.xlsx' -o -name '*.csv' -o -name '*.yaml' -o -name '*.yml' \) -print -quit | grep -q .
           ! grep -RIl --exclude='_UPLOAD_MANIFEST.json' 'CLOVE-V2 F1.1 — Adult Pilot Protocol' dist/clove-upload
 
+      - name: Install Playwright Chromium for whole-product audit
+        run: npx playwright install chromium
+
       - name: Whole-product browser audit of exact production tree
         run: |
           set -euo pipefail
