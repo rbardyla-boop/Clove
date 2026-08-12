@@ -1,6 +1,6 @@
 # CLOVE-V2 F1.1 — Adult Pilot Protocol
 
-Status: DRAFT / NOT AUTHORIZED TO RECRUIT OR DEPLOY
+Status: **AUTHORIZED / COHORT A PRE-RECRUITMENT URL GATE**
 Date: 2026-08-12
 Target: Mission 001 — MAKE YOURSELF USEFUL
 
@@ -142,7 +142,8 @@ Before the first participant receives the candidate:
 - encrypted local-store round-trip/migration/fail-closed tests green;
 - Insights privacy contract green;
 - dependency security findings adjudicated;
-- exact candidate commit frozen.
+- exact candidate commit frozen;
+- public Mission URL confirmed to serve that candidate.
 
 No participant should be asked to test a moving branch.
 
@@ -181,8 +182,17 @@ After the first five participants, issue one verdict:
 
 Do not open F2 crews/community work until this pilot reaches `PASS` or an explicitly authorized `PASS_WITH_DISCLOSED_LIMITS`.
 
-## 13. Authorization boundary
+## 13. Authorization record
 
-This document authorizes no recruitment, public deployment, spending, incentives, or expansion.
+Owner authorization for the five-person adults-only cohort A was given on 2026-08-12 in the project conversation.
 
-The project manager may prepare the frozen candidate and test materials. The owner must explicitly authorize the live pilot after reviewing the exact candidate and disclosed limits.
+Authorization covers:
+
+- recruitment of exactly five eligible adults age 18–24;
+- use of the frozen Mission 001 candidate after the public URL gate passes;
+- collection of only the bounded product observations and feedback defined in this protocol;
+- no spending or incentives;
+- no minors;
+- no mentor matching or social/community expansion.
+
+Authorization does **not** waive any stop condition, privacy boundary, safety gate, or terminal-verdict rule.
