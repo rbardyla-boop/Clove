@@ -19,6 +19,23 @@ export const EVENTS = [
   'source_inspected',
   'challenge_opened',
   'research_exported',
+  'mission_viewed',
+  'mission_class_selected',
+  'mission_committed',
+  'mission_exit_prompt_seen',
+  'mission_returned',
+  'mission_done',
+  'mission_partly_done',
+  'mission_failed',
+  'mission_not_started',
+  'mission_debrief_completed',
+  'mission_helped_other_yes',
+  'mission_helped_other_no',
+  'mission_helped_other_unsure',
+  'mission_retry_selected',
+  'mission_smaller_selected',
+  'mission_help_requested',
+  'mission_abandoned_reasoned',
 ] as const;
 
 export const SURFACES = [
@@ -39,6 +56,7 @@ export const SURFACES = [
   'article',
   'feedback',
   'research',
+  'mission',
   'other',
 ] as const;
 
@@ -56,6 +74,10 @@ export const DETAILS = [
   'helpful',
   'not_for_me',
   'broken',
+  'fix',
+  'serve',
+  'learn',
+  'build',
 ] as const;
 export const FEEDBACK_CATEGORIES = ['helpful', 'not_for_me', 'broken', 'idea', 'other'] as const;
 

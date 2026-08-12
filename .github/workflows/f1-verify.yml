@@ -1,0 +1,61 @@
+name: F1 Mission Verify
+
+on:
+  push:
+    branches:
+      - f0/brotherhood-salvage-audit-2026-08-12
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-f1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Mission static acceptance contract
+        run: node --test tests/static/mission-001-contract.test.mjs
+
+      - name: Mission HTML references encrypted persistence scripts
+        run: |
+          grep -F '<script src="mission-private-store.js"></script>' mission-001.html
+          grep -F '<script src="mission-001-app.js"></script>' mission-001.html
+          if grep -F 'function save(next){state=next;try{localStorage.setItem(KEY' mission-001.html; then
+            echo 'Legacy plaintext persistence controller still present'
+            exit 1
+          fi
+
+      - name: Mission JavaScript syntax checks
+        run: |
+          node --check mission-private-store.js
+          node --check mission-001-app.js
+
+      - name: Install root verification dependency
+        run: npm ci
+
+      - name: Mission browser acceptance replay
+        run: npm run test:mission-browser
+
+      - name: Encrypted Mission store browser replay
+        run: npm run test:mission-store-browser
+
+      - name: Install exact Insights dependency graph
+        run: npm ci --prefix workers/insights
+
+      - name: Reject known Insights dependency vulnerabilities
+        run: npm audit --prefix workers/insights --audit-level=low
+
+      - name: Insights typecheck and privacy-contract tests
+        run: npm --prefix workers/insights run check
+
+      - name: Insights Wrangler build dry-run
+        run: npm --prefix workers/insights run dry-run
