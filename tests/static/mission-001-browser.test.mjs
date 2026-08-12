@@ -5,6 +5,9 @@ import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const missionHtml = await readFile(new URL('../../mission-001.html', import.meta.url));
+const appJs = await readFile(new URL('../../mission-001-app.js', import.meta.url));
+const privateStoreJs = await readFile(new URL('../../mission-private-store.js', import.meta.url));
+const STORAGE_KEY = 'clove_v2_mission_001';
 
 function startServer() {
   const signals = [];
@@ -17,6 +20,16 @@ function startServer() {
         res.writeHead(202, { 'content-type': 'application/json' });
         res.end('{"ok":true}');
       });
+      return;
+    }
+    if (req.method === 'GET' && req.url === '/mission-private-store.js') {
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' });
+      res.end(privateStoreJs);
+      return;
+    }
+    if (req.method === 'GET' && req.url === '/mission-001-app.js') {
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' });
+      res.end(appJs);
       return;
     }
     if (req.method === 'GET' && (req.url === '/' || req.url === '/mission-001.html')) {
@@ -57,7 +70,7 @@ async function launchBrowser() {
   return chromium.launch({ headless: true, channel: 'chrome' });
 }
 
-test('DONE path survives leave/reload and aggregate signals leak no mission text', async t => {
+test('DONE path survives encrypted leave/reload and aggregate signals leak no mission text', async t => {
   const { server, signals, url } = await startServer();
   t.after(() => new Promise(resolve => server.close(resolve)));
   const browser = await launchBrowser();
@@ -69,6 +82,11 @@ test('DONE path survives leave/reload and aggregate signals leak no mission text
   await page.goto(url);
   assert.equal(await page.getByText('MAKE YOURSELF USEFUL.', { exact: true }).isVisible(), true);
   await commit(page, 'fix', secretMarker);
+
+  const committedRaw = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
+  assert.match(committedRaw, /^cloveenc:v1:/);
+  assert.doesNotMatch(committedRaw, /PRIVATE-JOHN-SMITH|KING-ST|bounded fix mission/i);
+
   await leaveAndReturn(page);
 
   await page.locator('[data-outcome="done"]').click();
@@ -82,6 +100,10 @@ test('DONE path survives leave/reload and aggregate signals leak no mission text
   await page.getByRole('button', { name: 'SAVE DEBRIEF' }).click();
   assert.equal(await page.locator('#complete').isVisible(), true);
   await page.waitForTimeout(150);
+
+  const completeRaw = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
+  assert.match(completeRaw, /^cloveenc:v1:/);
+  assert.doesNotMatch(completeRaw, /PRIVATE-JOHN-SMITH|KING-ST|completed the work|functional/i);
 
   const names = signals.map(s => s.event);
   for (const required of ['mission_viewed','mission_class_selected','mission_committed','mission_exit_prompt_seen','mission_returned','mission_done','mission_helped_other_yes','mission_debrief_completed']) {
@@ -158,7 +180,6 @@ test('safety confirmation is a hard commit gate', async t => {
   await page.locator('#doneWhen').fill('The energized panel has been altered');
   await page.locator('#duration').selectOption('30to60');
   await page.locator('#firstAction').fill('Remove the live panel cover');
-  // Deliberately do not affirm the safety/competence gate.
   await page.getByRole('button', { name: 'LOCK THE MISSION' }).click();
   assert.equal(await page.locator('#commit').isVisible(), true);
   assert.match(await page.locator('#commitError').innerText(), /safety confirmation/i);
@@ -196,7 +217,6 @@ test('core choose and commit path is operable with keyboard alone', async t => {
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#commit').isVisible(), true);
 
-  // Pass the three remaining class buttons to reach the first form control.
   await page.keyboard.press('Tab');
   await page.keyboard.press('Tab');
   await page.keyboard.press('Tab');
@@ -222,7 +242,6 @@ test('core choose and commit path is operable with keyboard alone', async t => {
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#locked').isVisible(), true);
 
-  // Hidden prior controls must not trap focus; the next Tab reaches the leave action.
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'leaveButton');
   await page.keyboard.press('Enter');
