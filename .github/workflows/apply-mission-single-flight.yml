@@ -1,0 +1,34 @@
+name: Apply Mission Single Flight Guard
+
+on:
+  push:
+    branches:
+      - hardening/mission-001-solo-2026-08-12
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/mission-001-solo-2026-08-12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply bounded runtime guard
+        run: node scripts/patch-mission-single-flight.mjs
+      - name: Commit only if changed
+        run: |
+          if git diff --quiet -- mission-001-app.js; then
+            echo 'No patch required.'
+            exit 0
+          fi
+          git config user.name 'clove-f1-2s-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add mission-001-app.js
+          git commit -m 'fix(mission): serialize private state writes'
+          git push origin HEAD:hardening/mission-001-solo-2026-08-12
