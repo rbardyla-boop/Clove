@@ -39,32 +39,46 @@ Status: `LOCKED`
 
 ---
 
-## PROVISIONAL — evidence required before public use
+## ADJUDICATED — evidence reviewed
 
 ### DS-P01 — Modern participation can create practical smartphone/account dependency
 Claim class: prevalence / access inequality.
-Need: Canada-specific and broader evidence distinguishing inconvenience, price discrimination, accessibility barriers, and genuinely unavailable non-digital alternatives.
-Status: `PROVISIONAL`
+Ruling: digital access/account dependency is materially consequential; universal smartphone-mandatory language is too strong.
+Admissible wording: Internet access, digital accounts and mobile connectivity are deeply embedded in Canadian daily life and public-service access, but service-specific non-digital/accessibility alternatives must be checked rather than assumed absent.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md`.
+Status: `SUPPORTED — NARROWED`
 
 ### DS-P02 — Canadian grocers use individualized surveillance pricing
 Claim class: current commercial practice.
-Need: named retailer, mechanism, evidence of individualized price or offer selection, date, jurisdiction, and distinction from ordinary dynamic pricing or loyalty discounts.
-Status: `PROVISIONAL`
+Ruling: rich grocery loyalty profiling, transaction data and personalized offers are established; current evidence reviewed does not establish individualized higher grocery base/shelf prices tied to a named shopper profile.
+Admissible wording: personalized offers and personalized base prices are different mechanisms; do not claim the latter for a retailer without evidence of actual price selection using consumer-specific data.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md`.
+Status: `UNSUPPORTED AS GENERAL CURRENT-PRACTICE CLAIM / RETIRE AS FACT`
 
 ### DS-P03 — Electronic shelf labels create a surveillance-pricing threat
 Claim class: capability-to-risk inference.
-Need: separate what ESLs technically enable from demonstrated personalized pricing; identify governance/consumer-protection constraints.
-Status: `PROVISIONAL`
+Ruling: electronic shelf labels can reduce the time/cost of centralized price updates, but are only the display layer and do not themselves establish shopper identification or personalized pricing.
+Required distinction: display layer vs price-selection layer vs identity/data layer.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md`.
+Status: `SUPPORTED ONLY AFTER SPLITTING THE CLAIM`
 
 ### DS-P04 — Attention products are designed to exploit psychological vulnerabilities
 Claim class: design practice / behavioral mechanism.
-Need: primary platform/design research and controlled language. Avoid universal “dopamine loop” or “behavioral psychologists engineered it” claims without direct evidence.
-Status: `PROVISIONAL`
+Ruling: major recommendation/notification systems explicitly learn from behavioral signals and optimize ranking against engagement and other objectives; Canadian regulators document deceptive design capable of steering behavior. Universal dopamine/addiction/psychologist-intent language is not established.
+Admissible wording: many large platforms learn from interactions and optimize content/notification ranking using predicted engagement and other behavioral signals; configure defaults and measure whether the system served the user's stated objective.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_02_ATTENTION_FREE_APPS.md`.
+Status: `SUPPORTED MECHANISM / ORIGINAL INTENT LANGUAGE TOO STRONG`
 
 ### DS-P05 — Free apps generally monetize behavioral data
 Claim class: business-model prevalence.
-Need: distinguish advertising/data-supported services from philanthropy, public services, open source, freemium, cross-subsidy, enterprise-funded, and other models.
-Status: `PROVISIONAL`
+Ruling: major ad-supported services such as Meta and parts of Google earn substantial/dominant advertising revenue and use activity data in ad personalization/measurement, but free products can use many other business models.
+Admissible wording: a zero-dollar price does not identify the business model; find who pays, what event creates revenue, what data supports the service versus advertising/analytics, and what controls exist.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_02_ATTENTION_FREE_APPS.md`.
+Status: `SUPPORTED FOR SPECIFIC AD-SUPPORTED SERVICES / RETIRE AS UNIVERSAL RULE`
+
+---
+
+## PROVISIONAL — evidence required before public use
 
 ### DS-P06 — OnlyFans / subscription adult-content income is highly concentrated
 Claim class: earnings distribution.
