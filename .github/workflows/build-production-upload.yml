@@ -12,7 +12,7 @@ permissions:
 jobs:
   build-production-upload:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     steps:
       - name: Checkout exact commit
         uses: actions/checkout@v4
@@ -59,6 +59,37 @@ jobs:
           ! find dist/clove-upload -type f \( -name '*.py' -o -name '*.sh' -o -name '*.xlsx' -o -name '*.csv' -o -name '*.yaml' -o -name '*.yml' \) -print -quit | grep -q .
           ! grep -RIl --exclude='_UPLOAD_MANIFEST.json' 'CLOVE-V2 F1.1 — Adult Pilot Protocol' dist/clove-upload
 
+      - name: Whole-product browser audit of exact production tree
+        run: |
+          set -euo pipefail
+          mkdir -p dist/clove-upload/scripts artifacts
+          cp scripts/product-audit.mjs dist/clove-upload/scripts/product-audit.mjs
+          AUDIT_MATCH='^(?!arcade-studio/dist/index\\.html$).*' node dist/clove-upload/scripts/product-audit.mjs
+          cp dist/clove-upload/artifacts/product-audit.json artifacts/production-product-audit.json
+          rm -f dist/clove-upload/scripts/product-audit.mjs
+          rm -rf dist/clove-upload/artifacts
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const report = JSON.parse(readFileSync('artifacts/production-product-audit.json', 'utf8'));
+          const failed = report.pageRuns.filter((run) => run.status !== 200 || run.errors.length || run.badResponses.length || run.overflowX > 2);
+          const summary = {
+            pages: report.scope.pageCount,
+            runs: report.pageRuns.length,
+            controls: report.controls.length,
+            failed_runs: failed.length,
+            failures: failed.map((run) => ({ path: run.path, viewport: run.viewport, status: run.status, overflowX: run.overflowX, errors: run.errors, badResponses: run.badResponses })),
+          };
+          writeFileSync('artifacts/production-product-audit-summary.json', JSON.stringify(summary, null, 2) + '\n');
+          console.log(JSON.stringify(summary, null, 2));
+          if (failed.length) process.exit(1);
+          NODE
+
+      - name: Re-verify package after audit scaffold removal
+        run: |
+          test ! -e dist/clove-upload/artifacts
+          test ! -e dist/clove-upload/scripts/product-audit.mjs
+          node scripts/release-preflight.mjs >/dev/null
+
       - name: Generate SHA-256 inventory
         run: |
           cd dist/clove-upload
@@ -77,5 +108,7 @@ jobs:
           path: |
             dist/clovelearn-production-${{ github.sha }}.zip
             release-preflight.json
+            artifacts/production-product-audit.json
+            artifacts/production-product-audit-summary.json
           if-no-files-found: error
           retention-days: 30
