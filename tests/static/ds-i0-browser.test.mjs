@@ -82,6 +82,17 @@ test(`malformed saved state resets safely (${engine})`, async t=>{
   assert.equal(raw,null);
 });
 
+test(`forged later-stage state without prerequisite answers resets safely (${engine})`, async t=>{
+  const {server,url}=await startServer(); t.after(()=>new Promise(r=>server.close(r)));
+  const browser=await launch(); t.after(()=>browser.close());
+  const context=await browser.newContext();
+  const forged={schemaVersion:1,stage:'SAFE_CHECK',deviceClass:null,accessMode:null,hasAccount:null,providerPersistenceBelief:null,recoveryClass:'contact',recoveryCheckResult:null};
+  await context.addInitScript(({key,value})=>localStorage.setItem(key,JSON.stringify(value)),{key:KEY,value:forged});
+  const page=await context.newPage(); await page.goto(url);
+  assert.equal(await page.getByRole('button',{name:'I HAVE ONE'}).isVisible(),true);
+  assert.equal(await page.evaluate(k=>localStorage.getItem(k),KEY),null);
+});
+
 test(`storage write failure is explicit and flow remains usable in memory (${engine})`, async t=>{
   const {server,url}=await startServer(); t.after(()=>new Promise(r=>server.close(r)));
   const browser=await launch(); t.after(()=>browser.close());
