@@ -1,0 +1,50 @@
+name: Apply DS-I3 Gate Repairs
+
+on:
+  push:
+    branches:
+      - build/ds-i3-attention-defense-2026-08-12
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: build/ds-i3-attention-defense-2026-08-12
+      - name: Apply exact mutation-detector and release-lock repairs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('tests/static/ds-i3-mutation.test.mjs')
+          text=p.read_text()
+          old=r"(?:do not|don't|never|must not|will not|cannot|can't)"
+          new=r"(?:do not|don't|never|must not|will not|cannot|can't|is not|isn't)"
+          if new not in text:
+              if old not in text:
+                  raise SystemExit('mutation detector anchor missing')
+              p.write_text(text.replace(old,new))
+
+          for path in ['scripts/build-production-upload.mjs','scripts/release-preflight.mjs']:
+              p=Path(path)
+              text=p.read_text()
+              if "'digital-stewardship-03.html'" not in text:
+                  anchor="  'digital-stewardship-02.js',\n"
+                  replacement=anchor+"  'digital-stewardship-03.html',\n  'digital-stewardship-03.js',\n"
+                  if anchor not in text:
+                      raise SystemExit(f'release anchor missing: {path}')
+                  p.write_text(text.replace(anchor,replacement,1))
+          PY
+      - name: Remove temporary workflow and commit exact repairs
+        run: |
+          git rm .github/workflows/apply-ds-i3-gate-repairs.yml
+          git config user.name 'clove-ds-i3-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add tests/static/ds-i3-mutation.test.mjs scripts/build-production-upload.mjs scripts/release-preflight.mjs
+          git commit -m 'fix(ds-i3): repair negative detector and lock non-public release'
+          git push origin HEAD:build/ds-i3-attention-defense-2026-08-12
