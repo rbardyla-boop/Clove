@@ -14,11 +14,12 @@ export const HARD_EXCLUDE_PREFIXES = Object.freeze([
 
 export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
   'master-map.md',
-  // DS-I0 is intentionally NON-PUBLIC. Keeping these explicit here means the
-  // research slice can exist in main without riding along in a future Direct
-  // Upload package until a separate release gate deliberately removes this lock.
+  // Digital Stewardship implementation slices remain NON-PUBLIC until a later
+  // release gate deliberately removes both the production lock and preflight sentinel.
   'digital-stewardship-00.html',
   'digital-stewardship-00.js',
+  'digital-stewardship-01.html',
+  'digital-stewardship-01.js',
   'arcade/README.md',
   'arcade/cabinets/neon-grid/README.md',
   'arcade/cabinets/sample-import-game/README.md',
