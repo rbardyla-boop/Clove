@@ -15,6 +15,7 @@
     "test:insights": "npm --prefix workers/insights test",
     "test:mission": "node --test tests/static/mission-001-contract.test.mjs",
     "test:mission-state": "node --test tests/static/mission-001-state-machine.test.mjs",
+    "test:mission-budget": "node --test tests/static/mission-001-runtime-budget.test.mjs",
     "test:mission-browser": "node --test tests/static/mission-001-browser.test.mjs tests/static/mission-001-partial-browser.test.mjs",
     "test:mission-adversarial": "node --test tests/static/mission-001-state-recovery-browser.test.mjs tests/static/mission-001-interaction-adversarial-browser.test.mjs",
     "test:mission-firefox": "node --test tests/static/mission-001-firefox-browser.test.mjs",
