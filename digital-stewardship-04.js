@@ -16,9 +16,9 @@ function discard(){try{localStorage.removeItem(KEY);return true}catch{storageAva
 function load(){let raw;try{raw=localStorage.getItem(KEY)}catch{storageAvailable=false;state=blank();return}if(!raw)return;let parsed;try{parsed=JSON.parse(raw)}catch{state=blank();discard();return}if(validState(parsed)){state=parsed;return}state=blank();discard()}
 function persist(){if(!storageAvailable)return false;try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch{storageAvailable=false;return false}}
 function storageNote(){storageStatus.textContent=storageAvailable?'':'Progress will not be saved on this browser. You can continue in memory, but a reload will reset the drill.'}
-function commitCandidate(candidate){if(!validState(candidate))return false;state=candidate;persist();render();return true}
-function transition(expected,next,patch={}){if(transitionLock||state.stage!==expected||!NEXT[expected]?.has(next))return false;transitionLock=true;const ok=commitCandidate({...state,...patch,stage:next});transitionLock=false;return ok}
-function patch(expected,values){if(transitionLock||state.stage!==expected)return false;transitionLock=true;const ok=commitCandidate({...state,...values});transitionLock=false;return ok}
+function commitCandidate(candidate){if(!validState(candidate))return false;state=candidate;persist();return true}
+function transition(expected,next,patch={}){if(transitionLock||state.stage!==expected||!NEXT[expected]?.has(next))return false;transitionLock=true;const ok=commitCandidate({...state,...patch,stage:next});transitionLock=false;if(ok)render();return ok}
+function patch(expected,values){if(transitionLock||state.stage!==expected)return false;transitionLock=true;const ok=commitCandidate({...state,...values});transitionLock=false;if(ok)render();return ok}
 function button(label,action,primary=false){const b=document.createElement('button');b.type='button';b.className=`choice${primary?' primary':''}`;b.textContent=label;b.addEventListener('click',action);choices.appendChild(b)}
 function clearStage(){choices.replaceChildren();stopButton.hidden=['COMPLETE','STOPPED_SAFE'].includes(state.stage);storageNote()}
 function renderBoundary(){stepLabel.textContent='0 / Start';question.textContent='Inspect one ordinary digital offer.';explain.textContent='Use one offer you can already see. Do not buy, cancel, sign up, or enter payment details for this drill. You are only checking what commitment the offer actually shows.';button('START CHECK',()=>transition('BOUNDARY','OFFER_TYPE'),true)}
