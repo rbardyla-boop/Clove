@@ -52,17 +52,24 @@ function validState(candidate){
   return REQUIRED_BEFORE[candidate.stage].every(field=>candidate[field]!==null && candidate[field]!==undefined);
 }
 
+function discardSavedState(){
+  try{localStorage.removeItem(KEY);return true;}
+  catch{storageAvailable=false;return false;}
+}
+
 function load(){
-  try{
-    const raw=localStorage.getItem(KEY);
-    if(!raw) return;
-    const parsed=JSON.parse(raw);
-    if(validState(parsed)){state=parsed;return;}
-    localStorage.removeItem(KEY);
-  }catch{
-    storageAvailable=false;
-    state=blank();
-  }
+  let raw;
+  try{raw=localStorage.getItem(KEY);}
+  catch{storageAvailable=false;state=blank();return;}
+  if(!raw) return;
+
+  let parsed;
+  try{parsed=JSON.parse(raw);}
+  catch{state=blank();discardSavedState();return;}
+
+  if(validState(parsed)){state=parsed;return;}
+  state=blank();
+  discardSavedState();
 }
 
 function persist(){
@@ -105,7 +112,7 @@ function clearStage(){
   choices.replaceChildren();
   helper.hidden=true;
   helper.textContent='';
-  stopButton.hidden=['BOUNDARY','COMPLETE','STOPPED_SAFE'].includes(state.stage);
+  stopButton.hidden=['COMPLETE','STOPPED_SAFE'].includes(state.stage);
   storageNote();
 }
 
@@ -193,14 +200,14 @@ function renderComplete(){
   const summary=document.createElement('div');summary.className='summary';
   for(const [label,value] of rows){const row=document.createElement('div');row.className='row';const b=document.createElement('b');b.textContent=label;const span=document.createElement('span');span.textContent=value;row.append(b,span);summary.append(row);}
   choices.append(summary);
-  button('START OVER SAFELY',()=>{try{localStorage.removeItem(KEY);}catch{} state=blank();helperOpen=false;render();});
+  button('START OVER SAFELY',()=>{discardSavedState();state=blank();helperOpen=false;render();});
 }
 
 function renderStopped(){
   stepLabel.textContent='Stopped';
   question.textContent='STOPPED SAFELY';
   explain.textContent='You can leave here. Nothing is scored, and you do not need to finish this drill today.';
-  button('START OVER',()=>{try{localStorage.removeItem(KEY);}catch{} state=blank();helperOpen=false;render();});
+  button('START OVER',()=>{discardSavedState();state=blank();helperOpen=false;render();});
 }
 
 function render(){
