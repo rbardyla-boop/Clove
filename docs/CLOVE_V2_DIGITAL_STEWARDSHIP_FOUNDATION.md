@@ -1,21 +1,34 @@
 # CloveLearn v2 — Digital Stewardship Foundation
 
-Status: **FOUNDATION / EVIDENCE GATE**  
-Branch: `f0/brotherhood-salvage-audit-2026-08-12`  
-Program scope: **general adult digital literacy, with the first product pilot still adults 18–24**
+Status: **F0.5 PASS_WITH_DISCLOSED_LIMITS / IMPLEMENTATION GATED**  
+Research branch: `research/digital-stewardship-f0-5-2026-08-12`  
+Program scope: **general adult digital literacy; human usability evidence remains pending**
 
 ## Project-manager ruling
 
-Digital stewardship is now a governing CloveLearn foundation rather than an optional content topic.
+Digital Stewardship is a governing CloveLearn foundation, not an optional content topic.
 
-CloveLearn will teach two forms of agency together:
+CloveLearn teaches two forms of agency together:
 
 1. **Operational agency** — choose a useful real-world action, execute it, observe the result, learn, and continue.
-2. **Digital agency** — use digital systems intentionally while protecting identity, attention, money, privacy, reputation, and future options.
+2. **Digital agency** — use digital systems intentionally while protecting identity, attention, money, privacy, reputation, recovery paths, and future options.
 
-Mission 001 remains valid and is not reopened. The current F1.1 technical hardening work continues. However, no public pilot or broader Clove v2 expansion should teach claims about digital harms until the Digital Stewardship claim ledger has passed its evidence gate.
+Mission 001 remains valid and is not reopened by this foundation.
 
-The source metaphor is the **“flashing 12:00” problem**: society places increasingly powerful digital systems in the hands of people who may know how to tap an interface but do not understand the system behind it. Clove must therefore teach below the assumed technical-literacy floor rather than writing for people who already understand privacy, networks, accounts, cloud storage, tracking, metadata, or platform incentives.
+The source metaphor is the **“flashing 12:00” problem**: interface competence is not systems competence. Clove should assume a user can tap a phone but may not understand accounts, cloud storage, permissions, identifiers, tracking, recovery, copying, or platform incentives.
+
+The evidence gate for DS-P01 through DS-P12 is complete. Exact rulings live in:
+
+- `CLOVE_V2_DIGITAL_STEWARDSHIP_CLAIM_LEDGER.md`
+- `CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md`
+- `CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_02_ATTENTION_FREE_APPS.md`
+- `CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`
+- `CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_04_DATING_PREVALENCE.md`
+- `CLOVE_V2_DS_F0_5_REVIEW_GATE.md`
+
+The first action-first curriculum candidate is:
+
+- `CLOVE_V2_DIGITAL_STEWARDSHIP_CURRICULUM_V0_1.md`
 
 ---
 
@@ -23,277 +36,172 @@ The source metaphor is the **“flashing 12:00” problem**: society places incr
 
 ## Digital agency
 
-The practical ability to choose how technology is used rather than being passively carried by defaults, incentives, interfaces, or algorithms.
+The practical ability to choose how technology is used instead of being passively carried by defaults, interfaces, incentives, or algorithms.
 
-For Clove, digital agency means a user can answer:
+A user should be able to answer:
 
 - What am I trying to accomplish?
 - What system am I entering?
 - What information does it actually need?
 - What am I giving away that it does not need?
 - What could link this activity back to me?
-- What happens if this account, platform, device, or company disappears?
+- What happens if this account, device, service, or company disappears?
 - What future option am I trading for this convenience?
 - How do I leave, recover, or reverse the action?
 
 ## Digital stewardship
 
-The ongoing responsibility to manage one's digital identity, data, devices, accounts, communications, reputation, and records across their lifecycle.
+The ongoing responsibility to manage digital identity, data, devices, accounts, communications, reputation, and records across their lifecycle.
 
-Stewardship is not secrecy. It is deliberate custody.
+**Stewardship is not secrecy. It is deliberate custody.**
 
 ## Digital discipline
 
 Use the least exposure, least privilege, least permanence, and least attention necessary to complete the actual task.
 
-Clove should never teach paranoia as competence. The objective is proportional risk management.
+Clove does not teach paranoia as competence. The objective is proportional risk management.
 
 ---
 
-# 2. Army-derived operating principles to translate for civilians
+# 2. Civilian operating principles
 
-The project may adapt general operational habits without militarizing ordinary life.
+These adapt general operational habits without militarizing ordinary life.
 
 ## Mission before tool
-
-Define the real objective first. Do not let the app, feed, platform, notification, or device become the mission.
+Define the real objective first. Do not let the app, feed, notification, or device become the mission.
 
 ## Need-to-know / data minimization
-
-Give a system only the information required to perform the task. More data is not automatically better service.
+Give a system only the information required for the legitimate task, subject to legal, safety, recovery, and service requirements.
 
 ## Compartmentalization
+Avoid unnecessarily binding unrelated low-stakes and high-value activities to one permanent identity/recovery path. This must remain lawful and must not be used to evade legitimate identity, age, fraud, employment, financial, or safety controls.
 
-Do not unnecessarily bind every activity to one permanent identity, one inbox, one phone number, one social profile, or one payment relationship.
-
-Compartmentalization must remain lawful and must not be taught as a way to evade legitimate identity, safety, financial, employment, or legal requirements.
-
-## Signature management
-
-Understand what an action reveals even when the user does not explicitly type it: device identifiers, location, timing, contacts, purchase patterns, browsing behavior, metadata, and cross-account linkage.
+## Signature awareness
+Understand that an action can reveal more than the text a user explicitly types: location, timing, device/account identifiers, purchase patterns, metadata, and cross-account linkage may matter depending on the service.
 
 ## Redundancy
-
-Do not let one platform, account, cloud provider, or device become the single point of failure for important records, access, money, or identity recovery.
+Do not let one device, platform, account, or recovery method become an unnecessary single point of failure for important access or records.
 
 ## After-action review
-
-After a meaningful digital failure, scam attempt, account compromise, privacy mistake, or bad purchase, record what happened, what signal was missed, what control failed, and what changes next.
+After a meaningful scam attempt, account compromise, privacy mistake, bad purchase, or recovery failure, record what happened, what signal was missed, what control failed, and what changes next.
 
 ## Abort criteria
-
 When a digital task begins requesting information, permissions, money, urgency, or access inconsistent with the original mission, stop and reassess.
 
 ---
 
-# 3. The “flashing 12:00” teaching standard
+# 3. “Flashing 12:00” teaching standard
 
-Every public lesson must assume the user can operate a phone but may not understand the internet underneath it.
+Every user-facing drill follows:
 
-A lesson should normally contain:
-
-`THREAT → WHY IT MATTERS → ONE ACTION → HOW TO CHECK → HOW TO UNDO / RECOVER`
+`THREAT → WHY → ONE ACTION → CHECK → RECOVER`
 
 Rules:
 
-- one unfamiliar concept at a time;
-- expand acronyms once;
-- show the actual consequence, not abstract privacy language;
-- use observable checks;
-- provide a safe default;
-- distinguish required identity disclosure from optional disclosure;
+- one unfamiliar concept or decision at a time;
+- plain language before technical terminology;
+- observable checks instead of abstract warnings;
+- safe defaults;
+- visible `STOP / I DON'T KNOW` paths;
+- distinguish required disclosure from optional disclosure;
 - distinguish inconvenience from genuine exclusion;
-- never require technical jargon to understand the decision;
-- never shame users for prior mistakes;
-- recovery is part of the lesson, not an appendix.
+- never shame prior mistakes;
+- recovery is part of the lesson, not an appendix;
+- reading or agreeing is never completion.
+
+The Markdown specification may be detailed. The eventual user interface must not be a paragraph wall.
 
 ---
 
-# 4. Threat map
+# 4. Evidence-locked threat boundaries
 
-## 4.1 Mandatory or near-mandatory digital dependency
+## Digital dependency
+Internet access, digital accounts, and mobile connectivity are deeply embedded in modern Canadian life, but Clove does not claim a smartphone is literally mandatory for every service or person.
 
-People increasingly encounter services where practical participation is easier, cheaper, or sometimes only possible through accounts, phones, email, authentication, portals, or apps.
+## Identity linkage and permissions
+Digital services may request or collect information beyond the minimum a user needs for a specific task. Clove teaches inspection and minimization where supported, not blanket refusal.
 
-**Teaching objective:** show how to participate with minimum necessary exposure and maintain recovery paths.
+## Attention systems
+Large digital platforms can learn from interaction signals and optimize recommendations/notifications against engagement and other objectives. Clove does **not** teach a universal dopamine-addiction story or claim psychologists intentionally engineered every product to addict users.
 
-**Evidence status:** the broad phenomenon is plausible and observable, but claims that a smartphone is literally mandatory for modern life everywhere require jurisdiction- and service-specific evidence.
+## Prices and persuasion
+Electronic shelf labels, loyalty profiles, targeted offers, dynamic systems, subscriptions, and deceptive design are distinct mechanisms. Clove does **not** claim a named grocer uses individualized base-price “surveillance pricing” without evidence of actual consumer-specific price selection.
 
-## 4.2 Data exhaust and identity linkage
+## Reputation and copying
+Deleting a source copy does not guarantee all screenshots, downloads, scraped copies, reposts, or archives disappear. Removal and delisting can still reduce exposure; fatalism is not stewardship.
 
-Digital systems can collect more than the information explicitly submitted and combine records across contexts.
+## Intimate-content economics
+Platform aggregate payouts do not establish typical creator income. Published sexual-use samples of OnlyFans lean male, but no representative platform-wide gender census was established. Claims of guaranteed female monetization advantage, inevitable career/relationship ruin, “most girls are on OnlyFans,” or male population withdrawal from dating are not admissible as facts.
 
-**Teaching objective:** permissions, identifiers, account separation, metadata awareness, data minimization, recovery-email hygiene, and device settings.
-
-## 4.3 Attention capture
-
-Many digital products are economically rewarded for retaining attention and increasing repeated use.
-
-**Teaching objective:** remove non-human notifications, distinguish deliberate use from feed consumption, introduce friction, schedule rather than graze, and measure time against the user's objective.
-
-Clove must not reduce this to unsupported universal claims about “dopamine addiction.”
-
-## 4.4 Commercial profiling, dynamic pricing, and personalized offers
-
-Digital infrastructure permits rapid price changes, targeted offers, segmentation, experimentation, and consumer profiling. The existence and prevalence of individualized “surveillance pricing” must be demonstrated for each claimed sector or retailer before Clove presents it as current fact.
-
-**Teaching objective:** compare prices, preserve receipts, recognize personalized offers, understand loyalty-data tradeoffs, and separate the capability to personalize prices from proof that a particular merchant is doing so.
-
-## 4.5 Reputation and permanence
-
-Content copied by another party may become difficult or impossible for the original uploader to fully control. Deletion from the original service is not proof that no copies remain.
-
-**Teaching objective:** make the future audience part of the decision before publishing.
-
-Clove must not claim that every uploaded item is literally permanent or that deletion is technologically impossible in all cases.
-
-## 4.6 Platform dependency
-
-Creators, workers, sellers, communities, and customers can build livelihoods or identities on systems whose rules, fees, discovery mechanisms, access, or payment arrangements they do not control.
-
-**Teaching objective:** portability, backups, independent contact paths where appropriate, diversification, and realistic dependency analysis.
-
-## 4.7 The commodification of intimacy
-
-Sexualized and intimate content is a high-consequence example of digital agency because short-term monetization can trade against privacy, personal safety, reputation, relationship preferences, and future professional options.
-
-Clove will teach this as an **optionality and stewardship problem for any sex**, not as a license to degrade creators or predict individual moral worth.
-
-Questions the user should be able to answer before monetizing intimate content:
-
-- What is the realistic expected income distribution rather than the celebrity example?
-- What percentage is retained by platforms, agencies, processors, taxes, and promotion costs?
-- Who can copy the material?
-- What happens after a leak?
-- Which future careers or relationships might reasonably care, and which claims about those effects are actually evidenced?
-- Can the creator tolerate the material being seen outside the intended audience?
-- Is the person making a reversible experiment or an effectively irreversible identity decision?
-
-Gender differences in buyer demand, earnings, stigma, relationship preferences, and market power are research questions. They are not to be converted into universal rules without evidence.
+## Recovery
+Security controls need workable recovery paths. Clove tests recovery safely; it does not deliberately lock users out, wipe devices, or destroy critical accounts to prove a point.
 
 ---
 
 # 5. Curriculum architecture
 
-## DS-00 — KNOW THE MACHINE
+- **DS-00 — KNOW THE MACHINE**: device vs software vs account vs provider vs recovery.
+- **DS-01 — SURVIVE THE FORCED GRID**: necessary task, minimum unnecessary exposure.
+- **DS-02 — IDENTITY COMPARTMENTALIZATION**: lawful separation of low-stakes and critical contexts.
+- **DS-03 — ATTENTION DEFENSE**: intentional interruption rights and scheduled use.
+- **DS-04 — MONEY, PRICES & DIGITAL PERSUASION**: receipts, offers, subscriptions, conditions, and mechanism discipline.
+- **DS-05 — REPUTATION, INTIMATE CONTENT & FUTURE OPTIONALITY**: future audience, copying, realistic economics, and recovery without shame.
+- **DS-06 — RECOVERY**: account/device loss, compromise, evidence preservation, and restoration.
+- **DS-07 — AI-MEDIATED REALITY**: future module only; not yet evidence-gated or authorized.
 
-The internet is not the screen. Teach:
-
-- device vs browser vs website vs app;
-- local storage vs cloud storage;
-- account vs identity;
-- phone number and email as identifiers and recovery mechanisms;
-- metadata;
-- cookies and other tracking mechanisms at a basic level;
-- what “delete” can and cannot mean;
-- permissions;
-- backups;
-- software updates;
-- scams and impersonation basics.
-
-## DS-01 — SURVIVE THE FORCED GRID
-
-Complete necessary digital tasks with minimum unnecessary exposure.
-
-## DS-02 — IDENTITY COMPARTMENTALIZATION
-
-Separate contexts where doing so is lawful, practical, and safe. Teach primary/secondary email strategy, aliases where supported, recovery hygiene, and why one identity graph creates correlated failure.
-
-Do **not** teach evasion of legitimate identity verification or platform safety controls.
-
-## DS-03 — ATTENTION DEFENSE
-
-Turn the device back into a tool: notification discipline, feed friction, scheduled use, screen-time audit, and intentional exit conditions.
-
-## DS-04 — MONEY, PRICES, AND DIGITAL PERSUASION
-
-Loyalty programs, targeted offers, subscriptions, dark patterns, dynamic pricing capability, checkout manipulation, recurring billing, and evidence-based shopping comparison.
-
-## DS-05 — REPUTATION, SEXUAL CONTENT, AND FUTURE OPTIONALITY
-
-Teach permanence risk, audience collapse, leaks, screenshots, deepfakes, impersonation, doxxing risk, platform dependency, income-distribution realism, and future-option analysis.
-
-This module is gender-neutral in its safety rules while allowing evidence to identify genuine sex-specific market differences.
-
-## DS-06 — RECOVERY
-
-Account compromise, lost device, scam response, leaked content, fraudulent purchase, identity exposure, backup restoration, evidence preservation, and escalation to the appropriate provider or authority.
-
-## DS-07 — AI-MEDIATED REALITY
-
-Future module: synthetic media, voice cloning, AI-generated persuasion, agent permissions, automated scams, provenance, and delegation boundaries.
+The exact v0.1 drills for DS-00 through DS-06 are frozen in `CLOVE_V2_DIGITAL_STEWARDSHIP_CURRICULUM_V0_1.md`.
 
 ---
 
-# 6. Product integration rule
+# 6. Product constitution
 
-Digital Stewardship is a foundation, not permission to turn Clove into another reading website.
+Digital Stewardship must not turn Clove into another reading website.
 
-Every module must eventually produce a real action or configuration change with an observable check.
+Every implemented module must:
 
-Examples:
-
-- turn off non-human push notifications and verify what remains;
-- inspect one app's permissions and remove one unnecessary permission;
-- create and test an account-recovery path;
-- export one important dataset;
-- compare logged-in vs logged-out prices where lawful and meaningful;
-- find what information one public profile exposes;
-- configure a password manager and recovery procedure;
-- identify one subscription and document its cancellation path;
-- run a future-audience check before posting a high-consequence item.
-
-Reading a warning is not completion.
+- produce a real configuration change, verified recovery path, or observable check;
+- collect no user-authored content when an aggregate event is sufficient;
+- keep sensitive state local when server-side storage is unnecessary;
+- never reward oversharing;
+- state what data is required, why, how long it persists, and how the user exits;
+- preserve a safe route back after uncertainty or failure;
+- undergo a separate privacy-contract test before any telemetry is authorized.
 
 ---
 
-# 7. Evidence firewall
+# 7. Retired / prohibited public claims
 
-The following classes of statement are **PROVISIONAL until sourced and replayed**:
+Do not teach as fact:
 
-- that particular Canadian grocers currently use individualized surveillance pricing;
-- that electronic shelf labels themselves prove personalized pricing;
-- that “most girls” or most young women use OnlyFans;
-- specific OnlyFans creator median-income figures without primary or reproducible data;
-- specific subscriber sex percentages without reliable methodology;
-- universal claims about male vs female arousal or purchasing behavior;
-- predictions that men will collectively withdraw from dating or adult-content markets;
-- claims that a sexualized digital footprint necessarily prevents marriage, employment, or family formation;
-- claims that online material can never be removed anywhere;
-- “if the product is free, you are the product” as a universal economic law;
-- claims that behavioral psychologists directly engineer every attention product;
-- claims that burner numbers, false identities, or account circumvention are universally safe or permitted.
+- “Canadian grocers use individualized surveillance pricing” as a general current-practice claim;
+- electronic shelf labels as proof of personalized pricing;
+- “if you are not paying, you are the product” as a universal economic law;
+- “everything uploaded is permanent forever”;
+- “most girls are on OnlyFans”;
+- exact OnlyFans median/top-percentile income claims without a defensible dataset and denominator;
+- a platform-wide subscriber-sex percentage without representative methodology;
+- guaranteed sex-specific monetization advantage;
+- inevitable unemployment, relationship failure, or family-formation consequences from sexualized content;
+- a prediction that men will collectively withdraw from dating because of OnlyFans or sexualized-content creation;
+- universal dopamine/addiction explanations;
+- burner/fake identity advice used to defeat legitimate controls.
 
-These may be investigated. They may not be taught as settled fact merely because they fit the thesis.
+A culturally satisfying claim does not receive a lower evidence threshold.
 
 ---
 
 # 8. Current project boundary
 
-The F1 Mission 001 loop remains the first product mechanism under test.
+F0.5 is complete as **PASS_WITH_DISCLOSED_LIMITS**.
 
-Digital Stewardship changes the design constitution immediately:
+The limit is explicit: internal adversarial review cannot prove that a low-literacy adult can understand or complete the curriculum without help, and no independent external reviewer has replayed the packet.
 
-- local-first/private-by-default remains mandatory;
-- data minimization is now an explicit product principle;
-- Clove should collect no content when an aggregate event is sufficient;
-- the website must help the user leave the website when the real task is offline;
-- no engagement mechanic may reward oversharing;
-- no public identity graph is created merely to manufacture community;
-- new features must state what user data they require, why they require it, how long it persists, and how the user exits.
+The next independently judgeable implementation unit is **DS-I0 — build only DS-00 KNOW THE MACHINE as a non-public local-first slice**.
 
-The curriculum itself does not enter the F1.1 UI until its claim ledger passes the evidence gate.
+DS-01 through DS-06 remain locked until DS-I0 reaches one of:
 
----
+- `SOLO_HARDENED / HUMAN_EVIDENCE_PENDING`
+- `REPAIR_REQUIRED`
+- `RETIRE`
 
-# 9. Terminal test for this foundation
-
-The foundation passes when an independent reviewer can distinguish:
-
-1. what digital systems are technically capable of;
-2. what companies or institutions are actually documented as doing;
-3. what risks are plausible but unmeasured;
-4. what is prediction or cultural argument;
-5. what concrete action a low-literacy user can take without creating a larger risk.
-
-If those categories blur together, the foundation is not ready for public teaching.
+No public Digital Stewardship deployment is authorized by F0.5 alone.

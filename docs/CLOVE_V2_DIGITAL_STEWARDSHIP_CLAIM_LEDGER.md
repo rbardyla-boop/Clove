@@ -1,6 +1,6 @@
 # CloveLearn v2 — Digital Stewardship Claim Ledger
 
-Status: **ACTIVE / PRE-PUBLICATION EVIDENCE GATE**
+Status: **EVIDENCE ADJUDICATION COMPLETE / CURRICULUM BUILD PENDING**
 
 This ledger separates durable design principles from claims that require external evidence before Clove teaches them as fact.
 
@@ -39,68 +39,91 @@ Status: `LOCKED`
 
 ---
 
-## PROVISIONAL — evidence required before public use
+## ADJUDICATED — evidence reviewed
 
 ### DS-P01 — Modern participation can create practical smartphone/account dependency
 Claim class: prevalence / access inequality.
-Need: Canada-specific and broader evidence distinguishing inconvenience, price discrimination, accessibility barriers, and genuinely unavailable non-digital alternatives.
-Status: `PROVISIONAL`
+Ruling: digital access/account dependency is materially consequential; universal smartphone-mandatory language is too strong.
+Admissible wording: Internet access, digital accounts and mobile connectivity are deeply embedded in Canadian daily life and public-service access, but service-specific non-digital/accessibility alternatives must be checked rather than assumed absent.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md`.
+Status: `SUPPORTED — NARROWED`
 
 ### DS-P02 — Canadian grocers use individualized surveillance pricing
 Claim class: current commercial practice.
-Need: named retailer, mechanism, evidence of individualized price or offer selection, date, jurisdiction, and distinction from ordinary dynamic pricing or loyalty discounts.
-Status: `PROVISIONAL`
+Ruling: rich grocery loyalty profiling, transaction data and personalized offers are established; current evidence reviewed does not establish individualized higher grocery base/shelf prices tied to a named shopper profile.
+Admissible wording: personalized offers and personalized base prices are different mechanisms; do not claim the latter for a retailer without evidence of actual price selection using consumer-specific data.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md`.
+Status: `UNSUPPORTED AS GENERAL CURRENT-PRACTICE CLAIM / RETIRE AS FACT`
 
 ### DS-P03 — Electronic shelf labels create a surveillance-pricing threat
 Claim class: capability-to-risk inference.
-Need: separate what ESLs technically enable from demonstrated personalized pricing; identify governance/consumer-protection constraints.
-Status: `PROVISIONAL`
+Ruling: electronic shelf labels can reduce the time/cost of centralized price updates, but are only the display layer and do not themselves establish shopper identification or personalized pricing.
+Required distinction: display layer vs price-selection layer vs identity/data layer.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md`.
+Status: `SUPPORTED ONLY AFTER SPLITTING THE CLAIM`
 
 ### DS-P04 — Attention products are designed to exploit psychological vulnerabilities
 Claim class: design practice / behavioral mechanism.
-Need: primary platform/design research and controlled language. Avoid universal “dopamine loop” or “behavioral psychologists engineered it” claims without direct evidence.
-Status: `PROVISIONAL`
+Ruling: major recommendation/notification systems explicitly learn from behavioral signals and optimize ranking against engagement and other objectives; Canadian regulators document deceptive design capable of steering behavior. Universal dopamine/addiction/psychologist-intent language is not established.
+Admissible wording: many large platforms learn from interactions and optimize content/notification ranking using predicted engagement and other behavioral signals; configure defaults and measure whether the system served the user's stated objective.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_02_ATTENTION_FREE_APPS.md`.
+Status: `SUPPORTED MECHANISM / ORIGINAL INTENT LANGUAGE TOO STRONG`
 
 ### DS-P05 — Free apps generally monetize behavioral data
 Claim class: business-model prevalence.
-Need: distinguish advertising/data-supported services from philanthropy, public services, open source, freemium, cross-subsidy, enterprise-funded, and other models.
-Status: `PROVISIONAL`
+Ruling: major ad-supported services such as Meta and parts of Google earn substantial/dominant advertising revenue and use activity data in ad personalization/measurement, but free products can use many other business models.
+Admissible wording: a zero-dollar price does not identify the business model; find who pays, what event creates revenue, what data supports the service versus advertising/analytics, and what controls exist.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_02_ATTENTION_FREE_APPS.md`.
+Status: `SUPPORTED FOR SPECIFIC AD-SUPPORTED SERVICES / RETIRE AS UNIVERSAL RULE`
 
 ### DS-P06 — OnlyFans / subscription adult-content income is highly concentrated
 Claim class: earnings distribution.
-Need: primary platform financial data or reproducible independent dataset; do not use scraped marketing statistics as the sole evidence.
-Status: `PROVISIONAL`
+Ruling: Fenix International's public accounts establish billions in aggregate creator payouts and millions of creator accounts, but do not publish a creator-income median or percentile distribution. Selected research and proprietary datasets show very wide outcomes, but do not justify exact platform-wide top-percentile claims.
+Admissible wording: headline platform payouts do not tell you what a typical creator earns; require a disclosed dataset and denominator before repeating “average creator” or top-percentile income claims.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED AGGREGATE SCALE / CONCENTRATION PROBABLE / EXACT DISTRIBUTION UNSUPPORTED`
 
 ### DS-P07 — Adult subscription audiences are strongly male-skewed
 Claim class: audience demographics.
-Need: reliable platform or survey methodology, sample definition, geography, year, and distinction between visitors, subscribers, and paying customers.
-Status: `PROVISIONAL`
+Ruling: peer-reviewed samples of OnlyFans sexual-content users have generally contained more men than women, but observed male shares vary and the platform does not publish a representative customer gender census.
+Admissible wording: published sexual-use samples lean male; do not quote a platform-wide male percentage as settled fact without a representative sampling method.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED — NARROWED / STRONG PLATFORM-WIDE SKEW NOT ESTABLISHED`
 
 ### DS-P08 — Straight women have an easier path than straight men to monetize explicit content to the other sex
 Claim class: sex-specific market asymmetry.
-Need: demand-side spending data, creator earnings by sex/orientation where available, alternative explanations, and uncertainty bounds.
-Status: `PROVISIONAL`
+Ruling: the reviewed evidence does not provide the required representative creator-sex × creator-orientation × buyer-sex/orientation × earnings comparison. Pieces of a plausible mechanism do not establish the comparative claim.
+Admissible wording: none as fact. May remain an explicitly labeled research hypothesis.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `UNSUPPORTED / RETIRE AS PUBLIC FACT / MAY REMAIN A TESTABLE HYPOTHESIS`
 
 ### DS-P09 — Sexualized digital content creates future relationship or employment penalties
 Claim class: downstream reputational effect.
-Need: sector-specific employment evidence and relationship-preference research. Must distinguish individual preference, discrimination, occupational rules, security clearances, and speculation.
-Status: `PROVISIONAL`
+Ruling: split the claim. Experimental research supports context-dependent professional-selection risk from sexualized social-media imagery, including a disproportionate penalty for female candidates. Canadian sex-work research supports stigma/disclosure stress in some relationships but also documents supportive relationships. Universal career or relationship penalties are not established.
+Admissible wording: public sexualized content can create future-audience, professional-selection and relationship-stigma risks; these are probabilistic and context-dependent, not inevitable outcomes.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED AS CONTEXT-DEPENDENT RISK / UNIVERSAL PENALTY CLAIM RETIRED`
 
 ### DS-P10 — Content cannot be scrubbed from the internet
-Claim class: permanence.
-Allowed weaker statement: deletion from the original platform does not guarantee all copies are gone.
-Need: evidence on redistribution, caches, mirrors, archives, piracy, legal removal, delisting, and practical erasure limits.
-Status: `PROVISIONAL`
+Claim class: permanence / control loss.
+Ruling: the absolute claim is false, but the weaker claim is strongly supported. Deleting an original does not guarantee deletion of screenshots, downloads, scraped copies, reposts or archives; removal/delisting can still materially reduce exposure.
+Admissible wording: deleting the original does not guarantee every copy is gone; act early to remove/delist where possible, but do not assume one Delete button restores full control.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
+Status: `SUPPORTED — NARROWED / LOCKED FACT`
 
 ### DS-P11 — Men will withdraw from dating/adult-content markets in response to widespread sexualized content creation
 Claim class: forecast / cultural hypothesis.
-Need: longitudinal behavior data. This is prediction, not present fact.
-Status: `PROVISIONAL`
+Ruling: research documents changes in sexual frequency and finds that sexualized self-presentation can reduce long-term relationship interest in some experimental settings, but no reviewed longitudinal evidence establishes that OnlyFans or widespread sexual-content creation causes men as a population to withdraw from dating markets.
+Admissible wording: none as fact. May remain a clearly labeled hypothesis about possible incentive/preference changes.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_04_DATING_PREVALENCE.md`.
+Status: `UNSUPPORTED FORECAST / RETIRE AS PUBLIC FACT / MAY REMAIN A LABELED HYPOTHESIS`
 
 ### DS-P12 — “Most girls are on OnlyFans”
 Claim class: prevalence.
-Current ruling: unsupported and not admissible without population-denominator evidence.
-Status: `PROVISIONAL / PRESUMED FALSE UNTIL SHOWN OTHERWISE`
+Ruling: the 2024 platform filing reports approximately 4.634 million creator accounts globally across all creator demographics. Against global age/sex population denominators, this is incompatible with a general claim that most girls/young women/women are creators. A niche/local-feed claim would need its own defined population and denominator.
+Admissible wording: OnlyFans has millions of creator accounts, but “most girls are on OnlyFans” is a denominator-free internet claim, not a population fact.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_04_DATING_PREVALENCE.md`.
+Status: `RETIRED / GENERAL-POPULATION CLAIM CONTRADICTED BY SCALE`
 
 ---
 
@@ -143,3 +166,7 @@ For a claim to move from `PROVISIONAL` to `SUPPORTED` or `LOCKED FACT`, record:
 - wording downgrade if the evidence supports only a narrower claim.
 
 A culturally satisfying claim does not receive a lower evidence threshold.
+
+## Current gate
+
+All DS-P01 through DS-P12 claims have now been adjudicated. The next authorized unit is **curriculum conversion only**: turn the surviving findings into DS-00 through DS-06 action drills using `THREAT → WHY → ONE ACTION → CHECK → RECOVER`, then subject the exact curriculum candidate to anti-fear, anti-slop, legal/reputational and evidence-replay review before any public integration.
