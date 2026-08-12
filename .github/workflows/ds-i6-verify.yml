@@ -1,0 +1,54 @@
+name: DS-I6 Verify
+
+on:
+  pull_request:
+    paths:
+      - 'digital-stewardship-06.html'
+      - 'digital-stewardship-06.js'
+      - 'tests/static/ds-i6-*'
+      - 'scripts/build-production-upload.mjs'
+      - 'scripts/release-preflight.mjs'
+      - '.github/workflows/ds-i6-verify.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ds-i6-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Zero-collection static contract
+        run: node --test tests/static/ds-i6-contract.test.mjs
+      - name: Branch-aware in-memory state oracle
+        run: node --test tests/static/ds-i6-state-machine.test.mjs
+      - name: Deliberate bad-variant rejection
+        run: node --test tests/static/ds-i6-mutation.test.mjs
+      - name: JavaScript syntax
+        run: node --check digital-stewardship-06.js
+      - name: Install browser-test dependency
+        run: npm ci
+      - name: Chromium replay
+        run: timeout 180s node --test tests/static/ds-i6-browser.test.mjs
+      - name: Install Firefox
+        run: npx playwright install --with-deps firefox
+      - name: Firefox replay
+        env:
+          DS_BROWSER: firefox
+        run: timeout 180s node --test tests/static/ds-i6-browser.test.mjs
+      - name: Non-public production boundary
+        run: node --test tests/static/ds-i6-release-boundary.test.mjs
+      - name: Existing production preflight
+        run: node scripts/release-preflight.mjs
