@@ -9,6 +9,7 @@ on:
       - 'digital-stewardship-00.html'
       - 'digital-stewardship-00.js'
       - 'tests/static/ds-i0-*'
+      - 'scripts/build-production-upload.mjs'
       - '.github/workflows/ds-i0-verify.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -36,6 +37,12 @@ jobs:
 
       - name: Formal state-machine and mutation controls
         run: node --test tests/static/ds-i0-state-machine.test.mjs
+
+      - name: Deliberate bad-variant rejection
+        run: node --test tests/static/ds-i0-mutation.test.mjs
+
+      - name: Non-public production-package boundary
+        run: node --test tests/static/ds-i0-release-boundary.test.mjs
 
       - name: JavaScript syntax
         run: node --check digital-stewardship-00.js
