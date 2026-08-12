@@ -1,0 +1,60 @@
+name: F1 Repair Insights Dependency Lock
+
+on:
+  push:
+    branches:
+      - f0/brotherhood-salvage-audit-2026-08-12
+    paths:
+      - .github/workflows/f1-fix-insights-lock.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact non-production branch
+        uses: actions/checkout@v4
+        with:
+          ref: f0/brotherhood-salvage-audit-2026-08-12
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Repair audit findings in lockfile only
+        run: npm audit fix --package-lock-only --prefix workers/insights
+
+      - name: Enforce bounded dependency change
+        run: |
+          git diff --check
+          changed="$(git diff --name-only)"
+          test "$changed" = "workers/insights/package-lock.json" || { echo "Unexpected changed files: $changed"; exit 1; }
+
+      - name: Install repaired exact graph
+        run: npm ci --prefix workers/insights
+
+      - name: Require zero known audit findings
+        run: npm audit --prefix workers/insights --audit-level=low
+
+      - name: Replay Insights contracts and typecheck
+        run: npm --prefix workers/insights run check
+
+      - name: Wrangler build dry-run
+        run: npm --prefix workers/insights run dry-run
+
+      - name: Record repaired versions
+        run: npm ls --prefix workers/insights wrangler miniflare undici nanoid
+
+      - name: Commit repaired lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add workers/insights/package-lock.json
+          git commit -m "chore(v2): repair Insights development dependency audit findings"
+          git push origin HEAD:f0/brotherhood-salvage-audit-2026-08-12
