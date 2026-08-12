@@ -16,6 +16,9 @@ const FORBIDDEN_SENTINELS = Object.freeze([
   'new-work/F2F3_GOLD_KEY_v0.3.1.csv',
   'master-map.md',
   'clovelearn-test-harness.html',
+  // Digital Stewardship DS-I0 remains non-public until a separate release gate.
+  'digital-stewardship-00.html',
+  'digital-stewardship-00.js',
 ]);
 
 const RISKY_PUBLIC_EXTENSIONS = Object.freeze(['.py', '.sh', '.xlsx', '.csv', '.yaml', '.yml']);
@@ -46,6 +49,7 @@ const report = {
   excluded_count: excluded.length,
   hardening_excluded_count: additionallyExcluded.length,
   required_files: REQUIRED,
+  forbidden_sentinels: FORBIDDEN_SENTINELS,
   mission_runtime: missionRuntime,
   errors,
 };
