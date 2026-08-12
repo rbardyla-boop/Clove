@@ -5,6 +5,8 @@ import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const missionHtml = await readFile(new URL('../../mission-001.html', import.meta.url));
+const appJs = await readFile(new URL('../../mission-001-app.js', import.meta.url));
+const privateStoreJs = await readFile(new URL('../../mission-private-store.js', import.meta.url));
 
 function startServer() {
   const signals = [];
@@ -17,6 +19,16 @@ function startServer() {
         res.writeHead(202, { 'content-type': 'application/json' });
         res.end('{"ok":true}');
       });
+      return;
+    }
+    if (req.method === 'GET' && req.url === '/mission-private-store.js') {
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' });
+      res.end(privateStoreJs);
+      return;
+    }
+    if (req.method === 'GET' && req.url === '/mission-001-app.js') {
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' });
+      res.end(appJs);
       return;
     }
     if (req.method === 'GET' && (req.url === '/' || req.url === '/mission-001.html')) {
@@ -62,6 +74,9 @@ test('PARTLY DONE remains a valid success-side debrief rather than failure or er
   await page.getByRole('button', { name: 'SAVE DEBRIEF' }).click();
 
   assert.equal(await page.locator('#complete').isVisible(), true);
+  const raw = await page.evaluate(() => localStorage.getItem('clove_v2_mission_001'));
+  assert.match(raw, /^cloveenc:v1:/);
+  assert.doesNotMatch(raw, /checklist|usable half|remaining steps/i);
   await page.waitForTimeout(100);
   const names = signals.map(s => s.event);
   assert.ok(names.includes('mission_partly_done'));
