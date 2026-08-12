@@ -21,6 +21,16 @@ const ALLOWED={
   recoveryClass:new Set(['contact','auth','support','unknown',null]),
   recoveryCheckResult:new Set(['current','location','unknown',null]),
 };
+const REQUIRED_BEFORE={
+  BOUNDARY:[],DEVICE:[],
+  ACCESS_MODE:['deviceClass'],
+  ACCOUNT:['deviceClass','accessMode'],
+  SERVICE_CLOUD:['deviceClass','accessMode','hasAccount'],
+  RECOVERY:['deviceClass','accessMode','hasAccount','providerPersistenceBelief'],
+  SAFE_CHECK:['deviceClass','accessMode','hasAccount','providerPersistenceBelief','recoveryClass'],
+  COMPLETE:['deviceClass','accessMode','hasAccount','providerPersistenceBelief','recoveryClass','recoveryCheckResult'],
+  STOPPED_SAFE:[],
+};
 const blank=()=>({schemaVersion:1,stage:'BOUNDARY',deviceClass:null,accessMode:null,hasAccount:null,providerPersistenceBelief:null,recoveryClass:null,recoveryCheckResult:null});
 
 const stepLabel=document.querySelector('#stepLabel');
@@ -38,7 +48,8 @@ let transitionLock=false;
 
 function validState(candidate){
   if(!candidate || candidate.schemaVersion!==1 || !STAGES.includes(candidate.stage)) return false;
-  return Object.entries(ALLOWED).every(([field,allowed])=>allowed.has(candidate[field] ?? null));
+  if(!Object.entries(ALLOWED).every(([field,allowed])=>allowed.has(candidate[field] ?? null))) return false;
+  return REQUIRED_BEFORE[candidate.stage].every(field=>candidate[field]!==null && candidate[field]!==undefined);
 }
 
 function load(){
