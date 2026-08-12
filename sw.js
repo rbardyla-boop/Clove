@@ -1,9 +1,9 @@
-const CACHE_NAME = 'operators-deck-v54';
+const CACHE_NAME = 'operators-deck-v55';
 
-// Only cache true static assets — never HTML files.
+// Only cache true static assets — never HTML files or mutable application JS.
 // Cloudflare redirects HTML requests (trailing slash, HTTPS, etc.)
-// and a redirected response passed to respondWith() crashes with:
-// "a redirected response was used for a request whose redirect mode is not 'follow'"
+// and a redirected response passed to respondWith() can fail. More importantly,
+// a broad cache-first rule can keep stale application code alive after a deploy.
 const STATIC_ASSETS = [
   '/particle-bg.js',
   '/manifest.json',
@@ -30,6 +30,7 @@ const STATIC_ASSETS = [
   '/voice-engine.js',
   '/stt-worker.js'
 ];
+const STATIC_ASSET_PATHS = new Set(STATIC_ASSETS);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -39,7 +40,7 @@ self.addEventListener('install', (event) => {
           const res = await fetch(url, { redirect: 'follow' });
           if (res && res.ok) await cache.put(url, res);
         } catch (e) {
-          // Asset missing or offline — skip silently
+          // Asset missing or offline — skip silently.
         }
       }
     }).then(() => self.skipWaiting())
@@ -60,15 +61,18 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = request.url;
 
-  // ── RULE 1: NEVER intercept navigate requests (HTML page loads).
-  // Cloudflare redirects every .html URL and respondWith(redirected) crashes.
-  // Let the browser handle all navigation natively.
+  // RULE 1: never intercept navigation requests (HTML page loads).
   if (request.mode === 'navigate') return;
 
-  // ── RULE 2: Pass external URLs straight through.
+  // RULE 2: pass external URLs straight through.
   if (!url.startsWith(self.location.origin)) return;
 
-  // ── RULE 3: Cache-first for static assets (images, manifest).
+  // RULE 3: only intercept the explicit immutable/offline-safe asset allowlist.
+  // Mission 001 application code and other mutable scripts therefore follow the
+  // network/browser HTTP cache and cannot be pinned indefinitely by this SW.
+  const pathname = new URL(url).pathname;
+  if (!STATIC_ASSET_PATHS.has(pathname)) return;
+
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
@@ -83,13 +87,10 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// NIGHT SHIFT — PERIODIC BACKGROUND SYNC (Phase 2)
-// ═══════════════════════════════════════════════════════════════════════════════
+// NIGHT SHIFT — PERIODIC BACKGROUND SYNC (legacy Operator's Deck support)
 // SW cannot access localStorage. Clinical data lives there.
 // Strategy: message open clients to run analysis. If none open, set IndexedDB
 // "stale" flag so next app open triggers immediate foreground catch-up.
-// ═══════════════════════════════════════════════════════════════════════════════
 
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'night-shift-intelligence') {
@@ -99,38 +100,37 @@ self.addEventListener('periodicsync', (event) => {
 
 async function handleNightShift() {
   try {
-    // Attempt to acquire lock — prevents overlapping runs
+    // Attempt to acquire lock — prevents overlapping runs.
     if (navigator.locks) {
       return await navigator.locks.request('clove_intel_lock', { ifAvailable: true }, async (lock) => {
-        if (!lock) return; // Another run in progress — abort
+        if (!lock) return;
         await executeNightShiftSync();
       });
     }
-    // Fallback if Locks API unavailable
     await executeNightShiftSync();
   } catch (e) {
-    // Silent failure — foreground catch-up handles it
+    // Silent failure — foreground catch-up handles it.
   }
 }
 
 async function executeNightShiftSync() {
-  // 1. Battery check (optional — API may be unavailable in SW context)
+  // 1. Battery check (optional — API may be unavailable in SW context).
   try {
     if (typeof navigator.getBattery === 'function') {
       const battery = await navigator.getBattery();
-      if (!battery.charging && battery.level < 0.3) return; // Preserve power
+      if (!battery.charging && battery.level < 0.3) return;
     }
-  } catch (e) { /* Battery API unavailable in SW — proceed anyway */ }
+  } catch (e) { /* Battery API unavailable in SW — proceed anyway. */ }
 
-  // 2. Storage headroom check
+  // 2. Storage headroom check.
   try {
     if (navigator.storage && navigator.storage.estimate) {
       const est = await navigator.storage.estimate();
-      if (est.quota && est.usage && (est.usage / est.quota) > 0.9) return; // Near full
+      if (est.quota && est.usage && (est.usage / est.quota) > 0.9) return;
     }
-  } catch (e) { /* Estimate unavailable — proceed */ }
+  } catch (e) { /* Estimate unavailable — proceed. */ }
 
-  // 3. Message any open client tabs to run analysis
+  // 3. Message any open client tabs to run analysis.
   const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
   let messaged = false;
 
@@ -139,7 +139,7 @@ async function executeNightShiftSync() {
     messaged = true;
   }
 
-  // 4. If no clients open, set IndexedDB stale flag for next foreground catch-up
+  // 4. If no clients open, set IndexedDB stale flag for next foreground catch-up.
   if (!messaged) {
     try {
       const db = await openIntelDB();
@@ -147,11 +147,11 @@ async function executeNightShiftSync() {
       tx.objectStore('ops').put({ key: 'stale', value: true, timestamp: Date.now() });
       await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = reject; });
       db.close();
-    } catch (e) { /* IndexedDB unavailable — foreground handles it */ }
+    } catch (e) { /* IndexedDB unavailable — foreground handles it. */ }
   }
 }
 
-// Minimal IndexedDB helper for stale flag
+// Minimal IndexedDB helper for stale flag.
 function openIntelDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open('clove_intel', 1);
@@ -166,7 +166,6 @@ function openIntelDB() {
   });
 }
 
-// Listen for registration requests from client pages
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'NIGHT_SHIFT_REGISTER') {
     registerNightShiftSync();
@@ -181,16 +180,16 @@ async function registerNightShiftSync() {
     const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
     if (status.state === 'granted' || status.state === 'prompt') {
       await self.registration.periodicSync.register('night-shift-intelligence', {
-        minInterval: 12 * 60 * 60 * 1000 // 12 hours
+        minInterval: 12 * 60 * 60 * 1000
       });
     }
   } catch (e) {
-    // PeriodicSync not supported — foreground catch-up is the fallback
+    // PeriodicSync not supported — foreground catch-up is the fallback.
   }
 }
 
 async function unregisterNightShiftSync() {
   try {
     await self.registration.periodicSync.unregister('night-shift-intelligence');
-  } catch (e) { /* Not registered or not supported */ }
+  } catch (e) { /* Not registered or not supported. */ }
 }
