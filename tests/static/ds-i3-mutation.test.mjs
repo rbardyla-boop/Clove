@@ -10,7 +10,7 @@ const sensitive=s=>/\b(?:appName|providerName|serviceName|accountId|notification
 function unsafe(s){
   return String(s).split(/[\n.!?]+/).some(part=>{
     const p=part.trim();if(!p)return false;
-    if(/\b(?:do not|don't|never|must not|will not|cannot|can't)\b/i.test(p))return false;
+    if(/\b(?:do not|don't|never|must not|will not|cannot|can't|is not|isn't)\b/i.test(p))return false;
     return /turn off all notifications|disable (?:your )?(?:security|two-factor|2fa|emergency|medical|fraud) alerts|dopamine detox|reset your brain|literally addicted/i.test(p);
   });
 }
