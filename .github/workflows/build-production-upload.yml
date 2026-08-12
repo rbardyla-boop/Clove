@@ -1,0 +1,76 @@
+name: Build Production Upload
+
+on:
+  push:
+    branches:
+      - release/harden-direct-upload-2026-08-12
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-production-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install exact root dependencies
+        run: npm ci
+
+      - name: Mission static contract
+        run: npm run test:mission
+
+      - name: Mission real-browser replay
+        run: npm run test:mission-browser
+
+      - name: Mission encrypted-store replay
+        run: npm run test:mission-store-browser
+
+      - name: Curated release preflight
+        run: node scripts/release-preflight.mjs | tee release-preflight.json
+
+      - name: Build clean static upload
+        run: node scripts/build-curated-client-upload.mjs --out dist/clove-upload
+
+      - name: Verify built upload boundary
+        run: |
+          set -euo pipefail
+          test -f dist/clove-upload/index.html
+          test -f dist/clove-upload/mission-001.html
+          test -f dist/clove-upload/mission-001-app.js
+          test -f dist/clove-upload/mission-private-store.js
+          test -f dist/clove-upload/_UPLOAD_MANIFEST.json
+          test ! -e dist/clove-upload/docs
+          test ! -e dist/clove-upload/tests
+          test ! -e dist/clove-upload/workers
+          test ! -e dist/clove-upload/.github
+          ! grep -RIl --exclude='_UPLOAD_MANIFEST.json' 'CLOVE-V2 F1.1 — Adult Pilot Protocol' dist/clove-upload
+
+      - name: Generate SHA-256 inventory
+        run: |
+          cd dist/clove-upload
+          find . -type f ! -name '_SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum > _SHA256SUMS.txt
+          sha256sum -c _SHA256SUMS.txt
+
+      - name: Create dashboard-ready ZIP with site files at archive root
+        run: |
+          cd dist/clove-upload
+          zip -qr ../clovelearn-production-${GITHUB_SHA}.zip .
+
+      - name: Upload verified release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clovelearn-production-${{ github.sha }}
+          path: |
+            dist/clovelearn-production-${{ github.sha }}.zip
+            release-preflight.json
+          if-no-files-found: error
+          retention-days: 30
