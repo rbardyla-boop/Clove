@@ -86,8 +86,8 @@ describe('privacy contract', () => {
     }
   });
 
-  it('rejects mission content and non-enumerated mission dimensions', () => {
-    expect(() => validateSignal({ ...missionSignal('mission_done'), detail: 'repair my neighbour car at 14 King St' })).toThrow();
+  it('normalizes non-enumerated mission detail and strips mission content fields', () => {
+    expect(validateSignal({ ...missionSignal('mission_done'), detail: 'repair my neighbour car at 14 King St' }).detail).toBe('none');
     const validated = validateSignal({
       ...missionSignal('mission_debrief_completed', 'serve'),
       missionText: 'Help John Smith move from 14 King Street',
