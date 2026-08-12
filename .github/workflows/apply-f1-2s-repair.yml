@@ -1,0 +1,35 @@
+name: Apply F1.2-S Mission Repair
+
+on:
+  push:
+    branches:
+      - hardening/mission-001-solo-2026-08-12
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message != 'fix(mission): enforce transitions and reduced motion'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/mission-001-solo-2026-08-12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply bounded repair
+        run: node scripts/patch-mission-f1-2s-repair.mjs
+      - name: Commit only if changed
+        run: |
+          if git diff --quiet -- mission-001-app.js; then
+            echo 'No runtime patch required.'
+            exit 0
+          fi
+          git config user.name 'clove-f1-2s-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add mission-001-app.js
+          git commit -m 'fix(mission): enforce transitions and reduced motion'
+          git push origin HEAD:hardening/mission-001-solo-2026-08-12
