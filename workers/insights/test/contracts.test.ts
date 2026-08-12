@@ -11,6 +11,26 @@ const RESEARCH_EVENTS = [
   'research_exported',
 ] as const;
 
+const MISSION_EVENTS = [
+  'mission_viewed',
+  'mission_class_selected',
+  'mission_committed',
+  'mission_exit_prompt_seen',
+  'mission_returned',
+  'mission_done',
+  'mission_partly_done',
+  'mission_failed',
+  'mission_not_started',
+  'mission_debrief_completed',
+  'mission_helped_other_yes',
+  'mission_helped_other_no',
+  'mission_helped_other_unsure',
+  'mission_retry_selected',
+  'mission_smaller_selected',
+  'mission_help_requested',
+  'mission_abandoned_reasoned',
+] as const;
+
 const researchSignal = (event: typeof RESEARCH_EVENTS[number]) => ({
   event,
   surface: 'research',
@@ -20,6 +40,18 @@ const researchSignal = (event: typeof RESEARCH_EVENTS[number]) => ({
   build: 'current',
   variant: 'none',
   detail: 'none',
+  diagnostic: 'none',
+});
+
+const missionSignal = (event: typeof MISSION_EVENTS[number], detail = 'fix') => ({
+  event,
+  surface: 'mission',
+  device: 'phone',
+  returnBucket: 'same_day',
+  referrerGroup: 'direct',
+  build: 'v2',
+  variant: 'none',
+  detail,
   diagnostic: 'none',
 });
 
@@ -43,6 +75,37 @@ describe('privacy contract', () => {
     for (const event of RESEARCH_EVENTS) {
       expect(validateSignal(researchSignal(event))).toMatchObject({ event, surface: 'research' });
     }
+  });
+
+  it('accepts the bounded Mission 001 event vocabulary and mission classes', () => {
+    for (const event of MISSION_EVENTS) {
+      expect(validateSignal(missionSignal(event))).toMatchObject({ event, surface: 'mission', detail: 'fix' });
+    }
+    for (const detail of ['fix', 'serve', 'learn', 'build']) {
+      expect(validateSignal(missionSignal('mission_class_selected', detail))).toMatchObject({ detail });
+    }
+  });
+
+  it('rejects mission content and non-enumerated mission dimensions', () => {
+    expect(() => validateSignal({ ...missionSignal('mission_done'), detail: 'repair my neighbour car at 14 King St' })).toThrow();
+    const validated = validateSignal({
+      ...missionSignal('mission_debrief_completed', 'serve'),
+      missionText: 'Help John Smith move from 14 King Street',
+      evidence: 'Private before/after description',
+      photo: 'data:image/jpeg;base64,private',
+      exactTimestamp: '2026-08-12T11:17:00.000Z',
+      latitude: 46.2382,
+      longitude: -63.1311,
+      identifier: 'user-123',
+    });
+    expect(Object.keys(validated).sort()).toEqual([
+      'build', 'device', 'diagnostic', 'detail', 'event', 'referrerGroup',
+      'returnBucket', 'surface', 'variant',
+    ].sort());
+    expect(validated).not.toHaveProperty('missionText');
+    expect(validated).not.toHaveProperty('evidence');
+    expect(validated).not.toHaveProperty('photo');
+    expect(validated).not.toHaveProperty('latitude');
   });
 
   it('rejects unknown research events and strips research content fields', () => {
