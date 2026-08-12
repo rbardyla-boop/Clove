@@ -93,7 +93,9 @@ async function auditPage(path, viewportName, viewport) {
     if (/WebSocket connection to .*127\.0\.0\.1.*failed/i.test(value)) {
       environmentNotes.push('Static audit has no WebSocket authority; covered by the dedicated shim suites.');
     } else {
-      errors.push(`console: ${value}`);
+      const loc = message.location();
+      const source = loc?.url ? ` @ ${loc.url}${Number.isFinite(loc.lineNumber) ? `:${loc.lineNumber}` : ''}` : '';
+      errors.push(`console: ${value}${source}`);
     }
   });
   page.on('response', (response) => {
