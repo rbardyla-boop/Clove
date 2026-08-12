@@ -44,6 +44,9 @@ jobs:
       - name: Mission browser acceptance replay
         run: npm run test:mission-browser
 
+      - name: Encrypted Mission store browser replay
+        run: npm run test:mission-store-browser
+
       - name: Install Insights verification dependencies
         run: npm ci --prefix workers/insights
 
