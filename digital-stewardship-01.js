@@ -14,7 +14,7 @@ const NEXT={
   COMPLETE:new Set(),STOPPED_SAFE:new Set(),
 };
 const ALLOWED={
-  settingClass:new Set([...ELIGIBLE,'account_linking','unknown',null]),
+  settingClass:new Set([...ELIGIBLE,'unknown',null]),
   classification:new Set(['required','optional','unclear',null]),
   changeDecision:new Set(['changed','no_change',null]),
   taskResult:new Set(['works','fails','unsure',null]),
@@ -46,7 +46,7 @@ function validState(s){
   if(s.stage==='TASK_CHECK') return s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed';
   if(s.stage==='RECOVER') return s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed'&&['fails','unsure'].includes(s.taskResult);
   if(s.stage==='COMPLETE'){
-    if(['account_linking','unknown'].includes(s.settingClass)) return true;
+    if(s.settingClass==='unknown') return true;
     if(['required','unclear'].includes(s.classification)) return true;
     if(s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='no_change') return true;
     if(s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed'&&s.taskResult==='works') return true;
@@ -86,18 +86,17 @@ function renderBoundary(){
 }
 function renderSetting(){
   stepLabel.textContent='1 / Setting';question.textContent='Which one setting are you inspecting?';
-  explain.textContent='Choose the type only. Do not enter the service name, account, location, contacts, files, or message content.';
-  for(const [label,value] of [['LOCATION','location'],['CONTACTS','contacts'],['PHOTOS / FILES','photos_files'],['ORDINARY APP NOTIFICATIONS','ordinary_notifications'],['MARKETING EMAIL / SMS','marketing_messages'],['SIGN-IN / ACCOUNT LINKING','account_linking'],['OTHER / NOT SURE','unknown']]) button(label,()=>transition('SETTING_CLASS','CLASSIFY',{settingClass:value}));
+  explain.textContent='Choose the type only. Do not enter the service name, account, location, contacts, files, or message content. Sign-in and account-linking changes are outside this first run.';
+  for(const [label,value] of [['LOCATION','location'],['CONTACTS','contacts'],['PHOTOS / FILES','photos_files'],['ORDINARY APP NOTIFICATIONS','ordinary_notifications'],['MARKETING EMAIL / SMS','marketing_messages'],['OTHER / NOT SURE','unknown']]) button(label,()=>transition('SETTING_CLASS','CLASSIFY',{settingClass:value}));
 }
 function finishClassification(value){
-  if(['account_linking','unknown'].includes(state.settingClass)) return transition('CLASSIFY','COMPLETE',{classification:value});
+  if(state.settingClass==='unknown') return transition('CLASSIFY','COMPLETE',{classification:value});
   if(value==='optional') return transition('CLASSIFY','CHANGE_DECISION',{classification:value});
   return transition('CLASSIFY','COMPLETE',{classification:value});
 }
 function renderClassify(){
   stepLabel.textContent='2 / Classify';question.textContent='For the real task, is this setting required?';
-  if(state.settingClass==='account_linking') explain.textContent='Classify it, but do not change sign-in or account linking in this first-run drill. Altering sign-in relationships can affect access, so this category is inspection only.';
-  else if(state.settingClass==='unknown') explain.textContent='If you cannot clearly identify the setting type, this first run is inspection only. Classify what you know, but Clove will not ask you to change it.';
+  if(state.settingClass==='unknown') explain.textContent='If you cannot clearly identify the setting type, this first run is inspection only. Classify what you know, but Clove will not ask you to change it.';
   else explain.textContent='Required means the real task depends on it. Optional means you have a clear reason to think the task can work with less access. Unclear is a valid answer.';
   button('REQUIRED',()=>finishClassification('required'));
   button('OPTIONAL',()=>finishClassification('optional'),true);
@@ -124,7 +123,6 @@ function renderRecover(){
   button('I NEED HELP / STOP',()=>transition('RECOVER','STOPPED_SAFE'));
 }
 function resultText(){
-  if(state.settingClass==='account_linking') return 'Sign-in or account linking was inspected only. You did not change it.';
   if(state.settingClass==='unknown') return 'The setting was not clear enough for a safe first-run change, so you left it alone.';
   if(state.classification==='required') return 'You classified the setting as required for this task and made no change.';
   if(state.classification==='unclear') return 'The setting remained unclear, so you made no change.';
