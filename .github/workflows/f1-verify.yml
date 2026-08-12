@@ -47,5 +47,8 @@ jobs:
       - name: Install Insights verification dependencies
         run: npm ci --prefix workers/insights
 
+      - name: Insights dependency audit snapshot
+        run: npm audit --prefix workers/insights --json || true
+
       - name: Insights typecheck and privacy-contract tests
         run: npm --prefix workers/insights run check
