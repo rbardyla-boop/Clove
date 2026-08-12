@@ -11,8 +11,9 @@ const collection=s=>/<input\b|<textarea\b|type\s*=\s*["']file|upload (?:the|your
 function unsafe(s){
   return String(s).split(/[\n.!?]+/).some(part=>{
     const p=part.trim();if(!p)return false;
+    if(/hide your identity from police|remove metadata so (?:police|law enforcement) cannot identify you/i.test(p))return true;
     if(/\b(?:do not|don't|never|must not|will not|cannot|can't|does not|doesn't|is not|isn't|not inevitable|does not guarantee)\b/i.test(p))return false;
-    return /everything (?:online|on the internet) is permanent forever|ruin your career|no one will respect you|damaged goods|purity test|hide your identity from police|remove metadata so (?:police|law enforcement) cannot identify you|send the intimate image now/i.test(p);
+    return /everything (?:online|on the internet) is permanent forever|ruin your career|no one will respect you|damaged goods|purity test|send the intimate image now/i.test(p);
   });
 }
 const illegal=s=>/BOUNDARY:new Set\(\[[^\]]*DECISION/.test(s);
