@@ -109,6 +109,23 @@
     return validNotStartedDebrief(s.debrief);
   }
 
+  function stateStage(s) {
+    if (!s) return 'empty';
+    if (s.status === 'debrief') return `debrief:${s.outcome}`;
+    return s.status;
+  }
+
+  function validStateTransition(previous, next) {
+    const from = stateStage(previous);
+    const to = stateStage(next);
+    if (from === 'empty') return to === 'planning';
+    if (from === 'planning') return to === 'planning' || to === 'committed';
+    if (from === 'committed') return to === 'committed' || to === 'left';
+    if (from === 'left') return to === 'left' || to.startsWith('debrief:');
+    if (from.startsWith('debrief:')) return to === 'complete';
+    return false;
+  }
+
   async function load() {
     if (!window.ClovePrivateStore) throw new Error('private_store_missing');
     return window.ClovePrivateStore.get(KEY, null);
@@ -117,6 +134,7 @@
   async function save(next) {
     if (!window.ClovePrivateStore) throw new Error('private_store_missing');
     if (!validPersistedState(next)) throw new Error('mission_state_invalid');
+    if (!validStateTransition(state, next)) throw new Error('mission_transition_invalid');
     await window.ClovePrivateStore.set(KEY, next);
     state = next;
     return state;
@@ -152,8 +170,12 @@
     node.textContent = 'Saved mission state could not be trusted and was reset. Start a new mission.';
   }
 
+  function scrollBehavior() {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'; }
+    catch { return 'auto'; }
+  }
   function hidden(id, value) { $(id).hidden = value; }
-  function showOnly(id) { sections.forEach(s => hidden(s, s !== id)); window.scrollTo({top:0, behavior:'smooth'}); }
+  function showOnly(id) { sections.forEach(s => hidden(s, s !== id)); window.scrollTo({top:0, behavior:scrollBehavior()}); }
   function device() { const w = Math.min(screen.width || innerWidth, innerWidth || screen.width); return w <= 600 ? 'phone' : w <= 1024 ? 'tablet' : 'desktop'; }
   function referrerGroup() {
     if (!document.referrer) return 'direct';
@@ -200,7 +222,7 @@
       return;
     }
     hidden('commit', false);
-    $('commit').scrollIntoView({behavior:'smooth', block:'start'});
+    $('commit').scrollIntoView({behavior:scrollBehavior(), block:'start'});
   }));
 
   $('backToClasses').addEventListener('click', () => { clear(); showOnly('choose'); });
