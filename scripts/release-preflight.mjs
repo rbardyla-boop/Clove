@@ -1,4 +1,4 @@
-import { curatedUploadFileList, isExcludedFromUpload } from './build-curated-client-upload.mjs';
+import { productionUploadFileList, isHardExcluded } from './build-production-upload.mjs';
 
 const REQUIRED = Object.freeze([
   'index.html',
@@ -12,20 +12,29 @@ const FORBIDDEN_SENTINELS = Object.freeze([
   'tests/static/mission-001-contract.test.mjs',
   'workers/insights/src/contracts.ts',
   '.github/workflows/f1-verify.yml',
+  'agent/cost-constitution.json',
+  'new-work/F2F3_GOLD_KEY_v0.3.1.csv',
+  'master-map.md',
+  'clovelearn-test-harness.html',
 ]);
 
-const { included, excluded } = curatedUploadFileList();
+const RISKY_PUBLIC_EXTENSIONS = Object.freeze(['.py', '.sh', '.xlsx', '.csv', '.yaml', '.yml']);
+
+const { included, excluded, additionallyExcluded } = productionUploadFileList();
 const includedSet = new Set(included);
 const errors = [];
 
 for (const path of REQUIRED) {
-  if (!includedSet.has(path)) errors.push(`required production file missing from curated upload: ${path}`);
+  if (!includedSet.has(path)) errors.push(`required production file missing: ${path}`);
 }
 for (const path of FORBIDDEN_SENTINELS) {
-  if (includedSet.has(path)) errors.push(`forbidden development/server file leaked into curated upload: ${path}`);
+  if (includedSet.has(path)) errors.push(`forbidden repo-only file leaked into production: ${path}`);
 }
 for (const path of included) {
-  if (isExcludedFromUpload(path)) errors.push(`denylisted path survived curation: ${path}`);
+  if (isHardExcluded(path)) errors.push(`hard-excluded path survived production curation: ${path}`);
+  if (RISKY_PUBLIC_EXTENSIONS.some((ext) => path.toLowerCase().endsWith(ext))) {
+    errors.push(`unexpected risky file type in public upload: ${path}`);
+  }
 }
 
 const missionRuntime = included.filter((p) => p === 'mission-001.html' || p === 'mission-001-app.js' || p === 'mission-private-store.js');
@@ -35,6 +44,7 @@ const report = {
   status: errors.length ? 'REPAIR_REQUIRED' : 'PASS',
   included_count: included.length,
   excluded_count: excluded.length,
+  hardening_excluded_count: additionallyExcluded.length,
   required_files: REQUIRED,
   mission_runtime: missionRuntime,
   errors,
