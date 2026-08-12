@@ -199,6 +199,10 @@ test('hidden outcome controls cannot skip committed -> left -> return transition
   const browser = await launch();
   t.after(() => browser.close());
   const page = await browser.newPage();
+  const consoleErrors = [];
+  page.on('console', message => {
+    if (message.type() === 'error') consoleErrors.push(message.text());
+  });
 
   await page.goto(url);
   await createCommittedMission(page);
@@ -213,6 +217,9 @@ test('hidden outcome controls cannot skip committed -> left -> return transition
   assert.equal(after.outcome, undefined);
   assert.equal(await page.locator('#debriefSuccess').isVisible(), false);
   assert.equal(signals.some(s => s.event === 'mission_done'), false);
+  assert.equal(await page.locator('#storageFailure').count(), 0, 'state guard must not masquerade as a storage failure');
+  assert.match(await page.locator('#transitionFailure').innerText(), /rejected|last valid mission state/i);
+  assert.deepEqual(consoleErrors, [], 'expected state-guard rejection to avoid console.error');
 });
 
 test('a storage write failure does not reveal a commit form that cannot be persisted', async t => {

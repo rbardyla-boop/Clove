@@ -158,6 +158,28 @@
     try { console.error('Mission private storage failed:', error); } catch {}
   }
 
+  function isStateGuardError(error) {
+    const code = String(error?.message || error || '');
+    return code === 'mission_state_invalid' || code === 'mission_transition_invalid';
+  }
+
+  function missionWriteFailure(error) {
+    if (!isStateGuardError(error)) {
+      storageFailure(error);
+      return 'storage';
+    }
+    let node = $('transitionFailure');
+    if (!node) {
+      node = document.createElement('div');
+      node.id = 'transitionFailure';
+      node.className = 'notice';
+      node.setAttribute('role', 'alert');
+      document.querySelector('main')?.prepend(node);
+    }
+    node.textContent = 'That action did not match the current mission stage and was rejected. Your last valid mission state was kept.';
+    return 'state';
+  }
+
   function stateFailure() {
     let node = $('stateFailure');
     if (!node) {
@@ -218,7 +240,7 @@
     catch (error) {
       btn.setAttribute('aria-pressed', 'false');
       hidden('commit', true);
-      storageFailure(error);
+      missionWriteFailure(error);
       return;
     }
     hidden('commit', false);
@@ -247,7 +269,13 @@
       returnedTracked:false
     };
     try { await save(next); }
-    catch (error) { storageFailure(error); $('commitError').textContent = 'Could not save this mission privately. Nothing was committed.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('commitError').textContent = failure === 'state'
+        ? 'That action is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this mission privately. Nothing was committed.';
+      return;
+    }
     signal('mission_committed', cls);
     summary('lockedSummary');
     showOnly('locked');
@@ -268,7 +296,7 @@
   $('leaveButton').addEventListener('click', async () => {
     if (!state) return;
     try { await save({...state, status:'left', leftAt:Date.now(), returnedTracked:false}); }
-    catch (error) { storageFailure(error); return; }
+    catch (error) { missionWriteFailure(error); return; }
     signal('mission_exit_prompt_seen', state.class);
     showOnly('away');
   });
@@ -279,7 +307,7 @@
     const eventMap = {done:'mission_done', partly:'mission_partly_done', failed:'mission_failed', not_started:'mission_not_started'};
     if (!outcomes.has(outcome)) return;
     try { await save({...state, status:'debrief', outcome}); }
-    catch (error) { storageFailure(error); return; }
+    catch (error) { missionWriteFailure(error); return; }
     signal(eventMap[outcome], state.class);
     if (outcome === 'done' || outcome === 'partly') {
       $('classEvidenceLabel').firstChild.textContent = classes[state.class].evidence + ' ';
@@ -311,7 +339,13 @@
       next:$('nextUseful').value.trim()
     };
     try { await save({...state, status:'complete', debrief, completedAt:Date.now()}); }
-    catch (error) { storageFailure(error); $('successError').textContent = 'Could not save this debrief privately.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('successError').textContent = failure === 'state'
+        ? 'That debrief is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this debrief privately.';
+      return;
+    }
     signal(`mission_helped_other_${helped}`, state.class);
     signal('mission_debrief_completed', state.class);
     finish();
@@ -338,7 +372,13 @@
       reason:$('abandonReason').value.trim()
     };
     try { await save({...state, status:'complete', debrief, completedAt:Date.now()}); }
-    catch (error) { storageFailure(error); $('failedError').textContent = 'Could not save this failure debrief privately.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('failedError').textContent = failure === 'state'
+        ? 'That debrief is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this failure debrief privately.';
+      return;
+    }
     if (next === 'smaller') signal('mission_smaller_selected', state.class);
     if (next === 'help') signal('mission_help_requested', state.class);
     if (next === 'abandon') signal('mission_abandoned_reasoned', state.class);
@@ -365,7 +405,13 @@
       reason:$('dropReason').value.trim()
     };
     try { await save({...state, status:'complete', debrief, completedAt:Date.now()}); }
-    catch (error) { storageFailure(error); $('notStartedError').textContent = 'Could not save this start debrief privately.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('notStartedError').textContent = failure === 'state'
+        ? 'That debrief is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this start debrief privately.';
+      return;
+    }
     if (next === 'shrink') signal('mission_smaller_selected', state.class);
     if (next === 'replace') signal('mission_retry_selected', state.class);
     if (next === 'drop') signal('mission_abandoned_reasoned', state.class);
@@ -414,7 +460,7 @@
       if (!state.returnedTracked) {
         signal('mission_returned', state.class);
         try { await save({...state, returnedTracked:true}); }
-        catch (error) { storageFailure(error); }
+        catch (error) { missionWriteFailure(error); }
       }
       summary('returnSummary');
       showOnly('return');
