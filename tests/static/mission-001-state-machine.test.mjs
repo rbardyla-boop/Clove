@@ -15,9 +15,10 @@ function keyOf(state) {
 
 const transitions = Object.freeze({
   empty: Object.freeze({ SELECT_CLASS: 'planning' }),
-  planning: Object.freeze({ CHANGE_CLASS: 'empty', COMMIT: 'committed' }),
-  committed: Object.freeze({ EDIT: 'committed', LEAVE: 'left' }),
+  planning: Object.freeze({ RESELECT_CLASS: 'planning', CHANGE_CLASS: 'empty', COMMIT: 'committed' }),
+  committed: Object.freeze({ EDIT: 'committed', RECOMMIT: 'committed', LEAVE: 'left' }),
   left: Object.freeze({
+    MARK_RETURNED: 'left',
     RETURN_DONE: 'debrief:done',
     RETURN_PARTLY: 'debrief:partly',
     RETURN_FAILED: 'debrief:failed',
@@ -55,7 +56,8 @@ for (const outcome of OUTCOMES) {
   });
 }
 
-test('formal oracle retains editing before leave and explicit reset after completion', () => {
+test('formal oracle retains supported same-stage operations', () => {
+  assert.equal(run(['SELECT_CLASS', 'RESELECT_CLASS', 'COMMIT', 'RECOMMIT', 'LEAVE', 'MARK_RETURNED', 'RETURN_DONE', 'SAVE_DEBRIEF']), 'complete');
   assert.equal(run(['SELECT_CLASS', 'COMMIT', 'EDIT', 'LEAVE', 'RETURN_DONE', 'SAVE_DEBRIEF']), 'complete');
   assert.equal(run(['SELECT_CLASS', 'COMMIT', 'LEAVE', 'RETURN_DONE', 'SAVE_DEBRIEF', 'NEW_MISSION']), 'empty');
 });
@@ -80,6 +82,12 @@ test('persisted state keying rejects an unrecognized debrief outcome at the mode
   const key = keyOf({ status: 'debrief', outcome: 'made_up' });
   assert.equal(key, 'debrief:made_up');
   assert.equal(Object.hasOwn(transitions, key), false);
+});
+
+test('runtime controller enforces both persisted-state shape and transition order before writes', () => {
+  assert.match(appSource, /validPersistedState\(next\)/);
+  assert.match(appSource, /validStateTransition\(state,\s*next\)/);
+  assert.match(appSource, /mission_transition_invalid/);
 });
 
 function appPrivacyGuard(source) {
