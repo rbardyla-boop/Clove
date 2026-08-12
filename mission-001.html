@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<meta name="description" content="Mission 001: choose one useful real-world action, go do it, then return and record what happened.">
+<title>Mission 001 — Make Yourself Useful | CloveLearn</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0c1928;--panel2:#102235;--line:#28425c;
+  --text:#edf5ff;--muted:#9fb2c7;--accent:#5eead4;--accent2:#8fc5ff;
+  --warn:#f4c56a;--bad:#f28b82;--good:#77d99b;--max:760px;
+}
+*{box-sizing:border-box}
+html{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+body{margin:0;min-height:100dvh;background:radial-gradient(circle at 50% -20%,#16334d 0,var(--bg) 42%);}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+a{color:var(--accent2)}
+.shell{width:min(var(--max),calc(100% - 28px));margin:0 auto;padding:24px 0 64px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:30px}
+.brand{font-size:12px;font-weight:900;letter-spacing:.16em;color:var(--accent)}
+.phase{font-size:10px;color:var(--muted);letter-spacing:.1em;text-align:right}
+.hero{padding:26px 0 22px}
+h1{font-size:clamp(42px,10vw,72px);line-height:.95;letter-spacing:-.045em;margin:0 0 18px;max-width:680px}
+.lead{font-size:clamp(17px,3vw,22px);color:#c9d8e7;max-width:640px;margin:0 0 12px}
+.rule{font-size:13px;color:var(--muted);max-width:640px;margin:0}
+.card{background:rgba(12,25,40,.94);border:1px solid var(--line);border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 16px 45px rgba(0,0,0,.18)}
+.card h2{font-size:22px;margin:0 0 7px}
+.card p{color:var(--muted);margin:5px 0 12px}
+.step-tag{font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.choice{appearance:none;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:17px;min-height:150px;transition:.15s transform,.15s border-color,.15s background}
+.choice:hover,.choice:focus-visible{border-color:var(--accent2);outline:none}
+.choice:active{transform:scale(.99)}
+.choice[aria-pressed="true"]{border-color:var(--accent);background:#0d2a31}
+.choice strong{display:block;font-size:18px;letter-spacing:.08em;margin-bottom:6px}
+.choice span{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+.form-grid{display:grid;gap:15px}
+label{display:grid;gap:7px;font-size:12px;font-weight:800;letter-spacing:.03em}
+.hint{font-weight:400;color:var(--muted);font-size:11px;letter-spacing:0}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;background:#081522;color:var(--text);padding:12px 13px;outline:none}
+textarea{min-height:88px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(143,197,255,.12)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);padding:12px 16px;font-weight:900;letter-spacing:.04em;min-height:46px}
+.btn.primary{border-color:var(--accent);background:var(--accent);color:#041513}
+.btn.warn{border-color:var(--warn);color:var(--warn);background:#211b0d}
+.btn.bad{border-color:var(--bad);color:#ffd4d0;background:#2b1315}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid rgba(143,197,255,.35);outline-offset:2px}
+.notice{border-left:4px solid var(--warn);padding:12px 14px;background:#19170f;color:#ead8aa;border-radius:0 10px 10px 0;font-size:12px;margin:14px 0}
+.safe{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:12px;padding:13px;background:#081522}
+.safe input{width:20px;height:20px;margin-top:1px;accent-color:var(--accent);flex:none}
+.safe span{font-size:12px;color:#c9d8e7}
+.summary{display:grid;gap:9px;margin:16px 0}
+.row{display:grid;grid-template-columns:145px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid rgba(40,66,92,.55)}
+.row:last-child{border-bottom:0}
+.row b{font-size:10px;letter-spacing:.11em;color:var(--muted);text-transform:uppercase}
+.row div{font-size:14px;overflow-wrap:anywhere}
+.go{padding:34px 20px;text-align:center;border:1px solid var(--accent);background:#08242a;border-radius:18px;margin:18px 0}
+.go h2{font-size:clamp(34px,8vw,54px);margin:0 0 8px;letter-spacing:-.03em}
+.go p{max-width:540px;margin:0 auto 18px;color:#b8d8d5}
+.outcomes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.outcome{min-height:92px}
+.callout{padding:14px;border-radius:12px;background:#081522;border:1px solid var(--line);color:#c8d7e6;font-size:13px;margin:12px 0}
+.callout strong{color:var(--accent)}
+[hidden]{display:none!important}
+.small{font-size:11px;color:var(--muted)}
+.error{color:#ffc5bf;font-size:12px;min-height:18px;margin-top:9px}
+.complete{border-color:#2e7c55;background:#0a2118}
+.footer{color:#71869c;font-size:10px;margin-top:32px;line-height:1.6}
+@media(max-width:620px){.grid,.outcomes{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:3px}.shell{width:min(100% - 20px,var(--max));padding-top:16px}.top{margin-bottom:14px}.choice{min-height:0}.card{padding:16px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <div class="brand">CLOVELEARN / MISSION 001</div>
+    <div class="phase">F1 TEST BUILD<br>18–24 / ADULTS ONLY</div>
+  </header>
+
+  <section id="intro" class="hero">
+    <h1>MAKE YOURSELF USEFUL.</h1>
+    <p class="lead">Pick one thing that leaves the world slightly better because you showed up.</p>
+    <p class="rule">This is not a feed and it is not a self-improvement lecture. Pick something real, define what done means, close Clove, do it, then come back and record what actually happened.</p>
+  </section>
+
+  <section id="choose" class="card">
+    <div class="step-tag">1 / Choose</div>
+    <h2>What kind of mission?</h2>
+    <p>Keep the first one small: about 15 minutes to 4 hours, low-cost, legal, and within your actual competence.</p>
+    <div class="grid" role="group" aria-label="Mission class">
+      <button class="choice" type="button" data-class="fix" aria-pressed="false"><strong>FIX</strong><span>Repair, restore, maintain, diagnose, or improve a real physical thing.</span></button>
+      <button class="choice" type="button" data-class="serve" aria-pressed="false"><strong>SERVE</strong><span>Do a bounded task another person, household, community, or organization actually wants done.</span></button>
+      <button class="choice" type="button" data-class="learn" aria-pressed="false"><strong>LEARN</strong><span>Acquire one concrete skill and prove it by doing it, not merely watching or reading.</span></button>
+      <button class="choice" type="button" data-class="build" aria-pressed="false"><strong>BUILD</strong><span>Create or improve something physical or digital that another person could actually use.</span></button>
+    </div>
+  </section>
+
+  <section id="commit" class="card" hidden>
+    <div class="step-tag">2 / Commit</div>
+    <h2>Make the mission testable.</h2>
+    <p id="classPrompt"></p>
+    <form id="commitForm" class="form-grid" novalidate>
+      <label>Exact action
+        <span class="hint">One bounded action. Not “get my life together.”</span>
+        <textarea id="missionAction" maxlength="500" required placeholder="Example: Get the old bicycle shifting reliably enough for a test ride."></textarea>
+      </label>
+      <label>Done when
+        <span class="hint">What could you point to afterward that tells you whether it worked?</span>
+        <textarea id="doneWhen" maxlength="400" required placeholder="Example: All gears can be selected without the chain dropping."></textarea>
+      </label>
+      <label>Expected duration
+        <select id="duration" required>
+          <option value="">Choose a range</option>
+          <option value="under30">15–30 minutes</option>
+          <option value="30to60">30–60 minutes</option>
+          <option value="1to2h">1–2 hours</option>
+          <option value="2to4h">2–4 hours</option>
+        </select>
+      </label>
+      <label>First physical action
+        <span class="hint">The first thing your hands or feet actually do.</span>
+        <input id="firstAction" maxlength="220" required placeholder="Put the bike in the stand and inspect cable tension.">
+      </label>
+      <label>Optional start note
+        <span class="hint">Stored only on this device. Example: “after lunch” or “Saturday morning.”</span>
+        <input id="startNote" maxlength="120" placeholder="When will you start?">
+      </label>
+      <div class="notice">Do not use this mission for illegal activity, confrontation, dares, weapons, risky medical work, hazardous electrical/gas/structural/automotive work, heights, confined spaces, chemicals, power tools beyond your competence, trespassing, activity involving minors, or exposing another person's private information. Choose something safer if there is doubt.</div>
+      <label class="safe"><input id="safetyCheck" type="checkbox" required><span>This mission is legal, low-risk for me, within my competence, and does not require exposing someone else's private information.</span></label>
+      <div class="actions">
+        <button class="btn primary" type="submit">LOCK THE MISSION</button>
+        <button class="btn" type="button" id="backToClasses">CHANGE CLASS</button>
+      </div>
+      <div id="commitError" class="error" role="alert"></div>
+    </form>
+  </section>
+
+  <section id="locked" class="card" hidden>
+    <div class="step-tag">3 / Leave</div>
+    <h2>Your mission is locked.</h2>
+    <div id="lockedSummary" class="summary"></div>
+    <div class="callout"><strong>Stuck?</strong> Do not build a bigger plan. Ask only: “What is the next physical action?” Then do that one thing.</div>
+    <div class="go">
+      <h2>CLOSE CLOVE.<br>GO DO IT.</h2>
+      <p>There is nothing below this that you need before starting. The website is not the mission.</p>
+      <button id="leaveButton" class="btn primary" type="button">I'M LEAVING TO DO IT</button>
+    </div>
+    <button id="editMission" class="btn" type="button">EDIT BEFORE I LEAVE</button>
+  </section>
+
+  <section id="away" class="go" hidden>
+    <h2>GO DO IT.</h2>
+    <p>Your mission is saved on this device. Close this tab. When you return to this page, Clove will ask what actually happened.</p>
+  </section>
+
+  <section id="return" class="card" hidden>
+    <div class="step-tag">4 / Return</div>
+    <h2>What actually happened?</h2>
+    <p>No score. No streak loss. Pick the most accurate result.</p>
+    <div id="returnSummary" class="summary"></div>
+    <div class="outcomes" role="group" aria-label="Mission outcome">
+      <button class="btn outcome" data-outcome="done" type="button">DONE</button>
+      <button class="btn outcome" data-outcome="partly" type="button">PARTLY DONE</button>
+      <button class="btn outcome warn" data-outcome="failed" type="button">FAILED / DID NOT WORK</button>
+      <button class="btn outcome bad" data-outcome="not_started" type="button">DID NOT START</button>
+    </div>
+    <p class="small">A failed attempt can still be useful if the result is documented honestly.</p>
+  </section>
+
+  <section id="debriefSuccess" class="card" hidden>
+    <div class="step-tag">5 / Evidence + Debrief</div>
+    <h2>Record the observable result.</h2>
+    <p>This is your private record on this device. If you lie to it, the number becomes meaningless.</p>
+    <form id="successForm" class="form-grid" novalidate>
+      <label>What did you actually do?<textarea id="actualDid" maxlength="700" required></textarea></label>
+      <label id="classEvidenceLabel">Observable result<textarea id="classEvidence" maxlength="700" required></textarea></label>
+      <label>What was different from the plan?<textarea id="different" maxlength="500" required></textarea></label>
+      <label>What was harder than expected?<textarea id="harder" maxlength="500" required></textarea></label>
+      <label>What did you learn?<textarea id="learnedSuccess" maxlength="500" required></textarea></label>
+      <label>Did this action help anyone besides you?
+        <select id="helpedOther" required><option value="">Choose</option><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Unsure</option></select>
+      </label>
+      <label>Next useful action, if any<input id="nextUseful" maxlength="300" placeholder="Optional"></label>
+      <div class="actions"><button class="btn primary" type="submit">SAVE DEBRIEF</button></div>
+      <div id="successError" class="error" role="alert"></div>
+    </form>
+  </section>
+
+  <section id="debriefFailed" class="card" hidden>
+    <div class="step-tag">5 / Failure Debrief</div>
+    <h2>Failure stays inside the loop.</h2>
+    <p>You are not ejected for failing. Capture what happened and choose the next legitimate move.</p>
+    <form id="failedForm" class="form-grid" novalidate>
+      <label>What did you attempt?<textarea id="failedAttempt" maxlength="700" required></textarea></label>
+      <label>Where did it fail?<textarea id="failedWhere" maxlength="700" required></textarea></label>
+      <label>Main blocker
+        <select id="failedCause" required><option value="">Choose</option><option>Knowledge</option><option>Tools</option><option>Time</option><option>Scope</option><option>Fear / avoidance</option><option>Another dependency</option><option>Something else</option></select>
+      </label>
+      <label>What did the failure teach you?<textarea id="failedLearn" maxlength="600" required></textarea></label>
+      <label>Next move
+        <select id="failedNext" required><option value="">Choose</option><option value="smaller">RETRY SMALLER</option><option value="help">GET HELP</option><option value="learn_first">LEARN FIRST</option><option value="abandon">ABANDON FOR A REASON</option></select>
+      </label>
+      <label id="abandonReasonWrap" hidden>Reason for abandoning<textarea id="abandonReason" maxlength="500"></textarea></label>
+      <div class="actions"><button class="btn primary" type="submit">SAVE FAILURE DEBRIEF</button></div>
+      <div id="failedError" class="error" role="alert"></div>
+    </form>
+  </section>
+
+  <section id="debriefNotStarted" class="card" hidden>
+    <div class="step-tag">5 / Start Failure</div>
+    <h2>You didn't start. Find the actual obstruction.</h2>
+    <form id="notStartedForm" class="form-grid" novalidate>
+      <label>What stopped the first physical action?<textarea id="stoppedFirst" maxlength="700" required></textarea></label>
+      <label>Best description
+        <select id="notStartedCause" required><option value="">Choose</option><option>Too large</option><option>Unclear</option><option>Unsafe</option><option>Unwanted</option><option>Dependent on someone else</option><option>Avoided it</option><option>Something else</option></select>
+      </label>
+      <label>Next move
+        <select id="notStartedNext" required><option value="">Choose</option><option value="shrink">SHRINK</option><option value="replace">REPLACE</option><option value="schedule">SCHEDULE</option><option value="drop">DROP FOR A REASON</option></select>
+      </label>
+      <label id="dropReasonWrap" hidden>Reason for dropping<textarea id="dropReason" maxlength="500"></textarea></label>
+      <div class="actions"><button class="btn primary" type="submit">SAVE START DEBRIEF</button></div>
+      <div id="notStartedError" class="error" role="alert"></div>
+    </form>
+  </section>
+
+  <section id="complete" class="card complete" hidden>
+    <div class="step-tag">Mission Recorded</div>
+    <h2>You have a result, not a streak.</h2>
+    <div id="completeSummary" class="summary"></div>
+    <p id="closingLine"></p>
+    <div class="actions">
+      <button id="newMission" class="btn primary" type="button">CHOOSE ANOTHER REAL MISSION</button>
+      <button id="leaveClove" class="btn" type="button">I'M DONE HERE</button>
+    </div>
+  </section>
+
+  <footer class="footer">F1 experimental product path. No account. Mission text and debrief content stay in this browser's local storage. Aggregate measurement contains only coarse event names, device class, referrer group and mission class; it does not send your mission text, debrief, location, contacts, or photos.</footer>
+</main>
+<script>
+(() => {
+  'use strict';
+  const KEY = 'clove_v2_mission_001';
+  const OPTOUT = 'clove_signals_optout_v1';
+  const classes = {
+    fix: {
+      prompt: 'FIX means repair, restore, maintain, diagnose, or improve a real physical thing. A failed repair still counts as an honest mission attempt if you record the result.',
+      evidence: 'What is the object’s observable state now? Say whether it is functional, improved, unchanged, or worse, and what changed.'
+    },
+    serve: {
+      prompt: 'SERVE means a bounded task another person, household, community, or organization actually wants done. Do not manufacture a rescue or expose somebody else’s vulnerability.',
+      evidence: 'What observable result existed afterward, and was the action actually wanted/useful rather than imposed?'
+    },
+    learn: {
+      prompt: 'LEARN means acquire one concrete skill or sub-skill and demonstrate it. Watching or reading alone is not completion.',
+      evidence: 'What can you now demonstrate against the completion check? Describe the demonstration, not the content you consumed.'
+    },
+    build: {
+      prompt: 'BUILD means create or improve a physical or digital artifact another person could actually use. Novelty is not the goal; usefulness is.',
+      evidence: 'What exists now, who or what is it for, and how did you test whether it works for that purpose?'
+    }
+  };
+  const sections = ['choose','commit','locked','away','return','debriefSuccess','debriefFailed','debriefNotStarted','complete'];
+  let state = load();
+
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}}
+  function save(next){state=next;try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}return state}
+  function clear(){state=null;try{localStorage.removeItem(KEY)}catch{}}
+  function hidden(id, value){$(id).hidden=value}
+  function showOnly(id){sections.forEach(s=>hidden(s,s!==id));window.scrollTo({top:0,behavior:'smooth'})}
+  function device(){const w=Math.min(screen.width||innerWidth,innerWidth||screen.width);return w<=600?'phone':w<=1024?'tablet':'desktop'}
+  function referrerGroup(){if(!document.referrer)return'direct';try{const h=new URL(document.referrer).hostname.toLowerCase();if(h===location.hostname)return'direct';if(/(google|bing|duckduckgo|yahoo|brave|ecosia)\./.test(h))return'search';if(/(reddit|facebook|instagram|youtube|tiktok|bsky|twitter|x\.com|t\.co)/.test(h))return'social';return'other'}catch{return'other'}}
+  function signalsOff(){try{return localStorage.getItem(OPTOUT)==='1'||navigator.globalPrivacyControl===true||navigator.doNotTrack==='1'}catch{return true}}
+  function signal(event, detail='none'){
+    if(signalsOff())return;
+    const payload={event,surface:'mission',device:device(),returnBucket:'none',referrerGroup:referrerGroup(),build:'v2',variant:'none',detail,diagnostic:'none'};
+    const body=JSON.stringify(payload);
+    try{
+      if(navigator.sendBeacon){navigator.sendBeacon('/__clove/signal',new Blob([body],{type:'application/json'}));return}
+      fetch('/__clove/signal',{method:'POST',headers:{'content-type':'application/json'},body,credentials:'same-origin',keepalive:true}).catch(()=>{});
+    }catch{}
+  }
+  function summary(target, s=state){
+    $(target).innerHTML=`
+      <div class="row"><b>Class</b><div>${esc((s?.class||'').toUpperCase())}</div></div>
+      <div class="row"><b>Mission</b><div>${esc(s?.action)}</div></div>
+      <div class="row"><b>Done when</b><div>${esc(s?.doneWhen)}</div></div>
+      <div class="row"><b>First action</b><div>${esc(s?.firstAction)}</div></div>`;
+  }
+  function validText(id){return $(id).value.trim().length>0}
+
+  document.querySelectorAll('[data-class]').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('[data-class]').forEach(b=>b.setAttribute('aria-pressed','false'));
+    btn.setAttribute('aria-pressed','true');
+    const cls=btn.dataset.class;
+    signal('mission_class_selected',cls);
+    $('classPrompt').textContent=classes[cls].prompt;
+    save({class:cls,status:'planning'});
+    hidden('commit',false);
+    $('commit').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+
+  $('backToClasses').addEventListener('click',()=>{clear();showOnly('choose')});
+
+  $('commitForm').addEventListener('submit',event=>{
+    event.preventDefault();
+    $('commitError').textContent='';
+    const cls=state?.class;
+    if(!cls||!classes[cls]||!validText('missionAction')||!validText('doneWhen')||!$('duration').value||!validText('firstAction')||!$('safetyCheck').checked){
+      $('commitError').textContent='Complete the mission, finish check, duration, first physical action, and safety confirmation.';return;
+    }
+    const next={
+      class:cls,status:'committed',action:$('missionAction').value.trim(),doneWhen:$('doneWhen').value.trim(),
+      duration:$('duration').value,firstAction:$('firstAction').value.trim(),startNote:$('startNote').value.trim(),
+      committedAt:Date.now(),returnedTracked:false
+    };
+    save(next);signal('mission_committed',cls);summary('lockedSummary');showOnly('locked');
+  });
+
+  $('editMission').addEventListener('click',()=>{
+    if(!state)return;
+    showOnly('commit');
+    $('classPrompt').textContent=classes[state.class].prompt;
+    $('missionAction').value=state.action||'';$('doneWhen').value=state.doneWhen||'';$('duration').value=state.duration||'';
+    $('firstAction').value=state.firstAction||'';$('startNote').value=state.startNote||'';$('safetyCheck').checked=true;
+  });
+
+  $('leaveButton').addEventListener('click',()=>{
+    if(!state)return;
+    save({...state,status:'left',leftAt:Date.now(),returnedTracked:false});
+    signal('mission_exit_prompt_seen',state.class);showOnly('away');
+  });
+
+  document.querySelectorAll('[data-outcome]').forEach(btn=>btn.addEventListener('click',()=>{
+    if(!state)return;
+    const outcome=btn.dataset.outcome;
+    const eventMap={done:'mission_done',partly:'mission_partly_done',failed:'mission_failed',not_started:'mission_not_started'};
+    save({...state,status:'debrief',outcome});signal(eventMap[outcome],state.class);
+    if(outcome==='done'||outcome==='partly'){
+      $('classEvidenceLabel').firstChild.textContent=classes[state.class].evidence+' ';
+      showOnly('debriefSuccess');
+    } else if(outcome==='failed') showOnly('debriefFailed');
+    else showOnly('debriefNotStarted');
+  }));
+
+  $('helpedOther').addEventListener('change',()=>{});
+  $('failedNext').addEventListener('change',()=>hidden('abandonReasonWrap',$('failedNext').value!=='abandon'));
+  $('notStartedNext').addEventListener('change',()=>hidden('dropReasonWrap',$('notStartedNext').value!=='drop'));
+
+  $('successForm').addEventListener('submit',event=>{
+    event.preventDefault();$('successError').textContent='';
+    const required=['actualDid','classEvidence','different','harder','learnedSuccess'];
+    if(required.some(id=>!validText(id))||!$('helpedOther').value){$('successError').textContent='Complete the observable result and debrief fields.';return}
+    const helped=$('helpedOther').value;
+    const debrief={actual:$('actualDid').value.trim(),evidence:$('classEvidence').value.trim(),different:$('different').value.trim(),harder:$('harder').value.trim(),learned:$('learnedSuccess').value.trim(),helped,next:$('nextUseful').value.trim()};
+    save({...state,status:'complete',debrief,completedAt:Date.now()});
+    signal(`mission_helped_other_${helped}`,state.class);signal('mission_debrief_completed',state.class);finish();
+  });
+
+  $('failedForm').addEventListener('submit',event=>{
+    event.preventDefault();$('failedError').textContent='';
+    if(!validText('failedAttempt')||!validText('failedWhere')||!$('failedCause').value||!validText('failedLearn')||!$('failedNext').value){$('failedError').textContent='Complete the failure point, blocker, lesson, and next move.';return}
+    if($('failedNext').value==='abandon'&&!validText('abandonReason')){$('failedError').textContent='Give the reason for abandoning so this is a decision, not silent disappearance.';return}
+    const next=$('failedNext').value;
+    const debrief={attempt:$('failedAttempt').value.trim(),where:$('failedWhere').value.trim(),cause:$('failedCause').value,learned:$('failedLearn').value.trim(),next,reason:$('abandonReason').value.trim()};
+    save({...state,status:'complete',debrief,completedAt:Date.now()});
+    if(next==='smaller')signal('mission_smaller_selected',state.class);
+    if(next==='help')signal('mission_help_requested',state.class);
+    if(next==='abandon')signal('mission_abandoned_reasoned',state.class);
+    signal('mission_debrief_completed',state.class);finish();
+  });
+
+  $('notStartedForm').addEventListener('submit',event=>{
+    event.preventDefault();$('notStartedError').textContent='';
+    if(!validText('stoppedFirst')||!$('notStartedCause').value||!$('notStartedNext').value){$('notStartedError').textContent='Name what blocked the first action and choose a next move.';return}
+    if($('notStartedNext').value==='drop'&&!validText('dropReason')){$('notStartedError').textContent='Give the reason for dropping the mission.';return}
+    const next=$('notStartedNext').value;
+    const debrief={stopped:$('stoppedFirst').value.trim(),cause:$('notStartedCause').value,next,reason:$('dropReason').value.trim()};
+    save({...state,status:'complete',debrief,completedAt:Date.now()});
+    if(next==='shrink')signal('mission_smaller_selected',state.class);
+    if(next==='replace')signal('mission_retry_selected',state.class);
+    if(next==='drop')signal('mission_abandoned_reasoned',state.class);
+    signal('mission_debrief_completed',state.class);finish();
+  });
+
+  function finish(){
+    summary('completeSummary');
+    const next=state?.debrief?.next;
+    $('closingLine').textContent=next?`Next useful action: ${next}`:'The result is recorded. You do not need to stay on Clove.';
+    showOnly('complete');
+  }
+
+  $('newMission').addEventListener('click',()=>{clear();location.reload()});
+  $('leaveClove').addEventListener('click',()=>showOnly('away'));
+
+  function boot(){
+    signal('mission_viewed',state?.class||'none');
+    if(!state){showOnly('choose');return}
+    if(state.status==='planning'){
+      document.querySelector(`[data-class="${state.class}"]`)?.setAttribute('aria-pressed','true');
+      $('classPrompt').textContent=classes[state.class]?.prompt||'';showOnly('commit');return;
+    }
+    if(state.status==='committed'){summary('lockedSummary');showOnly('locked');return}
+    if(state.status==='left'){
+      if(!state.returnedTracked){signal('mission_returned',state.class);save({...state,returnedTracked:true})}
+      summary('returnSummary');showOnly('return');return;
+    }
+    if(state.status==='debrief'){
+      if(state.outcome==='done'||state.outcome==='partly'){ $('classEvidenceLabel').firstChild.textContent=classes[state.class].evidence+' '; showOnly('debriefSuccess'); }
+      else if(state.outcome==='failed')showOnly('debriefFailed');else showOnly('debriefNotStarted');return;
+    }
+    if(state.status==='complete'){finish();return}
+    clear();showOnly('choose');
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
