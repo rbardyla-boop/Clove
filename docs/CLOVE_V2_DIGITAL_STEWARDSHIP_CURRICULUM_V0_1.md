@@ -1,6 +1,6 @@
 # CloveLearn v2 — Digital Stewardship Curriculum v0.1
 
-Status: **CANDIDATE / NOT PUBLIC / ACTION-FIRST**
+Status: **CANDIDATE / NOT PUBLIC / ACTION-FIRST / ADVERSARIAL REPAIR APPLIED**
 
 Evidence authority: `CLOVE_V2_DIGITAL_STEWARDSHIP_CLAIM_LEDGER.md`
 
@@ -21,13 +21,13 @@ A drill passes only when the user can point to an observable change, tested reco
 # DS-00 — KNOW THE MACHINE
 
 ## Mission
-Understand one digital service well enough to know what is on the device, what is in an account, what is on someone else's server, and how access is recovered.
+Understand one digital service well enough to know what is on the device, what is in an account, what is on the service provider's systems, and how access is recovered.
 
 ## Threat
-People often know how to operate an interface without knowing where information lives, what account controls it, or what happens when the device is lost.
+People can know how to operate an interface without knowing where information lives, what account controls it, or what happens when the device is lost.
 
 ## Why it matters
-Confusing the phone with the account, the app with the service, or “delete from device” with “delete from provider” creates avoidable recovery and privacy failures.
+Confusing the phone with the account, the app with the service, or “delete from device” with “delete from provider” can create avoidable recovery and privacy failures.
 
 ## One action — THE FIVE-BOX MAP
 
@@ -125,7 +125,7 @@ One changed optional permission/setting **and** successful completion of the act
 Reduce unnecessary linkage between high-value identity/recovery accounts and low-stakes sign-ups without creating a recovery failure.
 
 ## Threat
-Using one inbox, one recovery route, one public identity and one account pattern for everything creates correlated failure and unnecessary linkage.
+Using one inbox, one recovery route, one public identity and one account pattern for everything can create a single point of failure and unnecessary linkage between otherwise unrelated activities.
 
 ## Why it matters
 A compromised or spam-saturated low-stakes account should not automatically become the recovery centre for banking, government, health, work, and every disposable sign-up.
@@ -173,7 +173,7 @@ Recommendation and notification systems can repeatedly call attention back to a 
 ## Why it matters
 The user should decide when a tool enters the mission, not let every application claim equal interruption rights.
 
-## One action — HUMAN-ONLY INTERRUPTIONS FOR 24 HOURS
+## One action — INTENTIONAL INTERRUPTIONS FOR 24 HOURS
 
 Open notification settings.
 
@@ -292,7 +292,7 @@ Then choose one of:
 Clove does not score one choice as morally superior. Completion is a deliberate decision with the tradeoff visible.
 
 ## Check
-The user must be able to state the worst plausible audience expansion they are accepting and the recovery steps available if copying occurs.
+The user must be able to state a plausible unintended audience they are accepting and the recovery steps available if copying occurs.
 
 ## Recover — if content is already circulating unwanted
 
@@ -300,7 +300,7 @@ The user must be able to state the worst plausible audience expansion they are a
 2. use the host/platform's reporting and removal route;
 3. request search-engine delisting/removal where applicable;
 4. protect accounts and credentials if compromise is involved;
-5. escalate unlawful non-consensual intimate-image distribution, threats, stalking or extortion to the appropriate platform, specialist service or authority;
+5. if non-consensual intimate-image distribution, threats, stalking or extortion may violate law or platform rules, use the appropriate platform, specialist service, legal-information resource or authority; legal definitions vary by jurisdiction and Clove does not determine whether an offence has occurred;
 6. keep checking proportional to the incident—do not turn recovery into endless compulsive searching.
 
 Removal can reduce exposure even when full downstream erasure cannot be guaranteed.
@@ -320,13 +320,13 @@ A completed future-audience decision; no intimate file is collected by Clove.
 # DS-06 — RECOVERY
 
 ## Mission
-Prove that one important digital service can be recovered without waiting for a real emergency.
+Verify that one important digital service has a recovery path before a real emergency tests it.
 
 ## Threat
-Security controls are useless when the legitimate user cannot recover from device loss, forgotten credentials, compromise or provider failure.
+A security control can also become an access problem for the legitimate user if its only authentication factor is lost or compromised.
 
 ## Why it matters
-Recovery designed during a crisis is usually worse than recovery tested beforehand.
+A recovery path is easier to inspect and repair before an actual device loss or account compromise than during one.
 
 ## One action — LOST-PHONE TABLETOP
 
