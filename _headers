@@ -1,6 +1,6 @@
 ## ═══════════════════════════════════════════════════════════════
 ## CloveLearn.io — Cloudflare Pages Edge Headers
-## Zero-cloud constitution compliant. No tracking. No cookies.
+## Privacy-first static client. No cookies or user-authored mission text in telemetry.
 ## ═══════════════════════════════════════════════════════════════
 
 ## ── GLOBAL: ALL PAGES ─────────────────────────────────────────
@@ -16,23 +16,14 @@
   Cross-Origin-Embedder-Policy: credentialless
 
 ## ── GAME: CDN SCRIPTS ALLOWED ─────────────────────────────────
-## Three.js + topojson load from cdn.jsdelivr.net — relax script-src for game only.
-## All other security headers inherit from global block above.
 /game/*
   Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://static.cloudflareinsights.com; connect-src 'self' https://cdn.jsdelivr.net blob:; worker-src 'self' blob:; media-src 'self' blob:; manifest-src data: blob:; form-action 'self'
 
 ## ── INTELLIGENCE OPS: COEP OVERRIDE ──────────────────────────
-## transformers.js WASM backend creates blob: URLs for its worker
-## and then dynamically imports them. COEP: credentialless causes
-## Chrome to treat blob: URLs as null-origin in isolated contexts,
-## killing the import. Override to unsafe-none for this page only.
-## COOP stays intact (same-origin) — only COEP is relaxed.
 /intelligence-ops.html
   Cross-Origin-Embedder-Policy: unsafe-none
 
 ## ── STATIC ASSETS: LONG CACHE ─────────────────────────────────
-## Icons, JS, manifest — cache aggressively (1 year)
-## SW version bump forces cache invalidation anyway
 /particle-bg.js
   Cache-Control: public, max-age=31536000, immutable
 
@@ -57,8 +48,7 @@
 /favicon.ico
   Cache-Control: public, max-age=31536000, immutable
 
-## ── SERVICE WORKER: NO CACHE ──────────────────────────────────
-## SW must always be fresh so version bumps propagate
+## ── SERVICE WORKER: ALWAYS REVALIDATE ─────────────────────────
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate
 
@@ -71,11 +61,23 @@
 /hub.css
   Cache-Control: public, max-age=3600, must-revalidate
 
-## ── HTML PAGES: SHORT CACHE ───────────────────────────────────
-## Users should get fresh content on deploy
-## But allow edge caching for speed
+## ── HTML PAGES: LEGACY SHORT CACHE ────────────────────────────
 /*.html
   Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
 
 /
   Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
+
+## ── MISSION 001 PILOT: DO NOT SERVE A STALE BUILD ─────────────
+## These narrower rules detach the broader legacy Cache-Control rule first.
+/mission-001.html
+  ! Cache-Control
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/mission-001-app.js
+  ! Cache-Control
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/mission-private-store.js
+  ! Cache-Control
+  Cache-Control: no-cache, no-store, must-revalidate
