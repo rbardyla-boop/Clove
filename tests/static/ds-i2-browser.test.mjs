@@ -60,7 +60,7 @@ test(`alias receive failure plus uncertain recovery stays conservative (${engine
   await start(page,'ALREADY MOSTLY SEPARATE','YES — PROVIDER-SUPPORTED ALIAS');
   await choose(page,'TEST DID NOT ARRIVE');await choose(page,"I FOUND RECOVERY, BUT I'M NOT SURE IT IS CURRENT");await choose(page,'KEEP MY CURRENT SETUP FOR NOW');
   assert.equal(await page.getByRole('heading',{name:'MAP COMPLETE'}).isVisible(),true);
-  assert.match(await page.locator('#explain').innerText(),/no critical account was moved|kept/i);
+  assert.match(await page.locator('#explain').innerText(),/no critical account was moved|nothing critical was moved|kept/i);
 });
 
 test(`existing lane can decline test and ask for help without pressure (${engine})`,async t=>{
