@@ -1,0 +1,45 @@
+name: F1 Apply Private Store Integration
+
+on:
+  push:
+    branches:
+      - f0/brotherhood-salvage-audit-2026-08-12
+    paths:
+      - .github/workflows/f1-integrate-private-store.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          ref: f0/brotherhood-salvage-audit-2026-08-12
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply deterministic integration
+        run: node scripts/apply-f1-private-store.mjs
+
+      - name: Enforce bounded write set
+        run: |
+          git diff --check
+          changed="$(git diff --name-only)"
+          test "$changed" = "mission-001.html" || { echo "Unexpected changed files: $changed"; exit 1; }
+
+      - name: Commit integration to non-production branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mission-001.html
+          git commit -m "feat(v2): integrate encrypted Mission 001 persistence"
+          git push origin HEAD:f0/brotherhood-salvage-audit-2026-08-12
