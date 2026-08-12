@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - release/harden-direct-upload-2026-08-12
+      - hardening/mission-001-solo-2026-08-12
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,7 @@ concurrency:
 jobs:
   build-production-upload:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - name: Checkout exact commit
         uses: actions/checkout@v4
@@ -32,11 +33,26 @@ jobs:
       - name: Mission static contract
         run: npm run test:mission
 
-      - name: Mission real-browser replay
+      - name: Mission formal state-machine and mutation controls
+        run: npm run test:mission-state
+
+      - name: Mission runtime size and dependency budget
+        run: npm run test:mission-budget
+
+      - name: Mission Chromium replay
         run: npm run test:mission-browser
+
+      - name: Mission adversarial recovery and interaction replay
+        run: npm run test:mission-adversarial
 
       - name: Mission encrypted-store replay
         run: npm run test:mission-store-browser
+
+      - name: Install Playwright Firefox
+        run: npx playwright install --with-deps firefox
+
+      - name: Mission Firefox compatibility replay
+        run: npm run test:mission-firefox
 
       - name: Service-worker cache boundary contract
         run: node --test tests/static/service-worker-contract.test.mjs
@@ -50,13 +66,16 @@ jobs:
       - name: Build hardened static upload
         run: node scripts/build-production-upload.mjs --out dist/clove-upload
 
-      - name: Verify built upload boundary
+      - name: Verify built upload boundary and tested Mission byte identity
         run: |
           set -euo pipefail
           test -f dist/clove-upload/index.html
           test -f dist/clove-upload/mission-001.html
           test -f dist/clove-upload/mission-001-app.js
           test -f dist/clove-upload/mission-private-store.js
+          cmp mission-001.html dist/clove-upload/mission-001.html
+          cmp mission-001-app.js dist/clove-upload/mission-001-app.js
+          cmp mission-private-store.js dist/clove-upload/mission-private-store.js
           test -f dist/clove-upload/_UPLOAD_MANIFEST.json
           test ! -e dist/clove-upload/docs
           test ! -e dist/clove-upload/tests
@@ -151,6 +170,9 @@ jobs:
           test ! -e dist/clove-upload/artifacts
           test ! -e dist/clove-upload/scripts/product-audit.mjs
           node scripts/release-preflight.mjs >/dev/null
+          cmp mission-001.html dist/clove-upload/mission-001.html
+          cmp mission-001-app.js dist/clove-upload/mission-001-app.js
+          cmp mission-private-store.js dist/clove-upload/mission-private-store.js
 
       - name: Generate and verify release SHA-256 inventory
         run: |
