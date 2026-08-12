@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const STAGES=['BOUNDARY','SETTING_CLASS','CLASSIFY','CHANGE_DECISION','TASK_CHECK','RECOVER','COMPLETE','STOPPED_SAFE'];
 const ELIGIBLE=new Set(['location','contacts','photos_files','ordinary_notifications','marketing_messages']);
 const ENUMS={
-  settingClass:new Set([...ELIGIBLE,'account_linking','unknown',null]),
+  settingClass:new Set([...ELIGIBLE,'unknown',null]),
   classification:new Set(['required','optional','unclear',null]),
   changeDecision:new Set(['changed','no_change',null]),
   taskResult:new Set(['works','fails','unsure',null]),
@@ -33,7 +33,7 @@ function validState(s){
   if(s.stage==='TASK_CHECK') return s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed';
   if(s.stage==='RECOVER') return s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed'&&['fails','unsure'].includes(s.taskResult);
   if(s.stage==='COMPLETE'){
-    if(['account_linking','unknown'].includes(s.settingClass)) return true;
+    if(s.settingClass==='unknown') return true;
     if(['required','unclear'].includes(s.classification)) return true;
     if(s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='no_change') return true;
     if(s.classification==='optional'&&ELIGIBLE.has(s.settingClass)&&s.changeDecision==='changed'&&s.taskResult==='works') return true;
@@ -60,7 +60,6 @@ test('branch-specific valid terminal states are accepted',()=>{
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'location',classification:'optional',changeDecision:'no_change'}),true);
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'location',classification:'optional',changeDecision:'changed',taskResult:'works'}),true);
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'location',classification:'optional',changeDecision:'changed',taskResult:'fails',recoveryResult:'restored_works'}),true);
-  assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'account_linking',classification:'optional'}),true);
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'unknown',classification:'optional'}),true);
 });
 
@@ -70,14 +69,13 @@ test('forged later-stage states are rejected',()=>{
   assert.equal(validState({...blank(),stage:'COMPLETE',settingClass:'location',classification:'optional',changeDecision:'changed',taskResult:'fails'}),false);
 });
 
-test('inspection-only setting classes cannot enter the change stage',()=>{
-  for(const settingClass of ['account_linking','unknown']){
-    assert.equal(validState({...blank(),stage:'CHANGE_DECISION',settingClass,classification:'optional'}),false,settingClass);
-    assert.equal(validState({...blank(),stage:'TASK_CHECK',settingClass,classification:'optional',changeDecision:'changed'}),false,settingClass);
-  }
+test('unknown setting remains inspection-only and cannot enter change stage',()=>{
+  assert.equal(validState({...blank(),stage:'CHANGE_DECISION',settingClass:'unknown',classification:'optional'}),false);
+  assert.equal(validState({...blank(),stage:'TASK_CHECK',settingClass:'unknown',classification:'optional',changeDecision:'changed'}),false);
 });
 
-test('identity-shaped and unknown enum values are rejected',()=>{
+test('deferred sign-in class and identity-shaped values are rejected',()=>{
+  assert.equal(validState({...blank(),stage:'CLASSIFY',settingClass:'account_linking'}),false);
   assert.equal(validState({...blank(),stage:'CLASSIFY',settingClass:'Google'}),false);
   assert.equal(validState({...blank(),stage:'CLASSIFY',settingClass:'location',classification:'ryan@example.com'}),false);
   assert.equal(validState({...blank(),schemaVersion:99}),false);
