@@ -53,7 +53,7 @@ jobs:
         run: npm ci
 
       - name: Chromium replay
-        run: node --test tests/static/ds-i0-browser.test.mjs tests/static/ds-i0-adversarial.test.mjs
+        run: timeout 180s node --test --test-concurrency=1 tests/static/ds-i0-browser.test.mjs tests/static/ds-i0-adversarial.test.mjs
 
       - name: Install Firefox
         run: npx playwright install --with-deps firefox
@@ -61,4 +61,4 @@ jobs:
       - name: Firefox replay
         env:
           DS_BROWSER: firefox
-        run: node --test tests/static/ds-i0-browser.test.mjs tests/static/ds-i0-adversarial.test.mjs
+        run: timeout 180s node --test --test-concurrency=1 tests/static/ds-i0-browser.test.mjs tests/static/ds-i0-adversarial.test.mjs

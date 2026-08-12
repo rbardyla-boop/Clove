@@ -45,10 +45,10 @@ jobs:
       - name: Install browser-test dependency
         run: npm ci
       - name: Chromium replay
-        run: node --test tests/static/ds-i2-browser.test.mjs
+        run: timeout 180s node --test tests/static/ds-i2-browser.test.mjs
       - name: Install Firefox
         run: npx playwright install --with-deps firefox
       - name: Firefox replay
         env:
           DS_BROWSER: firefox
-        run: node --test tests/static/ds-i2-browser.test.mjs
+        run: timeout 180s node --test tests/static/ds-i2-browser.test.mjs
