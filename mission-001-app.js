@@ -22,11 +22,110 @@
     }
   };
 
+  const durations = new Set(['under30', '30to60', '1to2h', '2to4h']);
+  const outcomes = new Set(['done', 'partly', 'failed', 'not_started']);
+  const helpedValues = new Set(['yes', 'no', 'unsure']);
+  const failedCauses = new Set(['Knowledge', 'Tools', 'Time', 'Scope', 'Fear / avoidance', 'Another dependency', 'Something else']);
+  const failedNextValues = new Set(['smaller', 'help', 'learn_first', 'abandon']);
+  const notStartedCauses = new Set(['Too large', 'Unclear', 'Unsafe', 'Unwanted', 'Dependent on someone else', 'Avoided it', 'Something else']);
+  const notStartedNextValues = new Set(['shrink', 'replace', 'schedule', 'drop']);
   const sections = ['choose','commit','locked','away','return','debriefSuccess','debriefFailed','debriefNotStarted','complete'];
   let state = null;
+  let writeInFlight = false;
 
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function isObject(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function requiredText(value, max) {
+    return typeof value === 'string' && value.trim().length > 0 && value.length <= max;
+  }
+
+  function optionalText(value, max) {
+    return value === undefined || value === null || (typeof value === 'string' && value.length <= max);
+  }
+
+  function validTimestamp(value) {
+    return Number.isFinite(value) && value > 0;
+  }
+
+  function validBaseMission(s) {
+    return isObject(s)
+      && Object.hasOwn(classes, s.class)
+      && requiredText(s.action, 500)
+      && requiredText(s.doneWhen, 400)
+      && durations.has(s.duration)
+      && requiredText(s.firstAction, 220)
+      && optionalText(s.startNote, 120)
+      && validTimestamp(s.committedAt)
+      && (s.returnedTracked === undefined || typeof s.returnedTracked === 'boolean');
+  }
+
+  function validSuccessDebrief(d) {
+    return isObject(d)
+      && requiredText(d.actual, 700)
+      && requiredText(d.evidence, 700)
+      && requiredText(d.different, 500)
+      && requiredText(d.harder, 500)
+      && requiredText(d.learned, 500)
+      && helpedValues.has(d.helped)
+      && optionalText(d.next, 300);
+  }
+
+  function validFailedDebrief(d) {
+    if (!isObject(d)
+      || !requiredText(d.attempt, 700)
+      || !requiredText(d.where, 700)
+      || !failedCauses.has(d.cause)
+      || !requiredText(d.learned, 600)
+      || !failedNextValues.has(d.next)
+      || !optionalText(d.reason, 500)) return false;
+    return d.next !== 'abandon' || requiredText(d.reason, 500);
+  }
+
+  function validNotStartedDebrief(d) {
+    if (!isObject(d)
+      || !requiredText(d.stopped, 700)
+      || !notStartedCauses.has(d.cause)
+      || !notStartedNextValues.has(d.next)
+      || !optionalText(d.reason, 500)) return false;
+    return d.next !== 'drop' || requiredText(d.reason, 500);
+  }
+
+  function validPersistedState(s) {
+    if (!isObject(s) || !Object.hasOwn(classes, s.class) || typeof s.status !== 'string') return false;
+    if (s.status === 'planning') return true;
+    if (!validBaseMission(s)) return false;
+    if (s.status === 'committed') return true;
+    if (!validTimestamp(s.leftAt)) return false;
+    if (s.status === 'left') return true;
+    if (!outcomes.has(s.outcome)) return false;
+    if (s.status === 'debrief') return true;
+    if (s.status !== 'complete' || !validTimestamp(s.completedAt)) return false;
+    if (s.outcome === 'done' || s.outcome === 'partly') return validSuccessDebrief(s.debrief);
+    if (s.outcome === 'failed') return validFailedDebrief(s.debrief);
+    return validNotStartedDebrief(s.debrief);
+  }
+
+  function stateStage(s) {
+    if (!s) return 'empty';
+    if (s.status === 'debrief') return `debrief:${s.outcome}`;
+    return s.status;
+  }
+
+  function validStateTransition(previous, next) {
+    const from = stateStage(previous);
+    const to = stateStage(next);
+    if (from === 'empty') return to === 'planning';
+    if (from === 'planning') return to === 'planning' || to === 'committed';
+    if (from === 'committed') return to === 'committed' || to === 'left';
+    if (from === 'left') return to === 'left' || to.startsWith('debrief:');
+    if (from.startsWith('debrief:')) return to === 'complete';
+    return false;
+  }
 
   async function load() {
     if (!window.ClovePrivateStore) throw new Error('private_store_missing');
@@ -35,9 +134,17 @@
 
   async function save(next) {
     if (!window.ClovePrivateStore) throw new Error('private_store_missing');
-    await window.ClovePrivateStore.set(KEY, next);
-    state = next;
-    return state;
+    if (!validPersistedState(next)) throw new Error('mission_state_invalid');
+    if (!validStateTransition(state, next)) throw new Error('mission_transition_invalid');
+    if (writeInFlight) throw new Error('mission_write_in_progress');
+    writeInFlight = true;
+    try {
+      await window.ClovePrivateStore.set(KEY, next);
+      state = next;
+      return state;
+    } finally {
+      writeInFlight = false;
+    }
   }
 
   function clear() {
@@ -58,8 +165,46 @@
     try { console.error('Mission private storage failed:', error); } catch {}
   }
 
+  function isStateGuardError(error) {
+    const code = String(error?.message || error || '');
+    return code === 'mission_state_invalid' || code === 'mission_transition_invalid' || code === 'mission_write_in_progress';
+  }
+
+  function missionWriteFailure(error) {
+    if (!isStateGuardError(error)) {
+      storageFailure(error);
+      return 'storage';
+    }
+    let node = $('transitionFailure');
+    if (!node) {
+      node = document.createElement('div');
+      node.id = 'transitionFailure';
+      node.className = 'notice';
+      node.setAttribute('role', 'alert');
+      document.querySelector('main')?.prepend(node);
+    }
+    node.textContent = 'That action did not match the current mission stage and was rejected. Your last valid mission state was kept.';
+    return 'state';
+  }
+
+  function stateFailure() {
+    let node = $('stateFailure');
+    if (!node) {
+      node = document.createElement('div');
+      node.id = 'stateFailure';
+      node.className = 'notice';
+      node.setAttribute('role', 'alert');
+      document.querySelector('main')?.prepend(node);
+    }
+    node.textContent = 'Saved mission state could not be trusted and was reset. Start a new mission.';
+  }
+
+  function scrollBehavior() {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'; }
+    catch { return 'auto'; }
+  }
   function hidden(id, value) { $(id).hidden = value; }
-  function showOnly(id) { sections.forEach(s => hidden(s, s !== id)); window.scrollTo({top:0, behavior:'smooth'}); }
+  function showOnly(id) { sections.forEach(s => hidden(s, s !== id)); window.scrollTo({top:0, behavior:scrollBehavior()}); }
   function device() { const w = Math.min(screen.width || innerWidth, innerWidth || screen.width); return w <= 600 ? 'phone' : w <= 1024 ? 'tablet' : 'desktop'; }
   function referrerGroup() {
     if (!document.referrer) return 'direct';
@@ -98,10 +243,15 @@
     const cls = btn.dataset.class;
     signal('mission_class_selected', cls);
     $('classPrompt').textContent = classes[cls].prompt;
-    hidden('commit', false);
     try { await save({class:cls, status:'planning'}); }
-    catch (error) { storageFailure(error); return; }
-    $('commit').scrollIntoView({behavior:'smooth', block:'start'});
+    catch (error) {
+      btn.setAttribute('aria-pressed', 'false');
+      hidden('commit', true);
+      missionWriteFailure(error);
+      return;
+    }
+    hidden('commit', false);
+    $('commit').scrollIntoView({behavior:scrollBehavior(), block:'start'});
   }));
 
   $('backToClasses').addEventListener('click', () => { clear(); showOnly('choose'); });
@@ -126,7 +276,13 @@
       returnedTracked:false
     };
     try { await save(next); }
-    catch (error) { storageFailure(error); $('commitError').textContent = 'Could not save this mission privately. Nothing was committed.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('commitError').textContent = failure === 'state'
+        ? 'That action is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this mission privately. Nothing was committed.';
+      return;
+    }
     signal('mission_committed', cls);
     summary('lockedSummary');
     showOnly('locked');
@@ -147,7 +303,7 @@
   $('leaveButton').addEventListener('click', async () => {
     if (!state) return;
     try { await save({...state, status:'left', leftAt:Date.now(), returnedTracked:false}); }
-    catch (error) { storageFailure(error); return; }
+    catch (error) { missionWriteFailure(error); return; }
     signal('mission_exit_prompt_seen', state.class);
     showOnly('away');
   });
@@ -156,8 +312,9 @@
     if (!state) return;
     const outcome = btn.dataset.outcome;
     const eventMap = {done:'mission_done', partly:'mission_partly_done', failed:'mission_failed', not_started:'mission_not_started'};
+    if (!outcomes.has(outcome)) return;
     try { await save({...state, status:'debrief', outcome}); }
-    catch (error) { storageFailure(error); return; }
+    catch (error) { missionWriteFailure(error); return; }
     signal(eventMap[outcome], state.class);
     if (outcome === 'done' || outcome === 'partly') {
       $('classEvidenceLabel').firstChild.textContent = classes[state.class].evidence + ' ';
@@ -189,7 +346,13 @@
       next:$('nextUseful').value.trim()
     };
     try { await save({...state, status:'complete', debrief, completedAt:Date.now()}); }
-    catch (error) { storageFailure(error); $('successError').textContent = 'Could not save this debrief privately.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('successError').textContent = failure === 'state'
+        ? 'That debrief is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this debrief privately.';
+      return;
+    }
     signal(`mission_helped_other_${helped}`, state.class);
     signal('mission_debrief_completed', state.class);
     finish();
@@ -216,7 +379,13 @@
       reason:$('abandonReason').value.trim()
     };
     try { await save({...state, status:'complete', debrief, completedAt:Date.now()}); }
-    catch (error) { storageFailure(error); $('failedError').textContent = 'Could not save this failure debrief privately.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('failedError').textContent = failure === 'state'
+        ? 'That debrief is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this failure debrief privately.';
+      return;
+    }
     if (next === 'smaller') signal('mission_smaller_selected', state.class);
     if (next === 'help') signal('mission_help_requested', state.class);
     if (next === 'abandon') signal('mission_abandoned_reasoned', state.class);
@@ -243,7 +412,13 @@
       reason:$('dropReason').value.trim()
     };
     try { await save({...state, status:'complete', debrief, completedAt:Date.now()}); }
-    catch (error) { storageFailure(error); $('notStartedError').textContent = 'Could not save this start debrief privately.'; return; }
+    catch (error) {
+      const failure = missionWriteFailure(error);
+      $('notStartedError').textContent = failure === 'state'
+        ? 'That debrief is not available from the current mission stage. Your last valid state was kept.'
+        : 'Could not save this start debrief privately.';
+      return;
+    }
     if (next === 'shrink') signal('mission_smaller_selected', state.class);
     if (next === 'replace') signal('mission_retry_selected', state.class);
     if (next === 'drop') signal('mission_abandoned_reasoned', state.class);
@@ -271,6 +446,14 @@
       return;
     }
 
+    if (state && !validPersistedState(state)) {
+      clear();
+      stateFailure();
+      signal('mission_viewed', 'none');
+      showOnly('choose');
+      return;
+    }
+
     signal('mission_viewed', state?.class || 'none');
     if (!state) { showOnly('choose'); return; }
     if (state.status === 'planning') {
@@ -284,7 +467,7 @@
       if (!state.returnedTracked) {
         signal('mission_returned', state.class);
         try { await save({...state, returnedTracked:true}); }
-        catch (error) { storageFailure(error); }
+        catch (error) { missionWriteFailure(error); }
       }
       summary('returnSummary');
       showOnly('return');
@@ -300,6 +483,7 @@
     }
     if (state.status === 'complete') { finish(); return; }
     clear();
+    stateFailure();
     showOnly('choose');
   }
 

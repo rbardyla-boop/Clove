@@ -215,7 +215,7 @@ test('core choose and commit path is operable with keyboard alone', async t => {
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-class')), 'fix');
   await page.keyboard.press('Enter');
-  assert.equal(await page.locator('#commit').isVisible(), true);
+  await page.locator('#commit').waitFor({ state: 'visible' });
 
   await page.keyboard.press('Tab');
   await page.keyboard.press('Tab');
