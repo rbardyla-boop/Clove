@@ -74,6 +74,11 @@ test('private evidence is encrypted locally and public proof is not required', (
   assert.doesNotMatch(html + app, /navigator\.geolocation/i);
 });
 
+test('encrypted integration has a structurally valid page tail', () => {
+  assert.match(html, /<footer class="footer">[\s\S]*?<\/footer>\s*<\/main>\s*<script src="mission-private-store\.js"><\/script>\s*<script src="mission-001-app\.js"><\/script>\s*<\/body>\s*<\/html>\s*$/);
+  assert.doesNotMatch(html, /<\/f<script|\}\)\(\);\s*<\/script>/);
+});
+
 test('safety boundary rejects courage framing and names high-risk categories', () => {
   for (const phrase of ['illegal activity', 'weapons', 'electrical', 'gas', 'structural', 'automotive', 'heights', 'confined spaces', 'chemicals', 'power tools', 'trespassing', 'minors']) {
     assert.match(html.toLowerCase(), new RegExp(phrase));
