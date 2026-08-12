@@ -1,6 +1,6 @@
 # CloveLearn v2 — Digital Stewardship Claim Ledger
 
-Status: **ACTIVE / PRE-PUBLICATION EVIDENCE GATE**
+Status: **EVIDENCE ADJUDICATION COMPLETE / CURRICULUM BUILD PENDING**
 
 This ledger separates durable design principles from claims that require external evidence before Clove teaches them as fact.
 
@@ -111,19 +111,19 @@ Admissible wording: deleting the original does not guarantee every copy is gone;
 Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md`.
 Status: `SUPPORTED — NARROWED / LOCKED FACT`
 
----
-
-## PROVISIONAL — evidence required before public use
-
 ### DS-P11 — Men will withdraw from dating/adult-content markets in response to widespread sexualized content creation
 Claim class: forecast / cultural hypothesis.
-Need: longitudinal behavior data. This is prediction, not present fact.
-Status: `PROVISIONAL`
+Ruling: research documents changes in sexual frequency and finds that sexualized self-presentation can reduce long-term relationship interest in some experimental settings, but no reviewed longitudinal evidence establishes that OnlyFans or widespread sexual-content creation causes men as a population to withdraw from dating markets.
+Admissible wording: none as fact. May remain a clearly labeled hypothesis about possible incentive/preference changes.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_04_DATING_PREVALENCE.md`.
+Status: `UNSUPPORTED FORECAST / RETIRE AS PUBLIC FACT / MAY REMAIN A LABELED HYPOTHESIS`
 
 ### DS-P12 — “Most girls are on OnlyFans”
 Claim class: prevalence.
-Current ruling: unsupported and not admissible without population-denominator evidence.
-Status: `PROVISIONAL / PRESUMED FALSE UNTIL SHOWN OTHERWISE`
+Ruling: the 2024 platform filing reports approximately 4.634 million creator accounts globally across all creator demographics. Against global age/sex population denominators, this is incompatible with a general claim that most girls/young women/women are creators. A niche/local-feed claim would need its own defined population and denominator.
+Admissible wording: OnlyFans has millions of creator accounts, but “most girls are on OnlyFans” is a denominator-free internet claim, not a population fact.
+Evidence record: `docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_04_DATING_PREVALENCE.md`.
+Status: `RETIRED / GENERAL-POPULATION CLAIM CONTRADICTED BY SCALE`
 
 ---
 
@@ -166,3 +166,7 @@ For a claim to move from `PROVISIONAL` to `SUPPORTED` or `LOCKED FACT`, record:
 - wording downgrade if the evidence supports only a narrower claim.
 
 A culturally satisfying claim does not receive a lower evidence threshold.
+
+## Current gate
+
+All DS-P01 through DS-P12 claims have now been adjudicated. The next authorized unit is **curriculum conversion only**: turn the surviving findings into DS-00 through DS-06 action drills using `THREAT → WHY → ONE ACTION → CHECK → RECOVER`, then subject the exact curriculum candidate to anti-fear, anti-slop, legal/reputational and evidence-replay review before any public integration.
