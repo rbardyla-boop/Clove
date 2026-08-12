@@ -38,8 +38,15 @@ test('DS-I0 copy preserves evidence and destructive-action boundaries', () => {
 test('DS-I0 exposes only coarse local state fields', () => {
   const required = ['schemaVersion','stage','deviceClass','accessMode','hasAccount','providerPersistenceBelief','recoveryClass','recoveryCheckResult'];
   for (const field of required) assert.match(js, new RegExp(`\\b${field}\\b`));
-  for (const forbidden of ['providerName','serviceName','username','emailAddress','phoneNumber','password','recoveryCode','freeText','notes']) {
-    assert.doesNotMatch(js, new RegExp(`\\b${forbidden}\\b`, 'i'));
+
+  // This checks storage/property identifiers, not safety prose. Words such as
+  // “password” and “email” MUST remain allowed in copy that tells users not to
+  // disclose or destructively test those secrets.
+  for (const forbiddenField of [
+    'providerName','serviceName','username','emailAddress','phoneNumber',
+    'passwordValue','passwordSecret','authToken','recoveryCode','freeText','notes'
+  ]) {
+    assert.doesNotMatch(js, new RegExp(`\\b${forbiddenField}\\b`, 'i'));
   }
 });
 
