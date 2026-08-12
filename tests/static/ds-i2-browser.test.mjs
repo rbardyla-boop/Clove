@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -8,6 +8,7 @@ const html=await readFile(new URL('../../digital-stewardship-02.html',import.met
 const js=await readFile(new URL('../../digital-stewardship-02.js',import.meta.url));
 const KEY='clove_ds_i2_v1';
 const engine=process.env.DS_BROWSER==='firefox'?'firefox':'chromium';
+let browser;
 
 function startServer(){
   const requests=[];
@@ -24,6 +25,14 @@ function startServer(){
 async function launch(){return engine==='firefox'?firefox.launch({headless:true}):chromium.launch({headless:true,channel:'chrome'});}
 async function choose(page,name){await page.getByRole('button',{name,exact:true}).click();}
 const words=s=>s.trim()?s.trim().split(/\s+/).length:0;
+
+before(async()=>{browser=await launch();});
+after(async()=>{if(browser)await browser.close();});
+
+async function isolatedPage(t,options={}){
+  const context=await browser.newContext(options);t.after(()=>context.close());
+  return context.newPage();
+}
 
 async function assertBudget(page){
   assert.equal(await page.locator('#question').isVisible(),true);
@@ -43,8 +52,7 @@ async function start(page,pattern='MOSTLY THE SAME EMAIL / LANE',lane='YES — S
 
 test(`existing secondary receives test and recovery is recognizable (${engine})`,async t=>{
   const {server,requests,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();await page.goto(`${origin}/digital-stewardship-02.html`);
+  const page=await isolatedPage(t);await page.goto(`${origin}/digital-stewardship-02.html`);
   await start(page);await choose(page,'TEST MESSAGE RECEIVED');await choose(page,'YES — RECOVERY LOOKS CURRENT / RECOGNIZABLE');await choose(page,'LOW-STAKES SIGN-UPS CAN USE A SECONDARY / ALIAS WHEN AVAILABLE');
   assert.equal(await page.getByRole('heading',{name:'MAP COMPLETE'}).isVisible(),true);
   const raw=await page.evaluate(k=>localStorage.getItem(k),KEY);assert.ok(raw);
@@ -55,8 +63,7 @@ test(`existing secondary receives test and recovery is recognizable (${engine})`
 
 test(`alias receive failure plus uncertain recovery stays conservative (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();await page.goto(`${origin}/digital-stewardship-02.html`);
+  const page=await isolatedPage(t);await page.goto(`${origin}/digital-stewardship-02.html`);
   await start(page,'ALREADY MOSTLY SEPARATE','YES — PROVIDER-SUPPORTED ALIAS');
   await choose(page,'TEST DID NOT ARRIVE');await choose(page,"I FOUND RECOVERY, BUT I'M NOT SURE IT IS CURRENT");await choose(page,'KEEP MY CURRENT SETUP FOR NOW');
   assert.equal(await page.getByRole('heading',{name:'MAP COMPLETE'}).isVisible(),true);
@@ -65,8 +72,7 @@ test(`alias receive failure plus uncertain recovery stays conservative (${engine
 
 test(`existing lane can decline test and ask for help without pressure (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();await page.goto(`${origin}/digital-stewardship-02.html`);
+  const page=await isolatedPage(t);await page.goto(`${origin}/digital-stewardship-02.html`);
   await start(page);await choose(page,"I DON'T WANT TO TEST THIS");await choose(page,"NO / I DON'T KNOW");await choose(page,'I NEED MORE HELP BEFORE CHANGING ANYTHING');
   assert.equal(await page.getByRole('heading',{name:'MAP COMPLETE'}).isVisible(),true);
   assert.match(await page.locator('#explain').innerText(),/No migration|nothing critical/i);
@@ -74,7 +80,6 @@ test(`existing lane can decline test and ask for help without pressure (${engine
 
 test(`no lane and unsure lane both use plan-only path (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
   for(const lane of ['NO',"I'M NOT SURE"]){
     const context=await browser.newContext();const page=await context.newPage();await page.goto(`${origin}/digital-stewardship-02.html`);
     await start(page,"I'M NOT SURE",lane);
@@ -89,7 +94,6 @@ test(`no lane and unsure lane both use plan-only path (${engine})`,async t=>{
 
 test(`malformed and forged saved states reset safely (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
   const bad=[
     '{"schemaVersion":1,',
     JSON.stringify({schemaVersion:1,stage:'RECOVERY_AWARENESS',currentPattern:'mixed',laneType:'secondary',receiveResult:null,recoveryAwareness:null,futureRule:null}),
@@ -106,7 +110,6 @@ test(`malformed and forged saved states reset safely (${engine})`,async t=>{
 
 test(`storage read/write failures are explicit and flow remains in memory (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
   for(const method of ['getItem','setItem']){
     const context=await browser.newContext();await context.addInitScript(({key,method})=>{
       const original=Storage.prototype[method];Storage.prototype[method]=function(k,...rest){if(k===key)throw new DOMException('blocked','SecurityError');return original.call(this,k,...rest);};
@@ -122,10 +125,9 @@ test(`storage read/write failures are explicit and flow remains in memory (${eng
 
 test(`clear/reload and back-forward preserve only coarse progress (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const page=await browser.newPage();await page.goto(`${origin}/before`);await page.goto(`${origin}/digital-stewardship-02.html`);
+  const page=await isolatedPage(t);await page.goto(`${origin}/before`);await page.goto(`${origin}/digital-stewardship-02.html`);
   await choose(page,"I'M READY");await choose(page,'MOSTLY THE SAME EMAIL / LANE');
-  await page.goBack({waitUntil:'domcontentloaded'});await page.goForward({waitUntil:'domcontentloaded'});
+  await page.goBack({waitUntil:'domcontentloaded',timeout:10000});await page.goForward({waitUntil:'domcontentloaded',timeout:10000});
   assert.match(await page.locator('#question').innerText(),/secondary email|alias/i);
   await page.evaluate(k=>localStorage.removeItem(k),KEY);await page.reload();
   assert.equal(await page.getByRole('button',{name:"I'M READY"}).isVisible(),true);
@@ -133,7 +135,6 @@ test(`clear/reload and back-forward preserve only coarse progress (${engine})`,a
 
 test(`STOP works from all nonterminal depths (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
   const setups=[
     async p=>{},
     async p=>choose(p,"I'M READY"),
@@ -152,8 +153,7 @@ test(`STOP works from all nonterminal depths (${engine})`,async t=>{
 
 test(`mobile keyboard reduced-motion rapid activation and simplicity budget hold (${engine})`,async t=>{
   const {server,origin}=await startServer();t.after(()=>new Promise(r=>server.close(r)));
-  const browser=await launch();t.after(()=>browser.close());
-  const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});const page=await context.newPage();await page.goto(`${origin}/digital-stewardship-02.html`);
+  const page=await isolatedPage(t,{viewport:{width:390,height:844},reducedMotion:'reduce'});await page.goto(`${origin}/digital-stewardship-02.html`);
   await assertBudget(page);await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement?.textContent?.trim()),"I'M READY");await page.keyboard.press('Enter');
   const mixed=page.getByRole('button',{name:'MOSTLY THE SAME EMAIL / LANE'});await mixed.evaluate(el=>{el.click();el.click();});
   assert.match(await page.locator('#question').innerText(),/secondary email|alias/i);await assertBudget(page);
