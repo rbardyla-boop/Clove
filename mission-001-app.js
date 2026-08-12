@@ -22,11 +22,92 @@
     }
   };
 
+  const durations = new Set(['under30', '30to60', '1to2h', '2to4h']);
+  const outcomes = new Set(['done', 'partly', 'failed', 'not_started']);
+  const helpedValues = new Set(['yes', 'no', 'unsure']);
+  const failedCauses = new Set(['Knowledge', 'Tools', 'Time', 'Scope', 'Fear / avoidance', 'Another dependency', 'Something else']);
+  const failedNextValues = new Set(['smaller', 'help', 'learn_first', 'abandon']);
+  const notStartedCauses = new Set(['Too large', 'Unclear', 'Unsafe', 'Unwanted', 'Dependent on someone else', 'Avoided it', 'Something else']);
+  const notStartedNextValues = new Set(['shrink', 'replace', 'schedule', 'drop']);
   const sections = ['choose','commit','locked','away','return','debriefSuccess','debriefFailed','debriefNotStarted','complete'];
   let state = null;
 
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function isObject(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function requiredText(value, max) {
+    return typeof value === 'string' && value.trim().length > 0 && value.length <= max;
+  }
+
+  function optionalText(value, max) {
+    return value === undefined || value === null || (typeof value === 'string' && value.length <= max);
+  }
+
+  function validTimestamp(value) {
+    return Number.isFinite(value) && value > 0;
+  }
+
+  function validBaseMission(s) {
+    return isObject(s)
+      && Object.hasOwn(classes, s.class)
+      && requiredText(s.action, 500)
+      && requiredText(s.doneWhen, 400)
+      && durations.has(s.duration)
+      && requiredText(s.firstAction, 220)
+      && optionalText(s.startNote, 120)
+      && validTimestamp(s.committedAt)
+      && (s.returnedTracked === undefined || typeof s.returnedTracked === 'boolean');
+  }
+
+  function validSuccessDebrief(d) {
+    return isObject(d)
+      && requiredText(d.actual, 700)
+      && requiredText(d.evidence, 700)
+      && requiredText(d.different, 500)
+      && requiredText(d.harder, 500)
+      && requiredText(d.learned, 500)
+      && helpedValues.has(d.helped)
+      && optionalText(d.next, 300);
+  }
+
+  function validFailedDebrief(d) {
+    if (!isObject(d)
+      || !requiredText(d.attempt, 700)
+      || !requiredText(d.where, 700)
+      || !failedCauses.has(d.cause)
+      || !requiredText(d.learned, 600)
+      || !failedNextValues.has(d.next)
+      || !optionalText(d.reason, 500)) return false;
+    return d.next !== 'abandon' || requiredText(d.reason, 500);
+  }
+
+  function validNotStartedDebrief(d) {
+    if (!isObject(d)
+      || !requiredText(d.stopped, 700)
+      || !notStartedCauses.has(d.cause)
+      || !notStartedNextValues.has(d.next)
+      || !optionalText(d.reason, 500)) return false;
+    return d.next !== 'drop' || requiredText(d.reason, 500);
+  }
+
+  function validPersistedState(s) {
+    if (!isObject(s) || !Object.hasOwn(classes, s.class) || typeof s.status !== 'string') return false;
+    if (s.status === 'planning') return true;
+    if (!validBaseMission(s)) return false;
+    if (s.status === 'committed') return true;
+    if (!validTimestamp(s.leftAt)) return false;
+    if (s.status === 'left') return true;
+    if (!outcomes.has(s.outcome)) return false;
+    if (s.status === 'debrief') return true;
+    if (s.status !== 'complete' || !validTimestamp(s.completedAt)) return false;
+    if (s.outcome === 'done' || s.outcome === 'partly') return validSuccessDebrief(s.debrief);
+    if (s.outcome === 'failed') return validFailedDebrief(s.debrief);
+    return validNotStartedDebrief(s.debrief);
+  }
 
   async function load() {
     if (!window.ClovePrivateStore) throw new Error('private_store_missing');
@@ -35,6 +116,7 @@
 
   async function save(next) {
     if (!window.ClovePrivateStore) throw new Error('private_store_missing');
+    if (!validPersistedState(next)) throw new Error('mission_state_invalid');
     await window.ClovePrivateStore.set(KEY, next);
     state = next;
     return state;
@@ -56,6 +138,18 @@
     }
     node.textContent = 'Private mission storage is unavailable in this browser. Your mission was not saved. Do not enter private details until storage is working.';
     try { console.error('Mission private storage failed:', error); } catch {}
+  }
+
+  function stateFailure() {
+    let node = $('stateFailure');
+    if (!node) {
+      node = document.createElement('div');
+      node.id = 'stateFailure';
+      node.className = 'notice';
+      node.setAttribute('role', 'alert');
+      document.querySelector('main')?.prepend(node);
+    }
+    node.textContent = 'Saved mission state could not be trusted and was reset. Start a new mission.';
   }
 
   function hidden(id, value) { $(id).hidden = value; }
@@ -98,9 +192,14 @@
     const cls = btn.dataset.class;
     signal('mission_class_selected', cls);
     $('classPrompt').textContent = classes[cls].prompt;
-    hidden('commit', false);
     try { await save({class:cls, status:'planning'}); }
-    catch (error) { storageFailure(error); return; }
+    catch (error) {
+      btn.setAttribute('aria-pressed', 'false');
+      hidden('commit', true);
+      storageFailure(error);
+      return;
+    }
+    hidden('commit', false);
     $('commit').scrollIntoView({behavior:'smooth', block:'start'});
   }));
 
@@ -156,6 +255,7 @@
     if (!state) return;
     const outcome = btn.dataset.outcome;
     const eventMap = {done:'mission_done', partly:'mission_partly_done', failed:'mission_failed', not_started:'mission_not_started'};
+    if (!outcomes.has(outcome)) return;
     try { await save({...state, status:'debrief', outcome}); }
     catch (error) { storageFailure(error); return; }
     signal(eventMap[outcome], state.class);
@@ -271,6 +371,14 @@
       return;
     }
 
+    if (state && !validPersistedState(state)) {
+      clear();
+      stateFailure();
+      signal('mission_viewed', 'none');
+      showOnly('choose');
+      return;
+    }
+
     signal('mission_viewed', state?.class || 'none');
     if (!state) { showOnly('choose'); return; }
     if (state.status === 'planning') {
@@ -300,6 +408,7 @@
     }
     if (state.status === 'complete') { finish(); return; }
     clear();
+    stateFailure();
     showOnly('choose');
   }
 
