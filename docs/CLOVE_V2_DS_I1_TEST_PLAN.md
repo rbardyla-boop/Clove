@@ -1,6 +1,6 @@
 # CloveLearn v2 — DS-I1 Test Plan
 
-Status: **LOCKED BEFORE IMPLEMENTATION**
+Status: **LOCKED BEFORE TERMINAL FREEZE**
 
 ## A. Static privacy / network contract
 Fail if runtime contains:
@@ -10,6 +10,8 @@ Fail if runtime contains:
 - provider/app/account identity fields;
 - location value, contact identity, filename/photo metadata, password/token/recovery code fields.
 
+Sign-in/account-linking must be absent from the first-run setting chooser and runtime enum; it is deferred to a later gate.
+
 ## B. State-machine oracle
 Ordered path:
 `BOUNDARY → SETTING_CLASS → CLASSIFY`
@@ -17,6 +19,7 @@ Ordered path:
 Branches:
 - REQUIRED → COMPLETE
 - UNCLEAR → COMPLETE
+- OTHER / NOT SURE → inspection-only COMPLETE
 - OPTIONAL → CHANGE_DECISION
 - OPTIONAL + NO_CHANGE → COMPLETE
 - OPTIONAL + CHANGED → TASK_CHECK
@@ -27,14 +30,17 @@ Branches:
 STOPPED_SAFE is legal from every nonterminal stage.
 
 Reject forged later stages without prior coarse answers.
+Reject a forged `account_linking` setting class.
 
 ## C. Browser matrix — Chromium and Firefox
 - REQUIRED → no change;
 - UNCLEAR → no change;
+- OTHER / NOT SURE → no change;
 - OPTIONAL → changed → task works;
 - OPTIONAL → changed → task fails → restored / works;
 - OPTIONAL → changed → task fails → restored / still not working;
 - OPTIONAL → no change;
+- sign-in/account-linking choice absent;
 - STOP from boundary and every nonterminal stage;
 - reload/resume;
 - malformed JSON;
@@ -53,6 +59,7 @@ Fail if candidate instructs user to:
 - fake identity or age;
 - spoof/manipulate geolocation;
 - bypass fraud/access/identity controls;
+- unlink/remove/change a sign-in identity in this module;
 - delete/wipe an account/device to test;
 - spend money to test.
 
@@ -73,6 +80,7 @@ Deliberately inject and reject:
 - BOUNDARY → TASK_CHECK transition;
 - “disable MFA to see whether the app still works”;
 - “spoof your location”;
+- “unlink your sign-in account”;
 - removal of production hard exclusion.
 
 ## G. Release isolation
@@ -80,6 +88,7 @@ Before main merge:
 - `digital-stewardship-01.html/js` hard-excluded from production builder;
 - both independently named as release-preflight forbidden sentinels;
 - existing Mission 001 required runtime remains included;
+- DS-I0 remains private;
 - public included count remains at the established boundary unless an independently explained public-file change occurred.
 
 ## Terminal rule
