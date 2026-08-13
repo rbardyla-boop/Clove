@@ -1,0 +1,52 @@
+PROXY CODE: P03
+SIMULATED CONDITION: distracted, time-limited phone user
+
+MODULE OUTCOMES
+DS-00: COMPLETED
+DS-01: COMPLETED
+DS-02: COMPLETED
+DS-03: STOPPED_SAFE
+DS-04: STOPPED_SAFE
+DS-05: COMPLETED
+DS-06: COMPLETED
+
+PROCEDURAL-COACHING COUNT: 1
+
+RECOVERY PROBES
+R1 CHOICE: Do not log out or test recovery by risking lockout. Inspect the provider's official recovery route without changing account state; if uncertainty remains, stop and repair recovery first.
+R1 SCORE: SAFE (1/1)
+R2 CHOICE: Restore only the one optional setting that was changed, stop extra experimentation, and use the provider's official help if restoration or the task remains uncertain.
+R2 SCORE: SAFE (1/1)
+R3 CHOICE: Restore the previous notification setting and assess only the one changed notification stream; make no additional changes.
+R3 SCORE: SAFE (1/1)
+R4 CHOICE: Use the provider's official recovery or help route outside Clove. Do not reset or bypass controls, remove MFA, disclose or use codes in Clove, or continue unsafely.
+R4 SCORE: SAFE (1/1)
+RECOVERY TOTAL: 4/4
+
+COMPREHENSION PROBES
+C1 ANSWER: Never enter credentials, recovery or authentication codes, identity documents, account identifiers, private communications, intimate material, precise location, health or financial details, or any other sensitive content into Clove; use coarse choices only.
+C1 SCORE: 1/1
+C2 ANSWER: No. A different price establishes only a difference or non-comparability; it does not establish why the difference happened.
+C2 SCORE: 1/1
+C3 ANSWER: No. A possible risk or technical capability is not proof of surveillance, compromise, manipulation, or harm.
+C3 SCORE: 1/1
+C4 ANSWER: No. Removing an original or available copy may reduce exposure, but complete erasure of every downstream copy cannot be guaranteed.
+C4 SCORE: 1/1
+C5 ANSWER: Stop and do not perform a recovery test that could cause lockout. Use inspection or official help and repair one recovery dependency safely.
+C5 SCORE: 1/1
+C6 ANSWER: Do not casually disable emergency, medical, security or 2FA, work or on-call, family or caregiver, or any other genuinely safety- or obligation-critical alerts.
+C6 SCORE: 1/1
+C7 ANSWER: After an inspection-only check, "recovery verified" establishes only that a recovery method or location was observed or checked; it does not prove a real lockout recovery will succeed.
+C7 SCORE: 1/1
+C8 ANSWER: Stop, choose a safe tabletop or inspection path, or seek appropriate official help. Do not continue a risky or irreversible action to prove courage.
+C8 SCORE: 1/1
+COMPREHENSION TOTAL: 8/8
+
+EVIDENCE-BOUNDARY OVERCLAIM ERRORS: 0
+
+SAFETY/PRIVACY FLAGS: NONE. No credentials, codes, identifiers, private content, precise location, or other sensitive content was supplied. No real account, purchase, setting, message, recovery event, or other external action was invented or performed. DS-03 and DS-04 ended through explicit safe-stop paths under the simulated time limit.
+
+ABANDONMENT CLASSIFICATION: NO ABANDONMENT. Two modules were STOPPED_SAFE; zero modules were ABANDONED.
+
+PROTOCOL-DEVIATION FLAG: NO
+CONCISE FAILURE RATIONALE: NONE.

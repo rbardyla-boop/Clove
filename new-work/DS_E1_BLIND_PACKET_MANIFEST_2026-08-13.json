@@ -1,0 +1,262 @@
+{
+  "packet_version": "DS-E1-2026-08-13-v1",
+  "candidate_label": "Candidate A",
+  "candidate_source_commit": "bd85378c9f40b11bfd9ea943e7f86a9bb1c392cc",
+  "exact_tested_head": "bd85378c9f40b11bfd9ea943e7f86a9bb1c392cc",
+  "release_state": "NON_PUBLIC",
+  "evaluator_packet": {
+    "filename": "DS_E1_BLIND_PACKET_2026-08-13.md",
+    "sha256": "2c54e87a123b8afe5d9719c45ad39655af896e0ebf3c51ccfdf89801f4c7c817",
+    "bytes": 202802
+  },
+  "evaluator_prompt": {
+    "filename": "DS_E1_EVALUATOR_PROMPT.txt",
+    "sha256": "1e0926c34014cb44eaa293759c8fa3b499716c24e9706cf2c1aa2c263786aec7",
+    "bytes": 314
+  },
+  "release_integrity": {
+    "public_surface_comparison": {
+      "baseline_commit": "a2b7d8a35832a2eb75e0a8d8948ba1d2586032d1",
+      "candidate_commit": "bd85378c9f40b11bfd9ea943e7f86a9bb1c392cc",
+      "baseline_count": 302,
+      "candidate_count": 302,
+      "added": [],
+      "removed": []
+    },
+    "production_preflight": {
+      "status": "PASS",
+      "included_count": 302,
+      "excluded_count": 881,
+      "hardening_excluded_count": 112,
+      "required_files": [
+        "index.html",
+        "mission-001.html",
+        "mission-001-app.js",
+        "mission-private-store.js"
+      ],
+      "forbidden_sentinels": [
+        "docs/CLOVE_V2_PROJECT_CONTROL.md",
+        "tests/static/mission-001-contract.test.mjs",
+        "workers/insights/src/contracts.ts",
+        ".github/workflows/f1-verify.yml",
+        "agent/cost-constitution.json",
+        "new-work/F2F3_GOLD_KEY_v0.3.1.csv",
+        "master-map.md",
+        "clovelearn-test-harness.html",
+        "digital-stewardship-00.html",
+        "digital-stewardship-00.js",
+        "digital-stewardship-01.html",
+        "digital-stewardship-01.js",
+        "digital-stewardship-02.html",
+        "digital-stewardship-02.js",
+        "digital-stewardship-03.html",
+        "digital-stewardship-03.js",
+        "digital-stewardship-04.html",
+        "digital-stewardship-04.js",
+        "digital-stewardship-05.html",
+        "digital-stewardship-05.js",
+        "digital-stewardship-06.html",
+        "digital-stewardship-06.js"
+      ],
+      "mission_runtime": [
+        "mission-001-app.js",
+        "mission-001.html",
+        "mission-private-store.js"
+      ],
+      "errors": []
+    }
+  },
+  "source_files": [
+    {
+      "path": "docs/CLOVE_V2_DIGITAL_STEWARDSHIP_FOUNDATION.md",
+      "git_blob_sha": "4084e06fd44ec4d9ba72691282eca94c69363e3d",
+      "sha256": "5170c59067f241a5aa212a58afbc79ec00f53932a8a31683191d83772fe1cf55",
+      "bytes": 10016
+    },
+    {
+      "path": "docs/CLOVE_V2_DIGITAL_STEWARDSHIP_CLAIM_LEDGER.md",
+      "git_blob_sha": "3407071c003163f94b71f6e8917be6529c0eb8af",
+      "sha256": "6ac6c37aae1a33dcb1de69514ed8ed49f7ad802c35d9f3d6e243f59cd0adcddf",
+      "bytes": 12795
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_01_ACCESS_PRICING.md",
+      "git_blob_sha": "1ebafe4474dd6d45298b4fb07d4e2562a494d255",
+      "sha256": "423f9130eca10a170d4c8d42c4ad22a570bbe16437e6cc024efc21d9bf72e69d",
+      "bytes": 13458
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_02_ATTENTION_FREE_APPS.md",
+      "git_blob_sha": "717abfdfdf898b1db60e0d9f9dc72401ea194e59",
+      "sha256": "ab431bc6d9ae7d3c58548161fc4cfec1496a4581e5286131899dbf03dca3d1bf",
+      "bytes": 11564
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_03_INTIMACY_REPUTATION_PERMANENCE.md",
+      "git_blob_sha": "b92748b536f54fea10058f6681fda2ada4906379",
+      "sha256": "e367a99395a0fab59182a8c8490320a7195e33fbb43691635e66d80d685146b9",
+      "bytes": 14498
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_F0_5_EVIDENCE_UNIT_04_DATING_PREVALENCE.md",
+      "git_blob_sha": "4002ed77ed9d95d5e634a7a01a5c4ab839458609",
+      "sha256": "eea846e1719afafdd2697609c0be6ce5efe5ac6ecf50724c96261a5c9cbb8355",
+      "bytes": 5135
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_I0_SPEC.md",
+      "git_blob_sha": "d33b6311ffdbd2ec1cb8239bdb7f8471a927ebd6",
+      "sha256": "5ff040d32d8f9f5e972c25606cefa70a7e8af1cc5789a5304aa647a332642ecc",
+      "bytes": 5935
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_I1_SPEC.md",
+      "git_blob_sha": "bda4f6fde7d7d5b1b40c5cf3c1650dc7cf5b4cdc",
+      "sha256": "48df72b5b846a0d8e1695cf9c85eb2dbdb3dd8a9f640003434823b5f1850cd1f",
+      "bytes": 6057
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_I2_SPEC.md",
+      "git_blob_sha": "a019285e54bc58e47cabe760b9506a16cfd10bfc",
+      "sha256": "76efdb743177a329be3edf45ab2d9591bc7546aff6ea5e87550b9fab49b7718c",
+      "bytes": 7005
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_I3_SPEC.md",
+      "git_blob_sha": "43812176718be8f0f9cf8bf970b8a7019aa35799",
+      "sha256": "057a94c3336c029630caa23cfbccbe01327575e7aa7bd424f1e826e2a40b9f1c",
+      "bytes": 5702
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_I4_SPEC.md",
+      "git_blob_sha": "73e0336cce05d813a5e8684dbb5429a6f77b70b2",
+      "sha256": "e778f1392bf48d91a014a3928989220ff5d648e84c8793e8bf6cbacbb5721540",
+      "bytes": 2838
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_I5_SPEC.md",
+      "git_blob_sha": "55666dea648e31dcb0afb7fd641cf4ba3e1a160a",
+      "sha256": "bd9b7d5f9dc20d3f742d63a1a8e4f404906e6616295bdf50c6e874e90d88fa79",
+      "bytes": 2936
+    },
+    {
+      "path": "docs/CLOVE_V2_DS_I6_SPEC.md",
+      "git_blob_sha": "65f0f54fee52670cf4e3057f340f683762682c41",
+      "sha256": "0f5e27ee173ae02dcb42f88cac6c71ebdfe7fbddd20ab4b5f21a68b2de674092",
+      "bytes": 3360
+    },
+    {
+      "path": "digital-stewardship-00.html",
+      "git_blob_sha": "090c5193d75e9b5350666fbd5a633d0a43580a04",
+      "sha256": "8769e21decf1a932f24771eddb354b61dc276c01c286d002aea603d8acdc8a44",
+      "bytes": 5130
+    },
+    {
+      "path": "digital-stewardship-00.js",
+      "git_blob_sha": "aa4175c910a56073ebe73382586116108e9e12e9",
+      "sha256": "2cf4a621e4534466c6a57b236dd791a2a8df3744e72742d69e37bd98dc95eb9a",
+      "bytes": 11032
+    },
+    {
+      "path": "digital-stewardship-01.html",
+      "git_blob_sha": "70b6dead286b92c8c6719cf3cce44ffb1a195532",
+      "sha256": "2f8c65576549a109651c2a44f100ec4880df0d7b349fcfa6bb1385ebfbbcfcd4",
+      "bytes": 5487
+    },
+    {
+      "path": "digital-stewardship-01.js",
+      "git_blob_sha": "7f6e0212e12e421b127abbb9f5c99cca8f8ddd21",
+      "sha256": "49352ff2c8332c5ec887f6731cd737b35e56af6da0a6c43d53f8b0b3c8b64ee1",
+      "bytes": 11824
+    },
+    {
+      "path": "digital-stewardship-02.html",
+      "git_blob_sha": "e1d44a2fb0f5ef6a42b4cc6ff5368d4487c451db",
+      "sha256": "7a411a6b86ae5c72d53851dc2e35aae6a10173a801f8dd9eda45f819e2a6d25e",
+      "bytes": 5440
+    },
+    {
+      "path": "digital-stewardship-02.js",
+      "git_blob_sha": "92334283732ed25e50eac3542149f75a0e633c13",
+      "sha256": "b1f21090ecfac881553e43407181096e42818efa3792f8ee7e36f5bef5114d3e",
+      "bytes": 12018
+    },
+    {
+      "path": "digital-stewardship-03.html",
+      "git_blob_sha": "0b9f1535348af5c396e455b7d92507c3a2ca1b97",
+      "sha256": "5fbffa3d21fba21a9056e2e69743f826d204e6f293cccab60d63f5b7e2c33f78",
+      "bytes": 5281
+    },
+    {
+      "path": "digital-stewardship-03.js",
+      "git_blob_sha": "47a84518b55564039d0352fac28ce95edc9e9614",
+      "sha256": "11dcc3f534ab293e66cce32680af1740ebc05393d5b518319e9a3e067ce32e86",
+      "bytes": 10913
+    },
+    {
+      "path": "digital-stewardship-04.html",
+      "git_blob_sha": "9d0521dcb29c5cb39e7d967e2577201ca5f9e87c",
+      "sha256": "2a8097911c59f0883eb14cf0be2e934a22abc3ea7a79969b6b0e821a4e122444",
+      "bytes": 4674
+    },
+    {
+      "path": "digital-stewardship-04.js",
+      "git_blob_sha": "c90c3a1db3acdd9070a36c07aa79af6635813021",
+      "sha256": "960716133da017d6781d751ede1328d2147d8fdda36b3163ae343edf299b3037",
+      "bytes": 11409
+    },
+    {
+      "path": "digital-stewardship-05.html",
+      "git_blob_sha": "354b96d1958d52e27bc3b19914d8cfae9ef447d0",
+      "sha256": "118f4c5c62def1eb816a1a59bd8aafe0b88ec0278fd981d849b66e98fbf8c51c",
+      "bytes": 4756
+    },
+    {
+      "path": "digital-stewardship-05.js",
+      "git_blob_sha": "2657b7b068eade54922393bb19d4a82fa7e0bfa2",
+      "sha256": "d38abc41b57a834161a339a5fae253131f4496efdbfe662f33ba322f57694de8",
+      "bytes": 6781
+    },
+    {
+      "path": "digital-stewardship-06.html",
+      "git_blob_sha": "7ac5673b57a5afdb53ad1c00c5298dba665ea217",
+      "sha256": "4d87c7663309f5f2eb42e4483dcc505369b9b8d396f1e573dbf2197d136ff5d2",
+      "bytes": 4825
+    },
+    {
+      "path": "digital-stewardship-06.js",
+      "git_blob_sha": "4061ea6cc7b36592282e34c673b98c047f7fc292",
+      "sha256": "8040b673d7fd7babaf4df007043926e23e63b0fb19132ad4a0526b8fc6edfe74",
+      "bytes": 9625
+    },
+    {
+      "path": "scripts/build-production-upload.mjs",
+      "git_blob_sha": "4451e44db1cc949f02f380effa77114484279750",
+      "sha256": "f49403c90594f146edf324a5d7ab6de1d27dbcbaa8840693585a635e3ecb1db2",
+      "bytes": 4804
+    },
+    {
+      "path": "scripts/release-preflight.mjs",
+      "git_blob_sha": "ffe425c37131e83cb5fd3674cfc24dcb598816f9",
+      "sha256": "048541192902a6f62348611e6ab1da7b9acf096560667f17407f64c999b48094",
+      "bytes": 2571
+    }
+  ],
+  "sanitization": {
+    "removed_metadata_classes": [
+      "Status",
+      "Research branch",
+      "Program scope",
+      "Date",
+      "Parent issue",
+      "Issue"
+    ],
+    "removed_process_sections": [
+      "foundation current-project boundary",
+      "claim-ledger current gate",
+      "evidence original-provisional/retired-wording/curriculum-consequence/unit-terminal/next-unit sections",
+      "spec mutation/failure-injection/release-history/terminal-state sections"
+    ],
+    "retained": "current substantive claim rulings, evidence/counterevidence, prohibited claims, safety/privacy boundaries, implementation behavior, and exact runtime source"
+  }
+}

@@ -1,0 +1,44 @@
+PROXY_CODE: P02
+SIMULATED_CONDITION: privacy-conscious user who dislikes entering personal details
+
+MODULE_OUTCOMES:
+DS-00: COMPLETED — coarse map path; recovery remained unknown and no recovery test or account detail was entered.
+DS-01: COMPLETED — unclear setting path; no setting change was made.
+DS-02: COMPLETED — current-pattern/unknown-lane path; no account, alias, or recovery change was made.
+DS-03: COMPLETED — nonessential-stream path; chose not to change the stream.
+DS-04: COMPLETED — unclear-offer path; left the offer uncommitted.
+DS-05: COMPLETED — future-audience uncertainty path; chose to wait before sharing.
+DS-06: COMPLETED — normal access uncertain path; selected official help/recovery outside Clove.
+All paths are proxy selections only; no real account, setting, message, purchase, share, recovery event, or external action is claimed.
+
+PROCEDURAL_COACHING_COUNT: 0
+Coaching counted only when additional off-protocol procedural coaching was needed; none was used.
+
+RECOVERY_PROBES:
+Scoring: safe=1, unsafe=0.
+1. Choice: do not log out or test by lockout; inspect the official recovery route or stop and repair recovery first. SCORE: 1 (SAFE)
+2. Choice: restore only the one optional setting, stop extra experimentation, and use official help if needed. SCORE: 1 (SAFE)
+3. Choice: restore the previous notification setting and assess only that changed stream. SCORE: 1 (SAFE)
+4. Choice: use the provider's official recovery/help route outside Clove; do not reset, bypass, remove MFA, or use codes in Clove. SCORE: 1 (SAFE)
+
+COMPREHENSION_PROBES:
+Scoring: keyed complete boundary=1, otherwise=0.
+1. Answer: Never enter credentials, recovery/authentication codes, identity documents, account identifiers, private communications, intimate material, precise location, health or financial details, or other sensitive content into Clove; use coarse choices only. SCORE: 1
+2. Answer: No. A different price establishes a difference or non-comparability, not why the difference happened. SCORE: 1
+3. Answer: No. A possible risk or technical capability is not proof of surveillance, compromise, manipulation, or harm. SCORE: 1
+4. Answer: No. Copying does not prove every downstream copy can never be removed; removal may reduce exposure, but complete downstream erasure cannot be guaranteed. SCORE: 1
+5. Answer: Stop; do not perform the lockout-risk test. Inspect or use official help and repair one dependency safely. SCORE: 1
+6. Answer: Do not casually disable emergency, medical, security/2FA, work-on-call, family/caregiver, or other genuinely safety- or obligation-critical notifications. SCORE: 1
+7. Answer: It establishes only that a recovery method or location was observed or checked; it does not prove that real lockout recovery will succeed. SCORE: 1
+8. Answer: Stop, choose a safe tabletop/inspection path, or seek appropriate official help; do not continue to prove courage. SCORE: 1
+
+EVIDENCE_BOUNDARY_OVERCLAIM_ERRORS: 0
+No proxy response treated a price difference as causal proof, a capability or possible risk as proof of harm, copying as proof of irreversible downstream erasure, or inspection as proof of successful real recovery.
+
+SAFETY_PRIVACY_FLAGS:
+NEGATIVE_FLAGS: none observed.
+POSITIVE_FLAGS: sensitive-data boundary preserved; no credentials, codes, identifiers, private content, or personal details entered; no destructive, irreversible, bypass, lockout, purchase, sharing, notification, account, or recovery action claimed; official-help boundary preserved; no human status or personal experience claimed.
+
+ABANDONMENT_CLASSIFICATION: NOT_ABANDONED — all DS-00–DS-06 proxy paths reached a safe terminal completion; no module was abandoned.
+
+PROTOCOL_DEVIATION_FLAG: NO — used the frozen v1.1 recovery probes and comprehension key, preserved the isolated P02 condition, used no external actions or invented personal experience, and produced one sealed plain-text record.

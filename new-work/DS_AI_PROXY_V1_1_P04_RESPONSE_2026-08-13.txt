@@ -1,0 +1,77 @@
+proxy_code: P04
+simulated_condition: skeptical user who challenges unsupported claims
+proxy_status: FROZEN CORRECTED PROXY / NOT HUMAN EVIDENCE / NO RECRUITMENT
+
+module_outcomes:
+- DS-00: COMPLETED. Outcome basis: safe low-stakes service map can be completed by coarse choices only; recovery check is inspection/location/current-status only; no account details or provider name entered. Skeptical note: the completion label "Recovery verified" must be read narrowly as an inspection result, not proof of future lockout recovery.
+- DS-01: COMPLETED. Outcome basis: one clearly optional setting only; critical settings excluded; if the legitimate task fails or is uncertain, the module directs restoring only that setting and stopping extra experimentation.
+- DS-02: COMPLETED. Outcome basis: current critical/low-stakes account-lane pattern can be mapped without addresses or providers; no critical account is moved; no new account is required.
+- DS-03: COMPLETED. Outcome basis: one low-risk nonessential notification stream only; emergency, medical, caregiver, security, 2FA, fraud, payment, and on-call alerts are excluded; if anything important is missed or uncertain, restore the previous setting.
+- DS-04: COMPLETED. Outcome basis: one ordinary digital offer can be inspected without merchant, URL, price, offer text, or payment details; unclear commitments lead to not committing yet; Clove does not judge legality, fairness, deception, or personalization.
+- DS-05: COMPLETED. Outcome basis: future-audience check keeps actual content, identities, recipients, accounts, and platform outside Clove; adult-only and non-consensual-material exclusions are explicit; the module does not predict harm or guarantee safety.
+- DS-06: COMPLETED. Outcome basis: inspection-only recovery readiness check; no logout, reset, MFA removal, code rotation, session revocation, or deletion; if normal access is unavailable or uncertain, use official help/recovery outside Clove.
+
+procedural_coaching_count: 0
+procedural_coaching_count_basis: No extra proxy coaching beyond the candidate's built-in instructions/help text was required in this reading-only simulated session; no human coaching is inferred.
+
+fixed_recovery_probes:
+1. Recovery is uncertain after the DS-00 map.
+   choice: Do not log out and do not test by causing a lockout. Inspect the service's official recovery/help route, or stop and repair the recovery dependency safely before relying on it.
+   safe_score: 1
+2. The legitimate task stops after one DS-01 optional setting change.
+   choice: Restore only the one setting that was changed, stop extra experimentation, and use official help if the task still does not work.
+   safe_score: 1
+3. An important item may have been missed after DS-03.
+   choice: Restore the previous notification setting and assess only the stream that was changed; do not broaden the experiment.
+   safe_score: 1
+4. Normal access is unavailable after device loss in DS-06.
+   choice: Use the provider's official recovery/help route outside Clove. Do not reset, bypass, remove MFA, consume or reveal codes in Clove, or keep trying unsafe recovery tests.
+   safe_score: 1
+fixed_recovery_probe_total: 4/4
+
+fixed_comprehension_probes:
+1. What must never be entered into Clove?
+   answer: Never enter credentials, passwords, recovery/authentication/backup codes, identity documents, account identifiers, provider names when they identify the account, private communications, intimate material, precise location, health or financial details, payment details, or other sensitive content. Use only coarse choices.
+   keyed_score: 1
+2. Does a different price prove why the difference happened?
+   answer: No. A different price establishes only a difference or possible non-comparability; it does not prove the cause of the difference.
+   keyed_score: 1
+3. Does a possible risk or technical capability prove that harm occurred?
+   answer: No. A risk, uncertainty, or capability is not proof that surveillance, compromise, manipulation, or other harm occurred.
+   keyed_score: 1
+4. Does copying prove that every downstream copy can never be removed?
+   answer: No. Removal may reduce exposure, but complete downstream erasure cannot be guaranteed.
+   keyed_score: 1
+5. What should happen if a recovery test could lock the user out?
+   answer: Stop. Do not perform the lockout test. Inspect safely, use official help, and repair one recovery dependency without triggering risky recovery.
+   keyed_score: 1
+6. Which notifications should not be casually disabled?
+   answer: Emergency, medical, security/2FA, fraud or payment-verification, required work/on-call, family/caregiver, and any genuinely safety- or obligation-critical alerts should not be casually disabled.
+   keyed_score: 1
+7. What does "recovery verified" establish after an inspection-only check?
+   answer: Only that a recovery method or recovery/help location was observed or checked. It does not prove that real lockout recovery will succeed later.
+   keyed_score: 1
+8. What should happen if a task requires a risky or irreversible action?
+   answer: Stop, choose a safe tabletop or inspection-only path, or seek appropriate official help. Do not continue just to prove courage.
+   keyed_score: 1
+fixed_comprehension_total: 8/8
+
+evidence_boundary_overclaim_errors:
+- proxy_overclaim_errors: 0
+- candidate_overclaim_flags: 1
+  detail: DS-00 uses the label "Recovery verified" after an inspection-only check. The surrounding DS-00 safety text narrows the action to checking that a method looks current or that an official recovery location exists, but a skeptical reader could challenge the label if it is read as proof of successful future lockout recovery.
+
+safety_privacy_flags:
+- unsafe_action_flags: 0
+- privacy_boundary_flags: 0
+- candidate repeatedly tells the user not to enter credentials, passwords, codes, provider/account identifiers, private content, precise/sensitive details, or payment details into Clove.
+- DS-00 through DS-04 store coarse choices locally on device storage; DS-05 and DS-06 are ephemeral in-page state. No reviewed runtime code sends drill answers over a network.
+- Candidate excludes or stops before high-consequence actions: logout, lockout testing, password reset, MFA removal, backup-code use, account deletion, critical account migration, payment commitment, purchase, cancellation, and unsafe notification disabling.
+- DS-05 adult-only and non-consensual-material boundaries are explicit; Clove does not inspect, receive, send, delete, redact, or judge content.
+- DS-06 explicitly routes unavailable normal access to official help/recovery outside Clove and denies bypass/recovery performance inside Clove.
+
+abandonment_classification: NONE
+abandonment_classification_basis: No module required abandonment in the simulated reading-only path. Safe stopping is available throughout, and unsafe/unclear branches complete as bounded inspection, restoration, official-help, or no-change outcomes.
+
+protocol_deviation_flag: NO
+protocol_deviation_failure_rationale: No protocol deviation identified. This record is based only on the v1.1 proxy protocol and DS-00 through DS-06 runtime HTML/JS files listed in the assignment; no prohibited packet, ledger, history, prior proxy records, repair history, or unrelated repository files were inspected; the candidate was not modified; no human status, personal experience, real account action, external purchase, setting change, message, recovery event, or human evidence claim is invented.

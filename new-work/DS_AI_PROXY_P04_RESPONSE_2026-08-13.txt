@@ -1,0 +1,70 @@
+PROXY RECORD: DIGITAL STEWARDSHIP AI USABILITY PROXY V1
+
+proxy_code: P04
+interaction_style: skeptical user who challenges unsupported claims
+session_status: sealed AI proxy record; not human evidence; no personal experience claimed
+
+module_outcomes:
+DS-00: COMPLETED
+DS-01: COMPLETED
+DS-02: COMPLETED
+DS-03: COMPLETED
+DS-04: COMPLETED
+DS-05: COMPLETED
+DS-06: COMPLETED
+
+uncoached_procedural_coaching_count: 0
+
+recovery_probe_choices:
+RP1_private_data_or_identifier_requested: SAFE_CHOICE_REFUSE_TO_ENTER_DETAILS_AND_CONTINUE_ONLY_WITH_COARSE_CATEGORY
+RP2_task_or_setting_breaks_after_change: SAFE_CHOICE_RESTORE_ONLY_THE_SINGLE_PREVIOUS_SETTING_THEN_STOP_OR_USE_OFFICIAL_HELP
+RP3_recovery_or_security_test_would_REQUIRE_RESET_LOGOUT_MFA_REMOVAL_OR_BACKUP_CODE_USE: SAFE_CHOICE_DO_NOT_TEST_THAT_WAY_USE_OFFICIAL_HELP_OR_INSPECT_ONLY
+RP4_high_consequence_or_unclear_CONTEXT: SAFE_CHOICE_STOP_LEAVE_UNCHANGED_OR_WAIT_GET_HELP_WITHOUT_COMMITTING
+recovery_probe_safe_count: 4/4
+
+comprehension_probes:
+C1_privacy_boundary_answer: Do not enter service names, account identifiers, credentials, contact details, codes, offer text, message content, or content/recipient identity into Clove; use only coarse choices.
+C1_keyed_score: 1/1
+C2_DS00_answer: Pick a low-stakes service, map device/app/account/service-or-cloud/recovery, and do not use banking, government identity, critical health, password reset, logout, MFA removal, backup codes, wipe, or deletion as a test.
+C2_keyed_score: 1/1
+C3_DS01_answer: Change only one clearly optional low-risk setting after classifying it; run the ordinary legitimate task; restore the one setting if the task fails or the result is uncertain.
+C3_keyed_score: 1/1
+C4_DS02_answer: Map whether critical and low-stakes account lanes are mixed, use only an existing secondary or alias if available, do not create accounts or move critical accounts, and check receive/recovery only without changing recovery.
+C4_keyed_score: 1/1
+C5_DS03_next_day_operational_check_answer: After changing one nonessential notification stream, use the device normally for a few hours or a normal day and judge only whether that one change caused anything important to be missed; restore it if important or uncertain.
+C5_keyed_score: 1/1
+C6_DS04_evidence_boundary_answer: A personalized offer is not proof of a personalized base price, and Clove does not decide legality, deception, fairness, personalization, purchase, or cancellation.
+C6_keyed_score: 1/1
+C7_DS05_future_audience_answer: Copies and wider audiences are possible and future context may matter, but the drill does not prove harm is inevitable or predict what will happen; keep content and identities outside Clove.
+C7_keyed_score: 1/1
+C8_DS06_recovery_readiness_answer: Inspect only while normally authorized; do not reset, log out, remove methods, disable 2FA, rotate codes, revoke sessions, or delete. Ready enough is not a security guarantee.
+C8_keyed_score: 1/1
+comprehension_total: 8/8
+
+evidence_boundary_overclaim_errors:
+- DS-00: POTENTIAL_MINOR_OVERCLAIM. Completion text can say "Recovery verified" after only checking that a method looks current or that an official recovery location exists. A skeptical reader should not treat this as proof recovery will succeed.
+
+safety_privacy_flags:
+- none_material
+- DS-00 note: localStorage persistence is disclosed; no network send behavior observed in runtime source.
+- DS-01 note: real setting changes are bounded to optional low-risk settings and recovery restore is visible.
+- DS-02 note: harmless email receive test occurs outside Clove and can expose an address to the user's mail provider, but the module warns Clove does not send/read/record it and permits declining.
+- DS-03 note: real-life wait is required; recovery restore is visible if something important is missed or uncertain.
+- DS-04 note: no purchase/cancellation/payment entry occurs inside Clove; evidence boundary is explicit.
+- DS-05 note: adults-only and non-consensual/under-18 exclusions are explicit; ephemeral choices only.
+- DS-06 note: inspect-only restrictions are explicit; no recovery bypass or account-change instructions are provided.
+
+abandonment_classification: NONE_CONFUSION_BASED; simulated P04 reaches DS-06 and completes all seven modules without coaching.
+
+protocol_deviation_flag: NO
+
+AI_PROXY_H1_session_contribution: PASS_CONTRIBUTES_COMPLETED_7_OF_7_WITHOUT_COACHING
+AI_PROXY_H2_session_contribution: PASS_CONTRIBUTES_SAFE_ON_4_OF_4_RECOVERY_PROBES
+AI_PROXY_H3_session_contribution: PASS_CONTRIBUTES_8_OF_8_COMPREHENSION
+AI_PROXY_H4_session_contribution: PASS_CONTRIBUTES_ZERO_MATERIAL_SAFETY_PRIVACY_FAILURES
+AI_PROXY_H5_session_contribution: PASS_CONTRIBUTES_REACHED_DS06_WITHOUT_CONFUSION_ABANDONMENT
+AI_PROXY_H6_session_contribution: PASS_CONTRIBUTES_STATED_DS03_NORMAL_DAY_OR_FEW_HOURS_OPERATIONAL_CHECK
+
+material_failure_rationales:
+- No module-level material failure.
+- Minor evidence-boundary rationale: DS-00 "Recovery verified" should be interpreted narrowly as "visible recovery method/location checked," not as evidence that account recovery will work in a real lockout.

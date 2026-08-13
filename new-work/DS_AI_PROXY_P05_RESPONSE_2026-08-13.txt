@@ -1,0 +1,33 @@
+PROXY_CODE: P05
+PROXY_STYLE: technically capable user who may move too quickly
+SESSION_TYPE: isolated AI usability proxy; not human evidence
+DS-00: COMPLETED
+DS-01: COMPLETED
+DS-02: COMPLETED
+DS-03: ABANDONED
+DS-04: COMPLETED
+DS-05: COMPLETED
+DS-06: COMPLETED
+UNCOACHED_PROCEDURAL_COACHING_COUNT: 1
+RECOVERY_PROBE_1_DS01_TASK_FAIL: RESTORE_ONE_SETTING_AND_STOP_EXTRA_CHANGES | SAFE
+RECOVERY_PROBE_2_DS03_UNSURE_AFTER_REAL_PERIOD: RESTORE_PREVIOUS_STREAM_SETTING | SAFE
+RECOVERY_PROBE_3_DS04_COMMITMENT_UNCLEAR: DO_NOT_COMMIT_YET | SAFE
+RECOVERY_PROBE_4_DS06_NORMAL_ACCESS_UNAVAILABLE: USE_OFFICIAL_HELP_OR_RECOVERY_OUTSIDE_CLOVE | SAFE
+COMPREHENSION_1_BOUNDARY_SECRETS: answer=NO; key=NO; score=1
+COMPREHENSION_2_DS00_DEVICE_VS_SERVICE: answer=NO; deleting from a device is not automatically deleting the service/account copy; key=NO; score=1
+COMPREHENSION_3_DS01_FAILURE_RECOVERY: answer=restore the previous setting only; key=restore the previous setting only and stop extra changes; score=1
+COMPREHENSION_4_DS02_CRITICAL_ACCOUNT_MOVE: answer=NO; the drill maps current lanes and a future low-stakes rule only; key=NO; score=1
+COMPREHENSION_5_DS03_OPERATIONAL_CHECK: answer=change one stream and see whether anything important is missed; key=use the device normally for a few hours or a normal day, then judge only that one stream and restore if unsure; score=0
+COMPREHENSION_6_DS04_EVIDENCE_BOUNDARY: answer=NO; a personalized offer is not proof of a personalized base price or unfairness; key=NO; score=1
+COMPREHENSION_7_DS05_EVIDENCE_BOUNDARY: answer=YES/UNSURE means wider-audience harm is likely; key=NO; yes/unsure does not prove widening or harm; score=0
+COMPREHENSION_8_DS06_NO_NORMAL_ACCESS: answer=use official help or recovery outside Clove and do not test from Clove; key=official help/recovery outside Clove; no bypass or in-Clove recovery; score=1
+COMPREHENSION_TOTAL: 6/8
+EVIDENCE_BOUNDARY_OVERCLAIM_ERRORS: 1
+EVIDENCE_BOUNDARY_OVERCLAIM_RATIONALE: DS-05 was overread as predictive risk instead of a possibility check.
+SAFETY_PRIVACY_FLAGS: DS05_CAUTION_CAN_BE_UNDERWEIGHTED_BY_FAST_USER_AFTER_RISK_ACKNOWLEDGMENT
+ABANDONMENT_CLASSIFICATION: DS-03 pace-driven delayed-return abandonment risk; not confusion-based abandonment elsewhere
+PROTOCOL_DEVIATION_FLAG: YES
+PROTOCOL_DEVIATION_RATIONALE: The exact frozen four recovery probes and eight comprehension probes were not present in the allowed files, so conservative runtime-text-grounded substitutes were used.
+MATERIAL_FAILURE_1: DS-03 real-life check depends on returning after ordinary use; a speed-oriented technically capable user is likely to move on before closing the loop.
+MATERIAL_FAILURE_2: DS-03 operational check wording is clear on reread but easy to compress into an immediate judgment when moving quickly.
+MATERIAL_FAILURE_3: DS-05 preserves evidence boundaries in the copy, but the user condition still permits one overclaiming read under speed.

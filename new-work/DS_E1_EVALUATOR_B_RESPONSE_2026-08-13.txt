@@ -1,0 +1,12 @@
+1. Evidence fidelity — PASS — Runtime claims stay within the packet’s adjudicated boundaries.
+2. Actionability — PASS — Each module provides an inspect, decide, check, or recovery action.
+3. Fear/paranoia control — PASS — Uncertainty and risk are explicitly bounded, not treated as proof.
+4. Privacy/data minimization — PASS — No unnecessary identity, credentials, intimate content, or sensitive inputs are requested.
+5. Recovery safety — PASS — Guidance prohibits destructive changes, lockouts, and control bypasses.
+6. Reputation/sexual-content safety — PASS — Copy avoids shame, absolutism, gender-worth claims, and inevitable penalties.
+7. Low-literacy usability on paper — PASS — Instructions use plain questions, definitions, and safe “unsure/stop” paths.
+8. Release integrity — PASS — Evidence marks the candidate non-public, excludes DS runtime files, and does not authorize deployment.
+
+Overall verdict: EXTERNAL_PASS / HUMAN_EVIDENCE_PENDING
+
+Repair list: None.

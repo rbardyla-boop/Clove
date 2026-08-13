@@ -1,0 +1,12 @@
+1. PASS — Runtime claims remain within the bounded evidence rulings.
+2. PASS — DS-00 through DS-06 each require concrete inspection, decisions, checks, or recovery actions.
+3. PASS — Uncertainty is bounded; surveillance, compromise, manipulation, and inevitable harm are not asserted.
+4. PASS — Only coarse choices are collected; sensitive data and telemetry are excluded.
+5. PASS — Guidance explicitly avoids destructive changes, lockouts, and recovery bypasses.
+6. PASS — Sexual/reputational content is adult-only, non-shaming, and context-dependent.
+7. PASS — Screens use short explanations, plain choices, valid uncertainty paths, and simple responsive controls.
+8. PASS — Runtime files are explicitly marked non-public and excluded from the 302-file production surface.
+
+Overall verdict: **EXTERNAL_PASS / HUMAN_EVIDENCE_PENDING**
+
+Exact-text repair list: **NONE**

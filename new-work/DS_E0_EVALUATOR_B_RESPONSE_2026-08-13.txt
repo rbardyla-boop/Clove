@@ -1,0 +1,27 @@
+GATE 1 — PASS
+Reason: Runtime teaching stays within the packet's locked principles, narrowed admissible wording, and implementation evidence boundaries; it does not present the retired universal claims as facts.
+
+GATE 2 — PASS
+Reason: DS-00 through DS-06 each requires an observable inspect, classify, decide, check, recovery, or safe-exit action rather than passive reading.
+
+GATE 3 — PASS
+Reason: The runtime repeatedly bounds uncertainty and risk, including explicit statements that uncertainty, capability, or possible consequences do not prove surveillance, compromise, manipulation, addiction, or inevitable harm.
+
+GATE 4 — PASS
+Reason: The drills use coarse choices and keep service names, identifiers, credentials, codes, intimate content, offer details, and message content outside Clove; the only test message is explicitly harmless and private information is prohibited.
+
+GATE 5 — PASS
+Reason: Account and security flows are inspect-only or reversible and explicitly prohibit logout, password reset, MFA removal, code consumption, critical-account migration, deletion, wiping, and control bypass.
+
+GATE 6 — PASS
+Reason: The intimate-content module uses non-shaming, probabilistic, context-dependent wording and avoids purity, gender-worth, permanence absolutism, and universal career or relationship penalties.
+
+GATE 7 — PASS
+Reason: The paper flow uses one short question at a time, plain explanations, bounded choices, and valid I DON'T KNOW / UNSURE / STOP paths; unfamiliar distinctions are introduced directly in the relevant drill.
+
+GATE 8 — PASS
+Reason: The packet labels the candidate NOT PUBLIC, reports an unchanged 302-file public path set, lists DS-00 through DS-06 as forbidden sentinels, and states that the packet does not authorize deployment.
+
+OVERALL VERDICT: EXTERNAL_PASS / HUMAN_EVIDENCE_PENDING
+
+Exact text requiring repair: NONE.

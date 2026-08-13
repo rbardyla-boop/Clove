@@ -1,0 +1,1 @@
+Read the attached DS_E0_BLIND_PACKET_2026-08-12.md and act only as its independent evaluator. Follow the packet's eight-gate rubric exactly. Do not return a partial evaluation. Return all eight gate verdicts and the single overall verdict in one response. Do not use or ask for project history outside the packet.

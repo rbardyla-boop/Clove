@@ -1,0 +1,39 @@
+PROXY_CODE: P01
+MODULE_OUTCOMES:
+DS-00: COMPLETED
+DS-01: COMPLETED
+DS-02: COMPLETED
+DS-03: COMPLETED
+DS-04: COMPLETED
+DS-05: COMPLETED
+DS-06: COMPLETED
+UNCOACHED_PROCEDURAL_COACHING_COUNT: 0
+RECOVERY_PROBE_1_CHOICE: NOT ADMINISTERED — fixed probe and safe-answer key absent from permitted inputs; FAIL CLOSED.
+RECOVERY_PROBE_2_CHOICE: NOT ADMINISTERED — fixed probe and safe-answer key absent from permitted inputs; FAIL CLOSED.
+RECOVERY_PROBE_3_CHOICE: NOT ADMINISTERED — fixed probe and safe-answer key absent from permitted inputs; FAIL CLOSED.
+RECOVERY_PROBE_4_CHOICE: NOT ADMINISTERED — fixed probe and safe-answer key absent from permitted inputs; FAIL CLOSED.
+COMPREHENSION_PROBE_1_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_PROBE_2_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_PROBE_3_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_PROBE_4_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_PROBE_5_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_PROBE_6_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_PROBE_7_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_PROBE_8_ANSWER: NOT ADMINISTERED — fixed prompt/key absent; SCORE: 0.
+COMPREHENSION_TOTAL: 0/8 — unscorable because the fixed prompts and answer key were not supplied; recorded FAIL CLOSED.
+EVIDENCE_BOUNDARY_OVERCLAIM_ERRORS:
+DS-00: Material. Selecting “I CHECKED — IT LOOKS CURRENT” produces “Recovery verified” / “VERIFIED”; the drill explicitly avoids an actual recovery test, so this wording can overstate what was established.
+SAFETY_PRIVACY_FLAGS:
+SAFETY: No additional material unsafe instruction observed in the runtime text; each operational module provides a stop or restore path and excludes high-consequence actions.
+PRIVACY: No undisclosed collection observed in the runtime text. DS-00 through DS-04 persist disclosed coarse choices in local storage; DS-05 and DS-06 are in-memory only.
+ABANDONMENT_CLASSIFICATION: NONE — all seven modules reached a bounded tabletop completion; no confusion-based abandonment observed.
+PROTOCOL_DEVIATION_FLAG: YES — the permitted proxy protocol refers to four fixed recovery probes and eight fixed comprehension probes “as the frozen human protocol,” but does not supply their prompts or answer key. They could not be administered or keyed without inventing content.
+AI_PROXY_H1_SESSION_CONTRIBUTION: QUALIFIES — 7/7 modules completed with 0 procedural coaching; five-session threshold not computable from one sealed record.
+AI_PROXY_H2_SESSION_CONTRIBUTION: FAIL CLOSED — four recovery-probe safe choices unavailable because probe content/key is absent; five-session threshold not computable.
+AI_PROXY_H3_SESSION_CONTRIBUTION: FAIL CLOSED — 0/8 recorded because comprehension probes/key are absent; five-session threshold not computable.
+AI_PROXY_H4_SESSION_CONTRIBUTION: QUALIFIES — no safety/privacy failure identified in the permitted runtime text, subject to the DS-00 evidence-boundary error above.
+AI_PROXY_H5_SESSION_CONTRIBUTION: QUALIFIES — reached DS-06 with no confusion-based abandonment; five-session threshold not computable.
+AI_PROXY_H6_SESSION_CONTRIBUTION: QUALIFIES — DS-03 next-day check: after ordinary use, decide whether the one changed stream caused anything important to be missed; restore the prior setting if something was missed or if uncertain.
+MATERIAL_FAILURE_RATIONALES:
+PROTOCOL: Missing fixed recovery/comprehension probes and keys prevents faithful administration and scoring; no substitute was inferred.
+DS-00: “Recovery verified” is stronger than the permitted inspection (“looks current” or recovery location found) and may imply tested recovery.

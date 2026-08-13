@@ -1,0 +1,57 @@
+PROXY_CODE: P03
+INTERACTION_STYLE: distracted, time-limited phone user
+RECORD_TYPE: AI usability proxy; not human evidence
+
+MODULE_OUTCOMES
+DS-00: COMPLETED
+DS-01: COMPLETED
+DS-02: COMPLETED
+DS-03: PARTIAL
+DS-04: COMPLETED
+DS-05: COMPLETED
+DS-06: COMPLETED
+
+UNCOACHED_PROCEDURAL_COACHING_COUNT: 0
+
+RECOVERY_PROBE_CHOICES
+RP1: UNAVAILABLE; exact fixed probe and answer options are absent from the permitted inputs
+RP2: UNAVAILABLE; exact fixed probe and answer options are absent from the permitted inputs
+RP3: UNAVAILABLE; exact fixed probe and answer options are absent from the permitted inputs
+RP4: UNAVAILABLE; exact fixed probe and answer options are absent from the permitted inputs
+RECOVERY_SAFE_SCORE: 0/4; fail-closed because the fixed probes could not be administered or keyed
+
+COMPREHENSION_PROBE_ANSWERS_AND_KEYED_SCORES
+CP1: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+CP2: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+CP3: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+CP4: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+CP5: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+CP6: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+CP7: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+CP8: ANSWER=UNAVAILABLE; KEY=UNAVAILABLE; SCORE=0
+COMPREHENSION_TOTAL: 0/8; fail-closed because the fixed probes and keys could not be administered
+
+EVIDENCE_BOUNDARY_OVERCLAIM_ERRORS: 0
+EVIDENCE_BOUNDARY_NOTE: No proxy answer claimed personalization, inevitable harm, security, compromise, deletion of all copies, human comprehension, effectiveness, or permission to deploy.
+
+SAFETY_PRIVACY_FLAGS
+SAFETY_FAILURES: 0
+PRIVACY_FAILURES: 0
+PRIVATE_DATA_ENTERED_OR_INVENTED: NO
+REAL_ACCOUNT_PURCHASE_NOTIFICATION_PUBLICATION_OR_RECOVERY_ACTION_CLAIMED: NO
+FLAG: Fixed-probe definitions and scoring keys are missing from the permitted protocol/runtime inputs; this is an execution-validity issue, not a candidate safety event.
+
+ABANDONMENT_CLASSIFICATION: NOT_ABANDONED; DS-03 was left PARTIAL for time constraint, not confusion, and the tabletop review reached DS-06.
+
+AI_PROXY_H1_SESSION_CONTRIBUTION: QUALIFIES; 6/7 modules completed without procedural coaching
+AI_PROXY_H2_SESSION_CONTRIBUTION: DOES_NOT_QUALIFY; four fixed recovery probes were unadministerable
+AI_PROXY_H3_SESSION_CONTRIBUTION: DOES_NOT_QUALIFY; eight fixed comprehension probes were unadministerable
+AI_PROXY_H4_SESSION_CONTRIBUTION: NO_SAFETY_OR_PRIVACY_FAILURE
+AI_PROXY_H5_SESSION_CONTRIBUTION: QUALIFIES; reached DS-06 without confusion-based abandonment
+AI_PROXY_H6_SESSION_CONTRIBUTION: QUALIFIES; DS-03 next-day operational check is to use the device for a few hours or a normal day, judge whether the one change caused a missed important item, and restore the previous setting if something important was missed or the result is uncertain
+
+PROTOCOL_DEVIATION_FLAG: YES
+
+MATERIAL_FAILURE_RATIONALES
+DS-03 PARTIAL: The core real-life check requires a few hours or a normal day. A distracted, time-limited phone session cannot honestly report that observation as complete in the same sitting; the visible stop/recovery wording keeps this bounded and recoverable.
+PROTOCOL EXECUTION: The permitted proxy protocol refers to the frozen human protocol for the four fixed recovery probes and eight comprehension probes but does not reproduce their prompts, choices, expected keys, or exact task battery. The frozen human protocol is outside the read allowlist. Inferring replacement probes would violate the fixed-probe requirement, so all probe scores are zero fail-closed and this record is protocol-deviating/incomplete for cohort gate computation.

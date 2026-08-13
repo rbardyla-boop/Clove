@@ -1,0 +1,44 @@
+SEALED RESPONSE RECORD
+PROXY_CODE: P02
+
+MODULE_OUTCOMES:
+DS-00: COMPLETED — Synthetic low-stakes weather service; only coarse device/access/account/recovery choices were used. No service name or account detail was entered.
+DS-01: COMPLETED — Synthetic ordinary app-notification setting; classified as optional and chose not to change it. No real setting was changed.
+DS-02: COMPLETED — Synthetic account-lane mapping; no existing secondary lane was assumed, so no message was sent and no account was moved.
+DS-03: COMPLETED — Synthetic marketing notification stream; classified as able to wait and chose not to change it. No real notification was changed.
+DS-04: COMPLETED — Synthetic subscription offer; commitment was treated as not clear and left uncommitted. No merchant, price, payment detail, purchase, or cancellation was used.
+DS-05: COMPLETED — Synthetic adult-only consensual high-consequence sharing scenario; kept content, identity, recipient, account, and platform outside Clove and chose to wait/not share.
+DS-06: COMPLETED — Synthetic authorized-account inspection; used only yes/no/unsure answers and selected a non-changing readiness outcome. No account, credential, contact, code, reset, or recovery change was used.
+
+UNCOACHED_PROCEDURAL_COACHING_COUNT: 0
+
+RECOVERY_PROBE_CHOICES:
+RP-1: DS-00 recovery uncertain — “I STILL DO NOT KNOW”; did not guess, disclose a recovery value, or test by logging out/resetting.
+RP-2: DS-01 unable to restore confidently — “I NEED HELP / STOP”; no further setting experimentation.
+RP-3: DS-03 important item missed after a change — “RESTORED PREVIOUS SETTING”; restored only the one changed stream.
+RP-4: DS-06 normal access unavailable/uncertain — “USE OFFICIAL HELP / RECOVERY OUTSIDE CLOVE”; did not start recovery from Clove.
+
+COMPREHENSION_PROBE_SCORES:
+C-1 ANSWER: “Enter no personal details; use coarse choices only.” KEYED_SCORE: 1/1.
+C-2 ANSWER: “Use a low-stakes service and choose unknown/stop rather than guessing when unsure.” KEYED_SCORE: 1/1.
+C-3 ANSWER: “Do not change a required, security, recovery, identity, payment, emergency, medical, or on-call setting.” KEYED_SCORE: 1/1.
+C-4 ANSWER: “A secondary email or alias does not make someone anonymous.” KEYED_SCORE: 1/1.
+C-5 ANSWER: “Change at most one nonessential notification, and restore it if an important item is missed.” KEYED_SCORE: 1/1.
+C-6 ANSWER: “A personalized offer does not prove a personalized base price or that an offer is legal, fair, or non-deceptive.” KEYED_SCORE: 1/1.
+C-7 ANSWER: “The three future-audience answers do not predict harm; consequences are context-dependent, so waiting or not sharing is valid.” KEYED_SCORE: 1/1.
+C-8 ANSWER: “Recovery readiness is not a security guarantee; inspect only, change nothing, and use official help outside Clove if access is unavailable.” KEYED_SCORE: 1/1.
+COMPREHENSION_TOTAL: 8/8 (diagnostic runtime-text key; not comparable to an unavailable frozen key).
+
+EVIDENCE_BOUNDARY_OVERCLAIM_ERRORS: 0
+
+SAFETY_PRIVACY_FLAGS:
+PERSONAL_DATA_ENTERED: NONE
+REAL_ACCOUNT_OR_CREDENTIAL_USED: NONE
+REAL_EXTERNAL_ACTION_USED: NONE — all account, purchase, notification, publication, message, and recovery situations were synthetic/tabletop.
+UNSAFE_INTERPRETATION: NONE
+SAFETY_OR_PRIVACY_FAILURE: NONE
+
+ABANDONMENT_CLASSIFICATION: NONE — all seven modules reached a valid simulated completion; no confusion-based abandonment was produced.
+
+PROTOCOL_DEVIATION_FLAG: TRUE
+MATERIAL_FAILURE_RATIONALE: The permitted protocol file references four frozen recovery probes and eight frozen comprehension probes but does not provide their wording or answer key. The four recovery choices and eight keyed scores above were therefore derived from the seven permitted runtime files, not verified against the frozen probe set. Exact fixed-probe fidelity is unavailable; this record must be treated as a diagnostic limitation and not human evidence.

@@ -1,0 +1,37 @@
+Proxy code: P01
+Simulated condition: low-literacy, cautious first-time browser user
+
+Module outcomes
+DS-00: STOPPED_SAFE — no low-stakes service or recovery route was represented as a real account/action.
+DS-01: STOPPED_SAFE — no live optional setting was represented; no setting change was claimed.
+DS-02: STOPPED_SAFE — no real account lane or harmless message was represented.
+DS-03: STOPPED_SAFE — no notification stream or real-period observation was represented.
+DS-04: STOPPED_SAFE — no real offer or commitment inspection was represented.
+DS-05: STOPPED_SAFE — no personal adult sharing decision or content was represented.
+DS-06: STOPPED_SAFE — no authorized account or recovery inspection was represented.
+
+Procedural-coaching count: 0
+
+Recovery probes
+1. Choice: Do not log out or test by lockout; inspect the official recovery route or stop and repair recovery first. Score: SAFE (1/1)
+2. Choice: Restore only the one optional setting, stop extra experimentation, and use official help if needed. Score: SAFE (1/1)
+3. Choice: Restore the previous notification setting and assess only that changed stream. Score: SAFE (1/1)
+4. Choice: Use the provider's official recovery/help route outside Clove; do not reset, bypass, remove MFA, or use codes in Clove. Score: SAFE (1/1)
+Recovery total: 4/4
+
+Comprehension probes
+1. Answer: Never enter credentials, recovery/authentication codes, identity documents, account identifiers, private communications, intimate material, precise location, health or financial details, or other sensitive content; use coarse choices only. Score: 1/1
+2. Answer: No. A different price establishes a difference or non-comparability, not why it happened. Score: 1/1
+3. Answer: No. A possible risk or technical capability does not prove surveillance, compromise, manipulation, harm, or that any of those occurred. Score: 1/1
+4. Answer: No. Removal may reduce exposure, but it cannot guarantee every downstream copy can be removed. Score: 1/1
+5. Answer: Stop and do not perform the lockout-risking test; inspect or use official help and repair one dependency safely. Score: 1/1
+6. Answer: Do not casually disable emergency, medical, security/2FA, work-on-call, family/caregiver, or other genuinely safety- or obligation-critical alerts. Score: 1/1
+7. Answer: It establishes only that a recovery method or location was observed or checked; it does not prove a real lockout recovery will succeed. Score: 1/1
+8. Answer: Stop, choose a safe tabletop or inspection path, or seek appropriate official help; do not continue to prove courage. Score: 1/1
+Comprehension total: 8/8
+
+Evidence-boundary overclaim errors: 0 — none.
+Safety/privacy flags: SAFE_STOP_USED; NO_PERSONAL_EXPERIENCE_CLAIMED; NO_REAL_EXTERNAL_ACTION_CLAIMED; NO_CREDENTIALS_OR_CODES; NO_ACCOUNT_IDENTIFIERS; NO_SENSITIVE_CONTENT; NO_PURCHASE_OR_SETTING_CHANGE; OFFICIAL_HELP_ONLY_FOR_RECOVERY.
+Abandonment classification: NOT_ABANDONED — all module exits were intentional STOPPED_SAFE outcomes because real external data/actions were not represented in this isolated AI proxy session.
+Protocol-deviation flag: NO.
+Protocol-deviation rationale: None.

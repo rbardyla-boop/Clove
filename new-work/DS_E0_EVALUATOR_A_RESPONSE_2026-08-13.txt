@@ -1,0 +1,12 @@
+1. Evidence fidelity — PASS — Runtime claims stay within the packet’s narrowed evidence boundaries, including capability-versus-use, copying, attention, and context-dependent reputation language.
+2. Actionability — PASS — DS-00 through DS-06 each require a concrete map, inspection, decision, check, recovery/restore path, or bounded safe exit; none is passive reading alone.
+3. Fear/paranoia control — PASS — The runtime repeatedly states that uncertainty is not proof of harm, compromise, or inevitability, and retains user-controlled decisions and safe exits.
+4. Privacy/data minimization — PASS — The drills use coarse choices only, prohibit credentials, identity details, content, and free text, and state zero telemetry or ephemeral handling as applicable.
+5. Recovery safety — PASS — Account and setting guidance is inspect-only or reversible, explicitly prohibits destructive/security-weakening tests, and directs unavailable access to official help outside Clove.
+6. Reputation/sexual-content safety — PASS — DS-05 avoids shame, gender-worth claims, permanence absolutism, and universal career or relationship penalties; it frames consequences as context-dependent.
+7. Low-literacy usability on paper — PASS — The runtime uses one short question at a time, simple response choices, explanatory plain language, and explicit unsure/stop paths.
+8. Release integrity — PASS — The packet identifies Candidate A as non-public, lists DS-00 through DS-06 runtime files as forbidden production sentinels, and states that preflight evidence does not authorize deployment.
+
+Overall verdict: EXTERNAL_PASS / HUMAN_EVIDENCE_PENDING
+
+Exact text requiring repair: None.

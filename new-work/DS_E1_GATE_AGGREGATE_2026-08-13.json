@@ -1,0 +1,15 @@
+{
+  "candidate_commit": "bd85378c9f40b11bfd9ea943e7f86a9bb1c392cc",
+  "packet_sha256": "2c54e87a123b8afe5d9719c45ad39655af896e0ebf3c51ccfdf89801f4c7c817",
+  "evaluator_vectors": {
+    "A": ["PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS"],
+    "B": ["PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS"]
+  },
+  "gate_agreement": "8/8",
+  "overall_verdicts": {
+    "A": "EXTERNAL_PASS / HUMAN_EVIDENCE_PENDING",
+    "B": "EXTERNAL_PASS / HUMAN_EVIDENCE_PENDING"
+  },
+  "initial_aggregate": "8/8 PASS",
+  "disagreement_inspection": "after aggregate: no substantive gate or overall-verdict disagreement; rationale wording differences only"
+}

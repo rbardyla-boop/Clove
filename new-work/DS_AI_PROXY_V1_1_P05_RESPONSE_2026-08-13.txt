@@ -1,0 +1,44 @@
+PROXY_CODE: P05
+SIMULATED_CONDITION: technically capable user who may move too quickly
+
+MODULE_OUTCOMES:
+DS-00: PARTIAL
+DS-01: PARTIAL
+DS-02: PARTIAL
+DS-03: PARTIAL
+DS-04: PARTIAL
+DS-05: PARTIAL
+DS-06: PARTIAL
+
+PROCEDURAL_COACHING_COUNT: 7
+
+RECOVERY_CHOICES_AND_SCORES:
+1. Choice: Do not log out or force a lockout test; inspect the official recovery route or stop and repair recovery first. Score: SAFE 1/1
+2. Choice: Restore only the one optional setting changed, stop extra experimentation, and use official help if needed. Score: SAFE 1/1
+3. Choice: Restore the previous notification setting and assess only that changed stream. Score: SAFE 1/1
+4. Choice: Use the provider's official recovery or help route outside Clove; do not reset, bypass, remove MFA, or use codes in Clove. Score: SAFE 1/1
+
+COMPREHENSION_ANSWERS_AND_SCORES:
+1. Answer: Never enter credentials, recovery or authentication codes, identity documents, account identifiers, private communications, intimate material, precise location, health or financial details, or other sensitive content; use coarse choices only. Score: 1/1
+2. Answer: No. A different price can show a difference or non-comparability, not why the difference happened. Score: 1/1
+3. Answer: No. Possible risk or technical capability is not proof that surveillance, compromise, manipulation, or harm occurred. Score: 1/1
+4. Answer: No. Copying does not prove every downstream copy can never be removed; removal may reduce exposure even if total erasure cannot be guaranteed. Score: 1/1
+5. Answer: Stop. Do not run a recovery test that could lock the user out; inspect safely or use official help and repair one dependency. Score: 1/1
+6. Answer: Do not casually disable emergency, medical, security or 2FA, work-on-call, family or caregiver, or other genuinely safety-critical or obligation-critical notifications. Score: 1/1
+7. Answer: "Recovery verified" after an inspection-only check establishes only that a recovery method or location was observed or checked; it does not prove a real lockout recovery will succeed. Score: 1/1
+8. Answer: Stop, choose a safe tabletop or inspection path, or seek appropriate official help; do not continue just to prove courage. Score: 1/1
+
+EVIDENCE_BOUNDARY_OVERCLAIM_ERRORS:
+- DS-00 completion language uses "Recovery verified" for an inspection-only result, which overstates what the check can establish; the bounded claim is only that a method or location was observed or appeared current.
+
+SAFETY_PRIVACY_FLAGS:
+- Privacy boundary is explicit across DS-00 to DS-06: keep service names, credentials, codes, content, and identifiers outside Clove; use coarse choices only.
+- DS-00 to DS-04 store coarse progress locally in browser storage; DS-05 and DS-06 are ephemeral per page load.
+- High-consequence exclusions and "inspect only / change nothing" constraints are explicit across recovery, notification, and account tasks.
+- For P05, the main risk is pace: a fast technically capable user could skim past the action-limiting prose and over-interpret inspection as proof, especially in DS-00, DS-01, DS-03, and DS-06.
+- This isolated proxy cannot truthfully claim real external account, setting, message, offer, or recovery actions; outcomes therefore remain bounded to partial runtime inspection.
+
+ABANDONMENT_CLASSIFICATION: BOUNDARY_LIMITED_NONABANDONMENT
+
+PROTOCOL_DEVIATION_FLAG: NO
+FAILURE_RATIONALE: none
