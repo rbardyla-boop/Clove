@@ -23,6 +23,23 @@ Voice model:
 
 Ryan may use profanity, comedy, lived experience, and obvious storytelling exaggeration. Material factual claims must be bounded by source evidence.
 
+## No-money rule
+
+This movement is not a sales funnel.
+
+- No paid Substack tier pitch.
+- No donation ask inside movement editorials.
+- No guilt-based fundraising.
+- No artificial scarcity, premium truth, or paywalled receipts.
+- CloveLearn movement tools, evidence ledgers, corrections, and core educational material remain free.
+- Books may exist as optional depth, but the public argument must stand without buying anything.
+
+Public posture:
+
+> I am here to spread the message, test the ideas, and build useful things. I am not charging admission to the fucking lecture.
+
+Money, audience size, likes, subscriptions, and book sales are not evidence that a claim is true.
+
 ## Movement boundaries
 
 This movement is not:
@@ -45,6 +62,8 @@ This movement is not:
 6. Build competence, belonging, service, and responsibility rather than only messaging self-esteem.
 7. Technology should extend judgment, not replace it.
 8. If evidence defeats the claim, change the claim.
+9. Own your side of the interaction without inheriting everyone else’s side.
+10. No theory, credential, institution, movement, or founder gets tenure in being right.
 
 ## Launch earworms
 
@@ -57,6 +76,9 @@ This movement is not:
 - You cannot shame a boy into healthy masculinity.
 - Don’t just tell a boy he matters. Put him somewhere his contribution matters.
 - The pendulum is not a wrecking ball. Put the level down and read the bubble.
+- Own the red hand. Don’t carry everybody else’s.
+- Nobody gets tenure in being right.
+- Expertise should make your explanation better, not make questions illegal.
 
 ## Current Canadian evidence anchors
 
@@ -139,6 +161,18 @@ Candidate settings:
 
 Question: What happens when technology removes the delay between impulse and action or substitutes visible optimization for slow competence-building?
 
+### 7. Credential and Gatekeeping Audit
+
+Question: When do credentials and peer review improve quality control, and when do status, prestige, institutional access, or closed review systems become substitutes for examining evidence?
+
+Boundary: this is not an anti-expertise project. Expertise is evidence of training, not immunity from challenge.
+
+### 8. Sex-Responsive Service Design
+
+Question: In which health, mental-health, education, prevention, mentoring, and support settings does sex-responsive design measurably improve outcomes compared with one-size-fits-all delivery?
+
+Boundary: do not assume male-only or female-only delivery is better. Test it.
+
 ## Publishing architecture
 
 ### CloveLearn
@@ -163,6 +197,8 @@ Story-first distribution:
 4. I FUCKED THIS UP
 5. GET YOUR HANDS BACK
 
+Standing rule: no paid-tier ask, donation ask, or premium-truth pitch.
+
 ### X
 
 Short high-salience claims linked back to receipts. No harassment, coordinated pile-ons, or motive claims without evidence.
@@ -177,11 +213,13 @@ Central question:
 
 > If Canada wants more men to seek help, are we studying only why men do not walk through the door, or are we also studying what happens to the men who do?
 
-First three publishable units:
+First five publishable units:
 
 1. **Rub Dirt on It Is Not a Health Strategy** — national strategy + Ryan’s bounded lived examples + the two-sides-of-the-door question.
-2. **Equal Does Not Mean Identical** — sex-responsive services without sex-war framing.
-3. **Men Who Walked Away** — research agenda, not a conclusion.
+2. **My Red Hand** — ownership before accusation: Ryan’s failures, corrections, and the rule that owning his side does not mean owning everyone else’s side.
+3. **The Degree Is Not an Infinity Stone** — expertise, credentials, peer review, self-taught knowledge, and institutional gatekeeping.
+4. **Equal Does Not Mean Identical** — sex-responsive services without sex-war framing.
+5. **Men Who Walked Away** — research agenda, not a conclusion.
 
 ## 30-day launch
 
@@ -189,14 +227,17 @@ Week 1:
 - publish movement page;
 - publish flagship Substack article;
 - publish short X thread with official stats and link to receipt page;
-- send respectful public-interest note to Health Canada.
+- send respectful public-interest note to Health Canada;
+- publish no-money/no-paid-truth rule.
 
 Week 2:
-- publish Equal Does Not Mean Identical;
+- publish My Red Hand;
+- publish The Degree Is Not an Infinity Stone;
 - publish methodology for Male Message Audit;
 - invite source submissions, not accusations.
 
 Week 3:
+- publish Equal Does Not Mean Identical;
 - publish Men Who Walked Away research question;
 - consult research-ethics/privacy expertise before collecting sensitive human-subject data;
 - map existing male-responsive programs in Canada, UK, Ireland, Australia, and WHO Europe.
