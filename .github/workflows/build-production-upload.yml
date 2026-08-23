@@ -195,7 +195,7 @@ jobs:
       - name: Strip release metadata from public tree
         run: |
           rm -f dist/clove-upload/_UPLOAD_MANIFEST.json dist/clove-upload/_SHA256SUMS.txt
-          test "$(find dist/clove-upload -type f | wc -l | tr -d ' ')" = "309"
+          test "$(find dist/clove-upload -type f | wc -l | tr -d ' ')" = "310"
           test ! -e dist/clove-upload/_UPLOAD_MANIFEST.json
           test ! -e dist/clove-upload/_SHA256SUMS.txt
 
