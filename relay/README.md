@@ -41,13 +41,49 @@ If Substack provides a supported write/scheduling API in the future, that adapte
 
 Requires Python 3.11+.
 
+### Debian / Ubuntu
+
+Recent Debian/Ubuntu releases use PEP 668 and intentionally block `pip` from modifying the system Python environment. Do **not** use `--break-system-packages`. Create a project virtual environment instead.
+
+From the Clove repository root:
+
+```bash
+sudo apt update
+sudo apt install -y python3-full python3-venv
+
+cd relay
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+
+python -m pip install --upgrade pip
+python -m pip install -e '.[dev]'
+python -m playwright install --with-deps chromium
+```
+
+Once `.venv` is active, the `python`, `pytest`, `playwright`, and `clove-relay` commands resolve inside the project environment.
+
+Do not activate an unrelated virtual environment from another project.
+
+### Other systems with Python 3.11+
+
 ```bash
 cd relay
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
-playwright install chromium
+python -m pip install --upgrade pip
+python -m pip install -e '.[dev]'
+python -m playwright install chromium
 ```
+
+## First local check
+
+```bash
+python -m pytest -q
+clove-relay validate examples/detox-season.yml
+```
+
+Do not proceed to Substack login until both commands pass.
 
 ## Ryan's detox batch
 
