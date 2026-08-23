@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 
 from .adapters.substack_playwright import RelayStop, SubstackPlaywrightAdapter
+from .firefox_session import FirefoxSessionImportError, import_firefox_session
 from .manifest import load_manifest
 from .receipts import write_receipts
 from .validate import resolved_time, validate_manifest
@@ -31,6 +32,15 @@ def _parser() -> argparse.ArgumentParser:
 
     with_manifest("validate", "Validate the manifest and source packets", time=True)
     with_manifest("login", "Open the persistent local Substack login session")
+    import_firefox = with_manifest(
+        "import-firefox-session",
+        "Copy only Substack cookies from an already-authenticated local Firefox profile",
+    )
+    import_firefox.add_argument(
+        "--profile",
+        type=Path,
+        help="Explicit Firefox profile directory; omit to auto-discover and choose",
+    )
     with_manifest("dry-run", "Fill one post and stop before Schedule", post=True, time=True)
     with_manifest("qualify", "Schedule and verify exactly one post", post=True, time=True)
     with_manifest("schedule", "Schedule and verify the full batch sequentially", time=True)
@@ -70,6 +80,10 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"WARNING: {warning}")
             if result.warnings:
                 print("Dates are frozen. Supply --default-time HH:MM when scheduling.")
+            return 0
+
+        if args.command == "import-firefox-session":
+            import_firefox_session(manifest, profile=args.profile)
             return 0
 
         adapter = SubstackPlaywrightAdapter(manifest)
@@ -144,7 +158,7 @@ def main(argv: list[str] | None = None) -> int:
 
         raise AssertionError(f"unhandled command {args.command}")
 
-    except (ValueError, OSError, RelayStop) as exc:
+    except (ValueError, OSError, RelayStop, FirefoxSessionImportError) as exc:
         print(f"RELAY_STOP: {exc}", file=sys.stderr)
         return 2
 
