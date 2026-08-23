@@ -1,0 +1,189 @@
+publication: substack
+dashboard_url: https://ryanbardyla.substack.com/publish/home
+posts_url: https://ryanbardyla.substack.com/publish/posts
+timezone: America/Halifax
+
+# Clock time is intentionally omitted. Supply --default-time HH:MM at run time.
+# Every post is free/everyone and sent by email/app, matching the detox plan.
+posts:
+  - title: "WHERE DID THE BOYS GO?"
+    subtitle: "Before we pick a villain, can we find out when the gaps actually appeared?"
+    publish_date: "2026-08-25"
+    source_bundle: "../../docs/DETOX-SEASON-01-WEEKS-1-3-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE MARKET FOUND LOOKSMAXXING"
+    subtitle: "A fringe language of male inadequacy just learned how to sell moisturizer and hamburgers."
+    publish_date: "2026-08-28"
+    source_bundle: "../../docs/DETOX-SEASON-01-WEEKS-1-3-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "EQUAL DOES NOT MEAN IDENTICAL"
+    subtitle: "Fair is not a photocopier."
+    publish_date: "2026-09-01"
+    source_bundle: "../../docs/DETOX-SEASON-01-WEEKS-1-3-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "DO MEN SOMETIMES NEED MEN?"
+    subtitle: "If the person across the desk matters, why are we afraid to measure it?"
+    publish_date: "2026-09-04"
+    source_bundle: "../../docs/DETOX-SEASON-01-WEEKS-1-3-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE LIBRARY OF ALEXANDRIA IS 24 INCHES FROM YOUR NUTS"
+    subtitle: "We gave humanity almost all the world's knowledge and forgot to teach it how to think."
+    publish_date: "2026-09-08"
+    source_bundle: "../../docs/DETOX-SEASON-01-WEEKS-1-3-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE VANISHING PAUSE"
+    subtitle: "Civilization used to have a few seconds between stupid thought and permanent consequence."
+    publish_date: "2026-09-11"
+    source_bundle: "../../docs/DETOX-SEASON-01-WEEKS-1-3-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "WE LOST THE DENOMINATOR"
+    subtitle: "A feed can show you a thousand true things and still leave you with a false picture of the world."
+    publish_date: "2026-09-15"
+    source_bundle: "../../docs/DETOX-SEASON-02-WEEKS-4-6-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE CROWD YOU THINK EXISTS"
+    subtitle: "Likes, comments and viral freaks are not a census."
+    publish_date: "2026-09-18"
+    source_bundle: "../../docs/DETOX-SEASON-02-WEEKS-4-6-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "DEMOCRACY, MY ASS"
+    subtitle: "Before calling the system fake, find out what the founders actually designed."
+    publish_date: "2026-09-22"
+    source_bundle: "../../docs/DETOX-SEASON-02-WEEKS-4-6-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE OUTVOTED PERSON"
+    subtitle: "Democracy does not mean you get your way. So what does political agency actually mean?"
+    publish_date: "2026-09-25"
+    source_bundle: "../../docs/DETOX-SEASON-02-WEEKS-4-6-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE GOVERNMENT LEARNS TO LISTEN"
+    subtitle: "Polling looked like democracy hearing the public. Then listening became prediction."
+    publish_date: "2026-09-29"
+    source_bundle: "../../docs/DETOX-SEASON-02-WEEKS-4-6-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "CANADA TESTED THE MESSAGE"
+    subtitle: "Political persuasion did not begin with Facebook."
+    publish_date: "2026-10-02"
+    source_bundle: "../../docs/DETOX-SEASON-02-WEEKS-4-6-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "YOU DON'T GET TO KNOW ME WELL ENOUGH TO OPTIMIZE ME"
+    subtitle: "Persuasion changes when the speaker can measure the listener."
+    publish_date: "2026-10-06"
+    source_bundle: "../../docs/DETOX-SEASON-03-WEEKS-7-9-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "MICROTARGETING IS NOT A SNIPER RIFLE"
+    subtitle: "The mythology may be scarier than the measured persuasion effect."
+    publish_date: "2026-10-09"
+    source_bundle: "../../docs/DETOX-SEASON-03-WEEKS-7-9-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE ALGORITHM DIDN'T BRAINWASH YOU"
+    subtitle: "That does not mean the ranking system is neutral."
+    publish_date: "2026-10-13"
+    source_bundle: "../../docs/DETOX-SEASON-03-WEEKS-7-9-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE WORST FIVE MINUTES"
+    subtitle: "What if your feed learns from the version of you that should never have been promoted to management?"
+    publish_date: "2026-10-16"
+    source_bundle: "../../docs/DETOX-SEASON-03-WEEKS-7-9-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE WEF CLIP WAS REAL. THE MATH WASN'T."
+    subtitle: "A real quote can still support a bullshit conclusion."
+    publish_date: "2026-10-20"
+    source_bundle: "../../docs/DETOX-SEASON-03-WEEKS-7-9-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "GOVERNMENT LIES. THAT DOESN'T MAKE EVERY CONSPIRACY TRUE."
+    subtitle: "Institutional dishonesty destroys trust. It does not repeal the burden of proof."
+    publish_date: "2026-10-23"
+    source_bundle: "../../docs/DETOX-SEASON-03-WEEKS-7-9-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "WHAT DO I MEAN WHEN I SAY I MADE UP MY OWN MIND?"
+    subtitle: "Nobody thinks in a vacuum. Agency is deciding what gets to influence you."
+    publish_date: "2026-10-27"
+    source_bundle: "../../docs/DETOX-SEASON-04-WEEKS-10-11-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE PERSON GETS VETO POWER OVER THE STEREOTYPE"
+    subtitle: "A group pattern can be a clue. It can never be the sentence."
+    publish_date: "2026-10-30"
+    source_bundle: "../../docs/DETOX-SEASON-04-WEEKS-10-11-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "I THINK I WAS COLLECTING EVIDENCE FROM A RIGGED EXPERIMENT"
+    subtitle: "Sometimes the unfair rule you hate is also working in your favour."
+    publish_date: "2026-11-03"
+    source_bundle: "../../docs/DETOX-SEASON-04-WEEKS-10-11-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "DON'T JUST TELL A BOY HE MATTERS"
+    subtitle: "Put him somewhere his contribution matters."
+    publish_date: "2026-11-06"
+    source_bundle: "../../docs/DETOX-SEASON-04-WEEKS-10-11-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "SCHOOL IS AN ENGINEERED ENVIRONMENT"
+    subtitle: "If boys keep struggling inside it, inspect the environment as well as the boy."
+    publish_date: "2026-11-10"
+    source_bundle: "../../docs/DETOX-SEASON-05-WEEKS-12-13-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "EIGHTEEN IS NOT A NEUROLOGICAL SWITCH"
+    subtitle: "We teach a teenager to drive a car, then hand him the internet with instructions not to lose the charger."
+    publish_date: "2026-11-13"
+    source_bundle: "../../docs/DETOX-SEASON-05-WEEKS-12-13-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "MEN WHO WALKED AWAY"
+    subtitle: "We keep asking why men won't seek help. What about the ones who went and never came back?"
+    publish_date: "2026-11-17"
+    source_bundle: "../../docs/DETOX-SEASON-05-WEEKS-12-13-PASTE-READY.txt"
+    audience: everyone
+    email: true
+
+  - title: "THE NEW TEMPERANCE"
+    subtitle: "Get your hands back on the controls."
+    publish_date: "2026-11-20"
+    source_bundle: "../../docs/DETOX-SEASON-05-WEEKS-12-13-PASTE-READY.txt"
+    audience: everyone
+    email: true
