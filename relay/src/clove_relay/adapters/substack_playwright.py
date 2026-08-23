@@ -51,14 +51,6 @@ class SubstackPlaywrightAdapter:
 
     @staticmethod
     def _dom_identity(locator: Locator) -> str:
-        """Return a per-page identity for a DOM element without modifying page markup.
-
-        Several semantic selectors can legitimately resolve to the same editor element.
-        Relay previously counted those selector hits as separate safe candidates and
-        stopped even though only one real field existed. A WeakMap lets us deduplicate
-        selector aliases while still failing closed if two distinct elements match.
-        """
-
         value = locator.evaluate(
             """
             el => {
@@ -79,6 +71,8 @@ class SubstackPlaywrightAdapter:
 
     @classmethod
     def _unique(cls, candidates: list[Locator], description: str) -> Locator:
+        """Return exactly one distinct visible element across selector aliases."""
+
         matches: dict[str, Locator] = {}
         selector_hits = 0
         for candidate in candidates:
@@ -86,30 +80,42 @@ class SubstackPlaywrightAdapter:
                 count = candidate.count()
             except Exception:
                 continue
-            if count != 1:
-                continue
-            selector_hits += 1
-            try:
-                identity = cls._dom_identity(candidate)
-            except Exception:
-                continue
-            matches.setdefault(identity, candidate)
+            for index in range(count):
+                item = candidate.nth(index)
+                try:
+                    if not item.is_visible():
+                        continue
+                    identity = cls._dom_identity(item)
+                except Exception:
+                    continue
+                selector_hits += 1
+                matches.setdefault(identity, item)
 
         if len(matches) != 1:
             raise RelayStop(
-                f"could not identify exactly one {description}; "
-                f"unique elements={len(matches)}, selector hits={selector_hits}"
+                f"could not identify exactly one visible {description}; "
+                f"unique elements={len(matches)}, visible selector hits={selector_hits}"
             )
         return next(iter(matches.values()))
 
     @staticmethod
     def _editable_value(locator: Locator) -> str:
-        """Read back either a form field or a contenteditable field."""
-
         kind = locator.evaluate("el => el.tagName.toLowerCase()")
         if kind in {"input", "textarea"}:
             return locator.input_value().strip()
         return (locator.text_content() or "").strip()
+
+    @staticmethod
+    def _fill_editable(locator: Locator, value: str) -> None:
+        """Fill a visible input/textarea/contenteditable and trigger normal editor events."""
+
+        kind = locator.evaluate("el => el.tagName.toLowerCase()")
+        if kind in {"input", "textarea"}:
+            locator.fill(value)
+            return
+        locator.click()
+        locator.press("Control+A")
+        locator.fill(value)
 
     def _ensure_logged_in(self, page: Page) -> None:
         page.goto(self.manifest.dashboard_url, wait_until="domcontentloaded")
@@ -150,6 +156,7 @@ class SubstackPlaywrightAdapter:
             raise self._stop(page, "Could not identify the Article control", "article-control")
         article.click()
         page.wait_for_load_state("domcontentloaded")
+        page.wait_for_timeout(500)
 
     def _fill_editor(self, page: Page, post: ValidatedPost) -> None:
         self._open_new_article(page)
@@ -188,22 +195,37 @@ class SubstackPlaywrightAdapter:
         except RelayStop as exc:
             raise self._stop(page, str(exc), f"editor-fields-{post.spec.index:02d}")
 
-        title.fill(post.spec.title)
-        subtitle.fill(post.spec.subtitle)
-        body.fill(post.body)
+        self._fill_editable(title, post.spec.title)
+        self._fill_editable(subtitle, post.spec.subtitle)
+        self._fill_editable(body, post.body)
+        page.wait_for_timeout(300)
 
-        # Read our own fields back before continuing. Relay does not inspect unrelated content.
         if self._editable_value(title) != post.spec.title:
-            raise self._stop(page, "Title read-back mismatch", f"title-mismatch-{post.spec.index:02d}")
+            raise self._stop(page, "Visible title read-back mismatch", f"title-mismatch-{post.spec.index:02d}")
         if self._editable_value(subtitle) != post.spec.subtitle:
-            raise self._stop(page, "Subtitle read-back mismatch", f"subtitle-mismatch-{post.spec.index:02d}")
+            raise self._stop(page, "Visible subtitle read-back mismatch", f"subtitle-mismatch-{post.spec.index:02d}")
+        if not self._editable_value(body):
+            raise self._stop(page, "Visible body read-back was empty", f"body-mismatch-{post.spec.index:02d}")
 
     def _continue_to_publish_settings(self, page: Page, post: ValidatedPost) -> None:
         continue_button = page.get_by_role("button", name=re.compile(r"^Continue$", re.I))
         if continue_button.count() != 1:
             raise self._stop(page, "Could not identify Continue button", f"continue-{post.spec.index:02d}")
         continue_button.click()
-        page.wait_for_timeout(800)
+        page.wait_for_timeout(1500)
+
+        # If the visible editor placeholders are still present, Continue did not advance.
+        visible_title_placeholder = page.get_by_text("Title", exact=True)
+        visible_subtitle_placeholder = page.get_by_text(re.compile(r"^Add a subtitle", re.I))
+        if (
+            any(visible_title_placeholder.nth(i).is_visible() for i in range(visible_title_placeholder.count()))
+            or any(visible_subtitle_placeholder.nth(i).is_visible() for i in range(visible_subtitle_placeholder.count()))
+        ):
+            raise self._stop(
+                page,
+                "Continue did not reach publish settings; the editor still shows an unfilled title/subtitle placeholder",
+                f"continue-stayed-editor-{post.spec.index:02d}",
+            )
 
     def _set_audience(self, page: Page, post: ValidatedPost) -> None:
         if post.spec.audience != "everyone":
@@ -220,23 +242,30 @@ class SubstackPlaywrightAdapter:
             return
 
         everyone = page.get_by_text("Everyone", exact=True)
-        if everyone.count() == 1:
-            everyone.click()
+        visible_everyone = [everyone.nth(i) for i in range(everyone.count()) if everyone.nth(i).is_visible()]
+        if len(visible_everyone) == 1:
+            visible_everyone[0].click()
             return
 
-        raise self._stop(page, "Could not safely identify audience=Everyone", f"audience-{post.spec.index:02d}")
+        print("\nRelay reached publishing controls but cannot prove the current audience widget is safe to automate.")
+        print("Set the audience to Everyone in the visible Substack window.")
+        input("When Everyone is visibly selected, press Enter here: ")
 
     def _set_email(self, page: Page, post: ValidatedPost) -> None:
         checkbox = page.get_by_role(
             "checkbox", name=re.compile(r"Send via email and Substack app inbox", re.I)
         )
-        if checkbox.count() != 1:
-            # The UI text is documented by Substack, but if the control shape changes we stop.
-            raise self._stop(page, "Could not identify email/app delivery checkbox", f"email-{post.spec.index:02d}")
-        if checkbox.is_checked() != post.spec.email:
-            checkbox.click()
-        if checkbox.is_checked() != post.spec.email:
-            raise self._stop(page, "Email/app delivery state did not match manifest", f"email-state-{post.spec.index:02d}")
+        if checkbox.count() == 1:
+            if checkbox.is_checked() != post.spec.email:
+                checkbox.click()
+            if checkbox.is_checked() != post.spec.email:
+                raise self._stop(page, "Email/app delivery state did not match manifest", f"email-state-{post.spec.index:02d}")
+            return
+
+        print("\nRelay cannot prove the current email/app delivery widget is safe to automate.")
+        desired = "enabled" if post.spec.email else "disabled"
+        print(f"Set email/app delivery to {desired} in the visible Substack window.")
+        input("When the delivery setting is visibly correct, press Enter here: ")
 
     def _enable_schedule(self, page: Page, post: ValidatedPost) -> None:
         schedule = page.get_by_role(
@@ -244,12 +273,16 @@ class SubstackPlaywrightAdapter:
         )
         if schedule.count() != 1:
             schedule = page.get_by_label(re.compile(r"Schedule time to email and publish", re.I))
-        if schedule.count() != 1:
-            raise self._stop(page, "Could not identify schedule checkbox", f"schedule-toggle-{post.spec.index:02d}")
-        if not schedule.is_checked():
-            schedule.click()
-        if not schedule.is_checked():
-            raise self._stop(page, "Schedule checkbox did not stay enabled", f"schedule-toggle-state-{post.spec.index:02d}")
+        if schedule.count() == 1:
+            if not schedule.is_checked():
+                schedule.click()
+            if not schedule.is_checked():
+                raise self._stop(page, "Schedule checkbox did not stay enabled", f"schedule-toggle-state-{post.spec.index:02d}")
+            return
+
+        print("\nRelay cannot prove the current scheduling toggle is safe to automate.")
+        print("Enable Substack's future scheduling option in the visible window.")
+        input("When future scheduling is visibly enabled, press Enter here: ")
 
     def _set_date_time(self, page: Page, post: ValidatedPost, publish_time: time) -> str:
         date_value = post.spec.publish_date
@@ -373,23 +406,19 @@ class SubstackPlaywrightAdapter:
         try:
             self._ensure_logged_in(page)
             for post, publish_time in posts_with_times:
-                try:
-                    _method, screenshot = self.prepare_post(page, post, publish_time, dry_run=False)
-                    verification = self._verify_title_in_scheduled(page, post)
-                    receipts.append(
-                        PostReceipt(
-                            index=post.spec.index,
-                            title=post.spec.title,
-                            requested_publish_at=f"{post.spec.publish_date}T{publish_time.strftime('%H:%M')}",
-                            source_sha256=sha256_text(post.body),
-                            result="VERIFIED",
-                            verification=verification,
-                            screenshot=screenshot,
-                        )
+                _method, screenshot = self.prepare_post(page, post, publish_time, dry_run=False)
+                verification = self._verify_title_in_scheduled(page, post)
+                receipts.append(
+                    PostReceipt(
+                        index=post.spec.index,
+                        title=post.spec.title,
+                        requested_publish_at=f"{post.spec.publish_date}T{publish_time.strftime('%H:%M')}",
+                        source_sha256=sha256_text(post.body),
+                        result="VERIFIED",
+                        verification=verification,
+                        screenshot=screenshot,
                     )
-                except Exception:
-                    # Fail closed: no blind continuation to the next post.
-                    raise
+                )
             return receipts
         finally:
             context.close()
