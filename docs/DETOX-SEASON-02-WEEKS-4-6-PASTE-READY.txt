@@ -1,0 +1,1016 @@
+DETOX SEASON — WEEKS 4 TO 6
+PASTE-READY SUBSTACK COPY
+No Markdown formatting required.
+
+============================================================
+
+TITLE: WE LOST THE DENOMINATOR
+SUBTITLE: A feed can show you a thousand true things and still leave you with a false picture of the world.
+SCHEDULE: September 15, 2026
+
+Here is one of the nastiest little tricks reality can play on you.
+
+Every example can be true.
+
+And the picture can still be bullshit.
+
+Imagine I show you fifty videos of electricians doing something catastrophically stupid.
+
+Every video is authentic.
+
+Nobody used AI.
+
+Nobody staged anything.
+
+Fifty genuine morons.
+
+What have I proved?
+
+That fifty electricians did something stupid.
+
+That is it.
+
+If there are a million electricians, I have not told you whether the profession is full of idiots.
+
+I have not told you how those fifty were selected.
+
+I have not shown you the 999,950 people who apparently managed to use a screwdriver without becoming content.
+
+I gave you the numerator.
+
+I hid the denominator.
+
+Welcome to the feed.
+
+This matters because the modern information system does not need to fabricate reality to distort our picture of it.
+
+Selection can do the job.
+
+A platform can show you real racists.
+
+Real violent women.
+
+Real violent men.
+
+Real corrupt cops.
+
+Real criminal immigrants.
+
+Real criminal citizens.
+
+Real insane conservatives.
+
+Real insane progressives.
+
+Real teachers saying stupid things.
+
+Real doctors making mistakes.
+
+Real men saying vile things about women.
+
+Real women saying vile things about men.
+
+Keep going long enough and you can build an apocalypse out of authentic clips.
+
+The important question is not only:
+
+Is this true?
+
+It is:
+
+How common is this?
+
+Out of what population?
+
+How was this selected?
+
+What would the boring sample look like?
+
+Psychology has been warning us about versions of this problem for decades.
+
+The availability heuristic describes our tendency to judge frequency or probability partly by how easily examples come to mind.
+
+Media research on exemplars has also found that vivid individual cases can shape judgments and persuasion more strongly than dry base-rate information.
+
+That makes sense.
+
+Nobody remembers “0.7 percent.”
+
+Everybody remembers the guy who set his pants on fire.
+
+The feed industrialized that problem.
+
+It does not simply contain examples.
+
+It selects examples competing for attention.
+
+And ordinary life is terrible content.
+
+Man goes to work.
+
+Man behaves normally.
+
+Man returns shopping cart.
+
+Woman has disagreement with boyfriend and resolves it without livestream.
+
+Teenager experiences mild disappointment and handles it appropriately.
+
+Government employee completes form correctly.
+
+BREAKING NEWS.
+
+Nobody gives a shit.
+
+The spectacular case wins.
+
+Then another spectacular case.
+
+Then another.
+
+Soon your brain has a beautifully indexed library of human catastrophe.
+
+And no denominator.
+
+This is why “I have seen hundreds of videos” is simultaneously evidence and not enough evidence.
+
+It proves the videos exist.
+
+It does not prove prevalence.
+
+The correction is boring as hell.
+
+Which is why I love it.
+
+Whenever a feed seems to be teaching me what a group is like, I want five questions:
+
+How many?
+
+Out of how many?
+
+Selected by whom?
+
+Selected for what?
+
+Compared with what baseline?
+
+Sometimes the answer will make the problem worse.
+
+Maybe the ugly thing really is common.
+
+Fine.
+
+Then the denominator strengthens the claim.
+
+Sometimes it cuts the outrage in half.
+
+Also fine.
+
+The goal is not optimism.
+
+It is calibration.
+
+This is especially important for politics.
+
+A collection of true examples can create a false population-level picture without one fabricated item.
+
+That sentence should be printed on the front of every phone.
+
+Because a feed is not a window.
+
+It is a selection machine.
+
+And selection without denominator is one of the easiest ways to make millions of ordinary people look like their most algorithmically interesting outliers.
+
+BORING RECEIPT
+
+Tversky and Kahneman's classic availability research showed that judgments of frequency and probability can be influenced by how easily examples come to mind. A 2019 meta-analysis of exemplar-message research found stronger persuasion outcomes for exemplar-based messages than base-rate or non-exemplar messages, while also noting limits in the theory. This does not establish that social-media feeds always cause false prevalence beliefs. It supports the narrower mechanism that vivid, accessible examples can influence judgment and that base rates matter.
+
+Sources:
+https://www.sciencedirect.com/science/article/pii/0010028573900339
+https://academic.oup.com/anncom/article-abstract/43/4/273/7906003
+
+AI disclosure: I use AI heavily to help turn my stories, notes, arguments and research into readable English. The opinions, decisions and final approval are mine. When the facts matter, I check the sources and keep the receipts.
+
+============================================================
+
+TITLE: THE CROWD YOU THINK EXISTS
+SUBTITLE: Likes, comments and viral freaks are not a census.
+SCHEDULE: September 18, 2026
+
+The internet has given us a strange new organ.
+
+The visible crowd.
+
+Everywhere you look, the crowd is there.
+
+12,000 likes.
+
+8,000 angry faces.
+
+3,400 comments.
+
+Trending.
+
+Viral.
+
+Everybody is saying this.
+
+Nobody believes that anymore.
+
+The country has spoken.
+
+Has it?
+
+Or did 0.004 percent of the country have a loud afternoon?
+
+There is a difference between seeing a crowd and knowing what the population thinks.
+
+We used to understand this at a hockey game.
+
+If twenty drunk guys behind the bench start chanting something stupid, nobody turns to Statistics Canada and says:
+
+We have the national result.
+
+Online, we do something surprisingly close to that every day.
+
+Visible reactions feel like social evidence.
+
+Sometimes they are useful social evidence.
+
+If ten thousand people independently report that an app update broke the same feature, maybe check the feature.
+
+If a restaurant has years of terrible reviews, perhaps do not hold your anniversary there.
+
+Aggregated opinion can contain information.
+
+That is why ratings, reviews, likes and polls exist.
+
+But the number on the screen is not self-explanatory.
+
+Who saw the post?
+
+Who chose to react?
+
+Which reactions are public?
+
+Which comments were promoted?
+
+Who left without clicking anything?
+
+Were the first reactions random or did they influence the next people?
+
+Are we observing opinion?
+
+Or opinion plus selection plus interface plus social proof?
+
+A 2025 review in Nature Reviews Psychology describes how aggregated opinions — ratings, likes, polls and other quantified judgments — shape people's beliefs. The research is not “likes hypnotize everyone.” People sometimes conform, sometimes learn, sometimes ignore the crowd.
+
+Again: depends.
+
+But once a platform puts a number beside a statement, the statement has changed.
+
+“That's a stupid idea.”
+
+is one thing.
+
+“That's a stupid idea.”
+
+48,000 likes
+
+is another piece of information.
+
+Maybe useful.
+
+Maybe misleading.
+
+Maybe both.
+
+This matters because humans are social animals pretending to be independent philosophers while checking whether anyone laughed at our joke.
+
+We use other people as evidence.
+
+Usually for good reason.
+
+If everyone starts running out of a building, I am not staying behind to independently peer-review the smoke.
+
+Social proof is efficient.
+
+The problem is when the visible crowd is not the real crowd.
+
+A feed can create a room whose audience you do not understand.
+
+A controversial post reaches people selected for reaction.
+
+The angry people comment.
+
+The indifferent people keep scrolling.
+
+The loud response becomes visible evidence that “everyone” is furious.
+
+Then journalists report the backlash.
+
+Then more people see the backlash.
+
+Now we are not simply measuring opinion.
+
+We may be helping manufacture the perception of opinion.
+
+That does not mean the original criticism was fake.
+
+It means the display itself becomes part of the event.
+
+This is the question I want to keep asking:
+
+What population does this number represent?
+
+Not:
+
+Is 40,000 a big number?
+
+Forty thousand people can fill a stadium.
+
+Forty thousand people can also be a rounding error in a national electorate.
+
+Context decides.
+
+So the next time somebody says:
+
+The internet is furious.
+
+I want to know:
+
+Which internet?
+
+How many people?
+
+Compared with what?
+
+And how many millions walked past without giving enough of a shit to press a button?
+
+BORING RECEIPT
+
+A 2025 review in Nature Reviews Psychology synthesized research on how aggregated opinions such as ratings, likes and polls can shape belief and judgment. The literature does not support a simple rule that visible reactions control people; responses vary by context. The essay's narrower claim is that visible quantified reactions are information in their own right and should not be confused with representative population measurement.
+
+Source:
+https://www.nature.com/articles/s44159-024-00398-7
+
+AI disclosure: I use AI heavily to help turn my stories, notes, arguments and research into readable English. The opinions, decisions and final approval are mine. When the facts matter, I check the sources and keep the receipts.
+
+============================================================
+
+TITLE: DEMOCRACY, MY ASS
+SUBTITLE: Before calling the system fake, find out what the founders actually designed.
+SCHEDULE: September 22, 2026
+
+I keep hearing two stories about American democracy.
+
+Story one:
+
+The founders invented glorious rule by the people, freedom descended from heaven, bald eagle screamed, everybody high-fived.
+
+Story two:
+
+Democracy my ass. Rich white guys built an oligarchy and slapped “people” on the box.
+
+Both stories are emotionally efficient.
+
+History is less cooperative.
+
+The people who designed the United States Constitution did not build direct democracy.
+
+They said so.
+
+James Madison, in Federalist No. 10, explicitly distinguished a “pure democracy” where citizens administer government in person from a republic where government is delegated to elected representatives.
+
+And he thought representation could improve the public decision.
+
+That is not hidden history.
+
+It is sitting in one of the most famous political essays the country ever produced.
+
+The original constitutional machinery also makes the filtering obvious.
+
+The House was elected by voters in the states.
+
+Senators were originally chosen by state legislatures, not directly by voters.
+
+The president was selected through electors.
+
+Federal judges were appointed.
+
+Terms were staggered.
+
+States retained enormous authority.
+
+Changing the Constitution was deliberately hard.
+
+This was not a national Facebook poll with muskets.
+
+The designers wanted popular legitimacy and popular participation.
+
+They also feared faction, instability and majority abuse.
+
+So they built filters.
+
+That is the interesting part.
+
+Not:
+
+Was it a democracy?
+
+The word itself meant different things in the eighteenth century than it often does now.
+
+The better question is:
+
+How much direct popular control did they intend, and where did they deliberately slow or redirect it?
+
+Madison argued that a large republic could make faction harder to organize into oppression.
+
+Representation, in his argument, could “refine and enlarge” public views.
+
+That is an elite filter.
+
+It is also a theory of stability.
+
+Those are not mutually exclusive.
+
+Then there are the obvious exclusions.
+
+The Constitution's grand language about the people existed in a society where voting rights were largely determined by states and many people were excluded from political participation.
+
+Women.
+
+Enslaved people.
+
+Many free Black people depending on jurisdiction and period.
+
+Indigenous people largely outside the political community the system imagined.
+
+Property and taxpaying requirements varied.
+
+So the word “people” was doing complicated work from the beginning.
+
+Here is where I think both internet camps cheat.
+
+The patriotic version sometimes pretends those exclusions are footnotes.
+
+They are not.
+
+The cynical version sometimes treats every filter as proof the public was irrelevant.
+
+Also wrong.
+
+The House mattered.
+
+Elections mattered.
+
+Ratification mattered.
+
+Public opinion mattered.
+
+Political legitimacy increasingly depended on the idea that authority came from the people, even while institutions filtered how that authority became power.
+
+That tension is the story.
+
+The people were the source of legitimacy.
+
+The people were not intended to personally administer every national decision.
+
+And the designers did not trust any one institution enough to hand it the whole machine.
+
+Not the president.
+
+Not Congress.
+
+Not judges.
+
+Not states.
+
+Not even a temporary majority.
+
+That makes American constitutional government both more democratic and less democratic than the slogans suggest, depending on what part you are looking at.
+
+Which is why “democracy my ass” is actually a useful starting sentence.
+
+As long as it is followed by:
+
+Okay. What the fuck did they build instead?
+
+BORING RECEIPT
+
+Federalist No. 10 explicitly distinguishes direct “pure democracy” from republican representative government and argues that representation and a large republic can control faction. The original Constitution provided for direct election of the House while senators were chosen by state legislatures; the Seventeenth Amendment later established direct election of senators. Library of Congress and U.S. Senate historical materials document these design choices.
+
+This essay does not claim the founders were united in motive or that every institutional filter had one purpose. Stability, federal compromise, minority protection, elite influence and practical governance all matter to the historical debate.
+
+Sources:
+https://founders.archives.gov/documents/Madison/01-10-02-0178
+https://www.loc.gov/exhibits/creating-the-united-states/interactives/constitution/representation/index.html
+https://www.senate.gov/about/origins-foundations/senate-and-constitution.htm
+
+AI disclosure: I use AI heavily to help turn my stories, notes, arguments and research into readable English. The opinions, decisions and final approval are mine. When the facts matter, I check the sources and keep the receipts.
+
+============================================================
+
+TITLE: THE OUTVOTED PERSON
+SUBTITLE: Democracy does not mean you get your way. So what does political agency actually mean?
+SCHEDULE: September 25, 2026
+
+There is a brutal fact hiding inside democracy.
+
+Sometimes you lose.
+
+Not because the machine was hacked.
+
+Not because propaganda stole your soul.
+
+Not because the other voters are secretly NPCs.
+
+You lose because more people voted for the other thing under the rules that existed.
+
+That is unpleasant.
+
+Especially when the issue matters.
+
+So what happens to your political agency when you are the person who lost?
+
+This question interests me because we often talk about democracy as though agency means getting the outcome you wanted.
+
+It cannot.
+
+If two people want opposite outcomes, the system cannot fully satisfy both.
+
+Political agency must mean something else.
+
+Maybe it is a bundle.
+
+The ability to speak.
+
+Organize.
+
+Vote.
+
+Persuade.
+
+Run for office.
+
+Challenge government action.
+
+Access information.
+
+Associate with other people.
+
+Keep rights that a temporary majority is not supposed to erase.
+
+Lose today without being removed from the political community tomorrow.
+
+That last one might be the heart of it.
+
+Democracy is not merely a machine for producing winners.
+
+It is a system for continuing to live with the losers.
+
+Because today's loser might be next year's majority.
+
+And if every election is treated as the final battle between good citizens and enemies who must never regain power, the system stops behaving like a method of peaceful competition and starts behaving like a custody fight with nuclear weapons.
+
+This is where liberty and majority rule collide.
+
+Suppose 60 percent of people want to ban a minority religion.
+
+They are the majority.
+
+Does democracy require giving them what they want?
+
+If your answer is no, then you already believe democratic legitimacy includes limits on majority power.
+
+Now suppose 60 percent want a tax rate you hate.
+
+Different category.
+
+Not every loss is oppression.
+
+The hard work is deciding which things properly belong to majority decision and which things require protection from it.
+
+That is not solved by yelling “will of the people.”
+
+Which people?
+
+Which decision?
+
+Under which rule?
+
+With what rights protected?
+
+And how easy is it to reverse?
+
+I think this matters for the agency project because modern political media trains us to experience losing as evidence that our voice did not count.
+
+Sometimes your voice counted perfectly.
+
+It was one vote.
+
+You were outvoted.
+
+That sucks.
+
+But being outvoted and being voiceless are not the same thing.
+
+At the same time, formal voting rights do not answer every agency question either.
+
+If district design, electoral systems, party nomination, information environments and institutional veto points determine how votes translate into power, then “you got a ballot” is not the end of the investigation.
+
+It is the beginning.
+
+Agency exists inside machinery.
+
+That machinery deserves inspection.
+
+But inspection needs a clean target.
+
+I do not want to call every institution I dislike manipulation.
+
+And I do not want to call every legal election meaningful agency just because somebody printed ballots.
+
+The question is more demanding:
+
+What choices did the citizen actually have?
+
+What information environment surrounded those choices?
+
+How did the institution convert those choices into power?
+
+What remained protected when the citizen lost?
+
+Could the citizen organize and try again?
+
+That sounds less exciting than “democracy is fake.”
+
+Good.
+
+Boring questions are underrated.
+
+They are how you find out whether the fucking machine works.
+
+BORING RECEIPT
+
+This essay is a conceptual argument rather than a statistical finding. It draws on the distinction between representative government, majority rule, constitutional rights and political participation. The claim is not that existing democratic systems always provide meaningful agency. It is that “my preferred outcome occurred” is an inadequate definition of agency because legitimate collective decision systems necessarily produce losers.
+
+Useful founding context:
+https://founders.archives.gov/documents/Madison/01-10-02-0178
+https://constitutioncenter.org/the-constitution
+
+AI disclosure: I use AI heavily to help turn my stories, notes, arguments and research into readable English. The opinions, decisions and final approval are mine. When the facts matter, I check the sources and keep the receipts.
+
+============================================================
+
+TITLE: THE GOVERNMENT LEARNS TO LISTEN
+SUBTITLE: Polling looked like democracy hearing the public. Then listening became prediction.
+SCHEDULE: September 29, 2026
+
+There was a time when politicians had a very advanced public-opinion system.
+
+They talked to people.
+
+Read newspapers.
+
+Received letters.
+
+Listened to party organizers.
+
+Counted votes.
+
+And guessed.
+
+Then we got better at measuring the public.
+
+One of the great symbolic moments came in 1936.
+
+The Literary Digest mailed millions of ballots and predicted that Republican Alf Landon would defeat Franklin Roosevelt.
+
+George Gallup used a much smaller but more systematic sample and predicted Roosevelt would win.
+
+Roosevelt won in a landslide.
+
+The enormous poll lost to the better sample.
+
+There is a beautiful lesson there:
+
+More data is not automatically better data.
+
+But something else happened too.
+
+Politics learned that the public could be measured continuously instead of merely counted on election day.
+
+That is a major change.
+
+A vote tells you what happened.
+
+A poll tries to tell you what is happening.
+
+What people fear.
+
+What they approve of.
+
+What they might support.
+
+What message is failing.
+
+Which issue is moving.
+
+At first glance this is democratic progress.
+
+Government and political leaders can hear people between elections.
+
+Good.
+
+But the same measurement creates another possibility.
+
+Once I can measure your response, I can adapt my message.
+
+Now listening and persuasion begin to merge.
+
+This is not sinister by definition.
+
+Your doctor asks whether the treatment helped and changes it.
+
+A teacher checks whether students understood and explains differently.
+
+Feedback is one of the foundations of competent systems.
+
+Politics is no different.
+
+The interesting part is the feedback loop.
+
+Message.
+
+Measure.
+
+Adjust.
+
+Message again.
+
+Then came focus groups.
+
+Direct mail.
+
+Voter files.
+
+Consumer data.
+
+Turnout scores.
+
+Support scores.
+
+Persuasion scores.
+
+A/B testing.
+
+Digital ad platforms.
+
+Algorithmic ranking.
+
+We moved from:
+
+What does the public think?
+
+toward:
+
+Which public?
+
+Which segment?
+
+Which individual?
+
+Which message?
+
+Which moment?
+
+This is where the democratic question changes.
+
+Listening to citizens sounds respectful.
+
+Predicting citizens sounds creepy.
+
+But technologically they can sit on the same road.
+
+The difference is what is collected, what is inferred, who controls it and what is done next.
+
+I do not think the answer is to romanticize the pre-polling age.
+
+Politicians were manipulating emotion before statistics existed.
+
+Propaganda is ancient.
+
+Campaigning is persuasion.
+
+The new capability is measurement.
+
+And measurement can turn persuasion into optimization.
+
+That deserves a different level of scrutiny.
+
+Because the politician is no longer simply asking:
+
+What argument do I believe will persuade citizens?
+
+The campaign can ask:
+
+Which argument moved people like this citizen yesterday?
+
+That is not magic mind control.
+
+The effects of political microtargeting are often much smaller and messier than the mythology suggests.
+
+But the capability still changes the relationship.
+
+The speaker knows more about the audience.
+
+The audience may know almost nothing about how the speaker chose the message.
+
+That asymmetry is the thing I want to investigate.
+
+Democracy learning to listen was probably inevitable.
+
+The next question is when listening became profiling.
+
+BORING RECEIPT
+
+George Gallup founded the American Institute of Public Opinion in 1935. In 1936, Gallup's smaller systematic polling approach correctly predicted Franklin Roosevelt would defeat Alf Landon while the much larger Literary Digest poll predicted the opposite result. The episode became a landmark in modern scientific polling.
+
+The later progression from polling to segmentation, voter databases and experimental campaign optimization occurred over decades and should not be treated as one single invention or conspiracy.
+
+Sources:
+https://www.gallup.com/corporate/178136/george-gallup.aspx
+https://historymatters.gmu.edu/d/5168/
+
+AI disclosure: I use AI heavily to help turn my stories, notes, arguments and research into readable English. The opinions, decisions and final approval are mine. When the facts matter, I check the sources and keep the receipts.
+
+============================================================
+
+TITLE: CANADA TESTED THE MESSAGE
+SUBTITLE: Political persuasion did not begin with Facebook.
+SCHEDULE: October 2, 2026
+
+Canada did not discover persuasion when somebody downloaded Facebook.
+
+We have receipts going back a lot further than that.
+
+During the First World War, Canadians saw recruitment posters, victory-bond appeals, food messages and propaganda designed to pull fear, duty, pride, anger and patriotism in useful directions.
+
+The Canadian War Museum is wonderfully direct about this.
+
+Propaganda is organized information intended to influence thoughts, beliefs, feelings and actions.
+
+That is not me using the word as an insult.
+
+That is the museum describing the historical material.
+
+And the techniques are recognizable.
+
+Know the audience.
+
+Use the right symbol.
+
+Find the identity that matters.
+
+Create urgency.
+
+Make the desired action feel moral.
+
+Different audiences received different appeals.
+
+French Canadian recruitment material could invoke different history and different concerns from English-language material.
+
+In other words:
+
+Segment the audience.
+
+Frame the message.
+
+Use identity.
+
+Try to move behaviour.
+
+Hello, 1917.
+
+The technology changes.
+
+The basic problem does not.
+
+How do you get a human being to do something?
+
+War posters became radio.
+
+Radio became television.
+
+Polling improved.
+
+Advertising professionalized.
+
+Parties built databases.
+
+Consultants tested messages.
+
+Digital platforms made targeting faster and more granular.
+
+But there is a danger in telling this history as a straight line toward dystopia.
+
+Old propaganda could be brutally manipulative.
+
+Modern targeting can be boring and ineffective.
+
+Newer is not automatically more powerful.
+
+The key changes are capability and friction.
+
+A First World War poster could target French Canadians as a broad audience.
+
+A modern campaign can potentially distinguish among much smaller groups using voter files, geography, demographics, behaviour and platform data.
+
+A poster could not instantly tell its creator whether you looked at it for seven seconds.
+
+A digital system can produce far richer feedback.
+
+That is the collision I care about:
+
+Old human persuasion instincts plus modern measurement.
+
+And Canada gives us a useful historical comparison because the state and political actors have long used persuasion while the technology underneath it kept changing.
+
+This prevents one of the dumbest mistakes in modern political debate:
+
+Facebook invented propaganda.
+
+No.
+
+Facebook industrialized particular forms of distribution, measurement and targeting.
+
+Humans brought the propaganda with us.
+
+That matters because if we blame the technology for the entire phenomenon, we will fix the wrong machine.
+
+Delete Facebook tomorrow and politicians will still frame issues.
+
+Governments will still advertise.
+
+Campaigns will still test language.
+
+New intermediaries will appear.
+
+The real question is:
+
+What new capability did each technology add?
+
+Posters added cheap visual mass persuasion.
+
+Radio added simultaneous voice into homes.
+
+Television added moving image and intimacy at scale.
+
+Polling added measurement.
+
+Databases added memory about individuals and households.
+
+Digital platforms added rapid targeting, feedback and ranking.
+
+Generative AI may add cheap message variation at absurd scale.
+
+That is a better history than “everything changed in 2016.”
+
+It also gives us a better regulatory question.
+
+Do not ask only:
+
+Is persuasion happening?
+
+Of course it is.
+
+Ask:
+
+What does the persuader know?
+
+What can the persuader infer?
+
+How fast can the message adapt?
+
+Can the target see why they received it?
+
+Can outsiders inspect what different people were shown?
+
+That is where old propaganda becomes a modern agency problem.
+
+BORING RECEIPT
+
+The Canadian War Museum documents Canadian propaganda during both world wars and describes the use of targeted media, posters, radio, commercial advertising and print to influence public beliefs and actions. Its First World War materials show different appeals being used for different audiences, including French Canadian recruitment messages.
+
+Library and Archives Canada also preserves Wartime Information Board files containing Canadian Institute of Public Opinion polling material from 1944–45, illustrating that wartime government information systems and public-opinion measurement overlapped historically.
+
+This does not establish a continuous centrally coordinated persuasion program from 1914 to the present. The essay describes an evolving set of techniques and capabilities across different institutions and eras.
+
+Sources:
+https://www.warmuseum.ca/cwm/exhibitions/propaganda/index_e.html
+https://www.warmuseum.ca/cwm/exhibitions/propaganda/propaganda_e.html
+https://recherche-collection-search.bac-lac.gc.ca/eng/home/record?IdNumber=1282879&app=fonandcol
+
+AI disclosure: I use AI heavily to help turn my stories, notes, arguments and research into readable English. The opinions, decisions and final approval are mine. When the facts matter, I check the sources and keep the receipts.
