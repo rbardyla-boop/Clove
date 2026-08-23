@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import shutil
 
@@ -74,6 +75,67 @@ def _choose_profile(root: Path, explicit: Path | None) -> Path:
     return profiles[choice - 1]
 
 
+def _running_brave_processes() -> list[tuple[int, str]]:
+    """Return real Brave browser processes without matching Relay's own CLI text.
+
+    Some Linux packages launch `/usr/bin/brave-browser`, which then execs a binary such
+    as `/opt/brave.com/brave/brave`. Shell regexes that only search for `brave-browser`
+    can therefore report nothing even while Brave is visibly open. Inspecting the real
+    process executable/argv avoids that false negative.
+    """
+
+    matches: list[tuple[int, str]] = []
+    proc = Path("/proc")
+    if not proc.is_dir():
+        return matches
+
+    own_pid = os.getpid()
+    for entry in proc.iterdir():
+        if not entry.name.isdigit():
+            continue
+        pid = int(entry.name)
+        if pid == own_pid:
+            continue
+
+        executable = ""
+        try:
+            executable = str((entry / "exe").resolve())
+        except OSError:
+            pass
+
+        argv0 = ""
+        try:
+            raw = (entry / "cmdline").read_bytes().split(b"\0")
+            if raw and raw[0]:
+                argv0 = raw[0].decode("utf-8", errors="replace")
+        except OSError:
+            pass
+
+        identity = f"{Path(executable).name} {Path(argv0).name}".lower()
+        full = f"{executable} {argv0}".lower()
+        if "brave" not in identity and "/brave" not in full and "com.brave.browser" not in full:
+            continue
+
+        label = executable or argv0 or "brave"
+        matches.append((pid, label))
+
+    return sorted(matches)
+
+
+def _require_brave_closed() -> None:
+    processes = _running_brave_processes()
+    if not processes:
+        return
+
+    preview = "\n".join(f"  PID {pid}: {label}" for pid, label in processes[:12])
+    more = "" if len(processes) <= 12 else f"\n  ... and {len(processes) - 12} more Brave processes"
+    raise BraveDirectError(
+        "Brave is still running and owns the profile lock. Close Brave completely before Relay opens the real profile.\n"
+        f"Detected {len(processes)} Brave process(es):\n{preview}{more}\n"
+        "After closing Brave, rerun the same Relay command. Do not delete SingletonLock files while a Brave process exists."
+    )
+
+
 class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
     """Run Relay inside the user's real local Brave profile.
 
@@ -90,6 +152,7 @@ class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
         self.brave_executable = _brave_executable()
 
     def _launch(self):
+        _require_brave_closed()
         playwright = sync_playwright().start()
         try:
             context = playwright.chromium.launch_persistent_context(
@@ -106,7 +169,8 @@ class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
         except Exception as exc:
             playwright.stop()
             raise BraveDirectError(
-                "Could not open the real Brave profile. Close every Brave window and background process, then retry. "
+                "Could not open the real Brave profile even though Relay did not detect a running Brave process. "
+                "Do not delete lock files yet; report this exact error so the lock state can be diagnosed safely. "
                 f"Underlying error: {exc}"
             ) from exc
         page = context.pages[0] if context.pages else context.new_page()
