@@ -9,6 +9,7 @@ from .adapters.substack_playwright import RelayStop, SubstackPlaywrightAdapter
 from .brave_session import BraveSessionImportError, import_brave_session
 from .firefox_session import FirefoxSessionImportError, import_firefox_session
 from .manifest import load_manifest
+from .manual_mode import run_batch_human_schedule, run_one_human_schedule
 from .receipts import write_receipts
 from .validate import resolved_time, validate_manifest
 
@@ -85,8 +86,21 @@ def _parser() -> argparse.ArgumentParser:
     )
 
     with_manifest("dry-run", "Fill one post and stop before Schedule", post=True, time=True, browser=True)
-    with_manifest("qualify", "Schedule and verify exactly one post", post=True, time=True, browser=True)
-    with_manifest("schedule", "Schedule and verify the full batch sequentially", time=True, browser=True)
+    with_manifest(
+        "prepare",
+        "Prepare one post, hand the final Schedule click to the human, then verify it",
+        post=True,
+        time=True,
+        browser=True,
+    )
+    with_manifest(
+        "prepare-batch",
+        "Prepare the full batch sequentially; the human performs every final Schedule click",
+        time=True,
+        browser=True,
+    )
+    with_manifest("qualify", "Experimental: Relay clicks Schedule and verifies exactly one post", post=True, time=True, browser=True)
+    with_manifest("schedule", "Experimental: Relay clicks Schedule for the full batch sequentially", time=True, browser=True)
     with_manifest("verify", "Check expected titles in the Scheduled area", time=False, browser=True)
     return parser
 
@@ -167,6 +181,43 @@ def main(argv: list[str] | None = None) -> int:
             print(f"JSON: {json_path}")
             return 0
 
+        if args.command == "prepare":
+            result = validate_manifest(
+                manifest,
+                default_time=args.default_time,
+                require_time=True,
+            )
+            post = _select_post(result.posts, args.post)
+            publish_time = _resolved_or_fail(post, args.default_time)
+            receipt = run_one_human_schedule(adapter, post, publish_time)
+            json_path, text_path = write_receipts([receipt], verdict="PREPARATION_ASSISTANT_PASS")
+            print(f"PREPARATION_ASSISTANT_PASS: {post.spec.title}")
+            print(f"Receipt: {text_path}")
+            print(f"JSON: {json_path}")
+            return 0
+
+        if args.command == "prepare-batch":
+            result = validate_manifest(
+                manifest,
+                default_time=args.default_time,
+                require_time=True,
+            )
+            posts_with_times = [
+                (post, _resolved_or_fail(post, args.default_time)) for post in result.posts
+            ]
+            print(f"HUMAN_BATCH_READY: {len(posts_with_times)} posts")
+            print("Relay prepares each post. YOU perform every final Schedule click.")
+            answer = input("Type BEGIN to start preparation-assistant batch mode: ").strip()
+            if answer != "BEGIN":
+                raise ValueError("preparation-assistant batch was not authorized")
+            receipts = run_batch_human_schedule(adapter, posts_with_times)
+            verdict = "READY_FOR_DETOX_MANUAL" if len(receipts) == len(posts_with_times) else "INCOMPLETE"
+            json_path, text_path = write_receipts(receipts, verdict=verdict)
+            print(f"VERDICT: {verdict}")
+            print(f"Receipt: {text_path}")
+            print(f"JSON: {json_path}")
+            return 0
+
         if args.command == "qualify":
             result = validate_manifest(
                 manifest,
@@ -192,8 +243,8 @@ def main(argv: list[str] | None = None) -> int:
                 (post, _resolved_or_fail(post, args.default_time)) for post in result.posts
             ]
             print(f"BATCH_READY: {len(posts_with_times)} posts")
-            print("v0.1 requires a human SCHEDULE confirmation for every final Schedule click.")
-            answer = input("Type BEGIN to start the batch: ").strip()
+            print("EXPERIMENTAL MODE: Relay will request a human SCHEDULE confirmation before every automated final click.")
+            answer = input("Type BEGIN to start the experimental batch: ").strip()
             if answer != "BEGIN":
                 raise ValueError("batch was not authorized")
             receipts = adapter.run_batch(posts_with_times)
