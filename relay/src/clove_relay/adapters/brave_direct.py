@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import re
 import shutil
 
 from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, sync_playwright
@@ -77,13 +78,7 @@ def _choose_profile(root: Path, explicit: Path | None) -> Path:
 
 
 def _running_brave_processes() -> list[tuple[int, str]]:
-    """Return real Brave browser processes without matching Relay's own CLI text.
-
-    Some Linux packages launch `/usr/bin/brave-browser`, which then execs a binary such
-    as `/opt/brave.com/brave/brave`. Shell regexes that only search for `brave-browser`
-    can therefore report nothing even while Brave is visibly open. Inspecting the real
-    process executable/argv avoids that false negative.
-    """
+    """Return real Brave browser processes without matching Relay's own CLI text."""
 
     matches: list[tuple[int, str]] = []
     proc = Path("/proc")
@@ -138,13 +133,7 @@ def _require_brave_closed() -> None:
 
 
 class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
-    """Run Relay inside the user's real local Brave profile.
-
-    This is the fallback for Chromium-family sessions that cannot be cloned because
-    authentication cookies/storage remain bound to the original browser profile or
-    OS keyring. Brave must be fully closed before Relay starts. Relay never reads,
-    prints, exports, or copies cookie values in this mode.
-    """
+    """Run Relay inside the user's real local Brave profile."""
 
     def __init__(self, manifest: RelayManifest, profile: Path | None = None):
         super().__init__(manifest)
@@ -164,14 +153,7 @@ class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
         return False
 
     def _fill_editor(self, page: Page, post: ValidatedPost) -> None:
-        """Use the base editor fill, but survive Substack removing body placeholder attributes.
-
-        Substack currently rerenders/retags the ProseMirror body after filling it. The
-        original locator can therefore stop matching even though the full body is visibly
-        present. If that exact read-back timeout occurs, verify the visible title,
-        subtitle, and both ends of the body instead of treating a selector rerender as a
-        failed write.
-        """
+        """Use the base editor fill, but survive Substack removing body placeholder attributes."""
 
         try:
             super()._fill_editor(page, post)
@@ -205,16 +187,54 @@ class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
                 f"body-rerender-{post.spec.index:02d}",
             )
 
+    def _continue_to_publish_settings(self, page: Page, post: ValidatedPost) -> None:
+        """Advance from editor using actual state change, not stray placeholder text.
+
+        Live Substack can leave unrelated Title/subtitle text visible in the DOM after
+        Continue succeeds. The old check falsely treated that as an unfilled editor.
+        Brave direct mode now accepts either a recognizable publish control or the
+        disappearance of the editor's Continue button. Otherwise it still fails closed.
+        """
+
+        continue_button = page.get_by_role("button", name=re.compile(r"^Continue$", re.I))
+        if continue_button.count() != 1:
+            raise self._stop(page, "Could not identify Continue button", f"continue-{post.spec.index:02d}")
+
+        continue_button.click()
+        page.wait_for_timeout(1800)
+
+        def any_visible(locator) -> bool:
+            try:
+                return any(locator.nth(i).is_visible() for i in range(locator.count()))
+            except Exception:
+                return False
+
+        publish_signals = [
+            page.get_by_role("radio", name=re.compile(r"^Everyone$", re.I)),
+            page.get_by_text("Everyone", exact=True),
+            page.get_by_text(re.compile(r"Send via email", re.I)),
+            page.get_by_text(re.compile(r"Schedule time to email and publish", re.I)),
+            page.get_by_role("button", name=re.compile(r"^(Publish|Schedule)$", re.I)),
+        ]
+
+        if any(any_visible(signal) for signal in publish_signals):
+            print("PUBLISH_SETTINGS_REACHED: recognized live Substack publishing controls.")
+            return
+
+        if not any_visible(continue_button):
+            print("PUBLISH_SETTINGS_REACHED: editor Continue control is no longer visible.")
+            return
+
+        raise self._stop(
+            page,
+            "Continue was clicked, but Relay could not prove the publishing settings opened",
+            f"continue-unproven-{post.spec.index:02d}",
+        )
+
     def _launch(self):
         _require_brave_closed()
         playwright = sync_playwright().start()
         try:
-            # Playwright normally adds --password-store=basic and --use-mock-keychain.
-            # Those flags are useful for isolated test profiles but can prevent an
-            # existing Linux Brave profile from decrypting its real cookie/session
-            # store through the desktop keyring. In direct mode the whole point is to
-            # use the user's existing profile as Brave itself would, so suppress only
-            # those two defaults and retain the rest of Playwright's safety defaults.
             context = playwright.chromium.launch_persistent_context(
                 user_data_dir=str(self.brave_root),
                 executable_path=self.brave_executable,
