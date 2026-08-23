@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.relay-auth/
+.relay-receipts/
+playwright-report/
+test-results/
