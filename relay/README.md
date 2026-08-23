@@ -2,50 +2,79 @@
 
 **Write now. Go offline. Let the boring machinery publish.**
 
-Clove Relay is a local-first publishing assistant for work that a human has already written and approved.
+Clove Relay is a local-first publishing assistant for work a human has already written and approved.
 
-It does not generate posts. It does not decide what should be published. It automates the mechanical layer between a finished local file and a platform's built-in scheduler.
+It does not generate posts. It does not decide what deserves publication. It handles the mechanical layer between a finished local file and a platform scheduler while preserving a human-owned final publication decision.
 
 ## Current status
 
-`IMPLEMENTED CORE / SUBSTACK ADAPTER REQUIRES REAL-ACCOUNT QUALIFICATION`
+`PREPARATION PATH QUALIFIED ON REAL SUBSTACK ACCOUNT / HUMAN-FINAL-SCHEDULE MODE IMPLEMENTED / FULL AUTOMATED SCHEDULER NOT QUALIFIED`
 
-The core manifest parser, bundle extractor, validator, receipts, CLI, detox manifest, and Playwright adapter are implemented.
+Real-account testing on 2026-08-23 proved the following path in Brave on Linux:
 
-The Substack adapter is deliberately fail-closed because the publisher UI can change. It must earn `WORKING` on a real account by completing the qualification sequence in `docs/CLOVE-RELAY-V0.1.md`.
+- existing authenticated Brave profile can be opened safely after Brave is closed;
+- Substack publisher dashboard is reachable;
+- a new article can be created;
+- title, subtitle and body can be inserted;
+- Relay can verify the inserted content after Substack rerenders the editor;
+- Relay can reach current publishing settings;
+- ambiguous audience/delivery/date controls can fall back to visible human checkpoints;
+- a dry run can reach the final scheduling boundary without publishing.
 
-## Important platform boundary
+The final Schedule click remains human-owned in the stable v0.1 operating mode.
 
-Substack's current help documentation says scheduled articles are created on the web by clicking **Continue**, checking **Schedule time to email and publish**, and choosing a future date/time. It also says posts cannot be scheduled more than three months ahead.
+The older `qualify` and `schedule` commands, where Relay itself performs the final Schedule click after terminal authorization, remain experimental and are not required for the detox workflow.
 
-Substack's Terms prohibit scraping/crawling and processes that run while a user is not logged in. Relay does neither: it works only in a visible, locally authenticated browser session, operates on the user's own drafts, never scrapes Substack content, and stops on CAPTCHA or unexpected access controls.
+## Stable operating model
 
-Because browser automation can still be platform-sensitive, v0.1 defaults to **human-confirmed scheduling**. Relay fills and configures each post, displays the requested action, and waits for the user before the final Schedule click. The user can schedule the whole future batch in one sitting and then go offline.
+Relay v0.1 is a **preparation assistant**.
 
-If Substack provides a supported write/scheduling API in the future, that adapter should replace browser automation.
+Relay handles:
 
-## Security
+- source validation;
+- opening the authenticated publishing dashboard;
+- article creation;
+- title/subtitle/body insertion;
+- content read-back checks;
+- navigation to publishing settings;
+- safe automation of controls it can identify;
+- human checkpoints for controls it cannot prove safe;
+- receipts and verification.
 
-- Passwords are never requested or stored.
-- Browser session data stays in `.relay-auth/` on the local machine.
-- `.relay-auth/` and receipts are git-ignored.
-- Login is manual in a visible browser window.
+The human handles:
+
+- final visual inspection;
+- any ambiguous audience/delivery/date control;
+- the final Substack **Schedule** click;
+- final visible confirmation that the scheduled entry is correct.
+
+That is intentional. The machine handles the bullshit. The human keeps the decision.
+
+## Important schedule warning
+
+`examples/detox-season.yml` contains the **original** August 25-November 20, 2026 schedule used to qualify the system.
+
+The detox start has since been deferred while the publishing/research system is hardened. Therefore those dates are now a **frozen test fixture, not current launch authority**.
+
+Do not schedule the full season from that manifest until the final detox start date is chosen and the manifest plus source packets are rebased and re-frozen together.
+
+## Security and platform boundary
+
+- Passwords are never requested or stored by Relay.
+- Real-account Brave mode uses the user's existing local profile; Brave must be fully closed before Relay opens it.
+- Browser session data and receipts stay local and are git-ignored.
 - No telemetry or analytics.
 - No cloud account.
-- No subscriber data access.
+- No subscriber-data access.
 - No scraping.
+- No reverse-engineered private publishing API.
 - No CAPTCHA bypass.
-- No automatic fallback to an immediate publish.
+- No automatic fallback to immediate publication.
+- Unexpected UI state stops or hands the decision to the human.
 
-## Install
+## Install — Debian / Ubuntu
 
 Requires Python 3.11+.
-
-### Debian / Ubuntu
-
-Recent Debian/Ubuntu releases use PEP 668 and intentionally block `pip` from modifying the system Python environment. Do **not** use `--break-system-packages`. Create a project virtual environment instead.
-
-From the Clove repository root:
 
 ```bash
 sudo apt update
@@ -61,51 +90,16 @@ python -m pip install -e '.[dev]'
 python -m playwright install --with-deps chromium
 ```
 
-Once `.venv` is active, the `python`, `pytest`, `playwright`, and `clove-relay` commands resolve inside the project environment.
+Do not use `--break-system-packages`.
 
-Do not activate an unrelated virtual environment from another project.
-
-### Other systems with Python 3.11+
-
-```bash
-cd relay
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e '.[dev]'
-python -m playwright install chromium
-```
-
-## First local check
+## Core check
 
 ```bash
 python -m pytest -q
 clove-relay validate examples/detox-season.yml
 ```
 
-Do not proceed to Substack login until both commands pass.
-
-## Ryan's detox batch
-
-The real 26-post season manifest is:
-
-```text
-relay/examples/detox-season.yml
-```
-
-It references the five paste-ready source bundles already stored under `docs/`.
-
-The release dates are frozen. The publish **clock time is intentionally not invented**. Supply one when running the scheduler, for example:
-
-```bash
-clove-relay validate examples/detox-season.yml
-clove-relay login examples/detox-season.yml
-clove-relay dry-run examples/detox-season.yml --post 1 --default-time 09:00
-clove-relay qualify examples/detox-season.yml --post 1 --default-time 09:00
-clove-relay schedule examples/detox-season.yml --default-time 09:00
-```
-
-Use the time you actually want. Substack schedules using the time zone of the local device.
+The current manifest intentionally omits a clock time. Supply `--default-time HH:MM` only when running a browser preparation command.
 
 ## Commands
 
@@ -115,64 +109,85 @@ Use the time you actually want. Substack schedules using the time zone of the lo
 clove-relay validate examples/detox-season.yml
 ```
 
-Checks locally:
+Checks bundle existence, unique article extraction, title/subtitle/date agreement, non-empty body, future scheduling constraints, duplicate slots, supported audience and unresolved placeholders.
 
-- bundle exists;
-- requested title exists exactly once in that bundle;
-- title/subtitle/date match the source packet;
-- post body is non-empty;
-- schedule dates are future dates;
-- no duplicate schedule dates/times;
-- audience is supported;
-- no obvious unresolved placeholders remain.
+### Brave session check
 
-### Login
+Close Brave completely first, then:
 
 ```bash
-clove-relay login examples/detox-season.yml
+clove-relay brave-check examples/detox-season.yml
 ```
 
-Opens a persistent Chromium profile at `.relay-auth/substack`. Sign in normally. Relay never sees or stores the password itself; Chromium stores the authenticated profile locally.
+This proves the real local Brave profile can reach the publisher dashboard without editing a post.
 
-### Dry run
+### Dry run — qualified preparation path
 
 ```bash
-clove-relay dry-run examples/detox-season.yml --post 1 --default-time 09:00
+clove-relay dry-run examples/detox-season.yml \
+  --post 1 \
+  --default-time 09:00 \
+  --browser brave
 ```
 
-Creates/fills one draft and reaches the publishing settings screen but never clicks Schedule.
+Fills one article, reaches publishing settings and stops before any final Schedule action.
 
-### Qualify
+### Prepare one — stable human-final mode
 
 ```bash
-clove-relay qualify examples/detox-season.yml --post 1 --default-time 09:00
+clove-relay prepare examples/detox-season.yml \
+  --post 1 \
+  --default-time 09:00 \
+  --browser brave
 ```
 
-Configures one post for the requested future time. Relay requires an explicit terminal confirmation before the final Schedule click. It then checks the Scheduled posts area and emits a receipt.
+Relay prepares the post and pauses at a `HUMAN SCHEDULE CHECKPOINT`. Inspect the visible page and click Substack's final **Schedule** button yourself. Relay then verifies the scheduled title and asks for a final visible confirmation before writing the receipt.
 
-Only after qualification succeeds should the batch command be used.
-
-### Batch schedule
+### Prepare batch — planned detox operating mode
 
 ```bash
-clove-relay schedule examples/detox-season.yml --default-time 09:00
+clove-relay prepare-batch examples/detox-season.yml \
+  --default-time 09:00 \
+  --browser brave
 ```
 
-Processes posts sequentially. Every post requires a final human confirmation in v0.1. After every schedule action Relay verifies before continuing. Any ambiguity stops the run.
+Relay works one post at a time. The human performs every final Schedule click. Each post must verify before Relay touches the next one. Any failure stops the batch.
+
+Do not use the frozen August-November fixture for the final batch until the season dates have been re-frozen.
+
+### Experimental automated final-click modes
+
+```bash
+clove-relay qualify examples/detox-season.yml --post 1 --default-time 09:00 --browser brave
+clove-relay schedule examples/detox-season.yml --default-time 09:00 --browser brave
+```
+
+These modes preserve terminal confirmation but let Relay perform the final UI click. They are experimental and are not part of the stable detox plan.
 
 ### Verify
 
 ```bash
-clove-relay verify examples/detox-season.yml --default-time 09:00
+clove-relay verify examples/detox-season.yml --browser brave
 ```
 
-Checks that the expected titles appear in the Scheduled area. It does not open analytics.
+Checks that expected titles appear in the Scheduled area. Title verification does not replace visible date/time/audience confirmation.
+
+## Real-account evidence already obtained
+
+The successful dry run produced these terminal gates:
+
+```text
+EDITOR_READBACK_PASS
+PUBLISH_SETTINGS_REACHED
+PREPARED FOR SCHEDULING
+DRY_RUN_STOP: Relay will not click Schedule.
+```
+
+The run also wrote local text/JSON receipts under `.relay-receipts/`.
 
 ## Selector failures
 
-Substack can change its UI. Relay uses semantic text/label selectors first, based on the current documented flow, and deliberately refuses to guess when a control is ambiguous.
-
-On failure Relay saves a screenshot under `.relay-receipts/` and prints the exact step that failed. The adapter can then be repaired against the changed UI rather than silently clicking the wrong control.
+Substack can change its UI. Relay deliberately refuses to guess. On failure it saves a screenshot under `.relay-receipts/` and identifies the exact failed gate. Repair the adapter against the visible interface rather than weakening the fail-closed rule.
 
 ## Philosophy
 
@@ -180,4 +195,4 @@ On failure Relay saves a screenshot under `.relay-receipts/` and prints the exac
 
 The human writes, checks, approves and decides.
 
-The machine handles the repetitive calendar work.
+The machine handles the repetitive digital labour.
