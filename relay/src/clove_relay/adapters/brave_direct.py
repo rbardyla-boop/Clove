@@ -4,10 +4,11 @@ import os
 from pathlib import Path
 import shutil
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, sync_playwright
 
 from .substack_playwright import SubstackPlaywrightAdapter
 from ..manifest import RelayManifest
+from ..validate import ValidatedPost
 
 
 class BraveDirectError(RuntimeError):
@@ -150,6 +151,59 @@ class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
         self.brave_root = _brave_root().resolve()
         self.brave_profile = _choose_profile(self.brave_root, profile)
         self.brave_executable = _brave_executable()
+
+    @staticmethod
+    def _visible_exact_text(page: Page, text: str) -> bool:
+        matches = page.get_by_text(text, exact=True)
+        for index in range(matches.count()):
+            try:
+                if matches.nth(index).is_visible():
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def _fill_editor(self, page: Page, post: ValidatedPost) -> None:
+        """Use the base editor fill, but survive Substack removing body placeholder attributes.
+
+        Substack currently rerenders/retags the ProseMirror body after filling it. The
+        original locator can therefore stop matching even though the full body is visibly
+        present. If that exact read-back timeout occurs, verify the visible title,
+        subtitle, and both ends of the body instead of treating a selector rerender as a
+        failed write.
+        """
+
+        try:
+            super()._fill_editor(page, post)
+            return
+        except PlaywrightTimeoutError:
+            lines = [line.strip() for line in post.body.splitlines() if line.strip()]
+            if not lines:
+                raise self._stop(
+                    page,
+                    "The source body is empty after editor fill",
+                    f"body-empty-{post.spec.index:02d}",
+                )
+
+            first_line = lines[0]
+            last_line = lines[-1]
+            title_ok = self._visible_exact_text(page, post.spec.title)
+            subtitle_ok = self._visible_exact_text(page, post.spec.subtitle)
+            first_ok = self._visible_exact_text(page, first_line)
+            last_ok = first_ok if last_line == first_line else self._visible_exact_text(page, last_line)
+
+            if title_ok and subtitle_ok and first_ok and last_ok:
+                print(
+                    "EDITOR_READBACK_PASS: Substack rerendered the body locator, but the visible "
+                    "title, subtitle, first body line, and final body line all match the source."
+                )
+                return
+
+            raise self._stop(
+                page,
+                "Substack rerendered the body editor and Relay could not verify both ends of the filled article",
+                f"body-rerender-{post.spec.index:02d}",
+            )
 
     def _launch(self):
         _require_brave_closed()
