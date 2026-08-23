@@ -13,6 +13,9 @@ dependencies = [
   "PyYAML>=6.0,<7",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+
 [project.scripts]
 clove-relay = "clove_relay.cli:main"
 
