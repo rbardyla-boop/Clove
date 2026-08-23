@@ -155,11 +155,21 @@ class BraveDirectSubstackAdapter(SubstackPlaywrightAdapter):
         _require_brave_closed()
         playwright = sync_playwright().start()
         try:
+            # Playwright normally adds --password-store=basic and --use-mock-keychain.
+            # Those flags are useful for isolated test profiles but can prevent an
+            # existing Linux Brave profile from decrypting its real cookie/session
+            # store through the desktop keyring. In direct mode the whole point is to
+            # use the user's existing profile as Brave itself would, so suppress only
+            # those two defaults and retain the rest of Playwright's safety defaults.
             context = playwright.chromium.launch_persistent_context(
                 user_data_dir=str(self.brave_root),
                 executable_path=self.brave_executable,
                 headless=False,
                 viewport={"width": 1440, "height": 1000},
+                ignore_default_args=[
+                    "--password-store=basic",
+                    "--use-mock-keychain",
+                ],
                 args=[
                     f"--profile-directory={self.brave_profile.name}",
                     "--no-first-run",
