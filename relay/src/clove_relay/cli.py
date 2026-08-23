@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 import sys
 
+from .adapters.brave_direct import BraveDirectError, BraveDirectSubstackAdapter
 from .adapters.substack_playwright import RelayStop, SubstackPlaywrightAdapter
 from .brave_session import BraveSessionImportError, import_brave_session
 from .firefox_session import FirefoxSessionImportError, import_firefox_session
@@ -19,7 +20,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    def with_manifest(name: str, help_text: str, *, post: bool = False, time: bool = False):
+    def with_manifest(
+        name: str,
+        help_text: str,
+        *,
+        post: bool = False,
+        time: bool = False,
+        browser: bool = False,
+    ):
         p = sub.add_parser(name, help=help_text)
         p.add_argument("manifest", type=Path)
         if post:
@@ -29,10 +37,32 @@ def _parser() -> argparse.ArgumentParser:
                 "--default-time",
                 help="HH:MM local publish time used when the manifest omits publish_time",
             )
+        if browser:
+            p.add_argument(
+                "--browser",
+                choices=("relay", "brave"),
+                default="relay",
+                help="relay = isolated Relay Chromium profile; brave = use the existing local Brave profile directly",
+            )
+            p.add_argument(
+                "--brave-profile",
+                type=Path,
+                help="Explicit Brave profile directory when --browser brave is used",
+            )
         return p
 
     with_manifest("validate", "Validate the manifest and source packets", time=True)
     with_manifest("login", "Open the persistent local Substack login session")
+
+    brave_check = with_manifest(
+        "brave-check",
+        "Open the existing Brave profile and prove the authenticated publisher dashboard is reachable without editing a post",
+    )
+    brave_check.add_argument(
+        "--profile",
+        type=Path,
+        help="Explicit Brave profile directory; omit to use Default/auto-discover",
+    )
 
     import_brave = with_manifest(
         "import-brave-session",
@@ -54,10 +84,10 @@ def _parser() -> argparse.ArgumentParser:
         help="Explicit Firefox profile directory; omit to auto-discover and choose",
     )
 
-    with_manifest("dry-run", "Fill one post and stop before Schedule", post=True, time=True)
-    with_manifest("qualify", "Schedule and verify exactly one post", post=True, time=True)
-    with_manifest("schedule", "Schedule and verify the full batch sequentially", time=True)
-    with_manifest("verify", "Check expected titles in the Scheduled area", time=False)
+    with_manifest("dry-run", "Fill one post and stop before Schedule", post=True, time=True, browser=True)
+    with_manifest("qualify", "Schedule and verify exactly one post", post=True, time=True, browser=True)
+    with_manifest("schedule", "Schedule and verify the full batch sequentially", time=True, browser=True)
+    with_manifest("verify", "Check expected titles in the Scheduled area", time=False, browser=True)
     return parser
 
 
@@ -75,6 +105,15 @@ def _resolved_or_fail(post, default_time: str | None):
             "supply --default-time HH:MM"
         )
     return value
+
+
+def _adapter_for(args, manifest):
+    if getattr(args, "browser", "relay") == "brave":
+        return BraveDirectSubstackAdapter(
+            manifest,
+            profile=getattr(args, "brave_profile", None),
+        )
+    return SubstackPlaywrightAdapter(manifest)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -95,6 +134,11 @@ def main(argv: list[str] | None = None) -> int:
                 print("Dates are frozen. Supply --default-time HH:MM when scheduling.")
             return 0
 
+        if args.command == "brave-check":
+            adapter = BraveDirectSubstackAdapter(manifest, profile=args.profile)
+            adapter.check_session()
+            return 0
+
         if args.command == "import-brave-session":
             import_brave_session(manifest, profile=args.profile)
             return 0
@@ -103,11 +147,11 @@ def main(argv: list[str] | None = None) -> int:
             import_firefox_session(manifest, profile=args.profile)
             return 0
 
-        adapter = SubstackPlaywrightAdapter(manifest)
-
         if args.command == "login":
-            adapter.login()
+            SubstackPlaywrightAdapter(manifest).login()
             return 0
+
+        adapter = _adapter_for(args, manifest)
 
         if args.command == "dry-run":
             result = validate_manifest(
@@ -181,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
         RelayStop,
         BraveSessionImportError,
         FirefoxSessionImportError,
+        BraveDirectError,
     ) as exc:
         print(f"RELAY_STOP: {exc}", file=sys.stderr)
         return 2
