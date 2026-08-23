@@ -1,9 +1,23 @@
-# Detox Season — Ready to Schedule
+# Detox Season — Publication Packet Status
 
-Status: `26 ESSAYS DRAFTED / PASTE-READY / MANUAL SUBSTACK SCHEDULING REQUIRED`
-Freeze date: 2026-08-23
-Detox window: 2026-08-24 through 2026-11-24
-Cadence: Tuesday + Friday
+Status: `26 ESSAYS DRAFTED / ORIGINAL DATES FROZEN AS TEST FIXTURE / EVIDENCE AUDIT + FINAL REBASE REQUIRED`
+Original freeze date: 2026-08-23
+Original cadence: Tuesday + Friday
+Current launch authority: **NONE — detox start deferred until readiness gates pass**
+
+## Important change on 2026-08-23
+
+The original plan assumed the digital detox would begin immediately. That constraint changed: the build/research runway now continues for roughly another month.
+
+Therefore the dates embedded in these five source packets and in `relay/examples/detox-season.yml` must **not** be treated as the final publication calendar.
+
+They remain useful as:
+
+- a frozen test fixture for Relay;
+- proof that the 26-post sequence is internally complete;
+- the baseline from which a final calendar can later be rebased.
+
+Before final scheduling, the dates in the manifest and source packets must be changed together and revalidated.
 
 ## Already published — do not schedule again
 
@@ -11,78 +25,127 @@ Cadence: Tuesday + Friday
 - My Red Hand
 - The Degree Is Not an Infinity Stone
 
-## Paste-ready files
+## Frozen source packets
 
 1. `DETOX-SEASON-01-WEEKS-1-3-PASTE-READY.txt`
-   - Aug 25 — Where Did the Boys Go?
-   - Aug 28 — The Market Found Looksmaxxing
-   - Sep 1 — Equal Does Not Mean Identical
-   - Sep 4 — Do Men Sometimes Need Men?
-   - Sep 8 — The Library of Alexandria Is 24 Inches From Your Nuts
-   - Sep 11 — The Vanishing Pause
+   - Where Did the Boys Go?
+   - The Market Found Looksmaxxing
+   - Equal Does Not Mean Identical
+   - Do Men Sometimes Need Men?
+   - The Library of Alexandria Is 24 Inches From Your Nuts
+   - The Vanishing Pause
 
 2. `DETOX-SEASON-02-WEEKS-4-6-PASTE-READY.txt`
-   - Sep 15 — We Lost the Denominator
-   - Sep 18 — The Crowd You Think Exists
-   - Sep 22 — Democracy, My Ass
-   - Sep 25 — The Outvoted Person
-   - Sep 29 — The Government Learns to Listen
-   - Oct 2 — Canada Tested the Message
+   - We Lost the Denominator
+   - The Crowd You Think Exists
+   - Democracy, My Ass
+   - The Outvoted Person
+   - The Government Learns to Listen
+   - Canada Tested the Message
 
 3. `DETOX-SEASON-03-WEEKS-7-9-PASTE-READY.txt`
-   - Oct 6 — You Don't Get to Know Me Well Enough to Optimize Me
-   - Oct 9 — Microtargeting Is Not a Sniper Rifle
-   - Oct 13 — The Algorithm Didn't Brainwash You
-   - Oct 16 — The Worst Five Minutes
-   - Oct 20 — The WEF Clip Was Real. The Math Wasn't.
-   - Oct 23 — Government Lies. That Doesn't Make Every Conspiracy True.
+   - You Don't Get to Know Me Well Enough to Optimize Me
+   - Microtargeting Is Not a Sniper Rifle
+   - The Algorithm Didn't Brainwash You
+   - The Worst Five Minutes
+   - The WEF Clip Was Real. The Math Wasn't.
+   - Government Lies. That Doesn't Make Every Conspiracy True.
 
 4. `DETOX-SEASON-04-WEEKS-10-11-PASTE-READY.txt`
-   - Oct 27 — What Do I Mean When I Say I Made Up My Own Mind?
-   - Oct 30 — The Person Gets Veto Power Over the Stereotype
-   - Nov 3 — I Think I Was Collecting Evidence From a Rigged Experiment
-   - Nov 6 — Don't Just Tell a Boy He Matters
+   - What Do I Mean When I Say I Made Up My Own Mind?
+   - The Person Gets Veto Power Over the Stereotype
+   - I Think I Was Collecting Evidence From a Rigged Experiment
+   - Don't Just Tell a Boy He Matters
 
 5. `DETOX-SEASON-05-WEEKS-12-13-PASTE-READY.txt`
-   - Nov 10 — School Is an Engineered Environment
-   - Nov 13 — Eighteen Is Not a Neurological Switch
-   - Nov 17 — Men Who Walked Away
-   - Nov 20 — The New Temperance
+   - School Is an Engineered Environment
+   - Eighteen Is Not a Neurological Switch
+   - Men Who Walked Away
+   - The New Temperance
 
-## November 24 return slot
+## Return slot
 
-Do **not** prewrite or schedule a fabricated detox result.
+Do **not** prewrite a fabricated detox result.
 
 Working title only:
 
 > I DISAPPEARED FROM THE INTERNET FOR THREE MONTHS. HERE'S WHAT ACTUALLY HAPPENED.
 
-Write after the experiment ends using the actual lived result.
+Write it after the experiment using the actual lived result.
 
-## Scheduling instructions
+## Required work before final freeze
 
-For each entry:
+### 1. Evidence audit
 
-1. Open the matching `.txt` packet.
-2. Copy only the essay beginning at `TITLE:` and ending after the AI disclosure.
-3. Put the `TITLE` and `SUBTITLE` into Substack's title/subtitle fields rather than leaving the labels in the article body.
-4. Paste the body beginning with the first essay sentence.
-5. Convert `BORING RECEIPT` to a Substack heading if desired.
-6. Keep the source URLs visible at the bottom.
-7. Schedule for the date shown in the packet.
-8. Do not add paid-tier, donation, premium-subscription, or engagement-bait calls to action.
-9. Do not promise replies while Ryan is offline.
+Every external factual claim must be checked against the strongest reasonably available source. Exact article/PDF/statute/report URLs are preferred over homepages or search results. Where deletion/scrubbing is plausible, use the digital-archaeology standard: archived pages, historical URLs, mirrored documents and contemporaneous references before concluding evidence is absent.
 
-## Evidence freeze
+Each material claim should end in one of:
 
-The essays were drafted against sources available by 2026-08-23. They intentionally avoid depending on future election results, future court decisions, the unreleased final federal Men and Boys' Health Strategy, future market data, or other events that could make scheduled copy false before publication.
+- ESTABLISHED
+- PROBABLE
+- HYPOTHESIS
+- PERSONAL EXPERIENCE
+- CUT
 
-Where a claim remains a hypothesis, the article says so. Where evidence is mixed, the counterevidence stays in the article.
+### 2. Editorial audit
+
+Each article must keep:
+
+- strong opening;
+- one clear argument/question;
+- counterevidence where material;
+- joke/analogy separated from literal factual claim;
+- exact AI disclosure where used;
+- no paid/donation CTA;
+- no promise of replies while offline.
+
+### 3. Calendar rebase
+
+After the final detox start is chosen:
+
+- preserve the Tuesday/Friday rhythm unless deliberately changed;
+- update source-packet `SCHEDULE` dates;
+- update `relay/examples/detox-season.yml` dates;
+- freeze the clock time;
+- rerun validation;
+- create final hashes.
+
+### 4. Scheduling mode
+
+Stable Relay v0.1 operating mode is preparation assistant + human final Schedule click.
+
+For one post:
+
+```bash
+clove-relay prepare examples/detox-season.yml \
+  --post 1 \
+  --default-time 09:00 \
+  --browser brave
+```
+
+For the final batch:
+
+```bash
+clove-relay prepare-batch examples/detox-season.yml \
+  --default-time 09:00 \
+  --browser brave
+```
+
+Do not run the final batch against the old fixture dates.
+
+## Evidence freeze rule
+
+The original drafts were written against sources available by 2026-08-23. The final freeze will move that boundary forward. At final audit, any claim that can materially change during the three-month offline period must either:
+
+- be rewritten as a dated historical statement;
+- be sourced to a stable primary record;
+- be removed;
+- or be explicitly bounded so later events cannot silently make the scheduled copy false.
 
 ## Digital-detox integrity
 
 Scheduled publishing does not require monitoring publishing.
 
-No essay requires checking views, likes, comments, X, KDP or Substack analytics during the detox.
+No essay should require checking views, likes, comments, X, KDP or Substack analytics during the detox.
 
-The publishing machine can keep running while Ryan is offline.
+The goal is not to automate being online. The goal is to finish the human decisions before going offline.
