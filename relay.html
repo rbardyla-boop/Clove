@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Clove Relay — local-first publishing assistant</title>
+  <meta name="description" content="Clove Relay prepares already-approved writing for a publishing scheduler while keeping the final Schedule decision with the human.">
+  <meta name="theme-color" content="#07111f">
+  <link rel="canonical" href="https://clovelearn.io/relay.html">
+  <link rel="stylesheet" href="/hub.css">
+</head>
+<body>
+  <header class="site-nav">
+    <a class="wordmark" href="/">CLOVE<span>LEARN</span></a>
+    <nav aria-label="Main navigation">
+      <a href="/evidence.html">Evidence</a>
+      <a href="/corrections.html">Corrections</a>
+      <a href="/research/">Research</a>
+      <a href="/">Home</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <p class="eyebrow">LOCAL FIRST · NO TELEMETRY · HUMAN FINAL DECISION</p>
+      <h1>Write now. Go offline. Let the boring machinery help.</h1>
+      <p>Clove Relay is a small publishing assistant built around one idea: automation should remove repetitive digital labour without taking over the judgment that made the work worth publishing.</p>
+    </section>
+
+    <section class="privacy-copy">
+      <div class="contract">
+        <h2>Current status</h2>
+        <p><strong>Preparation path: qualified on a real Linux + Brave + Substack account.</strong></p>
+        <p><strong>Human-final-Schedule mode: implemented; final local smoke test and season freeze still pending.</strong></p>
+        <p><strong>Fully automated final-click scheduling: experimental and not required.</strong></p>
+      </div>
+
+      <h2>What Relay does</h2>
+      <p>Relay validates an already-approved local source packet, opens the writer's authenticated publishing dashboard, creates an article, inserts the title/subtitle/body, checks that the content survived the editor, reaches publishing settings, and writes local receipts.</p>
+
+      <h2>What Relay deliberately leaves to the human</h2>
+      <p>The final publication decision. In the stable v0.1 design, the human inspects the visible page and performs the final Schedule click.</p>
+
+      <div class="contract">
+        <p><strong>The machine handles the bullshit. The human keeps the decision.</strong></p>
+      </div>
+
+      <h2>Why not automate the last click?</h2>
+      <p>Because the point is not to win a browser-automation contest. Publisher interfaces change. A tool that guesses confidently at the wrong button is worse than a tool that asks for a human when the state is ambiguous.</p>
+      <p>Relay is fail-closed: when it cannot prove the next action is safe, it stops or hands the control back to the person looking at the screen.</p>
+
+      <h2>Security boundary</h2>
+      <p>Relay does not ask for a publishing password, does not run a cloud account, does not collect telemetry, does not scrape subscriber data, does not bypass CAPTCHA, and does not silently fall back to immediate publishing.</p>
+
+      <h2>What real testing found</h2>
+      <p>The useful bugs were not theoretical. Linux browser process names, keyring-backed login state, duplicate selector aliases and a rerendering editor all broke early assumptions. The tool was changed to match what the real system did rather than what the code hoped it did.</p>
+
+      <h2>Stable operating sequence</h2>
+      <div class="contract">
+        <p><code>validate</code> — check the source packet.</p>
+        <p><code>dry-run</code> — prepare one article and stop before Schedule.</p>
+        <p><code>prepare</code> — prepare one article; human clicks Schedule; Relay verifies.</p>
+        <p><code>prepare-batch</code> — repeat sequentially; every final Schedule click stays human-owned.</p>
+      </div>
+
+      <h2>Source</h2>
+      <p>The current implementation lives in the public Clove repository under <code>relay/</code>. It is free and does not require AI to run.</p>
+      <p><a href="https://github.com/rbardyla-boop/Clove/tree/product/clove-relay-v0.1/relay">View the Relay source on GitHub →</a></p>
+
+      <h2>The larger point</h2>
+      <p>We keep using automation to remove the parts of life that build judgment while leaving people stuck doing the administrative garbage. Relay tries the opposite approach.</p>
+      <div class="contract">
+        <p><strong>Keep the thinking. Keep the judgment. Keep the writing. Keep the decision. Automate the fucking dropdown menu.</strong></p>
+      </div>
+    </section>
+
+    <section class="plain-links" aria-label="Relay links">
+      <a href="/evidence.html"><b>Evidence standard</b><span>How claims earn a status and a receipt →</span></a>
+      <a href="/corrections.html"><b>Corrections</b><span>What happens when the evidence beats us →</span></a>
+      <a href="/research/"><b>Clove Research</b><span>Investigate a factual question →</span></a>
+      <a href="/"><b>CloveLearn home</b><span>Back to the main tools →</span></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Free. Local-first. No telemetry. Human publication judgment stays human.</p>
+    <nav><a href="/evidence.html">Evidence</a><a href="/feedback.html">Feedback</a><a href="/privacy-signals.html">Privacy</a></nav>
+  </footer>
+</body>
+</html>
