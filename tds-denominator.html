@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>Show Me the Fucking Denominator • TDS • CloveLearn</title>
+<style>
+:root{--bg:#07090d;--panel:#101620;--ink:#f4efe6;--dim:#a7afbb;--red:#ff3b30;--gold:#d4a843;--line:#273244;--ok:#70d795}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.55}.app{max-width:760px;margin:auto;padding:22px 18px 70px}a{color:inherit}.back{display:inline-block;font-size:11px;text-decoration:none;border:1px solid var(--line);padding:7px 10px;border-radius:7px}.kicker{margin-top:42px;color:var(--red);font-size:11px;letter-spacing:3px}.title{font-family:Impact,'Arial Narrow',sans-serif;font-size:clamp(44px,10vw,76px);line-height:.95;margin:9px 0 14px}.lead{font-family:Georgia,serif;color:#ded8ce;font-size:18px;max-width:650px}.box{margin-top:28px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:600px){.row{grid-template-columns:1fr}}label{display:block;font-size:10px;letter-spacing:1px;color:var(--gold);margin:11px 0 6px;text-transform:uppercase}input,textarea,select{width:100%;background:#090d13;color:var(--ink);border:1px solid #344154;border-radius:7px;padding:11px;font:inherit}textarea{min-height:86px;resize:vertical}button{margin-top:15px;border:1px solid rgba(255,59,48,.6);background:rgba(255,59,48,.12);color:white;padding:10px 14px;border-radius:7px;font:inherit;cursor:pointer}.result{display:none;margin-top:18px;border-left:3px solid var(--gold);padding:12px 15px;background:#0b1018}.big{font-family:Georgia,serif;font-size:25px}.small{font-size:11px;color:var(--dim);margin-top:8px}.questions{font-family:Georgia,serif;margin-top:14px}.questions li{margin:8px 0}.footer{margin-top:36px;color:#6f7886;font-size:10px}.warn{color:#d9c38c}
+</style>
+</head>
+<body><main class="app">
+<a class="back" href="/tds.html">← TDS RECEIPT DRAWER</a>
+<div class="kicker">READER TEST 02</div><h1 class="title">SHOW ME THE FUCKING DENOMINATOR</h1>
+<p class="lead">Ten shocking examples can be ten out of ten—or ten out of ten million. Same numerator. Completely different world.</p>
+<section class="box">
+<div class="row"><div><label for="n">Shocking examples / numerator</label><input id="n" inputmode="decimal" placeholder="e.g. 27"></div><div><label for="d">Relevant population / denominator</label><input id="d" inputmode="decimal" placeholder="e.g. 250000"></div></div>
+<label for="window">Time window</label><input id="window" placeholder="e.g. one month, 2024 election, ten years">
+<label for="selection">How were the examples selected?</label><select id="selection"><option value="unknown">Unknown / not disclosed</option><option value="random">Random or representative sampling</option><option value="search">Search/query results</option><option value="viral">Viral / engagement-ranked feed</option><option value="curated">Curated by an advocate, journalist, campaign, or critic</option><option value="all">Complete census / all known cases</option></select>
+<label for="claim">What population-level claim is being made?</label><textarea id="claim" placeholder="e.g. 'People on that side are violent' or 'this happens all the time'"></textarea>
+<button id="run">CHECK THE PICTURE</button><button id="reset" type="button">RESET</button>
+<div class="result" id="result"><div class="big" id="rate"></div><div class="small" id="meaning"></div><ul class="questions" id="questions"></ul></div>
+</section>
+<p class="small warn">This tool does not decide whether an example is true. It asks whether true examples justify a population claim.</p>
+<div class="footer">Runs entirely in your browser. Nothing entered here is sent to CloveLearn or stored in the cloud.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+$('run').addEventListener('click',()=>{
+  const n=Number(String($('n').value).replace(/,/g,'')), d=Number(String($('d').value).replace(/,/g,''));
+  const sel=$('selection').value, win=$('window').value.trim()||'unspecified time window';
+  const qs=[]; let rate='DENOMINATOR MISSING'; let meaning='You have examples, not a prevalence estimate.';
+  if(Number.isFinite(n)&&Number.isFinite(d)&&d>0&&n>=0){
+    const pct=n/d*100; rate=(pct<0.01?pct.toPrecision(2):pct.toFixed(pct<1?3:2))+'%';
+    meaning=`${n.toLocaleString()} examples out of ${d.toLocaleString()} relevant cases during ${win}.`;
+    if(n>d) qs.push('The numerator is larger than the denominator. Check whether the units actually match.');
+  } else { qs.push('Find the population at risk before treating examples as prevalence.'); }
+  if(sel==='unknown') qs.push('Selection mechanism is hidden. Ask who chose these examples and what was left out.');
+  if(sel==='viral') qs.push('Engagement ranking is not representative sampling. Extreme or emotional material may be over-selected.');
+  if(sel==='search') qs.push('Search results answer a query; they do not automatically estimate how common something is.');
+  if(sel==='curated') qs.push('Curated examples may be valid evidence of existence while remaining poor evidence of prevalence.');
+  if(sel==='random') qs.push('Representative sampling helps—but check sample size, response bias, weighting, and uncertainty.');
+  if(sel==='all') qs.push('A complete census is strongest for prevalence, provided the denominator covers the same population and period.');
+  qs.push('What comparison group would make this rate meaningful?');
+  qs.push('Would the claim still sound the same if the denominator were printed beside every example?');
+  $('rate').textContent=rate; $('meaning').textContent=meaning; $('questions').innerHTML=qs.map(q=>`<li>${q}</li>`).join(''); $('result').style.display='block';
+});
+$('reset').addEventListener('click',()=>{['n','d','window','claim'].forEach(x=>$(x).value='');$('selection').value='unknown';$('result').style.display='none';});
+</script></body></html>
