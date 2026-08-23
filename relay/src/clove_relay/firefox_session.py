@@ -16,17 +16,21 @@ class FirefoxSessionImportError(RuntimeError):
 def _firefox_roots() -> list[Path]:
     home = Path.home()
     return [
+        # Native Firefox / distro package.
         home / ".mozilla" / "firefox",
+        # Ubuntu/Snap Firefox.
         home / "snap" / "firefox" / "common" / ".mozilla" / "firefox",
+        # Flatpak Firefox (common on Linux Mint and other desktop distros).
+        home / ".var" / "app" / "org.mozilla.firefox" / ".mozilla" / "firefox",
     ]
 
 
 def discover_firefox_profiles() -> list[Path]:
     """Return Firefox profiles that contain a cookies.sqlite database.
 
-    Profiles are ordered by most recently modified cookie database first, which is
-    usually the profile currently used by the human. Relay still shows the choices
-    before importing when more than one profile is available.
+    Profiles are ordered by most recently modified cookie database first. Relay
+    still shows every discovered profile and its Substack-cookie count before an
+    import when more than one profile exists.
     """
 
     found: dict[Path, float] = {}
@@ -61,11 +65,42 @@ def discover_firefox_profiles() -> list[Path]:
         for cookies in root.glob("*/cookies.sqlite"):
             profile = cookies.parent
             try:
-                found[profile.resolve()] = max(found.get(profile.resolve(), 0.0), cookies.stat().st_mtime)
+                found[profile.resolve()] = max(
+                    found.get(profile.resolve(), 0.0), cookies.stat().st_mtime
+                )
             except OSError:
                 found.setdefault(profile.resolve(), 0.0)
 
     return [path for path, _mtime in sorted(found.items(), key=lambda item: item[1], reverse=True)]
+
+
+def _substack_cookie_count(profile: Path) -> int | None:
+    """Return count without exposing cookie names or values; None means unreadable."""
+
+    database = profile / "cookies.sqlite"
+    try:
+        connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True, timeout=2)
+        try:
+            row = connection.execute(
+                """
+                SELECT COUNT(*)
+                FROM moz_cookies
+                WHERE host = 'substack.com'
+                   OR host = '.substack.com'
+                   OR host LIKE '%.substack.com'
+                """
+            ).fetchone()
+            return int(row[0]) if row else 0
+        finally:
+            connection.close()
+    except sqlite3.Error:
+        return None
+
+
+def _profile_label(profile: Path) -> str:
+    count = _substack_cookie_count(profile)
+    count_text = "unreadable while Firefox is busy" if count is None else f"{count} Substack cookies"
+    return f"{profile}  [{count_text}]"
 
 
 def _select_profile(explicit: Path | None) -> Path:
@@ -77,17 +112,41 @@ def _select_profile(explicit: Path | None) -> Path:
 
     profiles = discover_firefox_profiles()
     if not profiles:
+        roots = "\n  - ".join(str(path) for path in _firefox_roots())
         raise FirefoxSessionImportError(
-            "No Firefox profile with cookies.sqlite was found under ~/.mozilla/firefox "
-            "or ~/snap/firefox/common/.mozilla/firefox"
+            "No Firefox profile with cookies.sqlite was found in the supported locations:\n"
+            f"  - {roots}"
         )
+
+    # If exactly one profile is discovered but it has no Substack state, say which
+    # path Relay actually inspected. This makes packaging/path bugs diagnosable.
     if len(profiles) == 1:
-        return profiles[0]
+        selected = profiles[0]
+        count = _substack_cookie_count(selected)
+        if count == 0:
+            raise FirefoxSessionImportError(
+                "The only Firefox profile Relay discovered has no Substack cookies:\n"
+                f"  {selected}\n"
+                "If the visible signed-in Firefox is a Flatpak/Snap/native install using a different "
+                "profile, run again after git pull; Relay now searches all three standard Linux roots."
+            )
+        return selected
 
     print("Firefox profiles found:")
     for index, profile in enumerate(profiles, start=1):
-        print(f"  {index}. {profile}")
-    raw = input(f"Choose the profile that is already signed into Substack [1-{len(profiles)}]: ").strip()
+        print(f"  {index}. {_profile_label(profile)}")
+
+    # Prefer an unambiguous profile containing Substack cookies, while still asking
+    # the human to confirm when multiple candidates qualify.
+    with_substack = [p for p in profiles if (_substack_cookie_count(p) or 0) > 0]
+    if len(with_substack) == 1:
+        selected = with_substack[0]
+        print(f"Relay found one profile containing Substack cookies: {selected}")
+        answer = input("Use this profile? [Y/n]: ").strip().lower()
+        if answer in {"", "y", "yes"}:
+            return selected
+
+    raw = input(f"Choose the profile that is visibly signed into Substack [1-{len(profiles)}]: ").strip()
     try:
         choice = int(raw)
     except ValueError as exc:
