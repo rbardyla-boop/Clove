@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from clove_relay.bundle import find_article, parse_bundle
+from clove_relay.cli import _parser
 from clove_relay.manifest import load_manifest
 from clove_relay.validate import parse_hhmm, validate_manifest
 
@@ -54,3 +55,36 @@ def test_time_parser_is_strict():
     assert parse_hhmm("21:45").strftime("%H:%M") == "21:45"
     with pytest.raises(ValueError):
         parse_hhmm("9am")
+
+
+def test_preparation_assistant_commands_are_registered():
+    parser = _parser()
+
+    one = parser.parse_args(
+        [
+            "prepare",
+            str(MANIFEST),
+            "--post",
+            "1",
+            "--default-time",
+            "09:00",
+            "--browser",
+            "brave",
+        ]
+    )
+    assert one.command == "prepare"
+    assert one.post == 1
+    assert one.browser == "brave"
+
+    batch = parser.parse_args(
+        [
+            "prepare-batch",
+            str(MANIFEST),
+            "--default-time",
+            "09:00",
+            "--browser",
+            "brave",
+        ]
+    )
+    assert batch.command == "prepare-batch"
+    assert batch.browser == "brave"
