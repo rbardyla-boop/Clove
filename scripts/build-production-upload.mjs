@@ -10,10 +10,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const HARD_EXCLUDE_PREFIXES = Object.freeze([
   'agent/',
   'new-work/',
+  // Editorial/publishing working files are repository records, not public site assets.
+  'publishing/',
 ]);
 
 export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
   'master-map.md',
+  'research/projects/BOOK_RESEARCH_RELEASE_NOTE.md',
   // Digital Stewardship implementation slices remain NON-PUBLIC until a later
   // release gate deliberately removes both the production lock and preflight sentinel.
   'digital-stewardship-00.html',
