@@ -50,21 +50,66 @@ class SubstackPlaywrightAdapter:
         return RelayStop(f"{message}\nScreenshot: {shot}")
 
     @staticmethod
-    def _unique(candidates: list[Locator], description: str) -> Locator:
-        matches: list[Locator] = []
+    def _dom_identity(locator: Locator) -> str:
+        """Return a per-page identity for a DOM element without modifying page markup.
+
+        Several semantic selectors can legitimately resolve to the same editor element.
+        Relay previously counted those selector hits as separate safe candidates and
+        stopped even though only one real field existed. A WeakMap lets us deduplicate
+        selector aliases while still failing closed if two distinct elements match.
+        """
+
+        value = locator.evaluate(
+            """
+            el => {
+              const w = el.ownerDocument.defaultView;
+              if (!w.__cloveRelayElementIds) {
+                w.__cloveRelayElementIds = new WeakMap();
+                w.__cloveRelayElementSeq = 0;
+              }
+              if (!w.__cloveRelayElementIds.has(el)) {
+                w.__cloveRelayElementSeq += 1;
+                w.__cloveRelayElementIds.set(el, w.__cloveRelayElementSeq);
+              }
+              return String(w.__cloveRelayElementIds.get(el));
+            }
+            """
+        )
+        return str(value)
+
+    @classmethod
+    def _unique(cls, candidates: list[Locator], description: str) -> Locator:
+        matches: dict[str, Locator] = {}
+        selector_hits = 0
         for candidate in candidates:
             try:
                 count = candidate.count()
             except Exception:
                 continue
-            if count == 1:
-                matches.append(candidate)
+            if count != 1:
+                continue
+            selector_hits += 1
+            try:
+                identity = cls._dom_identity(candidate)
+            except Exception:
+                continue
+            matches.setdefault(identity, candidate)
+
         if len(matches) != 1:
             raise RelayStop(
                 f"could not identify exactly one {description}; "
-                f"safe candidates={len(matches)}"
+                f"unique elements={len(matches)}, selector hits={selector_hits}"
             )
-        return matches[0]
+        return next(iter(matches.values()))
+
+    @staticmethod
+    def _editable_value(locator: Locator) -> str:
+        """Read back either a form field or a contenteditable field."""
+
+        kind = locator.evaluate("el => el.tagName.toLowerCase()")
+        if kind in {"input", "textarea"}:
+            return locator.input_value().strip()
+        return (locator.text_content() or "").strip()
 
     def _ensure_logged_in(self, page: Page) -> None:
         page.goto(self.manifest.dashboard_url, wait_until="domcontentloaded")
@@ -114,6 +159,8 @@ class SubstackPlaywrightAdapter:
                 [
                     page.locator("input[placeholder='Title']"),
                     page.locator("textarea[placeholder='Title']"),
+                    page.locator("[contenteditable='true'][data-placeholder='Title']"),
+                    page.locator("[contenteditable='true'][aria-label='Title']"),
                     page.get_by_placeholder(re.compile(r"^Title$", re.I)),
                     page.get_by_placeholder(re.compile(r"post title", re.I)),
                 ],
@@ -123,14 +170,18 @@ class SubstackPlaywrightAdapter:
                 [
                     page.locator("input[placeholder='Subtitle']"),
                     page.locator("textarea[placeholder='Subtitle']"),
+                    page.locator("[contenteditable='true'][data-placeholder*='subtitle' i]"),
+                    page.locator("[contenteditable='true'][aria-label*='subtitle' i]"),
                     page.get_by_placeholder(re.compile(r"subtitle", re.I)),
                 ],
                 "subtitle field",
             )
             body = self._unique(
                 [
-                    page.locator(".ProseMirror[contenteditable='true']"),
-                    page.locator("[contenteditable='true'][data-placeholder*='Write']"),
+                    page.locator(".ProseMirror[contenteditable='true'][data-placeholder*='writing' i]"),
+                    page.locator("[contenteditable='true'][data-placeholder*='writing' i]"),
+                    page.locator("[contenteditable='true'][aria-label*='body' i]"),
+                    page.locator("[contenteditable='true'][aria-label*='post' i]"),
                 ],
                 "article body editor",
             )
@@ -142,9 +193,9 @@ class SubstackPlaywrightAdapter:
         body.fill(post.body)
 
         # Read our own fields back before continuing. Relay does not inspect unrelated content.
-        if title.input_value().strip() != post.spec.title:
+        if self._editable_value(title) != post.spec.title:
             raise self._stop(page, "Title read-back mismatch", f"title-mismatch-{post.spec.index:02d}")
-        if subtitle.input_value().strip() != post.spec.subtitle:
+        if self._editable_value(subtitle) != post.spec.subtitle:
             raise self._stop(page, "Subtitle read-back mismatch", f"subtitle-mismatch-{post.spec.index:02d}")
 
     def _continue_to_publish_settings(self, page: Page, post: ValidatedPost) -> None:
