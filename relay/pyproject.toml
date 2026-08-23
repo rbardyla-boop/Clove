@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clove-relay"
+version = "0.1.0"
+description = "Local-first, human-confirmed publishing relay for scheduled posts"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "playwright>=1.46,<2",
+  "PyYAML>=6.0,<7",
+]
+
+[project.scripts]
+clove-relay = "clove_relay.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
