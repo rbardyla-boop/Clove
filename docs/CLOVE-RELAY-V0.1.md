@@ -1,6 +1,6 @@
 # Clove Relay v0.1
 
-Status: PRODUCT SPEC / NOT YET IMPLEMENTED
+Status: `CORE IMPLEMENTED / SUBSTACK ADAPTER NOT YET QUALIFIED`
 
 Tagline:
 
@@ -8,231 +8,218 @@ Tagline:
 
 ## Why this exists
 
-Clove Relay comes directly from the three-month digital-detox problem:
+Clove Relay came from a practical digital-temperance problem: a writer can finish months of work in advance and still be forced to remain inside a publishing dashboard to perform repetitive copying, calendar selection, audience selection, and schedule verification.
 
-Ryan wants to leave the feed without abandoning work already written and scheduled.
+The automation target is deliberately narrow:
 
-The useful automation target is not judgment, research, or authorship. It is the repetitive mechanical layer:
-
-- open publishing platform;
-- create draft;
-- enter title;
-- enter subtitle;
-- paste body;
-- choose audience;
-- choose publish date/time;
+- open the writer's own publishing dashboard;
+- create a draft;
+- enter already-approved title/subtitle/body;
+- select already-approved audience and delivery settings;
+- select an already-approved future date/time;
+- require final human confirmation;
 - schedule;
-- verify scheduled state;
-- produce a receipt.
+- verify the scheduled entry;
+- write a receipt.
 
-This is exactly the kind of cognitive offloading Clove should support:
+The governing rule is:
 
 > **Offload what consumes cognition without improving understanding. Keep what builds understanding, judgment and skill.**
 
-## Product principle
+Relay does not decide what to write, what to believe, or what deserves publication.
 
-Clove Relay is not a content-generation service.
+## v0.1 implementation
 
-It is a **local-first publishing relay** for work the user has already approved.
+Implemented under `relay/`:
 
-The tool should never decide what someone believes, what they publish, or when a draft becomes morally ready. It handles the keyboard-and-calendar work after those decisions are made.
+- Python package and CLI;
+- YAML manifest parser;
+- parser for the existing paste-ready detox-season source packets;
+- local validation;
+- source hashing;
+- JSON + human-readable receipts;
+- persistent local Playwright profile;
+- manual-login flow;
+- Substack editor fill path;
+- fail-closed publishing-settings path;
+- audience=`everyone` lock for the first qualification batch;
+- email/app delivery verification;
+- future-scheduling path based on Substack's documented UI;
+- manual fallback if date/time widgets cannot be proven safe to automate;
+- explicit `SCHEDULE` confirmation before every final Schedule click;
+- scheduled-title verification;
+- visible human confirmation of date/time/audience during qualification;
+- real 26-post detox manifest.
 
-## v0.1 target
+The real manifest is:
 
-Platform: Substack
-Automation method: Playwright-driven browser automation using the user's own local authenticated browser session.
+`relay/examples/detox-season.yml`
 
-Important boundary:
+It references the five source packets under `docs/` and freezes the release dates from August 25 through November 20, 2026.
 
-Clove Relay must not bypass access controls, defeat anti-bot systems, scrape private data, reverse-engineer authentication, or store passwords. If platform terms or technical controls prohibit an action, Relay fails closed.
+The clock time is intentionally not invented. The operator supplies `--default-time HH:MM` at run time.
 
-If Substack later exposes an official supported publishing/scheduling API, that adapter should replace browser automation.
+## Current Substack boundary
+
+Substack's current support documentation says web article scheduling follows this sequence:
+
+1. create article;
+2. click `Continue`;
+3. check `Schedule time to email and publish`;
+4. choose future date/time;
+5. schedule.
+
+Substack also says posts cannot be scheduled more than three months ahead and that the schedule uses the local device time zone.
+
+Current Substack Terms prohibit scraping/crawling, security bypasses, and processes running while a user is not logged in. Relay therefore:
+
+- works only in a visible locally authenticated browser session;
+- never asks for or stores a Substack password;
+- never scrapes public or subscriber content;
+- never accesses subscriber lists;
+- never reverse-engineers private endpoints;
+- never bypasses CAPTCHA or other human verification;
+- never runs as an unattended background process while the user is logged out;
+- stops if the UI becomes ambiguous.
+
+Browser automation remains platform-sensitive. v0.1 therefore keeps the human on the final decision boundary: every actual Schedule click requires explicit confirmation.
+
+If Substack later exposes a supported create/schedule write API, that adapter should replace Playwright.
 
 ## Security model
 
-- Passwords never enter Relay configuration.
-- Passwords never enter GitHub.
-- Session cookies/browser state stay on the user's computer.
-- Local auth directory is git-ignored.
-- User signs in manually in a real browser window.
-- No cloud account is required for Relay.
-- No analytics, telemetry, tracking, or ad system.
-- No third-party storage of post content.
+- Passwords never enter Relay configuration or GitHub.
+- Session state stays inside `.relay-auth/` on the user's machine.
+- `.relay-auth/` is git-ignored.
+- Run receipts and screenshots stay inside `.relay-receipts/` and are git-ignored.
+- No cloud account.
+- No telemetry.
+- No tracking.
+- No content ownership claim.
+- No AI requirement.
 
-## Input format
+## CLI
 
-Relay reads a local manifest such as:
+```bash
+cd relay
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+playwright install chromium
 
-```yaml
-publication: substack
-posts:
-  - file: posts/where-did-the-boys-go.txt
-    title: "Where Did the Boys Go?"
-    subtitle: "Before we pick a villain, can we find out when the gaps actually appeared?"
-    publish_at: "2026-08-25T09:00:00-03:00"
-    audience: everyone
-    email: true
+clove-relay validate examples/detox-season.yml
+clove-relay login examples/detox-season.yml
+clove-relay dry-run examples/detox-season.yml --post 1 --default-time 09:00
+clove-relay qualify examples/detox-season.yml --post 1 --default-time 09:00
+clove-relay schedule examples/detox-season.yml --default-time 09:00
+clove-relay verify examples/detox-season.yml
 ```
 
-The content file remains plain text or Markdown. The manifest contains scheduling metadata.
+`09:00` is an example only. The operator chooses the real publishing time.
 
-## Execution modes
+## Execution gates
 
-### 1. Validate
+### Gate 1 — local validation
 
-Checks locally without opening Substack:
+No browser required. Relay confirms:
 
-- every file exists;
-- title/subtitle present;
+- source bundle exists;
+- source title exists exactly once;
+- title/subtitle/date match the source packet;
+- body is non-empty;
 - dates are future dates;
-- no duplicate schedule slots unless explicitly allowed;
-- audience value valid;
-- no unresolved placeholder tokens;
-- no post exceeds configured platform constraints.
+- schedule slots do not collide;
+- audience is supported;
+- unresolved placeholder markers are absent.
 
-Output:
+Pass string:
 
-`VALIDATION_PASS` or fail with exact file and field.
+`VALIDATION_PASS`
 
-### 2. Dry run
+### Gate 2 — login
 
-Launches the authenticated browser and navigates through draft creation but stops before the final Schedule/Publish action.
+A persistent visible Chromium window opens. The user signs in normally. Relay stores no password.
 
-Purpose: verify selectors, formatting, audience controls and dates.
+Pass string:
 
-### 3. Single-post qualification
+`LOGIN_SESSION_READY`
 
-Schedules exactly one deliberately selected post.
+### Gate 3 — dry run
 
-Then independently reopens the platform's scheduled-post view and verifies:
+Exactly one selected post is filled and configured through the publishing settings. Relay stops before the final Schedule action.
 
-- title;
-- date/time;
-- audience;
-- scheduled status.
+Pass verdict:
 
-Only after this passes may a batch run be enabled.
+`DRY_RUN_COMPLETE`
 
-### 4. Batch schedule
+### Gate 4 — single-post qualification
 
-Schedules approved posts one at a time.
+Relay prepares one real post, displays the requested title/date/time/audience/email settings, saves a screenshot, and requires the user to type `SCHEDULE` before the final action.
 
-After every post it verifies scheduled state before continuing.
+It then opens the Scheduled posts area, verifies that the expected title is visible, and requires a visible human check of the date/time/audience.
 
-If verification fails, Relay stops immediately.
+Pass verdict:
+
+`QUALIFICATION_PASS`
+
+### Gate 5 — batch
+
+Only after Gate 4 passes should the 26-post batch run.
+
+Relay processes one post at a time. Every final click is human-confirmed in v0.1. Every post is verified before moving to the next. Any ambiguity aborts the run.
+
+Target verdict:
+
+`READY_FOR_DETOX`
+
+## Fail-closed conditions
+
+Relay stops when:
+
+- session is logged out;
+- Create/Article/Continue/Schedule controls are ambiguous;
+- editor fields cannot be uniquely identified;
+- title/subtitle read-back fails;
+- audience cannot be proven to be `everyone`;
+- email/app state cannot be proven;
+- scheduling control cannot be identified;
+- date/time cannot be safely automated and the human declines the manual fallback;
+- a CAPTCHA or other human verification appears;
+- final Schedule action is not explicitly authorized;
+- expected title is absent from Scheduled;
+- visible human verification is withheld.
 
 No blind continuation.
 
-## Fail-closed rules
-
-Relay stops if:
-
-- user is logged out;
-- page structure no longer matches known selectors;
-- title/body cannot be verified;
-- audience control is ambiguous;
-- schedule time cannot be read back;
-- Substack returns an error;
-- platform requests a CAPTCHA or extra human verification;
-- a post appears to be publishing immediately instead of scheduling;
-- a duplicate scheduled title/date is detected;
-- a paid-only audience is selected when manifest says `everyone`.
-
-The tool never attempts to bypass human verification.
-
 ## Receipt
 
-Every run produces a local JSON + human-readable report.
+Each scheduled post records:
 
-Example:
-
-```text
-CLOVE RELAY RUN
-Planned: 26
-Validated: 26
-Scheduled: 26
-Verified: 26
-Failed: 0
-Immediate publishes: 0
-Paid-only posts: 0
-
-VERDICT: READY FOR DETOX
-```
-
-Each post gets:
-
-- local source hash;
+- post index;
 - title;
-- requested publish time;
-- verified platform publish time;
-- verification timestamp;
+- requested future time;
+- SHA-256 hash of the local body;
 - result;
+- verification method;
 - optional screenshot path.
 
-No authentication secrets are written to receipts.
-
-## Detox mode
-
-Optional mode specifically for people who want scheduled publishing without analytics checking.
-
-After the batch is verified, Relay can generate a simple shutdown checklist:
-
-- all posts scheduled;
-- no future post requires manual data update;
-- no post promises live replies;
-- analytics links are not opened;
-- local run receipt saved.
-
-Relay does **not** monitor performance during the detox.
-
-The machine carries the calendar, not the user's attention.
+No authentication secret is written to the receipt.
 
 ## Public/free product rules
 
-- Free and open source.
-- No paid tier.
-- No donation nags inside the tool.
-- No tracking.
-- No cloud dependency for core use.
-- No content ownership claim.
-- No AI requirement.
-- Users can write with any editor or no AI at all.
-- Platform-specific adapters are isolated so the core scheduler survives interface changes.
-
-## Suggested repository structure
-
-```text
-relay/
-  README.md
-  pyproject.toml
-  relay/
-    cli.py
-    manifest.py
-    validate.py
-    receipts.py
-    adapters/
-      base.py
-      substack_playwright.py
-  examples/
-    detox-season.yml
-  tests/
-  .gitignore
-```
-
-## CLI sketch
-
-```bash
-clove-relay validate detox-season.yml
-clove-relay login substack
-clove-relay dry-run detox-season.yml --post 1
-clove-relay qualify detox-season.yml --post 1
-clove-relay schedule detox-season.yml
-clove-relay verify detox-season.yml
-```
+- free and open source;
+- no paid tier;
+- no donation nag inside the tool;
+- no cloud dependency for core use;
+- no telemetry;
+- no AI requirement;
+- content remains the user's;
+- platform adapters remain isolated;
+- human publication judgment remains outside the machine.
 
 ## Public story
 
-Working Substack title:
+Working title:
 
 > **I Wanted to Leave the Internet, So I Built a Robot to Keep Posting for Me**
 
@@ -242,31 +229,25 @@ Subtitle:
 
 Core argument:
 
-Modern automation is often used to increase output, engagement and availability.
-
-Clove Relay uses automation for the opposite purpose:
-
 > **Let the machine do the repetitive digital labour so the human can leave the machine.**
 
-The product itself becomes the evidence for the essay.
+Do not publish this as a success story until the real qualification and batch have passed.
 
-Do not publish the article as a success story until Relay actually schedules and verifies the real detox batch.
+## Definition of WORKING
 
-## Definition of v0.1 success
+Clove Relay v0.1 earns `WORKING` only when the real account proves all of the following:
 
-Clove Relay v0.1 earns `WORKING` only when all of the following happen on a real user account:
-
-1. local validation passes;
-2. manual login succeeds without storing credentials;
-3. dry run reaches the final scheduling step without committing;
-4. one real test post is scheduled;
-5. Relay independently verifies that post in Substack's scheduled list;
-6. the remaining approved batch schedules sequentially;
-7. every scheduled post is read back and verified;
-8. no unintended immediate publication occurs;
-9. no paid-only post is created when `everyone` was requested;
-10. a complete receipt is produced.
+1. validation passes for the 26-post manifest;
+2. manual login works;
+3. dry run reaches the final scheduling boundary without publishing;
+4. one real future post is scheduled;
+5. its scheduled title/date/time/audience are verified;
+6. the remaining batch schedules sequentially;
+7. all 26 expected posts are present in Scheduled;
+8. no unintended immediate publish occurs;
+9. no paid-only audience is selected;
+10. complete local receipts are produced.
 
 Until then:
 
-`CLOVE RELAY v0.1 — PROPOSED / NOT YET QUALIFIED`
+`CLOVE RELAY v0.1 — IMPLEMENTED / NOT YET QUALIFIED`
