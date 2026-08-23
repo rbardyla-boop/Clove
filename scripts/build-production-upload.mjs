@@ -10,6 +10,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const HARD_EXCLUDE_PREFIXES = Object.freeze([
   'agent/',
   'new-work/',
+  // Editorial/publishing working files are repository records, not public site assets.
+  'publishing/',
 ]);
 
 export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
