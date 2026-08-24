@@ -24,6 +24,7 @@ const requiredSources = [
   'https://www.bis.org/publ/othp110.htm',
   'https://www.bankofcanada.ca/2026/05/bank-canada-joins-bis-project-agora-test-improvements-wholesale-cross-border-payments/',
   'https://www.bankofcanada.ca/2026/06/sparks-at-bank-article-2026-14/',
+  'https://www.canada.ca/en/financial-consumer-agency/services/payment/digital-currency.html',
 ];
 
 function read(file) {
@@ -60,6 +61,14 @@ test('crypto page contains the complete reference contract and official source a
   }
   for (const source of requiredSources) assert.match(html, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(html, /There is no magic “ISO 20022 coin list/);
+  assert.match(html, /The Town With No Town Hall/);
+  assert.match(html, /wallet is a keyring/);
+  assert.match(html, /Not my department/);
+  assert.match(html, /Dad’s Crypto Test/);
+  assert.match(html, /MESSAGE ≠ MONEY/);
+  for (const sourceGroup of ['BITCOIN', 'ETHEREUM', 'ISO 20022 \/ PAYMENTS', 'TOKENISATION \/ CENTRAL BANKS', 'REGULATORY \/ SAFETY', 'CURRENT STATE \/ EXAMPLES']) {
+    assert.match(html, new RegExp(sourceGroup));
+  }
   assert.match(html, /EMERGING \/ PILOT/);
   assert.match(html, /CONCEPTUAL EDUCATIONAL MODEL — NOT A LIVE PAYMENT SYSTEM/);
   assert.match(html, /No price charts/);
@@ -122,6 +131,15 @@ test('browser smoke test covers local demos, keyboard labels, privacy, and mobil
   assert.equal(await desktop.locator('.story-grid').evaluate((element) => getComputedStyle(element).gridTemplateColumns.includes(' ')), true);
   await desktop.close();
   await desktopContext.close();
+
+  const noJsContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+  const noJs = await noJsContext.newPage();
+  await noJs.goto(`${baseUrl}/learn/crypto/`);
+  assert.equal(await noJs.locator('h1').count(), 1);
+  assert.match(await noJs.locator('#start').textContent(), /The Town With No Town Hall/);
+  assert.match(await noJs.locator('#iso-20022').textContent(), /MESSAGE ≠ MONEY/);
+  assert.match(await noJs.locator('#glossary').textContent(), /Primary sources and bounded evidence/);
+  await noJsContext.close();
 
   await browser.close();
 });

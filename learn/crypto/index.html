@@ -56,9 +56,10 @@
       <div class="story-grid">
         <article class="story-card story-card-wide">
           <p class="card-label">PLAIN-ENGLISH TOUR</p>
-          <h3>Somebody presses Send</h3>
-          <p>A request arrives: “Move this recorded thing from this key-holder to that key-holder.” The network does not ask whether the lunch was good, whether the buyer understood the risks, or whether the thing is worth anything. It checks whether the request follows the rules and whether the right signing authority approved it.</p>
-          <p>Copies of the book compare notes. A mechanism for ordering competing pages decides which history the network accepts. The deed office can say, “This request is valid under our rules.” It cannot say, “This was a wise decision.”</p>
+          <h3>Dad thinks crypto is bullshit.</h3>
+          <p>That is a reasonable opening position. So imagine <strong>The Town With No Town Hall</strong>: every deed office has a copy of the property book, nobody gets to be the single official clerk, and the offices still need a way to decide which conflicting request belongs on the next page.</p>
+          <p>Somebody presses Send. The network does not ask whether the lunch was good, whether the buyer understood the risks, or whether the thing is worth anything. It checks whether the request follows the rules and whether the right signing authority approved it.</p>
+          <p>The deed office can say, “This request is valid under our rules.” It cannot say, “This was a wise decision.” The ledger replies: <strong>Not my department.</strong></p>
         </article>
         <article class="story-card">
           <p class="card-label">THE METAPHOR HELPS</p>
@@ -79,6 +80,16 @@
           </ul>
         </article>
       </div>
+
+      <details class="story-tour">
+        <summary><span class="depth-tag dad">PLAIN-ENGLISH TOUR</span> The Town With No Town Hall</summary>
+        <div class="story-tour-body">
+          <p>A wallet is a keyring, not a little leather pouch full of coins. The coins are represented by records in a ledger; the wallet manages credentials that can authorize changes to those records. Losing the keyring is not like losing a physical coin, but it can still mean losing the ability to authorize a spend.</p>
+          <p>A counterfeit Rolex can look convincing while having no relationship to the timekeeping brand it imitates. A digital certificate can look official because Larry printed it on a very impressive press. The ledger can record the certificate perfectly; it cannot confirm that the thing behind the certificate exists or that the buyer made a good bargain.</p>
+          <p>Proof of Work is a global competition to notarize the next page: miners spend resources competing for the right to propose it, while nodes independently check the page. Proof of Stake uses a different security deposit: validators put valuable collateral on the table and follow rules that can reward participation or penalize specified misconduct.</p>
+          <p>That is why “trustless” is too dramatic. Technology can reduce some trust relationships without eliminating trust. You still depend on software, backups, operators, issuers, bridges, oracles, and your own ability to notice when somebody is selling you a beautifully formatted Larry certificate.</p>
+        </div>
+      </details>
 
       <div class="three-pillars" aria-label="Three different things the machinery can establish">
         <article><span>LEDGER STATE</span><strong>What the network records</strong><p>Which outputs, balances, or contract state are currently accepted under protocol rules.</p></article>
@@ -125,6 +136,7 @@
           <h3>A wallet is a keyring, not a bag of coins</h3>
           <p>A private key is secret signing authority. A public key helps verify a signature. An address is a network-specific representation used to identify a destination or spending condition. Wallet software manages keys and presents a usable view of network state.</p>
           <p>A recovery phrase can encode or derive key material, which is why it is a secret. This page never asks for one. Self-custody means you carry the recovery responsibility; a custodian carries it for you, along with its own failure modes.</p>
+          <blockquote class="rough-quote">Self-custody means more direct control and more personal responsibility. Motherfucker, have you met yourself?</blockquote>
           <details class="inline-details"><summary>NERD HATCH · Bitcoin UTXOs</summary><p>Bitcoin does not fundamentally maintain one bank-style balance per address. Transactions consume unspent transaction outputs (UTXOs) and create new outputs. Wallet software adds the pieces into a balance that humans can use.</p></details>
         </article>
         <article class="explain-card">
@@ -132,6 +144,12 @@
           <h3>Authorization is not identity, wisdom, or value</h3>
           <p>A valid digital signature can establish that the holder of a relevant key authorized a particular message and that the signed data was not changed. It does not establish a real-world identity by itself, informed consent, legality, good judgment, solvency, or economic value.</p>
           <blockquote>Cryptography can authenticate stupidity perfectly.</blockquote>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">CRYPTO DOES NOT MEAN SECRET</p>
+          <h3>Pseudonymous is not anonymous</h3>
+          <p>Cryptographic means the system uses cryptographic techniques. It does not mean private. Many public ledgers expose transaction history; addresses can be linked through public patterns, metadata, merchants, or custodians. A public ledger can be inspectable without being automatically readable as a person’s identity.</p>
+          <p class="callout-line">Crypto ≠ anonymous. Public ledger ≠ secret diary.</p>
         </article>
         <article class="explain-card">
           <p class="card-label">HASHES</p>
@@ -144,6 +162,12 @@
           <h3>Not my department</h3>
           <p>A blockchain may know that fictional Address A transferred 10 tokens to fictional Address B. It does not inherently know whether Bob was scammed, whether a promoter lied, whether an off-chain asset exists, or whether the person pressing the button understood the deal.</p>
           <p class="callout-line">The ledger can answer “did this follow the rules?” It cannot answer “was this a good idea?”</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">MARKET MECHANICS · NOT TRADING</p>
+          <h3>Price × supply is not cash in the door</h3>
+          <p>Market capitalisation is usually a displayed price multiplied by a supply figure. It does not mean that the same amount of cash entered the asset. A marginal trade can move the quoted price applied to many units, while liquidity, spread, concentration, and slippage determine what someone could actually sell for.</p>
+          <p class="warning-line">A working market label is not proof of fair value.</p>
         </article>
       </div>
 
@@ -185,14 +209,14 @@
       <div class="content-grid two-col">
         <article class="explain-card network-card">
           <p class="card-label">BITCOIN · PROOF OF WORK</p>
-          <h3>Expensive competition to propose the next page</h3>
-          <p>Miners assemble candidate blocks and repeatedly hash block-header candidates until one satisfies the current target. The successful miner proposes a block; independent nodes still validate transactions and consensus rules. Rewards combine a block subsidy and transaction fees.</p>
+          <h3>Competing notaries for the next page</h3>
+          <p>Miners assemble candidate blocks and repeatedly hash block-header candidates until one satisfies the current target. They are competing notaries, not the final judges: the successful miner proposes a block, while independent nodes still validate transactions and consensus rules. Rewards combine a block subsidy and transaction fees.</p>
           <details class="inline-details"><summary>NERD HATCH · accumulated work</summary><p>Each block adds work that makes rewriting a long history more expensive under the current rules. Difficulty adjusts over time. The security benefit of the resource cost and the environmental/resource trade-off are separate questions.</p></details>
         </article>
         <article class="explain-card network-card">
           <p class="card-label">ETHEREUM · PROOF OF STAKE</p>
-          <h3>Collateral-backed validator participation</h3>
-          <p>Validators deposit stake, propose or attest to blocks, and can receive rewards or penalties. Ethereum documentation describes a 32 ETH deposit for solo validator participation; pools and services can structure participation differently. Specified dishonest actions can lead to slashing.</p>
+          <h3>Same town, different security deposit</h3>
+          <p>Validators deposit stake, propose or attest to blocks, and can receive rewards or penalties. Ethereum documentation describes a 32 ETH deposit for solo validator participation; pools and services can structure participation differently. Specified conflicting or dishonest actions can lead to slashing; ordinary downtime is a different failure mode.</p>
           <details class="inline-details"><summary>NERD HATCH · slots, epochs, finality</summary><p>Ethereum organizes consensus into slots and epochs. Attestations help the protocol evaluate chain choice and finality. “Staked” does not mean “risk-free”; software, key, operator, governance, and penalty assumptions remain.</p></details>
         </article>
       </div>
@@ -307,6 +331,12 @@
         <div><span>FINAL LEDGER / ACCOUNT STATE</span><strong>The obligation is discharged or re-booked</strong></div>
       </div>
 
+      <div class="message-money-box" role="note">
+        <p class="card-label">MESSAGE ≠ MONEY</p>
+        <h3>ISO 20022 tells systems how to describe the payment.</h3>
+        <p>It does not require Bitcoin, XRP, Ethereum, or any public cryptocurrency. Tokenised settlement is a separate architecture that can sit beneath or beside the messaging layer.</p>
+      </div>
+
       <div class="evidence-split">
         <article class="explain-card">
           <p class="card-label">ESTABLISHED · MESSAGE STANDARD</p>
@@ -362,21 +392,49 @@
 
       <div class="source-receipts">
         <div class="section-heading compact-heading"><p class="section-number">BORING RECEIPT</p><h3>Primary sources and bounded evidence</h3><p>Source links are provided so the explanation can be checked. Current-state claims are dated and labelled.</p></div>
-        <div class="source-list">
-          <a href="https://developer.bitcoin.org/devguide/" target="_blank" rel="noopener"><strong>Bitcoin Developer Documentation</strong><span>Protocol concepts, transactions, scripts, blocks, and mining.</span></a>
-          <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener"><strong>Ethereum Proof-of-Stake Documentation</strong><span>Validators, attestations, deposits, rewards, penalties, and finality.</span></a>
-          <a href="https://www.iso20022.org/about-iso-20022" target="_blank" rel="noopener"><strong>ISO 20022 · About the standard</strong><span>Message scheme, modelling methodology, dictionary, and message definitions.</span></a>
-          <a href="https://www.iso20022.org/frequently-asked-questions" target="_blank" rel="noopener"><strong>ISO 20022 · Official FAQ</strong><span>Compliance boundaries and the absence of an official crypto-coin list.</span></a>
-          <a href="https://www.swift.com/news-events/news/iso-20022-new-era-global-payments" target="_blank" rel="noopener"><strong>SWIFT · Global payments milestone</strong><span>22 November 2025 end of MT/ISO 20022 coexistence for CBPR+.</span></a>
-          <a href="https://www.frbservices.org/news/press-releases/071525-iso20022-migration-announcement" target="_blank" rel="noopener"><strong>Federal Reserve Financial Services</strong><span>Fedwire Funds Service ISO 20022 migration announcement.</span></a>
-          <a href="https://www.payments.ca/payment-resources/iso-20022" target="_blank" rel="noopener"><strong>Payments Canada · ISO 20022</strong><span>Canadian payment messaging adoption and Lynx context.</span></a>
-          <a href="https://www.payments.ca/payment-resources/iso-20022/high-value-payment-system-lynx" target="_blank" rel="noopener"><strong>Payments Canada · Lynx specifications</strong><span>ISO 20022-enabled high-value payment message specifications.</span></a>
-          <a href="https://www.bis.org/about/bisih/topics/fmis/agora.htm" target="_blank" rel="noopener"><strong>BIS · Project Agorá</strong><span>Exploration of tokenisation in wholesale cross-border payments.</span></a>
-          <a href="https://www.bis.org/publ/othp110.htm" target="_blank" rel="noopener"><strong>BIS · Project Agorá report</strong><span>Project materials and the path toward real-value testing.</span></a>
-          <a href="https://www.bankofcanada.ca/2026/05/bank-canada-joins-bis-project-agora-test-improvements-wholesale-cross-border-payments/" target="_blank" rel="noopener"><strong>Bank of Canada · Project Agorá</strong><span>Canada’s participation in the 2026 project phase.</span></a>
-          <a href="https://www.bankofcanada.ca/2026/06/sparks-at-bank-article-2026-14/" target="_blank" rel="noopener"><strong>Bank of Canada · Tokenization</strong><span>How tokenised assets and their legal/operational layers can be understood.</span></a>
+        <div class="source-groups">
+          <section class="source-group"><h4>BITCOIN</h4><div class="source-list">
+            <a href="https://developer.bitcoin.org/devguide/" target="_blank" rel="noopener"><strong>Bitcoin Developer Documentation</strong><span>Protocol concepts, transactions, scripts, blocks, and mining.</span></a>
+          </div></section>
+          <section class="source-group"><h4>ETHEREUM</h4><div class="source-list">
+            <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener"><strong>Ethereum Proof-of-Stake Documentation</strong><span>Validators, attestations, deposits, rewards, penalties, and finality.</span></a>
+          </div></section>
+          <section class="source-group"><h4>ISO 20022 / PAYMENTS</h4><div class="source-list">
+            <a href="https://www.iso20022.org/about-iso-20022" target="_blank" rel="noopener"><strong>ISO 20022 · About the standard</strong><span>Message scheme, modelling methodology, dictionary, and message definitions.</span></a>
+            <a href="https://www.iso20022.org/frequently-asked-questions" target="_blank" rel="noopener"><strong>ISO 20022 · Official FAQ</strong><span>Compliance boundaries and the absence of an official crypto-coin list.</span></a>
+            <a href="https://www.payments.ca/payment-resources/iso-20022" target="_blank" rel="noopener"><strong>Payments Canada · ISO 20022</strong><span>Canadian payment messaging adoption and Lynx context.</span></a>
+            <a href="https://www.payments.ca/payment-resources/iso-20022/high-value-payment-system-lynx" target="_blank" rel="noopener"><strong>Payments Canada · Lynx specifications</strong><span>ISO 20022-enabled high-value payment message specifications.</span></a>
+          </div></section>
+          <section class="source-group"><h4>TOKENISATION / CENTRAL BANKS</h4><div class="source-list">
+            <a href="https://www.bis.org/about/bisih/topics/fmis/agora.htm" target="_blank" rel="noopener"><strong>BIS · Project Agorá</strong><span>Exploration of tokenisation in wholesale cross-border payments.</span></a>
+            <a href="https://www.bis.org/publ/othp110.htm" target="_blank" rel="noopener"><strong>BIS · Project Agorá report</strong><span>Project materials and the path toward real-value testing.</span></a>
+            <a href="https://www.bankofcanada.ca/2026/05/bank-canada-joins-bis-project-agora-test-improvements-wholesale-cross-border-payments/" target="_blank" rel="noopener"><strong>Bank of Canada · Project Agorá</strong><span>Canada’s participation in the 2026 project phase.</span></a>
+            <a href="https://www.bankofcanada.ca/2026/06/sparks-at-bank-article-2026-14/" target="_blank" rel="noopener"><strong>Bank of Canada · Tokenization</strong><span>How tokenised assets and their legal/operational layers can be understood.</span></a>
+          </div></section>
+          <section class="source-group"><h4>REGULATORY / SAFETY</h4><div class="source-list">
+            <a href="https://www.canada.ca/en/financial-consumer-agency/services/payment/digital-currency.html" target="_blank" rel="noopener"><strong>Financial Consumer Agency of Canada · Crypto assets</strong><span>Consumer-risk, custody, reversibility, and protection context.</span></a>
+          </div></section>
+          <section class="source-group"><h4>CURRENT STATE / EXAMPLES</h4><div class="source-list">
+            <a href="https://www.swift.com/news-events/news/iso-20022-new-era-global-payments" target="_blank" rel="noopener"><strong>SWIFT · Global payments milestone</strong><span>22 November 2025 end of MT/ISO 20022 coexistence for CBPR+.</span></a>
+            <a href="https://www.frbservices.org/news/press-releases/071525-iso20022-migration-announcement" target="_blank" rel="noopener"><strong>Federal Reserve Financial Services</strong><span>Fedwire Funds Service ISO 20022 migration announcement.</span></a>
+          </div></section>
         </div>
       </div>
+    </section>
+
+    <section class="dad-test" aria-labelledby="dad-test-title">
+      <p class="eyebrow">PLAIN-ENGLISH TOUR · FINAL CHECK</p>
+      <h2 id="dad-test-title">Dad’s Crypto Test</h2>
+      <p>Before you let a confident explanation carry you away, ask:</p>
+      <div class="dad-test-grid">
+        <div><strong>What exactly is recorded?</strong><span>Ledger state, contract state, or an internal account balance?</span></div>
+        <div><strong>What is cryptographically verified?</strong><span>Authorization and integrity—not honesty, identity, or wisdom.</span></div>
+        <div><strong>Who can change the rules?</strong><span>Nodes, validators, developers, governance, administrators, or issuers?</span></div>
+        <div><strong>Where does the value come from?</strong><span>A protocol record is not proof of demand, redemption, or fair price.</span></div>
+        <div><strong>What happens if access is lost?</strong><span>Self-custody trades conventional recovery for direct signing control.</span></div>
+        <div><strong>What can fail outside the chain?</strong><span>People, software, bridges, exchanges, oracles, reserves, and legal claims.</span></div>
+      </div>
+      <p class="dogballs-ending">If Larry prints a certificate for <strong>DOGBALLS</strong>, the network may record it beautifully. The technology can work perfectly while the purchase is terrible. The ledger replies: <strong>Not my department.</strong></p>
     </section>
 
     <section class="closing" aria-labelledby="closing-title">
