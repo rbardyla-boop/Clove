@@ -173,4 +173,25 @@ describe('Clove Research nucleus', () => {
     expect(assetResponse.status).toBe(200);
     expect(requestedPath).toBe('/research.css');
   });
+
+  it('preserves the research prefix when an asset redirects a nested archive path', async () => {
+    let requestedPath = '';
+    const response = await handleResearchRequest(
+      new Request('https://clovelearn.io/research/projects/tds', { method: 'GET' }),
+      {
+        ASSETS: {
+          fetch: async (assetRequest: Request) => {
+            requestedPath = new URL(assetRequest.url).pathname;
+            return new Response(null, {
+              status: 307,
+              headers: { location: '/projects/tds/' },
+            });
+          },
+        },
+      } as unknown as Env,
+    );
+    expect(requestedPath).toBe('/projects/tds');
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe('https://clovelearn.io/research/projects/tds/');
+  });
 });

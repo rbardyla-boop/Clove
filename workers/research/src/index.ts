@@ -32,6 +32,25 @@ function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
+function preserveResearchPrefix(response: Response, requestUrl: URL): Response {
+  if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+  const location = response.headers.get('location');
+  if (!location) return response;
+
+  const locationUrl = new URL(location, requestUrl);
+  if (locationUrl.origin !== requestUrl.origin) return response;
+  if (locationUrl.pathname === '/research' || locationUrl.pathname.startsWith('/research/')) return response;
+
+  locationUrl.pathname = `/research${locationUrl.pathname}`;
+  const headers = new Headers(response.headers);
+  headers.set('location', locationUrl.toString());
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -82,7 +101,8 @@ export async function handleResearchRequest(
     if (!env.ASSETS) return json({ ok: false, code: 'research_ui_not_configured' }, 503);
     const assetUrl = new URL(request.url);
     assetUrl.pathname = isResearchRoute ? '/' : pathname.slice('/research'.length);
-    return env.ASSETS.fetch(new Request(assetUrl, request));
+    const assetResponse = await env.ASSETS.fetch(new Request(assetUrl, request));
+    return preserveResearchPrefix(assetResponse, new URL(request.url));
   }
   if (request.method !== 'POST') return json({ ok: false, code: 'method_not_allowed' }, 405);
   if ((request.headers.get('content-type') || '').toLowerCase().startsWith('application/json') === false) {
