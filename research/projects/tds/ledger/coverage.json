@@ -11,6 +11,11 @@
     "GREEN": 76,
     "RED": 1
   },
+  "by_public_classification": {
+    "CAUTION": 55,
+    "PUBLIC": 36,
+    "HOLD": 2
+  },
   "by_section": {
     "A. DEMOCRATIC ARCHITECTURE": 5,
     "B. INFORMATION, PERSUASION AND MEASUREMENT": 8,
@@ -26,6 +31,15 @@
     "L. CANADIAN POLITICAL DATA / PRIVACY 2026 CLOSEOUT": 10
   },
   "source_url_count": 11,
+  "source_registry_count": 95,
+  "source_classification": {
+    "SOURCE_PACKET_REFERENCE": 18,
+    "NAMED_PRIMARY_SOURCE": 29,
+    "NAMED_SECONDARY_SOURCE": 3,
+    "DIRECT_URL": 9,
+    "NO_SOURCE": 30,
+    "UNRESOLVED_SOURCE_REFERENCE": 4
+  },
   "dossier_count": 12,
   "killed_claim_count": 66
 }

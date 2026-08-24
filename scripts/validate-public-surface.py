@@ -17,6 +17,13 @@ PAGES = (
     ROOT / "corrections.html",
     ROOT / "relay.html",
     ROOT / "temperance.html",
+    ROOT / "research" / "projects" / "index.html",
+    ROOT / "research" / "projects" / "tds" / "index.html",
+    ROOT / "research" / "projects" / "tds" / "ledger" / "index.html",
+    ROOT / "research" / "projects" / "tds" / "ledger" / "claims" / "index.html",
+    ROOT / "research" / "projects" / "tds" / "ledger" / "dossiers" / "index.html",
+    ROOT / "research" / "projects" / "tds" / "ledger" / "killed" / "index.html",
+    ROOT / "research" / "projects" / "tds" / "ledger" / "sources" / "index.html",
 )
 FORBIDDEN_TRACKING = re.compile(
     r"(?:googletagmanager|google-analytics|gtag\s*\(|plausible\.io|hotjar|mixpanel|segment\.com|clarity\.ms)",

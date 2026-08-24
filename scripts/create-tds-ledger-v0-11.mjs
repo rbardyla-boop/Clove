@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Create the controlled v0.10 successor from the verified v0.9 ancestor.
+ * Create the schema-normalized v0.11 successor from the verified v0.9 ancestor.
  *
  * This is intentionally a narrow transformation: it verifies the parent
  * bytes, replaces only the three non-schema status fields, preserves each
@@ -18,9 +18,9 @@ const EXPECTED_PARENT_SHA256 =
 const EXPECTED_CLAIM_IDS = Array.from({ length: 92 }, (_, index) => `EC-${String(index + 1).padStart(3, '0')}`)
   .flatMap((id) => (id === 'EC-051' ? [id, 'EC-051A'] : [id]));
 
-const HEADER = `# EVIDENCE CONSOLIDATION LEDGER v0.10
+const HEADER = `# EVIDENCE CONSOLIDATION LEDGER v0.11
 
-Status: \`CANONICAL SUCCESSOR TO VERIFIED v0.9\`
+Status: \`SCHEMA-NORMALIZED SUCCESSOR RECONSTRUCTED FROM VERIFIED v0.9\`
 
 Created: 2026-08-24
 
@@ -32,12 +32,16 @@ Parent SHA-256:
 
 Provenance note:
 
-> This v0.10 file was created on 2026-08-24 from the verified v0.9
-> ancestor after the previously referenced v0.10 artifact could not be
-> recovered. It is a new canonical successor, not a claim that the missing
-> historical file was recovered.
+> This v0.11 file was created on 2026-08-24 from the verified v0.9
+> ancestor after the previously referenced historical v0.10 artifact could
+> not be recovered. It is a schema-normalized successor reconstructed from
+> verified v0.9, not a recovered copy of historical v0.10.
 
-Primary v0.10 change:
+Historical version note:
+- v0.10 remains reserved for the separate historical artifact if it is
+  recovered later.
+
+Primary v0.11 change:
 - normalize three non-schema evidence-status fields while preserving their
   original uncertainty as explicit qualifiers.
 
@@ -61,7 +65,7 @@ function parseArgs(argv) {
 
 function usage() {
   return [
-    'Usage: node scripts/create-tds-ledger-v0-10.mjs --parent PATH --out PATH',
+    'Usage: node scripts/create-tds-ledger-v0-11.mjs --parent PATH --out PATH',
     '',
     'The parent must hash to the verified v0.9 SHA-256 before any output is written.',
   ].join('\n');
@@ -88,8 +92,8 @@ function replaceStatus(markdown, rawStatus, frozenStatus) {
 
 export async function createLedger({ parent, out }) {
   if (!parent || !out) throw new Error('both --parent and --out are required');
-  if (path.basename(out) !== 'EVIDENCE_CONSOLIDATION_LEDGER_v0.10.md') {
-    throw new Error('output basename must be EVIDENCE_CONSOLIDATION_LEDGER_v0.10.md');
+  if (path.basename(out) !== 'EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md') {
+    throw new Error('output basename must be EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md');
   }
 
   const parentBytes = await readFile(parent);
@@ -114,7 +118,7 @@ export async function createLedger({ parent, out }) {
   const output = HEADER + body;
   const outputIds = claimIds(output);
   if (outputIds.length !== EXPECTED_CLAIM_IDS.length || outputIds.some((id, index) => id !== EXPECTED_CLAIM_IDS[index])) {
-    throw new Error('output claim topology changed during v0.10 creation');
+    throw new Error('output claim topology changed during v0.11 creation');
   }
 
   await mkdir(path.dirname(out), { recursive: true });
@@ -122,7 +126,7 @@ export async function createLedger({ parent, out }) {
   const outputBytes = Buffer.from(output, 'utf8');
   return {
     parent_sha256: parentSha256,
-    v0_10_sha256: sha256(outputBytes),
+    v0_11_sha256: sha256(outputBytes),
     bytes: outputBytes.byteLength,
     claim_count: outputIds.length,
     repaired: [
@@ -139,9 +143,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(im
     if (options.help) console.log(usage());
     else {
       const result = await createLedger(options);
-      console.log(`TDS_LEDGER_V0_10_CREATE_PASS: ${result.claim_count} claims`);
+      console.log(`TDS_LEDGER_V0_11_CREATE_PASS: ${result.claim_count} claims`);
       console.log(`PARENT_SHA256: ${result.parent_sha256}`);
-      console.log(`V0_10_SHA256: ${result.v0_10_sha256}`);
+      console.log(`V0_11_SHA256: ${result.v0_11_sha256}`);
     }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));

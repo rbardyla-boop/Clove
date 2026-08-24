@@ -1,13 +1,14 @@
-# TDS v0.10 Reconstruction Plan
+# Historical v0.10 Reconstruction Boundary
 
-Status: `SUPERSEDED FOR V0.10 — CONTROLLED SUCCESSOR CREATED` as of 2026-08-24.
+Status: `HISTORICAL V0.10 RESERVED — V0.11 SUCCESSOR EXISTS` as of 2026-08-24.
 
 The exact historical v0.10 artifact was not recovered. A new canonical
 successor was created from the verified v0.9 parent at
-`research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.10.md`, with
+`research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md`, with
 only the three non-schema status fields normalized and their original wording
-preserved as qualifiers. This document remains a boundary checklist for any
-future reconstructed or merged release; it is not the v0.10 source.
+preserved as qualifiers. This document remains a boundary checklist for a
+future recovered historical v0.10 artifact or later merged release; it is not
+the v0.11 source.
 
 ## Provenance boundary
 
@@ -19,7 +20,9 @@ SHA-256:
 `b2dd2052a9dcfc5f1b9f15b0815ae92d2c6c5eef5484a1fd765345e6054ab408`
 
 An output assembled from v0.9 plus later research cannot be called the lost
-historical v0.10. If created, it must be named:
+historical v0.10. A future reconstructed candidate must not reuse either the
+reserved historical v0.10 identifier or the canonical v0.11 identifier.
+If created, it must be named:
 
 `EVIDENCE_CONSOLIDATION_LEDGER_v0.10-RECONSTRUCTED.md`
 
@@ -68,11 +71,11 @@ true:
 - independent human reconciliation signs off the delta;
 - the existing deterministic builder passes without weakening validation.
 
-Until then, `TDS_LEDGER_SOURCE_PACKET_MISSING` remains the correct public-build
-state and no `/research/projects/tds/ledger/` output may be deployed.
+The canonical v0.11 builder now uses a release lock and the public output is
+deployment-ready. These historical-recovery gates remain applicable only to
+any separate v0.10 recovery or future substantive successor.
 
 ## Next single action
 
-Attach the exact File Library artifact to Codex, or explicitly authorize a
-separate reconstructed-candidate workflow. The exact artifact is preferred;
-reconstruction cannot establish the provenance of a lost file.
+If the historical v0.10 artifact is recovered, archive and hash it separately;
+do not replace or relabel the canonical v0.11 source.

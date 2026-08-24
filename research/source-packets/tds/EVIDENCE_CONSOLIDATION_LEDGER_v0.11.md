@@ -1,6 +1,6 @@
-# EVIDENCE CONSOLIDATION LEDGER v0.10
+# EVIDENCE CONSOLIDATION LEDGER v0.11
 
-Status: `CANONICAL SUCCESSOR TO VERIFIED v0.9`
+Status: `SCHEMA-NORMALIZED SUCCESSOR RECONSTRUCTED FROM VERIFIED v0.9`
 
 Created: 2026-08-24
 
@@ -12,12 +12,16 @@ Parent SHA-256:
 
 Provenance note:
 
-> This v0.10 file was created on 2026-08-24 from the verified v0.9
-> ancestor after the previously referenced v0.10 artifact could not be
-> recovered. It is a new canonical successor, not a claim that the missing
-> historical file was recovered.
+> This v0.11 file was created on 2026-08-24 from the verified v0.9
+> ancestor after the previously referenced historical v0.10 artifact could
+> not be recovered. It is a schema-normalized successor reconstructed from
+> verified v0.9, not a recovered copy of historical v0.10.
 
-Primary v0.10 change:
+Historical version note:
+- v0.10 remains reserved for the separate historical artifact if it is
+  recovered later.
+
+Primary v0.11 change:
 - normalize three non-schema evidence-status fields while preserving their
   original uncertainty as explicit qualifiers.
 

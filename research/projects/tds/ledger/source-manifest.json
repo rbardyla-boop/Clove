@@ -1,8 +1,9 @@
 {
   "schema_version": "tds-source-manifest-v1",
-  "canonical_filename": "EVIDENCE_CONSOLIDATION_LEDGER_v0.10.md",
-  "canonical_sha256": "fda0437251577b989dab8275b8673ea8e12d38b38f696821377d5e11651df3b4",
-  "canonical_bytes": 87892,
+  "canonical_version": "v0.11",
+  "canonical_filename": "EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md",
+  "canonical_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59",
+  "canonical_bytes": 88062,
   "observed_urls": [
     {
       "source_id": "URL-284ab137ebc1",

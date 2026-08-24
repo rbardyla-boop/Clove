@@ -1,6 +1,6 @@
 # TDS Evidence Ledger Version Lineage
 
-Status: `TDS_LEDGER_V0_10_CREATED_AS_CANONICAL_SUCCESSOR` as of 2026-08-24.
+Status: `TDS_LEDGER_V0_11_CREATED_AS_SCHEMA_NORMALIZED_SUCCESSOR` as of 2026-08-24.
 
 This is a provenance report, not a replacement claim ledger. The files below
 were read from the local Obsidian vault. They are not Git-tracked artifacts,
@@ -18,11 +18,13 @@ local metadata and are not treated as authoring dates.
 | v0.4 | `Memory/Permanent/EVIDENCE_CONSOLIDATION_LEDGER_v0.4.md` | 58 | EC-001–EC-058 | 3 / 33 | `cb3bbd0d26a1caa5b308da56968d358f6ff5022fbad62b2ae8e583bc0890f9c2` |
 | v0.5 | `00_Inbox/EVIDENCE_CONSOLIDATION_LEDGER_v0.5.md` | 59 | EC-001–EC-058 plus EC-051A | 3 / 33 | `abdbfe6632639d3e10177624b5ef46f7bd1cdf1030c18504cf4d8fbadaafbe38` |
 | v0.9 | `00_Inbox/EVIDENCE_CONSOLIDATION_LEDGER_v0.9.md` | 93 | EC-001–EC-092 plus EC-051A | 7 / 66 | `b2dd2052a9dcfc5f1b9f15b0815ae92d2c6c5eef5484a1fd765345e6054ab408` |
-| v0.10 | `research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.10.md` | 93 | EC-001–EC-092 plus EC-051A | 7 / 66 | `fda0437251577b989dab8275b8673ea8e12d38b38f696821377d5e11651df3b4` |
+| v0.11 | `research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md` | 93 | EC-001–EC-092 plus EC-051A | 7 / 66 | `f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59` |
 
 No v0.6, v0.7, or v0.8 file was found in the vault or repository surfaces
-checked. No historical v0.10 file was recovered; the v0.10 row above is a new
-controlled successor created from the verified v0.9 parent.
+checked. The separate historical v0.10 identifier remains reserved. The v0.11
+row above is a schema-normalized successor reconstructed from the verified
+v0.9 parent; its pre-rename content hash was
+`fda0437251577b989dab8275b8673ea8e12d38b38f696821377d5e11651df3b4`.
 
 ## Lineage changes observed
 
@@ -46,8 +48,8 @@ controlled successor created from the verified v0.9 parent.
   political-data/privacy closeout. It also expands the killed-claim sections.
 
 The v0.9 document contains a `WORKING FREEZE`, but that is not equivalent to
-an independently preserved v0.10 source packet or a Git-backed immutable
-release.
+an independently preserved historical v0.10 source packet. The v0.11 release
+is Git-backed and release-locked to its final SHA-256.
 
 ## Exact v0.9 state
 
@@ -73,8 +75,8 @@ The three non-frozen records are:
 | EC-086 | 1121 | `CURRENT PRACTICE — PARTY SPECIFIC` | current-practice wording is not an evidence status |
 
 These records remain the invalid state of the v0.9 parent. They were repaired
-in the controlled v0.10 successor with explicit qualifiers; no later research
-was merged into that stabilization release.
+in the v0.11 successor with explicit qualifiers; no later research was merged
+into that stabilization release.
 
 ## Recovery surfaces checked
 

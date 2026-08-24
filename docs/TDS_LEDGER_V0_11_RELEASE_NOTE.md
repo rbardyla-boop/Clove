@@ -1,20 +1,24 @@
-# TDS Ledger v0.10 Release Note
+# TDS Ledger v0.11 Release Note
 
-Status: `CREATED — CANONICAL SUCCESSOR TO VERIFIED v0.9`
+Status: `SCHEMA-NORMALIZED SUCCESSOR RECONSTRUCTED FROM VERIFIED v0.9`
 
 Created: 2026-08-24
 
-This file was created as a controlled successor after the previously
-referenced historical v0.10 artifact could not be recovered. It is not a
-recovered copy of that missing artifact.
+v0.11 is a schema-normalized successor reconstructed from verified v0.9. It
+is not a recovered copy of historical v0.10.
+
+Historical v0.10 remains a reserved version identifier. If that separate
+source artifact is recovered later, it may be archived without conflicting
+with v0.11.
 
 ## Parent and artifact
 
 - Parent artifact: `Obsidian Vault/00_Inbox/EVIDENCE_CONSOLIDATION_LEDGER_v0.9.md`
 - Parent SHA-256: `b2dd2052a9dcfc5f1b9f15b0815ae92d2c6c5eef5484a1fd765345e6054ab408`
-- Canonical v0.10 path: `research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.10.md`
-- Canonical v0.10 SHA-256: `fda0437251577b989dab8275b8673ea8e12d38b38f696821377d5e11651df3b4`
-- Canonical v0.10 bytes: `87892`
+- Pre-rename reconstructed content SHA-256: `fda0437251577b989dab8275b8673ea8e12d38b38f696821377d5e11651df3b4`
+- Canonical v0.11 path: `research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md`
+- Canonical v0.11 SHA-256: `f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59`
+- Canonical v0.11 bytes: `88062`
 
 ## Ledger inventory
 
@@ -56,12 +60,12 @@ recovered copy of that missing artifact.
   purchase of broad commercial datasets still requires party-specific proof.
   The YELLOW-GREEN audit remains unchanged.
 
-## v0.9 → v0.10 diff boundary
+## v0.9 → v0.11 diff boundary
 
 The diff is limited to:
 
-1. the required v0.10 provenance header (replacing the parent's stale opening
-   version line);
+1. the v0.11 provenance header (replacing the parent's stale opening version
+   line and reserving historical v0.10);
 2. the three frozen-status normalizations above; and
 3. one qualifier line after each repaired status, preserving the original
    wording.
@@ -76,5 +80,6 @@ The fail-closed builder derived the local bundle at:
 
 `research/projects/tds/ledger/`
 
-Its `source-manifest.json` binds the bundle to the v0.10 filename, byte count,
-and SHA-256 above. No deployment or merge is authorized by this release note.
+Its `source-manifest.json` and `TDS_LEDGER_RELEASE_LOCK.json` bind the bundle
+to the v0.11 filename, final byte count, and final SHA-256. The release lock
+also requires 93 claims and fails closed on any mismatch.
