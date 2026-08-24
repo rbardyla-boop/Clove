@@ -1,0 +1,99 @@
+{
+  "schema_version": "tds-source-manifest-v1",
+  "canonical_version": "v0.11",
+  "canonical_filename": "EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md",
+  "canonical_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59",
+  "canonical_bytes": 88062,
+  "observed_urls": [
+    {
+      "source_id": "URL-284ab137ebc1",
+      "identifier_type": "derived_url_key",
+      "url": "https://impact.canada.ca/en/behavioural-science/applying-besci-covid",
+      "claim_ids": [
+        "EC-018"
+      ]
+    },
+    {
+      "source_id": "URL-6a02422cf333",
+      "identifier_type": "derived_url_key",
+      "url": "https://impact.canada.ca/en/reports/covid-comms-review",
+      "claim_ids": [
+        "EC-020"
+      ]
+    },
+    {
+      "source_id": "URL-7a4c34cd53c3",
+      "identifier_type": "derived_url_key",
+      "url": "https://impact.canada.ca/en/reports/vaccine-2",
+      "claim_ids": [
+        "EC-019"
+      ]
+    },
+    {
+      "source_id": "URL-7d5465b536a4",
+      "identifier_type": "derived_url_key",
+      "url": "https://impact.canada.ca/en/reports/vaccine-3",
+      "claim_ids": [
+        "EC-019"
+      ]
+    },
+    {
+      "source_id": "URL-5e04f89c91eb",
+      "identifier_type": "derived_url_key",
+      "url": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2833979",
+      "claim_ids": [
+        "EC-023"
+      ]
+    },
+    {
+      "source_id": "URL-4ab596f4017d",
+      "identifier_type": "derived_url_key",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10068515/",
+      "claim_ids": [
+        "EC-022"
+      ]
+    },
+    {
+      "source_id": "URL-741c306d310a",
+      "identifier_type": "derived_url_key",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10609911/",
+      "claim_ids": [
+        "EC-022"
+      ]
+    },
+    {
+      "source_id": "URL-bf878ad4574d",
+      "identifier_type": "derived_url_key",
+      "url": "https://web.archive.org/web/20210401060525/https://www.weforum.org/people/pierre-poilievre`",
+      "claim_ids": [
+        "EC-051"
+      ]
+    },
+    {
+      "source_id": "URL-79c165adf6b9",
+      "identifier_type": "derived_url_key",
+      "url": "https://www.elections.ca/content.aspx?dir=c25&document=index&lang=e&section=pol",
+      "claim_ids": [
+        "EC-015",
+        "EC-017"
+      ]
+    },
+    {
+      "source_id": "URL-51072653d95c",
+      "identifier_type": "derived_url_key",
+      "url": "https://www.priv.gc.ca/en/opc-actions-and-decisions/advice-to-parliament/2026/parl_sub_260514_c25/",
+      "claim_ids": [
+        "EC-016",
+        "EC-017"
+      ]
+    },
+    {
+      "source_id": "URL-19954673d31f",
+      "identifier_type": "derived_url_key",
+      "url": "https://www.priv.gc.ca/en/privacy-topics/collecting-personal-information/gd_pp_201904/",
+      "claim_ids": [
+        "EC-015"
+      ]
+    }
+  ]
+}

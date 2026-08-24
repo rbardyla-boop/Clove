@@ -1,0 +1,5 @@
+{
+  "schema_version": "tds-book-crosswalk-v1",
+  "note": "No chapter mapping is inferred. Entries are populated only when the canonical source explicitly supplies one.",
+  "entries": []
+}

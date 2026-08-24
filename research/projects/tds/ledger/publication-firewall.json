@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "id": "NO_LOCAL_ABSOLUTE_PATHS",
+      "pass": true
+    },
+    {
+      "id": "NO_PRIVATE_CREDENTIAL_MARKERS",
+      "pass": true
+    },
+    {
+      "id": "NO_TRACKING_ENDPOINTS",
+      "pass": true
+    },
+    {
+      "id": "NO_ACCOUNT_OR_DONATION_GATE",
+      "pass": true
+    },
+    {
+      "id": "NO_RAW_INTERNAL_FIELDS",
+      "pass": true
+    }
+  ]
+}

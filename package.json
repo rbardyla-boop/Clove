@@ -1,6 +1,8 @@
 {
   "scripts": {
     "audit:product": "node scripts/product-audit.mjs",
+    "build:tds-ledger": "node scripts/build-tds-ledger.mjs --search-root . --canonical research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md --inventory-out docs/TDS_LEDGER_SOURCE_INVENTORY_V0_11.md --source-coverage-out docs/TDS_PUBLIC_LEDGER_SOURCE_COVERAGE.md --out research/projects/tds/ledger",
+    "test:tds-ledger": "node --test tests/tds-ledger.test.mjs",
     "check:cost-constitution": "node agent/check-cost-constitution.mjs",
     "test:cost-constitution": "node --test tests/agent/cost-constitution.test.mjs",
     "check:cost-authority": "npm --prefix workers/research-cost-authority run check",
@@ -10,7 +12,7 @@
     "test:research-live": "npm --prefix workers/research run test:live",
     "test:research-live-discovery": "npm --prefix workers/research run test:live-discovery",
     "test:research-live-evidence": "npm --prefix workers/research run test:live-evidence",
-    "test:research-browser": "node --test tests/research/research-ui.test.mjs",
+    "test:research-browser": "node --test tests/research/research-ui.test.mjs tests/research/tds-ledger-ui.test.mjs",
     "check:insights": "npm --prefix workers/insights run check",
     "test:insights": "npm --prefix workers/insights test",
     "test:mission": "node --test tests/static/mission-001-contract.test.mjs",

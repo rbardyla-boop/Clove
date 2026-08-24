@@ -1,0 +1,281 @@
+[
+  {
+    "section": "A. DEMOCRATIC ARCHITECTURE",
+    "claim_count": 5,
+    "public_count": 0,
+    "caution_count": 5,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-001",
+      "EC-002",
+      "EC-003",
+      "EC-004",
+      "EC-005"
+    ],
+    "coverage_warnings": [
+      "EC-001: source resolution required before independent public display",
+      "EC-002: source resolution required before independent public display",
+      "EC-003: source resolution required before independent public display",
+      "EC-005: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "B. INFORMATION, PERSUASION AND MEASUREMENT",
+    "claim_count": 8,
+    "public_count": 0,
+    "caution_count": 8,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-006",
+      "EC-007",
+      "EC-008",
+      "EC-009",
+      "EC-010",
+      "EC-011",
+      "EC-012",
+      "EC-013"
+    ],
+    "coverage_warnings": [
+      "EC-007: source resolution required before independent public display",
+      "EC-009: source resolution required before independent public display",
+      "EC-010: source resolution required before independent public display",
+      "EC-011: source resolution required before independent public display",
+      "EC-012: source resolution required before independent public display",
+      "EC-013: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "C. CANADA: POLITICAL DATA, BEHAVIOURAL SCIENCE AND COVID-19",
+    "claim_count": 10,
+    "public_count": 9,
+    "caution_count": 1,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-014",
+      "EC-015",
+      "EC-016",
+      "EC-017",
+      "EC-018",
+      "EC-019",
+      "EC-020",
+      "EC-021",
+      "EC-022",
+      "EC-023"
+    ],
+    "coverage_warnings": [
+      "EC-021: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "D. MODERN POLITICAL SYSTEM",
+    "claim_count": 3,
+    "public_count": 0,
+    "caution_count": 3,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-024",
+      "EC-025",
+      "EC-026"
+    ],
+    "coverage_warnings": [
+      "EC-025: source resolution required before independent public display",
+      "EC-026: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "E. EXPERIMENTAL PROGRAM / NO-CLAIM ZONE",
+    "claim_count": 3,
+    "public_count": 0,
+    "caution_count": 3,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-027",
+      "EC-028",
+      "EC-029"
+    ],
+    "coverage_warnings": [
+      "EC-027: source resolution required before independent public display",
+      "EC-028: source resolution required before independent public display",
+      "EC-029: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "F. ALGORITHM OUTCOME AUDIT — DIRECT PAPER ADDITIONS",
+    "claim_count": 6,
+    "public_count": 2,
+    "caution_count": 4,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-030",
+      "EC-031",
+      "EC-032",
+      "EC-033",
+      "EC-034",
+      "EC-035"
+    ],
+    "coverage_warnings": [
+      "EC-030: source resolution required before independent public display",
+      "EC-031: source resolution required before independent public display",
+      "EC-032: source resolution required before independent public display",
+      "EC-033: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "G. MICROTARGETING + PLATFORM GATEKEEPER ADDITIONS",
+    "claim_count": 11,
+    "public_count": 5,
+    "caution_count": 5,
+    "hold_count": 1,
+    "claim_ids": [
+      "EC-036",
+      "EC-037",
+      "EC-038",
+      "EC-039",
+      "EC-040",
+      "EC-041",
+      "EC-042",
+      "EC-043",
+      "EC-044",
+      "EC-045",
+      "EC-046"
+    ],
+    "coverage_warnings": [
+      "EC-038: source resolution required before independent public display",
+      "EC-039: source resolution required before independent public display",
+      "EC-041: source resolution required before independent public display",
+      "EC-042: source resolution required before independent public display",
+      "EC-043: source resolution required before independent public display",
+      "EC-046: source resolution required before independent public display",
+      "EC-046: held behind the publication firewall"
+    ]
+  },
+  {
+    "section": "H. WEF / ELITE-NETWORK AUDIT ADDITIONS",
+    "claim_count": 13,
+    "public_count": 5,
+    "caution_count": 7,
+    "hold_count": 1,
+    "claim_ids": [
+      "EC-047",
+      "EC-048",
+      "EC-049",
+      "EC-050",
+      "EC-051",
+      "EC-051A",
+      "EC-052",
+      "EC-053",
+      "EC-054",
+      "EC-055",
+      "EC-056",
+      "EC-057",
+      "EC-058"
+    ],
+    "coverage_warnings": [
+      "EC-047: source resolution required before independent public display",
+      "EC-050: source resolution required before independent public display",
+      "EC-051A: source resolution required before independent public display",
+      "EC-051A: held behind the publication firewall",
+      "EC-053: source resolution required before independent public display",
+      "EC-054: source resolution required before independent public display",
+      "EC-055: source resolution required before independent public display",
+      "EC-056: source resolution required before independent public display",
+      "EC-058: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "I. CANADA 1917 FRANCHISE-ENGINEERING CLOSEOUT",
+    "claim_count": 5,
+    "public_count": 2,
+    "caution_count": 3,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-059",
+      "EC-060",
+      "EC-061",
+      "EC-062",
+      "EC-063"
+    ],
+    "coverage_warnings": [
+      "EC-059: source resolution required before independent public display",
+      "EC-060: source resolution required before independent public display",
+      "EC-062: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "J. U.S. FOUNDING ARCHITECTURE PRIMARY-SOURCE CLOSEOUT",
+    "claim_count": 12,
+    "public_count": 4,
+    "caution_count": 8,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-064",
+      "EC-065",
+      "EC-066",
+      "EC-067",
+      "EC-068",
+      "EC-069",
+      "EC-070",
+      "EC-071",
+      "EC-072",
+      "EC-073",
+      "EC-074",
+      "EC-075"
+    ],
+    "coverage_warnings": [
+      "EC-064: source resolution required before independent public display",
+      "EC-065: source resolution required before independent public display",
+      "EC-066: source resolution required before independent public display",
+      "EC-067: source resolution required before independent public display",
+      "EC-068: source resolution required before independent public display",
+      "EC-069: source resolution required before independent public display",
+      "EC-071: source resolution required before independent public display",
+      "EC-072: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "K. VANISHING PAUSE / SMARTPHONE ATTENTION CLOSEOUT",
+    "claim_count": 7,
+    "public_count": 4,
+    "caution_count": 3,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-076",
+      "EC-077",
+      "EC-078",
+      "EC-079",
+      "EC-080",
+      "EC-081",
+      "EC-082"
+    ],
+    "coverage_warnings": [
+      "EC-078: source resolution required before independent public display",
+      "EC-081: source resolution required before independent public display"
+    ]
+  },
+  {
+    "section": "L. CANADIAN POLITICAL DATA / PRIVACY 2026 CLOSEOUT",
+    "claim_count": 10,
+    "public_count": 5,
+    "caution_count": 5,
+    "hold_count": 0,
+    "claim_ids": [
+      "EC-083",
+      "EC-084",
+      "EC-085",
+      "EC-086",
+      "EC-087",
+      "EC-088",
+      "EC-089",
+      "EC-090",
+      "EC-091",
+      "EC-092"
+    ],
+    "coverage_warnings": [
+      "EC-085: source resolution required before independent public display",
+      "EC-086: source resolution required before independent public display",
+      "EC-088: source resolution required before independent public display",
+      "EC-089: source resolution required before independent public display",
+      "EC-092: source resolution required before independent public display"
+    ]
+  }
+]

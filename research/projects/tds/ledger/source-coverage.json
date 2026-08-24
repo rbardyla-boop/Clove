@@ -1,0 +1,1178 @@
+[
+  {
+    "claim_id": "EC-001",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "U.S./Canadian constitutional and electoral rules; source packet Window A/B.\nBernard Manin, *The Principles of Representative Government*; comparative electoral-system scholarship.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-002",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Voting statutes, constitutional amendments, Canada Elections Act history; Window B source packet.\nAlexander Keyssar; Elections Canada historical synthesis.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-003",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Locke, Madison, Tocqueville, Mill, Kant, Rawls and constitutional rights traditions.\nRule-Scope research packet.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-004",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Party/bureaucratic institutional records.\nMichels, Schumpeter, Dahl, Weber, modern party-organization literature.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-005",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Experimental public-goods, ultimatum and costly-punishment studies in source packet.\nBehavioural economics / cooperation literature; Ostrom as institutional extension.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-006",
+    "source_classification": "NAMED_SECONDARY_SOURCE",
+    "source_classifications": [
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Lippmann, *Public Opinion* / *The Phantom Public*; Dewey, *The Public and Its Problems*.\npolitical-knowledge and heuristic literature.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-007",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "archival media/campaign sources in Window H.\nmedia-history scholarship.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-008",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Gallup / 1936 polling records.\nAAPOR history and polling scholarship.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-009",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "modern campaign/voter-file methods.\nWindow I campaign-science literature.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-010",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "campaign experiments / Cambridge Analytica regulatory records.\nWindow I literature.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-011",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Muchnik et al. and social-proof experiments in Window K.\nsocial influence literature.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-012",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "availability/base-rate/exemplar studies in Window K.\ncognitive and media-effects literature.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-013",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "randomized/quasi-experimental platform studies in Window L.\nrecommender/HCI literature.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-014",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Elections Canada / Canada Elections Act.\nOffice of the Privacy Commissioner guidance.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-015",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://www.priv.gc.ca/en/privacy-topics/collecting-personal-information/gd_pp_201904/",
+      "https://www.elections.ca/content.aspx?dir=c25&document=index&lang=e&section=pol"
+    ],
+    "named_source_text": "OPC 2019 guidance; Elections Canada 2026 C-25 guidance.\nprivacy-law scholarship.",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-016",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://www.priv.gc.ca/en/opc-actions-and-decisions/advice-to-parliament/2026/parl_sub_260514_c25/"
+    ],
+    "named_source_text": "Office of the Privacy Commissioner, 2026.\nOPC comparative analysis.",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-017",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://www.elections.ca/content.aspx?dir=c25&document=index&lang=e&section=pol",
+      "https://www.priv.gc.ca/en/opc-actions-and-decisions/advice-to-parliament/2026/parl_sub_260514_c25/"
+    ],
+    "named_source_text": "Elections Canada 2026; OPC Bill C-25 submissions.",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-018",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://impact.canada.ca/en/behavioural-science/applying-besci-covid"
+    ],
+    "named_source_text": "Impact Canada / PHAC, “Applying BeSci to the COVID-19 Response.”\nGovernment publications implementing the WHO behavioural-insights survey tool.",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-019",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://impact.canada.ca/en/reports/vaccine-2",
+      "https://impact.canada.ca/en/reports/vaccine-3"
+    ],
+    "named_source_text": "Impact Canada Vaccine Studies 2 and 3.",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-020",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://impact.canada.ca/en/reports/covid-comms-review"
+    ],
+    "named_source_text": "Impact Canada, “Effective COVID-19 Communications.”",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-021",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Canadian provincial vaccine-passport rules; project influence-definition framework.\nbehavioural-policy / coercion literature.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-022",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC10609911/",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC10068515/"
+    ],
+    "named_source_text": "- Canadian Medical Association Journal / PMC: https://pmc.ncbi.nlm.nih.gov/articles/PMC10609911/\n- Vaccine / PMC: https://pmc.ncbi.nlm.nih.gov/articles/PMC10068515/",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-023",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2833979"
+    ],
+    "named_source_text": "JAMA Network Open 2025.",
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-024",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "actor-specific studies in Incentive Machine packet.\npublic choice, media economics, attention-economy and platform research.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-025",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "pre-2015 polling/media archives + Trump communication record.\nWindow N.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-026",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Canadian policy events/polling.\nWindow O.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-027",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "None yet for project-specific effect.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-028",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Window K background literature.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-029",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Project evidence register / Window P.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-030",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Nyhan et al. 2023; Gauthier et al. 2026; Brady et al. 2026; Ibrahim et al. 2026.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-031",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Gauthier et al., Nature 2026, DOI 10.1038/s41586-026-10098-2.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-032",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Brady et al., Nature 2026, DOI 10.1038/s41586-026-10536-1.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-033",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Robertson et al., Nature 2023, DOI 10.1038/s41586-023-06078-5; Nyhan et al., Nature 2023.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-034",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Nyhan et al. 2023; Gauthier et al. 2026; Meta 2020 Election Study package.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-035",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Nature Human Behaviour 2026, DOI 10.1038/s41562-025-02328-w.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-036",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Kalla & Broockman, APSR (2018), *The Minimal Persuasive Effects of Campaign Contact in General Elections*.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-037",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Coppock, Hill & Vavreck, *Science Advances* (2020), DOI 10.1126/sciadv.abc4046.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-038",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Hamidian et al., APSR 118(4), 2024, DOI 10.1017/S0003055423001387.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-039",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Coppock, Green & Porter, *Research & Politics* (2022), DOI 10.1177/20531680221076901.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-040",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Argyle et al., PNAS (2025), DOI 10.1073/pnas.2412815122.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-041",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Velez, Liu & Clifford, APSR (2026), DOI 10.1017/S0003055426101622.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-042",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Canadian Heritage; Justice Canada Charter Statement for Bill C-18.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-043",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Meta public statement, May 2023; Royal Assent June 22, 2023.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-044",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Canadian Heritage, CRTC, Meta.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-045",
+    "source_classification": "NAMED_SECONDARY_SOURCE",
+    "source_classifications": [
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Media Ecosystem Observatory 2024/2026; Reuters Institute Canada reports.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-046",
+    "source_classification": "UNRESOLVED_SOURCE_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "SOURCE_PACKET_REFERENCE",
+      "UNRESOLVED_SOURCE_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Author recollection; enforcement records not yet preserved in project.",
+    "source_resolution_state": "UNRESOLVED_TEXTUAL_REFERENCE",
+    "source_resolution_required": true,
+    "public_classification": "HOLD"
+  },
+  {
+    "claim_id": "EC-047",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "WEF Institutional Framework.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-048",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Harvard Kennedy School / Harvard Institute of Politics event record and preserved video.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-049",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "WEF programmes/class announcements for Freeland, Brison, Joly and Champagne; Government of Canada ministry records.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-050",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "WEF 2016 class (Michelle Rempel Garner); WEF 2018 class (Jagmeet Singh); Liberal examples above.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-051",
+    "source_classification": "DIRECT_URL",
+    "source_classifications": [
+      "DIRECT_URL",
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [
+      "https://web.archive.org/web/20210401060525/https://www.weforum.org/people/pierre-poilievre`"
+    ],
+    "named_source_text": null,
+    "source_resolution_state": "DIRECT_URL_PRESENT",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-051A",
+    "source_classification": "UNRESOLVED_SOURCE_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "UNRESOLVED_SOURCE_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "later compiled YGL lists naming Trudeau as 2005 YGL; Klaus Schwab's 2017 remarks associating Trudeau with the young-leader network; extensive public WEF participation.",
+    "source_resolution_state": "UNRESOLVED_TEXTUAL_REFERENCE",
+    "source_resolution_required": true,
+    "public_classification": "HOLD"
+  },
+  {
+    "claim_id": "EC-052",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "WEF Board of Trustees records, 2018–2022.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-053",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "WEF annual-meeting programmes and governance reports.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-054",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Transport Canada, January 25, 2018; WEF project release.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-055",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Government of Canada Agile Nations Charter.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-056",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "House of Commons Hansard No. 034, February 19, 2022.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-057",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-058",
+    "source_classification": "UNRESOLVED_SOURCE_REFERENCE",
+    "source_classifications": [
+      "UNRESOLVED_SOURCE_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Department of Defense / AARO historical and annual reports.",
+    "source_resolution_state": "UNRESOLVED_TEXTUAL_REFERENCE",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-059",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-060",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-061",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-062",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-063",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Removing the at-least-14 seats Elections Canada attributes to military-vote redistribution would leave an approximate 139–96 Unionist majority in a 235-seat House; other franchise effects cannot be cleanly reconstructed.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-064",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "U.S. Constitution, Article I, §2, cl.1; Constitution Annotated.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-065",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "U.S. Constitution, Article I, §3; Federalist Nos. 62–63.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-066",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "U.S. Constitution, Article II, §1, cl.2; Convention history in Constitution Annotated.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-067",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "U.S. Constitution, Article III, §1.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-068",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "U.S. Constitution, Article V.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-069",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Madison's Convention notes, May 31, 1787.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-070",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Federalist No. 10; Hamilton's Convention notes recording Madison's “enlarge the sphere” argument.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-071",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Federalist No. 70.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-072",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "John Adams, *Thoughts on Government* (1776).",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-073",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Brutus I, October 18, 1787.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-074",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-075",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "constitutional text; Madison's “successive filtrations”; Federalist Nos. 10, 39, 62, 63, 70; Convention debates.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-076",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Schulz van Endert & Mohr, *PLOS ONE* (2020), DOI 10.1371/journal.pone.0241383.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-077",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Later reviews describe early smartphone-exposure evidence inconsistently; Hadar et al.'s directly published intervention clearly reports causal changes in other cognitive/social outcomes but does not provide a secure foundation for the broad delay-discounting claim.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-078",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Fitz et al., *Computers in Human Behavior* 101 (2019), DOI 10.1016/j.chb.2019.07.016.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-079",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Castelo et al., *PNAS Nexus* (2025), DOI 10.1093/pnasnexus/pgaf017.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-080",
+    "source_classification": "NAMED_SECONDARY_SOURCE",
+    "source_classifications": [
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Moshel et al., *Neuropsychology Review* 34 (2024), DOI 10.1007/s11065-023-09612-4.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-081",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Parry, *Media Psychology* 27(5) (2024), DOI 10.1080/15213269.2023.2286647.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-082",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "NAMED_SECONDARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "notification RCT; mobile-internet-block RCT; task-switching literature; observational delay-discounting findings.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-083",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Canada Elections Act, ss.44–45; Elections Canada annual-list guidance.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-084",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Canada Elections Act, ss.110–111; Elections Canada Guidelines for Use of Lists of Electors.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-085",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-086",
+    "source_classification": "UNRESOLVED_SOURCE_REFERENCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE",
+      "UNRESOLVED_SOURCE_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": null,
+    "source_resolution_state": "UNRESOLVED_TEXTUAL_REFERENCE",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-087",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Canada Elections Act, ss.446.2–446.4.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-088",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Office of the Privacy Commissioner of Canada, May 2026 Bill C-25 submissions.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-089",
+    "source_classification": "NO_SOURCE",
+    "source_classifications": [
+      "NO_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Office of the Privacy Commissioner of Canada; legislative history.",
+    "source_resolution_state": "NO_SOURCE_IDENTITY_PRESERVED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  },
+  {
+    "claim_id": "EC-090",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "Bill C-25 third-reading/enacted provisions; Elections Canada July 2026 implementation guidance.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-091",
+    "source_classification": "NAMED_PRIMARY_SOURCE",
+    "source_classifications": [
+      "NAMED_PRIMARY_SOURCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "OPC May 14 and May 28, 2026 submissions.",
+    "source_resolution_state": "NAMED_SOURCE_NOT_URL_PINNED",
+    "source_resolution_required": false,
+    "public_classification": "PUBLIC"
+  },
+  {
+    "claim_id": "EC-092",
+    "source_classification": "SOURCE_PACKET_REFERENCE",
+    "source_classifications": [
+      "SOURCE_PACKET_REFERENCE"
+    ],
+    "direct_urls": [],
+    "named_source_text": "political-data regime + microtargeting-effect audit.",
+    "source_resolution_state": "SOURCE_PACKET_NOT_URL_PINNED",
+    "source_resolution_required": true,
+    "public_classification": "CAUTION"
+  }
+]

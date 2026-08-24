@@ -1,0 +1,45 @@
+{
+  "claim_count": 93,
+  "by_status": {
+    "ESTABLISHED": 66,
+    "STRONG": 23,
+    "PLAUSIBLE": 3,
+    "SPECULATIVE": 1
+  },
+  "by_audit": {
+    "YELLOW": 16,
+    "GREEN": 76,
+    "RED": 1
+  },
+  "by_public_classification": {
+    "CAUTION": 55,
+    "PUBLIC": 36,
+    "HOLD": 2
+  },
+  "by_section": {
+    "A. DEMOCRATIC ARCHITECTURE": 5,
+    "B. INFORMATION, PERSUASION AND MEASUREMENT": 8,
+    "C. CANADA: POLITICAL DATA, BEHAVIOURAL SCIENCE AND COVID-19": 10,
+    "D. MODERN POLITICAL SYSTEM": 3,
+    "E. EXPERIMENTAL PROGRAM / NO-CLAIM ZONE": 3,
+    "F. ALGORITHM OUTCOME AUDIT — DIRECT PAPER ADDITIONS": 6,
+    "G. MICROTARGETING + PLATFORM GATEKEEPER ADDITIONS": 11,
+    "H. WEF / ELITE-NETWORK AUDIT ADDITIONS": 13,
+    "I. CANADA 1917 FRANCHISE-ENGINEERING CLOSEOUT": 5,
+    "J. U.S. FOUNDING ARCHITECTURE PRIMARY-SOURCE CLOSEOUT": 12,
+    "K. VANISHING PAUSE / SMARTPHONE ATTENTION CLOSEOUT": 7,
+    "L. CANADIAN POLITICAL DATA / PRIVACY 2026 CLOSEOUT": 10
+  },
+  "source_url_count": 11,
+  "source_registry_count": 95,
+  "source_classification": {
+    "SOURCE_PACKET_REFERENCE": 18,
+    "NAMED_PRIMARY_SOURCE": 29,
+    "NAMED_SECONDARY_SOURCE": 3,
+    "DIRECT_URL": 9,
+    "NO_SOURCE": 30,
+    "UNRESOLVED_SOURCE_REFERENCE": 4
+  },
+  "dossier_count": 12,
+  "killed_claim_count": 66
+}

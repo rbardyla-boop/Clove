@@ -1,0 +1,530 @@
+[
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-01 Democracy was always fake",
+    "reason_or_disposition": "EC-001/002",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-07 51% legitimizes anything",
+    "reason_or_disposition": "EC-003",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-11 humans only seek advantage",
+    "reason_or_disposition": "EC-005",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-12 closed political caste",
+    "reason_or_disposition": "EC-004",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-15 voters do what they are told",
+    "reason_or_disposition": "EC-006/009/013",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-16 all influence is manipulation",
+    "reason_or_disposition": "EC-020/021",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-19 Cambridge Analytica mind control",
+    "reason_or_disposition": "EC-010",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-21 likes dictate belief",
+    "reason_or_disposition": "EC-011",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-24 algorithms brainwash passive users",
+    "reason_or_disposition": "EC-013",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-28 Trump created polarization",
+    "reason_or_disposition": "EC-025",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-31 Canadian anti-Trump feeling proves irrationality",
+    "reason_or_disposition": "EC-026",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-32 Trump label necessarily changes policy support",
+    "reason_or_disposition": "EC-027",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "DO_NOT_RESURRECT CROSS-LINKS",
+    "claim_or_myth": "MK-35 critical thinking collapsed in 2016",
+    "reason_or_disposition": "replace with mechanism-specific claims only",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Algorithms have no political effect.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Algorithms reliably polarize users.”",
+    "reason_or_disposition": "REJECTED as a universal claim.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Chronological feeds fix polarization.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Filter bubbles are purely imposed by platforms.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“User choice makes ranking irrelevant.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“If issue attitudes move, partisanship must move.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“TikTok’s 2024 exposure skew proves intentional partisan design.”",
+    "reason_or_disposition": "UNSUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Algorithm-specific DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“A zero average digital-campaign effect means no individual/subgroup effect.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The Schwab cabinet quote is fake.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“It was live national television.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“More than half Trudeau’s 2017 cabinet is verified YGL.”",
+    "reason_or_disposition": "UNSUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“No Trudeau ministers had WEF/YGL ties.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“WEF/YGL involvement was uniquely Liberal.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Pierre Poilievre is a verified YGL.”",
+    "reason_or_disposition": "UNSUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Mark Carney had no substantial WEF connection.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“WEF never collaborated directly with Canada on policy projects.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“WEF can enact Canadian law.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The 2022 Commons transcript proves an MP was censored solely for mentioning WEF.”",
+    "reason_or_disposition": "NOT SUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Past government lies prove the WEF-control theory.”",
+    "reason_or_disposition": "INVALID INFERENCE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "WEF DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“U.S. government has confirmed aliens were real all along.”",
+    "reason_or_disposition": "NOT SUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "1917 DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The 1917 election was conducted under politically neutral inherited rules.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "1917 DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Borden did not alter the franchise for electoral advantage.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "1917 DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Every newly enfranchised military relative was pro-government.”",
+    "reason_or_disposition": "UNSUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "1917 DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Every disenfranchised immigrant would have voted against Borden.”",
+    "reason_or_disposition": "UNSUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "1917 DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The identified military-vote redistribution alone created Borden's majority.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "1917 DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The evidence proves Laurier would otherwise have won.”",
+    "reason_or_disposition": "NOT ESTABLISHED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "1917 DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Independent election administration is merely clerical.”",
+    "reason_or_disposition": "REJECTED; 1917 demonstrates why control of electoral machinery is substantive.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The Constitution created direct democracy.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The Constitution created universal federal suffrage.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The Constitution required direct popular presidential election.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The people were merely decorative in Federalist constitutional theory.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Every founder wanted voters kept away from government.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Every constitutional filter had the single purpose of protecting wealthy elites.”",
+    "reason_or_disposition": "UNSUPPORTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Anti-Federalists rejected representative government.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Republic and democracy were universally mutually exclusive founding-era concepts.”",
+    "reason_or_disposition": "TOO SIMPLE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“There was one discoverable Founders' intent.”",
+    "reason_or_disposition": "FALSE METHOD.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Founding DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Madison's large-republic theory was uncontested.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Smartphones destroyed delayed gratification.”",
+    "reason_or_disposition": "NOT ESTABLISHED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Screen-time/impulsivity correlation proves causal phone effects.”",
+    "reason_or_disposition": "FALSE INFERENCE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“A phone merely sitting nearby broadly impairs cognition.”",
+    "reason_or_disposition": "TOO STRONG.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Turning off all notifications is necessarily best.”",
+    "reason_or_disposition": "REJECTED in tested design.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“There is no causal evidence connecting constant smartphone internet access to attention.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Short-term attention improvement proves permanent smartphone brain damage.”",
+    "reason_or_disposition": "FALSE INFERENCE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The pocket casino is literally equivalent to gambling disorder.”",
+    "reason_or_disposition": "REJECTED; metaphor only.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Vanishing Pause DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“The Vanishing Pause is a proven cause of political polarization.”",
+    "reason_or_disposition": "UNTESTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Parties receive the full National Register.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Elections Canada gives parties gender and date of birth on annual elector lists.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Federal political parties have no privacy law.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“PIPEDA generally governs federal-party political databases.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Bill C-25 created the original party privacy-policy requirement.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Bill C-25 gives citizens full statutory access/correction rights over party profiles.”",
+    "reason_or_disposition": "FALSE.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Every party buys all available commercial consumer data.”",
+    "reason_or_disposition": "UNSUPPORTED AS UNIVERSAL CURRENT CLAIM.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_section": "Canadian political-data DO_NOT_RESURRECT additions",
+    "claim_or_myth": "“Weak political-ad effects make party privacy concerns disappear.”",
+    "reason_or_disposition": "REJECTED.",
+    "replacement_theory": null,
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  }
+]

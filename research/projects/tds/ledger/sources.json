@@ -1,0 +1,1049 @@
+[
+  {
+    "source_id": "SRC-032062bf02e7",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Harvard Kennedy School / Harvard Institute of Politics event record and preserved video.",
+    "url": null,
+    "claim_ids": [
+      "EC-048"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-048f87dfcb03",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Locke, Madison, Tocqueville, Mill, Kant, Rawls and constitutional rights traditions.\nRule-Scope research packet.",
+    "url": null,
+    "claim_ids": [
+      "EC-003"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-08a2c02cca3f",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "modern campaign/voter-file methods.\nWindow I campaign-science literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-009"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-0e5dccfba3a7",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Party/bureaucratic institutional records.\nMichels, Schumpeter, Dahl, Weber, modern party-organization literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-004"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-0fab71b7d62c",
+    "source_type": "NO_SOURCE",
+    "label": "Parry, *Media Psychology* 27(5) (2024), DOI 10.1080/15213269.2023.2286647.",
+    "url": null,
+    "claim_ids": [
+      "EC-081"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-10ee15edd043",
+    "source_type": "NO_SOURCE",
+    "label": "WEF 2016 class (Michelle Rempel Garner); WEF 2018 class (Jagmeet Singh); Liberal examples above.",
+    "url": null,
+    "claim_ids": [
+      "EC-050"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-10f43d5b1cf4",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Transport Canada, January 25, 2018; WEF project release.",
+    "url": null,
+    "claim_ids": [
+      "EC-054"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-1103e5ecd706",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "pre-2015 polling/media archives + Trump communication record.\nWindow N.",
+    "url": null,
+    "claim_ids": [
+      "EC-025"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-17f908162f80",
+    "source_type": "DIRECT_URL",
+    "label": "Office of the Privacy Commissioner, 2026.\nOPC comparative analysis.",
+    "url": null,
+    "claim_ids": [
+      "EC-016"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-18073a63889a",
+    "source_type": "NO_SOURCE",
+    "label": "Coppock, Green & Porter, *Research & Politics* (2022), DOI 10.1177/20531680221076901.",
+    "url": null,
+    "claim_ids": [
+      "EC-039"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-1aa4e295abc5",
+    "source_type": "DIRECT_URL",
+    "label": "Impact Canada Vaccine Studies 2 and 3.",
+    "url": null,
+    "claim_ids": [
+      "EC-019"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-1bd3ccf4e8dc",
+    "source_type": "NO_SOURCE",
+    "label": "Velez, Liu & Clifford, APSR (2026), DOI 10.1017/S0003055426101622.",
+    "url": null,
+    "claim_ids": [
+      "EC-041"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-1dca6cbc4665",
+    "source_type": "NO_SOURCE",
+    "label": "WEF Institutional Framework.",
+    "url": null,
+    "claim_ids": [
+      "EC-047"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-2614917421e9",
+    "source_type": "NO_SOURCE",
+    "label": "Federalist No. 70.",
+    "url": null,
+    "claim_ids": [
+      "EC-071"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-2840f4f29065",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Coppock, Hill & Vavreck, *Science Advances* (2020), DOI 10.1126/sciadv.abc4046.",
+    "url": null,
+    "claim_ids": [
+      "EC-037"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-2fc80352fd30",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "U.S./Canadian constitutional and electoral rules; source packet Window A/B.\nBernard Manin, *The Principles of Representative Government*; comparative electoral-system scholarship.",
+    "url": null,
+    "claim_ids": [
+      "EC-001"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-309e221b0263",
+    "source_type": "DIRECT_URL",
+    "label": "Elections Canada 2026; OPC Bill C-25 submissions.",
+    "url": null,
+    "claim_ids": [
+      "EC-017"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-3f8db326be8f",
+    "source_type": "NO_SOURCE",
+    "label": "Government of Canada Agile Nations Charter.",
+    "url": null,
+    "claim_ids": [
+      "EC-055"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-400debd3206f",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Nature Human Behaviour 2026, DOI 10.1038/s41562-025-02328-w.",
+    "url": null,
+    "claim_ids": [
+      "EC-035"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-47ae956cc50e",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "randomized/quasi-experimental platform studies in Window L.\nrecommender/HCI literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-013"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-48d56ba37b26",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "archival media/campaign sources in Window H.\nmedia-history scholarship.",
+    "url": null,
+    "claim_ids": [
+      "EC-007"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-48ef2f6f97ab",
+    "source_type": "NO_SOURCE",
+    "label": "U.S. Constitution, Article III, §1.",
+    "url": null,
+    "claim_ids": [
+      "EC-067"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-49504468123e",
+    "source_type": "NO_SOURCE",
+    "label": "Nyhan et al. 2023; Gauthier et al. 2026; Brady et al. 2026; Ibrahim et al. 2026.",
+    "url": null,
+    "claim_ids": [
+      "EC-030"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4be183be8a54",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Removing the at-least-14 seats Elections Canada attributes to military-vote redistribution would leave an approximate 139–96 Unionist majority in a 235-seat House; other franchise effects cannot be cleanly reconstructed.",
+    "url": null,
+    "claim_ids": [
+      "EC-063"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4cdf04000df9",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Canada Elections Act, ss.110–111; Elections Canada Guidelines for Use of Lists of Electors.",
+    "url": null,
+    "claim_ids": [
+      "EC-084"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4e3342eed020",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "actor-specific studies in Incentive Machine packet.\npublic choice, media economics, attention-economy and platform research.",
+    "url": null,
+    "claim_ids": [
+      "EC-024"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4e3e5a58e20a",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Schulz van Endert & Mohr, *PLOS ONE* (2020), DOI 10.1371/journal.pone.0241383.",
+    "url": null,
+    "claim_ids": [
+      "EC-076"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4e3f96e2ef0d",
+    "source_type": "NO_SOURCE",
+    "label": "Robertson et al., Nature 2023, DOI 10.1038/s41586-023-06078-5; Nyhan et al., Nature 2023.",
+    "url": null,
+    "claim_ids": [
+      "EC-033"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4ef0735a49ca",
+    "source_type": "NAMED_SECONDARY_SOURCE",
+    "label": "Moshel et al., *Neuropsychology Review* 34 (2024), DOI 10.1007/s11065-023-09612-4.",
+    "url": null,
+    "claim_ids": [
+      "EC-080"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4f4d40d22a14",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "None yet for project-specific effect.",
+    "url": null,
+    "claim_ids": [
+      "EC-027"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4f589161eef8",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Later reviews describe early smartphone-exposure evidence inconsistently; Hadar et al.'s directly published intervention clearly reports causal changes in other cognitive/social outcomes but does not provide a secure foundation for the broad delay-discounting claim.",
+    "url": null,
+    "claim_ids": [
+      "EC-077"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-4f8ff53c6c9f",
+    "source_type": "NO_SOURCE",
+    "label": "Office of the Privacy Commissioner of Canada; legislative history.",
+    "url": null,
+    "claim_ids": [
+      "EC-089"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-5874b8463444",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Canadian Heritage, CRTC, Meta.",
+    "url": null,
+    "claim_ids": [
+      "EC-044"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-65372c9f2fec",
+    "source_type": "NO_SOURCE",
+    "label": "U.S. Constitution, Article I, §3; Federalist Nos. 62–63.",
+    "url": null,
+    "claim_ids": [
+      "EC-065"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-687418487e00",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "availability/base-rate/exemplar studies in Window K.\ncognitive and media-effects literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-012"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-69ba71e3e948",
+    "source_type": "NO_SOURCE",
+    "label": "Madison's Convention notes, May 31, 1787.",
+    "url": null,
+    "claim_ids": [
+      "EC-069"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-6a4d7805b923",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Federalist No. 10; Hamilton's Convention notes recording Madison's “enlarge the sphere” argument.",
+    "url": null,
+    "claim_ids": [
+      "EC-070"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-6b44148dfbcd",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Canadian provincial vaccine-passport rules; project influence-definition framework.\nbehavioural-policy / coercion literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-021"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-6be7cfd16f78",
+    "source_type": "NO_SOURCE",
+    "label": "Gauthier et al., Nature 2026, DOI 10.1038/s41586-026-10098-2.",
+    "url": null,
+    "claim_ids": [
+      "EC-031"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-715792974c34",
+    "source_type": "DIRECT_URL",
+    "label": "JAMA Network Open 2025.",
+    "url": null,
+    "claim_ids": [
+      "EC-023"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-74b7846ba46c",
+    "source_type": "NO_SOURCE",
+    "label": "John Adams, *Thoughts on Government* (1776).",
+    "url": null,
+    "claim_ids": [
+      "EC-072"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-8449044a6f4e",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "political-data regime + microtargeting-effect audit.",
+    "url": null,
+    "claim_ids": [
+      "EC-092"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-85a1c6abea98",
+    "source_type": "NO_SOURCE",
+    "label": "U.S. Constitution, Article II, §1, cl.2; Convention history in Constitution Annotated.",
+    "url": null,
+    "claim_ids": [
+      "EC-066"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-871fd93620aa",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Argyle et al., PNAS (2025), DOI 10.1073/pnas.2412815122.",
+    "url": null,
+    "claim_ids": [
+      "EC-040"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-88c27b69b4ee",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Experimental public-goods, ultimatum and costly-punishment studies in source packet.\nBehavioural economics / cooperation literature; Ostrom as institutional extension.",
+    "url": null,
+    "claim_ids": [
+      "EC-005"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-894d7e098f5d",
+    "source_type": "NAMED_SECONDARY_SOURCE",
+    "label": "Lippmann, *Public Opinion* / *The Phantom Public*; Dewey, *The Public and Its Problems*.\npolitical-knowledge and heuristic literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-006"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-8ee837d20f04",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "OPC May 14 and May 28, 2026 submissions.",
+    "url": null,
+    "claim_ids": [
+      "EC-091"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-926d402482bf",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "WEF Board of Trustees records, 2018–2022.",
+    "url": null,
+    "claim_ids": [
+      "EC-052"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-992f93fcf857",
+    "source_type": "NAMED_SECONDARY_SOURCE",
+    "label": "Media Ecosystem Observatory 2024/2026; Reuters Institute Canada reports.",
+    "url": null,
+    "claim_ids": [
+      "EC-045"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-a06a377d8d7a",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Voting statutes, constitutional amendments, Canada Elections Act history; Window B source packet.\nAlexander Keyssar; Elections Canada historical synthesis.",
+    "url": null,
+    "claim_ids": [
+      "EC-002"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-a33d5d0caa6f",
+    "source_type": "DIRECT_URL",
+    "label": "Impact Canada, “Effective COVID-19 Communications.”",
+    "url": null,
+    "claim_ids": [
+      "EC-020"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-a460571b1a26",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Brutus I, October 18, 1787.",
+    "url": null,
+    "claim_ids": [
+      "EC-073"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-a6a6d4055e13",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Canadian policy events/polling.\nWindow O.",
+    "url": null,
+    "claim_ids": [
+      "EC-026"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-a7c11de021c1",
+    "source_type": "NO_SOURCE",
+    "label": "Fitz et al., *Computers in Human Behavior* 101 (2019), DOI 10.1016/j.chb.2019.07.016.",
+    "url": null,
+    "claim_ids": [
+      "EC-078"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-ad96568f3932",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Elections Canada / Canada Elections Act.\nOffice of the Privacy Commissioner guidance.",
+    "url": null,
+    "claim_ids": [
+      "EC-014"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-b51e109eb53c",
+    "source_type": "NO_SOURCE",
+    "label": "Meta public statement, May 2023; Royal Assent June 22, 2023.",
+    "url": null,
+    "claim_ids": [
+      "EC-043"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-b55050a017cf",
+    "source_type": "UNRESOLVED_SOURCE_REFERENCE",
+    "label": "later compiled YGL lists naming Trudeau as 2005 YGL; Klaus Schwab's 2017 remarks associating Trudeau with the young-leader network; extensive public WEF participation.",
+    "url": null,
+    "claim_ids": [
+      "EC-051A"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-b61aea3a0049",
+    "source_type": "DIRECT_URL",
+    "label": "- Canadian Medical Association Journal / PMC: https://pmc.ncbi.nlm.nih.gov/articles/PMC10609911/\n- Vaccine / PMC: https://pmc.ncbi.nlm.nih.gov/articles/PMC10068515/",
+    "url": null,
+    "claim_ids": [
+      "EC-022"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-b989cf76f0e8",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Project evidence register / Window P.",
+    "url": null,
+    "claim_ids": [
+      "EC-029"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-b993aa6339be",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "notification RCT; mobile-internet-block RCT; task-switching literature; observational delay-discounting findings.",
+    "url": null,
+    "claim_ids": [
+      "EC-082"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-be9c7f62b8ea",
+    "source_type": "DIRECT_URL",
+    "label": "OPC 2019 guidance; Elections Canada 2026 C-25 guidance.\nprivacy-law scholarship.",
+    "url": null,
+    "claim_ids": [
+      "EC-015"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-c41f31c9bcb9",
+    "source_type": "NO_SOURCE",
+    "label": "Brady et al., Nature 2026, DOI 10.1038/s41586-026-10536-1.",
+    "url": null,
+    "claim_ids": [
+      "EC-032"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-c615e2a24d38",
+    "source_type": "NO_SOURCE",
+    "label": "House of Commons Hansard No. 034, February 19, 2022.",
+    "url": null,
+    "claim_ids": [
+      "EC-056"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-cb9f113e43b0",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Kalla & Broockman, APSR (2018), *The Minimal Persuasive Effects of Campaign Contact in General Elections*.",
+    "url": null,
+    "claim_ids": [
+      "EC-036"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-ce17d9c98510",
+    "source_type": "DIRECT_URL",
+    "label": "Impact Canada / PHAC, “Applying BeSci to the COVID-19 Response.”\nGovernment publications implementing the WHO behavioural-insights survey tool.",
+    "url": null,
+    "claim_ids": [
+      "EC-018"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-d0252ae0da74",
+    "source_type": "NO_SOURCE",
+    "label": "Hamidian et al., APSR 118(4), 2024, DOI 10.1017/S0003055423001387.",
+    "url": null,
+    "claim_ids": [
+      "EC-038"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-d1a03c9e9705",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "campaign experiments / Cambridge Analytica regulatory records.\nWindow I literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-010"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-d4cff407e737",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Bill C-25 third-reading/enacted provisions; Elections Canada July 2026 implementation guidance.",
+    "url": null,
+    "claim_ids": [
+      "EC-090"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-d6ddb1244221",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Canada Elections Act, ss.446.2–446.4.",
+    "url": null,
+    "claim_ids": [
+      "EC-087"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-d96425223b31",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "constitutional text; Madison's “successive filtrations”; Federalist Nos. 10, 39, 62, 63, 70; Convention debates.",
+    "url": null,
+    "claim_ids": [
+      "EC-075"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-dacef5a33f96",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Muchnik et al. and social-proof experiments in Window K.\nsocial influence literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-011"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-daf9a6b3ad8f",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Canada Elections Act, ss.44–45; Elections Canada annual-list guidance.",
+    "url": null,
+    "claim_ids": [
+      "EC-083"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-dbc2719364f4",
+    "source_type": "UNRESOLVED_SOURCE_REFERENCE",
+    "label": "Author recollection; enforcement records not yet preserved in project.",
+    "url": null,
+    "claim_ids": [
+      "EC-046"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-de542cff89a7",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "WEF programmes/class announcements for Freeland, Brison, Joly and Champagne; Government of Canada ministry records.",
+    "url": null,
+    "claim_ids": [
+      "EC-049"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-e074fb76e7a5",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Castelo et al., *PNAS Nexus* (2025), DOI 10.1093/pnasnexus/pgaf017.",
+    "url": null,
+    "claim_ids": [
+      "EC-079"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-e0826168b9e9",
+    "source_type": "NO_SOURCE",
+    "label": "U.S. Constitution, Article I, §2, cl.1; Constitution Annotated.",
+    "url": null,
+    "claim_ids": [
+      "EC-064"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-ed9e253fce49",
+    "source_type": "NO_SOURCE",
+    "label": "U.S. Constitution, Article V.",
+    "url": null,
+    "claim_ids": [
+      "EC-068"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-edba933c7473",
+    "source_type": "NO_SOURCE",
+    "label": "Office of the Privacy Commissioner of Canada, May 2026 Bill C-25 submissions.",
+    "url": null,
+    "claim_ids": [
+      "EC-088"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-edf523b2bfa4",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Gallup / 1936 polling records.\nAAPOR history and polling scholarship.",
+    "url": null,
+    "claim_ids": [
+      "EC-008"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-efe73e4a58ce",
+    "source_type": "UNRESOLVED_SOURCE_REFERENCE",
+    "label": "Department of Defense / AARO historical and annual reports.",
+    "url": null,
+    "claim_ids": [
+      "EC-058"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-efe81736c46d",
+    "source_type": "SOURCE_PACKET_REFERENCE",
+    "label": "Window K background literature.",
+    "url": null,
+    "claim_ids": [
+      "EC-028"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-f8e8cef6a613",
+    "source_type": "NAMED_PRIMARY_SOURCE",
+    "label": "Nyhan et al. 2023; Gauthier et al. 2026; Meta 2020 Election Study package.",
+    "url": null,
+    "claim_ids": [
+      "EC-034"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-fd035d03f36b",
+    "source_type": "NO_SOURCE",
+    "label": "WEF annual-meeting programmes and governance reports.",
+    "url": null,
+    "claim_ids": [
+      "EC-053"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "SRC-feb468ece19b",
+    "source_type": "NO_SOURCE",
+    "label": "Canadian Heritage; Justice Canada Charter Statement for Bill C-18.",
+    "url": null,
+    "claim_ids": [
+      "EC-042"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-19954673d31f",
+    "source_type": "DIRECT_URL",
+    "label": "https://www.priv.gc.ca/en/privacy-topics/collecting-personal-information/gd_pp_201904/",
+    "url": "https://www.priv.gc.ca/en/privacy-topics/collecting-personal-information/gd_pp_201904/",
+    "claim_ids": [
+      "EC-015"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-284ab137ebc1",
+    "source_type": "DIRECT_URL",
+    "label": "https://impact.canada.ca/en/behavioural-science/applying-besci-covid",
+    "url": "https://impact.canada.ca/en/behavioural-science/applying-besci-covid",
+    "claim_ids": [
+      "EC-018"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-4ab596f4017d",
+    "source_type": "DIRECT_URL",
+    "label": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10068515/",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10068515/",
+    "claim_ids": [
+      "EC-022"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-51072653d95c",
+    "source_type": "DIRECT_URL",
+    "label": "https://www.priv.gc.ca/en/opc-actions-and-decisions/advice-to-parliament/2026/parl_sub_260514_c25/",
+    "url": "https://www.priv.gc.ca/en/opc-actions-and-decisions/advice-to-parliament/2026/parl_sub_260514_c25/",
+    "claim_ids": [
+      "EC-016",
+      "EC-017"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-5e04f89c91eb",
+    "source_type": "DIRECT_URL",
+    "label": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2833979",
+    "url": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2833979",
+    "claim_ids": [
+      "EC-023"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-6a02422cf333",
+    "source_type": "DIRECT_URL",
+    "label": "https://impact.canada.ca/en/reports/covid-comms-review",
+    "url": "https://impact.canada.ca/en/reports/covid-comms-review",
+    "claim_ids": [
+      "EC-020"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-741c306d310a",
+    "source_type": "DIRECT_URL",
+    "label": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10609911/",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10609911/",
+    "claim_ids": [
+      "EC-022"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-79c165adf6b9",
+    "source_type": "DIRECT_URL",
+    "label": "https://www.elections.ca/content.aspx?dir=c25&document=index&lang=e&section=pol",
+    "url": "https://www.elections.ca/content.aspx?dir=c25&document=index&lang=e&section=pol",
+    "claim_ids": [
+      "EC-015",
+      "EC-017"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-7a4c34cd53c3",
+    "source_type": "DIRECT_URL",
+    "label": "https://impact.canada.ca/en/reports/vaccine-2",
+    "url": "https://impact.canada.ca/en/reports/vaccine-2",
+    "claim_ids": [
+      "EC-019"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-7d5465b536a4",
+    "source_type": "DIRECT_URL",
+    "label": "https://impact.canada.ca/en/reports/vaccine-3",
+    "url": "https://impact.canada.ca/en/reports/vaccine-3",
+    "claim_ids": [
+      "EC-019"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  },
+  {
+    "source_id": "URL-bf878ad4574d",
+    "source_type": "DIRECT_URL",
+    "label": "https://web.archive.org/web/20210401060525/https://www.weforum.org/people/pierre-poilievre`",
+    "url": "https://web.archive.org/web/20210401060525/https://www.weforum.org/people/pierre-poilievre`",
+    "claim_ids": [
+      "EC-051"
+    ],
+    "canonical_ledger_version": "v0.11",
+    "canonical_ledger_sha256": "f48e04f186550057762a504ef1ad0bd9d2bf4555f25b934e89569bfbeb7d9e59"
+  }
+]
