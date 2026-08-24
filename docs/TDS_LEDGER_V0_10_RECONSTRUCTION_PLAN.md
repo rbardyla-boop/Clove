@@ -1,7 +1,13 @@
 # TDS v0.10 Reconstruction Plan
 
-Status: `RECONSTRUCTION_REQUIRED` if the exact file cannot be attached or
-recovered. This plan does not create or publish a reconstructed ledger.
+Status: `SUPERSEDED FOR V0.10 — CONTROLLED SUCCESSOR CREATED` as of 2026-08-24.
+
+The exact historical v0.10 artifact was not recovered. A new canonical
+successor was created from the verified v0.9 parent at
+`research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.10.md`, with
+only the three non-schema status fields normalized and their original wording
+preserved as qualifiers. This document remains a boundary checklist for any
+future reconstructed or merged release; it is not the v0.10 source.
 
 ## Provenance boundary
 
