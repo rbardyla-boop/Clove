@@ -22,6 +22,13 @@ const targetPages = [
   ['/research/projects/', 'research/projects/index.html', 'Research'],
   ['/research/projects/tds/', 'research/projects/tds/index.html', 'Research'],
   ['/digital-stewardship.html', 'digital-stewardship.html', 'Stewardship'],
+  ['/digital-stewardship-00.html', 'digital-stewardship-00.html', 'Stewardship'],
+  ['/digital-stewardship-01.html', 'digital-stewardship-01.html', 'Stewardship'],
+  ['/digital-stewardship-02.html', 'digital-stewardship-02.html', 'Stewardship'],
+  ['/digital-stewardship-03.html', 'digital-stewardship-03.html', 'Stewardship'],
+  ['/digital-stewardship-04.html', 'digital-stewardship-04.html', 'Stewardship'],
+  ['/digital-stewardship-05.html', 'digital-stewardship-05.html', 'Stewardship'],
+  ['/digital-stewardship-06.html', 'digital-stewardship-06.html', 'Stewardship'],
   ['/temperance.html', 'temperance.html', 'Temperance'],
 ];
 let server;

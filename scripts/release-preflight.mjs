@@ -16,21 +16,6 @@ const FORBIDDEN_SENTINELS = Object.freeze([
   'new-work/F2F3_GOLD_KEY_v0.3.1.csv',
   'master-map.md',
   'clovelearn-test-harness.html',
-  // Digital Stewardship implementation slices remain non-public until a separate release gate.
-  'digital-stewardship-00.html',
-  'digital-stewardship-00.js',
-  'digital-stewardship-01.html',
-  'digital-stewardship-01.js',
-  'digital-stewardship-02.html',
-  'digital-stewardship-02.js',
-  'digital-stewardship-03.html',
-  'digital-stewardship-03.js',
-  'digital-stewardship-04.html',
-  'digital-stewardship-04.js',
-  'digital-stewardship-05.html',
-  'digital-stewardship-05.js',
-  'digital-stewardship-06.html',
-  'digital-stewardship-06.js',
 ]);
 
 const RISKY_PUBLIC_EXTENSIONS = Object.freeze(['.py', '.sh', '.xlsx', '.csv', '.yaml', '.yml']);

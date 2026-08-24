@@ -188,14 +188,14 @@ function understood(value){return value && value!=='unknown' ? 'YES' : 'NOT YET'
 function renderComplete(){
   stepLabel.textContent='7 / Complete';
   question.textContent='MAP COMPLETE';
-  const recoveryText=state.recoveryCheckResult==='current'?'Recovery verified':state.recoveryCheckResult==='location'?'Recovery location found':'Recovery still unknown';
+  const recoveryText=state.recoveryCheckResult==='current'?'Recovery state inspected':state.recoveryCheckResult==='location'?'Recovery location found':'Recovery still unknown';
   explain.textContent=`${recoveryText}. You now have a five-part map without giving Clove the service name or account details.`;
   const rows=[
     ['DEVICE',understood(state.deviceClass)],
     ['APP / BROWSER',understood(state.accessMode)],
     ['ACCOUNT',understood(state.hasAccount)],
     ['SERVICE / CLOUD',understood(state.providerPersistenceBelief)],
-    ['RECOVERY',state.recoveryCheckResult==='current'?'VERIFIED':state.recoveryCheckResult==='location'?'LOCATION FOUND':'UNKNOWN'],
+    ['RECOVERY',state.recoveryCheckResult==='current'?'INSPECTED':state.recoveryCheckResult==='location'?'LOCATION FOUND':'UNKNOWN'],
   ];
   const summary=document.createElement('div');summary.className='summary';
   for(const [label,value] of rows){const row=document.createElement('div');row.className='row';const b=document.createElement('b');b.textContent=label;const span=document.createElement('span');span.textContent=value;row.append(b,span);summary.append(row);}

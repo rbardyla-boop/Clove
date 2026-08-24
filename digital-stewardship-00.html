@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111f">
-<meta name="description" content="CloveLearn Digital Stewardship: map one digital service and verify a safe recovery path without giving Clove your account details.">
-<title>Know the Machine — CloveLearn</title>
+<meta name="description" content="Learn the parts of an online service and where to find help without entering private details.">
+<title>See the Parts — CloveLearn</title>
+<link rel="stylesheet" href="/hub.css">
 <style>
 :root{--bg:#07111f;--panel:#0c1928;--panel2:#102235;--line:#28425c;--text:#edf5ff;--muted:#9fb2c7;--accent:#5eead4;--accent2:#8fc5ff;--warn:#f4c56a;--max:720px}
 *{box-sizing:border-box}
@@ -39,19 +40,33 @@ h2{font-size:26px;line-height:1.15;margin:0 0 10px}
 .footer{margin-top:28px;font-size:10px;color:#71869c;line-height:1.6}
 @media(max-width:520px){.shell{width:min(100% - 20px,var(--max));padding-top:16px}.top{align-items:flex-start}.card{padding:17px}.row{display:grid;gap:3px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+.module-nav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding:10px 0;border-top:1px solid rgba(40,66,92,.55);border-bottom:1px solid rgba(40,66,92,.55)}
+.module-nav a{display:inline-flex;align-items:center;min-height:38px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;color:var(--muted);background:rgba(16,34,53,.72);font-size:10px;font-weight:850;letter-spacing:.04em;text-decoration:none}
+.module-nav a:hover,.module-nav a:focus-visible{border-color:var(--accent2);color:var(--text);outline:3px solid rgba(143,197,255,.25);outline-offset:2px}
+.module-nav a[aria-current="page"]{border-color:var(--accent);color:var(--accent);background:#0b2a30}
+.module-nav .module-overview{color:var(--text)}
 </style>
 </head>
 <body>
+<header class="site-nav">
+  <a class="wordmark" href="/">CLOVE<span>LEARN</span></a>
+  <nav aria-label="Primary navigation"><a href="/">Home</a><a href="/learn/">Learn</a><a href="/research/">Research</a><a href="/digital-stewardship.html" aria-current="page">Stewardship</a><a href="/temperance.html">Temperance</a><a href="/wellbeing/">Wellbeing</a><a href="/games/">Games</a><a href="/about-clovelearn.html">About</a></nav>
+</header>
 <main class="shell">
   <header class="top">
     <div class="brand">CLOVELEARN / DIGITAL STEWARDSHIP</div>
-    <div class="phase">DS-I0 BUILD CANDIDATE<br>NOT PUBLIC</div>
+    <div class="phase">DS-00 · PUBLIC MODULE 1 / 7</div>
   </header>
 
+
   <section class="hero">
-    <h1>KNOW THE MACHINE.</h1>
-    <p class="lead">Map one digital service without giving Clove your account details.</p>
+    <h1>SEE THE PARTS.</h1>
+    <p class="lead">Learn the five parts of an online service and how to find help.</p>
   </section>
+
+  <div class="notice"><strong>Why this helps:</strong> You can find the right place to get help when something stops working. <strong>Avoid:</strong> never type passwords, codes, names, or account details here.</div>
+
 
   <section class="card" aria-labelledby="question">
     <div id="stepLabel" class="step">Start</div>
@@ -62,9 +77,19 @@ h2{font-size:26px;line-height:1.15;margin:0 0 10px}
     <button id="stopButton" class="stop" type="button" hidden>STOP</button>
     <p id="storageStatus" class="status" role="status" aria-live="polite"></p>
   </section>
+<nav class="module-nav" aria-label="Digital Stewardship modules">
+  <a class="module-overview" href="/digital-stewardship.html">Overview</a>
+  <a href="/digital-stewardship-00.html" aria-current="page">DS-00</a>
+  <a href="/digital-stewardship-01.html">DS-01</a>
+  <a href="/digital-stewardship-02.html">DS-02</a>
+  <a href="/digital-stewardship-03.html">DS-03</a>
+  <a href="/digital-stewardship-04.html">DS-04</a>
+  <a href="/digital-stewardship-05.html">DS-05</a>
+  <a href="/digital-stewardship-06.html">DS-06</a>
+</nav>
 
-  <p class="privacy"><strong>Private by design:</strong> Never type your password, email, phone number, recovery code, or provider name into Clove. This drill uses only coarse choices stored on this device. It sends no drill answers anywhere.</p>
-  <p class="footer">Education only. Do not test this first on banking, government identity, or a critical health account. Do not log out, reset a password, remove multi-factor authentication, use a backup code, wipe a device, or delete an account just to prove recovery works.</p>
+  <p class="privacy"><strong>Keep private details out of Clove:</strong> Never type your password, email, phone number, recovery code, or provider name into Clove. This lesson uses simple choices on this device and sends no lesson answers.</p>
+  <p class="footer"><strong>Why stop here:</strong> This lesson only makes a map. Do not start with banking, government identity, or a critical health account. Do not log out, reset a password, remove multi-factor authentication, use a backup code, wipe a device, or delete an account to test recovery.</p>
 
   <noscript><section class="card"><h2>JavaScript is off.</h2><p class="explain">This interactive drill cannot run without JavaScript. Nothing has been saved or sent. You can leave safely and return later.</p></section></noscript>
 </main>

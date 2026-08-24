@@ -3,43 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Digital Stewardship — CloveLearn</title>
-  <meta name="description" content="CloveLearn's bounded digital-stewardship orientation: privacy, judgment, information literacy, recovery, and safer technology use.">
   <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Simple lessons for safer online habits, private by design and clear about what Clove cannot check.">
+  <title>Digital Stewardship — CloveLearn</title>
   <link rel="stylesheet" href="/hub.css">
+  <style>
+    :root{--bg:#07111f;--panel:#0c1928;--panel2:#102235;--line:#28425c;--text:#edf5ff;--muted:#a9bbcc;--accent:#5eead4;--accent2:#8fc5ff;--warn:#f4c56a;--danger:#f19a9a;--max:1040px}
+    *{box-sizing:border-box}
+    html{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+    body{margin:0;min-height:100dvh;background:radial-gradient(circle at 50% -20%,#16334d 0,var(--bg) 42%)}
+    a{color:inherit}button{font:inherit;cursor:pointer}
+    .shell{width:min(var(--max),calc(100% - 28px));margin:0 auto;padding:24px 0 64px}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:24px}
+    .brand,.eyebrow,.label{font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--accent);text-transform:uppercase}
+    .home{font-size:11px;color:var(--muted);text-decoration:none}.home:hover,.home:focus-visible{color:var(--text)}
+    .hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:22px;align-items:end;padding:24px 0 28px}
+    h1{font-size:clamp(44px,8vw,82px);line-height:.92;letter-spacing:-.055em;margin:10px 0 16px}
+    .lead{font-size:clamp(18px,3vw,23px);color:#cad9e8;margin:0;max-width:700px}
+    .hero-note{border:1px solid var(--line);border-radius:16px;padding:18px;background:rgba(12,25,40,.86);color:var(--muted);font-size:13px}
+    .hero-note strong{display:block;color:var(--text);font-size:15px;margin-bottom:6px}
+    .notice{border-left:4px solid var(--warn);padding:14px 16px;background:#19170f;color:#ead8aa;border-radius:0 10px 10px 0;font-size:13px;margin:0 0 20px}
+    .incident{border:1px solid rgba(241,154,154,.48);border-radius:18px;padding:20px;background:rgba(50,23,30,.5);margin:20px 0 24px}
+    .incident h2{color:#ffd7d7}.incident p{color:#d8bcc0;margin:5px 0 15px}.incident-actions{display:flex;flex-wrap:wrap;gap:8px}
+    .incident-actions button{min-height:44px;border:1px solid rgba(241,154,154,.5);border-radius:10px;background:#321d27;color:#ffe7e7;padding:10px 13px;font-weight:800;text-align:left}
+    .incident-actions button:hover,.incident-actions button:focus-visible{border-color:#fff;outline:3px solid rgba(241,154,154,.25);outline-offset:2px}
+    .incident-panel{margin-top:16px;border-top:1px solid rgba(241,154,154,.25);padding-top:16px}.incident-panel h3{margin:0 0 7px}.incident-panel ol{margin:8px 0 0;padding-left:22px;color:#f3dfe1}.incident-panel li{margin:6px 0}
+    .overview-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;border:1px solid var(--line);border-radius:18px;background:rgba(12,25,40,.95);padding:22px;margin:20px 0;box-shadow:0 16px 45px rgba(0,0,0,.14)}
+    .overview-card h2{font-size:26px;line-height:1.1;margin:7px 0}.overview-card p{color:var(--muted);margin:0}.overview-card .button{white-space:nowrap}
+    .button,.guide-action{min-height:44px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);color:var(--text);padding:11px 14px;font-weight:850;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+    .button:hover,.button:focus-visible,.guide-action:hover,.guide-action:focus-visible{border-color:var(--accent2);outline:3px solid rgba(143,197,255,.25);outline-offset:2px}.button.primary{border-color:var(--accent);background:#0b2a30;color:#eafffb}
+    .section-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:30px 0 12px}.section-heading h2{font-size:25px;margin:0}.section-heading p{color:var(--muted);font-size:13px;margin:0;text-align:right}
+    .areas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.area{border:1px solid var(--line);border-radius:13px;padding:13px;background:rgba(12,25,40,.8)}.area strong{display:block;font-size:11px;line-height:1.2}.area span{display:block;color:var(--muted);font-size:11px;margin-top:6px}
+    .guides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.guide{border:1px solid var(--line);border-radius:15px;background:rgba(12,25,40,.9);overflow:hidden}.guide summary{list-style:none;cursor:pointer;padding:17px;min-height:82px}.guide summary::-webkit-details-marker{display:none}.guide summary:hover,.guide summary:focus-visible{background:rgba(16,34,53,.9);outline:3px solid rgba(143,197,255,.2);outline-offset:-3px}.guide-title{display:flex;justify-content:space-between;gap:10px;align-items:start}.guide-title strong{font-size:16px;line-height:1.2}.guide-time{font-size:10px;color:var(--muted);white-space:nowrap}.guide-summary{color:var(--muted);font-size:12px;margin:7px 0 0}.guide-status{font-size:10px;color:var(--accent);font-weight:850;letter-spacing:.06em;text-transform:uppercase;margin-top:8px}.guide-body{border-top:1px solid var(--line);padding:18px}.guide-body h3{font-size:13px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin:17px 0 5px}.guide-body h3:first-child{margin-top:0}.guide-body p,.guide-body li{font-size:13px;color:#d2dfeb}.guide-body ul,.guide-body ol{margin:6px 0;padding-left:21px}.guide-body li{margin:4px 0}.good{border-left:3px solid var(--accent);padding:8px 11px;background:#0b2a30;margin-top:7px}.practice{border:1px solid rgba(244,197,106,.45);border-radius:12px;padding:13px;background:#19170f}.practice p{color:#ead8aa}.practice-choice{display:block;width:100%;min-height:44px;text-align:left;margin:7px 0;border:1px solid #66562e;border-radius:9px;background:#272112;color:#f6e8ba;padding:10px 12px}.practice-choice:hover,.practice-choice:focus-visible{border-color:var(--warn);outline:3px solid rgba(244,197,106,.2);outline-offset:2px}.practice-result{color:#ead8aa!important;margin:10px 0 0!important;font-weight:700}.guide-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.guide-action{font-size:12px;padding:10px 12px}.guide-action.inspect{border-color:var(--accent);background:#0b2a30}.guide-action.attest{color:#d9e6f2}.guide-action.attention{border-color:rgba(244,197,106,.55);color:#f5d993}.guide-action.na{color:var(--muted)}
+    .helpers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.helper-card{border:1px solid var(--line);border-radius:15px;padding:18px;background:rgba(12,25,40,.9)}.helper-card h3{margin:0 0 7px;font-size:18px}.helper-card p,.helper-card li{color:var(--muted);font-size:13px}.helper-card ul{margin:7px 0;padding-left:20px}.helper-card li{margin:5px 0}
+    .footer{margin-top:28px;color:#71869c;font-size:11px;line-height:1.65}.footer a{color:var(--accent2)}[hidden]{display:none!important}
+    @media(max-width:760px){.hero{grid-template-columns:1fr}.areas{grid-template-columns:repeat(2,minmax(0,1fr))}.guides,.helpers{grid-template-columns:1fr}.section-heading{display:block}.section-heading p{text-align:left;margin-top:5px}.overview-card{grid-template-columns:1fr}}
+    @media(max-width:430px){.shell{width:min(100% - 20px,var(--max));padding-top:16px}.top{align-items:flex-start}.areas{grid-template-columns:1fr 1fr}.guide-actions{display:grid}.guide-action{width:100%}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
 </head>
 <body>
   <header class="site-nav">
     <a class="wordmark" href="/">CLOVE<span>LEARN</span></a>
     <nav aria-label="Primary navigation">
-      <a href="/">Home</a>
-      <a href="/learn/">Learn</a>
-      <a href="/research/">Research</a>
-      <a href="/digital-stewardship.html" aria-current="page">Stewardship</a>
-      <a href="/temperance.html">Temperance</a>
-      <a href="/wellbeing/">Wellbeing</a>
-      <a href="/games/">Games</a>
-      <a href="/about-clovelearn.html">About</a>
+      <a href="/">Home</a><a href="/learn/">Learn</a><a href="/research/">Research</a>
+      <a href="/digital-stewardship.html" aria-current="page">Stewardship</a><a href="/temperance.html">Temperance</a>
+      <a href="/wellbeing/">Wellbeing</a><a href="/games/">Games</a><a href="/about-clovelearn.html">About</a>
     </nav>
   </header>
-  <main>
-    <section class="page-head">
-      <p class="eyebrow">CLOVELEARN · DIGITAL STEWARDSHIP</p>
-      <h1>Own the digital layer.</h1>
-      <p class="lede">Digital stewardship means making deliberate choices about privacy, attention, information, access, recovery, and the services that carry parts of your life.</p>
+  <main class="shell">
+    <header class="top">
+      <a class="brand" href="/">CLOVELEARN / DIGITAL STEWARDSHIP</a>
+      <a class="home" href="/">Back to CloveLearn →</a>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <div><div class="eyebrow">A small school for safer online habits</div><h1 id="page-title">LEARN.<br>DO.<br>CHECK.</h1><p class="lead">Simple steps for real online life. Learn what matters, do one thing, check the real setting, and know what to do if it goes wrong.</p></div>
+      <aside class="hero-note"><strong>No account. No secrets.</strong>Clove never needs your sign-in details, codes, private files, or payment information. Your Stewardship choices stay on this browser.</aside>
     </section>
-    <section class="privacy-copy" aria-labelledby="boundary-title">
-      <h2 id="boundary-title">Keep sensitive details outside Clove.</h2>
-      <p>This public orientation is educational and bounded. Do not enter passwords, recovery codes, private account details, or private content here. CloveLearn does not change accounts, perform recovery, inspect private material, or certify that a service is safe.</p>
-      <div class="plain-links">
-        <a href="/privacy-signals.html"><b>Read the privacy contract</b><span>What stays local, what shared features require, and what Clove does not collect →</span></a>
-        <a href="/learn/"><b>Open the learning shelf</b><span>Move between practical references without an account or cloud profile →</span></a>
-      </div>
+
+    <div class="notice"><strong>Honest progress:</strong> “Inspected” means you looked at a real setting and told Clove that you did. It does not mean Clove checked your account. A reported action is not the same as an inspection. Keep passwords, recovery codes, account names, private content, and payment information out of Clove.</div>
+
+    <section class="incident" aria-labelledby="incident-title">
+      <div class="eyebrow">Something happened?</div><h2 id="incident-title">START WITH CONTAINMENT.</h2><p>Do not search for a perfect lesson while a real problem is happening. Pick the closest situation and get the short order of steps.</p>
+      <div id="incidentActions" class="incident-actions"></div><div id="incidentPanel" class="incident-panel" role="status" aria-live="polite" hidden></div>
     </section>
+
+    <section class="overview-card" aria-labelledby="next-title">
+      <div><div class="label">Your next beacon</div><h2 id="next-title">Protect the account that can reset everything</h2><p id="next-copy">Start with your main email or account recovery hub. About 5 minutes.</p></div>
+      <a class="button primary" id="next-link" href="#guide-primary-email">Start guide →</a>
+    </section>
+
+    <section aria-labelledby="areas-title"><div class="section-heading"><h2 id="areas-title">Choose a place to start</h2><p>No order. Come back when you need it.</p></div><div id="areas" class="areas"></div></section>
+    <section aria-labelledby="guides-title"><div class="section-heading"><h2 id="guides-title">Guides</h2><p id="progress-summary">0 inspected · 0 need attention · 18 not started</p></div><div id="guides" class="guides"></div></section>
+
+    <section aria-labelledby="helpers-title"><div class="section-heading"><h2 id="helpers-title">Help somebody else</h2><p>Good habits work better when people can ask without shame.</p></div><div class="helpers"><article class="helper-card"><h3>Make a pause normal</h3><p>Agree on a phrase such as “call me before you send money.” Use a known route to check unusual requests.</p><ul><li>Do not ask for someone’s secret to prove who they are.</li><li>Do not shame someone who was tricked.</li><li>Help them contact the bank or service through its official route.</li></ul></article><article class="helper-card"><h3>Teach, do not take over</h3><p>Show someone where the real setting or help page is. Let them keep control of their account and device.</p><ul><li>Never ask them to send a password or code.</li><li>Use a trusted person or official support when the stakes are high.</li><li>Leave Clove out of private account details.</li></ul></article></div><div id="helper-guides" class="guides"></div></section>
+
+    <nav class="footer" aria-label="Digital Stewardship links"><a href="/digital-stewardship-00.html">DS-00</a> · <a href="/digital-stewardship-01.html">DS-01</a> · <a href="/digital-stewardship-02.html">DS-02</a> · <a href="/digital-stewardship-03.html">DS-03</a> · <a href="/digital-stewardship-04.html">DS-04</a> · <a href="/digital-stewardship-05.html">DS-05</a> · <a href="/digital-stewardship-06.html">DS-06</a> · <a href="/privacy-signals.html">Privacy contract</a><br>These guides teach choices. Clove does not change accounts, recover accounts, inspect devices, or promise that a person or account is safe.</nav>
+    <noscript><section class="overview-card"><div><div class="label">JavaScript is off</div><h2>Use the original lessons</h2><p>Nothing was saved or sent. The older interactive lessons remain available without this Lighthouse home.</p></div><a class="button" href="/digital-stewardship-00.html">Open lessons →</a></section></noscript>
   </main>
-  <footer class="site-footer">
-    <p>Stewardship is deliberate custody, not secrecy or a promise of perfect control.</p>
-    <nav aria-label="Footer navigation"><a href="/">Home</a><a href="/privacy-signals.html">Privacy</a><a href="/corrections.html">Corrections</a></nav>
-  </footer>
+  <script src="digital-stewardship-content.js" defer></script>
+  <script src="digital-stewardship.js" defer></script>
 </body>
 </html>

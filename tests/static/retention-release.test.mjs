@@ -9,11 +9,40 @@ import { curatedUploadFileList } from '../../scripts/build-curated-client-upload
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
+// These public surfaces intentionally do not load aggregate signals. Adding
+// the script would change their privacy contract, so the exception is explicit
+// and tested here. The list covers local-first tools plus public reference,
+// policy, and evidence surfaces that ship without client telemetry.
+const NO_AGGREGATE_SIGNAL_PAGES = new Set([
+  'corrections.html',
+  'digital-stewardship.html',
+  'digital-stewardship-00.html',
+  'digital-stewardship-01.html',
+  'digital-stewardship-02.html',
+  'digital-stewardship-03.html',
+  'digital-stewardship-04.html',
+  'digital-stewardship-05.html',
+  'digital-stewardship-06.html',
+  'evidence.html',
+  'learn/crypto/index.html',
+  'learn/index.html',
+  'mission-001.html',
+  'relay.html',
+  'research/projects/index.html',
+  'research/projects/tds/index.html',
+  'research/projects/tds/ledger/claims/index.html',
+  'research/projects/tds/ledger/dossiers/index.html',
+  'research/projects/tds/ledger/index.html',
+  'research/projects/tds/ledger/killed/index.html',
+  'research/projects/tds/ledger/sources/index.html',
+  'temperance.html',
+]);
+
 async function text(path) {
   return readFile(join(root, path), 'utf8');
 }
 
-test('privacy contract is present on every curated HTML page', async () => {
+test('privacy contract is present on curated HTML pages with explicit signal-free exceptions', async () => {
   const candidates = curatedUploadFileList(root).included.filter(file =>
     file.endsWith('.html') && !file.startsWith('arcade/creator/'));
   const htmlFiles = [];
@@ -23,9 +52,13 @@ test('privacy contract is present on every curated HTML page', async () => {
   assert.ok(htmlFiles.length > 100);
   const missing = [];
   for (const file of htmlFiles) {
-    if (!(await text(file)).includes('/clove-signals.js')) missing.push(file);
+    if (!(await text(file)).includes('/clove-signals.js') && !NO_AGGREGATE_SIGNAL_PAGES.has(file)) missing.push(file);
   }
   assert.deepEqual(missing, []);
+  for (const file of NO_AGGREGATE_SIGNAL_PAGES) {
+    const source = await text(file);
+    assert.doesNotMatch(source, /<script[^>]+src=["']\/clove-signals\.js["']/i, `${file} must remain signal-free`);
+  }
 
   const migration = await text('workers/insights/migrations/0001_privacy_first.sql');
   assert.doesNotMatch(migration, /\b(ip|email|user_agent|cookie|account_id|session_id|full_url)\b/i);

@@ -10,26 +10,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const HARD_EXCLUDE_PREFIXES = Object.freeze([
   'agent/',
   'new-work/',
+  'relay/',
 ]);
 
 export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
   'master-map.md',
-  // Digital Stewardship implementation slices remain NON-PUBLIC until a later
-  // release gate deliberately removes both the production lock and preflight sentinel.
-  'digital-stewardship-00.html',
-  'digital-stewardship-00.js',
-  'digital-stewardship-01.html',
-  'digital-stewardship-01.js',
-  'digital-stewardship-02.html',
-  'digital-stewardship-02.js',
-  'digital-stewardship-03.html',
-  'digital-stewardship-03.js',
-  'digital-stewardship-04.html',
-  'digital-stewardship-04.js',
-  'digital-stewardship-05.html',
-  'digital-stewardship-05.js',
-  'digital-stewardship-06.html',
-  'digital-stewardship-06.js',
   'arcade/README.md',
   'arcade/cabinets/neon-grid/README.md',
   'arcade/cabinets/sample-import-game/README.md',
@@ -41,7 +26,10 @@ export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
   'scripts/embed-benefits.py',
   'scripts/product-audit.mjs',
   'scripts/release-preflight.mjs',
+  'scripts/validate-public-surface.py',
   'scripts/setup-semantic.sh',
+  'CLOVELEARN_CLOUDFLARE_UPLOAD_FINAL_2026-08-12.zip',
+  'ds-e0-blind-packet.zip',
 ]));
 
 export function isHardExcluded(relPath) {
