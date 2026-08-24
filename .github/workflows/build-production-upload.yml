@@ -5,6 +5,7 @@ on:
     branches:
       - release/harden-direct-upload-2026-08-12
       - hardening/mission-001-solo-2026-08-12
+      - release/book-research-live-2026-08-23
   workflow_dispatch:
 
 permissions:
@@ -73,6 +74,13 @@ jobs:
           test -f dist/clove-upload/mission-001.html
           test -f dist/clove-upload/mission-001-app.js
           test -f dist/clove-upload/mission-private-store.js
+          test -f dist/clove-upload/research/projects/index.html
+          test -f dist/clove-upload/research/projects/projects.css
+          test -f dist/clove-upload/research/projects/tds/index.html
+          test -f dist/clove-upload/research/projects/tds/research-program.md
+          test -f dist/clove-upload/research/projects/ais-f1-replay/index.html
+          test -f dist/clove-upload/research/projects/ais-f1-replay/terminal-summary.md
+          test -f dist/clove-upload/research/projects/ais-f1-replay/execution-record.md
           cmp mission-001.html dist/clove-upload/mission-001.html
           cmp mission-001-app.js dist/clove-upload/mission-001-app.js
           cmp mission-private-store.js dist/clove-upload/mission-private-store.js
@@ -83,6 +91,7 @@ jobs:
           test ! -e dist/clove-upload/.github
           test ! -e dist/clove-upload/agent
           test ! -e dist/clove-upload/new-work
+          test ! -e dist/clove-upload/publishing
           test ! -e dist/clove-upload/clovelearn-test-harness.html
           test ! -e dist/clove-upload/master-map.md
           ! find dist/clove-upload -type f \( -name '*.py' -o -name '*.sh' -o -name '*.xlsx' -o -name '*.csv' -o -name '*.yaml' -o -name '*.yml' \) -print -quit | grep -q .
@@ -186,7 +195,7 @@ jobs:
       - name: Strip release metadata from public tree
         run: |
           rm -f dist/clove-upload/_UPLOAD_MANIFEST.json dist/clove-upload/_SHA256SUMS.txt
-          test "$(find dist/clove-upload -type f | wc -l | tr -d ' ')" = "302"
+          test "$(find dist/clove-upload -type f | wc -l | tr -d ' ')" = "309"
           test ! -e dist/clove-upload/_UPLOAD_MANIFEST.json
           test ! -e dist/clove-upload/_SHA256SUMS.txt
 

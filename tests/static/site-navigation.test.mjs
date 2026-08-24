@@ -21,6 +21,7 @@ const targetPages = [
   ['/research/', 'research/index.html', 'Research'],
   ['/research/projects/', 'research/projects/index.html', 'Research'],
   ['/research/projects/tds/', 'research/projects/tds/index.html', 'Research'],
+  ['/research/projects/ais-f1-replay/', 'research/projects/ais-f1-replay/index.html', 'Research'],
   ['/digital-stewardship.html', 'digital-stewardship.html', 'Stewardship'],
   ['/digital-stewardship-00.html', 'digital-stewardship-00.html', 'Stewardship'],
   ['/digital-stewardship-01.html', 'digital-stewardship-01.html', 'Stewardship'],

@@ -11,10 +11,13 @@ export const HARD_EXCLUDE_PREFIXES = Object.freeze([
   'agent/',
   'new-work/',
   'relay/',
+  // Editorial/publishing working files are repository records, not public site assets.
+  'publishing/',
 ]);
 
 export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
   'master-map.md',
+  'research/projects/BOOK_RESEARCH_RELEASE_NOTE.md',
   'arcade/README.md',
   'arcade/cabinets/neon-grid/README.md',
   'arcade/cabinets/sample-import-game/README.md',

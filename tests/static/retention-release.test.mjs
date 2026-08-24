@@ -29,6 +29,7 @@ const NO_AGGREGATE_SIGNAL_PAGES = new Set([
   'mission-001.html',
   'relay.html',
   'research/projects/index.html',
+  'research/projects/ais-f1-replay/index.html',
   'research/projects/tds/index.html',
   'research/projects/tds/ledger/claims/index.html',
   'research/projects/tds/ledger/dossiers/index.html',
