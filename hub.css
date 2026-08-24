@@ -14,9 +14,9 @@
 html{background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
 body{margin:0;min-height:100vh;background:radial-gradient(circle at 75% -10%,rgba(94,234,212,.12),transparent 34rem),linear-gradient(180deg,#07111f,#050b14)}
 a{color:inherit}
-.site-nav{width:min(1120px,calc(100% - 32px));margin:auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.site-nav{width:min(1120px,calc(100% - 32px));margin:auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:12px;border-bottom:1px solid var(--line)}
 .wordmark{text-decoration:none;font-size:15px;font-weight:950;letter-spacing:.12em}.wordmark span{color:var(--cyan)}
-.site-nav nav,.site-footer nav{display:flex;gap:22px;flex-wrap:wrap}.site-nav nav a,.site-footer a{color:var(--muted);text-decoration:none;font-size:13px}.site-nav nav a:hover,.site-footer a:hover{color:var(--ink)}
+.site-nav nav,.site-footer nav{display:flex;gap:22px;flex-wrap:wrap;min-width:0;justify-content:flex-end}.site-nav nav a,.site-footer a{color:var(--muted);text-decoration:none;font-size:13px}.site-nav nav a:hover,.site-footer a:hover{color:var(--ink)}
 main{width:min(1120px,calc(100% - 32px));margin:auto}
 .hero{text-align:center;padding:76px 0 36px}
 .eyebrow{margin:0 0 10px;color:#6f8cab;font-size:10px;font-weight:900;letter-spacing:.2em}
@@ -49,7 +49,7 @@ main{width:min(1120px,calc(100% - 32px));margin:auto}
 .need-card{min-height:180px}.need-card h3{font-size:20px;margin:0 0 8px}.need-card b{color:var(--cyan);font-size:11px}
 .privacy-copy{max-width:780px;margin-bottom:72px}.privacy-copy h2{margin-top:38px}.privacy-copy p,.privacy-copy li{color:var(--muted);line-height:1.75}.privacy-copy code{color:var(--cyan)}.privacy-copy .contract{border:1px solid var(--line);border-radius:16px;padding:18px 22px;background:var(--panel)}
 @media(max-width:760px){
-  .site-nav{min-height:60px}.site-nav nav{gap:12px}.site-nav nav a{font-size:11px}
+  .site-nav{min-height:60px;align-items:flex-start}.site-nav nav{flex-basis:100%;justify-content:flex-start;gap:12px}.site-nav nav a{font-size:11px}
   .hero{padding:50px 0 28px}.lede{font-size:15px}
   .choice-grid,.game-grid,.need-grid,.today-grid,.plain-links{grid-template-columns:1fr}
   .choice{padding:24px}.continue-card,.section-heading,.site-footer{align-items:flex-start;flex-direction:column}.section-heading>p{text-align:left}

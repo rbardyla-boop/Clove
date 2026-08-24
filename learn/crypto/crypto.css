@@ -25,10 +25,10 @@ button { cursor: pointer; }
 code, pre, .hash-results code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 
 .site-nav, main, .site-footer { width: min(1160px, calc(100% - 32px)); margin-inline: auto; }
-.site-nav { min-height: 72px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.site-nav { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 12px; border-bottom: 1px solid var(--line); }
 .wordmark { color: var(--ink); text-decoration: none; font-size: 15px; font-weight: 950; letter-spacing: .12em; }
 .wordmark span { color: var(--cyan); }
-.site-nav nav, .site-footer nav { display: flex; gap: 20px; }
+.site-nav nav, .site-footer nav { display: flex; gap: 20px; flex-wrap: wrap; min-width: 0; justify-content: flex-end; }
 .site-nav nav a, .site-footer nav a { color: var(--muted); text-decoration: none; font-size: 12px; }
 .site-nav nav a:hover, .site-footer nav a:hover { color: var(--cyan); }
 
@@ -231,8 +231,8 @@ code, pre, .hash-results code { font-family: "SFMono-Regular", Consolas, "Libera
   .settlement-steps { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 680px) {
-  .site-nav { min-height: 60px; }
-  .site-nav nav { gap: 12px; }
+  .site-nav { min-height: 60px; align-items: flex-start; }
+  .site-nav nav { flex-basis: 100%; justify-content: flex-start; gap: 12px; }
   .site-nav nav a { font-size: 11px; }
   .hero { padding: 58px 0 34px; }
   .hero h1 { font-size: clamp(48px, 16vw, 78px); }

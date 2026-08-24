@@ -4,6 +4,7 @@
     "build:tds-ledger": "node scripts/build-tds-ledger.mjs --search-root . --canonical research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md --inventory-out docs/TDS_LEDGER_SOURCE_INVENTORY_V0_11.md --source-coverage-out docs/TDS_PUBLIC_LEDGER_SOURCE_COVERAGE.md --out research/projects/tds/ledger",
     "test:tds-ledger": "node --test tests/tds-ledger.test.mjs",
     "test:crypto": "node --test tests/learn/crypto-mechanics.test.mjs",
+    "test:site-navigation": "node --test tests/static/site-navigation.test.mjs",
     "check:cost-constitution": "node agent/check-cost-constitution.mjs",
     "test:cost-constitution": "node --test tests/agent/cost-constitution.test.mjs",
     "check:cost-authority": "npm --prefix workers/research-cost-authority run check",

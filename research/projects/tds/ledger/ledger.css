@@ -16,10 +16,11 @@ html { background: var(--bg); color: var(--ink); font-family: Inter, ui-sans-ser
 body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 76% -12%, rgba(94,234,212,.13), transparent 34rem), linear-gradient(180deg, #07111f, #050b14); }
 a { color: inherit; }
 .wrap { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
-.nav { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); }
+.nav { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding-block: 12px; border-bottom: 1px solid var(--line); }
 .wordmark { text-decoration: none; font-size: 15px; font-weight: 950; letter-spacing: .12em; }
 .wordmark span { color: var(--cyan); }
 .nav nav { display: flex; flex-wrap: wrap; gap: 16px; }
+.nav-stack { display: grid; gap: 8px; justify-items: end; min-width: 0; }
 .nav nav a { color: var(--muted); text-decoration: none; font-size: 12px; }
 .nav nav a:hover, .nav nav a:focus-visible { color: var(--ink); }
 .hero { padding: 66px 0 34px; max-width: 920px; }
@@ -86,5 +87,5 @@ select { min-height: 40px; border: 1px solid var(--line); border-radius: 9px; ba
 .error { border-color: rgba(255,139,139,.4); color: var(--red); }
 .footer { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); padding: 24px 0 42px; color: var(--faint); font-size: 11px; }
 @media (max-width: 900px) { .provenance, .stat-grid, .route-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dossier-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 620px) { .nav { min-height: 60px; align-items: flex-start; padding: 18px 0; flex-direction: column; } .hero { padding-top: 48px; } .provenance, .stat-grid, .route-grid, .dossier-grid, .detail-grid { grid-template-columns: 1fr; } .meta div { grid-template-columns: 1fr; gap: 3px; } .footer { flex-direction: column; } }
+@media (max-width: 620px) { .nav { min-height: 60px; align-items: flex-start; padding: 18px 0; flex-direction: column; } .nav-stack { width: 100%; justify-items: start; } .nav nav { justify-content: flex-start; } .hero { padding-top: 48px; } .provenance, .stat-grid, .route-grid, .dossier-grid, .detail-grid { grid-template-columns: 1fr; } .meta div { grid-template-columns: 1fr; gap: 3px; } .footer { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
