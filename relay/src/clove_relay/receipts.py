@@ -15,6 +15,7 @@ class PostReceipt:
     requested_publish_at: str
     source_sha256: str
     result: str
+    final_action: str = "not_executed"
     verification: str | None = None
     screenshot: str | None = None
 
@@ -28,6 +29,7 @@ def write_receipts(
     *,
     verdict: str,
     out_dir: str | Path = ".relay-receipts",
+    planned: int | None = None,
 ) -> tuple[Path, Path]:
     target = Path(out_dir)
     target.mkdir(parents=True, exist_ok=True)
@@ -39,8 +41,8 @@ def write_receipts(
     payload = {
         "generated_at": datetime.now().astimezone().isoformat(),
         "verdict": verdict,
-        "planned": len(rows),
-        "verified": sum(1 for row in rows if row.result == "VERIFIED"),
+        "planned": len(rows) if planned is None else planned,
+        "verified": sum(1 for row in rows if row.result.endswith("_VERIFIED")),
         "failed": sum(1 for row in rows if row.result == "FAILED"),
         "posts": [asdict(row) for row in rows],
     }
@@ -58,7 +60,8 @@ def write_receipts(
     ]
     for row in rows:
         lines.append(
-            f"[{row.index:02d}] {row.result} | {row.requested_publish_at} | {row.title} | sha256={row.source_sha256}"
+            f"[{row.index:02d}] {row.result} | {row.requested_publish_at} | {row.title} | "
+            f"final_action={row.final_action} | sha256={row.source_sha256}"
         )
         if row.verification:
             lines.append(f"     verification: {row.verification}")

@@ -172,6 +172,39 @@ clove-relay verify examples/detox-season.yml --browser brave
 
 Checks that expected titles appear in the Scheduled area. Title verification does not replace visible date/time/audience confirmation.
 
+### Calendar rebase — explicit tooling only
+
+The current manifest dates are a frozen test fixture. Do not use a new date until the evidence, editorial and human-readiness gates are green.
+
+Check that the manifest and all five source packets agree without writing:
+
+```bash
+clove-relay calendar-rebase examples/detox-season.yml --check
+```
+
+Preview a proposed Tuesday/Friday calendar without writing:
+
+```bash
+clove-relay calendar-rebase examples/detox-season.yml \
+  --dry-run \
+  --first-tuesday YYYY-MM-DD \
+  --default-time HH:MM
+```
+
+An explicit `--apply` is required to stage the manifest and source-packet updates. Per-post clock overrides use repeated `--post-time INDEX=HH:MM`. The helper refuses a non-Tuesday start, title/date mismatch, duplicate slot or partial source-packet set.
+
+### Mechanical season audit
+
+Generate a source/URL/hash inventory without pretending that a URL is evidence review:
+
+```bash
+clove-relay audit-season examples/detox-season.yml \
+  --report /path/to/detox-season-mechanical-audit.md \
+  --check
+```
+
+The report remains `P0_MECHANICAL_INVENTORY_ONLY`. It flags structural mismatches, duplicate URLs, homepage-only citations, missing URLs and broken local references. Claim classification, source quality, counterevidence and copy repair remain human/research work.
+
 ## Real-account evidence already obtained
 
 The successful dry run produced these terminal gates:

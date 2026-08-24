@@ -382,6 +382,7 @@ class SubstackPlaywrightAdapter:
                     requested_publish_at=requested,
                     source_sha256=sha256_text(post.body),
                     result="DRY_RUN",
+                    final_action="not_executed",
                     verification="final Schedule action deliberately not executed",
                     screenshot=screenshot,
                 )
@@ -392,7 +393,8 @@ class SubstackPlaywrightAdapter:
                 title=post.spec.title,
                 requested_publish_at=requested,
                 source_sha256=sha256_text(post.body),
-                result="VERIFIED",
+                result="EXPERIMENTAL_RELAY_SCHEDULE_VERIFIED",
+                final_action="relay_schedule_click",
                 verification=verification,
                 screenshot=screenshot,
             )
@@ -414,7 +416,8 @@ class SubstackPlaywrightAdapter:
                         title=post.spec.title,
                         requested_publish_at=f"{post.spec.publish_date}T{publish_time.strftime('%H:%M')}",
                         source_sha256=sha256_text(post.body),
-                        result="VERIFIED",
+                        result="EXPERIMENTAL_RELAY_SCHEDULE_VERIFIED",
+                        final_action="relay_schedule_click",
                         verification=verification,
                         screenshot=screenshot,
                     )

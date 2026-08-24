@@ -195,6 +195,7 @@ Each verified post records:
 - optional screenshot path.
 
 Stable preparation mode records that the final Schedule click was human-owned.
+Stable receipts use `HUMAN_SCHEDULE_VERIFIED` with `final_action=human_schedule_click`; experimental Relay-final-click receipts use `EXPERIMENTAL_RELAY_SCHEDULE_VERIFIED` with `final_action=relay_schedule_click`. Neither result claims that an article was published; they describe the scheduled-area verification that actually occurred.
 
 ## Public/free product rules
 

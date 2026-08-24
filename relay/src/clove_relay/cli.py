@@ -7,10 +7,19 @@ import sys
 from .adapters.brave_direct import BraveDirectError, BraveDirectSubstackAdapter
 from .adapters.substack_playwright import RelayStop, SubstackPlaywrightAdapter
 from .brave_session import BraveSessionImportError, import_brave_session
+from .calendar_rebase import (
+    CalendarRebaseError,
+    apply_staged_files,
+    check_alignment,
+    parse_post_time_overrides,
+    proposed_changes,
+    staged_files,
+)
 from .firefox_session import FirefoxSessionImportError, import_firefox_session
 from .manifest import load_manifest
-from .manual_mode import run_batch_human_schedule, run_one_human_schedule
+from .manual_mode import HumanScheduleBatchStop, run_batch_human_schedule, run_one_human_schedule
 from .receipts import write_receipts
+from .season_audit import audit_manifest, render_report
 from .validate import resolved_time, validate_manifest
 
 
@@ -102,6 +111,33 @@ def _parser() -> argparse.ArgumentParser:
     with_manifest("qualify", "Experimental: Relay clicks Schedule and verifies exactly one post", post=True, time=True, browser=True)
     with_manifest("schedule", "Experimental: Relay clicks Schedule for the full batch sequentially", time=True, browser=True)
     with_manifest("verify", "Check expected titles in the Scheduled area", time=False, browser=True)
+
+    calendar = sub.add_parser(
+        "calendar-rebase",
+        help="Preview, check, or explicitly stage a new Tuesday/Friday calendar without choosing a launch date",
+    )
+    calendar.add_argument("manifest", type=Path)
+    calendar_mode = calendar.add_mutually_exclusive_group(required=True)
+    calendar_mode.add_argument("--check", action="store_true", help="check manifest/source-packet date alignment without writing")
+    calendar_mode.add_argument("--dry-run", action="store_true", help="preview a proposed calendar without writing")
+    calendar_mode.add_argument("--apply", action="store_true", help="stage and apply the proposed calendar; requires --first-tuesday")
+    calendar.add_argument("--first-tuesday", help="chosen first Tuesday in YYYY-MM-DD format")
+    calendar.add_argument("--default-time", help="optional HH:MM applied to every post")
+    calendar.add_argument(
+        "--post-time",
+        action="append",
+        default=[],
+        metavar="INDEX=HH:MM",
+        help="optional per-post time override; may be repeated",
+    )
+
+    audit = sub.add_parser(
+        "audit-season",
+        help="Generate a mechanical 26-post source/URL/hash inventory without promoting evidence status",
+    )
+    audit.add_argument("manifest", type=Path)
+    audit.add_argument("--report", type=Path, help="also write the deterministic report to this path")
+    audit.add_argument("--check", action="store_true", help="return failure when structural mismatches are found")
     return parser
 
 
@@ -134,6 +170,54 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         manifest = load_manifest(args.manifest)
+
+        if args.command == "calendar-rebase":
+            manifest_text = manifest.path.read_text(encoding="utf-8")
+            if args.check:
+                changes = check_alignment(manifest, manifest_text)
+                print(f"CALENDAR_CHECK_PASS: {len(changes)} manifest/source-packet dates aligned")
+                return 0
+
+            if not args.first_tuesday:
+                raise CalendarRebaseError("--first-tuesday is required for --dry-run and --apply")
+            overrides = parse_post_time_overrides(args.post_time)
+            changes = proposed_changes(
+                manifest,
+                manifest_text,
+                args.first_tuesday,
+                default_time=args.default_time,
+                overrides=overrides,
+            )
+            files = staged_files(manifest, manifest_text, changes)
+            print("PROPOSED_CALENDAR:")
+            for change in changes:
+                time_label = f" {change.publish_time}" if change.publish_time else ""
+                print(f"[{change.index:02d}] {change.title} | {change.old_date} -> {change.new_date}{time_label}")
+            if args.dry_run:
+                print("CALENDAR_DRY_RUN: no files written")
+                return 0
+            apply_staged_files(files)
+            print(f"CALENDAR_APPLY_PASS: updated {len(files)} files and {len(changes)} posts")
+            return 0
+
+        if args.command == "audit-season":
+            audit_result = audit_manifest(manifest)
+            report = render_report(audit_result)
+            if args.report:
+                args.report.parent.mkdir(parents=True, exist_ok=True)
+                args.report.write_text(report, encoding="utf-8")
+                print(f"AUDIT_REPORT: {args.report}")
+            else:
+                print(report, end="")
+            print(
+                f"AUDIT_INVENTORY: {len(audit_result.essays)} essays; "
+                f"{len(audit_result.duplicate_urls)} duplicate URLs; "
+                f"{len(audit_result.essays_without_urls)} essays without URLs"
+            )
+            if args.check and audit_result.errors:
+                print(f"AUDIT_CHECK_FAIL: {len(audit_result.errors)} structural error(s)", file=sys.stderr)
+                return 2
+            return 0
 
         if args.command == "validate":
             result = validate_manifest(
@@ -210,7 +294,18 @@ def main(argv: list[str] | None = None) -> int:
             answer = input("Type BEGIN to start preparation-assistant batch mode: ").strip()
             if answer != "BEGIN":
                 raise ValueError("preparation-assistant batch was not authorized")
-            receipts = run_batch_human_schedule(adapter, posts_with_times)
+            try:
+                receipts = run_batch_human_schedule(adapter, posts_with_times)
+            except HumanScheduleBatchStop as exc:
+                json_path, text_path = write_receipts(
+                    exc.receipts,
+                    verdict="INCOMPLETE",
+                    planned=exc.planned,
+                )
+                print("VERDICT: INCOMPLETE")
+                print(f"Receipt: {text_path}")
+                print(f"JSON: {json_path}")
+                raise
             verdict = "READY_FOR_DETOX_MANUAL" if len(receipts) == len(posts_with_times) else "INCOMPLETE"
             json_path, text_path = write_receipts(receipts, verdict=verdict)
             print(f"VERDICT: {verdict}")
@@ -277,6 +372,7 @@ def main(argv: list[str] | None = None) -> int:
         BraveSessionImportError,
         FirefoxSessionImportError,
         BraveDirectError,
+        CalendarRebaseError,
     ) as exc:
         print(f"RELAY_STOP: {exc}", file=sys.stderr)
         return 2

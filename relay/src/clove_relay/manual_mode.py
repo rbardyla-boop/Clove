@@ -2,9 +2,18 @@ from __future__ import annotations
 
 from datetime import time
 
-from .adapters.substack_playwright import SubstackPlaywrightAdapter
+from .adapters.substack_playwright import RelayStop, SubstackPlaywrightAdapter
 from .receipts import PostReceipt, sha256_text
 from .validate import ValidatedPost
+
+
+class HumanScheduleBatchStop(RelayStop):
+    """A fail-closed batch stop carrying receipts earned before the failure."""
+
+    def __init__(self, message: str, *, receipts: tuple[PostReceipt, ...], planned: int):
+        super().__init__(message)
+        self.receipts = receipts
+        self.planned = planned
 
 
 def _prepare_for_human_schedule(
@@ -70,7 +79,8 @@ def run_one_human_schedule(
             title=post.spec.title,
             requested_publish_at=f"{post.spec.publish_date}T{publish_time.strftime('%H:%M')}",
             source_sha256=sha256_text(post.body),
-            result="VERIFIED",
+            result="HUMAN_SCHEDULE_VERIFIED",
+            final_action="human_schedule_click",
             verification="human-owned final Schedule click + " + verification,
             screenshot=screenshot,
         )
@@ -94,20 +104,28 @@ def run_batch_human_schedule(
     try:
         adapter._ensure_logged_in(page)
         for post, publish_time in posts_with_times:
-            _method, screenshot = _prepare_for_human_schedule(adapter, page, post, publish_time)
-            _human_schedule_checkpoint(adapter, page, post)
-            verification = adapter._verify_title_in_scheduled(page, post)
-            receipts.append(
-                PostReceipt(
-                    index=post.spec.index,
-                    title=post.spec.title,
-                    requested_publish_at=f"{post.spec.publish_date}T{publish_time.strftime('%H:%M')}",
-                    source_sha256=sha256_text(post.body),
-                    result="VERIFIED",
-                    verification="human-owned final Schedule click + " + verification,
-                    screenshot=screenshot,
+            try:
+                _method, screenshot = _prepare_for_human_schedule(adapter, page, post, publish_time)
+                _human_schedule_checkpoint(adapter, page, post)
+                verification = adapter._verify_title_in_scheduled(page, post)
+                receipts.append(
+                    PostReceipt(
+                        index=post.spec.index,
+                        title=post.spec.title,
+                        requested_publish_at=f"{post.spec.publish_date}T{publish_time.strftime('%H:%M')}",
+                        source_sha256=sha256_text(post.body),
+                        result="HUMAN_SCHEDULE_VERIFIED",
+                        final_action="human_schedule_click",
+                        verification="human-owned final Schedule click + " + verification,
+                        screenshot=screenshot,
+                    )
                 )
-            )
+            except Exception as exc:
+                raise HumanScheduleBatchStop(
+                    f"batch stopped after {len(receipts)} completed post(s); next post was not opened: {exc}",
+                    receipts=tuple(receipts),
+                    planned=len(posts_with_times),
+                ) from exc
         return receipts
     finally:
         context.close()
