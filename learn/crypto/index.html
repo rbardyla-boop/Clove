@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Crypto Mechanics: Without the Casino — CloveLearn</title>
+  <meta name="description" content="A neutral, safety-first reference explaining cryptocurrency mechanics, payment messaging, tokenisation, and the limits of what ledgers can prove.">
+  <meta name="theme-color" content="#07111f">
+  <link rel="stylesheet" href="/learn/crypto/crypto.css">
+</head>
+<body>
+  <header class="site-nav">
+    <a class="wordmark" href="/">CLOVE<span>LEARN</span></a>
+    <nav aria-label="Main navigation">
+      <a href="/">Home</a>
+      <a href="/research/">Research</a>
+      <a href="/about-clovelearn.html">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">CLOVELEARN REFERENCE · CRYPTO MECHANICS · EDUCATION ONLY</p>
+      <h1 id="page-title">Crypto <span>without the casino.</span></h1>
+      <p class="hero-subtitle">No price charts. No trading tips. No “next 100x coin.” Just what the machinery actually does.</p>
+      <p class="lede">You do not need to buy cryptocurrency to understand cryptocurrency. Start with the town deed office, then open the machinery underneath it.</p>
+      <div class="hero-principle" role="note">
+        <strong>Understand the machinery before judging the product.</strong>
+        <span>Blockchain can establish ledger state. Cryptography can establish authorization. Consensus can establish an accepted history. None of them can prove economic value.</span>
+      </div>
+    </section>
+
+    <aside class="safety-box" aria-labelledby="safety-title">
+      <p class="eyebrow">SAFETY CONTRACT</p>
+      <h2 id="safety-title">This page will never ask for your secrets or your money.</h2>
+      <p>There are no prices, trading signals, affiliate links, exchange referrals, profit calculators, token recommendations, wallet connections, seed phrases, private keys, address lookups, or live transactions here.</p>
+      <p>Every transaction, wallet, address, balance, and token used in a demo is fictional or generated locally. If another site asks you to paste a recovery phrase to “verify” a wallet, close it.</p>
+    </aside>
+
+    <nav class="jump-nav" aria-label="Crypto reference sections">
+      <a href="#start">Start here</a>
+      <a href="#machinery">Show me the machinery</a>
+      <a href="#security">Security</a>
+      <a href="#networks">Network types</a>
+      <a href="#iso-20022">ISO 20022</a>
+      <a href="#glossary">Glossary</a>
+    </nav>
+
+    <section id="start" class="section" aria-labelledby="start-title">
+      <div class="section-heading">
+        <p class="section-number">01 · START HERE</p>
+        <h2 id="start-title">The town with no town hall</h2>
+        <p>A town deed office keeps a shared property book. Now remove the town hall, give every participating office a copy, and ask the offices to agree on which requests belong in the next page. That is the teaching device.</p>
+      </div>
+
+      <div class="story-grid">
+        <article class="story-card story-card-wide">
+          <p class="card-label">PLAIN-ENGLISH TOUR</p>
+          <h3>Somebody presses Send</h3>
+          <p>A request arrives: “Move this recorded thing from this key-holder to that key-holder.” The network does not ask whether the lunch was good, whether the buyer understood the risks, or whether the thing is worth anything. It checks whether the request follows the rules and whether the right signing authority approved it.</p>
+          <p>Copies of the book compare notes. A mechanism for ordering competing pages decides which history the network accepts. The deed office can say, “This request is valid under our rules.” It cannot say, “This was a wise decision.”</p>
+        </article>
+        <article class="story-card">
+          <p class="card-label">THE METAPHOR HELPS</p>
+          <ul class="compact-list">
+            <li>Shared records make conflicting requests visible.</li>
+            <li>Signatures show control of a key.</li>
+            <li>Consensus selects an accepted history.</li>
+            <li>Many copies reduce dependence on one clerk.</li>
+          </ul>
+        </article>
+        <article class="story-card story-card-warn">
+          <p class="card-label">THE METAPHOR FAILS</p>
+          <ul class="compact-list">
+            <li>Real property exists inside law and courts.</li>
+            <li>Bitcoin does not receive ownership validity from a land-title authority.</li>
+            <li>A ledger record is not automatically a legal claim to an off-chain asset.</li>
+            <li>Technical validity is not economic value.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="three-pillars" aria-label="Three different things the machinery can establish">
+        <article><span>LEDGER STATE</span><strong>What the network records</strong><p>Which outputs, balances, or contract state are currently accepted under protocol rules.</p></article>
+        <article><span>CRYPTOGRAPHY</span><strong>Who authorized data</strong><p>Whether a valid signature or integrity check matches the relevant key or message.</p></article>
+        <article><span>CONSENSUS</span><strong>Which history wins</strong><p>How independent participants converge on an accepted ordering or finalized state.</p></article>
+      </div>
+
+      <details class="depth-card" open>
+        <summary><span class="depth-tag dad">DAD VERSION</span> What problem is a blockchain trying to solve?</summary>
+        <p>Several computers need to maintain a shared record without trusting one master bookkeeper. They need rules for accepting transactions, rejecting invalid ones, ordering competing requests, and recovering when participants disagree or disappear.</p>
+      </details>
+      <details class="depth-card">
+        <summary><span class="depth-tag machinery">SHOW ME THE MACHINERY</span> A blockchain is not one universal architecture</summary>
+        <p>“Blockchain” is a family resemblance, not a single machine. Networks differ in state model, consensus, validator selection, execution, finality, privacy, client software, and governance. A node usually stores and checks data; a consensus mechanism helps participants converge on ordering or finality; applications may add another trust layer on top.</p>
+      </details>
+      <details class="depth-card">
+        <summary><span class="depth-tag nerd">NERD HATCH</span> Genesis, headers, Merkle roots, forks, and finality</summary>
+        <p>A block can contain a header, transaction data, and commitments such as a Merkle root. A header can commit to a previous block hash, creating a linked history. A fork is competing history or a rule change; a confirmation is not identical to finality. “Immutable” is shorthand for “increasingly difficult or costly to alter under this network’s current security model,” not a law of physics.</p>
+      </details>
+    </section>
+
+    <section id="machinery" class="section" aria-labelledby="machinery-title">
+      <div class="section-heading">
+        <p class="section-number">02 · SHOW ME THE MACHINERY</p>
+        <h2 id="machinery-title">What actually happens under the hood?</h2>
+        <p>The words sound abstract until you put them in a sequence. The basic path is a request, a proof of authorization, rule checks, propagation, ordering, and a new accepted state.</p>
+      </div>
+
+      <div class="flow" aria-label="Conceptual transaction path">
+        <div><span>01</span><strong>Request</strong><small>“Change the state.”</small></div>
+        <i aria-hidden="true">→</i>
+        <div><span>02</span><strong>Sign</strong><small>Key-holder authorizes data.</small></div>
+        <i aria-hidden="true">→</i>
+        <div><span>03</span><strong>Validate</strong><small>Peers run the rules.</small></div>
+        <i aria-hidden="true">→</i>
+        <div><span>04</span><strong>Order</strong><small>Consensus selects history.</small></div>
+        <i aria-hidden="true">→</i>
+        <div><span>05</span><strong>Record</strong><small>State changes for observers.</small></div>
+      </div>
+
+      <div class="content-grid two-col">
+        <article class="explain-card">
+          <p class="card-label">KEYS, ADDRESSES, WALLETS</p>
+          <h3>A wallet is a keyring, not a bag of coins</h3>
+          <p>A private key is secret signing authority. A public key helps verify a signature. An address is a network-specific representation used to identify a destination or spending condition. Wallet software manages keys and presents a usable view of network state.</p>
+          <p>A recovery phrase can encode or derive key material, which is why it is a secret. This page never asks for one. Self-custody means you carry the recovery responsibility; a custodian carries it for you, along with its own failure modes.</p>
+          <details class="inline-details"><summary>NERD HATCH · Bitcoin UTXOs</summary><p>Bitcoin does not fundamentally maintain one bank-style balance per address. Transactions consume unspent transaction outputs (UTXOs) and create new outputs. Wallet software adds the pieces into a balance that humans can use.</p></details>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">SIGNATURES</p>
+          <h3>Authorization is not identity, wisdom, or value</h3>
+          <p>A valid digital signature can establish that the holder of a relevant key authorized a particular message and that the signed data was not changed. It does not establish a real-world identity by itself, informed consent, legality, good judgment, solvency, or economic value.</p>
+          <blockquote>Cryptography can authenticate stupidity perfectly.</blockquote>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">HASHES</p>
+          <h3>A fingerprint, not a locked box</h3>
+          <p>A cryptographic hash maps input to a fixed-looking digest. The same input gives the same output; a small input change usually produces a very different digest. Hashes support integrity checks and block linking. They are not encryption: there is no secret key that “unlocks” a hash.</p>
+          <p>Try the local lab below. Nothing leaves this browser.</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">THE LEDGER DOESN’T KNOW</p>
+          <h3>Not my department</h3>
+          <p>A blockchain may know that fictional Address A transferred 10 tokens to fictional Address B. It does not inherently know whether Bob was scammed, whether a promoter lied, whether an off-chain asset exists, or whether the person pressing the button understood the deal.</p>
+          <p class="callout-line">The ledger can answer “did this follow the rules?” It cannot answer “was this a good idea?”</p>
+        </article>
+      </div>
+
+      <section class="interactive-card" id="hash-lab" aria-labelledby="hash-title">
+        <div class="interactive-heading"><div><p class="card-label">LOCAL TOOL 01</p><h3 id="hash-title">Hash Lab</h3></div><span class="local-badge">LOCAL ONLY · SHA-256</span></div>
+        <p>Change one harmless character. The browser’s Web Crypto API calculates both digests locally.</p>
+        <label for="hash-input">Harmless sample text</label>
+        <div class="control-row"><input id="hash-input" value="DOGBALLS" autocomplete="off"><button class="button" id="hash-run" type="button">HASH IT</button></div>
+        <div class="hash-results" aria-live="polite"><div><span>ORIGINAL</span><code id="hash-original">Waiting for input…</code></div><div><span>ONE-CHARACTER CHANGE</span><code id="hash-altered">Waiting for input…</code></div></div>
+        <p class="tool-note" id="hash-note">Hash ≠ encryption. This demo sends no request and stores no input.</p>
+      </section>
+
+      <section class="interactive-card" id="break-chain" aria-labelledby="break-title">
+        <div class="interactive-heading"><div><p class="card-label">LOCAL TOOL 02</p><h3 id="break-title">Break the blockchain</h3></div><span class="local-badge">FICTIONAL BLOCKS · NO MINING</span></div>
+        <p>Three fictional blocks are linked by hashes. Edit the first block and replay the chain. Earlier history no longer matches the committed links.</p>
+        <div class="block-editor" id="block-editor"></div>
+        <p class="tool-note" id="chain-note" aria-live="polite">The fictional chain is intact.</p>
+      </section>
+
+      <section class="interactive-card" id="press-send" aria-labelledby="send-title">
+        <div class="interactive-heading"><div><p class="card-label">LOCAL TOOL 03</p><h3 id="send-title">Press Send</h3></div><span class="local-badge">CONCEPTUAL · FICTIONAL</span></div>
+        <p>Pick a network model to see the vocabulary change. This is a visual explanation, not a transaction builder or broadcaster.</p>
+        <div class="toggle-row" role="group" aria-label="Choose a conceptual network">
+          <button type="button" class="toggle is-active" data-network="bitcoin" aria-pressed="true">Bitcoin-shaped path</button>
+          <button type="button" class="toggle" data-network="ethereum" aria-pressed="false">Ethereum-shaped path</button>
+        </div>
+        <div class="send-flow" id="send-flow" aria-live="polite"></div>
+        <p class="tool-note" id="send-note">Bitcoin-shaped example: a wallet signs a transaction spending selected UTXOs; nodes validate it before a miner proposes a block.</p>
+      </section>
+    </section>
+
+    <section id="networks" class="section" aria-labelledby="networks-title">
+      <div class="section-heading">
+        <p class="section-number">03 · NETWORK TYPES</p>
+        <h2 id="networks-title">Different machines, different trade-offs</h2>
+        <p>Do not turn architecture into a winner’s podium. A design can be useful for one purpose and introduce serious assumptions somewhere else.</p>
+      </div>
+
+      <div class="content-grid two-col">
+        <article class="explain-card network-card">
+          <p class="card-label">BITCOIN · PROOF OF WORK</p>
+          <h3>Expensive competition to propose the next page</h3>
+          <p>Miners assemble candidate blocks and repeatedly hash block-header candidates until one satisfies the current target. The successful miner proposes a block; independent nodes still validate transactions and consensus rules. Rewards combine a block subsidy and transaction fees.</p>
+          <details class="inline-details"><summary>NERD HATCH · accumulated work</summary><p>Each block adds work that makes rewriting a long history more expensive under the current rules. Difficulty adjusts over time. The security benefit of the resource cost and the environmental/resource trade-off are separate questions.</p></details>
+        </article>
+        <article class="explain-card network-card">
+          <p class="card-label">ETHEREUM · PROOF OF STAKE</p>
+          <h3>Collateral-backed validator participation</h3>
+          <p>Validators deposit stake, propose or attest to blocks, and can receive rewards or penalties. Ethereum documentation describes a 32 ETH deposit for solo validator participation; pools and services can structure participation differently. Specified dishonest actions can lead to slashing.</p>
+          <details class="inline-details"><summary>NERD HATCH · slots, epochs, finality</summary><p>Ethereum organizes consensus into slots and epochs. Attestations help the protocol evaluate chain choice and finality. “Staked” does not mean “risk-free”; software, key, operator, governance, and penalty assumptions remain.</p></details>
+        </article>
+      </div>
+
+      <div class="compare-table" role="table" aria-label="Bounded Bitcoin and Ethereum comparison">
+        <div class="compare-row compare-head" role="row"><span role="columnheader">Dimension</span><span role="columnheader">Bitcoin-shaped example</span><span role="columnheader">Ethereum-shaped example</span></div>
+        <div class="compare-row" role="row"><span role="rowheader">State model</span><span>UTXO-based ledger</span><span>Account/state model</span></div>
+        <div class="compare-row" role="row"><span role="rowheader">Consensus</span><span>Proof of Work</span><span>Proof of Stake</span></div>
+        <div class="compare-row" role="row"><span role="rowheader">Main emphasis</span><span>Monetary transfer and settlement</span><span>Programmable on-chain state</span></div>
+        <div class="compare-row" role="row"><span role="rowheader">What this does not prove</span><span>That the asset is valuable</span><span>That every contract is safe</span></div>
+      </div>
+
+      <div class="content-grid two-col">
+        <article class="explain-card">
+          <p class="card-label">SMART CONTRACTS</p>
+          <h3>“Executed as written” is not “safe”</h3>
+          <p>Smart-contract code changes state when a transaction triggers it. Gas or fees account for computation and scarce blockspace. The code may depend on an oracle, an upgradeable proxy, an admin key, a governance vote, or another contract.</p>
+          <p class="warning-line">Deterministic execution can reproduce a bug with impressive consistency.</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">NATIVE ASSETS AND TOKENS</p>
+          <h3>“Token” is a family word</h3>
+          <p>A native asset belongs to a network’s base rules. A fungible token is usually contract-defined. An NFT is non-fungible. A governance token may represent voting rules. A meme coin is a cultural/economic label, not a technical security guarantee. Tokenised securities and deposits introduce legal and issuer layers.</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">STABLECOINS</p>
+          <h3>Stable in the label is not stable in every layer</h3>
+          <p>Reserve-backed, crypto-collateralised, algorithmic, and tokenised-bank-deposit designs rely on different mechanisms. Separate the blockchain transfer from issuer redemption, reserve custody, legal claim, liquidity, governance, and operational risk.</p>
+          <p>A stablecoin can move on a decentralised network while depending on a highly centralised issuer.</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">LAYER 2s AND BRIDGES</p>
+          <h3>More layers mean more assumptions</h3>
+          <p>Rollups and other Layer 2 systems move some execution, ordering, or batching away from a base layer and settle back according to their design. Sequencers, data availability, upgrade keys, and withdrawal paths matter. Bridges connect systems that do not automatically share state, adding another trust and failure surface.</p>
+        </article>
+      </div>
+
+      <section class="interactive-card" id="trust-map" aria-labelledby="trust-title">
+        <div class="interactive-heading"><div><p class="card-label">LOCAL TOOL 04</p><h3 id="trust-title">Who are you trusting?</h3></div><span class="local-badge">NO LIVE ASSETS</span></div>
+        <p>There is no trust-free system. Select a component to reveal the assumption it adds.</p>
+        <div class="trust-layout"><div class="trust-options" role="group" aria-label="Trust model options">
+          <button class="trust-option is-active" type="button" data-trust="self">Self-custody</button>
+          <button class="trust-option" type="button" data-trust="exchange">Exchange custody</button>
+          <button class="trust-option" type="button" data-trust="stablecoin">Stablecoin</button>
+          <button class="trust-option" type="button" data-trust="contract">Smart contract</button>
+          <button class="trust-option" type="button" data-trust="bridge">Bridge</button>
+          <button class="trust-option" type="button" data-trust="l2">Layer 2</button>
+          <button class="trust-option" type="button" data-trust="deposit">Tokenised bank deposit</button>
+        </div><div class="trust-detail" id="trust-detail" aria-live="polite"></div></div>
+      </section>
+    </section>
+
+    <section id="security" class="section" aria-labelledby="security-title">
+      <div class="section-heading">
+        <p class="section-number">04 · SECURITY AND FAILURE MODES</p>
+        <h2 id="security-title">The machine can be valid and still fail you</h2>
+        <p>Security is a stack of assumptions. A protocol rule, a key, an operator, a bridge, an issuer, a website, and a human can each introduce a different failure.</p>
+      </div>
+
+      <div class="risk-grid">
+        <article><span>KEY</span><h3>Private-key theft</h3><p>If the signing secret is stolen, the ledger may accept an unauthorized-to-you but cryptographically valid request.</p></article>
+        <article><span>HUMAN</span><h3>Phishing and consent</h3><p>A person can be tricked into authorizing something they did not understand. A valid signature does not repair deception.</p></article>
+        <article><span>CODE</span><h3>Contract bug</h3><p>Smart-contract code can execute deterministically while encoding a dangerous or mistaken rule.</p></article>
+        <article><span>BRIDGE</span><h3>Cross-system failure</h3><p>A bridge must establish that an event occurred elsewhere. Its proof, operators, keys, and upgrade path matter.</p></article>
+        <article><span>ISSUER</span><h3>Redemption or reserve failure</h3><p>A token’s transfer mechanics do not guarantee that an issuer can redeem it or that an off-chain reserve exists.</p></article>
+        <article><span>GOVERNANCE</span><h3>Admin or rule change</h3><p>Forks, upgrades, multisigs, and governance can alter what a community treats as the accepted system.</p></article>
+      </div>
+
+      <div class="content-grid two-col">
+        <article class="explain-card">
+          <p class="card-label">CUSTODY</p>
+          <h3>Convenience moves responsibility around</h3>
+          <p>Self-custody puts recovery and key safety on the holder. Exchange or regulated custody puts operational responsibility with an institution, while adding counterparty, access, and insolvency assumptions. Hardware wallets and multisignature schemes reduce some risks and add setup/recovery complexity. None require live funds on this page.</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">DECENTRALISATION</p>
+          <h3>It is not one switch</h3>
+          <p>Ask separately about node distribution, miner or validator concentration, client diversity, developer and governance power, RPC/infrastructure dependence, custody concentration, issuer concentration, and sequencer concentration.</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">FORKS AND UPGRADES</p>
+          <h3>Software rules still need social coordination</h3>
+          <p>A soft fork changes rules in a backward-compatible direction; a hard fork can create incompatible rules and potentially a chain split. People choose software, operators coordinate, and economic activity follows the history participants accept.</p>
+        </article>
+        <article class="explain-card">
+          <p class="card-label">DEFENSIVE THREAT MAP</p>
+          <h3>Know the category, not the exploit recipe</h3>
+          <p>Double spending, majority hashpower attacks, validator equivocation, phishing, buggy contracts, bridge compromise, exchange insolvency, reserve failure, oracle failure, and admin-key abuse are different failure classes. This page names them without teaching anyone how to attack a live system.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="iso-20022" class="section iso-section" aria-labelledby="iso-title">
+      <div class="section-heading">
+        <p class="section-number">05 · THE BANKING MESSAGE LAYER</p>
+        <h2 id="iso-title">ISO 20022 is the language. A token can be the thing moved.</h2>
+        <p>ISO 20022 is a financial message scheme and modelling approach. It is not a blockchain, a settlement token, a global central-bank ledger, or an official list of approved coins.</p>
+      </div>
+
+      <div class="myth-box" role="note">
+        <p class="card-label">MYTH / OVERCLAIM</p>
+        <h3>There is no magic “ISO 20022 coin list.”</h3>
+        <p>The official ISO 20022 FAQ says cryptocurrencies are not inherently ISO 20022 compliant and are not managed or registered by ISO 20022. A company can build an ISO 20022-compatible interface around a blockchain; that does not make the blockchain protocol or token “ISO-approved.”</p>
+      </div>
+
+      <div class="message-layers" aria-label="ISO 20022 and settlement layers">
+        <div><span>PERSON / COMPANY</span><strong>“Send Bob $500.”</strong></div><b aria-hidden="true">↓</b>
+        <div><span>BANK / APP</span><strong>Creates a structured instruction</strong></div><b aria-hidden="true">↓</b>
+        <div class="layer-accent"><span>ISO 20022 MESSAGE</span><strong>Who, what, how much, currency, identifiers, remittance data</strong></div><b aria-hidden="true">↓</b>
+        <div><span>PAYMENT / MESSAGING INFRASTRUCTURE</span><strong>Transports and processes the instruction</strong></div><b aria-hidden="true">↓</b>
+        <div><span>SETTLEMENT LAYER</span><strong>Commercial deposits · central-bank reserves · tokenised deposits · tokenised central-bank money · other regulated assets</strong></div><b aria-hidden="true">↓</b>
+        <div><span>FINAL LEDGER / ACCOUNT STATE</span><strong>The obligation is discharged or re-booked</strong></div>
+      </div>
+
+      <div class="evidence-split">
+        <article class="explain-card">
+          <p class="card-label">ESTABLISHED · MESSAGE STANDARD</p>
+          <h3>Better labels are not the cargo</h3>
+          <p>The standard provides common financial business semantics, data dictionaries, and message definitions. SWIFT reported the end of the MT/ISO 20022 coexistence period for cross-border payment instructions on 22 November 2025. Payments Canada describes ISO 20022 as the standard for electronic payment messages across its infrastructure, including Lynx.</p>
+        </article>
+        <article class="explain-card emerging-card">
+          <p class="card-label">EMERGING / PILOT · SETTLEMENT INFRASTRUCTURE</p>
+          <h3>Tokenisation is a separate layer</h3>
+          <p>Project Agorá explores tokenised commercial-bank deposits and tokenised central-bank money on programmable infrastructure, including atomic multi-currency settlement. The Bank of Canada joined the project’s next phase in 2026. That is regulated institutions testing possible settlement designs—not proof that banks run on Bitcoin, XRP, stablecoins, or any public crypto.</p>
+        </article>
+      </div>
+
+      <section class="interactive-card" id="message-explorer" aria-labelledby="message-title">
+        <div class="interactive-heading"><div><p class="card-label">LOCAL TOOL 05</p><h3 id="message-title">ISO 20022 Message Explorer</h3></div><span class="local-badge">FICTIONAL · SIMPLIFIED</span></div>
+        <p>Turn a plain-English payment sentence into a toy structured view. It is a teaching model, not a schema-valid <code>pacs.008</code> message.</p>
+        <label for="payment-sentence">Human sentence</label>
+        <div class="control-row"><input id="payment-sentence" value="Send Bob 500 Canadian dollars for the workshop" autocomplete="off"><button class="button" id="message-run" type="button">STRUCTURE IT</button></div>
+        <div class="message-explorer"><div><span>HUMAN INTENT</span><p id="message-human">Send Bob 500 Canadian dollars for the workshop</p></div><pre id="message-json" aria-label="Simplified structured payment data"></pre></div>
+        <p class="tool-note">Structured instructions can improve interoperability. They do not specify which settlement asset the system must use.</p>
+      </section>
+
+      <section class="interactive-card" id="tokenisation-demo" aria-labelledby="token-title">
+        <div class="interactive-heading"><div><p class="card-label">LOCAL TOOL 06</p><h3 id="token-title">Tokenisation Layer Demo</h3></div><span class="local-badge">CONCEPTUAL EDUCATIONAL MODEL</span></div>
+        <p>Compare two fictional settlement concepts. Neither path moves money or represents a live payment system.</p>
+        <div class="toggle-row" role="group" aria-label="Choose a settlement concept">
+          <button type="button" class="toggle is-active" data-settlement="sequential" aria-pressed="true">Traditional sequential concept</button>
+          <button type="button" class="toggle" data-settlement="atomic" aria-pressed="false">Atomic tokenised concept</button>
+        </div>
+        <div class="settlement-steps" id="settlement-steps" aria-live="polite"></div>
+        <p class="model-label">CONCEPTUAL EDUCATIONAL MODEL — NOT A LIVE PAYMENT SYSTEM</p>
+        <p class="tool-note" id="settlement-note">Sequential systems can involve messages, checks, correspondent updates, settlement, and reconciliation in separate steps.</p>
+      </section>
+    </section>
+
+    <section id="glossary" class="section" aria-labelledby="glossary-title">
+      <div class="section-heading">
+        <p class="section-number">06 · GLOSSARY AND RECEIPTS</p>
+        <h2 id="glossary-title">Words worth keeping separate</h2>
+        <p>When a sentence collapses several layers into one exciting noun, slow down and ask which layer it describes.</p>
+      </div>
+      <div class="glossary-grid">
+        <details><summary>Block</summary><p>A bounded batch of data, often with a header and transactions, proposed according to a network’s rules.</p></details>
+        <details><summary>Consensus</summary><p>The rules and processes participants use to converge on accepted ordering or state.</p></details>
+        <details><summary>Finality</summary><p>A protocol’s guarantee or strong expectation that a state will not be reverted under specified assumptions.</p></details>
+        <details><summary>Gas</summary><p>Ethereum’s accounting for computation and other resource use; the fee paid can vary with demand and design.</p></details>
+        <details><summary>Hash</summary><p>A deterministic digest used for integrity, commitments, and linking; not encryption.</p></details>
+        <details><summary>Node</summary><p>Software that participates in a network by receiving, checking, storing, relaying, or executing according to its role.</p></details>
+        <details><summary>Oracle</summary><p>A system that supplies external data to on-chain code. The chain can check the supplied data’s format, not automatically its real-world truth.</p></details>
+        <details><summary>Tokenisation</summary><p>Representing a claim or asset in token form on a digital platform. The legal claim, issuer, custody, and redemption still matter.</p></details>
+        <details><summary>UTXO</summary><p>An unspent transaction output in Bitcoin’s transaction model: a discrete output available to be consumed by a later transaction.</p></details>
+      </div>
+
+      <div class="source-receipts">
+        <div class="section-heading compact-heading"><p class="section-number">BORING RECEIPT</p><h3>Primary sources and bounded evidence</h3><p>Source links are provided so the explanation can be checked. Current-state claims are dated and labelled.</p></div>
+        <div class="source-list">
+          <a href="https://developer.bitcoin.org/devguide/" target="_blank" rel="noopener"><strong>Bitcoin Developer Documentation</strong><span>Protocol concepts, transactions, scripts, blocks, and mining.</span></a>
+          <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener"><strong>Ethereum Proof-of-Stake Documentation</strong><span>Validators, attestations, deposits, rewards, penalties, and finality.</span></a>
+          <a href="https://www.iso20022.org/about-iso-20022" target="_blank" rel="noopener"><strong>ISO 20022 · About the standard</strong><span>Message scheme, modelling methodology, dictionary, and message definitions.</span></a>
+          <a href="https://www.iso20022.org/frequently-asked-questions" target="_blank" rel="noopener"><strong>ISO 20022 · Official FAQ</strong><span>Compliance boundaries and the absence of an official crypto-coin list.</span></a>
+          <a href="https://www.swift.com/news-events/news/iso-20022-new-era-global-payments" target="_blank" rel="noopener"><strong>SWIFT · Global payments milestone</strong><span>22 November 2025 end of MT/ISO 20022 coexistence for CBPR+.</span></a>
+          <a href="https://www.frbservices.org/news/press-releases/071525-iso20022-migration-announcement" target="_blank" rel="noopener"><strong>Federal Reserve Financial Services</strong><span>Fedwire Funds Service ISO 20022 migration announcement.</span></a>
+          <a href="https://www.payments.ca/payment-resources/iso-20022" target="_blank" rel="noopener"><strong>Payments Canada · ISO 20022</strong><span>Canadian payment messaging adoption and Lynx context.</span></a>
+          <a href="https://www.payments.ca/payment-resources/iso-20022/high-value-payment-system-lynx" target="_blank" rel="noopener"><strong>Payments Canada · Lynx specifications</strong><span>ISO 20022-enabled high-value payment message specifications.</span></a>
+          <a href="https://www.bis.org/about/bisih/topics/fmis/agora.htm" target="_blank" rel="noopener"><strong>BIS · Project Agorá</strong><span>Exploration of tokenisation in wholesale cross-border payments.</span></a>
+          <a href="https://www.bis.org/publ/othp110.htm" target="_blank" rel="noopener"><strong>BIS · Project Agorá report</strong><span>Project materials and the path toward real-value testing.</span></a>
+          <a href="https://www.bankofcanada.ca/2026/05/bank-canada-joins-bis-project-agora-test-improvements-wholesale-cross-border-payments/" target="_blank" rel="noopener"><strong>Bank of Canada · Project Agorá</strong><span>Canada’s participation in the 2026 project phase.</span></a>
+          <a href="https://www.bankofcanada.ca/2026/06/sparks-at-bank-article-2026-14/" target="_blank" rel="noopener"><strong>Bank of Canada · Tokenization</strong><span>How tokenised assets and their legal/operational layers can be understood.</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" aria-labelledby="closing-title">
+      <p class="eyebrow">THE BOTTOM LINE</p>
+      <h2 id="closing-title">Keep your hands on the controls.</h2>
+      <p>Blockchain can prove protocol state. Cryptography can prove authorization. Consensus can establish a shared history. ISO 20022 can standardize the instructions financial systems exchange. Tokenisation can change how some forms of money and assets are represented and settled.</p>
+      <p>None of those systems can prove the asset is valuable, the promoter is honest, or the human pressing the button has made a good decision.</p>
+      <strong>Understand the machinery. Then keep your hands on the controls.</strong>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>CloveLearn reference · education only · no wallet connection · no live transaction functionality</p>
+    <nav aria-label="Footer navigation"><a href="/">Home</a><a href="/research/">Research</a><a href="/privacy-signals.html">Privacy</a><a href="/corrections.html">Corrections</a></nav>
+  </footer>
+  <script src="/learn/crypto/crypto.js" defer></script>
+</body>
+</html>

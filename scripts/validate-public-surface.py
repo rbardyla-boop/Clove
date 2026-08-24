@@ -24,6 +24,7 @@ PAGES = (
     ROOT / "research" / "projects" / "tds" / "ledger" / "dossiers" / "index.html",
     ROOT / "research" / "projects" / "tds" / "ledger" / "killed" / "index.html",
     ROOT / "research" / "projects" / "tds" / "ledger" / "sources" / "index.html",
+    ROOT / "learn" / "crypto" / "index.html",
 )
 FORBIDDEN_TRACKING = re.compile(
     r"(?:googletagmanager|google-analytics|gtag\s*\(|plausible\.io|hotjar|mixpanel|segment\.com|clarity\.ms)",
