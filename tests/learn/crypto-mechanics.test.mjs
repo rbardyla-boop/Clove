@@ -64,6 +64,20 @@ test('crypto page contains the complete reference contract and official source a
   assert.match(html, /The Town With No Town Hall/);
   assert.match(html, /wallet is a keyring/);
   assert.match(html, /Not my department/);
+  for (const sourceMarker of [
+    /Blockchain can establish ledger state/,
+    /Cryptography can establish authorization\/integrity/,
+    /Consensus can establish accepted history/,
+    /None of those establishes economic value/,
+    /Proof of Work is a global competition to notarize the next page/,
+    /Proof of Stake uses a different security deposit/,
+    /Cryptographic does not mean private/,
+    /pseudonymous does not mean anonymous/,
+    /Market cap does not equal cash invested/,
+    /institutional recovery for direct control/,
+    /economically worthless/,
+    /Cryptography can authenticate stupidity perfectly\./,
+  ]) assert.match(html, sourceMarker, `missing source-fidelity marker ${sourceMarker}`);
   assert.match(html, /Dad’s Crypto Test/);
   assert.match(html, /MESSAGE ≠ MONEY/);
   for (const sourceGroup of ['BITCOIN', 'ETHEREUM', 'ISO 20022 \/ PAYMENTS', 'TOKENISATION \/ CENTRAL BANKS', 'REGULATORY \/ SAFETY', 'CURRENT STATE \/ EXAMPLES']) {
