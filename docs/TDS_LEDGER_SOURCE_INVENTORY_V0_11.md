@@ -6,15 +6,15 @@ Required canonical filename: `EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md`
 
 ## Search roots
 
-- clove-tds-public-proof-ledger: present
+- clovelearn_v3_final_deploy: present
 
 ## Exact canonical matches
 
-- clove-tds-public-proof-ledger/research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md
+- clovelearn_v3_final_deploy/research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md
 
 ## Historical ledgers found
 
-- clove-tds-public-proof-ledger/research/source-packets/tds/EVIDENCE_CONSOLIDATION_LEDGER_v0.11.md
+- none
 
 ## Gate decision
 
