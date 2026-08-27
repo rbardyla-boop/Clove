@@ -1,16 +1,6 @@
 name: DS-I6 Verify
 
 on:
-  pull_request:
-    paths:
-      - 'digital-stewardship-06.html'
-      - 'digital-stewardship-06.js'
-      - 'tests/static/ds-i6-*'
-      - 'scripts/build-production-upload.mjs'
-      - 'scripts/release-preflight.mjs'
-      - '.github/workflows/ds-i6-verify.yml'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
