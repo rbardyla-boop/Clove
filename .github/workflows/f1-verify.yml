@@ -1,20 +1,6 @@
 name: F1 Mission Verify
 
 on:
-  push:
-    branches:
-      - main
-      - hardening/mission-001-solo-2026-08-12
-  pull_request:
-    paths:
-      - 'mission-001.html'
-      - 'mission-001-app.js'
-      - 'mission-private-store.js'
-      - 'tests/static/mission-*'
-      - 'workers/insights/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/f1-verify.yml'
   workflow_dispatch:
 
 permissions:
