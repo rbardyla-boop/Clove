@@ -1,16 +1,6 @@
 name: DS-I4 Verify
 
 on:
-  pull_request:
-    paths:
-      - 'digital-stewardship-04.html'
-      - 'digital-stewardship-04.js'
-      - 'tests/static/ds-i4-*'
-      - 'scripts/build-production-upload.mjs'
-      - 'scripts/release-preflight.mjs'
-      - '.github/workflows/ds-i4-verify.yml'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
