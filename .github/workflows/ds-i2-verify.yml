@@ -1,16 +1,6 @@
 name: DS-I2 Verify
 
 on:
-  pull_request:
-    paths:
-      - 'digital-stewardship-02.html'
-      - 'digital-stewardship-02.js'
-      - 'tests/static/ds-i2-*'
-      - 'scripts/build-production-upload.mjs'
-      - 'scripts/release-preflight.mjs'
-      - '.github/workflows/ds-i2-verify.yml'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
