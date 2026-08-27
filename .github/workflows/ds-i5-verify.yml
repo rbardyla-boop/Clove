@@ -1,16 +1,6 @@
 name: DS-I5 Verify
 
 on:
-  pull_request:
-    paths:
-      - 'digital-stewardship-05.html'
-      - 'digital-stewardship-05.js'
-      - 'tests/static/ds-i5-*'
-      - 'scripts/build-production-upload.mjs'
-      - 'scripts/release-preflight.mjs'
-      - '.github/workflows/ds-i5-verify.yml'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
