@@ -54,3 +54,11 @@ webbroswer assest creator/
 
 # Local foundry coordination state (tailnet addresses, agent message logs) — never commit.
 .foundry/
+
+# Rust build artifacts
+target/
+
+# Generated build/runtime artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
