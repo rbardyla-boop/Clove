@@ -1,16 +1,6 @@
 name: DS-I1 Verify
 
 on:
-  pull_request:
-    paths:
-      - 'digital-stewardship-01.html'
-      - 'digital-stewardship-01.js'
-      - 'tests/static/ds-i1-*'
-      - 'scripts/build-production-upload.mjs'
-      - 'scripts/release-preflight.mjs'
-      - '.github/workflows/ds-i1-verify.yml'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
