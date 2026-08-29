@@ -50,6 +50,7 @@ The grant is HMAC-SHA256 in this lab because the point being tested is exact bin
 ```bash
 node labs/forge-lens/attack-sim.mjs
 node labs/forge-lens/fuzz-sim.mjs
+node labs/forge-lens/retrieval-sim.mjs
 ```
 
 No network, provider API, Cloudflare mutation, secret, external write, or deployment is used.
@@ -64,6 +65,11 @@ Targeted simulation:
 Deterministic mutation simulation:
 
 - 1,000/1,000 single-character grant mutations are rejected.
+
+Bounded retrieval simulation:
+
+- 9/9 executor cases pass.
+- The executor accepts retrieval authority, not a caller-supplied URL; forces manual redirects; rejects redirects, unexpected content types, oversized declared or streamed bodies, non-success source responses, and timeouts.
 
 The targeted matrix covers:
 
@@ -100,7 +106,7 @@ The lab intentionally does **not** modify `workers/research/`.
 The next production integration, if authorized later, should add two separate operations:
 
 1. `select` — trusted UI/host only. Re-runs or validates server-canonical discovery, selects exactly one unique `sourceId`, derives the adapter-approved retrieval target, and issues a short-lived grant.
-2. `retrieve` — agent-usable. Accepts the grant only; accepts no arbitrary URL; enforces exact target, recipe origin policy, `redirect: manual/error`, timeout, content-type and byte bounds; returns bytes plus provenance with content still marked untrusted.
+2. `retrieve` — agent-usable. Accepts the grant only; accepts no arbitrary URL; enforces exact target, recipe origin policy, `redirect: manual/error`, timeout, content-type and byte bounds; returns bytes plus provenance with content still marked untrusted. The lab now includes this bounded executor with an injected fake fetcher; it remains non-production.
 
 Do **not** wire this directly into `runResearchExperience` until the UI/agent authority separation exists. The current experience path can perform discovery and extraction as one server-side research workflow; changing that is a product/UX decision, not a lab patch.
 
