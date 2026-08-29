@@ -245,6 +245,7 @@ export function authorizeRetrieval(discovery, token, key, { nowMs } = {}) {
     targetUrl,
     maxBytes: payload.maxBytes,
     grantExpiresAt: payload.expiresAt,
+    grantNonce: payload.nonce,
     redirectPolicy: 'DENY',
     provenance: Object.freeze({
       sourceClass: candidate.sourceClass,

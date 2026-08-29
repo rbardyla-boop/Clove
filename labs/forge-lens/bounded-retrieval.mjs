@@ -12,6 +12,19 @@ const DEFAULT_CONTENT_TYPES = Object.freeze([
   'text/xml',
 ]);
 
+export function createMemoryReplayGuard() {
+  const consumed = new Set();
+  return Object.freeze({
+    consume(nonce) {
+      if (typeof nonce !== 'string' || nonce.length === 0) return false;
+      if (consumed.has(nonce)) return false;
+      consumed.add(nonce);
+      return true;
+    },
+    has(nonce) { return consumed.has(nonce); },
+  });
+}
+
 export class ForgeLensRetrievalError extends Error {
   constructor(code) {
     super(code);
@@ -54,11 +67,12 @@ export async function retrieveAuthorized(auth, {
   fetcher = fetch,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   acceptedContentTypes = DEFAULT_CONTENT_TYPES,
+  replayGuard,
 } = {}) {
   if (!auth || auth.state !== 'RETRIEVAL_AUTHORIZED') {
     throw new ForgeLensRetrievalError('retrieval_not_authorized');
   }
-  if (typeof auth.targetUrl !== 'string' || !Number.isSafeInteger(auth.maxBytes) || auth.maxBytes < 1) {
+  if (typeof auth.targetUrl !== 'string' || typeof auth.grantNonce !== 'string' || !Number.isSafeInteger(auth.maxBytes) || auth.maxBytes < 1) {
     throw new ForgeLensRetrievalError('retrieval_authority_invalid');
   }
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > MAX_TIMEOUT_MS) {
@@ -66,6 +80,14 @@ export async function retrieveAuthorized(auth, {
   }
   if (!Array.isArray(acceptedContentTypes) || acceptedContentTypes.length === 0) {
     throw new ForgeLensRetrievalError('content_type_policy_invalid');
+  }
+  if (!replayGuard || typeof replayGuard.consume !== 'function') {
+    throw new ForgeLensRetrievalError('replay_guard_required');
+  }
+  // Consume before the network attempt so concurrent/replayed use fails closed.
+  // Production needs a durable trusted implementation if this property must survive process loss.
+  if (replayGuard.consume(auth.grantNonce) !== true) {
+    throw new ForgeLensRetrievalError('grant_replay_denied');
   }
 
   const controller = new AbortController();

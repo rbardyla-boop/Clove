@@ -43,7 +43,7 @@ agent may retrieve only the exact server-canonical target
 retrieved bytes remain UNTRUSTED until extraction/verification
 ```
 
-The grant is HMAC-SHA256 in this lab because the point being tested is exact binding and custody, not production identity design. The signing key is a fixture only in the simulator. A production key/capability must live outside the agent runtime.
+The grant is HMAC-SHA256 in this lab because the point being tested is exact binding and custody, not production identity design. The signing key is a fixture only in the simulator. A production key/capability and replay ledger must live outside the agent runtime.
 
 ## Run
 
@@ -68,8 +68,10 @@ Deterministic mutation simulation:
 
 Bounded retrieval simulation:
 
-- 9/9 executor cases pass.
+- 11/11 executor cases pass.
 - The executor accepts retrieval authority, not a caller-supplied URL; forces manual redirects; rejects redirects, unexpected content types, oversized declared or streamed bodies, non-success source responses, and timeouts.
+- A grant is one acquisition inside a trusted replay ledger; failed acquisition still consumes it. The successful body is content-addressed with SHA-256 for later snapshot use.
+- 1 expected durability negative control is preserved: an in-memory replay ledger lost on restart permits the same signed read grant to be reused. Production must provide durable replay state or explicitly accept retry semantics.
 
 The targeted matrix covers:
 
@@ -106,7 +108,7 @@ The lab intentionally does **not** modify `workers/research/`.
 The next production integration, if authorized later, should add two separate operations:
 
 1. `select` — trusted UI/host only. Re-runs or validates server-canonical discovery, selects exactly one unique `sourceId`, derives the adapter-approved retrieval target, and issues a short-lived grant.
-2. `retrieve` — agent-usable. Accepts the grant only; accepts no arbitrary URL; enforces exact target, recipe origin policy, `redirect: manual/error`, timeout, content-type and byte bounds; returns bytes plus provenance with content still marked untrusted. The lab now includes this bounded executor with an injected fake fetcher; it remains non-production.
+2. `retrieve` — agent-usable. Accepts the grant only; accepts no arbitrary URL; consumes the one-shot grant in a trusted replay ledger before network access; enforces exact target, recipe origin policy, `redirect: manual/error`, timeout, content-type and byte bounds; returns content-addressed bytes plus provenance with content still marked untrusted. The lab now includes this bounded executor with an injected fake fetcher; it remains non-production.
 
 Do **not** wire this directly into `runResearchExperience` until the UI/agent authority separation exists. The current experience path can perform discovery and extraction as one server-side research workflow; changing that is a product/UX decision, not a lab patch.
 
@@ -129,4 +131,4 @@ This directory is under `labs/`, which Clove's curated static-upload builder har
 
 **PROCEED WITH THE ARCHITECTURE, NOT WITH PRODUCTION WIRING YET.**
 
-The useful FORGE contribution is proven at the correct seam: candidate metadata may expand, while retrieval authority stays exact and separately granted. The next required product decision is where the trusted host/UI boundary lives when Clove gains an agent runtime.
+The useful FORGE contribution is proven at the correct seam: candidate metadata may expand, while retrieval authority stays exact and separately granted. The next required product decision is where the trusted host/UI boundary and durable replay/snapshot state live when Clove gains an agent runtime.
