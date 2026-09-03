@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#060d1a">
+<meta name="description" content="Can't stop replaying an argument at night? Run one short reset drill, then stop feeding the loop.">
+<meta property="og:title" content="The 3 A.M. Reset | CloveLearn">
+<meta property="og:description" content="Can't stop replaying an argument at night? Run one short reset drill, then stop feeding the loop.">
+<meta property="og:image" content="https://clovelearn.io/og-image.jpg">
+<link rel="canonical" href="https://clovelearn.io/3am">
+<title>The 3 A.M. Reset | CloveLearn</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#060d1a;--panel:#0d0d18;--line:#2b2b36;--ink:#f1f1f1;--muted:#9a9aa3;--red:#c0392b;--gold:#d4a843;--green:#27ae60}
+html,body{min-height:100%}
+body{background:radial-gradient(circle at 50% -20%,#151a2e 0,#060d1a 45%,#030711 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+main{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 18px}
+.shell{width:min(100%,520px)}
+.brand{font:700 10px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+.card{background:rgba(13,13,24,.94);border:1px solid var(--line);border-radius:18px;padding:28px 22px;box-shadow:0 24px 70px rgba(0,0,0,.38)}
+.eyebrow{font:800 9px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:12px}
+h1{font-size:clamp(32px,9vw,54px);line-height:.98;letter-spacing:-.035em;margin-bottom:18px}
+.wound{font-size:clamp(18px,5vw,25px);font-weight:800;line-height:1.18;margin-bottom:18px}
+.copy{color:#c4c4ca;font-size:15px;line-height:1.65;margin-bottom:22px}
+.copy strong{color:#fff}
+.rule{border-left:3px solid var(--gold);padding:11px 0 11px 14px;color:#d8d0ba;font-size:13px;line-height:1.55;margin-bottom:24px}
+.primary,.complete-btn{appearance:none;width:100%;border:0;border-radius:12px;padding:17px 16px;font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;text-decoration:none;text-align:center;display:block}
+.primary{background:var(--red);color:#fff}
+.primary:active,.complete-btn:active{transform:scale(.985)}
+.helper{font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:#6f6f79;text-align:center;margin-top:11px}
+.return-panel{display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.return-panel.show{display:block}
+.return-title{font-weight:800;font-size:18px;margin-bottom:8px}
+.return-copy{color:#ababB3;font-size:13px;line-height:1.55;margin-bottom:14px}
+.complete-btn{background:#17251d;color:#a9e2bd;border:1px solid rgba(39,174,96,.35)}
+.done{display:none;margin-top:18px;padding:15px;border:1px solid rgba(39,174,96,.3);border-radius:12px;background:rgba(39,174,96,.07)}
+.done.show{display:block}
+.done strong{display:block;color:#bde8ca;margin-bottom:5px}
+.done span{font-size:12px;line-height:1.5;color:#91ae9a}
+.safety{margin-top:18px;color:#5f5f69;font-size:10px;line-height:1.55;text-align:center}
+*:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+@media (max-width:420px){main{align-items:flex-start;padding-top:42px}.card{padding:24px 18px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="shell">
+    <div class="brand">CloveLearn</div>
+    <section class="card" aria-labelledby="page-title">
+      <div class="eyebrow">One loop. One drill.</div>
+      <h1 id="page-title">The 3 A.M. Reset</h1>
+      <p class="wound">I can't stop replaying an argument at night.</p>
+      <p class="copy">Your brain is trying to finish a problem that is not solvable from bed. Each replay feels like analysis, but it usually gives the loop more material.</p>
+      <p class="rule"><strong>Do one concrete thing:</strong> name what is happening, separate what you know from what your brain is adding, then stop for tonight.</p>
+
+      <a class="primary" id="startBtn" href="./whats-going-on.html?source=3am">Start the reset</a>
+      <div class="helper">This opens What's Going On directly. No deck menu first.</div>
+
+      <div class="return-panel" id="returnPanel">
+        <div class="return-title">Back from the drill?</div>
+        <div class="return-copy">If you ran it, mark this pass complete. The timestamp stays on this device.</div>
+        <button class="complete-btn" id="completeBtn" type="button">Mark complete</button>
+      </div>
+
+      <div class="done" id="doneBox" role="status" aria-live="polite">
+        <strong>Complete.</strong>
+        <span>Same drill tomorrow if the loop comes back. No extra reading required.</span>
+      </div>
+
+      <p class="safety">Self-help tool only. Not a diagnosis, treatment, or emergency service.</p>
+    </section>
+  </div>
+</main>
+<script>
+(function(){
+  const KEYS={
+    first:'clove.3am.firstVisit',
+    last:'clove.3am.lastVisit',
+    started:'clove.3am.startedAt',
+    completed:'clove.3am.lastCompleteAt',
+    completes:'clove.3am.completeCount',
+    returns:'clove.3am.return24hCount'
+  };
+
+  const now=Date.now();
+  try{
+    const first=Number(localStorage.getItem(KEYS.first)||0);
+    const last=Number(localStorage.getItem(KEYS.last)||0);
+    if(!first) localStorage.setItem(KEYS.first,String(now));
+    if(last && now-last>=24*60*60*1000){
+      const n=Number(localStorage.getItem(KEYS.returns)||0)+1;
+      localStorage.setItem(KEYS.returns,String(n));
+    }
+    localStorage.setItem(KEYS.last,String(now));
+  }catch(e){}
+
+  const startBtn=document.getElementById('startBtn');
+  const returnPanel=document.getElementById('returnPanel');
+  const completeBtn=document.getElementById('completeBtn');
+  const doneBox=document.getElementById('doneBox');
+
+  function showReturn(){
+    try{
+      if(sessionStorage.getItem(KEYS.started)) returnPanel.classList.add('show');
+      if(localStorage.getItem(KEYS.completed)) doneBox.classList.add('show');
+    }catch(e){}
+  }
+
+  startBtn.addEventListener('click',function(){
+    try{
+      sessionStorage.setItem(KEYS.started,new Date().toISOString());
+      localStorage.setItem(KEYS.started,new Date().toISOString());
+    }catch(e){}
+  });
+
+  completeBtn.addEventListener('click',function(){
+    const stamp=new Date().toISOString();
+    try{
+      localStorage.setItem(KEYS.completed,stamp);
+      localStorage.setItem(KEYS.completes,String(Number(localStorage.getItem(KEYS.completes)||0)+1));
+    }catch(e){}
+    doneBox.classList.add('show');
+    completeBtn.disabled=true;
+    completeBtn.textContent='Complete';
+  });
+
+  window.addEventListener('pageshow',showReturn);
+  showReturn();
+})();
+</script>
+</body>
+</html>
