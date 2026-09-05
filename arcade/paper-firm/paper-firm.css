@@ -59,6 +59,16 @@ input {
   padding: 3px 4px;
 }
 
+select {
+  background: rgba(245,240,223,.72);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font: 700 11px "Comic Sans MS", "Bradley Hand", cursive;
+  padding: 5px 6px;
+}
+
+.finding-input { display: inline-grid; grid-template-columns: auto minmax(80px, 1fr); align-items: center; gap: 5px; font-size: 11px; font-weight: 700; }
+
 .pen-button {
   appearance: none;
   border: 2px solid var(--ink);

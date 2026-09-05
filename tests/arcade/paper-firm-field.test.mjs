@@ -30,6 +30,34 @@ test('the field does not become a RUG observation during scout movement', () => 
   assert.equal(publicFieldSnapshot(state, 'RUG001').page.pendingReceipt, null);
 });
 
+test('Scout find and carry are ordered, timestamped field facts before extraction', () => {
+  let state = addFieldPlayer(createFieldState(), LEAD, 1_000).state;
+  const stain = PF_ZONES.find((zone) => zone.id === 'STAIN');
+  state = { ...state, players: { ...state.players, [LEAD]: { ...state.players[LEAD], x: stain.x + 20, y: stain.y + 20 } } };
+
+  const found = advanceScout(state, 'find', { playerId: LEAD, role: 'lead' }, 2_000);
+  assert.equal(found.ok, true);
+  assert.equal(found.state.scout.findSequence, 1);
+  assert.equal(found.state.scout.findAt, 2_000);
+
+  const carried = advanceScout(found.state, 'carry', { playerId: LEAD, role: 'lead' }, 2_100);
+  assert.equal(carried.ok, true);
+  assert.equal(carried.state.scout.carrySequence, 2);
+  assert.equal(carried.state.scout.carryAt, 2_100);
+  assert.equal(carried.state.scout.carrySequence > carried.state.scout.findSequence, true);
+  assert.equal(carried.state.scout.carryAt >= carried.state.scout.findAt, true);
+  assert.deepEqual(publicFieldSnapshot(carried.state, 'RUG001').scout, {
+    phase: 'ready', x: 805, y: 175, findSequence: 1, findAt: 2_000, carrySequence: 2, carryAt: 2_100,
+  });
+});
+
+test('extraction cannot bypass the authoritative Scout carry phase', () => {
+  let state = addFieldPlayer(createFieldState(), LEAD, 1_000).state;
+  const archive = PF_ZONES.find((zone) => zone.id === 'ARCHIVE');
+  state = { ...state, players: { ...state.players, [LEAD]: { ...state.players[LEAD], x: archive.x + 20, y: archive.y + 20 } } };
+  assert.equal(extractPage(state, LEAD).reason, 'page_not_delivered');
+});
+
 test('extraction is a real archive position gate and creates a field sequence', () => {
   let state = createFieldState();
   state = addFieldPlayer(state, LEAD, 1_000).state;
@@ -92,9 +120,14 @@ test('the Paper Firm renderer contains the frozen visual language and no autonom
   assert.match(room, /PF-JOIN\/2/);
   assert.match(room, /verifyReceiptAck/);
   assert.match(room, /meta\.role !== "lead"/);
-  assert.match(room, /advanceScout\(this\.state, String\(data\.verb \|\| ""\), \{ playerId: meta\.playerId, role: meta\.role \}\)/);
+  assert.match(room, /advanceScout\(this\.state, String\(data\.verb \|\| ""\), \{ playerId: meta\.playerId, role: meta\.role \}, now\)/);
   assert.match(room, /this\.pending/);
   assert.match(source, /location\.hostname === 'clovelearn\.io'.*wss:\/\/clovelearn\.io/);
   assert.match(source, /change-requirement/);
+  for (const id of ['verify-source', 'promote-source', 'package-packet', 'deliver-packet', 'reject-finding']) assert.match(html, new RegExp(`id="${id}"`), id);
+  for (const action of ['verify_source', 'promote_source', 'package', 'deliver', 'reject_finding']) assert.match(source, new RegExp(action), action);
+  for (const field of ['scout_find_sequence', 'scout_find_at', 'scout_carry_sequence', 'scout_carry_at']) assert.match(room, new RegExp(field), field);
+  assert.match(source, /if \(lockedConfig\) return lockedConfig/);
+  assert.match(source, /e\.target instanceof HTMLInputElement/);
   assert.match(headers, /http:\/\/localhost:8080/);
 });

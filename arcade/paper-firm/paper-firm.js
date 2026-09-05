@@ -33,6 +33,7 @@ let lastHead = '';
 let heartbeatTimer = 0;
 let snapshotTimer = 0;
 let offlineLocal = false;
+let lockedConfig = null;
 const keys = new Set();
 const log = [];
 
@@ -65,6 +66,7 @@ function addLog(text, kind = '') {
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function config() {
+  if (lockedConfig) return lockedConfig;
   const match = $('match-id').value.trim().toUpperCase();
   const rug = $('rug-url').value.trim().replace(/\/$/, '');
   let mesh = $('mesh-url').value.trim().replace(/\/$/, '');
@@ -209,11 +211,14 @@ async function acceptReceipt(receipt) {
 }
 
 async function connect() {
-  const { match } = config();
+  const initialConfig = config();
+  const { match } = initialConfig;
   if (!match) { $('connection-status').textContent = 'enter the RUG world code'; return; }
   $('connect-btn').disabled = true;
   try {
     const snap = await rugPost('snapshot');
+    lockedConfig = initialConfig;
+    for (const id of ['match-id', 'rug-url', 'mesh-url']) $(id).disabled = true;
     principal = snap.me;
     role = snap.role;
     connected = true;
@@ -268,6 +273,15 @@ function updateUi() {
   $('desk-sign').textContent = paper.complete ? 'SIGNED' : paper.readyToSign ? 'READY' : 'blocked';
   $('scout-find').classList.toggle('hidden', role !== 'lead');
   $('scout-carry').classList.toggle('hidden', role !== 'lead');
+  const deskActions = role === 'hand';
+  $('human-b-actions').classList.toggle('hidden', !deskActions);
+  $('finding-actions').classList.toggle('hidden', !deskActions);
+  const currentPacket = paper.packets?.find((packet) => packet.packetId === paper.currentPacketId) || null;
+  $('verify-source').disabled = !paper.observationId || paper.sourceVerified;
+  $('promote-source').disabled = !paper.sourceVerified || Boolean(paper.doctrineId);
+  $('package-packet').disabled = !paper.doctrineId || Boolean(currentPacket);
+  $('deliver-packet').disabled = !currentPacket || currentPacket.delivered || paper.currentPacketDelivered;
+  $('reject-finding').disabled = !paper.submittedFindings?.includes($('finding-id').value.trim());
   const requirementButton = $('change-requirement');
   const canChangeRequirement = role === 'hand' && paper.requirementRevision === 'R1';
   requirementButton.classList.toggle('hidden', !canChangeRequirement);
@@ -304,6 +318,35 @@ $('change-requirement').addEventListener('click', async () => {
   } catch (err) { addLog(`requirement rejected: ${err.message}`, 'reject'); }
 });
 
+for (const [id, action, extra] of [
+  ['verify-source', 'verify_source', {}],
+  ['promote-source', 'promote_source', {}],
+  ['package-packet', 'package', { lease: '20m' }],
+]) {
+  $(id).addEventListener('click', async () => {
+    try { await oneDeskAction(action, extra); }
+    catch (err) { addLog(`${action.replaceAll('_', ' ')} rejected: ${err.message}`, 'reject'); }
+  });
+}
+
+$('deliver-packet').addEventListener('click', async () => {
+  try {
+    const packetId = paper?.currentPacketId;
+    await oneDeskAction('deliver', packetId ? { packetId } : {});
+  } catch (err) { addLog(`deliver packet rejected: ${err.message}`, 'reject'); }
+});
+
+$('finding-id').addEventListener('input', () => { if (paper) updateUi(); });
+$('reject-finding').addEventListener('click', async () => {
+  const findingId = $('finding-id').value.trim();
+  const reason = $('finding-reason').value;
+  try {
+    await oneDeskAction('reject_finding', { findingId, reason });
+    $('finding-id').value = '';
+    updateUi();
+  } catch (err) { addLog(`finding rejection rejected: ${err.message}`, 'reject'); }
+});
+
 $('go-offline').addEventListener('click', async () => {
   try {
     await rugPost('offline');
@@ -334,6 +377,7 @@ $('sign-relay').addEventListener('click', async () => {
 });
 
 window.addEventListener('keydown', (e) => {
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement || e.target?.isContentEditable) return;
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) {
     keys.add(e.key.toLowerCase()); e.preventDefault();
   }

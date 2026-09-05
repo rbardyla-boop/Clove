@@ -41,7 +41,7 @@ export function createFieldState() {
   return {
     players: {},
     sequence: 0,
-    scout: { phase: 'idle', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY },
+    scout: { phase: 'idle', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY, sequence: 0, findSequence: 0, findAt: 0, carrySequence: 0, carryAt: 0 },
     page: { id: PF_PAGE.id, phase: 'in_stain', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY, extractedBy: '', pendingReceipt: null },
   };
 }
@@ -96,7 +96,7 @@ export function applyFieldInput(state, playerId, input, now = Date.now()) {
   return { ok: true, reason: 'ok', state: { ...state, players: { ...state.players, [playerId]: next } } };
 }
 
-export function advanceScout(state, verb, actor = {}) {
+export function advanceScout(state, verb, actor = {}, now = Date.now()) {
   const player = state.players?.[actor.playerId];
   const stain = PF_ZONES.find((zone) => zone.id === 'STAIN');
   if (actor.role !== 'lead') return { ok: false, reason: 'field_lead_required', state };
@@ -104,15 +104,17 @@ export function advanceScout(state, verb, actor = {}) {
   if (!pointInRect(player, stain)) return { ok: false, reason: 'scout_requires_stain_position', state };
   const phase = state.scout?.phase || 'idle';
   if (verb === 'find' && phase === 'idle') {
-    return { ok: true, reason: 'found', state: { ...state, scout: { phase: 'found', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY } } };
+    const sequence = Number(state.scout?.sequence || 0) + 1;
+    return { ok: true, reason: 'found', state: { ...state, scout: { phase: 'found', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY, sequence, findSequence: sequence, findAt: now, carrySequence: 0, carryAt: 0 } } };
   }
   if (verb === 'carry' && phase === 'found') {
+    const sequence = Number(state.scout?.sequence || 0) + 1;
     return {
       ok: true,
       reason: 'carried',
       state: {
         ...state,
-        scout: { phase: 'ready', x: PF_PAGE.archiveX, y: PF_PAGE.archiveY },
+        scout: { ...state.scout, phase: 'ready', x: PF_PAGE.archiveX, y: PF_PAGE.archiveY, sequence, carrySequence: sequence, carryAt: now },
         page: { ...state.page, phase: 'at_archive', x: PF_PAGE.archiveX, y: PF_PAGE.archiveY },
       },
     };
@@ -124,7 +126,7 @@ export function canExtract(state, playerId) {
   const player = state.players[playerId];
   const archive = PF_ZONES.find((z) => z.id === 'ARCHIVE');
   if (!player) return { ok: false, reason: 'not_joined' };
-  if (state.scout?.phase !== 'ready' || state.page?.phase !== 'at_archive') return { ok: false, reason: 'page_not_delivered' };
+  if (state.scout?.phase !== 'ready' || state.page?.phase !== 'at_archive' || !(state.scout?.findSequence > 0) || !(state.scout?.carrySequence > state.scout?.findSequence) || !(state.scout?.findAt > 0) || !(state.scout?.carryAt >= state.scout?.findAt)) return { ok: false, reason: 'page_not_delivered' };
   if (state.page?.extractedBy) return { ok: false, reason: 'page_already_extracted' };
   if (!pointInRect(player, archive)) return { ok: false, reason: 'not_in_archive' };
   return { ok: true, reason: 'ok' };
@@ -154,7 +156,7 @@ export function publicFieldSnapshot(state, matchId) {
     zones: PF_ZONES,
     relay: PF_RELAY,
     players: Object.values(state.players).filter((p) => p.online !== false).map((p) => ({ id: p.id, x: p.x, y: p.y })),
-    scout: { phase: state.scout.phase, x: state.scout.x, y: state.scout.y },
+    scout: { phase: state.scout.phase, x: state.scout.x, y: state.scout.y, findSequence: state.scout.findSequence, findAt: state.scout.findAt, carrySequence: state.scout.carrySequence, carryAt: state.scout.carryAt },
     page: { id: state.page.id, phase: state.page.phase, x: state.page.x, y: state.page.y, pendingReceipt: state.page.pendingReceipt || null },
     sequence: state.sequence,
   };

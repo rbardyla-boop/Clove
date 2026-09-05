@@ -23,9 +23,20 @@ type JoinRole = "lead" | "hand" | "observer";
 type SocketMeta = { playerId: string; role: JoinRole; matchId: string; lastHeartbeat: number };
 type PendingAttachment = { authorizedPlayerId: string; role: JoinRole; matchId: string; expiresAt: number; connectedAt: number };
 type ReceiptAck = { version: "PF-ACK/1"; match_id: string; receipt_id: string; actor_id: string; accepted_at: number; signature: string };
+type PositionCheckpointMap = Record<string, number>;
 
 const STALE_MS = 45_000;
 const SWEEP_MS = 30_000;
+const POSITION_CHECKPOINT_MS = 1_000;
+
+function timestamp(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function validJoinRole(value: unknown): value is JoinRole {
+  return value === "lead" || value === "hand" || value === "observer";
+}
 
 function devSecret(env: PaperFirmEnv): string {
   if (env.PAPER_FIRM_FIELD_SECRET) return env.PAPER_FIRM_FIELD_SECRET;
@@ -63,7 +74,7 @@ async function verifyJoinTicket(secret: string, ticket: string, matchId: string)
   try { material = decodeBase64Url(encoded); } catch { return null; }
   const [version, ticketMatch, actorId, role, expiresRaw] = material.split("\n");
   const expiresAt = Number(expiresRaw);
-  if (version !== "PF-JOIN/2" || ticketMatch !== matchId || !validPlayerId(actorId) || !["lead", "hand", "observer"].includes(role) || !Number.isSafeInteger(expiresAt) || expiresAt < Date.now()) return null;
+  if (version !== "PF-JOIN/2" || ticketMatch !== matchId || !validPlayerId(actorId) || !validJoinRole(role) || !Number.isSafeInteger(expiresAt) || expiresAt <= Date.now()) return null;
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
   const valid = await crypto.subtle.verify("HMAC", key, bytesFromHex(signature), new TextEncoder().encode(material));
   return valid ? { actorId, role: role as JoinRole, expiresAt } : null;
@@ -80,8 +91,14 @@ function canonicalReceipt(input: {
   sequence: number;
   nonce: string;
   issued_at: number;
+  scout_find_sequence: number;
+  scout_find_at: number;
+  scout_carry_sequence: number;
+  scout_carry_at: number;
 }) {
-  return [input.version, input.match_id, input.receipt_id, input.actor_id, input.action, input.object_id, input.zone_id, String(input.sequence), input.nonce, String(input.issued_at)].join("\n");
+  // Joint PF/1 field-receipt extension: RUG verifies these four field-authored
+  // facts before projecting Scout participation; intake must not synthesize them.
+  return [input.version, input.match_id, input.receipt_id, input.actor_id, input.action, input.object_id, input.zone_id, String(input.sequence), input.nonce, String(input.issued_at), String(input.scout_find_sequence), String(input.scout_find_at), String(input.scout_carry_sequence), String(input.scout_carry_at)].join("\n");
 }
 
 async function signReceipt(secret: string, material: string): Promise<string> {
@@ -104,19 +121,41 @@ export class PaperFirmRoom implements DurableObject {
   private sockets = new Map<WebSocket, SocketMeta>();
   private pending = new Map<WebSocket, PendingAttachment>();
   private lastPositionPersistAt = new Map<string, number>();
+  private dirtyPositions = new Set<string>();
+  private nextAlarmAt = 0;
   private matchId = "FIRSTSHIFT";
 
   constructor(private readonly ctx: DurableObjectState, private readonly env: PaperFirmEnv) {
+    const now = Date.now();
     for (const ws of this.ctx.getWebSockets()) {
-      const att = ws.deserializeAttachment() as Partial<SocketMeta & PendingAttachment> | null;
-      if (att?.playerId && att.role && att.matchId) {
-        this.sockets.set(ws, { playerId: att.playerId, role: att.role, matchId: att.matchId, lastHeartbeat: Date.now() });
+      let att: Partial<SocketMeta & PendingAttachment> | null = null;
+      try { att = ws.deserializeAttachment() as Partial<SocketMeta & PendingAttachment> | null; } catch { /* closed/unreadable socket */ }
+      if (att?.playerId && validJoinRole(att.role) && att.matchId) {
+        const meta: SocketMeta = {
+          playerId: att.playerId,
+          role: att.role,
+          matchId: att.matchId,
+          lastHeartbeat: timestamp(att.lastHeartbeat, timestamp(att.connectedAt, now)),
+        };
+        this.sockets.set(ws, meta);
+        ws.serializeAttachment(meta);
         this.matchId = att.matchId;
-      } else if (att?.authorizedPlayerId && att.role && att.matchId && Number(att.expiresAt) >= Date.now()) {
-        this.pending.set(ws, { authorizedPlayerId: att.authorizedPlayerId, role: att.role, matchId: att.matchId, expiresAt: Number(att.expiresAt), connectedAt: Number(att.connectedAt) || Date.now() });
+      } else if (att?.authorizedPlayerId && validJoinRole(att.role) && att.matchId && Number.isSafeInteger(Number(att.expiresAt)) && Number(att.expiresAt) > now) {
+        const pending: PendingAttachment = {
+          authorizedPlayerId: att.authorizedPlayerId,
+          role: att.role,
+          matchId: att.matchId,
+          expiresAt: Number(att.expiresAt),
+          connectedAt: timestamp(att.connectedAt, now),
+        };
+        this.pending.set(ws, pending);
+        ws.serializeAttachment(pending);
         this.matchId = att.matchId;
+      } else if (att?.authorizedPlayerId) {
+        try { ws.close(1008, "admission_expired"); } catch { /* closed */ }
       }
     }
+    if (this.sockets.size || this.pending.size) this.scheduleMaintenance(now);
   }
 
   private async init() {
@@ -124,9 +163,39 @@ export class PaperFirmRoom implements DurableObject {
     await this.ctx.blockConcurrencyWhile(async () => {
       const stored = await this.ctx.storage.get<FieldState>("pfState");
       this.state = stored && stored.players ? stored : createFieldState();
+      const storedCheckpoints = await this.ctx.storage.get<PositionCheckpointMap>("pfPositionCheckpoints");
+      if (storedCheckpoints && typeof storedCheckpoints === "object") {
+        for (const [playerId, at] of Object.entries(storedCheckpoints)) {
+          if (Number.isSafeInteger(at) && at > 0) this.lastPositionPersistAt.set(playerId, at);
+        }
+      }
+      for (const [playerId, player] of Object.entries(this.state.players)) {
+        if (!this.lastPositionPersistAt.has(playerId)) this.lastPositionPersistAt.set(playerId, timestamp((player as any).lastInputAt, Date.now()));
+      }
     });
   }
-  private async persist() { await this.ctx.storage.put("pfState", this.state); }
+  private async persist(now = Date.now()) {
+    for (const playerId of Object.keys(this.state.players)) this.lastPositionPersistAt.set(playerId, now);
+    this.dirtyPositions.clear();
+    await this.ctx.storage.put("pfState", this.state);
+    await this.ctx.storage.put("pfPositionCheckpoints", Object.fromEntries(this.lastPositionPersistAt));
+  }
+  private async flushDirtyPositions(now = Date.now()) {
+    if (this.dirtyPositions.size) await this.persist(now);
+  }
+  private positionCheckpointDue(now: number): boolean {
+    return [...this.dirtyPositions].some((playerId) => now - (this.lastPositionPersistAt.get(playerId) || 0) >= POSITION_CHECKPOINT_MS);
+  }
+  private scheduleMaintenance(now = Date.now()) {
+    let at = now + SWEEP_MS;
+    for (const pending of this.pending.values()) at = Math.min(at, pending.expiresAt);
+    for (const meta of this.sockets.values()) at = Math.min(at, meta.lastHeartbeat + STALE_MS);
+    for (const playerId of this.dirtyPositions) at = Math.min(at, (this.lastPositionPersistAt.get(playerId) || now) + POSITION_CHECKPOINT_MS);
+    if (!this.nextAlarmAt || at < this.nextAlarmAt) {
+      this.nextAlarmAt = at;
+      this.ctx.storage.setAlarm(at);
+    }
+  }
   private send(ws: WebSocket, data: unknown) { try { ws.send(JSON.stringify(data)); } catch { /* closed */ } }
   private broadcast(data: unknown) {
     const text = JSON.stringify(data);
@@ -134,14 +203,17 @@ export class PaperFirmRoom implements DurableObject {
   }
   private snapshot() { return { t: "pf_snapshot", ...publicFieldSnapshot(this.state, this.matchId) }; }
   private async drop(ws: WebSocket) {
-    if (this.pending.delete(ws)) return;
+    if (this.pending.delete(ws)) { this.scheduleMaintenance(); return; }
     const meta = this.sockets.get(ws);
     if (!meta) return;
     this.sockets.delete(ws);
     const hasAnotherSocket = [...this.sockets.values()].some((other) => other.playerId === meta.playerId);
-    if (!hasAnotherSocket) this.state = removeFieldPlayer(this.state, meta.playerId);
-    await this.persist();
-    this.broadcast(this.snapshot());
+    if (!hasAnotherSocket) {
+      this.state = removeFieldPlayer(this.state, meta.playerId);
+      await this.persist();
+      this.broadcast(this.snapshot());
+    }
+    this.scheduleMaintenance();
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -159,7 +231,7 @@ export class PaperFirmRoom implements DurableObject {
     const pending: PendingAttachment = { authorizedPlayerId: admission.actorId, role: admission.role, matchId: match, expiresAt: admission.expiresAt, connectedAt: Date.now() };
     this.pending.set(server, pending);
     server.serializeAttachment(pending);
-    this.ctx.storage.setAlarm(Date.now() + SWEEP_MS);
+    this.scheduleMaintenance();
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
@@ -173,7 +245,19 @@ export class PaperFirmRoom implements DurableObject {
       const playerId = String(data.playerId || "");
       if (!validPlayerId(playerId)) { this.send(ws, { t: "pf_error", reason: "invalid_player" }); return; }
       const pending = this.pending.get(ws) || (ws.deserializeAttachment() as PendingAttachment | null);
-      if (!pending?.authorizedPlayerId || pending.authorizedPlayerId !== playerId || pending.matchId !== this.matchId) {
+      const now = Date.now();
+      if (!pending?.authorizedPlayerId) {
+        this.send(ws, { t: "pf_error", reason: "principal_ticket_mismatch" });
+        return;
+      }
+      if (!validJoinRole(pending.role) || pending.expiresAt <= now) {
+        this.pending.delete(ws);
+        this.send(ws, { t: "pf_error", reason: "admission_expired" });
+        try { ws.close(1008, "admission_expired"); } catch { /* closed */ }
+        this.scheduleMaintenance(now);
+        return;
+      }
+      if (pending.authorizedPlayerId !== playerId || pending.matchId !== this.matchId) {
         this.send(ws, { t: "pf_error", reason: "principal_ticket_mismatch" });
         return;
       }
@@ -184,15 +268,14 @@ export class PaperFirmRoom implements DurableObject {
           try { other.close(4001, "replaced"); } catch { /* noop */ }
         }
       }
-      const r = addFieldPlayer(this.state, playerId, Date.now());
+      const r = addFieldPlayer(this.state, playerId, now);
       if (!r.ok) { this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
-      this.lastPositionPersistAt.set(playerId, Date.now());
-      const meta = { playerId, role: pending.role, matchId: this.matchId, lastHeartbeat: Date.now() };
+      const meta: SocketMeta = { playerId, role: pending.role, matchId: this.matchId, lastHeartbeat: now };
       ws.serializeAttachment(meta);
       this.sockets.set(ws, meta);
-      await this.persist();
-      this.ctx.storage.setAlarm(Date.now() + SWEEP_MS);
+      await this.persist(now);
+      this.scheduleMaintenance(now);
       this.send(ws, { t: "pf_welcome", playerId, ...publicFieldSnapshot(this.state, this.matchId) });
       this.broadcast(this.snapshot());
       return;
@@ -200,30 +283,33 @@ export class PaperFirmRoom implements DurableObject {
 
     const meta = this.sockets.get(ws);
     if (!meta) { this.send(ws, { t: "pf_error", reason: "not_joined" }); return; }
-    meta.lastHeartbeat = Date.now();
+    const now = Date.now();
+    meta.lastHeartbeat = now;
+    ws.serializeAttachment(meta);
 
-    if (data.t === "heartbeat") { this.send(ws, { t: "heartbeat_ack", at: Date.now() }); return; }
+    if (data.t === "heartbeat") { this.send(ws, { t: "heartbeat_ack", at: now }); this.scheduleMaintenance(now); return; }
     if (data.t === "pf_snapshot_request") { this.send(ws, this.snapshot()); return; }
 
     if (data.t === "pf_input") {
-      const r = applyFieldInput(this.state, meta.playerId, { dx: data.dx, dy: data.dy }, Date.now());
+      const r = applyFieldInput(this.state, meta.playerId, { dx: data.dx, dy: data.dy }, now);
       if (!r.ok) { if (r.reason !== "too_fast") this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
-      const now = Date.now();
+      this.dirtyPositions.add(meta.playerId);
       const lastPersist = this.lastPositionPersistAt.get(meta.playerId) || 0;
-      if (now - lastPersist >= 1_000) {
+      if (now - lastPersist >= POSITION_CHECKPOINT_MS) {
         await this.persist();
-        this.lastPositionPersistAt.set(meta.playerId, now);
       }
+      this.scheduleMaintenance(now);
       this.broadcast(this.snapshot());
       return;
     }
 
     if (data.t === "pf_scout") {
-      const r = advanceScout(this.state, String(data.verb || ""), { playerId: meta.playerId, role: meta.role });
+      await this.flushDirtyPositions(now);
+      const r = advanceScout(this.state, String(data.verb || ""), { playerId: meta.playerId, role: meta.role }, now);
       if (!r.ok) { this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
-      await this.persist();
+      await this.persist(now);
       this.broadcast({ t: "pf_scout_event", verb: String(data.verb), actor: meta.playerId, phase: this.state.scout.phase, at: Date.now() });
       this.broadcast(this.snapshot());
       return;
@@ -231,21 +317,28 @@ export class PaperFirmRoom implements DurableObject {
 
     if (data.t === "pf_extract") {
       if (meta.role !== "lead") { this.send(ws, { t: "pf_extract_result", ok: false, reason: "field_lead_required" }); return; }
+      await this.flushDirtyPositions(now);
       const r = extractPage(this.state, meta.playerId);
       if (!r.ok) { this.send(ws, { t: "pf_extract_result", ok: false, reason: r.reason }); return; }
       const secret = devSecret(this.env);
       if (!secret) { this.send(ws, { t: "pf_extract_result", ok: false, reason: "receipt_signing_unavailable" }); return; }
       this.state = r.state;
-      const issued_at = Date.now();
+      const issued_at = now;
       const unsigned = {
         version: "PF/1", match_id: this.matchId, receipt_id: `pf:${this.matchId}:${r.sequence}`,
         actor_id: meta.playerId, action: "extract", object_id: "PAGE-7", zone_id: "ARCHIVE",
         sequence: r.sequence, nonce: randomHex(), issued_at,
+        // Field-authoritative Scout participation is signed into the extraction
+        // receipt; RUG validates and projects these facts before OBS intake.
+        scout_find_sequence: this.state.scout.findSequence,
+        scout_find_at: this.state.scout.findAt,
+        scout_carry_sequence: this.state.scout.carrySequence,
+        scout_carry_at: this.state.scout.carryAt,
       };
       const signature = await signReceipt(secret, canonicalReceipt(unsigned));
       const receipt = { ...unsigned, signature };
       this.state = { ...this.state, page: { ...this.state.page, pendingReceipt: receipt } };
-      await this.persist();
+      await this.persist(now);
       this.send(ws, { t: "pf_extract_result", ok: true, receipt });
       // The receipt is not secret. Broadcasting it lets the distinct Desk human accept
       // the field evidence into RUG. Replay protection + RUG membership still gate truth.
@@ -255,6 +348,7 @@ export class PaperFirmRoom implements DurableObject {
     }
 
     if (data.t === "pf_receipt_ack") {
+      await this.flushDirtyPositions(now);
       const pendingReceipt = this.state.page.pendingReceipt;
       const receiptId = String(data.ack?.receipt_id || data.receipt_id || "");
       if (!receiptId || !pendingReceipt || pendingReceipt.receipt_id !== receiptId || !await verifyReceiptAck(devSecret(this.env), data.ack, this.matchId, receiptId, pendingReceipt.actor_id)) {
@@ -262,7 +356,7 @@ export class PaperFirmRoom implements DurableObject {
         return;
       }
       this.state = { ...this.state, page: { ...this.state.page, pendingReceipt: null } };
-      await this.persist();
+      await this.persist(now);
       this.broadcast({ t: "pf_receipt_ack_result", ok: true, receipt_id: receiptId });
       this.broadcast(this.snapshot());
       return;
@@ -279,10 +373,12 @@ export class PaperFirmRoom implements DurableObject {
   async webSocketClose(ws: WebSocket): Promise<void> { await this.init(); await this.drop(ws); }
   async webSocketError(ws: WebSocket): Promise<void> { await this.init(); await this.drop(ws); }
   async alarm(): Promise<void> {
+    this.nextAlarmAt = 0;
     await this.init();
     const now = Date.now();
+    if (this.positionCheckpointDue(now)) await this.persist(now);
     for (const [ws, pending] of [...this.pending.entries()]) {
-      if (pending.expiresAt < now) {
+      if (pending.expiresAt <= now) {
         this.pending.delete(ws);
         try { ws.close(1008, "admission_expired"); } catch { /* noop */ }
       }
@@ -293,6 +389,6 @@ export class PaperFirmRoom implements DurableObject {
         await this.drop(ws);
       }
     }
-    if (this.sockets.size || this.pending.size) this.ctx.storage.setAlarm(Date.now() + SWEEP_MS);
+    if (this.sockets.size || this.pending.size || this.dirtyPositions.size) this.scheduleMaintenance(now);
   }
 }

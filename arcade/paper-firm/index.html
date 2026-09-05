@@ -43,7 +43,20 @@
         <button id="sign-relay" class="pen-button signature hidden">SIGN RELAY</button>
       </div>
       <div id="human-b-actions" class="button-row hidden">
+        <button id="verify-source" class="pen-button action">VERIFY PAGE-7</button>
+        <button id="promote-source" class="pen-button action">PROMOTE DOCTRINE</button>
+        <button id="package-packet" class="pen-button action">PACKAGE BUILDER</button>
+        <button id="deliver-packet" class="pen-button action">DELIVER PACKET</button>
         <button id="change-requirement" class="pen-button danger hidden">CHANGE REQUIREMENT → R2</button>
+      </div>
+      <div id="finding-actions" class="button-row hidden">
+        <label class="finding-input">FINDING <input id="finding-id" placeholder="finding id" spellcheck="false" /></label>
+        <select id="finding-reason" aria-label="rejection reason">
+          <option value="missing_ancestry">missing ancestry</option>
+          <option value="empty_evidence">empty evidence</option>
+          <option value="superseded_packet">superseded packet</option>
+        </select>
+        <button id="reject-finding" class="pen-button danger">REJECT FINDING</button>
       </div>
       <p class="tiny">WASD / arrow keys move. Drag the page to rotate the drawing.</p>
     </section>
