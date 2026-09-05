@@ -49,28 +49,11 @@ function canonicalReceipt(input: {
   nonce: string;
   issued_at: number;
 }) {
-  return [
-    input.version,
-    input.match_id,
-    input.receipt_id,
-    input.actor_id,
-    input.action,
-    input.object_id,
-    input.zone_id,
-    String(input.sequence),
-    input.nonce,
-    String(input.issued_at),
-  ].join("\n");
+  return [input.version, input.match_id, input.receipt_id, input.actor_id, input.action, input.object_id, input.zone_id, String(input.sequence), input.nonce, String(input.issued_at)].join("\n");
 }
 
 async function signReceipt(secret: string, material: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return hex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(material)));
 }
 
@@ -96,26 +79,13 @@ export class PaperFirmRoom implements DurableObject {
       this.state = stored && stored.players ? stored : createFieldState();
     });
   }
-
-  private async persist() {
-    await this.ctx.storage.put("pfState", this.state);
-  }
-
-  private send(ws: WebSocket, data: unknown) {
-    try { ws.send(JSON.stringify(data)); } catch { /* closed */ }
-  }
-
+  private async persist() { await this.ctx.storage.put("pfState", this.state); }
+  private send(ws: WebSocket, data: unknown) { try { ws.send(JSON.stringify(data)); } catch { /* closed */ } }
   private broadcast(data: unknown) {
     const text = JSON.stringify(data);
-    for (const ws of this.sockets.keys()) {
-      try { ws.send(text); } catch { /* closed */ }
-    }
+    for (const ws of this.sockets.keys()) try { ws.send(text); } catch { /* closed */ }
   }
-
-  private snapshot() {
-    return { t: "pf_snapshot", ...publicFieldSnapshot(this.state, this.matchId) };
-  }
-
+  private snapshot() { return { t: "pf_snapshot", ...publicFieldSnapshot(this.state, this.matchId) }; }
   private async drop(ws: WebSocket) {
     const meta = this.sockets.get(ws);
     if (!meta) return;
@@ -164,22 +134,12 @@ export class PaperFirmRoom implements DurableObject {
     if (!meta) { this.send(ws, { t: "pf_error", reason: "not_joined" }); return; }
     meta.lastHeartbeat = Date.now();
 
-    if (data.t === "heartbeat") {
-      this.send(ws, { t: "heartbeat_ack", at: Date.now() });
-      return;
-    }
-
-    if (data.t === "pf_snapshot_request") {
-      this.send(ws, this.snapshot());
-      return;
-    }
+    if (data.t === "heartbeat") { this.send(ws, { t: "heartbeat_ack", at: Date.now() }); return; }
+    if (data.t === "pf_snapshot_request") { this.send(ws, this.snapshot()); return; }
 
     if (data.t === "pf_input") {
       const r = applyFieldInput(this.state, meta.playerId, { dx: data.dx, dy: data.dy }, Date.now());
-      if (!r.ok) {
-        if (r.reason !== "too_fast") this.send(ws, { t: "pf_error", reason: r.reason });
-        return;
-      }
+      if (!r.ok) { if (r.reason !== "too_fast") this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
       await this.persist();
       this.broadcast(this.snapshot());
@@ -204,20 +164,17 @@ export class PaperFirmRoom implements DurableObject {
       this.state = r.state;
       const issued_at = Date.now();
       const unsigned = {
-        version: "PF/1",
-        match_id: this.matchId,
-        receipt_id: `pf:${this.matchId}:${r.sequence}`,
-        actor_id: meta.playerId,
-        action: "extract",
-        object_id: "PAGE-7",
-        zone_id: "ARCHIVE",
-        sequence: r.sequence,
-        nonce: randomHex(),
-        issued_at,
+        version: "PF/1", match_id: this.matchId, receipt_id: `pf:${this.matchId}:${r.sequence}`,
+        actor_id: meta.playerId, action: "extract", object_id: "PAGE-7", zone_id: "ARCHIVE",
+        sequence: r.sequence, nonce: randomHex(), issued_at,
       };
       const signature = await signReceipt(secret, canonicalReceipt(unsigned));
+      const receipt = { ...unsigned, signature };
       await this.persist();
-      this.send(ws, { t: "pf_extract_result", ok: true, receipt: { ...unsigned, signature } });
+      this.send(ws, { t: "pf_extract_result", ok: true, receipt });
+      // The receipt is not secret. Broadcasting it lets the distinct Desk human accept
+      // the field evidence into RUG. Replay protection + RUG membership still gate truth.
+      this.broadcast({ t: "pf_field_receipt", receipt });
       this.broadcast(this.snapshot());
       return;
     }
@@ -227,13 +184,11 @@ export class PaperFirmRoom implements DurableObject {
       try { ws.close(1000, "left"); } catch { /* noop */ }
       return;
     }
-
     this.send(ws, { t: "pf_error", reason: "unknown_type" });
   }
 
   async webSocketClose(ws: WebSocket): Promise<void> { await this.init(); await this.drop(ws); }
   async webSocketError(ws: WebSocket): Promise<void> { await this.init(); await this.drop(ws); }
-
   async alarm(): Promise<void> {
     await this.init();
     const now = Date.now();
