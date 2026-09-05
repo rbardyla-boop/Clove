@@ -50,7 +50,7 @@ export const HARD_EXCLUDE_FILES = Object.freeze(new Set([
 export function isHardExcluded(relPath) {
   const p = String(relPath).replaceAll('\\', '/').replace(/^\.\//, '');
   if (HARD_EXCLUDE_FILES.has(p)) return true;
-  if (p.endsWith('/README.md') || p === 'README.md') return true;
+  if (p.endsWith('/README.md') || p === 'README.md' || p === 'AGENTS.md' || p.endsWith('/AGENTS.md')) return true;
   return HARD_EXCLUDE_PREFIXES.some((prefix) => p === prefix.slice(0, -1) || p.startsWith(prefix));
 }
 

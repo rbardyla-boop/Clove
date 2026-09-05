@@ -14,6 +14,11 @@ test('DS-I1 is explicitly hard-excluded from public production',()=>{
   }
 });
 
+test('repository operating instructions never enter the public production upload',()=>{
+  assert.equal(isHardExcluded('AGENTS.md'), true);
+  assert.equal(isHardExcluded('arcade/paper-firm/AGENTS.md'), true);
+});
+
 test('Mission 001 remains public while DS-I0 and DS-I1 remain private',()=>{
   const {included}=productionUploadFileList();
   for(const path of ['mission-001.html','mission-001-app.js','mission-private-store.js']) assert.equal(included.includes(path),true,path);

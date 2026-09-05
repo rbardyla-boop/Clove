@@ -1,0 +1,32 @@
+name: Paper Firm proof
+
+on:
+  pull_request:
+    paths:
+      - "arcade/paper-firm/**"
+      - "arcade-studio/**"
+      - "workers/arcade/**"
+      - "tests/arcade/**"
+      - "scripts/build-production-upload.mjs"
+      - "tests/static/ds-i1-release-boundary.test.mjs"
+      - ".github/workflows/paper-firm.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix arcade-studio
+      - run: npm ci --prefix workers/arcade
+      - run: npm run test:unit
+      - run: node --test tests/static/ds-i1-release-boundary.test.mjs
+      - run: npm --prefix workers/arcade run check
