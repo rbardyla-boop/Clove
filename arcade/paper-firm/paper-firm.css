@@ -1,0 +1,126 @@
+:root {
+  --paper: #f5f0df;
+  --paper-deep: #ebe3ce;
+  --rule: rgba(91, 135, 176, .22);
+  --ink: #245da0;
+  --ink-soft: rgba(36, 93, 160, .58);
+  --red: #b53a3a;
+  --yellow: rgba(244, 216, 80, .46);
+}
+
+* { box-sizing: border-box; }
+html, body, #paper-app { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Comic Sans MS", "Bradley Hand", "Segoe Print", cursive;
+}
+
+#paper-app { position: relative; }
+#paper-world { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+#paper-world:active { cursor: grabbing; }
+
+.paper-note {
+  position: absolute;
+  background:
+    repeating-linear-gradient(to bottom, rgba(255,255,255,.06) 0 27px, var(--rule) 28px 29px),
+    rgba(245, 240, 223, .86);
+  border: 2px solid var(--ink);
+  border-radius: 8px 5px 10px 6px;
+  box-shadow: 3px 4px 0 rgba(36, 93, 160, .12);
+  padding: 10px 13px;
+  backdrop-filter: blur(1px);
+}
+
+.paper-note::before {
+  content: "";
+  position: absolute;
+  inset: 4px -3px -3px 5px;
+  border: 1px solid rgba(36, 93, 160, .45);
+  border-radius: 7px 9px 5px 10px;
+  pointer-events: none;
+}
+
+#top-note { left: 18px; top: 16px; display: grid; gap: 2px; transform: rotate(-.5deg); }
+#top-note strong { font-size: 21px; letter-spacing: 1px; }
+#top-note span { font-size: 13px; }
+
+.setup-note { right: 18px; top: 16px; width: min(360px, calc(100vw - 36px)); display: grid; gap: 7px; }
+.setup-note label { display: grid; grid-template-columns: 58px 1fr; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+
+input {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  color: var(--ink);
+  font: inherit;
+  min-width: 0;
+  outline: none;
+  padding: 3px 4px;
+}
+
+.pen-button {
+  appearance: none;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: rgba(245,240,223,.72);
+  border-radius: 7px 5px 9px 6px;
+  padding: 7px 10px 6px;
+  font: 700 12px/1.05 "Comic Sans MS", "Bradley Hand", cursive;
+  cursor: pointer;
+  transform: rotate(-.25deg);
+  box-shadow: 2px 2px 0 rgba(36,93,160,.12);
+}
+.pen-button:hover { background: rgba(36,93,160,.08); transform: rotate(.25deg) translateY(-1px); }
+.pen-button:disabled { opacity: .42; cursor: not-allowed; text-decoration: line-through; }
+.pen-button.primary { background: var(--yellow); }
+.pen-button.danger { color: var(--red); border-color: var(--red); }
+.pen-button.signature { color: var(--red); border-color: var(--red); font-size: 16px; padding-inline: 18px; }
+
+.action-note { left: 18px; bottom: 18px; width: min(540px, calc(100vw - 36px)); }
+.button-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.role-line { font-size: 13px; font-weight: 700; }
+.tiny { margin: 8px 0 0; font-size: 11px; opacity: .75; }
+
+.desk-note { right: 18px; top: 196px; width: 280px; transform: rotate(.4deg); }
+.desk-note h2, .overnight-note h2 { margin: 0 0 7px; font-size: 17px; text-decoration: underline; text-decoration-thickness: 2px; }
+.desk-grid { display: grid; grid-template-columns: 90px 1fr; gap: 3px 8px; font-size: 12px; }
+.desk-grid b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.overnight-note { right: 18px; bottom: 18px; width: 280px; border-color: var(--red); transform: rotate(-.7deg); }
+.overnight-note::after {
+  content: "";
+  position: absolute;
+  top: -5px; left: 92px; width: 82px; height: 17px;
+  background: rgba(220, 204, 157, .66);
+  border: 1px solid rgba(139,117,69,.25);
+  transform: rotate(2deg);
+}
+.receipt-line { display: flex; justify-content: space-between; gap: 14px; font-size: 13px; }
+.receipt-line b { color: var(--red); }
+
+.log-note { left: 18px; top: 112px; width: 260px; max-height: 245px; overflow: hidden; opacity: .92; }
+#log-lines { display: grid; gap: 3px; font-size: 11px; }
+.log-entry::before { content: "→ "; }
+.log-entry.reject { color: var(--red); text-decoration: line-through; }
+.log-entry.pass { color: var(--red); font-weight: 700; }
+
+.hidden { display: none !important; }
+
+body[data-connected="true"] .setup-note { opacity: .30; transition: opacity .2s; }
+body[data-connected="true"] .setup-note:hover { opacity: .95; }
+
+@media (max-width: 850px) {
+  .desk-note { top: auto; right: 12px; bottom: 150px; width: 235px; }
+  .overnight-note { right: 12px; bottom: 12px; width: 235px; }
+  .action-note { left: 12px; bottom: 12px; width: calc(100vw - 270px); }
+  .log-note { display: none !important; }
+}
+
+@media (max-width: 620px) {
+  .setup-note { right: 8px; top: 8px; width: calc(100vw - 16px); }
+  #top-note { display: none; }
+  .desk-note { right: 8px; bottom: 160px; width: calc(100vw - 16px); max-height: 155px; }
+  .overnight-note { right: 8px; bottom: 8px; width: calc(100vw - 16px); }
+  .action-note { left: 8px; bottom: 310px; width: calc(100vw - 16px); max-height: 170px; overflow: auto; }
+}
