@@ -20,7 +20,7 @@
       <label>RUG <input id="rug-url" value="http://localhost:8080" spellcheck="false" /></label>
       <label>WORLD <input id="match-id" placeholder="WORLD CODE" maxlength="32" spellcheck="false" /></label>
       <label>MESH <input id="mesh-url" placeholder="auto" spellcheck="false" /></label>
-      <button id="connect-btn" class="pen-button primary">ENTER THE PAGE</button>
+      <button id="connect-btn" class="pen-button action">ENTER THE PAGE</button>
       <div id="connection-status">not connected</div>
     </section>
 
@@ -29,7 +29,13 @@
       <div id="field-actions" class="button-row">
         <button id="scout-find" class="pen-button">SCOUT: FIND</button>
         <button id="scout-carry" class="pen-button">SCOUT: CARRY</button>
-        <button id="extract-page" class="pen-button primary">EXTRACT PAGE-7</button>
+        <button id="extract-page" class="pen-button action">EXTRACT PAGE-7</button>
+      </div>
+      <div id="touch-pad" class="touch-pad" aria-label="touch movement">
+        <button class="pen-button" data-touch-key="arrowup" aria-label="move up">▲</button>
+        <button class="pen-button" data-touch-key="arrowleft" aria-label="move left">◀</button>
+        <button class="pen-button" data-touch-key="arrowdown" aria-label="move down">▼</button>
+        <button class="pen-button" data-touch-key="arrowright" aria-label="move right">▶</button>
       </div>
       <div id="human-a-actions" class="button-row hidden">
         <button id="go-offline" class="pen-button danger">GO OFF SHIFT</button>

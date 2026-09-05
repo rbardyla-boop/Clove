@@ -63,6 +63,9 @@ test('disconnect/rejoin preserves the field player while hiding offline presence
 test('the Paper Firm renderer contains the frozen visual language and no autonomous worker loop', () => {
   const source = fs.readFileSync(new URL('../../arcade/paper-firm/paper-firm.js', import.meta.url), 'utf8');
   const html = fs.readFileSync(new URL('../../arcade/paper-firm/index.html', import.meta.url), 'utf8');
+  const room = fs.readFileSync(new URL('../../workers/arcade/src/paper-firm-room.ts', import.meta.url), 'utf8');
+  const headers = fs.readFileSync(new URL('../../_headers', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../../arcade/paper-firm/paper-firm.css', import.meta.url), 'utf8');
   for (const marker of ['paperBackground', 'drawBox', 'hatchFace', 'drawZone', 'redCheck', 'redX', 'tapeMark', 'ancestryThread']) {
     assert.match(source, new RegExp(`function ${marker}\\b`), marker);
   }
@@ -74,4 +77,11 @@ test('the Paper Firm renderer contains the frozen visual language and no autonom
   assert.match(source, /ctx\.globalAlpha|alpha/);
   assert.doesNotMatch(source, /deskWorkerTick|workerTimer|setInterval\(\(\) => deskWorkerTick/);
   assert.doesNotMatch(source, /MeshStandardMaterial|MeshPhysicalMaterial|postprocess|beige/i);
+  assert.match(html, /data-touch-key="arrowup"/);
+  assert.match(css, /\.touch-pad/);
+  assert.match(room, /PF-JOIN\/2/);
+  assert.match(room, /verifyReceiptAck/);
+  assert.match(room, /meta\.role !== "lead"/);
+  assert.match(room, /this\.pending/);
+  assert.match(headers, /http:\/\/localhost:8080/);
 });

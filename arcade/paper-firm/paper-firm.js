@@ -24,7 +24,11 @@ let socket = null;
 let rugBusy = false;
 let lastReceipt = null;
 let lastAcceptedReceiptId = '';
+let lastReceiptAck = null;
 let receiptAccepting = false;
+let receiptRetryAt = 0;
+let receiptRetryMs = 1_000;
+let receiptRetryId = '';
 let lastHead = '';
 let heartbeatTimer = 0;
 let snapshotTimer = 0;
@@ -160,22 +164,41 @@ async function onFieldMessage(event) {
 async function acceptReceipt(receipt) {
   if (role !== 'hand' || !receipt?.receipt_id) return;
   lastReceipt = receipt;
+  if (receiptRetryId !== receipt.receipt_id) {
+    receiptRetryId = receipt.receipt_id;
+    receiptRetryAt = 0;
+    receiptRetryMs = 1_000;
+    lastReceiptAck = null;
+  }
+  if (Date.now() < receiptRetryAt) return;
   if (lastAcceptedReceiptId === receipt.receipt_id) {
-    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', receipt_id: receipt.receipt_id }));
+    if (lastReceiptAck && socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', ack: lastReceiptAck }));
     return;
   }
   if (receiptAccepting) return;
   receiptAccepting = true;
   try {
-    await rugPost('intake_receipt', { receipt });
+    const accepted = await rugPost('intake_receipt', { receipt });
+    if (!accepted.receiptAck) throw new Error('RUG did not return a receipt acknowledgement');
     lastAcceptedReceiptId = receipt.receipt_id;
+    lastReceiptAck = accepted.receiptAck;
+    receiptRetryAt = 0;
+    receiptRetryMs = 1_000;
     addLog('Desk accepted receipt → OBS', 'pass');
-    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', receipt_id: receipt.receipt_id }));
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', ack: lastReceiptAck }));
   } catch (err) {
-    if (err.message === 'receipt_replayed') {
+    const replayAck = err?.data?.receiptAck;
+    if (replayAck) {
       lastAcceptedReceiptId = receipt.receipt_id;
-      if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', receipt_id: receipt.receipt_id }));
-    } else addLog(`receipt rejected: ${err.message}`, 'reject');
+      lastReceiptAck = replayAck;
+      receiptRetryAt = 0;
+      receiptRetryMs = 1_000;
+      if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', ack: lastReceiptAck }));
+    } else {
+      receiptRetryAt = Date.now() + receiptRetryMs;
+      receiptRetryMs = Math.min(30_000, receiptRetryMs * 2);
+      addLog(`receipt rejected: ${err.message}`, 'reject');
+    }
   } finally {
     receiptAccepting = false;
   }
@@ -197,6 +220,7 @@ async function connect() {
     $('event-log').classList.remove('hidden');
     if (role === 'lead') $('human-a-actions').classList.remove('hidden');
     if (role === 'hand') $('human-b-actions').classList.remove('hidden');
+    $('extract-page').classList.toggle('hidden', role !== 'lead');
     await openFieldSocket();
     startLoops();
     addLog('joined authoritative First Shift', 'pass');
@@ -304,6 +328,15 @@ window.addEventListener('keydown', (e) => {
   }
 });
 window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+for (const button of document.querySelectorAll('[data-touch-key]')) {
+  const key = button.dataset.touchKey;
+  const press = (event) => { event.preventDefault(); keys.add(key); button.setPointerCapture?.(event.pointerId); };
+  const release = (event) => { event.preventDefault(); keys.delete(key); };
+  button.addEventListener('pointerdown', press, { passive: false });
+  button.addEventListener('pointerup', release, { passive: false });
+  button.addEventListener('pointercancel', release, { passive: false });
+  button.addEventListener('pointerleave', release, { passive: false });
+}
 setInterval(() => {
   if (socket?.readyState !== WebSocket.OPEN || offlineLocal) return;
   const dx = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0);
