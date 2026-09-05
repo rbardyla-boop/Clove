@@ -96,7 +96,12 @@ export function applyFieldInput(state, playerId, input, now = Date.now()) {
   return { ok: true, reason: 'ok', state: { ...state, players: { ...state.players, [playerId]: next } } };
 }
 
-export function advanceScout(state, verb) {
+export function advanceScout(state, verb, actor = {}) {
+  const player = state.players?.[actor.playerId];
+  const stain = PF_ZONES.find((zone) => zone.id === 'STAIN');
+  if (actor.role !== 'lead') return { ok: false, reason: 'field_lead_required', state };
+  if (!player) return { ok: false, reason: 'not_joined', state };
+  if (!pointInRect(player, stain)) return { ok: false, reason: 'scout_requires_stain_position', state };
   const phase = state.scout?.phase || 'idle';
   if (verb === 'find' && phase === 'idle') {
     return { ok: true, reason: 'found', state: { ...state, scout: { phase: 'found', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY } } };

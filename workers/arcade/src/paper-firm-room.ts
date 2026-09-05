@@ -103,6 +103,7 @@ export class PaperFirmRoom implements DurableObject {
   private state!: FieldState;
   private sockets = new Map<WebSocket, SocketMeta>();
   private pending = new Map<WebSocket, PendingAttachment>();
+  private lastPositionPersistAt = new Map<string, number>();
   private matchId = "FIRSTSHIFT";
 
   constructor(private readonly ctx: DurableObjectState, private readonly env: PaperFirmEnv) {
@@ -186,6 +187,7 @@ export class PaperFirmRoom implements DurableObject {
       const r = addFieldPlayer(this.state, playerId, Date.now());
       if (!r.ok) { this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
+      this.lastPositionPersistAt.set(playerId, Date.now());
       const meta = { playerId, role: pending.role, matchId: this.matchId, lastHeartbeat: Date.now() };
       ws.serializeAttachment(meta);
       this.sockets.set(ws, meta);
@@ -207,13 +209,18 @@ export class PaperFirmRoom implements DurableObject {
       const r = applyFieldInput(this.state, meta.playerId, { dx: data.dx, dy: data.dy }, Date.now());
       if (!r.ok) { if (r.reason !== "too_fast") this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
-      await this.persist();
+      const now = Date.now();
+      const lastPersist = this.lastPositionPersistAt.get(meta.playerId) || 0;
+      if (now - lastPersist >= 1_000) {
+        await this.persist();
+        this.lastPositionPersistAt.set(meta.playerId, now);
+      }
       this.broadcast(this.snapshot());
       return;
     }
 
     if (data.t === "pf_scout") {
-      const r = advanceScout(this.state, String(data.verb || ""));
+      const r = advanceScout(this.state, String(data.verb || ""), { playerId: meta.playerId, role: meta.role });
       if (!r.ok) { this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
       await this.persist();

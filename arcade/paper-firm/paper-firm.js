@@ -73,6 +73,10 @@ function config() {
     else mesh = 'ws://localhost:8787';
   }
   mesh = mesh.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
+  // A production admission ticket is scoped to the canonical mesh. Ignore a
+  // user-supplied endpoint there so a signed ticket cannot be redirected to an
+  // attacker-controlled WebSocket origin.
+  if (location.hostname === 'clovelearn.io' || location.hostname === 'www.clovelearn.io') mesh = 'wss://clovelearn.io';
   return { match, rug, mesh };
 }
 
@@ -262,6 +266,13 @@ function updateUi() {
   $('desk-builder').textContent = paper.builderOperated ? (paper.workerReplacements ? 'replacement working' : 'working') : 'idle';
   $('desk-harness').textContent = paper.harnessPassed ? 'PASS' : 'OPEN';
   $('desk-sign').textContent = paper.complete ? 'SIGNED' : paper.readyToSign ? 'READY' : 'blocked';
+  $('scout-find').classList.toggle('hidden', role !== 'lead');
+  $('scout-carry').classList.toggle('hidden', role !== 'lead');
+  const requirementButton = $('change-requirement');
+  const canChangeRequirement = role === 'hand' && paper.requirementRevision === 'R1';
+  requirementButton.classList.toggle('hidden', !canChangeRequirement);
+  requirementButton.disabled = !paper.humanOffline;
+  requirementButton.title = paper.humanOffline ? 'Change the requirement' : 'Human A must leave first';
 
   $('gone-relay').textContent = gone.relayRepair || 'OPEN';
   $('gone-worker').textContent = String(gone.workerReplaced ?? 0);

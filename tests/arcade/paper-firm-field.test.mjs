@@ -19,8 +19,10 @@ test('the field does not become a RUG observation during scout movement', () => 
   const joined = addFieldPlayer(state, LEAD, 1_000);
   assert.equal(joined.ok, true);
   state = joined.state;
-  state = advanceScout(state, 'find').state;
-  state = advanceScout(state, 'carry').state;
+  const stain = PF_ZONES.find((zone) => zone.id === 'STAIN');
+  state = { ...state, players: { ...state.players, [LEAD]: { ...state.players[LEAD], x: stain.x + 20, y: stain.y + 20 } } };
+  state = advanceScout(state, 'find', { playerId: LEAD, role: 'lead' }).state;
+  state = advanceScout(state, 'carry', { playerId: LEAD, role: 'lead' }).state;
 
   assert.equal(state.page.phase, 'at_archive');
   assert.equal(state.page.pendingReceipt, null);
@@ -31,7 +33,9 @@ test('the field does not become a RUG observation during scout movement', () => 
 test('extraction is a real archive position gate and creates a field sequence', () => {
   let state = createFieldState();
   state = addFieldPlayer(state, LEAD, 1_000).state;
-  state = advanceScout(advanceScout(state, 'find').state, 'carry').state;
+  const stain = PF_ZONES.find((zone) => zone.id === 'STAIN');
+  state = { ...state, players: { ...state.players, [LEAD]: { ...state.players[LEAD], x: stain.x + 20, y: stain.y + 20 } } };
+  state = advanceScout(advanceScout(state, 'find', { playerId: LEAD, role: 'lead' }).state, 'carry', { playerId: LEAD, role: 'lead' }).state;
 
   assert.equal(canExtract(state, LEAD).reason, 'not_in_archive');
   const archive = PF_ZONES.find((zone) => zone.id === 'ARCHIVE');
@@ -43,6 +47,12 @@ test('extraction is a real archive position gate and creates a field sequence', 
   assert.equal(extracted.state.page.phase, 'extracted');
   assert.equal(extracted.state.page.extractedBy, LEAD);
   assert.equal(extracted.state.page.pendingReceipt, null, 'RUG intake must provide the receipt');
+});
+
+test('Scout authority is role- and position-bound', () => {
+  let state = addFieldPlayer(createFieldState(), LEAD, 1_000).state;
+  assert.equal(advanceScout(state, 'find', { playerId: LEAD, role: 'hand' }).reason, 'field_lead_required');
+  assert.equal(advanceScout(state, 'find', { playerId: LEAD, role: 'lead' }).reason, 'scout_requires_stain_position');
 });
 
 test('disconnect/rejoin preserves the field player while hiding offline presence', () => {
@@ -82,6 +92,9 @@ test('the Paper Firm renderer contains the frozen visual language and no autonom
   assert.match(room, /PF-JOIN\/2/);
   assert.match(room, /verifyReceiptAck/);
   assert.match(room, /meta\.role !== "lead"/);
+  assert.match(room, /advanceScout\(this\.state, String\(data\.verb \|\| ""\), \{ playerId: meta\.playerId, role: meta\.role \}\)/);
   assert.match(room, /this\.pending/);
+  assert.match(source, /location\.hostname === 'clovelearn\.io'.*wss:\/\/clovelearn\.io/);
+  assert.match(source, /change-requirement/);
   assert.match(headers, /http:\/\/localhost:8080/);
 });
