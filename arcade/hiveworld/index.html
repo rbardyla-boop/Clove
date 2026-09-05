@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Clove Hive World — The Frontier Remembers</title>
+  <meta name="description" content="A shared frontier where players test hidden laws, share evidence, and decide what the Hive can safely do.">
+  <meta name="theme-color" content="#08131d">
+  <link rel="stylesheet" href="./hive.css">
+</head>
+<body>
+  <canvas id="hiveCanvas" aria-label="Clove Hive World frontier"></canvas>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <a class="home-link" href="/">← CLOVE</a>
+
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">CLOVE HIVE WORLD <span>·</span> SHARED FRONTIER</p>
+      <h1>The frontier remembers.</h1>
+    </div>
+    <div class="connection-pill" role="status" aria-live="polite">
+      <span id="connectionDot" class="connection-dot"></span>
+      <span id="connectionText">connecting to the frontier</span>
+    </div>
+  </header>
+
+  <main class="interface">
+    <section class="brief panel" aria-labelledby="briefTitle">
+      <div class="panel-kicker">FIELD BRIEF <span id="cycleText">CYCLE 0</span></div>
+      <h2 id="briefTitle">The Relay That Answers Twice</h2>
+      <p class="brief-copy">A relay repeats two incompatible signals. The Hive needs evidence before it acts.</p>
+      <div class="brief-grid">
+        <div><span>Goal</span><strong>Make the disturbance legible.</strong></div>
+        <div><span>Point</span><strong>Evidence changes what the Hive can safely do.</strong></div>
+        <div><span>Method</span><strong>Observe, test, and share without pretending certainty.</strong></div>
+        <div><span>Return</span><strong>Come back when the last decision changes the next question.</strong></div>
+      </div>
+    </section>
+
+    <section class="next-step panel" aria-labelledby="nextTitle">
+      <div class="panel-kicker">YOUR NEXT STEP</div>
+      <h2 id="nextTitle">Travel to Hollow Relay.</h2>
+      <p id="nextHint">The frontier is waking up.</p>
+      <div class="next-action-row">
+        <button class="action primary next-action" id="nextActionBtn" type="button">Travel to Hollow Relay</button>
+      </div>
+      <p class="last-reading" id="lastReading" aria-live="polite">No reading yet. Your first observation will appear here.</p>
+      <div class="mission-card" aria-labelledby="missionTitle">
+        <div class="mission-head"><span class="panel-kicker">FIRST MISSION</span><strong id="missionProgress">0/8</strong></div>
+        <h3 id="missionTitle">Make the relay legible</h3>
+        <p id="missionObjective">Turn two incompatible signals into one safe repair.</p>
+      <div class="mission-steps" id="missionSteps"></div>
+      </div>
+      <div class="thread-card" aria-labelledby="threadTitle">
+        <div class="mission-head"><span class="panel-kicker">RELAY THREAD</span><strong id="threadStatus">0 witnesses</strong></div>
+        <h3 id="threadTitle">Make contact at the relay</h3>
+        <p id="threadHint">A second witness can change what the frontier asks next.</p>
+        <div class="signal-board" id="signalBoard"></div>
+        <div class="thread-receipts" id="threadReceipts"></div>
+      </div>
+      <div class="relay-meter" aria-label="Relay law progress"><span id="relayMeterFill"></span></div>
+      <p class="relay-status" id="relayStatus">Relay status · open</p>
+    </section>
+
+    <section class="field-console panel" aria-labelledby="consoleTitle">
+      <div class="console-heading">
+        <div>
+          <div class="panel-kicker">FIELD CONSOLE</div>
+          <h2 id="consoleTitle">Make one thing legible.</h2>
+        </div>
+        <div class="focus-readout"><span id="focusValue">6</span><small>FOCUS</small></div>
+      </div>
+      <div class="loop-guide" id="loopGuide" aria-label="Witness loop"></div>
+      <p class="console-instruction" id="consoleInstruction">Start with a reading. Select a region, then observe what the frontier returns.</p>
+      <div class="law-board" id="lawBoard"></div>
+      <div class="action-row">
+        <button class="action primary" id="observeBtn" type="button">Observe this region</button>
+        <button class="action" id="hypothesizeBtn" type="button">Form hypothesis</button>
+        <button class="action" id="probeBtn" type="button">Risk a probe <span>−1 Focus</span></button>
+      </div>
+      <div class="action-row secondary-actions">
+        <button class="action" id="shareBtn" type="button">Share latest evidence</button>
+        <button class="action build" id="buildBtn" type="button">Leave a field beacon <span>−2 Focus</span></button>
+        <button class="action" id="authorizeBtn" type="button">Authorize selected law</button>
+        <button class="action repair" id="repairBtn" type="button">Repair the relay</button>
+        <button class="action" id="nextCycleBtn" type="button">Begin next cycle</button>
+      </div>
+      <p id="actionMessage" class="action-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <aside class="witness-card panel" aria-labelledby="witnessTitle">
+      <div class="panel-kicker">YOUR FIELD CARD</div>
+      <h2 id="witnessTitle"><span id="playerName">Witness</span></h2>
+      <p><span id="factionName">Menders</span> · <span id="responsibilityName">Witness</span></p>
+      <div class="card-rule"></div>
+      <div class="stat-line"><span>Validated contributions</span><strong id="earnedValue">0</strong></div>
+      <div class="stat-line"><span>Observations this cycle</span><strong id="observationCount">0</strong></div>
+      <div class="stat-line"><span>Public works</span><strong id="workCount">0</strong></div>
+      <p class="private-note">Your private field ledger stays in this browser. Shared evidence is public by choice.</p>
+    </aside>
+
+    <section class="region-panel panel" aria-labelledby="regionTitle">
+      <div class="panel-kicker">THE FRONTIER</div>
+      <h2 id="regionTitle">Clove Hive</h2>
+      <p id="regionBlurb">A settlement built around shared witness and repair.</p>
+      <div class="guide-card" id="guideCard" aria-live="polite"><span class="guide-name" id="guideName">Morrow · hive tender</span><p id="guideLine">Bring back a reading the Hive can repair around.</p></div>
+      <div class="region-list" id="regionList"></div>
+    </section>
+
+    <section class="evidence-panel panel" aria-labelledby="evidenceTitle">
+      <div class="panel-kicker">PUBLIC EVIDENCE BOARD <span>PROVENANCE STAYS ATTACHED</span></div>
+      <h2 id="evidenceTitle">Claims the Hive can challenge.</h2>
+      <div class="evidence-list" id="evidenceList"></div>
+    </section>
+
+    <section class="event-panel panel" aria-labelledby="eventTitle">
+      <div class="panel-kicker">PUBLIC TRACE <span>REPLAYABLE</span></div>
+      <h2 id="eventTitle">What the Hive remembers.</h2>
+      <div class="event-list" id="eventList" role="log" aria-live="polite"></div>
+    </section>
+
+    <section class="archive-panel panel" aria-labelledby="archiveTitle">
+      <div class="panel-kicker">WORLD ARCHIVE <span>THE NEXT QUESTION INHERITS THIS</span></div>
+      <h2 id="archiveTitle">What your last decision changed.</h2>
+      <div class="archive-list" id="archiveList"></div>
+    </section>
+  </main>
+
+  <footer class="footer-bar">
+    <div><span id="currentRegion">Clove Hive</span> <span class="footer-separator">·</span> <span id="playerCount">1 witness</span></div>
+    <div class="controls"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <span>·</span> <kbd>Tab</kbd> focus controls</div>
+    <button class="technical-toggle" id="technicalToggle" type="button" aria-expanded="false">Technical status</button>
+  </footer>
+
+  <dialog class="technical-dialog" id="technicalDialog">
+    <button class="dialog-close" id="technicalClose" type="button" aria-label="Close technical status">×</button>
+    <div class="panel-kicker">ENGINE STATUS</div>
+    <h2>Process-isolated local testnet</h2>
+    <p>Hive uses the Neon Circuit multiplayer transport when available. The fallback preview is local to this browser and is clearly marked.</p>
+    <dl>
+      <div><dt>Authority</dt><dd id="technicalAuthority">connecting</dd></div>
+      <div><dt>World root</dt><dd id="technicalRoot">pending</dd></div>
+      <div><dt>Privacy</dt><dd>no external telemetry</dd></div>
+      <div><dt>Commerce</dt><dd>disabled</dd></div>
+    </dl>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./hive-scene.js"></script>
+</body>
+</html>
