@@ -8,8 +8,9 @@
  * DO-to-DO (clients never reach it directly). Health surfaces over HTTP at
  * /arcade/rooms/health.
  *
- * An explicit invalid room id falls back to the default room DO, where the join is
- * rejected (room_join_rejected: invalid_room). No `?room=` → main-floor.
+ * Paper Firm adds an isolated FIELD authority at /arcade/paper-firm/ws?match=<id>.
+ * It owns only movement/presence/scout carry/extraction receipts. RUG remains the
+ * sole organizational authority.
  *
  * All authority logic lives inside the DOs.
  */
@@ -18,27 +19,29 @@ import { ArcadeRoom } from "./arcade-room";
 import { RoomRegistry } from "./room-registry";
 import { CityRoom } from "./city-room";
 import { CityRegistry } from "./city-registry";
+import { PaperFirmRoom } from "./paper-firm-room";
 import { resolveRoomId, ROOM_IDS } from "./rooms.mjs";
 import { resolveCityRoomId } from "../../../arcade/city/city-block.mjs";
+import { sanitizeMatchId } from "../../../arcade/paper-firm/field-core.mjs";
 
 export interface Env {
   ARCADE_ROOM: DurableObjectNamespace;
   ROOM_REGISTRY: DurableObjectNamespace;
-  // Phase 4A: isolated city-block authority (per-block sharded; never touches arcade state).
   CITY_ROOM: DurableObjectNamespace;
-  // Phase 5C: city-block presence coordinator (DO-to-DO only; public-safe per-block counts).
   CITY_REGISTRY: DurableObjectNamespace;
+  PAPER_FIRM_ROOM: DurableObjectNamespace;
+  PAPER_FIRM_RECEIPT_SECRET?: string;
+  ENVIRONMENT?: string;
   ADMIN_ENABLED?: string;
   ADMIN_TOKEN?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    void ctx;
     const url = new URL(request.url);
 
     if (url.pathname === "/arcade/ws") {
-      // Resolve the (untrusted) room and shard to its own DO instance. An invalid
-      // explicit room routes to the default DO, which rejects the join.
       const hint = resolveRoomId(url.searchParams.get("room"));
       const id = env.ARCADE_ROOM.idFromName(hint.roomId);
       const stub = env.ARCADE_ROOM.get(id);
@@ -50,9 +53,6 @@ export default {
       }
     }
 
-    // Phase 4A: city-block authority. Routed to a SEPARATE, per-block CityRoom DO
-    // (idFromName(cityId)) — isolated from the arcade rooms above. An invalid city
-    // falls back to the default block. All city authority lives inside the DO.
     if (url.pathname === "/arcade/city/ws") {
       const hint = resolveCityRoomId(url.searchParams.get("city"));
       const id = env.CITY_ROOM.idFromName(hint.cityId);
@@ -65,7 +65,19 @@ export default {
       }
     }
 
-    // Public-safe room list over HTTP (the registry coordinator is the authority).
+    if (url.pathname === "/arcade/paper-firm/ws") {
+      const match = sanitizeMatchId(url.searchParams.get("match"));
+      if (!match) return new Response("Invalid Paper Firm match", { status: 400 });
+      const id = env.PAPER_FIRM_ROOM.idFromName(match);
+      const stub = env.PAPER_FIRM_ROOM.get(id);
+      try {
+        return await stub.fetch(request);
+      } catch (err) {
+        console.error("[Worker] Error forwarding to Paper Firm DO:", err);
+        return new Response("Paper Firm DO fetch failed", { status: 500 });
+      }
+    }
+
     if (url.pathname === "/arcade/rooms") {
       const reg = env.ROOM_REGISTRY.get(env.ROOM_REGISTRY.idFromName("registry"));
       try {
@@ -75,8 +87,6 @@ export default {
       }
     }
 
-    // Phase 2c: public-safe registry health (per-room health + freshness), surfaced
-    // over HTTP from the coordinator DO.
     if (url.pathname === "/arcade/rooms/health") {
       const reg = env.ROOM_REGISTRY.get(env.ROOM_REGISTRY.idFromName("registry"));
       try {
@@ -88,7 +98,7 @@ export default {
 
     if (url.pathname === "/arcade/health") {
       return new Response(
-        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "2c", rooms: ROOM_IDS, sharded: true }),
+        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "paper-firm-first-shift", rooms: ROOM_IDS, sharded: true, paperFirm: true }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
@@ -97,8 +107,8 @@ export default {
   },
 };
 
-// Re-export the DO classes so wrangler can discover them.
 export { ArcadeRoom } from "./arcade-room";
 export { RoomRegistry } from "./room-registry";
 export { CityRoom } from "./city-room";
 export { CityRegistry } from "./city-registry";
+export { PaperFirmRoom } from "./paper-firm-room";
