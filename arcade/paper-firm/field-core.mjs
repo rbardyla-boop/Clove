@@ -42,29 +42,36 @@ export function createFieldState() {
     players: {},
     sequence: 0,
     scout: { phase: 'idle', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY },
-    page: { id: PF_PAGE.id, phase: 'in_stain', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY, extractedBy: '' },
+    page: { id: PF_PAGE.id, phase: 'in_stain', x: PF_PAGE.sourceX, y: PF_PAGE.sourceY, extractedBy: '', pendingReceipt: null },
   };
 }
 
 export function addFieldPlayer(state, playerId, now = Date.now()) {
   if (!validPlayerId(playerId)) return { ok: false, reason: 'invalid_player', state };
-  if (state.players[playerId]) return { ok: true, reason: 'already_joined', state };
+  if (state.players[playerId]) {
+    return {
+      ok: true,
+      reason: 'rejoined',
+      state: {
+        ...state,
+        players: { ...state.players, [playerId]: { ...state.players[playerId], online: true, lastInputAt: now } },
+      },
+    };
+  }
   const spawn = PF_SPAWNS[Object.keys(state.players).length % PF_SPAWNS.length];
   return {
     ok: true,
     reason: 'joined',
     state: {
       ...state,
-      players: { ...state.players, [playerId]: { id: playerId, x: spawn.x, y: spawn.y, lastInputAt: now } },
+      players: { ...state.players, [playerId]: { id: playerId, x: spawn.x, y: spawn.y, online: true, lastInputAt: now } },
     },
   };
 }
 
 export function removeFieldPlayer(state, playerId) {
   if (!state.players[playerId]) return state;
-  const players = { ...state.players };
-  delete players[playerId];
-  return { ...state, players };
+  return { ...state, players: { ...state.players, [playerId]: { ...state.players[playerId], online: false } } };
 }
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -141,9 +148,9 @@ export function publicFieldSnapshot(state, matchId) {
     world: PF_WORLD,
     zones: PF_ZONES,
     relay: PF_RELAY,
-    players: Object.values(state.players).map((p) => ({ id: p.id, x: p.x, y: p.y })),
+    players: Object.values(state.players).filter((p) => p.online !== false).map((p) => ({ id: p.id, x: p.x, y: p.y })),
     scout: { phase: state.scout.phase, x: state.scout.x, y: state.scout.y },
-    page: { id: state.page.id, phase: state.page.phase, x: state.page.x, y: state.page.y },
+    page: { id: state.page.id, phase: state.page.phase, x: state.page.x, y: state.page.y, pendingReceipt: state.page.pendingReceipt || null },
     sequence: state.sequence,
   };
 }

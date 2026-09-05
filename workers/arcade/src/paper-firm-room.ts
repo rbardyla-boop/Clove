@@ -12,17 +12,21 @@ import {
 
 interface PaperFirmEnv {
   PAPER_FIRM_ROOM: DurableObjectNamespace;
+  PAPER_FIRM_FIELD_SECRET?: string;
+  // Compatibility with the first local prototype configuration.
   PAPER_FIRM_RECEIPT_SECRET?: string;
   ENVIRONMENT?: string;
 }
 
 type FieldState = ReturnType<typeof createFieldState>;
 type SocketMeta = { playerId: string; matchId: string; lastHeartbeat: number };
+type PendingAttachment = { authorizedPlayerId: string; matchId: string };
 
 const STALE_MS = 45_000;
 const SWEEP_MS = 30_000;
 
 function devSecret(env: PaperFirmEnv): string {
+  if (env.PAPER_FIRM_FIELD_SECRET) return env.PAPER_FIRM_FIELD_SECRET;
   if (env.PAPER_FIRM_RECEIPT_SECRET) return env.PAPER_FIRM_RECEIPT_SECRET;
   return env.ENVIRONMENT === "development" ? "paper-firm-local-dev-secret-change-me" : "";
 }
@@ -35,6 +39,32 @@ function randomHex(bytes = 16): string {
   const buf = new Uint8Array(bytes);
   crypto.getRandomValues(buf);
   return [...buf].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function bytesFromHex(value: string): Uint8Array {
+  const bytes = new Uint8Array(value.length / 2);
+  for (let i = 0; i < bytes.length; i += 1) bytes[i] = Number.parseInt(value.slice(i * 2, i * 2 + 2), 16);
+  return bytes;
+}
+
+function decodeBase64Url(value: string): string {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((value.length + 3) % 4);
+  const bytes = Uint8Array.from(atob(normalized), (char) => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+async function verifyJoinTicket(secret: string, ticket: string, matchId: string): Promise<string> {
+  if (!secret || !ticket) return "";
+  const [encoded, signature] = ticket.split(".");
+  if (!encoded || !signature || !/^[0-9a-f]{64}$/i.test(signature)) return "";
+  let material = "";
+  try { material = decodeBase64Url(encoded); } catch { return ""; }
+  const [version, ticketMatch, actorId, expiresRaw] = material.split("\n");
+  const expiresAt = Number(expiresRaw);
+  if (version !== "PF-JOIN/1" || ticketMatch !== matchId || !validPlayerId(actorId) || !Number.isSafeInteger(expiresAt) || expiresAt < Date.now()) return "";
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+  const valid = await crypto.subtle.verify("HMAC", key, bytesFromHex(signature), new TextEncoder().encode(material));
+  return valid ? actorId : "";
 }
 
 function canonicalReceipt(input: {
@@ -100,11 +130,14 @@ export class PaperFirmRoom implements DurableObject {
     if (url.pathname !== "/arcade/paper-firm/ws") return new Response("Not found", { status: 404 });
     const match = sanitizeMatchId(url.searchParams.get("match"));
     if (!match) return new Response("Invalid match", { status: 400 });
+    const authorizedPlayerId = await verifyJoinTicket(devSecret(this.env), url.searchParams.get("ticket") || "", match);
+    if (!authorizedPlayerId) return new Response("Field admission ticket required", { status: 401 });
     this.matchId = match;
     await this.init();
     const pair = new WebSocketPair();
     const server = pair[1];
     this.ctx.acceptWebSocket(server, ["paper-firm"]);
+    server.serializeAttachment({ authorizedPlayerId, matchId: match } satisfies PendingAttachment);
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
@@ -117,6 +150,17 @@ export class PaperFirmRoom implements DurableObject {
     if (data.t === "pf_join") {
       const playerId = String(data.playerId || "");
       if (!validPlayerId(playerId)) { this.send(ws, { t: "pf_error", reason: "invalid_player" }); return; }
+      const pending = ws.deserializeAttachment() as PendingAttachment | null;
+      if (!pending?.authorizedPlayerId || pending.authorizedPlayerId !== playerId || pending.matchId !== this.matchId) {
+        this.send(ws, { t: "pf_error", reason: "principal_ticket_mismatch" });
+        return;
+      }
+      for (const [other, otherMeta] of this.sockets) {
+        if (otherMeta.playerId === playerId && other !== ws) {
+          this.sockets.delete(other);
+          try { other.close(4001, "replaced"); } catch { /* noop */ }
+        }
+      }
       const r = addFieldPlayer(this.state, playerId, Date.now());
       if (!r.ok) { this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
@@ -170,11 +214,25 @@ export class PaperFirmRoom implements DurableObject {
       };
       const signature = await signReceipt(secret, canonicalReceipt(unsigned));
       const receipt = { ...unsigned, signature };
+      this.state = { ...this.state, page: { ...this.state.page, pendingReceipt: receipt } };
       await this.persist();
       this.send(ws, { t: "pf_extract_result", ok: true, receipt });
       // The receipt is not secret. Broadcasting it lets the distinct Desk human accept
       // the field evidence into RUG. Replay protection + RUG membership still gate truth.
       this.broadcast({ t: "pf_field_receipt", receipt });
+      this.broadcast(this.snapshot());
+      return;
+    }
+
+    if (data.t === "pf_receipt_ack") {
+      const receiptId = String(data.receipt_id || "");
+      if (!receiptId || this.state.page.pendingReceipt?.receipt_id !== receiptId) {
+        this.send(ws, { t: "pf_receipt_ack_result", ok: false, reason: "receipt_not_pending" });
+        return;
+      }
+      this.state = { ...this.state, page: { ...this.state.page, pendingReceipt: null } };
+      await this.persist();
+      this.broadcast({ t: "pf_receipt_ack_result", ok: true, receipt_id: receiptId });
       this.broadcast(this.snapshot());
       return;
     }

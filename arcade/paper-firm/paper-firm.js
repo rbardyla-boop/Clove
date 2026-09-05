@@ -22,12 +22,12 @@ let principal = '';
 let members = [];
 let socket = null;
 let rugBusy = false;
-let workerBusy = false;
 let lastReceipt = null;
+let lastAcceptedReceiptId = '';
+let receiptAccepting = false;
 let lastHead = '';
 let heartbeatTimer = 0;
 let snapshotTimer = 0;
-let workerTimer = 0;
 let offlineLocal = false;
 const keys = new Set();
 const log = [];
@@ -110,11 +110,14 @@ async function refreshRug() {
   finally { rugBusy = false; }
 }
 
-function openFieldSocket() {
+async function openFieldSocket() {
   const { match, mesh } = config();
   if (!principal || !match) return;
+  const admission = await rugPost('field_ticket');
+  const ticket = admission.ticket;
+  if (!ticket) throw new Error('field admission ticket missing');
   if (socket && socket.readyState <= 1) socket.close();
-  socket = new WebSocket(`${mesh}/arcade/paper-firm/ws?match=${encodeURIComponent(match)}`);
+  socket = new WebSocket(`${mesh}/arcade/paper-firm/ws?match=${encodeURIComponent(match)}&ticket=${encodeURIComponent(ticket)}`);
   socket.addEventListener('open', () => {
     socket.send(JSON.stringify({ t: 'pf_join', playerId: principal }));
     addLog('field link locked', 'pass');
@@ -130,6 +133,7 @@ async function onFieldMessage(event) {
   if (msg.t === 'pf_welcome' || msg.t === 'pf_snapshot') {
     field = msg;
     draw();
+    if (role === 'hand' && msg.page?.pendingReceipt) await acceptReceipt(msg.page.pendingReceipt);
     return;
   }
   if (msg.t === 'pf_scout_event') {
@@ -139,14 +143,7 @@ async function onFieldMessage(event) {
   if (msg.t === 'pf_field_receipt') {
     lastReceipt = msg.receipt;
     addLog('signed extraction receipt reached the Desk', 'pass');
-    if (role === 'hand') {
-      try {
-        await rugPost('intake_receipt', { receipt: msg.receipt });
-        addLog('Desk accepted receipt → OBS', 'pass');
-      } catch (err) {
-        if (err.message !== 'receipt_replayed') addLog(`receipt rejected: ${err.message}`, 'reject');
-      }
-    }
+    if (role === 'hand') await acceptReceipt(msg.receipt);
     return;
   }
   if (msg.t === 'pf_extract_result') {
@@ -158,6 +155,30 @@ async function onFieldMessage(event) {
     return;
   }
   if (msg.t === 'pf_error') addLog(`field: ${msg.reason}`, 'reject');
+}
+
+async function acceptReceipt(receipt) {
+  if (role !== 'hand' || !receipt?.receipt_id) return;
+  lastReceipt = receipt;
+  if (lastAcceptedReceiptId === receipt.receipt_id) {
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', receipt_id: receipt.receipt_id }));
+    return;
+  }
+  if (receiptAccepting) return;
+  receiptAccepting = true;
+  try {
+    await rugPost('intake_receipt', { receipt });
+    lastAcceptedReceiptId = receipt.receipt_id;
+    addLog('Desk accepted receipt → OBS', 'pass');
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', receipt_id: receipt.receipt_id }));
+  } catch (err) {
+    if (err.message === 'receipt_replayed') {
+      lastAcceptedReceiptId = receipt.receipt_id;
+      if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_receipt_ack', receipt_id: receipt.receipt_id }));
+    } else addLog(`receipt rejected: ${err.message}`, 'reject');
+  } finally {
+    receiptAccepting = false;
+  }
 }
 
 async function connect() {
@@ -176,7 +197,7 @@ async function connect() {
     $('event-log').classList.remove('hidden');
     if (role === 'lead') $('human-a-actions').classList.remove('hidden');
     if (role === 'hand') $('human-b-actions').classList.remove('hidden');
-    openFieldSocket();
+    await openFieldSocket();
     startLoops();
     addLog('joined authoritative First Shift', 'pass');
   } catch (err) {
@@ -190,7 +211,6 @@ async function connect() {
 function startLoops() {
   clearInterval(heartbeatTimer);
   clearInterval(snapshotTimer);
-  clearInterval(workerTimer);
   heartbeatTimer = setInterval(() => {
     if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'heartbeat' }));
   }, 12_000);
@@ -198,75 +218,12 @@ function startLoops() {
     if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ t: 'pf_snapshot_request' }));
     refreshRug();
   }, 12_000);
-  workerTimer = setInterval(() => deskWorkerTick().catch((err) => addLog(`worker: ${err.message}`, 'reject')), 1500);
 }
 
 async function oneDeskAction(action, extra = {}) {
   const result = await rugPost(action, extra);
   addLog(`Desk: ${action.replaceAll('_', ' ')}`, result.ok === false ? 'reject' : 'pass');
   return result;
-}
-
-function hasReject(reason) {
-  return Array.isArray(paper?.rejectedFindings) && paper.rejectedFindings.some((x) => x.reason === reason);
-}
-
-async function deskWorkerTick() {
-  if (!connected || role !== 'hand' || workerBusy || !paper) return;
-  workerBusy = true;
-  try {
-    // Receipt intake is event-driven from the field socket.
-    if (!paper.observationId) return;
-    if (!paper.sourceVerified) { await oneDeskAction('verify_source'); return; }
-    if (!paper.doctrineId) { await oneDeskAction('promote_source'); return; }
-
-    // Initial R1 package: real PACKAGE → DELIVER → OPERATE.
-    if (paper.packets.length === 0) { await oneDeskAction('package'); return; }
-    const newest = paper.packets[paper.packets.length - 1];
-    if (!newest.delivered) { await oneDeskAction('deliver', { packetId: newest.packetId }); return; }
-    if (!paper.builderOperated && paper.requirementRevision === 'R1') { await oneDeskAction('operate', { packetId: newest.packetId }); return; }
-
-    // Human B must make the human-only requirement decision. The daemon stops here.
-    if (paper.humanOffline && paper.requirementRevision === 'R1') {
-      $('change-requirement').classList.remove('hidden');
-      return;
-    }
-    $('change-requirement').classList.add('hidden');
-
-    if (paper.requirementRevision !== 'R1') {
-      if (!paper.supersededRejects) {
-        const old = paper.packets.find((p) => p.requirementRevision === 'R1');
-        if (old) { await oneDeskAction('operate', { packetId: old.packetId }); return; }
-      }
-      if (!hasReject('missing_ancestry')) { await oneDeskAction('reject_missing_ancestry'); return; }
-      if (!hasReject('empty_evidence')) { await oneDeskAction('reject_empty_evidence'); return; }
-
-      const r2 = paper.packets.filter((p) => p.requirementRevision === paper.requirementRevision);
-      // R2 working packet, then a fresh replacement packet after worker death.
-      const neededPackets = paper.workerReplacements > 0 ? 2 : 1;
-      if (r2.length < neededPackets) { await oneDeskAction('package'); return; }
-      const current = r2[r2.length - 1];
-      if (!current.delivered) { await oneDeskAction('deliver', { packetId: current.packetId }); return; }
-      if (!paper.builderOperated || (paper.workerReplacements > 0 && paper.currentPacketId === current.packetId && !paper.ancestryRetrieved)) {
-        await oneDeskAction('operate', { packetId: current.packetId });
-        await refreshRug();
-        return;
-      }
-      if (paper.workerReplacements === 0) {
-        await oneDeskAction('replace', {
-          oldInstance: 'builder-night-1',
-          newInstance: `builder-night-${Date.now().toString(36)}`,
-          oldModel: 'local-protocol',
-          newModel: 'local-protocol',
-        });
-        return;
-      }
-      if (!paper.ancestryRetrieved) { await oneDeskAction('retrieve_ancestry'); return; }
-      if (!paper.harnessPassed) { await oneDeskAction('harness'); return; }
-    }
-  } finally {
-    workerBusy = false;
-  }
 }
 
 function updateUi() {
@@ -327,7 +284,7 @@ $('return-shift').addEventListener('click', async () => {
   try {
     await rugPost('rejoin');
     offlineLocal = false;
-    openFieldSocket();
+    await openFieldSocket();
     await refreshRug();
     addLog('Human A returned. No recap loaded.', 'pass');
     $('overnight').classList.remove('hidden');

@@ -121,3 +121,32 @@ git commit -m "feat(arcade): add room-authoritative Pulse Tap occupancy"
 ```
 
 Do not commit earlier.
+
+## Paper Firm First Shift
+
+Paper Firm is a separate authority path from the arcade room examples above.
+The RUG server and this Worker must share the same `PAPER_FIRM_FIELD_SECRET`;
+the browser never receives it. In local development the checked-in Wrangler
+development value matches RUG's non-production fallback.
+
+1. Start RUG and create/join one world with two distinct authenticated human sessions.
+2. Start this Worker and open `arcade/paper-firm/index.html` in the two sessions.
+3. Set the RUG URL, world code, and Worker WebSocket URL in each client.
+4. Verify the opening login harness is still OPEN before any Desk work.
+5. Use the field lead to find/carry/extract PAGE-7. The receipt remains pending in
+   the Durable Object until Human B accepts it through RUG as OBS.
+6. From the RUG checkout, run the external worker driver as a separate process:
+
+```bash
+RUG_URL=http://localhost:3000 \
+WORLD_CODE=RUG001 \
+WORKER_KEY=paper-firm-local-worker-secret \
+INSTANCE_ID=builder-1 \
+node scripts/paper-firm-worker.mjs loop
+```
+
+Kill that process and start a new one with a different `INSTANCE_ID`; the new
+worker must bootstrap from `worker_snapshot`, not predecessor chat. Human B
+performs source verification, packet creation/delivery, requirement change,
+finding rejection, and harness actions. Human A performs the offline/rejoin
+and final signature actions.

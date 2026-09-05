@@ -39,10 +39,11 @@ new_sqlite_classes = ["PaperFirmRoom"]
 [vars]
 ENVIRONMENT = "development"
 ADMIN_ENABLED = "true"
-# Local prototype secret only. Production/staging intentionally require a real secret:
-#   wrangler secret put PAPER_FIRM_RECEIPT_SECRET --env production
-#   wrangler secret put PAPER_FIRM_RECEIPT_SECRET --env staging
-PAPER_FIRM_RECEIPT_SECRET = "paper-firm-local-dev-secret-change-me"
+# Local prototype secret only. It must equal RUG's PAPER_FIRM_FIELD_SECRET.
+# Production/staging intentionally require the same secret out-of-band:
+#   wrangler secret put PAPER_FIRM_FIELD_SECRET --env production
+#   wrangler secret put PAPER_FIRM_FIELD_SECRET --env staging
+PAPER_FIRM_FIELD_SECRET = "paper-firm-local-dev-secret-change-me"
 
 # ADMIN_TOKEN is intentionally NOT defined here. Configure it out-of-band.
 
