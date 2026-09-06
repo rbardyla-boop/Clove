@@ -36,6 +36,12 @@ let offlineLocal = false;
 let lockedConfig = null;
 const keys = new Set();
 const log = [];
+let moreOpen = false;
+let statsOpen = false;
+let deskOpen = false;
+let bumpUntil = 0;
+let primaryActionId = '';
+
 
 window.__paperFirmArtGate = Object.freeze({
   ruledPaperAcrossFrame: true,
@@ -64,6 +70,112 @@ function addLog(text, kind = '') {
   $('log-lines').innerHTML = log.slice(0, 8).map((x) => `<div class="log-entry ${x.kind}">${escapeHtml(x.text)}</div>`).join('');
 }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function setBlocked(btn, blocked, why = '') {
+  if (!btn) return;
+  btn.disabled = Boolean(blocked);
+  const reason = blocked ? String(why || 'Not available yet') : '';
+  btn.title = reason;
+  if (reason) btn.dataset.why = reason;
+  else delete btn.dataset.why;
+  const base = btn.dataset.label || btn.textContent.trim();
+  if (!btn.dataset.label) btn.dataset.label = base;
+  btn.setAttribute('aria-label', reason ? `${base}. ${reason}` : base);
+}
+
+function playerInZone(zoneId) {
+  const me = (field?.players || []).find((p) => p.id === principal);
+  const zone = (field?.zones || []).find((z) => z.id === zoneId);
+  if (!me || !zone) return false;
+  return me.x >= zone.x && me.x <= zone.x + zone.w && me.y >= zone.y && me.y <= zone.y + zone.h;
+}
+
+function nextStep() {
+  if (!paper) {
+    return { id: '', label: 'WAIT FOR DESK', enabled: false, why: 'Connect and wait for the first RUG snapshot.' };
+  }
+  if (role === 'lead') {
+    if (paper.complete) return { id: '', label: 'RELAY SIGNED', enabled: false, why: 'First Shift is complete.' };
+    if (paper.readyToSign) return { id: 'sign-relay', label: 'SIGN RELAY', enabled: true, why: 'Ink the repair. Make the relay real.' };
+    if (paper.humanOffline || offlineLocal) return { id: 'return-shift', label: 'RETURN — NO RECAP', enabled: true, why: 'Come back to the page. No recap loads.' };
+    const scoutPhase = field?.scout?.phase || 'idle';
+    const pagePhase = field?.page?.phase || 'in_stain';
+    if (pagePhase !== 'extracted') {
+      if (scoutPhase === 'idle') {
+        const inStain = playerInZone('STAIN');
+        return { id: 'scout-find', label: 'SCOUT: FIND', enabled: inStain, why: inStain ? 'Search the Stain for PAGE-7.' : 'Walk into the Stain first, then FIND.' };
+      }
+      if (scoutPhase === 'found') {
+        const inStain = playerInZone('STAIN');
+        return { id: 'scout-carry', label: 'SCOUT: CARRY', enabled: inStain, why: inStain ? 'Carry PAGE-7 to the Archive.' : 'Stand in the Stain to order the carry.' };
+      }
+      const inArchive = playerInZone('ARCHIVE');
+      return { id: 'extract-page', label: 'EXTRACT PAGE-7', enabled: inArchive && scoutPhase === 'ready', why: inArchive ? (scoutPhase === 'ready' ? 'Pull PAGE-7 for the Desk.' : 'Scout must finish CARRY first.') : 'Walk into the Archive after CARRY.' };
+    }
+    const initialDone = paper.packets?.some((p) => p.requirementRevision === 'R1' && p.delivered) && paper.builderOperated;
+    if (!paper.humanOffline) {
+      return { id: 'go-offline', label: 'GO OFF SHIFT', enabled: Boolean(initialDone), why: initialDone ? 'Leave. The organism keeps the job.' : 'Finish first packet delivery and builder work first.' };
+    }
+    return { id: '', label: 'WAIT ON DESK', enabled: false, why: 'Human B and the organism are still working.' };
+  }
+  if (role === 'hand') {
+    if (paper.complete) return { id: '', label: 'RELAY SIGNED', enabled: false, why: 'First Shift is complete.' };
+    if (!paper.observationId) return { id: '', label: 'WAIT FOR RECEIPT', enabled: false, why: 'Human A must extract PAGE-7 into OBS first.' };
+    if (!paper.sourceVerified) return { id: 'verify-source', label: 'VERIFY PAGE-7', enabled: true, why: 'Check the source. Red check only when true.' };
+    if (!paper.doctrineId) return { id: 'promote-source', label: 'PROMOTE DOCTRINE', enabled: true, why: 'Promote verified PAGE-7 into doctrine.' };
+    const currentPacket = paper.packets?.find((packet) => packet.packetId === paper.currentPacketId) || null;
+    if (!currentPacket) return { id: 'package-packet', label: 'PACKAGE BUILDER', enabled: true, why: 'Package work against doctrine.' };
+    if (!(currentPacket.delivered || paper.currentPacketDelivered)) return { id: 'deliver-packet', label: 'DELIVER PACKET', enabled: true, why: 'Deliver the packet so the field can move on.' };
+    if (paper.requirementRevision === 'R1' && paper.humanOffline) return { id: 'change-requirement', label: 'CHANGE REQUIREMENT → R2', enabled: true, why: 'Human A is off shift. Change the requirement.' };
+    if (paper.readyToSign) return { id: '', label: 'WAIT FOR SIGN', enabled: false, why: 'Harness passed. Human A must SIGN.' };
+    return { id: '', label: 'KEEP THE DESK', enabled: false, why: 'Reject bad findings in MORE when they arrive.' };
+  }
+  return { id: '', label: 'OBSERVE', enabled: false, why: 'No field verb for this role yet.' };
+}
+
+function syncPrimaryCta() {
+  const step = nextStep();
+  primaryActionId = step.id || '';
+  const btn = $('primary-cta');
+  const hint = $('primary-hint');
+  btn.textContent = step.label;
+  btn.dataset.label = step.label;
+  setBlocked(btn, !step.enabled, step.why);
+  hint.textContent = step.why;
+  hint.classList.toggle('is-blocked', !step.enabled);
+  btn.classList.toggle('danger', step.id === 'go-offline' || step.id === 'change-requirement');
+  btn.classList.toggle('signature', step.id === 'sign-relay');
+}
+
+function setPanelOpen(kind, open) {
+  if (kind === 'more') {
+    moreOpen = open;
+    $('more-panel').classList.toggle('hidden', !moreOpen);
+    $('toggle-more').setAttribute('aria-expanded', moreOpen ? 'true' : 'false');
+  } else if (kind === 'stats') {
+    statsOpen = open;
+    $('desk').classList.toggle('hidden', !statsOpen);
+    $('toggle-stats').setAttribute('aria-expanded', statsOpen ? 'true' : 'false');
+  } else if (kind === 'desk') {
+    deskOpen = open;
+    $('overnight').classList.toggle('hidden', !deskOpen);
+    $('toggle-desk').setAttribute('aria-expanded', deskOpen ? 'true' : 'false');
+  }
+}
+
+function flashWallBump() {
+  bumpUntil = Date.now() + 550;
+  const el = $('wall-bump');
+  el.classList.remove('hidden');
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+  clearTimeout(flashWallBump._t);
+  flashWallBump._t = setTimeout(() => {
+    if (Date.now() >= bumpUntil) el.classList.add('hidden');
+  }, 560);
+}
+
 
 function config() {
   if (lockedConfig) return lockedConfig;
@@ -143,6 +255,7 @@ async function onFieldMessage(event) {
   if (msg.t === 'pf_welcome' || msg.t === 'pf_snapshot') {
     field = msg;
     draw();
+    if (paper) syncPrimaryCta();
     if (role === 'hand' && msg.page?.pendingReceipt) await acceptReceipt(msg.page.pendingReceipt);
     return;
   }
@@ -164,8 +277,10 @@ async function onFieldMessage(event) {
     } else addLog(`extract rejected: ${msg.reason}`, 'reject');
     return;
   }
+  if (msg.t === 'pf_bump') { flashWallBump(); return; }
   if (msg.t === 'pf_error') addLog(`field: ${msg.reason}`, 'reject');
 }
+
 
 async function acceptReceipt(receipt) {
   if (role !== 'hand' || !receipt?.receipt_id) return;
@@ -225,14 +340,18 @@ async function connect() {
     document.body.dataset.connected = 'true';
     $('connection-status').textContent = `${role === 'lead' ? 'Human A / field lead' : role === 'hand' ? 'Human B / desk lead' : role} · LOCKED`;
     $('field-controls').classList.remove('hidden');
-    $('desk').classList.remove('hidden');
     $('event-log').classList.remove('hidden');
+    setPanelOpen('more', false);
+    setPanelOpen('stats', false);
+    setPanelOpen('desk', false);
     if (role === 'lead') $('human-a-actions').classList.remove('hidden');
     if (role === 'hand') $('human-b-actions').classList.remove('hidden');
     $('extract-page').classList.toggle('hidden', role !== 'lead');
     await openFieldSocket();
     startLoops();
+    syncPrimaryCta();
     addLog('joined authoritative First Shift', 'pass');
+    addLog('one next step on the face — MORE / STATS / DESK behind tabs');
   } catch (err) {
     $('connection-status').textContent = `RUG: ${err.message}`;
     addLog(`connect failed: ${err.message}`, 'reject');
@@ -277,16 +396,40 @@ function updateUi() {
   $('human-b-actions').classList.toggle('hidden', !deskActions);
   $('finding-actions').classList.toggle('hidden', !deskActions);
   const currentPacket = paper.packets?.find((packet) => packet.packetId === paper.currentPacketId) || null;
-  $('verify-source').disabled = !paper.observationId || paper.sourceVerified;
-  $('promote-source').disabled = !paper.sourceVerified || Boolean(paper.doctrineId);
-  $('package-packet').disabled = !paper.doctrineId || Boolean(currentPacket);
-  $('deliver-packet').disabled = !currentPacket || currentPacket.delivered || paper.currentPacketDelivered;
-  $('reject-finding').disabled = !paper.submittedFindings?.includes($('finding-id').value.trim());
+  setBlocked(
+    $('verify-source'),
+    !paper.observationId || paper.sourceVerified,
+    paper.sourceVerified ? 'PAGE-7 is already verified.' : 'Need an OBS receipt from extraction first.',
+  );
+  setBlocked(
+    $('promote-source'),
+    !paper.sourceVerified || Boolean(paper.doctrineId),
+    paper.doctrineId ? 'Doctrine already promoted.' : 'Verify PAGE-7 before promoting doctrine.',
+  );
+  setBlocked(
+    $('package-packet'),
+    !paper.doctrineId || Boolean(currentPacket),
+    currentPacket ? 'A packet is already packaged.' : 'Promote doctrine before packaging.',
+  );
+  setBlocked(
+    $('deliver-packet'),
+    !currentPacket || currentPacket.delivered || paper.currentPacketDelivered,
+    !currentPacket ? 'Package a packet first.' : 'This packet is already delivered.',
+  );
+  const findingId = $('finding-id').value.trim();
+  setBlocked(
+    $('reject-finding'),
+    !paper.submittedFindings?.includes(findingId),
+    findingId ? 'That finding id is not on the submitted list.' : 'Enter a submitted finding id first.',
+  );
   const requirementButton = $('change-requirement');
   const canChangeRequirement = role === 'hand' && paper.requirementRevision === 'R1';
   requirementButton.classList.toggle('hidden', !canChangeRequirement);
-  requirementButton.disabled = !paper.humanOffline;
-  requirementButton.title = paper.humanOffline ? 'Change the requirement' : 'Human A must leave first';
+  setBlocked(
+    requirementButton,
+    !paper.humanOffline,
+    paper.humanOffline ? 'Change the requirement while Human A is off shift.' : 'Human A must leave first (GO OFF SHIFT).',
+  );
 
   $('gone-relay').textContent = gone.relayRepair || 'OPEN';
   $('gone-worker').textContent = String(gone.workerReplaced ?? 0);
@@ -295,20 +438,38 @@ function updateUi() {
 
   if (role === 'lead') {
     const initialDone = paper.packets.some((p) => p.requirementRevision === 'R1' && p.delivered) && paper.builderOperated;
-    $('go-offline').disabled = !initialDone || paper.humanOffline;
+    setBlocked(
+      $('go-offline'),
+      !initialDone || paper.humanOffline,
+      paper.humanOffline ? 'Already off shift.' : 'Finish first packet delivery and builder work first.',
+    );
     $('go-offline').classList.toggle('hidden', paper.humanOffline || offlineLocal);
     $('return-shift').classList.toggle('hidden', !(paper.humanOffline || offlineLocal));
     $('sign-relay').classList.toggle('hidden', !paper.readyToSign || paper.complete);
-    $('overnight').classList.toggle('hidden', !paper.humanOffline && !paper.rejoinedAtSeq && !paper.readyToSign);
-  } else if (role === 'hand') {
-    $('overnight').classList.remove('hidden');
+    setBlocked($('sign-relay'), !paper.readyToSign || paper.complete, paper.complete ? 'Already signed.' : 'Wait until READY_TO_SIGN.');
   }
+  // Desk ledger + WHILE_YOU_WERE_GONE stay behind STATS/DESK toggles (never auto-face).
+  if (deskOpen) $('overnight').classList.remove('hidden');
+  else $('overnight').classList.add('hidden');
+  if (statsOpen) $('desk').classList.remove('hidden');
+  else $('desk').classList.add('hidden');
+  syncPrimaryCta();
 }
 
 $('connect-btn').addEventListener('click', connect);
 $('scout-find').addEventListener('click', () => socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify({ t: 'pf_scout', verb: 'find' })));
 $('scout-carry').addEventListener('click', () => socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify({ t: 'pf_scout', verb: 'carry' })));
 $('extract-page').addEventListener('click', () => socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify({ t: 'pf_extract' })));
+
+$('toggle-more').addEventListener('click', () => setPanelOpen('more', !moreOpen));
+$('toggle-stats').addEventListener('click', () => setPanelOpen('stats', !statsOpen));
+$('toggle-desk').addEventListener('click', () => setPanelOpen('desk', !deskOpen));
+
+$('primary-cta').addEventListener('click', () => {
+  if (!primaryActionId || $('primary-cta').disabled) return;
+  const target = $(primaryActionId);
+  if (target && !target.disabled) target.click();
+});
 
 $('change-requirement').addEventListener('click', async () => {
   try {
@@ -365,7 +526,7 @@ $('return-shift').addEventListener('click', async () => {
     await openFieldSocket();
     await refreshRug();
     addLog('Human A returned. No recap loaded.', 'pass');
-    $('overnight').classList.remove('hidden');
+    addLog('Open DESK for WHILE YOU WERE GONE when you want the receipt.');
   } catch (err) { addLog(`rejoin failed: ${err.message}`, 'reject'); }
 });
 
