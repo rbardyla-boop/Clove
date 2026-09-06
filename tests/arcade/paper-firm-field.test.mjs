@@ -130,4 +130,6 @@ test('the Paper Firm renderer contains the frozen visual language and no autonom
   assert.match(source, /if \(lockedConfig\) return lockedConfig/);
   assert.match(source, /e\.target instanceof HTMLInputElement/);
   assert.match(headers, /http:\/\/localhost:8080/);
+  assert.match(headers, /http:\/\/localhost:8090/);
+  assert.match(headers, /http:\/\/127\.0\.0\.1:8090/);
 });
