@@ -1,5 +1,5 @@
 /**
- * Neon Arcade Mesh Worker — Phase 2c (room presence health + per-room sharding)
+ * Neon Arcade Mesh Worker — Phase 2c + Hive World + Paper Firm First Shift
  *
  * Routes /arcade/ws?room=<id> to a PER-ROOM ArcadeRoom Durable Object instance
  * (idFromName(roomId)) — each room is its own DO, so rooms scale and stay isolated
@@ -8,6 +8,7 @@
  * DO-to-DO (clients never reach it directly). Health surfaces over HTTP at
  * /arcade/rooms/health.
  *
+ * Clove Hive World remains at /arcade/hive/ws (production already provisioned HiveRoom).
  * Paper Firm adds an isolated FIELD authority at /arcade/paper-firm/ws?match=<id>.
  * It owns only movement/presence/scout carry/extraction receipts. RUG remains the
  * sole organizational authority.
@@ -19,6 +20,7 @@ import { ArcadeRoom } from "./arcade-room";
 import { RoomRegistry } from "./room-registry";
 import { CityRoom } from "./city-room";
 import { CityRegistry } from "./city-registry";
+import { HiveRoom } from "./hive-room";
 import { PaperFirmRoom } from "./paper-firm-room";
 import { resolveRoomId, ROOM_IDS } from "./rooms.mjs";
 import { resolveCityRoomId } from "../../../arcade/city/city-block.mjs";
@@ -29,7 +31,9 @@ export interface Env {
   ROOM_REGISTRY: DurableObjectNamespace;
   CITY_ROOM: DurableObjectNamespace;
   CITY_REGISTRY: DurableObjectNamespace;
+  HIVE_ROOM: DurableObjectNamespace;
   PAPER_FIRM_ROOM: DurableObjectNamespace;
+  PAPER_FIRM_FIELD_SECRET?: string;
   PAPER_FIRM_RECEIPT_SECRET?: string;
   ENVIRONMENT?: string;
   ADMIN_ENABLED?: string;
@@ -62,6 +66,19 @@ export default {
       } catch (err) {
         console.error("[Worker] Error forwarding to city DO:", err);
         return new Response("City DO fetch failed", { status: 500 });
+      }
+    }
+
+    // Clove Hive World: preserve production HiveRoom route/binding.
+    if (url.pathname === "/arcade/hive/ws") {
+      const worldId = (url.searchParams.get("world") || "frontier").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-").slice(0, 48) || "frontier";
+      const id = env.HIVE_ROOM.idFromName(worldId);
+      const stub = env.HIVE_ROOM.get(id);
+      try {
+        return await stub.fetch(request);
+      } catch (err) {
+        console.error("[Worker] Error forwarding to hive DO:", err);
+        return new Response("Hive DO fetch failed", { status: 500 });
       }
     }
 
@@ -98,7 +115,7 @@ export default {
 
     if (url.pathname === "/arcade/health") {
       return new Response(
-        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "paper-firm-first-shift", rooms: ROOM_IDS, sharded: true, paperFirm: true }),
+        JSON.stringify({ ok: true, service: "neon-arcade-mesh", phase: "paper-firm-first-shift", rooms: ROOM_IDS, sharded: true, hive: true, paperFirm: true }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
@@ -111,4 +128,5 @@ export { ArcadeRoom } from "./arcade-room";
 export { RoomRegistry } from "./room-registry";
 export { CityRoom } from "./city-room";
 export { CityRegistry } from "./city-registry";
+export { HiveRoom } from "./hive-room";
 export { PaperFirmRoom } from "./paper-firm-room";

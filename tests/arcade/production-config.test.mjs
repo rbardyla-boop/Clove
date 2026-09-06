@@ -23,6 +23,14 @@ test('production deploy config is safe (no dev/test controls live)', async (t) =
 
 // A SAFE production env block, re-used as the base for the negative cases below.
 const SAFE_TOML = `
+[[migrations]]
+tag = "v5"
+new_sqlite_classes = ["HiveRoom"]
+
+[[migrations]]
+tag = "v6"
+new_sqlite_classes = ["PaperFirmRoom"]
+
 [env.production.vars]
 ENVIRONMENT = "production"
 ADMIN_ENABLED = "false"
@@ -36,7 +44,9 @@ bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
   { name = "CITY_ROOM", class_name = "CityRoom" },
-  { name = "CITY_REGISTRY", class_name = "CityRegistry" }
+  { name = "CITY_REGISTRY", class_name = "CityRegistry" },
+  { name = "HIVE_ROOM", class_name = "HiveRoom" },
+  { name = "PAPER_FIRM_ROOM", class_name = "PaperFirmRoom" }
 ]
 
 [[env.production.migrations]]
@@ -54,6 +64,14 @@ new_sqlite_classes = ["CityRoom"]
 [[env.production.migrations]]
 tag = "v4"
 new_sqlite_classes = ["CityRegistry"]
+
+[[env.production.migrations]]
+tag = "v5"
+new_sqlite_classes = ["HiveRoom"]
+
+[[env.production.migrations]]
+tag = "v6"
+new_sqlite_classes = ["PaperFirmRoom"]
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
@@ -68,7 +86,9 @@ bindings = [
   { name = "ARCADE_ROOM", class_name = "ArcadeRoom" },
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
   { name = "CITY_ROOM", class_name = "CityRoom" },
-  { name = "CITY_REGISTRY", class_name = "CityRegistry" }
+  { name = "CITY_REGISTRY", class_name = "CityRegistry" },
+  { name = "HIVE_ROOM", class_name = "HiveRoom" },
+  { name = "PAPER_FIRM_ROOM", class_name = "PaperFirmRoom" }
 ]
 
 [[env.staging.migrations]]
@@ -86,6 +106,14 @@ new_sqlite_classes = ["CityRoom"]
 [[env.staging.migrations]]
 tag = "v4"
 new_sqlite_classes = ["CityRegistry"]
+
+[[env.staging.migrations]]
+tag = "v5"
+new_sqlite_classes = ["HiveRoom"]
+
+[[env.staging.migrations]]
+tag = "v6"
+new_sqlite_classes = ["PaperFirmRoom"]
 `;
 const SAFE_ARCADE_ROOM = 'case "__test_set_event_now": { if (this.env.ENVIRONMENT === "development") { doThing(); } break; }';
 
@@ -120,6 +148,27 @@ test('gate CATCHES an out-of-range EVENT_* value (silent clamp)', () => {
 test('gate CATCHES a missing production DO binding', () => {
   const r = named(SAFE_TOML.replace(/{ name = "ROOM_REGISTRY"[^}]*}/, ''));
   assert.equal(r['production re-declares RoomRegistry DO binding'], false);
+});
+
+test('gate CATCHES a missing HiveRoom production binding', () => {
+  const r = named(SAFE_TOML.replace(/{ name = "HIVE_ROOM"[^}]*}/, ''));
+  assert.equal(r['production re-declares HiveRoom DO binding'], false);
+});
+
+test('gate CATCHES a missing PaperFirmRoom v6 migration without borrowing staging', () => {
+  const r = named(SAFE_TOML.replace(/\[\[env\.production\.migrations\]\]\ntag = "v6"\nnew_sqlite_classes = \["PaperFirmRoom"\]\n/, ''));
+  assert.equal(r['production re-declares PaperFirmRoom v6 migration'], false);
+});
+
+test('gate CATCHES swapped HiveRoom/PaperFirmRoom migration tags in every scope', () => {
+  const swapped = SAFE_TOML
+    .replaceAll('tag = "v5"\nnew_sqlite_classes = ["HiveRoom"]', 'tag = "v6"\nnew_sqlite_classes = ["HiveRoom"]')
+    .replaceAll('tag = "v6"\nnew_sqlite_classes = ["PaperFirmRoom"]', 'tag = "v5"\nnew_sqlite_classes = ["PaperFirmRoom"]');
+  const r = named(swapped);
+  assert.equal(r['base declares HiveRoom v5 migration'], false);
+  assert.equal(r['base declares PaperFirmRoom v6 migration'], false);
+  assert.equal(r['production re-declares HiveRoom v5 migration'], false);
+  assert.equal(r['production re-declares PaperFirmRoom v6 migration'], false);
 });
 
 test('gate CATCHES an un-gated test-clock hook', () => {

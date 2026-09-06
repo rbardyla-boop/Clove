@@ -12,6 +12,7 @@ bindings = [
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
   { name = "CITY_ROOM", class_name = "CityRoom" },
   { name = "CITY_REGISTRY", class_name = "CityRegistry" },
+  { name = "HIVE_ROOM", class_name = "HiveRoom" },
   { name = "PAPER_FIRM_ROOM", class_name = "PaperFirmRoom" }
 ]
 
@@ -31,9 +32,14 @@ new_sqlite_classes = ["CityRoom"]
 tag = "v4"
 new_sqlite_classes = ["CityRegistry"]
 
-# Paper Firm First Shift field authority. Additive and isolated from RUG org truth.
+# Production already applied HiveRoom as v5 (Hive World deploy). Keep that tag.
 [[migrations]]
 tag = "v5"
+new_sqlite_classes = ["HiveRoom"]
+
+# Paper Firm First Shift field authority. Additive after HiveRoom.
+[[migrations]]
+tag = "v6"
 new_sqlite_classes = ["PaperFirmRoom"]
 
 [vars]
@@ -52,6 +58,7 @@ name = "neon-arcade-mesh-production"
 routes = [
   { pattern = "clovelearn.io/arcade/ws*",                zone_name = "clovelearn.io" },
   { pattern = "clovelearn.io/arcade/city/ws*",           zone_name = "clovelearn.io" },
+  { pattern = "clovelearn.io/arcade/hive/ws*",           zone_name = "clovelearn.io" },
   { pattern = "clovelearn.io/arcade/paper-firm/ws*",     zone_name = "clovelearn.io" },
   { pattern = "clovelearn.io/arcade/rooms*",             zone_name = "clovelearn.io" },
   { pattern = "clovelearn.io/arcade/health*",            zone_name = "clovelearn.io" },
@@ -71,6 +78,7 @@ bindings = [
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
   { name = "CITY_ROOM", class_name = "CityRoom" },
   { name = "CITY_REGISTRY", class_name = "CityRegistry" },
+  { name = "HIVE_ROOM", class_name = "HiveRoom" },
   { name = "PAPER_FIRM_ROOM", class_name = "PaperFirmRoom" }
 ]
 
@@ -92,6 +100,10 @@ new_sqlite_classes = ["CityRegistry"]
 
 [[env.production.migrations]]
 tag = "v5"
+new_sqlite_classes = ["HiveRoom"]
+
+[[env.production.migrations]]
+tag = "v6"
 new_sqlite_classes = ["PaperFirmRoom"]
 
 [env.staging]
@@ -111,6 +123,7 @@ bindings = [
   { name = "ROOM_REGISTRY", class_name = "RoomRegistry" },
   { name = "CITY_ROOM", class_name = "CityRoom" },
   { name = "CITY_REGISTRY", class_name = "CityRegistry" },
+  { name = "HIVE_ROOM", class_name = "HiveRoom" },
   { name = "PAPER_FIRM_ROOM", class_name = "PaperFirmRoom" }
 ]
 
@@ -132,4 +145,8 @@ new_sqlite_classes = ["CityRegistry"]
 
 [[env.staging.migrations]]
 tag = "v5"
+new_sqlite_classes = ["HiveRoom"]
+
+[[env.staging.migrations]]
+tag = "v6"
 new_sqlite_classes = ["PaperFirmRoom"]

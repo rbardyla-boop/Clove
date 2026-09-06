@@ -34,6 +34,22 @@ function tableBody(toml, header) {
   const m = toml.match(new RegExp(`(?:^|\\n)\\[${esc}\\][ \\t]*\\n([\\s\\S]*?)(?=\\n\\[|$)`));
   return m ? m[1] : null;
 }
+/** Text for one migration scope, excluding later named environments. */
+function migrationBody(toml, env) {
+  const marker = env === 'base' ? '[[migrations]]' : `[[env.${env}.migrations]]`;
+  const start = toml.indexOf(marker);
+  if (start < 0) return '';
+  const tail = toml.slice(start);
+  const nextEnvironment = tail.search(/\n\[env\./);
+  return nextEnvironment < 0 ? tail : tail.slice(0, nextEnvironment);
+}
+/** Require the class and tag to occur in the same migration array block. */
+function hasMigrationAtTag(migrations, tag, className) {
+  return migrations
+    .split(/\n(?=\[\[[^\]]*migrations\]\])/)
+    .some((block) => new RegExp(`tag\\s*=\\s*"${tag}"`).test(block)
+      && new RegExp(`new_sqlite_classes\\s*=\\s*\\[[^\\]]*"${className}"[^\\]]*\\]`).test(block));
+}
 /** Value of a quoted `key = "value"` assignment on a non-comment line within `body`. */
 function tomlString(body, key) {
   if (!body) return undefined;
@@ -97,6 +113,12 @@ export function runProductionConfigChecks(sources = {}) {
       `${envKey}="${raw}" (must be "true"|"false")`);
   }
 
+  const baseMigrations = migrationBody(toml, 'base');
+  check('base declares HiveRoom v5 migration', hasMigrationAtTag(baseMigrations, 'v5', 'HiveRoom'),
+    baseMigrations ? 'v5 HiveRoom migration present' : 'MISSING [[migrations]] v5');
+  check('base declares PaperFirmRoom v6 migration', hasMigrationAtTag(baseMigrations, 'v6', 'PaperFirmRoom'),
+    baseMigrations ? 'v6 PaperFirmRoom migration present' : 'MISSING [[migrations]] v6');
+
   // Named environments do not inherit bindings/migrations — production must re-declare them.
   const prodDo = tableBody(toml, 'env.production.durable_objects') || '';
   check('production re-declares ArcadeRoom DO binding', /class_name\s*=\s*"ArcadeRoom"/.test(prodDo),
@@ -109,18 +131,24 @@ export function runProductionConfigChecks(sources = {}) {
   // Phase 5C: the city-block presence coordinator DO must also be re-declared in production.
   check('production re-declares CityRegistry DO binding', /class_name\s*=\s*"CityRegistry"/.test(prodDo),
     prodDo ? 'CityRegistry binding present' : 'MISSING CityRegistry in [env.production.durable_objects]');
+  check('production re-declares HiveRoom DO binding', /class_name\s*=\s*"HiveRoom"/.test(prodDo),
+    prodDo ? 'HiveRoom binding present' : 'MISSING HiveRoom in [env.production.durable_objects]');
+  check('production re-declares PaperFirmRoom DO binding', /class_name\s*=\s*"PaperFirmRoom"/.test(prodDo),
+    prodDo ? 'PaperFirmRoom binding present' : 'MISSING PaperFirmRoom in [env.production.durable_objects]');
 
-  const prodMigrations = toml.includes('[[env.production.migrations]]')
-    ? toml.slice(toml.indexOf('[[env.production.migrations]]'))
-    : '';
-  check('production re-declares ArcadeRoom v1 migration', /new_sqlite_classes\s*=\s*\[\s*"ArcadeRoom"\s*\]/.test(prodMigrations),
+  const prodMigrations = migrationBody(toml, 'production');
+  check('production re-declares ArcadeRoom v1 migration', hasMigrationAtTag(prodMigrations, 'v1', 'ArcadeRoom'),
     prodMigrations ? 'v1 ArcadeRoom migration present' : 'MISSING [[env.production.migrations]] v1');
-  check('production re-declares RoomRegistry v2 migration', /new_sqlite_classes\s*=\s*\[\s*"RoomRegistry"\s*\]/.test(prodMigrations),
+  check('production re-declares RoomRegistry v2 migration', hasMigrationAtTag(prodMigrations, 'v2', 'RoomRegistry'),
     prodMigrations ? 'v2 RoomRegistry migration present' : 'MISSING [[env.production.migrations]] v2');
-  check('production re-declares CityRoom v3 migration', /new_sqlite_classes\s*=\s*\[\s*"CityRoom"\s*\]/.test(prodMigrations),
+  check('production re-declares CityRoom v3 migration', hasMigrationAtTag(prodMigrations, 'v3', 'CityRoom'),
     prodMigrations ? 'v3 CityRoom migration present' : 'MISSING [[env.production.migrations]] v3');
-  check('production re-declares CityRegistry v4 migration', /new_sqlite_classes\s*=\s*\[\s*"CityRegistry"\s*\]/.test(prodMigrations),
+  check('production re-declares CityRegistry v4 migration', hasMigrationAtTag(prodMigrations, 'v4', 'CityRegistry'),
     prodMigrations ? 'v4 CityRegistry migration present' : 'MISSING [[env.production.migrations]] v4');
+  check('production re-declares HiveRoom v5 migration', hasMigrationAtTag(prodMigrations, 'v5', 'HiveRoom'),
+    prodMigrations ? 'v5 HiveRoom migration present' : 'MISSING [[env.production.migrations]] v5');
+  check('production re-declares PaperFirmRoom v6 migration', hasMigrationAtTag(prodMigrations, 'v6', 'PaperFirmRoom'),
+    prodMigrations ? 'v6 PaperFirmRoom migration present' : 'MISSING [[env.production.migrations]] v6');
 
   // The test-clock hook must stay dev-gated in code, so ENVIRONMENT=production rejects it.
   const hookDevGated = /case\s+"__test_set_event_now"\s*:\s*{[\s\S]*?env\.ENVIRONMENT\s*===\s*"development"/.test(arcadeRoom);
@@ -152,18 +180,19 @@ export function runProductionConfigChecks(sources = {}) {
     const stagingDo = tableBody(toml, 'env.staging.durable_objects') || '';
     check('staging re-declares all DO bindings',
       /class_name\s*=\s*"ArcadeRoom"/.test(stagingDo) && /class_name\s*=\s*"RoomRegistry"/.test(stagingDo)
-        && /class_name\s*=\s*"CityRoom"/.test(stagingDo) && /class_name\s*=\s*"CityRegistry"/.test(stagingDo),
-      stagingDo ? 'ArcadeRoom + RoomRegistry + CityRoom + CityRegistry present' : 'MISSING [env.staging.durable_objects]');
+        && /class_name\s*=\s*"CityRoom"/.test(stagingDo) && /class_name\s*=\s*"CityRegistry"/.test(stagingDo)
+        && /class_name\s*=\s*"HiveRoom"/.test(stagingDo) && /class_name\s*=\s*"PaperFirmRoom"/.test(stagingDo),
+      stagingDo ? 'ArcadeRoom + RoomRegistry + CityRoom + CityRegistry + HiveRoom + PaperFirmRoom present' : 'MISSING [env.staging.durable_objects]');
 
-    const stagingMig = toml.includes('[[env.staging.migrations]]')
-      ? toml.slice(toml.indexOf('[[env.staging.migrations]]'))
-      : '';
+    const stagingMig = migrationBody(toml, 'staging');
     check('staging re-declares all DO migrations',
-      /new_sqlite_classes\s*=\s*\[\s*"ArcadeRoom"\s*\]/.test(stagingMig)
-        && /new_sqlite_classes\s*=\s*\[\s*"RoomRegistry"\s*\]/.test(stagingMig)
-        && /new_sqlite_classes\s*=\s*\[\s*"CityRoom"\s*\]/.test(stagingMig)
-        && /new_sqlite_classes\s*=\s*\[\s*"CityRegistry"\s*\]/.test(stagingMig),
-      stagingMig ? 'v1 + v2 + v3 + v4 present' : 'MISSING [[env.staging.migrations]]');
+      hasMigrationAtTag(stagingMig, 'v1', 'ArcadeRoom')
+        && hasMigrationAtTag(stagingMig, 'v2', 'RoomRegistry')
+        && hasMigrationAtTag(stagingMig, 'v3', 'CityRoom')
+        && hasMigrationAtTag(stagingMig, 'v4', 'CityRegistry')
+        && hasMigrationAtTag(stagingMig, 'v5', 'HiveRoom')
+        && hasMigrationAtTag(stagingMig, 'v6', 'PaperFirmRoom'),
+      stagingMig ? 'v1 + v2 + v3 + v4 + v5 + v6 present' : 'MISSING [[env.staging.migrations]]');
   }
 
   return { ok: results.every((r) => r.ok), results };

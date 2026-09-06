@@ -1,0 +1,36 @@
+{
+  "schema": "clove-hive-art-v1",
+  "policy": "original-procedural-only",
+  "assets": [
+    {
+      "id": "frontier-canvas",
+      "kind": "procedural-canvas",
+      "source": "arcade/hiveworld/hive-scene.js",
+      "license": "original project code",
+      "distribution": "CloveLearn project"
+    },
+    {
+      "id": "frontier-atmosphere",
+      "kind": "inline-svg-noise-and-css",
+      "source": "arcade/hiveworld/hive.css",
+      "license": "original project code",
+      "distribution": "CloveLearn project"
+    },
+    {
+      "id": "relay-thread-flares",
+      "kind": "procedural-canvas-coordination-vfx",
+      "source": "arcade/hiveworld/hive-scene.js",
+      "license": "original project code",
+      "distribution": "CloveLearn project"
+    },
+    {
+      "id": "relay-thread-signals",
+      "kind": "closed-signal-vocabulary",
+      "source": "arcade/hiveworld/hive-world.mjs",
+      "license": "original project code",
+      "distribution": "CloveLearn project"
+    }
+  ],
+  "external_art_used": false,
+  "note": "No uncertain art was copied from the older Clove World or Neon Circuit builds. The first Hive visual pass is original procedural art so licensing does not block the playable route."
+}
