@@ -295,6 +295,7 @@ export class PaperFirmRoom implements DurableObject {
       if (!r.ok) { if (r.reason !== "too_fast") this.send(ws, { t: "pf_error", reason: r.reason }); return; }
       this.state = r.state;
       this.dirtyPositions.add(meta.playerId);
+      if (r.bumped) this.send(ws, { t: "pf_bump", at: now });
       const lastPersist = this.lastPositionPersistAt.get(meta.playerId) || 0;
       if (now - lastPersist >= POSITION_CHECKPOINT_MS) {
         await this.persist();

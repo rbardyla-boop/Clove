@@ -76,6 +76,38 @@ export function removeFieldPlayer(state, playerId) {
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
+// Solid furniture matching the drawn DESK / ARCHIVE / RELAY boxes.
+// Soft collision: slide along edges so walls matter without hard stuck corners.
+export const PF_SOLIDS = Object.freeze([
+  Object.freeze({ id: 'desk_top', x: 105, y: 505, w: 170, h: 90 }),
+  Object.freeze({ id: 'files', x: 708, y: 98, w: 70, h: 150 }),
+  Object.freeze({ id: 'source', x: 820, y: 98, w: 70, h: 150 }),
+  Object.freeze({ id: 'relay_base', x: 749, y: 510, w: 92, h: 95 }),
+]);
+
+function circleHitsSolid(cx, cy, r, rect) {
+  const nearestX = clamp(cx, rect.x, rect.x + rect.w);
+  const nearestY = clamp(cy, rect.y, rect.y + rect.h);
+  const dx = cx - nearestX;
+  const dy = cy - nearestY;
+  return (dx * dx + dy * dy) < (r * r);
+}
+
+function blockedAt(x, y) {
+  return PF_SOLIDS.some((solid) => circleHitsSolid(x, y, PF_PLAYER_RADIUS, solid));
+}
+
+function resolveSoftMove(px, py, nx, ny) {
+  const worldX = clamp(nx, PF_PLAYER_RADIUS, PF_WORLD.w - PF_PLAYER_RADIUS);
+  const worldY = clamp(ny, PF_PLAYER_RADIUS, PF_WORLD.h - PF_PLAYER_RADIUS);
+  if (!blockedAt(worldX, worldY)) return { x: worldX, y: worldY, bumped: false };
+  const slideX = clamp(nx, PF_PLAYER_RADIUS, PF_WORLD.w - PF_PLAYER_RADIUS);
+  if (!blockedAt(slideX, py)) return { x: slideX, y: py, bumped: true };
+  const slideY = clamp(ny, PF_PLAYER_RADIUS, PF_WORLD.h - PF_PLAYER_RADIUS);
+  if (!blockedAt(px, slideY)) return { x: px, y: slideY, bumped: true };
+  return { x: px, y: py, bumped: true };
+}
+
 export function applyFieldInput(state, playerId, input, now = Date.now()) {
   const p = state.players[playerId];
   if (!p) return { ok: false, reason: 'not_joined', state };
@@ -87,13 +119,22 @@ export function applyFieldInput(state, playerId, input, now = Date.now()) {
   const len = Math.hypot(dx, dy);
   const ux = len > 1 ? dx / len : dx;
   const uy = len > 1 ? dy / len : dy;
+  const rawX = p.x + ux * PF_MOVE.maxSpeed * dt;
+  const rawY = p.y + uy * PF_MOVE.maxSpeed * dt;
+  const resolved = resolveSoftMove(p.x, p.y, rawX, rawY);
   const next = {
     ...p,
-    x: clamp(p.x + ux * PF_MOVE.maxSpeed * dt, PF_PLAYER_RADIUS, PF_WORLD.w - PF_PLAYER_RADIUS),
-    y: clamp(p.y + uy * PF_MOVE.maxSpeed * dt, PF_PLAYER_RADIUS, PF_WORLD.h - PF_PLAYER_RADIUS),
+    x: resolved.x,
+    y: resolved.y,
     lastInputAt: now,
+    bumped: resolved.bumped,
   };
-  return { ok: true, reason: 'ok', state: { ...state, players: { ...state.players, [playerId]: next } } };
+  return {
+    ok: true,
+    reason: resolved.bumped ? 'soft_bump' : 'ok',
+    bumped: resolved.bumped,
+    state: { ...state, players: { ...state.players, [playerId]: next } },
+  };
 }
 
 export function advanceScout(state, verb, actor = {}, now = Date.now()) {

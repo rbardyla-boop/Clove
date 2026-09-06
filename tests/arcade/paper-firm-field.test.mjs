@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   PF_ZONES,
+  PF_SOLIDS,
   addFieldPlayer,
   advanceScout,
+  applyFieldInput,
   canExtract,
   createFieldState,
   extractPage,
@@ -116,6 +118,14 @@ test('the Paper Firm renderer contains the frozen visual language and no autonom
   assert.doesNotMatch(source, /deskWorkerTick|workerTimer|setInterval\(\(\) => deskWorkerTick/);
   assert.doesNotMatch(source, /MeshStandardMaterial|MeshPhysicalMaterial|postprocess|beige/i);
   assert.match(html, /data-touch-key="arrowup"/);
+  assert.match(html, /id="primary-cta"/);
+  assert.match(html, /id="toggle-more"/);
+  assert.match(html, /id="toggle-stats"/);
+  assert.match(html, /id="toggle-desk"/);
+  assert.match(source, /function nextStep\b/);
+  assert.match(source, /function setBlocked\b/);
+  assert.match(source, /pf_bump/);
+  assert.match(room, /pf_bump/);
   assert.match(css, /\.touch-pad/);
   assert.match(room, /PF-JOIN\/2/);
   assert.match(room, /verifyReceiptAck/);
@@ -132,4 +142,22 @@ test('the Paper Firm renderer contains the frozen visual language and no autonom
   assert.match(headers, /http:\/\/localhost:8080/);
   assert.match(headers, /http:\/\/localhost:8090/);
   assert.match(headers, /http:\/\/127\.0\.0\.1:8090/);
+});
+
+test('soft collision blocks walking through desk furniture and reports bump', () => {
+  assert.ok(PF_SOLIDS.length >= 4);
+  let state = addFieldPlayer(createFieldState(), LEAD, 1_000).state;
+  const desk = PF_SOLIDS.find((solid) => solid.id === 'desk_top');
+  // Place just left of the desk top and push right into it.
+  state = {
+    ...state,
+    players: {
+      ...state.players,
+      [LEAD]: { ...state.players[LEAD], x: desk.x - 14, y: desk.y + desk.h / 2, lastInputAt: 1_000 },
+    },
+  };
+  const moved = applyFieldInput(state, LEAD, { dx: 1, dy: 0 }, 1_080);
+  assert.equal(moved.ok, true);
+  assert.equal(moved.bumped, true);
+  assert.ok(moved.state.players[LEAD].x < desk.x, 'must not enter desk solid');
 });

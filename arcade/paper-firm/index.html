@@ -26,43 +26,57 @@
 
     <section id="field-controls" class="paper-note action-note hidden">
       <div class="role-line"><span id="role-name">ROLE</span> · <span id="principal-id">?</span></div>
-      <div id="field-actions" class="button-row">
-        <button id="scout-find" class="pen-button">SCOUT: FIND</button>
-        <button id="scout-carry" class="pen-button">SCOUT: CARRY</button>
-        <button id="extract-page" class="pen-button action">EXTRACT PAGE-7</button>
+
+      <div id="next-step" class="next-step">
+        <button id="primary-cta" class="pen-button primary action" type="button">…</button>
+        <p id="primary-hint" class="tiny primary-hint"></p>
       </div>
-      <div id="touch-pad" class="touch-pad" aria-label="touch movement">
-        <button class="pen-button" data-touch-key="arrowup" aria-label="move up">▲</button>
-        <button class="pen-button" data-touch-key="arrowleft" aria-label="move left">◀</button>
-        <button class="pen-button" data-touch-key="arrowdown" aria-label="move down">▼</button>
-        <button class="pen-button" data-touch-key="arrowright" aria-label="move right">▶</button>
+
+      <div class="face-tabs button-row" role="tablist" aria-label="Secondary panels">
+        <button id="toggle-more" class="pen-button" type="button" aria-expanded="false" aria-controls="more-panel">MORE</button>
+        <button id="toggle-stats" class="pen-button" type="button" aria-expanded="false" aria-controls="desk">STATS</button>
+        <button id="toggle-desk" class="pen-button" type="button" aria-expanded="false" aria-controls="overnight">DESK</button>
       </div>
-      <div id="human-a-actions" class="button-row hidden">
-        <button id="go-offline" class="pen-button danger">GO OFF SHIFT</button>
-        <button id="return-shift" class="pen-button hidden">RETURN — NO RECAP</button>
-        <button id="sign-relay" class="pen-button signature hidden">SIGN RELAY</button>
+
+      <div id="more-panel" class="more-panel hidden">
+        <div id="field-actions" class="button-row">
+          <button id="scout-find" class="pen-button">SCOUT: FIND</button>
+          <button id="scout-carry" class="pen-button">SCOUT: CARRY</button>
+          <button id="extract-page" class="pen-button action">EXTRACT PAGE-7</button>
+        </div>
+        <div id="touch-pad" class="touch-pad" aria-label="touch movement">
+          <button class="pen-button" data-touch-key="arrowup" aria-label="move up">▲</button>
+          <button class="pen-button" data-touch-key="arrowleft" aria-label="move left">◀</button>
+          <button class="pen-button" data-touch-key="arrowdown" aria-label="move down">▼</button>
+          <button class="pen-button" data-touch-key="arrowright" aria-label="move right">▶</button>
+        </div>
+        <div id="human-a-actions" class="button-row hidden">
+          <button id="go-offline" class="pen-button danger">GO OFF SHIFT</button>
+          <button id="return-shift" class="pen-button hidden">RETURN — NO RECAP</button>
+          <button id="sign-relay" class="pen-button signature hidden">SIGN RELAY</button>
+        </div>
+        <div id="human-b-actions" class="button-row hidden">
+          <button id="verify-source" class="pen-button action">VERIFY PAGE-7</button>
+          <button id="promote-source" class="pen-button action">PROMOTE DOCTRINE</button>
+          <button id="package-packet" class="pen-button action">PACKAGE BUILDER</button>
+          <button id="deliver-packet" class="pen-button action">DELIVER PACKET</button>
+          <button id="change-requirement" class="pen-button danger hidden">CHANGE REQUIREMENT → R2</button>
+        </div>
+        <div id="finding-actions" class="button-row hidden">
+          <label class="finding-input">FINDING <input id="finding-id" placeholder="finding id" spellcheck="false" /></label>
+          <select id="finding-reason" aria-label="rejection reason">
+            <option value="missing_ancestry">missing ancestry</option>
+            <option value="empty_evidence">empty evidence</option>
+            <option value="superseded_packet">superseded packet</option>
+          </select>
+          <button id="reject-finding" class="pen-button danger">REJECT FINDING</button>
+        </div>
+        <p class="tiny">WASD / arrows move. Drag the page to rotate. Walls soft-bump.</p>
       </div>
-      <div id="human-b-actions" class="button-row hidden">
-        <button id="verify-source" class="pen-button action">VERIFY PAGE-7</button>
-        <button id="promote-source" class="pen-button action">PROMOTE DOCTRINE</button>
-        <button id="package-packet" class="pen-button action">PACKAGE BUILDER</button>
-        <button id="deliver-packet" class="pen-button action">DELIVER PACKET</button>
-        <button id="change-requirement" class="pen-button danger hidden">CHANGE REQUIREMENT → R2</button>
-      </div>
-      <div id="finding-actions" class="button-row hidden">
-        <label class="finding-input">FINDING <input id="finding-id" placeholder="finding id" spellcheck="false" /></label>
-        <select id="finding-reason" aria-label="rejection reason">
-          <option value="missing_ancestry">missing ancestry</option>
-          <option value="empty_evidence">empty evidence</option>
-          <option value="superseded_packet">superseded packet</option>
-        </select>
-        <button id="reject-finding" class="pen-button danger">REJECT FINDING</button>
-      </div>
-      <p class="tiny">WASD / arrow keys move. Drag the page to rotate the drawing.</p>
     </section>
 
-    <section id="desk" class="paper-note desk-note hidden">
-      <h2>THE DESK</h2>
+    <section id="desk" class="paper-note desk-note hidden" aria-label="Stats ledger">
+      <h2>STATS</h2>
       <div class="desk-grid">
         <span>POCKET</span><b id="desk-pocket">empty</b>
         <span>OBS</span><b id="desk-obs">—</b>
@@ -75,7 +89,7 @@
       </div>
     </section>
 
-    <section id="overnight" class="paper-note overnight-note hidden">
+    <section id="overnight" class="paper-note overnight-note hidden" aria-label="Desk overnight receipt">
       <h2>WHILE YOU WERE GONE</h2>
       <div class="receipt-line"><span>relay repair</span><b id="gone-relay">OPEN</b></div>
       <div class="receipt-line"><span>worker replaced</span><b id="gone-worker">0</b></div>
@@ -86,6 +100,8 @@
     <section id="event-log" class="paper-note log-note hidden" aria-live="polite">
       <div id="log-lines"></div>
     </section>
+
+    <div id="wall-bump" class="wall-bump hidden" aria-live="polite">wall</div>
   </main>
 
   <script type="module" src="./paper-firm.js"></script>

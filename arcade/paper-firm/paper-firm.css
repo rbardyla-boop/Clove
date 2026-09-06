@@ -82,7 +82,16 @@ select {
   box-shadow: 2px 2px 0 rgba(36,93,160,.12);
 }
 .pen-button:hover { background: rgba(36,93,160,.08); transform: rotate(.25deg) translateY(-1px); }
-.pen-button:disabled { opacity: .42; cursor: not-allowed; text-decoration: line-through; }
+.pen-button:disabled {
+  opacity: .55;
+  cursor: help;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.pen-button:disabled[title]:hover,
+.pen-button:disabled[data-why]:hover {
+  opacity: .78;
+}
 .pen-button.primary { background: var(--yellow); }
 .pen-button.action { background: rgba(36,93,160,.10); }
 .pen-button.danger { color: var(--red); border-color: var(--red); }
@@ -121,6 +130,37 @@ select {
 .log-entry::before { content: "→ "; }
 .log-entry.reject { color: var(--red); text-decoration: line-through; }
 .log-entry.pass { color: var(--red); font-weight: 700; }
+
+
+.next-step { margin-top: 8px; display: grid; gap: 4px; }
+.next-step .pen-button.primary { font-size: 15px; padding: 10px 14px; width: 100%; }
+.primary-hint { margin: 0; min-height: 1.2em; color: var(--ink); opacity: .85; }
+.primary-hint.is-blocked { color: var(--red); opacity: .95; }
+
+.face-tabs { margin-top: 8px; }
+.face-tabs .pen-button[aria-expanded="true"] { background: var(--yellow); }
+
+.more-panel { margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(36,93,160,.35); }
+
+.wall-bump {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%) rotate(-2deg);
+  pointer-events: none;
+  border: 2px solid var(--ink);
+  background: rgba(245,240,223,.92);
+  padding: 6px 12px;
+  font: 700 14px "Comic Sans MS", "Bradley Hand", cursive;
+  box-shadow: 2px 2px 0 rgba(36,93,160,.12);
+  z-index: 5;
+  animation: bump-pop .55s ease-out;
+}
+@keyframes bump-pop {
+  0% { opacity: 0; transform: translate(-50%, -40%) scale(.9) rotate(-4deg); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(-1deg); }
+  100% { opacity: 0; transform: translate(-50%, -62%) scale(1) rotate(2deg); }
+}
 
 .hidden { display: none !important; }
 
