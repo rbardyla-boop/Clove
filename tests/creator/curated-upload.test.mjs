@@ -21,6 +21,8 @@ test('excludes arcade/creator tooling', () => {
 test('excludes tests / docs / workers / electron / .claude / .powerplant / .github', () => {
   for (const p of [
     'tests/creator/x.test.mjs',
+    'proof/PAPER_FIRM_BETA_HANDOFF.md',
+    'proof/screenshots/paper-firm-art-evidence-fixture.png',
     'docs/CREATOR_FOUNDATION_CF2_APPROVED_LOADER.md',
     'workers/arcade/src/index.ts',
     'electron-app/main.js',
@@ -47,6 +49,29 @@ test('includes the live client (arcade/city, root pages, fonts, vendored libs)',
     'fonts/chakra.woff2',
     'scripts/three.min.js',
   ]) assert.equal(isExcludedFromUpload(p), false, p);
+});
+
+test('Paper Firm production payload keeps its runtime renderer and visual assets', () => {
+  // Narrow integration guard: these are runtime dependencies of the shipped page, not a new
+  // public-prefix allowlist.  The real-repo assertion intentionally fails while an implementer
+  // leaves a dependency untracked or the linked stylesheet missing.
+  const paperFirmRuntime = [
+    'arcade/paper-firm/index.html',
+    'arcade/paper-firm/paper-firm.css',
+    'arcade/paper-firm/paper-firm.js',
+    'arcade/paper-firm/paper-renderer.mjs',
+    'arcade/paper-firm/play-loop.mjs',
+    'arcade/paper-firm/vendor/three.core.js',
+    'arcade/paper-firm/vendor/three.module.js',
+    'arcade/paper-firm/vendor/THREE-LICENSE.txt',
+    'arcade/paper-firm/fonts/Caveat[wght].ttf',
+    'arcade/paper-firm/fonts/Caveat-OFL.txt',
+  ];
+  for (const path of paperFirmRuntime) assert.equal(isExcludedFromUpload(path), false, path);
+  const { included } = curatedUploadFileList();
+  for (const path of paperFirmRuntime) {
+    assert.ok(included.includes(path), `Paper Firm runtime asset is not tracked for upload: ${path}`);
+  }
 });
 
 test('excludes the local dev workshop + staging bundlers but keeps runtime vendored libs in scripts/', () => {

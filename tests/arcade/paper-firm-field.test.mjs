@@ -101,30 +101,44 @@ test('disconnect/rejoin preserves the field player while hiding offline presence
 });
 
 test('the Paper Firm renderer contains the frozen visual language and no autonomous worker loop', () => {
-  const source = fs.readFileSync(new URL('../../arcade/paper-firm/paper-firm.js', import.meta.url), 'utf8');
+  const paperDir = new URL('../../arcade/paper-firm/', import.meta.url);
+  const sourceFiles = fs.readdirSync(paperDir).filter((name) => /\.(?:html|css|m?js)$/.test(name));
+  const source = sourceFiles.map((name) => fs.readFileSync(new URL(name, paperDir), 'utf8')).join('\n');
+  const client = fs.readFileSync(new URL('../../arcade/paper-firm/paper-firm.js', import.meta.url), 'utf8');
+  const playLoop = fs.readFileSync(new URL('../../arcade/paper-firm/play-loop.mjs', import.meta.url), 'utf8');
   const html = fs.readFileSync(new URL('../../arcade/paper-firm/index.html', import.meta.url), 'utf8');
   const room = fs.readFileSync(new URL('../../workers/arcade/src/paper-firm-room.ts', import.meta.url), 'utf8');
   const headers = fs.readFileSync(new URL('../../_headers', import.meta.url), 'utf8');
-  const css = fs.readFileSync(new URL('../../arcade/paper-firm/paper-firm.css', import.meta.url), 'utf8');
-  for (const marker of ['paperBackground', 'drawBox', 'hatchFace', 'drawZone', 'redCheck', 'redX', 'tapeMark', 'ancestryThread']) {
-    assert.match(source, new RegExp(`function ${marker}\\b`), marker);
-  }
-  assert.match(source, /const RULE\s*=/, 'RULE');
+  const cssUrl = new URL('../../arcade/paper-firm/paper-firm.css', import.meta.url);
+  assert.equal(fs.existsSync(cssUrl), true, 'live page stylesheet exists');
+  const css = fs.readFileSync(cssUrl, 'utf8');
+  // The primary world canvas must be WebGL-owned.  Canvas2D is allowed only for
+  // offscreen label textures used by the Three.js scene; do not reject that
+  // legitimate CanvasTexture path or comments mentioning the old failure mode.
+  assert.doesNotMatch(client, /(?:paper[-_ ]?world|worldCanvas|primaryCanvas)[\s\S]{0,160}getContext\(['"]2d['"]\)/i, 'primary world canvas is not 2D');
+  assert.match(source, /labelCanvas\.getContext\(['"]2d['"]\)[\s\S]{0,180}CanvasTexture/i, 'offscreen label texture is explicit');
+  assert.match(source, /getContext\(['"]webgl2?['"]\)|THREE\.WebGLRenderer|WebGLRenderer/i, 'WebGL renderer');
+  assert.match(source, /(?:ShaderMaterial|vertexShader|fragmentShader|shaderSource|gl_FragColor)/i, 'actual shader path');
+  assert.match(source, /(?:BufferGeometry|BoxGeometry|PlaneGeometry|createBuffer|drawElements|drawArrays|vertexAttrib)/i, 'real mesh geometry');
+  assert.match(source, /(?:PerspectiveCamera|projectionMatrix|lookAt|camera.*position|orbit|yaw|pitch)/i, 'camera/depth system');
+  assert.match(source, /(?:hatch|cross.?hatch|rule|ruled|school.?book)/i, 'shader/material paper marks');
+  assert.match(source, /(?:redCheck|redX|tapeMark|ancestryThread|red.*(?:check|reject)|tape|HIGHLIGHT)/i, 'authority marks');
   for (const marker of ['DESK', 'STAIN', 'ARCHIVE', 'RELAY', 'PAGE-7']) {
     assert.match(source + html, new RegExp(marker), marker);
   }
-  assert.match(source, /rgba\(36,93,160,/);
-  assert.match(source, /ctx\.globalAlpha|alpha/);
-  assert.doesNotMatch(source, /deskWorkerTick|workerTimer|setInterval\(\(\) => deskWorkerTick/);
-  assert.doesNotMatch(source, /MeshStandardMaterial|MeshPhysicalMaterial|postprocess|beige/i);
+  assert.match(source, /(?:#245da0|36,93,160|--ink)/i, 'ballpoint blue');
+  assert.match(source, /(?:globalAlpha|alpha|lineWidth)/i, 'line-weight/ink variation');
+  assert.match(source, /(?:project\s*\(|perspective|depth|z\s*=)/i, 'perspective/depth');
+  assert.doesNotMatch(source, /deskWorkerTick|workerTimer|setInterval\(\(\) => deskWorkerTick|AFK|timer\s*(?:reward|progress|xp)/i);
+  assert.doesNotMatch(source, /MeshStandardMaterial|MeshPhysicalMaterial|postprocess|beige post-process|normalMap|bloom/i);
   assert.match(html, /data-touch-key="arrowup"/);
   assert.match(html, /id="primary-cta"/);
   assert.match(html, /id="toggle-more"/);
   assert.match(html, /id="toggle-stats"/);
   assert.match(html, /id="toggle-desk"/);
-  assert.match(source, /function nextStep\b/);
-  assert.match(source, /function setBlocked\b/);
-  assert.match(source, /pf_bump/);
+  assert.match(client, /function nextStep\b/);
+  assert.match(client, /function setBlocked\b/);
+  assert.match(client, /pf_bump/);
   assert.match(room, /pf_bump/);
   assert.match(css, /\.touch-pad/);
   assert.match(room, /PF-JOIN\/2/);
@@ -132,16 +146,35 @@ test('the Paper Firm renderer contains the frozen visual language and no autonom
   assert.match(room, /meta\.role !== "lead"/);
   assert.match(room, /advanceScout\(this\.state, String\(data\.verb \|\| ""\), \{ playerId: meta\.playerId, role: meta\.role \}, now\)/);
   assert.match(room, /this\.pending/);
-  assert.match(source, /location\.hostname === 'clovelearn\.io'.*wss:\/\/clovelearn\.io/);
-  assert.match(source, /change-requirement/);
+  assert.match(client, /location\.hostname === 'clovelearn\.io'.*wss:\/\/clovelearn\.io/);
+  assert.match(client, /change-requirement/);
   for (const id of ['verify-source', 'promote-source', 'package-packet', 'deliver-packet', 'reject-finding']) assert.match(html, new RegExp(`id="${id}"`), id);
-  for (const action of ['verify_source', 'promote_source', 'package', 'deliver', 'reject_finding']) assert.match(source, new RegExp(action), action);
+  for (const action of ['verify_source', 'promote_source', 'package', 'deliver', 'reject_finding']) assert.match(client, new RegExp(action), action);
   for (const field of ['scout_find_sequence', 'scout_find_at', 'scout_carry_sequence', 'scout_carry_at']) assert.match(room, new RegExp(field), field);
-  assert.match(source, /if \(lockedConfig\) return lockedConfig/);
-  assert.match(source, /e\.target instanceof HTMLInputElement/);
+  assert.match(client, /if \(lockedConfig\) return lockedConfig/);
+  assert.match(client, /e\.target instanceof HTMLInputElement/);
   assert.match(headers, /http:\/\/localhost:8080/);
   assert.match(headers, /http:\/\/localhost:8090/);
   assert.match(headers, /http:\/\/127\.0\.0\.1:8090/);
+});
+
+test('the playable loop keeps explicit gates and does not manufacture authority', () => {
+  const client = fs.readFileSync(new URL('../../arcade/paper-firm/paper-firm.js', import.meta.url), 'utf8');
+  const playLoop = fs.readFileSync(new URL('../../arcade/paper-firm/play-loop.mjs', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../../arcade/paper-firm/index.html', import.meta.url), 'utf8');
+  const room = fs.readFileSync(new URL('../../workers/arcade/src/paper-firm-room.ts', import.meta.url), 'utf8');
+  const loop = client + playLoop;
+  assert.match(loop, /roleNextStep|derivePaperViewModel/);
+  assert.match(loop, /(?:FIND|find)[\s\S]*(?:CARRY|carry)[\s\S]*(?:EXTRACT|extract)/);
+  assert.match(loop, /(?:package-packet|PACKAGE)[\s\S]*(?:deliver-packet|DELIVER)/i);
+  assert.match(loop, /(?:return-shift|RETURN)[\s\S]*(?:sign-relay|SIGN)/i);
+  assert.match(loop, /(?:change_requirement|R2)/);
+  assert.match(client + html, /superseded_packet|missing_ancestry|empty_evidence/);
+  for (const id of ['primary-cta', 'return-shift', 'sign-relay', 'change-requirement']) assert.match(html, new RegExp(`id="${id}"`), id);
+  assert.match(room, /advanceScout\(/);
+  assert.match(room, /verifyReceiptAck/);
+  assert.doesNotMatch(client, /(?:fake|mock|synthetic).{0,30}(?:receipt|proof)/i);
+  assert.doesNotMatch(client, /(?:delete.?all|overwrite.?all|destructive.?reset|resetWorld)/i);
 });
 
 test('soft collision blocks walking through desk furniture and reports bump', () => {

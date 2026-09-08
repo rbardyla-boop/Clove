@@ -1,12 +1,10 @@
+import {
+  currentPacketForRevision,
+  derivePaperViewModel,
+} from './play-loop.mjs';
+
 const $ = (id) => document.getElementById(id);
 const canvas = $('paper-world');
-const ctx = canvas.getContext('2d');
-
-const INK = '#245da0';
-const RED = '#b53a3a';
-const PAPER = '#f5f0df';
-const RULE = 'rgba(91,135,176,.22)';
-const YELLOW = 'rgba(244,216,80,.42)';
 
 let dpr = Math.max(1, Math.min(2, devicePixelRatio || 1));
 let angle = -0.68;
@@ -41,28 +39,36 @@ let statsOpen = false;
 let deskOpen = false;
 let bumpUntil = 0;
 let primaryActionId = '';
+let paperRenderer = null;
 
-
-window.__paperFirmArtGate = Object.freeze({
-  ruledPaperAcrossFrame: true,
-  twoDirectionHatch: true,
-  paperRulesRemainVisibleUnderHatch: true,
-  contourWeightVariation: true,
-  pbrLighting: false,
-  repairUsesTape: true,
-  rejectionUsesRedMark: true,
-  verificationUsesRedCheck: true,
-  ancestryUsesThreads: true,
-});
 
 function resize() {
+  if (paperRenderer) {
+    paperRenderer.resize();
+    draw();
+    return;
+  }
   const rect = canvas.getBoundingClientRect();
   canvas.width = Math.round(rect.width * dpr);
   canvas.height = Math.round(rect.height * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   draw();
 }
 window.addEventListener('resize', resize);
+
+// Graphics are required; expose runtime measurements, never self-graded PASS flags.
+import('./paper-renderer.mjs').then((module) => {
+  if (typeof module.createPaperRenderer !== 'function') return;
+  paperRenderer = module.createPaperRenderer(canvas);
+  $('connect-btn').disabled = false;
+  window.__paperFirmRenderer = paperRenderer.diagnostics;
+  paperRenderer.resize();
+  draw();
+}).catch((error) => {
+  console.error('Paper Firm 3D renderer failed', error);
+  $('renderer-error').textContent = '3D renderer unavailable. WebGL2 is required. Reload after graphics support is restored.';
+  $('renderer-error').classList.remove('hidden');
+  $('connect-btn').disabled = true;
+});
 
 function addLog(text, kind = '') {
   log.unshift({ text, kind, at: Date.now() });
@@ -83,54 +89,12 @@ function setBlocked(btn, blocked, why = '') {
   btn.setAttribute('aria-label', reason ? `${base}. ${reason}` : base);
 }
 
-function playerInZone(zoneId) {
-  const me = (field?.players || []).find((p) => p.id === principal);
-  const zone = (field?.zones || []).find((z) => z.id === zoneId);
-  if (!me || !zone) return false;
-  return me.x >= zone.x && me.x <= zone.x + zone.w && me.y >= zone.y && me.y <= zone.y + zone.h;
+function nextStep() {
+  return derivePaperViewModel({ paper, gone, field, role, principal }).next;
 }
 
-function nextStep() {
-  if (!paper) {
-    return { id: '', label: 'WAIT FOR DESK', enabled: false, why: 'Connect and wait for the first RUG snapshot.' };
-  }
-  if (role === 'lead') {
-    if (paper.complete) return { id: '', label: 'RELAY SIGNED', enabled: false, why: 'First Shift is complete.' };
-    if (paper.readyToSign) return { id: 'sign-relay', label: 'SIGN RELAY', enabled: true, why: 'Ink the repair. Make the relay real.' };
-    if (paper.humanOffline || offlineLocal) return { id: 'return-shift', label: 'RETURN — NO RECAP', enabled: true, why: 'Come back to the page. No recap loads.' };
-    const scoutPhase = field?.scout?.phase || 'idle';
-    const pagePhase = field?.page?.phase || 'in_stain';
-    if (pagePhase !== 'extracted') {
-      if (scoutPhase === 'idle') {
-        const inStain = playerInZone('STAIN');
-        return { id: 'scout-find', label: 'SCOUT: FIND', enabled: inStain, why: inStain ? 'Search the Stain for PAGE-7.' : 'Walk into the Stain first, then FIND.' };
-      }
-      if (scoutPhase === 'found') {
-        const inStain = playerInZone('STAIN');
-        return { id: 'scout-carry', label: 'SCOUT: CARRY', enabled: inStain, why: inStain ? 'Carry PAGE-7 to the Archive.' : 'Stand in the Stain to order the carry.' };
-      }
-      const inArchive = playerInZone('ARCHIVE');
-      return { id: 'extract-page', label: 'EXTRACT PAGE-7', enabled: inArchive && scoutPhase === 'ready', why: inArchive ? (scoutPhase === 'ready' ? 'Pull PAGE-7 for the Desk.' : 'Scout must finish CARRY first.') : 'Walk into the Archive after CARRY.' };
-    }
-    const initialDone = paper.packets?.some((p) => p.requirementRevision === 'R1' && p.delivered) && paper.builderOperated;
-    if (!paper.humanOffline) {
-      return { id: 'go-offline', label: 'GO OFF SHIFT', enabled: Boolean(initialDone), why: initialDone ? 'Leave. The organism keeps the job.' : 'Finish first packet delivery and builder work first.' };
-    }
-    return { id: '', label: 'WAIT ON DESK', enabled: false, why: 'Human B and the organism are still working.' };
-  }
-  if (role === 'hand') {
-    if (paper.complete) return { id: '', label: 'RELAY SIGNED', enabled: false, why: 'First Shift is complete.' };
-    if (!paper.observationId) return { id: '', label: 'WAIT FOR RECEIPT', enabled: false, why: 'Human A must extract PAGE-7 into OBS first.' };
-    if (!paper.sourceVerified) return { id: 'verify-source', label: 'VERIFY PAGE-7', enabled: true, why: 'Check the source. Red check only when true.' };
-    if (!paper.doctrineId) return { id: 'promote-source', label: 'PROMOTE DOCTRINE', enabled: true, why: 'Promote verified PAGE-7 into doctrine.' };
-    const currentPacket = paper.packets?.find((packet) => packet.packetId === paper.currentPacketId) || null;
-    if (!currentPacket) return { id: 'package-packet', label: 'PACKAGE BUILDER', enabled: true, why: 'Package work against doctrine.' };
-    if (!(currentPacket.delivered || paper.currentPacketDelivered)) return { id: 'deliver-packet', label: 'DELIVER PACKET', enabled: true, why: 'Deliver the packet so the field can move on.' };
-    if (paper.requirementRevision === 'R1' && paper.humanOffline) return { id: 'change-requirement', label: 'CHANGE REQUIREMENT → R2', enabled: true, why: 'Human A is off shift. Change the requirement.' };
-    if (paper.readyToSign) return { id: '', label: 'WAIT FOR SIGN', enabled: false, why: 'Harness passed. Human A must SIGN.' };
-    return { id: '', label: 'KEEP THE DESK', enabled: false, why: 'Reject bad findings in MORE when they arrive.' };
-  }
-  return { id: '', label: 'OBSERVE', enabled: false, why: 'No field verb for this role yet.' };
+function viewModel() {
+  return derivePaperViewModel({ paper, gone, field, role, principal, now: Date.now() });
 }
 
 function syncPrimaryCta() {
@@ -161,6 +125,7 @@ function setPanelOpen(kind, open) {
     $('overnight').classList.toggle('hidden', !deskOpen);
     $('toggle-desk').setAttribute('aria-expanded', deskOpen ? 'true' : 'false');
   }
+  renderViewModel(viewModel());
 }
 
 function flashWallBump() {
@@ -326,6 +291,7 @@ async function acceptReceipt(receipt) {
 }
 
 async function connect() {
+  if (!paperRenderer) return;
   const initialConfig = config();
   const { match } = initialConfig;
   if (!match) { $('connection-status').textContent = 'enter the RUG world code'; return; }
@@ -378,24 +344,93 @@ async function oneDeskAction(action, extra = {}) {
   return result;
 }
 
+function setStateClasses(element, state) {
+  if (!element) return;
+  for (const className of ['is-awaiting', 'is-awaitingproof', 'is-ready', 'is-won', 'is-late', 'is-expired', 'is-complete']) {
+    element.classList.remove(className);
+  }
+  element.classList.add(`is-${state}`);
+  if (state === 'awaitingproof') element.classList.add('is-awaiting');
+  if (state === 'won' || state === 'late') element.classList.add('is-complete');
+}
+
+function renderProofRows(rows, container) {
+  if (!container) return;
+  container.replaceChildren();
+  for (const row of rows) {
+    const item = document.createElement('div');
+    item.className = `paper-proof-row is-${row.state}`;
+    item.dataset.evidenceId = row.id;
+    const label = document.createElement('span');
+    label.className = 'paper-step';
+    label.textContent = row.label;
+    const value = document.createElement('b');
+    value.className = 'paper-status';
+    value.textContent = row.value;
+    item.append(label, value);
+    container.append(item);
+  }
+}
+
+function renderViewModel(vm) {
+  const state = $('paper-state');
+  state.textContent = `${vm.status.label} · ${vm.status.detail}`;
+  state.dataset.state = vm.status.id;
+  state.dataset.deadlineAt = String(vm.deadline.at || '');
+  setStateClasses(state, vm.status.id);
+  $('paper-first-minute').textContent = vm.objective.help;
+  $('paper-deadline').textContent = vm.deadline.label;
+  $('paper-deadline').dataset.deadlineAt = String(vm.deadline.at || '');
+
+  renderProofRows(vm.evidence.rows, $('paper-proof-rows'));
+  $('paper-proof').classList.toggle('hidden', !statsOpen);
+  const tuple = $('paper-proof-tuple');
+  tuple.textContent = `EXACT TUPLE · ${vm.evidence.tupleText}`;
+  tuple.dataset.valid = vm.evidence.exactTuple ? 'true' : 'false';
+
+  const returnPanel = $('paper-return');
+  returnPanel.classList.toggle('hidden', !vm.returnScreen.visible || !deskOpen);
+  if (vm.returnScreen.visible && deskOpen) $('overnight').classList.add('hidden');
+  $('paper-return-title').textContent = vm.returnScreen.title;
+  renderProofRows(vm.returnScreen.lines, $('paper-return-lines'));
+  $('paper-return-note').textContent = vm.returnScreen.visible
+    ? 'No recap. These lines are the RUG return projection from events during the absence interval.'
+    : 'No absence interval has been recorded yet.';
+
+  const endgame = $('paper-endgame');
+  endgame.classList.toggle('hidden', !vm.endgame.visible);
+  endgame.dataset.state = vm.status.id;
+  setStateClasses(endgame, vm.status.id);
+  $('paper-endgame-title').textContent = vm.endgame.title;
+  $('paper-endgame-body').textContent = vm.endgame.body;
+  $('paper-endgame-tuple').textContent = vm.endgame.exactTuple
+    ? `BOUND · ${vm.evidence.tupleText}`
+    : 'No exact tuple is presented as proof.';
+  document.body.dataset.contractState = vm.status.id;
+}
+
 function updateUi() {
   $('role-name').textContent = role === 'lead' ? 'HUMAN A — FIELD LEAD' : role === 'hand' ? 'HUMAN B — DESK LEAD' : role.toUpperCase();
   $('principal-id').textContent = principal ? principal.slice(0, 14) : '?';
-  if (!paper) return;
+  const vm = viewModel();
+  renderViewModel(vm);
+  if (!paper) {
+    syncPrimaryCta();
+    return;
+  }
 
   $('desk-obs').textContent = paper.observationId || '—';
   $('desk-verified').textContent = paper.sourceVerified ? '✓ PAGE-7' : '—';
   $('desk-doctrine').textContent = paper.doctrineId || '—';
-  $('desk-packet').textContent = paper.currentPacketId || '—';
-  $('desk-builder').textContent = paper.builderOperated ? (paper.workerReplacements ? 'replacement working' : 'working') : 'idle';
-  $('desk-harness').textContent = paper.harnessPassed ? 'PASS' : 'OPEN';
-  $('desk-sign').textContent = paper.complete ? 'SIGNED' : paper.readyToSign ? 'READY' : 'blocked';
+  $('desk-packet').textContent = vm.packet.current?.packetId || paper.currentPacketId || '—';
+  $('desk-builder').textContent = paper.builderOperated ? (paper.workerReplacements ? 'replacement working' : 'working') : paper.workerOnline ? 'online' : 'waiting';
+  $('desk-harness').textContent = paper.harnessPassed ? (paper.harnessBeforeMorning ? 'PASS' : 'LATE') : 'OPEN';
+  $('desk-sign').textContent = vm.status.id === 'won' ? 'SIGNED' : vm.status.id === 'late' ? 'LATE' : vm.status.id === 'ready' ? 'READY' : vm.status.id === 'expired' ? 'EXPIRED' : 'blocked';
   $('scout-find').classList.toggle('hidden', role !== 'lead');
   $('scout-carry').classList.toggle('hidden', role !== 'lead');
   const deskActions = role === 'hand';
   $('human-b-actions').classList.toggle('hidden', !deskActions);
   $('finding-actions').classList.toggle('hidden', !deskActions);
-  const currentPacket = paper.packets?.find((packet) => packet.packetId === paper.currentPacketId) || null;
   setBlocked(
     $('verify-source'),
     !paper.observationId || paper.sourceVerified,
@@ -408,13 +443,13 @@ function updateUi() {
   );
   setBlocked(
     $('package-packet'),
-    !paper.doctrineId || Boolean(currentPacket),
-    currentPacket ? 'A packet is already packaged.' : 'Promote doctrine before packaging.',
+    vm.next.id !== 'package-packet',
+    vm.next.id === 'package-packet' ? '' : vm.next.why,
   );
   setBlocked(
     $('deliver-packet'),
-    !currentPacket || currentPacket.delivered || paper.currentPacketDelivered,
-    !currentPacket ? 'Package a packet first.' : 'This packet is already delivered.',
+    vm.next.id !== 'deliver-packet',
+    vm.next.id === 'deliver-packet' ? '' : vm.next.why,
   );
   const findingId = $('finding-id').value.trim();
   setBlocked(
@@ -427,8 +462,8 @@ function updateUi() {
   requirementButton.classList.toggle('hidden', !canChangeRequirement);
   setBlocked(
     requirementButton,
-    !paper.humanOffline,
-    paper.humanOffline ? 'Change the requirement while Human A is off shift.' : 'Human A must leave first (GO OFF SHIFT).',
+    vm.next.id !== 'change-requirement',
+    vm.next.id === 'change-requirement' ? '' : vm.next.why,
   );
 
   $('gone-relay').textContent = gone.relayRepair || 'OPEN';
@@ -437,24 +472,24 @@ function updateUi() {
   $('gone-ready').textContent = gone.ready || 'OPEN';
 
   if (role === 'lead') {
-    const initialDone = paper.packets.some((p) => p.requirementRevision === 'R1' && p.delivered) && paper.builderOperated;
     setBlocked(
       $('go-offline'),
-      !initialDone || paper.humanOffline,
-      paper.humanOffline ? 'Already off shift.' : 'Finish first packet delivery and builder work first.',
+      vm.next.id !== 'go-offline',
+      vm.next.id === 'go-offline' ? '' : vm.next.why,
     );
-    $('go-offline').classList.toggle('hidden', paper.humanOffline || offlineLocal);
-    $('return-shift').classList.toggle('hidden', !(paper.humanOffline || offlineLocal));
-    $('sign-relay').classList.toggle('hidden', !paper.readyToSign || paper.complete);
-    setBlocked($('sign-relay'), !paper.readyToSign || paper.complete, paper.complete ? 'Already signed.' : 'Wait until READY_TO_SIGN.');
+    $('go-offline').classList.toggle('hidden', paper.humanOffline);
+    $('return-shift').classList.toggle('hidden', !paper.humanOffline);
+    $('sign-relay').classList.toggle('hidden', vm.next.id !== 'sign-relay');
+    setBlocked($('sign-relay'), vm.next.id !== 'sign-relay', vm.next.id === 'sign-relay' ? '' : vm.next.why);
   }
   // Desk ledger + WHILE_YOU_WERE_GONE stay behind STATS/DESK toggles (never auto-face).
-  if (deskOpen) $('overnight').classList.remove('hidden');
+  if (deskOpen && !vm.returnScreen.visible) $('overnight').classList.remove('hidden');
   else $('overnight').classList.add('hidden');
   if (statsOpen) $('desk').classList.remove('hidden');
   else $('desk').classList.add('hidden');
   syncPrimaryCta();
 }
+
 
 $('connect-btn').addEventListener('click', connect);
 $('scout-find').addEventListener('click', () => socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify({ t: 'pf_scout', verb: 'find' })));
@@ -492,7 +527,7 @@ for (const [id, action, extra] of [
 
 $('deliver-packet').addEventListener('click', async () => {
   try {
-    const packetId = paper?.currentPacketId;
+    const packetId = currentPacketForRevision(paper)?.packetId || '';
     await oneDeskAction('deliver', packetId ? { packetId } : {});
   } catch (err) { addLog(`deliver packet rejected: ${err.message}`, 'reject'); }
 });
@@ -544,6 +579,8 @@ window.addEventListener('keydown', (e) => {
   }
 });
 window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+window.addEventListener('blur', () => { keys.clear(); dragging = false; });
+document.addEventListener('visibilitychange', () => { if (document.hidden) keys.clear(); });
 for (const button of document.querySelectorAll('[data-touch-key]')) {
   const key = button.dataset.touchKey;
   const press = (event) => { event.preventDefault(); keys.add(key); button.setPointerCapture?.(event.pointerId); };
@@ -568,180 +605,12 @@ canvas.addEventListener('pointermove', (e) => {
   draw();
 });
 canvas.addEventListener('pointerup', (e) => { dragging = false; canvas.releasePointerCapture(e.pointerId); });
+canvas.addEventListener('pointercancel', () => { dragging = false; });
 canvas.addEventListener('wheel', (e) => { zoom = Math.max(.65, Math.min(1.5, zoom - e.deltaY * .0008)); draw(); e.preventDefault(); }, { passive: false });
 
-function project(x, y, z = 0) {
-  const w = canvas.clientWidth, h = canvas.clientHeight;
-  const dx = x - 500, dy = y - 350;
-  const c = Math.cos(angle), s = Math.sin(angle);
-  const rx = dx * c - dy * s;
-  const ry = dx * s + dy * c;
-  const scale = Math.min(w / 1180, h / 760) * zoom;
-  return { x: w * .48 + rx * scale, y: h * .56 + ry * scale * .44 - z * scale * .82, depth: ry };
-}
-
-function paperBackground() {
-  const w = canvas.clientWidth, h = canvas.clientHeight;
-  ctx.fillStyle = PAPER;
-  ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = RULE;
-  ctx.lineWidth = 1;
-  for (let y = 18; y < h; y += 29) { ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(w, y + .5); ctx.stroke(); }
-  ctx.strokeStyle = 'rgba(185,72,72,.16)';
-  ctx.beginPath(); ctx.moveTo(58, 0); ctx.lineTo(58, h); ctx.stroke();
-  // barely-there paper fibers
-  ctx.strokeStyle = 'rgba(120,105,72,.035)';
-  for (let i = 0; i < 90; i++) {
-    const x = (i * 83) % Math.max(1, w), y = (i * 137) % Math.max(1, h);
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 8 + (i % 7), y + ((i % 3) - 1)); ctx.stroke();
-  }
-}
-
-function polygon(points) {
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y);
-  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
-  ctx.closePath();
-}
-
-function hatchFace(points, density = 7, alpha = .44) {
-  const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
-  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-  const span = Math.max(maxX - minX, maxY - minY) + 80;
-  ctx.save();
-  polygon(points); ctx.clip();
-  ctx.strokeStyle = `rgba(36,93,160,${alpha})`;
-  ctx.lineWidth = .75;
-  for (let x = minX - span; x < maxX + span; x += density) {
-    ctx.beginPath(); ctx.moveTo(x, maxY + 30); ctx.lineTo(x + span, minY - 30); ctx.stroke();
-  }
-  ctx.strokeStyle = `rgba(36,93,160,${alpha * .65})`;
-  for (let x = minX - span; x < maxX + span; x += density + 2) {
-    ctx.beginPath(); ctx.moveTo(x, minY - 30); ctx.lineTo(x + span, maxY + 30); ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function inkOutline(points, width = 1.5) {
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = width;
-  ctx.lineJoin = 'round';
-  polygon(points); ctx.stroke();
-  ctx.save(); ctx.translate(.55, -.35); ctx.globalAlpha = .34; ctx.lineWidth = Math.max(.6, width * .6); polygon(points); ctx.stroke(); ctx.restore();
-}
-
-function drawBox(x, y, w, h, z, label, emphasis = 0) {
-  const a = project(x, y, 0), b = project(x + w, y, 0), c = project(x + w, y + h, 0), d = project(x, y + h, 0);
-  const A = project(x, y, z), B = project(x + w, y, z), C = project(x + w, y + h, z), D = project(x, y + h, z);
-  const depth = (a.depth + c.depth) / 2;
-  const fade = Math.max(.24, Math.min(.58, .48 - depth / 2400));
-  const density = Math.max(5, 8 + depth / 800);
-  const faces = [[d,c,C,D], [b,c,C,B], [A,B,C,D]];
-  for (const f of faces) { hatchFace(f, density, fade + emphasis); inkOutline(f, f === faces[2] ? 1.7 : 1.25); }
-  const t = project(x + w * .5, y + h * .5, z + 8);
-  ctx.fillStyle = INK; ctx.font = `700 ${Math.max(11, 14 * zoom)}px "Comic Sans MS", cursive`; ctx.textAlign = 'center';
-  ctx.fillText(label, t.x, t.y);
-}
-
-function drawZone(zone) {
-  const p1 = project(zone.x, zone.y), p2 = project(zone.x + zone.w, zone.y), p3 = project(zone.x + zone.w, zone.y + zone.h), p4 = project(zone.x, zone.y + zone.h);
-  ctx.save(); ctx.setLineDash([7, 5]); ctx.strokeStyle = 'rgba(36,93,160,.55)'; ctx.lineWidth = 1.2; polygon([p1,p2,p3,p4]); ctx.stroke(); ctx.restore();
-}
-
-function drawStain(zone) {
-  const center = project(zone.x + zone.w / 2, zone.y + zone.h / 2);
-  ctx.save(); ctx.strokeStyle = 'rgba(36,93,160,.34)'; ctx.lineWidth = 2;
-  for (let i = 0; i < 15; i++) {
-    const r = (18 + i * 4) * zoom;
-    ctx.beginPath();
-    for (let k = 0; k <= 20; k++) {
-      const a = k / 20 * Math.PI * 2;
-      const rr = r * (1 + .16 * Math.sin(a * 3 + i));
-      const x = center.x + Math.cos(a) * rr * 1.3, y = center.y + Math.sin(a) * rr * .55;
-      if (!k) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function stickPerson(p, label, hue = 0) {
-  const base = project(p.x, p.y, 0); const top = project(p.x, p.y, 58);
-  ctx.save(); ctx.strokeStyle = INK; ctx.fillStyle = PAPER; ctx.lineWidth = 2;
-  const headY = top.y + 8; ctx.beginPath(); ctx.arc(top.x, headY, 6, 0, Math.PI * 2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(top.x, headY + 6); ctx.lineTo(base.x, base.y - 11); ctx.moveTo(top.x, headY + 17); ctx.lineTo(top.x - 10, headY + 29); ctx.moveTo(top.x, headY + 17); ctx.lineTo(top.x + 10, headY + 29); ctx.moveTo(base.x, base.y - 11); ctx.lineTo(base.x - 8, base.y); ctx.moveTo(base.x, base.y - 11); ctx.lineTo(base.x + 8, base.y); ctx.stroke();
-  ctx.font = '700 10px "Comic Sans MS", cursive'; ctx.textAlign = 'center'; ctx.fillStyle = INK; ctx.fillText(label, top.x, headY - 10);
-  ctx.restore();
-}
-
-function drawScout(sc) {
-  if (!sc) return;
-  const p = { x: sc.x, y: sc.y };
-  stickPerson(p, 'SCOUT');
-  const eye = project(p.x + 12, p.y, 42);
-  ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.strokeRect(eye.x, eye.y, 9, 4); ctx.strokeRect(eye.x + 10, eye.y, 9, 4);
-}
-
-function drawPage(pg) {
-  if (!pg || pg.phase === 'extracted') return;
-  const p = project(pg.x, pg.y, 6);
-  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(-.12); ctx.fillStyle = 'rgba(245,240,223,.82)'; ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.fillRect(-12,-9,24,18); ctx.strokeRect(-12,-9,24,18); ctx.beginPath(); ctx.moveTo(-8,-4); ctx.lineTo(8,-4); ctx.moveTo(-8,1); ctx.lineTo(7,1); ctx.moveTo(-8,6); ctx.lineTo(4,6); ctx.stroke(); ctx.restore();
-}
-
-function redCheck(x, y) { ctx.save(); ctx.strokeStyle = RED; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x - 2, y + 7); ctx.lineTo(x + 11, y - 9); ctx.stroke(); ctx.restore(); }
-function redX(x, y) { ctx.save(); ctx.strokeStyle = RED; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x-8,y-8); ctx.lineTo(x+8,y+8); ctx.moveTo(x+8,y-8); ctx.lineTo(x-8,y+8); ctx.stroke(); ctx.restore(); }
-
-function tapeMark(x, y, rotation = -.15) {
-  ctx.save(); ctx.translate(x,y); ctx.rotate(rotation); ctx.fillStyle = 'rgba(220,204,157,.55)'; ctx.strokeStyle = 'rgba(135,112,70,.35)'; ctx.fillRect(-22,-6,44,12); ctx.strokeRect(-22,-6,44,12); ctx.restore();
-}
-
-function ancestryThread(from, to) {
-  ctx.save(); ctx.strokeStyle = RED; ctx.lineWidth = 1.4; ctx.setLineDash([5,4]); ctx.beginPath(); ctx.moveTo(from.x, from.y); const mx = (from.x+to.x)/2; ctx.bezierCurveTo(mx, from.y-45, mx, to.y+45, to.x, to.y); ctx.stroke(); ctx.setLineDash([]); const a = Math.atan2(to.y-from.y,to.x-from.x); ctx.beginPath(); ctx.moveTo(to.x,to.y); ctx.lineTo(to.x-9*Math.cos(a-.5),to.y-9*Math.sin(a-.5)); ctx.moveTo(to.x,to.y); ctx.lineTo(to.x-9*Math.cos(a+.5),to.y-9*Math.sin(a+.5)); ctx.stroke(); ctx.restore();
-}
-
 function draw() {
-  if (!ctx) return;
-  paperBackground();
-  const f = field || {
-    zones: [
-      {id:'DESK',x:70,y:470,w:240,h:150}, {id:'STAIN',x:390,y:70,w:220,h:220}, {id:'ARCHIVE',x:690,y:70,w:230,h:210},
-    ],
-    relay: {x:715,y:455,w:160,h:170}, players: [], scout: {phase:'idle',x:500,y:170}, page: {id:'PAGE-7',phase:'in_stain',x:500,y:170},
-  };
-  const desk = f.zones.find((z) => z.id === 'DESK');
-  const stain = f.zones.find((z) => z.id === 'STAIN');
-  const archive = f.zones.find((z) => z.id === 'ARCHIVE');
-  if (paper?.complete && f.relay) {
-    const a = project(f.relay.x - 20, f.relay.y - 20), b = project(f.relay.x + f.relay.w + 20, f.relay.y + f.relay.h + 20);
-    ctx.save(); ctx.strokeStyle = YELLOW; ctx.lineWidth = 24; ctx.globalAlpha = .9; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); ctx.restore();
-  }
-  [desk, stain, archive].filter(Boolean).forEach(drawZone);
-  if (stain) drawStain(stain);
-  if (desk) drawBox(desk.x + 35, desk.y + 35, desk.w - 70, desk.h - 60, 58, 'DESK', .02);
-  if (archive) {
-    drawBox(archive.x + 18, archive.y + 28, 70, archive.h - 60, 88, 'FILES', .02);
-    drawBox(archive.x + 130, archive.y + 28, 70, archive.h - 60, 88, 'SOURCE', .02);
-  }
-  if (f.relay) {
-    drawBox(f.relay.x + 34, f.relay.y + 55, f.relay.w - 68, f.relay.h - 75, 130, 'RELAY', .06);
-    const mast = project(f.relay.x + f.relay.w/2, f.relay.y + f.relay.h/2, 220);
-    const foot = project(f.relay.x + f.relay.w/2, f.relay.y + f.relay.h/2, 125);
-    ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(foot.x,foot.y); ctx.lineTo(mast.x,mast.y); ctx.stroke();
-    if (paper?.harnessPassed) tapeMark((foot.x+mast.x)/2, (foot.y+mast.y)/2);
-  }
-  drawScout(f.scout); drawPage(f.page);
-  for (const p of f.players || []) stickPerson(p, p.id === principal ? (role === 'lead' ? 'YOU · A' : 'YOU · B') : 'HUMAN');
-
-  if (paper?.sourceVerified && archive) { const p = project(archive.x + archive.w - 22, archive.y + 18, 95); redCheck(p.x,p.y); }
-  const rejected = gone.findingsRejected || 0;
-  if (rejected && desk) { const p = project(desk.x + 28, desk.y + 25, 75); redX(p.x,p.y); if (rejected > 1) redX(p.x+18,p.y+7); }
-  if (paper?.ancestryRetrieved && archive && desk) {
-    ancestryThread(project(archive.x+archive.w/2,archive.y+archive.h/2,100), project(desk.x+desk.w/2,desk.y+desk.h/2,70));
-  }
-  if (paper?.harnessPassed && f.relay) { const p = project(f.relay.x+f.relay.w-18,f.relay.y+18,150); redCheck(p.x,p.y); }
-
-  ctx.fillStyle = INK; ctx.font = '700 12px "Comic Sans MS", cursive'; ctx.textAlign = 'left';
-  ctx.fillText('ruled paper = world · blue pen = matter · red pen = authority', 76, canvas.clientHeight - 12);
+  if (!paperRenderer) return;
+  paperRenderer.draw({ field, paper, gone, role, principal, angle, zoom });
 }
 
 // Query parameters can pre-fill a local match without turning configuration into game state.

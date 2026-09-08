@@ -42,6 +42,7 @@ export const FORBIDDEN_UPLOAD_PREFIXES = Object.freeze([
                        // ocr_pdf.py was tracked before the atip/ ignore rule, so the denylist (not gitignore) keeps it out of the upload.
   'tests/',            // test code
   'docs/',             // documentation
+  'proof/',            // local QA reports and synthetic-fixture screenshots
   'workers/',          // Worker/DO source (deployed separately via wrangler, not via static upload)
   'tools/',            // local operator tooling (e.g. asset station), if present
   'electron-app/',     // desktop wrapper, not the web client
