@@ -16,6 +16,14 @@
       <span>RESTORE THE RELAY BEFORE MORNING</span>
     </section>
 
+    <section id="paper-objective" class="paper-note objective-note" aria-label="First Shift objective">
+      <span class="paper-kicker">OBJECTIVE · FIRST SHIFT</span>
+      <h1>RESTORE THE RELAY BEFORE MORNING</h1>
+      <p id="paper-first-minute" class="paper-help">Connect to RUG for the first authoritative next step.</p>
+      <div class="objective-deadline"><span>DEADLINE</span><b id="paper-deadline">MORNING · awaiting RUG deadline</b></div>
+      <div id="paper-state" class="paper-status is-awaiting" data-state="awaitingproof" aria-live="polite">AWAITING PROOF</div>
+    </section>
+
     <section id="connection" class="paper-note setup-note">
       <label>RUG <input id="rug-url" value="http://localhost:8080" spellcheck="false" /></label>
       <label>WORLD <input id="match-id" placeholder="WORLD CODE" maxlength="32" spellcheck="false" /></label>
@@ -95,6 +103,27 @@
       <div class="receipt-line"><span>worker replaced</span><b id="gone-worker">0</b></div>
       <div class="receipt-line"><span>findings rejected</span><b id="gone-rejected">0</b></div>
       <div class="receipt-line"><span>ready</span><b id="gone-ready">OPEN</b></div>
+    </section>
+
+    <section id="paper-return" class="paper-note paper-return-card hidden" aria-label="Return receipt">
+      <span class="paper-kicker">RETURN RECEIPT · AUTHORITATIVE EVENTS</span>
+      <h2 id="paper-return-title">WHILE YOU WERE GONE</h2>
+      <div id="paper-return-lines" class="paper-proof-list"></div>
+      <p id="paper-return-note" class="tiny">No recap. Read the consequences that RUG recorded.</p>
+    </section>
+
+    <section id="paper-proof" class="paper-note proof-note" aria-label="Evidence and proof">
+      <span class="paper-kicker">EVIDENCE SPINE</span>
+      <div id="paper-proof-rows" class="paper-proof-list"></div>
+      <p id="paper-proof-tuple" class="tiny">No exact artifact / requirement / proof binding yet.</p>
+    </section>
+
+    <section id="paper-endgame" class="paper-note endgame-note hidden" aria-live="polite" aria-label="Contract result">
+      <span class="paper-kicker">CONTRACT STATE</span>
+      <h2 id="paper-endgame-title">AWAITING PROOF</h2>
+      <p id="paper-endgame-body"></p>
+      <p id="paper-endgame-tuple" class="tiny"></p>
+      <a class="pen-button" href="./" id="another-world">OPEN ANOTHER WORLD</a>
     </section>
 
     <section id="event-log" class="paper-note log-note hidden" aria-live="polite">
