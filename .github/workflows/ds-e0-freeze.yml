@@ -1,0 +1,51 @@
+name: DS-E0 Blind Packet Freeze
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build-ds-e0-blind-packet.mjs'
+      - '.github/workflows/ds-e0-freeze.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ds-e0-freeze-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  freeze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact evaluation head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
+      - name: Build and hash blind packet
+        run: node scripts/build-ds-e0-blind-packet.mjs
+
+      - name: Verify frozen outputs exist
+        run: |
+          test -s dist/ds-e0/DS_E0_BLIND_PACKET_2026-08-12.md
+          test -s dist/ds-e0/DS_E0_BLIND_PACKET_MANIFEST_2026-08-12.json
+          test -s dist/ds-e0/DS_E0_EVALUATOR_PROMPT.txt
+          sha256sum dist/ds-e0/DS_E0_BLIND_PACKET_2026-08-12.md
+          sha256sum dist/ds-e0/DS_E0_EVALUATOR_PROMPT.txt
+
+      - name: Upload frozen evaluator artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ds-e0-blind-packet
+          path: dist/ds-e0/
+          if-no-files-found: error
+          retention-days: 90
