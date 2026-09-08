@@ -43,10 +43,14 @@ let paperRenderer = null;
 
 
 function resize() {
+  if (paperRenderer) {
+    paperRenderer.resize();
+    draw();
+    return;
+  }
   const rect = canvas.getBoundingClientRect();
   canvas.width = Math.round(rect.width * dpr);
   canvas.height = Math.round(rect.height * dpr);
-  paperRenderer?.resize();
   draw();
 }
 window.addEventListener('resize', resize);
@@ -55,12 +59,15 @@ window.addEventListener('resize', resize);
 import('./paper-renderer.mjs').then((module) => {
   if (typeof module.createPaperRenderer !== 'function') return;
   paperRenderer = module.createPaperRenderer(canvas);
+  $('connect-btn').disabled = false;
   window.__paperFirmRenderer = paperRenderer.diagnostics;
   paperRenderer.resize();
   draw();
 }).catch((error) => {
   console.error('Paper Firm 3D renderer failed', error);
-  $('connection-status').textContent = '3D renderer unavailable. WebGL2 is required.';
+  $('renderer-error').textContent = '3D renderer unavailable. WebGL2 is required. Reload after graphics support is restored.';
+  $('renderer-error').classList.remove('hidden');
+  $('connect-btn').disabled = true;
 });
 
 function addLog(text, kind = '') {
@@ -284,6 +291,7 @@ async function acceptReceipt(receipt) {
 }
 
 async function connect() {
+  if (!paperRenderer) return;
   const initialConfig = config();
   const { match } = initialConfig;
   if (!match) { $('connection-status').textContent = 'enter the RUG world code'; return; }
@@ -475,7 +483,7 @@ function updateUi() {
     setBlocked($('sign-relay'), vm.next.id !== 'sign-relay', vm.next.id === 'sign-relay' ? '' : vm.next.why);
   }
   // Desk ledger + WHILE_YOU_WERE_GONE stay behind STATS/DESK toggles (never auto-face).
-  if (deskOpen) $('overnight').classList.remove('hidden');
+  if (deskOpen && !vm.returnScreen.visible) $('overnight').classList.remove('hidden');
   else $('overnight').classList.add('hidden');
   if (statsOpen) $('desk').classList.remove('hidden');
   else $('desk').classList.add('hidden');

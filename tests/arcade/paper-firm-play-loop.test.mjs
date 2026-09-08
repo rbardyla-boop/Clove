@@ -12,6 +12,18 @@ import {
 
 const deadline = 1_800_000_600_000;
 
+test('canonical completion is terminal without a redundant signed flag', () => {
+  assert.equal(contractStatus({ complete: true }).id, 'won');
+  assert.equal(contractStatus({ complete: true, signedLate: true }).id, 'late');
+});
+
+test('current packet evidence cannot borrow delivery from an older R2 packet', () => {
+  const state = paper({ requirementRevision: 'R2', workerReplacements: 1, workerReplacementSeqs: [30],
+    packets: [packet('P2', 'R2', 20, true), packet('P3', 'R2', 40, false)] });
+  const row = derivePaperViewModel({ paper: state, role: 'hand' }).evidence.rows.find((item) => item.id === 'r2-packet');
+  assert.equal(row.value, 'OPEN');
+});
+
 function paper(overrides = {}) {
   return {
     packets: [],

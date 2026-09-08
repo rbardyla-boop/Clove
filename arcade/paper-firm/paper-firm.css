@@ -143,6 +143,9 @@ select { min-height: 44px; padding: 5px 8px; border: 2px solid var(--ink); borde
 .paper-proof-row { display: flex; justify-content: space-between; gap: 12px; }
 .paper-return-card, .endgame-note { top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 24px)); max-height: 70vh; overflow: auto; z-index: 5; }
 .paper-return-card h2, .endgame-note h2 { font-size: 26px; margin: 8px 0; }
+.endgame-note { overflow-wrap: anywhere; }
+.endgame-note::before { inset: 3px; }
+.renderer-error { top: 42%; left: 50%; transform: translateX(-50%); width: min(440px, calc(100vw - 24px)); z-index: 30; border-color: var(--red); color: var(--red); }
 .paper-return-card { left: 18px; top: 220px; transform: none; width: 300px; z-index: 6; }
 #another-world { display: inline-flex; align-items: center; text-decoration: none; }
 .log-note { top: 220px; }

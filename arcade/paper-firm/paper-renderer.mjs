@@ -254,6 +254,7 @@ export function createPaperRenderer(canvas) {
   let layoutKey = '';
   let disposed = false;
   let lastState = null;
+  let restorationFrame = 0;
   let lastAngle = -0.68;
   let lastZoom = 1;
   let playerAssemblies = new Map();
@@ -367,7 +368,6 @@ export function createPaperRenderer(canvas) {
     spriteLabels = [];
     marksRoot.clear();
     marks = null;
-    playerAssemblies.forEach((assembly) => disposeObject(assembly));
     playerAssemblies = new Map();
     dynamicRoot.clear();
   }
@@ -536,7 +536,13 @@ export function createPaperRenderer(canvas) {
       updateDoodle(playerAssemblies.get(id), player, label);
     });
     playerAssemblies.forEach((assembly, id) => {
-      if (!activeIds.has(id)) assembly.visible = false;
+      if (id === '__scout' || activeIds.has(id)) return;
+      const removedLabels = new Set();
+      assembly.traverse((child) => { if (child.isSprite) removedLabels.add(child); });
+      spriteLabels = spriteLabels.filter((sprite) => !removedLabels.has(sprite));
+      dynamicRoot.remove(assembly);
+      disposeObject(assembly);
+      playerAssemblies.delete(id);
     });
 
     if (!playerAssemblies.has('__scout')) playerAssemblies.set('__scout', createDoodle('SCOUT'));
@@ -568,7 +574,7 @@ export function createPaperRenderer(canvas) {
       const relay = field.relay;
       marks.check.visible = Boolean(state.paper?.sourceVerified && archive);
       if (marks.check.visible) marks.check.position.copy(mapPoint(archive.x + archive.w - 22, archive.y + 18, 96));
-      const rejected = Math.max(0, Number(state.gone?.findingsRejected || 0));
+      const rejected = Array.isArray(state.paper?.rejectedFindings) ? state.paper.rejectedFindings.length : 0;
       marks.rejectX.visible = Boolean(rejected && desk);
       if (marks.rejectX.visible) marks.rejectX.position.copy(mapPoint(desk.x + 30, desk.y + 25, 77));
       marks.tape.visible = Boolean(state.paper?.harnessPassed && relay);
@@ -621,6 +627,8 @@ export function createPaperRenderer(canvas) {
   function dispose() {
     if (disposed) return;
     disposed = true;
+    canvas.removeEventListener('webglcontextrestored', restoreWorld);
+    cancelAnimationFrame(restorationFrame);
     disposeObject(worldRoot);
     Object.values(shared).forEach((material) => material.dispose());
     renderer.dispose();
@@ -633,7 +641,7 @@ export function createPaperRenderer(canvas) {
     backend: { enumerable: true, get: () => 'WebGLRenderer' },
     meshCount: { enumerable: true, get: () => scene.getObjectByProperty ? countObjects(scene, 'isMesh') : 0 },
     lineCount: { enumerable: true, get: () => countObjects(scene, 'isLine') },
-    camera: { enumerable: true, get: () => Object.freeze({ mode: 'perspective-orbit', owner: 'paper-renderer', angle: lastAngle, zoom: lastZoom }) },
+    camera: { enumerable: true, get: () => Object.freeze({ mode: 'perspective-orbit', owner: 'paper-renderer', angle: lastAngle, zoom: lastZoom, position: camera.position.toArray(), quaternion: camera.quaternion.toArray() }) },
     projection: { enumerable: true, get: () => Object.freeze({ fov: camera.fov, near: camera.near, far: camera.far, aspect: camera.aspect }) },
     drawCalls: { enumerable: true, get: () => renderer.info.render.calls },
     triangles: { enumerable: true, get: () => renderer.info.render.triangles },
@@ -647,6 +655,15 @@ export function createPaperRenderer(canvas) {
     return count;
   }
 
+  function restoreWorld() {
+    // Three restores GPU objects, but this event-driven scene must explicitly
+    // redraw its retained presentation state. No new authority events are made.
+    cancelAnimationFrame(restorationFrame);
+    restorationFrame = requestAnimationFrame(() => {
+      if (!disposed && lastState) draw(lastState);
+    });
+  }
+  canvas.addEventListener('webglcontextrestored', restoreWorld);
   resize();
   if (typeof document !== 'undefined' && document.fonts?.ready) {
     document.fonts.ready.then(() => {

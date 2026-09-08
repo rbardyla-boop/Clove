@@ -10,6 +10,7 @@
 <body>
   <main id="paper-app">
     <canvas id="paper-world" aria-label="Paper Firm field"></canvas>
+    <div id="renderer-error" class="paper-note renderer-error hidden" role="alert"></div>
 
     <section id="top-note" class="paper-note">
       <strong>FIRST SHIFT</strong>
@@ -28,7 +29,7 @@
       <label>RUG <input id="rug-url" value="http://localhost:8080" spellcheck="false" /></label>
       <label>WORLD <input id="match-id" placeholder="WORLD CODE" maxlength="32" spellcheck="false" /></label>
       <label>MESH <input id="mesh-url" placeholder="auto" spellcheck="false" /></label>
-      <button id="connect-btn" class="pen-button action">ENTER THE PAGE</button>
+      <button id="connect-btn" class="pen-button action" disabled>ENTER THE PAGE</button>
       <div id="connection-status">not connected</div>
     </section>
 

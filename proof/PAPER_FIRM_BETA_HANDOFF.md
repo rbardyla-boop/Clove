@@ -22,7 +22,7 @@ organization proof and not a measured “95% complete” claim.
 
 ## Reproduce local checks
 
-Latest local combined run: **1,334 tests passed, 0 failed** (includes six
+Latest local combined run: **1,338 tests passed, 0 failed** (includes eight
 browser checks and the release-boundary suite). Git diff whitespace check passes.
 
 ```sh
@@ -36,9 +36,22 @@ checks both desktop and 390×844 layouts, imports/MIME/errors, camera changes,
 and actual mesh rendering. It also checks GPU resource counts remain stable
 across forty repeated scene updates.
 
-The six browser tests include **isolated synthetic fixtures** for human roles,
+The eight browser tests include **isolated synthetic fixtures** for human roles,
 FIND, R2/replacement delivery, RETURN/SIGN and outcome screens. They do not
 authenticate real humans, call models, kill workers, or mint live proof.
+
+Standalone-preview follow-up: forced WebGL context loss/restoration reproduced
+an idle blank world. The renderer now redraws retained state on restoration,
+and the primary canvas dimensions are owned only by Three.js after startup.
+The regression fails without this repair and passes with it. QA explicitly uses
+SwiftShader; device GPU performance still requires the Pixel acceptance run.
+
+Review repairs: canonical completion is terminal; current-packet delivery does
+not borrow from history; departed actors and their labels are disposed; full
+hash/UUID tuples wrap on mobile; the detailed return receipt stays exclusive;
+renderer failure remains visible and blocks admission; online rejection marks
+come from current authoritative rejected findings, not only the absence summary.
+Each is covered by the focused model/browser checks.
 
 Screenshots are saved in `proof/screenshots/`. The art-evidence and endgame
 images are explicitly fixtures, not receipts of a completed real match.

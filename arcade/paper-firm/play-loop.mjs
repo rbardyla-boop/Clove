@@ -90,7 +90,7 @@ export function formatDeadline(deadlineAt, locale = undefined) {
 }
 
 export function contractStatus(paper, now = Date.now()) {
-  if (paper?.complete === true && paper?.signed === true) {
+  if (paper?.complete === true) {
     const state = paper.signedLate === true ? STATES.LATE : STATES.WON;
     return { id: state, label: STATUS_COPY[state], detail: statusDetail(paper, state) };
   }
@@ -191,13 +191,14 @@ function packetEvidence(paper) {
   const revision = text(paper?.requirementRevision) || 'R1';
   const current = currentPacketForRevision(paper, revision);
   const replacementFresh = isFreshReplacementPacket(paper, current);
+  const currentR2Delivered = current?.requirementRevision === REQUIRED_FINAL_REVISION && current?.delivered === true;
   return {
     current,
     replacementFresh,
     rows: [
       { id: 'r1-packet', label: 'initial R1 packet', value: hasDeliveredPacket(paper, 'R1') ? 'PASS' : 'OPEN', state: hasDeliveredPacket(paper, 'R1') ? 'complete' : 'awaiting' },
       { id: 'r2-requirement', label: 'requirement revision', value: revision === REQUIRED_FINAL_REVISION ? 'R2 · PASS' : `${revision} · R2 REQUIRED`, state: revision === REQUIRED_FINAL_REVISION ? 'complete' : 'awaiting' },
-      { id: 'r2-packet', label: 'current R2 packet', value: hasDeliveredPacket(paper, REQUIRED_FINAL_REVISION) ? 'DELIVERED' : 'OPEN', state: hasDeliveredPacket(paper, REQUIRED_FINAL_REVISION) ? 'complete' : 'awaiting' },
+      { id: 'r2-packet', label: 'current R2 packet', value: currentR2Delivered ? 'DELIVERED' : 'OPEN', state: currentR2Delivered ? 'complete' : 'awaiting' },
       { id: 'replacement-packet', label: 'fresh replacement packet', value: paper?.workerReplacements > 0 && replacementFresh && current?.delivered === true ? 'DELIVERED' : paper?.workerReplacements > 0 ? 'REQUIRED' : 'WAITING', state: paper?.workerReplacements > 0 && replacementFresh && current?.delivered === true ? 'complete' : 'awaiting' },
       { id: 'ancestry', label: 'source + ancestry', value: paper?.ancestryRetrieved === true ? 'RETRIEVED · NONE CHAT' : 'OPEN', state: paper?.ancestryRetrieved === true ? 'complete' : 'awaiting' },
       { id: 'external-harness', label: 'external harness', value: paper?.harnessPassed === true && paper?.harnessBeforeMorning === true ? 'PASS' : paper?.harnessPassed === true ? 'LATE / NOT ON-TIME' : 'OPEN', state: paper?.harnessPassed === true && paper?.harnessBeforeMorning === true ? 'complete' : 'awaiting' },

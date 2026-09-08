@@ -46,7 +46,8 @@ await new Promise((resolve, reject) => {
 });
 after(() => server.close());
 
-const browser = await chromium.launch({ headless: true });
+// Deterministic software GPU in QA; these timings are not Pixel GPU measurements.
+const browser = await chromium.launch({ headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 after(() => browser.close());
 
 const initialPaper = {
@@ -178,8 +179,8 @@ test('isolated browser fixture exercises FIND and RETURN before SIGN, then real 
   assert.ok(await page.evaluate(() => window.__qaFixture.requests.some((r) => r.t === 'pf_scout' && r.verb === 'find')));
   const ready = {
     requirementRevision: 'R2', readyToSign: true, harnessPassed: true, harnessBeforeMorning: true,
-    relayHash: 'qa-artifact-hash', relayRevision: 'R2', harnessProofId: 'qa-proof-id',
-    readyTuple: { artifactHash: 'qa-artifact-hash', requirementRevision: 'R2', proofId: 'qa-proof-id' },
+    relayHash: 'a'.repeat(64), relayRevision: 'R2', harnessProofId: '00000000-0000-4000-8000-000000000001',
+    readyTuple: { artifactHash: 'a'.repeat(64), requirementRevision: 'R2', proofId: '00000000-0000-4000-8000-000000000001' },
     humanOffline: true, offlineAtSeq: 10, sourceVerified: true, builderOperated: true,
     ancestryRetrieved: true, submittedFindings: [{ status: 'rejected' }],
   };
@@ -192,6 +193,11 @@ test('isolated browser fixture exercises FIND and RETURN before SIGN, then real 
   await page.evaluate(() => window.__qaFixture.update({ humanOffline: false, rejoinedAtSeq: 20 }));
   await page.clock.fastForward(12_001);
   await page.waitForFunction(() => document.querySelector('#primary-cta').textContent.includes('SIGN RELAY'));
+  await page.locator('#toggle-desk').click();
+  assert.equal(await page.locator('#paper-return').isVisible(), true);
+  await page.clock.fastForward(12_001);
+  assert.equal(await page.locator('#overnight').isVisible(), false);
+  await page.locator('#toggle-desk').click();
   await page.locator('#primary-cta').click();
   assert.ok(await page.evaluate(() => window.__qaFixture.requests.some((r) => r.action === 'sign')));
   // Only the fixture supplies completion: clicking SIGN alone never awards it.
@@ -199,6 +205,7 @@ test('isolated browser fixture exercises FIND and RETURN before SIGN, then real 
   await page.evaluate(() => window.__qaFixture.update({ complete: true, signed: true }));
   await page.clock.fastForward(12_001);
   await page.waitForFunction(() => document.querySelector('#paper-endgame').dataset.state === 'won');
+  assert.equal(await page.locator('#paper-endgame').evaluate((el) => el.scrollWidth <= el.clientWidth), true, 'full hash and proof ID fit mobile card');
   await page.clock.resume();
   await page.locator('#paper-world').dispatchEvent('wheel', { deltaY: -10 });
   assert.ok(await page.evaluate(() => window.__paperFirmRenderer.drawCalls > 0));
@@ -254,14 +261,16 @@ test('3D art fixture shows evidence marks and reuses GPU resources across update
     const renderer = createPaperRenderer(canvas);
     const state = { field: fieldState, angle: -0.68, zoom: 1.25, paper: {
       sourceVerified: true, builderOperated: true, ancestryRetrieved: true, harnessPassed: true,
-    }, gone: { findingsRejected: 1 } };
+      rejectedFindings: [{ findingId: 'qa-rejected-online', reason: 'missing_ancestry' }],
+    }, gone: { findingsRejected: 0 } };
     renderer.draw(state);
     const before = renderer.diagnostics.resources;
-    for (let i = 0; i < 40; i++) renderer.draw({ ...state, angle: -0.68 + i * 0.0001 });
+    for (let i = 0; i < 40; i++) renderer.draw({ ...state, angle: -0.68 + i * 0.0001,
+      field: { ...fieldState, players: [{ id: `qa-rotating-${i}`, x: 145, y: 390 }] } });
     window.__qaArt = { renderer, state };
     return { before, after: renderer.diagnostics.resources, marks: renderer.diagnostics.marks };
   }, field);
-  assert.deepEqual(result.before, result.after, 'no per-snapshot geometry/texture growth');
+  assert.deepEqual(result.before, result.after, 'no geometry/texture growth after forty departed player IDs');
   assert.equal(result.marks.check, true);
   assert.equal(result.marks.rejectX, true);
   assert.equal(result.marks.ancestry, true);
@@ -269,6 +278,41 @@ test('3D art fixture shows evidence marks and reuses GPU resources across update
   await page.screenshot({ path: join(screenshotDir, 'paper-firm-art-evidence-fixture.png') });
   await page.evaluate(() => { window.__qaArt.renderer.dispose(); document.querySelector('#qa-art-canvas').remove(); });
   assert.deepEqual(errors, []);
+});
+
+test('idle world redraws after an actual WebGL context restoration without user input', async (t) => {
+  const { context, page, errors } = await openPage({ width: 390, height: 844 });
+  t.after(() => context.close());
+  await page.evaluate(() => new Promise((resolve) => {
+    const canvas = document.querySelector('#paper-world');
+    const extension = canvas.getContext('webgl2').getExtension('WEBGL_lose_context');
+    if (!extension) throw new Error('context-loss test extension unavailable');
+    window.__qaRestoreContext = () => extension.restoreContext();
+    canvas.addEventListener('webglcontextlost', resolve, { once: true });
+    extension.loseContext();
+  }));
+  await page.waitForTimeout(100);
+  await page.evaluate(() => new Promise((resolve) => {
+    document.querySelector('#paper-world').addEventListener('webglcontextrestored', resolve, { once: true });
+    window.__qaRestoreContext();
+  }));
+  await page.waitForFunction(() => window.__paperFirmRenderer.triangles > 100, null, { timeout: 2000 });
+  assert.deepEqual(errors, []);
+});
+
+test('required renderer failure stays visible and prevents admission to a blank world', async (t) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  t.after(() => context.close());
+  const page = await context.newPage();
+  const apiRequests = [];
+  page.on('request', (request) => { if (request.url().includes('/api/paper-firm')) apiRequests.push(request.url()); });
+  await page.route('**/paper-renderer.mjs', (route) => route.fulfill({ contentType: 'application/javascript', body: 'throw new Error("QA renderer failure");' }));
+  await page.goto('http://127.0.0.1:8084/arcade/paper-firm/index.html');
+  await page.locator('#renderer-error').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#connect-btn').isDisabled(), true);
+  await page.locator('#connect-btn').evaluate((button) => button.click());
+  assert.equal(await page.locator('#renderer-error').isVisible(), true);
+  assert.deepEqual(apiRequests, []);
 });
 
 test('production upload renders Paper Firm on desktop and mobile with no missing imports', async (t) => {
