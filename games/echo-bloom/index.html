@@ -25,6 +25,7 @@
         <h1>ECHO <span>BLOOM</span></h1>
       </div>
       <div class="header-actions">
+        <button id="effectsButton" aria-label="Reduce visual effects" aria-pressed="false">FULL FX</button>
         <button id="muteButton" aria-label="Toggle sound">SOUND ON</button>
         <a href="/games/">ALL GAMES</a>
       </div>
@@ -48,13 +49,13 @@
       <div id="startPanel" class="panel show">
         <div class="panel-kicker">GROW A ROUTE. HEAR IT RETURN.</div>
         <h2>Your movement becomes the level.</h2>
-        <p>Collect the three-note pattern. Every seven seconds, your recent path returns as a living echo.</p>
+        <p>Score as much as you can in three minutes: move to grow rails, then dash near a rail to burst enemies and raise your multiplier.</p>
         <div class="quality-grid">
-          <div><b>MOVE</b><span>WASD / ARROWS / TOUCH</span></div>
-          <div><b>ECHO</b><span>YOUR LAST 7 SECONDS REPLAY</span></div>
-          <div><b>HARMONY</b><span>COLLECT NOTES IN ORDER</span></div>
-          <div><b>BLOOM CUT</b><span>CROSS A VINE + SPACE</span></div>
-          <div><b>REWIND</b><span>FIRST HIT UN-HAPPENS</span></div>
+          <div><b>1 · MOVE</b><span>WASD, ARROWS OR TOUCH. KEEP DRAWING A PATH.</span></div>
+          <div><b>2 · ECHO</b><span>EVERY 7 SECONDS YOUR PATH BECOMES A RAIL THAT BENDS ENEMIES.</span></div>
+          <div><b>3 · BLOOM</b><span>NEAR A RAIL: SPACE OR BLOOM. BURST ENEMIES. GROW YOUR SCORE.</span></div>
+          <div><b>HARMONY</b><span>FOLLOW NEXT. MATCH THE THREE NOTES SHOWN ABOVE, LEFT TO RIGHT.</span></div>
+          <div><b>SECOND CHANCE</b><span>ONE HIT REWINDS. A HARMONY RECHARGES IT. NO CHARGE? THE RUN ENDS.</span></div>
         </div>
         <button id="startButton" class="primary">ENTER THE GARDEN</button>
       </div>
@@ -71,6 +72,11 @@
       </div>
       <div id="toast" aria-live="polite"></div>
     </section>
+
+    <aside id="loopGuide" class="loop-guide" hidden aria-live="polite" aria-atomic="true">
+      <strong id="guideTitle"></strong>
+      <span id="guideText"></span>
+    </aside>
 
     <footer class="microcopy">
       <span>MOVE: WASD / ARROWS</span><span>DASH + CUT: SPACE</span><span>PAUSE: P</span><span>RESTART: R</span>

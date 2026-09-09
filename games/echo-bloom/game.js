@@ -46,6 +46,31 @@
   let muted = false;
   let toastTimer = 0;
   let last = performance.now();
+  const effectsButton = document.getElementById('effectsButton');
+  const gameWrap = document.getElementById('gameWrap');
+  const guide = document.getElementById('loopGuide');
+  const guideTitle = document.getElementById('guideTitle');
+  const guideText = document.getElementById('guideText');
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Presentation only: never changes collisions, rewards, timers or random draws.
+  let calmEffects = motionPreference.matches || safeStorageGet('echoBloomEffects', 'full') === 'calm';
+  const feedback = { firstNote: false, guideStep: '', celebrations: [] };
+
+  function syncEffects() {
+    effectsButton.textContent = calmEffects ? 'CALM FX' : 'FULL FX';
+    effectsButton.setAttribute('aria-pressed', String(calmEffects));
+    gameWrap.dataset.effects = calmEffects ? 'calm' : 'full';
+  }
+  effectsButton.addEventListener('click', () => {
+    calmEffects = !calmEffects;
+    safeStorageSet('echoBloomEffects', calmEffects ? 'calm' : 'full');
+    syncEffects();
+  });
+  motionPreference.addEventListener('change', () => {
+    calmEffects = motionPreference.matches || safeStorageGet('echoBloomEffects', 'full') === 'calm';
+    syncEffects();
+  });
+  syncEffects();
 
   const state = {
     mode: 'menu',
@@ -98,6 +123,9 @@
   }
 
   function resetGame() {
+    feedback.firstNote = false;
+    feedback.guideStep = '';
+    feedback.celebrations.length = 0;
     state.mode = 'playing';
     state.time = 0;
     state.score = 0;
@@ -148,7 +176,8 @@
     spawnNote((state.pattern[0] + 2) % 3, true);
     overPanel.classList.remove('show');
     startPanel.classList.remove('show');
-    toast('MOVE. LEAVE A MEMORY.', palette.mint);
+    updateGuide();
+    toast('MOVE → GROW A RAIL → BLOOM', palette.mint);
     beginAudio();
     recordGameActivity(false);
     window.cloveSignal?.track('game_started', { surface: 'echo_bloom' });
@@ -230,7 +259,40 @@
     toastEl.style.background = colour;
     toastEl.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1150);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+  function updateGuide() {
+    guide.hidden = state.mode !== 'playing';
+    if (guide.hidden) return;
+    let step, title, text;
+    if (!state.echoesMade) {
+      step = 'move'; title = '1 · MOVE & COLLECT';
+      text = feedback.firstNote
+        ? 'Keep moving. After 7 seconds, the path you drew returns as a living rail.'
+        : 'Move with arrows, WASD or touch. Collect the note marked NEXT; match the top pattern left to right.';
+    } else if (!state.blooms) {
+      step = 'bloom'; title = '2 · YOUR RAIL IS READY';
+      text = 'It bends enemies away. Move close to the rail and press SPACE or tap BLOOM to burst it for points.';
+    } else if (!state.harmonyCount) {
+      step = 'harmony'; title = '3 · RECHARGE YOUR SECOND CHANCE';
+      text = 'Follow NEXT and collect all 3 notes in order. A harmony recharges your one-hit rewind.';
+    } else {
+      step = 'repeat'; title = 'YOU HAVE THE LOOP';
+      text = 'Move → grow rails → bloom for a bigger multiplier. Match notes to recharge. Survive three minutes.';
+    }
+    const key = `${step}:${text}`;
+    if (feedback.guideStep === key) return;
+    feedback.guideStep = key;
+    guide.dataset.step = step;
+    guideTitle.textContent = title;
+    guideText.textContent = text;
+  }
+
+  function celebrate(x, y, colour, radius) {
+    // Bounded, local blooms rather than bright full-screen flashes. No RNG.
+    if (feedback.celebrations.length === 6) feedback.celebrations.shift();
+    feedback.celebrations.push({ x, y, colour, radius, life: 0.9 });
   }
 
   function spawnNote(forcedType = null, wide = false, nearPlayer = false) {
@@ -383,6 +445,7 @@
     state.combo = Math.min(8, state.combo + 0.5 + killed * 0.2);
     const gain = Math.round((220 + killed * 120) * state.combo);
     state.score += gain;
+    celebrate(centre.x, centre.y, palette.gold, radius);
     state.shake = Math.min(15, 5 + killed * 1.8);
     state.flash = 0.5;
     state.ripples.push({ x: centre.x, y: centre.y, r: 18, life: 0.65, max: 0.65, colour: palette.gold, target: radius });
@@ -397,6 +460,7 @@
   function collectNote(note, index) {
     const expected = state.pattern[state.patternIndex];
     if (note.type === expected) {
+      feedback.firstNote = true;
       state.patternIndex++;
       state.score += Math.round(80 * state.combo);
       state.combo = Math.min(8, state.combo + 0.18);
@@ -422,6 +486,7 @@
     state.rewindReady = true;
     const reward = Math.round(650 * state.combo);
     state.score += reward;
+    celebrate(state.player.x, state.player.y, palette.mint, 135);
     state.patternIndex = 0;
     chord();
     state.ripples.push({ x: state.player.x, y: state.player.y, r: 20, life: 1.1, max: 1.1, colour: palette.mint, target: 220 });
@@ -472,6 +537,7 @@
 
   function endGame(completed) {
     state.mode = 'over';
+    guide.hidden = true;
     if (state.score > state.high) {
       state.high = state.score;
       safeStorageSet('echoBloomHigh', String(state.high));
@@ -496,6 +562,10 @@
 
   function update(dt) {
     if (state.mode !== 'playing' || state.paused) return;
+    for (let i = feedback.celebrations.length - 1; i >= 0; i--) {
+      feedback.celebrations[i].life -= dt;
+      if (feedback.celebrations[i].life <= 0) feedback.celebrations.splice(i, 1);
+    }
     state.time += dt;
     if (state.time >= QUALITY.RUN_SECONDS) {
       endGame(true);
@@ -646,13 +716,14 @@
       f.life -= dt; f.y -= dt * 26;
       if (f.life <= 0) state.floatingText.splice(i, 1);
     }
+    updateGuide();
   }
 
   function draw() {
     ctx.save();
     const sx = state.shake ? (Math.random() - 0.5) * state.shake : 0;
     const sy = state.shake ? (Math.random() - 0.5) * state.shake : 0;
-    ctx.translate(sx, sy);
+    ctx.translate(calmEffects ? 0 : sx, calmEffects ? 0 : sy);
     drawBackground();
     if (state.player) {
       drawVines();
@@ -661,12 +732,13 @@
       drawEnemies();
       drawEchoes();
       drawEffects();
+      drawCelebrations();
       drawPlayer();
       drawHUD();
     } else drawMenuBackdrop();
     if (state.paused && state.mode === 'playing') drawPause();
-    if (state.flash > 0) {
-      ctx.globalAlpha = Math.min(0.18, state.flash * 0.2);
+    if (state.flash > 0 && !calmEffects) {
+      ctx.globalAlpha = Math.min(0.05, state.flash * 0.06);
       ctx.fillStyle = state.rewindReady ? palette.mint : palette.cyan;
       ctx.fillRect(-20, -20, W + 40, H + 40);
     }
@@ -674,7 +746,7 @@
   }
 
   function drawBackground() {
-    const t = state.time || performance.now() / 1000;
+    const t = calmEffects ? 0 : (state.time || performance.now() / 1000);
     const grad = ctx.createRadialGradient(W * 0.5, H * 0.48, 30, W * 0.5, H * 0.48, W * 0.65);
     grad.addColorStop(0, '#121229');
     grad.addColorStop(0.55, '#080913');
@@ -713,7 +785,7 @@
   }
 
   function drawMenuBackdrop() {
-    const t = performance.now() / 1000;
+    const t = calmEffects ? 0 : performance.now() / 1000;
     ctx.save();
     ctx.translate(W * 0.5, H * 0.55);
     for (let k = 0; k < 5; k++) {
@@ -880,7 +952,7 @@
     const p = state.player;
     ctx.save();
     ctx.translate(p.x, p.y);
-    const flicker = p.invincible > 0 && Math.floor(p.invincible * 14) % 2 === 0;
+    const flicker = !calmEffects && p.invincible > 0 && Math.floor(p.invincible * 14) % 2 === 0;
     ctx.globalAlpha = flicker ? 0.45 : 1;
     for (let i = 0; i < p.petals; i++) {
       const a = i / Math.max(1, p.petals) * TAU + state.time * 0.35;
@@ -910,13 +982,13 @@
 
   function drawEffects() {
     ctx.save();
-    state.ripples.forEach(r => {
+    if (!calmEffects) state.ripples.forEach(r => {
       ctx.globalAlpha = Math.max(0, r.life / r.max) * 0.6;
       ctx.strokeStyle = r.colour;
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke();
     });
-    state.particles.forEach(q => {
+    if (!calmEffects) state.particles.forEach(q => {
       ctx.globalAlpha = Math.max(0, q.life / q.max);
       ctx.fillStyle = q.colour;
       ctx.fillRect(q.x - q.size/2, q.y - q.size/2, q.size, q.size);
@@ -927,6 +999,33 @@
       ctx.font = '900 12px system-ui';
       ctx.textAlign = 'center';
       ctx.fillText(f.text, f.x, f.y);
+    });
+    ctx.restore();
+  }
+
+  function drawCelebrations() {
+    if (calmEffects) return;
+    ctx.save();
+    feedback.celebrations.forEach(({ x, y, colour, radius, life }) => {
+      const progress = 1 - life / 0.9;
+      const reach = radius * (0.25 + 0.95 * (1 - Math.pow(1 - progress, 3)));
+      ctx.strokeStyle = colour;
+      ctx.fillStyle = colour;
+      ctx.shadowColor = colour;
+      ctx.shadowBlur = 18;
+      ctx.globalAlpha = Math.max(0, 1 - progress) * 0.8;
+      ctx.lineWidth = 3 * (1 - progress) + 1;
+      ctx.beginPath(); ctx.arc(x, y, reach, 0, TAU); ctx.stroke();
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x, y, reach * 0.65, 0, TAU); ctx.stroke();
+      for (let i = 0; i < 12; i++) {
+        const angle = i / 12 * TAU;
+        const px = x + Math.cos(angle) * reach;
+        const py = y + Math.sin(angle) * reach;
+        ctx.beginPath();
+        ctx.ellipse(px, py, 5 + 10 * (1 - progress), 2.5, angle, 0, TAU);
+        ctx.fill();
+      }
     });
     ctx.restore();
   }
