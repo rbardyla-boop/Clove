@@ -13,9 +13,9 @@ before(async()=>{
     server=createServer(async(req,res)=>{
       try {
         const path=decodeURIComponent(new URL(req.url,'http://test').pathname);
-        if(path==='/clove-signals.js'||path==='/favicon.ico'||path.startsWith('/__clove')){res.writeHead(204);res.end();return;}
+        if(path==='/favicon.ico'||path.startsWith('/__clove')){res.writeHead(204);res.end();return;}
         let file=resolve(root,'.'+path);
-        if(!file.startsWith(root)||!path.startsWith('/game/'))throw Error('outside game assets');
+        if(!file.startsWith(root)||(!path.startsWith('/game/')&&path!=='/clove-signals.js'))throw Error('outside game assets');
         if((await stat(file)).isDirectory())file+='/index.html';
         res.setHeader('content-type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(file)]||'application/octet-stream');
         res.end(await readFile(file));
@@ -30,10 +30,9 @@ after(async()=>{await browser?.close();if(server)await new Promise(r=>server.clo
 async function open(t,viewport={width:1280,height:900},path='/game/Arcade/') {
   const context=await browser.newContext({viewport,reducedMotion:'reduce'});
   t.after(()=>context.close());
-  await context.addInitScript(()=>localStorage.setItem('deck_muted','true'));
+  await context.addInitScript(()=>{localStorage.setItem('deck_muted','true');localStorage.setItem('clove_signals_optout_v1','1');});
   // Font availability and analytics are not game dependencies; do not submit QA telemetry.
   await context.route(/fonts\.(googleapis|gstatic)\.com/,r=>r.fulfill({status:204,body:''}));
-  await context.route('**/clove-signals.js',r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   page.on('response',r=>{if(r.status()>=400&&new URL(r.url()).origin===origin)errors.push(`${r.status()} ${r.url()}`);});
@@ -132,4 +131,13 @@ test('standalone phone and desktop render with reachable run controls and visibl
     await run.click();
     assert.ok(await page.locator('body').innerText());
   }
+});
+
+test('small phone keeps route controls clear of the real site feedback launcher',async t=>{
+  const page=await open(t,{width:360,height:800});await state(page,'ready');
+  await page.waitForSelector('#clove-feedback',{state:'attached'});
+  await page.locator('#imm-action-btn').click();await state(page,'failed');
+  assert.equal(await page.locator('#global-streak').innerText(),'0');
+  const box=await page.locator('#imm-action-btn').boundingBox();
+  assert.ok(box.y+box.height<750,'action stays above reserved feedback strip');
 });
