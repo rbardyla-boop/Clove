@@ -71,7 +71,7 @@
     .hud > * { pointer-events: auto; }
 
     .top {
-      top: 0; left: 0; right: 0;
+      top: 42px; left: 0; right: 0;
       padding: 14px 18px;
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
       flex-wrap: wrap;
@@ -138,7 +138,7 @@
     .pill:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent); }
 
     .helper {
-      position: absolute; left: 18px; bottom: 18px; z-index: 9;
+      position: absolute; left: 18px; bottom: 82px; z-index: 9;
       max-width: 320px; pointer-events: auto;
     }
     .hint {
@@ -255,7 +255,7 @@
     [data-theme="light"] .cf-block pre { background: rgba(0,0,0,0.04); }
 
     .toast {
-      position: absolute; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      position: absolute; top: clamp(110px, 22vh, 190px); left: 50%; transform: translateX(-50%) translateY(-20px);
       background: var(--panel); border: 1px solid var(--border);
       padding: 8px 14px; border-radius: 999px;
       font-size: 12px; color: var(--text); z-index: 50;
@@ -267,7 +267,7 @@
 
     .selected-info {
       position: absolute; left: 50%; transform: translateX(-50%);
-      top: 64px; z-index: 8;
+      top: clamp(110px, 22vh, 190px); z-index: 8;
       font-family: var(--font-mono); font-size: 11px; color: var(--text);
       background: var(--panel); border: 1px solid var(--accent);
       padding: 6px 12px; border-radius: 8px; backdrop-filter: blur(10px);
@@ -288,15 +288,22 @@
     @media (max-width: 720px) {
       .brand h1 { font-size: 16px; }
       .level-info { font-size: 11px; padding: 6px 10px; max-width: 60vw; }
-      .helper { display: none; }
+      .helper { left: 12px; right: 12px; bottom: 82px; max-width: none; }
+      .helper .hint { max-width: none; padding: 8px 10px; font-size: 11px; }
+      .desktop-guidance { display: none; }
+      .touch-guidance { display: inline !important; }
       .cf-block { display: none; }
       .palette { gap: 6px; padding: 6px; }
-      .pill { padding: 7px 10px; font-size: 11px; }
+      .pill { padding: 7px 10px; font-size: 11px; min-height: 44px; }
       .pill .swatch { width: 12px; height: 12px; }
-      .right-rail { bottom: 80px; right: 10px; }
+      .right-rail { bottom: 182px; left: 12px; right: 12px; }
+      .right-rail .hint { display: flex; flex-wrap: wrap; gap: 2px 12px; }
       .panel { padding: 20px; }
       .panel h2 { font-size: 18px; }
     }
+
+    /* Keep the host backlink in its own strip above the game HUD. */
+    [data-clove-home] { top: 8px !important; left: auto !important; right: 12px !important; }
 
     /* Accessible focus ring for canvas */
     #game-canvas:focus-visible {
@@ -394,8 +401,9 @@
 <div class="helper">
   <div class="hint">
     <strong>Compose the path.</strong><br>
-    Drag parts with mouse / touch. Click to select, then
-    <kbd>←↑↓→</kbd> nudge · <kbd>R</kbd> rotate · <kbd>Del</kbd> remove · <kbd>P</kbd> pause · <kbd>Space</kbd> run.
+    <span class="desktop-guidance">Drag parts with mouse / touch. Click to select, then
+    <kbd>←↑↓→</kbd> nudge · <kbd>R</kbd> rotate · <kbd>Del</kbd> remove · <kbd>P</kbd> pause · <kbd>Space</kbd> run.</span>
+    <span class="touch-guidance" style="display:none">Tap a part below, then drag it into place. Tap it to rotate or remove. Run sends the orange ball toward the green ring.</span>
   </div>
 </div>
 
@@ -799,6 +807,72 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let ballMat_cn, wallMat_cn, bouncyMat_cn;
 
+const CAMERA_FOV = 45;
+const CAMERA_SAFE_X = 18;
+const CAMERA_SAFE_TOP = 12;
+const CAMERA_SAFE_BOTTOM = 12;
+
+function cameraFitDistance(bounds, viewport, fov=CAMERA_FOV) {
+  const safeWidth = Math.max(1, viewport.width - CAMERA_SAFE_X * 2);
+  const safeTop = Math.max(0, Math.min(viewport.height - 1, viewport.safeTop ?? 0));
+  const safeBottom = Math.max(0, Math.min(viewport.height - safeTop - 1, viewport.safeBottom ?? 0));
+  const safeHeight = Math.max(1, viewport.height - safeTop - safeBottom);
+  const halfHeight = Math.max(
+    (bounds.maxY - bounds.minY) * viewport.height / safeHeight,
+    (bounds.maxX - bounds.minX) * viewport.height / safeWidth
+  ) / 2;
+  return halfHeight / Math.tan((fov * Math.PI / 180) / 2);
+}
+
+function levelCameraBounds(lvl) {
+  const bounds = { minX: -10, maxX: 10, minY: -7, maxY: 7 };
+  const include = (x, y, halfX=0, halfY=0) => {
+    bounds.minX = Math.min(bounds.minX, x - halfX); bounds.maxX = Math.max(bounds.maxX, x + halfX);
+    bounds.minY = Math.min(bounds.minY, y - halfY); bounds.maxY = Math.max(bounds.maxY, y + halfY);
+  };
+  include(lvl.ball.x, lvl.ball.y, 0.5, 0.5);
+  include(lvl.goal.x, lvl.goal.y, 0.92, 0.92);
+  lvl.walls.forEach(w => {
+    const c = Math.abs(Math.cos(w.r || 0)), s = Math.abs(Math.sin(w.r || 0));
+    include(w.x, w.y, (w.w * c + w.h * s) / 2, (w.w * s + w.h * c) / 2);
+  });
+  lvl.obstacles.forEach(o => include(o.x, o.y, o.w / 2, o.h / 2));
+  return bounds;
+}
+
+function cameraSafeMargins(canvas) {
+  const height = canvas.clientHeight || window.innerHeight;
+  const hudBottom = document.querySelector('.top')?.getBoundingClientRect().bottom || 0;
+  const paletteTop = document.getElementById('palette')?.getBoundingClientRect().top || height;
+  const helperTop = document.querySelector('.helper')?.getBoundingClientRect().top || height;
+  const railTop = document.querySelector('.right-rail')?.getBoundingClientRect().top || height;
+  return {
+    safeTop: Math.min(height * 0.42, hudBottom + CAMERA_SAFE_TOP),
+    safeBottom: Math.min(height * 0.42, Math.max(0, height - Math.min(paletteTop, helperTop, railTop)) + CAMERA_SAFE_BOTTOM),
+  };
+}
+
+function fitCameraToLevel() {
+  if (!camera || !renderer) return;
+  const canvas = renderer.domElement;
+  const width = canvas.clientWidth || window.innerWidth;
+  const height = canvas.clientHeight || window.innerHeight;
+  const bounds = levelCameraBounds(LEVELS[STATE.levelIndex]);
+  const margins = cameraSafeMargins(canvas);
+  const distance = cameraFitDistance(bounds, { width, height, ...margins });
+  const centerX = (bounds.minX + bounds.maxX) / 2;
+  const centerY = (bounds.minY + bounds.maxY) / 2;
+  const safeCenterNdcY = (margins.safeBottom - margins.safeTop) / height;
+  const targetY = centerY - safeCenterNdcY * distance * Math.tan((CAMERA_FOV * Math.PI / 180) / 2);
+  camera.aspect = width / height;
+  camera.position.set(centerX, targetY, distance);
+  camera.lookAt(centerX, targetY, 0);
+  camera.far = Math.max(100, distance + 50);
+  camera.updateProjectionMatrix();
+  // Fitting a portrait view must not bury the board in distance fog.
+  if (fog) fog.density = 0.45 / distance;
+}
+
 function initRenderer() {
   const canvas = document.getElementById('game-canvas');
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -809,9 +883,8 @@ function initRenderer() {
   fog = new THREE.FogExp2(PAL.dark.fog, 0.025);
   scene.fog = fog;
 
-  camera = new THREE.PerspectiveCamera(45, canvas.clientWidth/canvas.clientHeight, 1, 100);
-  camera.position.set(0, 0, 22);
-  camera.lookAt(0,0,0);
+  camera = new THREE.PerspectiveCamera(CAMERA_FOV, canvas.clientWidth/canvas.clientHeight, 1, 100);
+  fitCameraToLevel();
 
   // Grid for visual depth
   gridHelper = new THREE.GridHelper(40, 40, PAL.dark.grid, PAL.dark.grid);
@@ -844,7 +917,7 @@ function resizeRenderer() {
   const w = canvas.clientWidth || window.innerWidth;
   const h = canvas.clientHeight || window.innerHeight;
   renderer.setSize(w, h, false);
-  if (camera) { camera.aspect = w/h; camera.updateProjectionMatrix(); }
+  if (camera) fitCameraToLevel();
 }
 
 function initPhysics() {
@@ -992,6 +1065,7 @@ function buildLevel() {
 
   // Cache hoverable list (placed parts) — empty at start of level
   refreshHoverable();
+  fitCameraToLevel();
 }
 
 function spawnPart(part) {
@@ -1569,6 +1643,7 @@ window.__mm = {
   get modalOpen() { return !!document.querySelector('.overlay.active'); },
   addPart, setSelectedPart,
   get selected() { return STATE.parts.find(p => p.selected) || null; },
+  camera: { cameraFitDistance, levelCameraBounds },
 };
 
 // ---------- SERVICE WORKER (inline, blob) ----------

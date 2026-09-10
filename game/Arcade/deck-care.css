@@ -1,0 +1,98 @@
+/* Operator's Deck care pass: additive UI only. Loaded after the arcade shell. */
+.deck-care-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--hair2);
+  border-left: 3px solid var(--red);
+  border-radius: var(--r-md);
+}
+.deck-care-copy { min-width: 0; }
+.deck-care-label {
+  color: var(--red2);
+  font: 500 9px/1.2 var(--font-mono);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.deck-care-goal,
+.deck-care-controls {
+  color: var(--txt2);
+  font: 500 12px/1.35 var(--font-body);
+}
+.deck-care-goal strong,
+.deck-care-controls strong { color: var(--txt); }
+.deck-care-controls { color: var(--txt3); }
+.deck-care-keys {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+.deck-care-key {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--bg3);
+  color: var(--txt);
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 1px;
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.deck-care-key:hover,
+.deck-care-key.is-held { background: var(--red); border-color: var(--red2); color: #fff; }
+.deck-care-key:active { transform: scale(.97); }
+.deck-care-key[data-key=" "] { min-width: 72px; }
+
+/* Main owns the toggle state; this pass only gives calm mode a quieter surface. */
+[data-effects="calm"] .deck-care-strip { box-shadow: none; }
+[data-effects="calm"] .canvas-container::before { animation-play-state: paused; opacity: .35; }
+[data-effects="calm"] .canvas-frame-tag.live::before { animation: none; }
+
+@media (max-width: 640px) {
+  .header-inner { padding-left: 12px; padding-right: 12px; }
+  .top-bar { align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  .top-bar > div:last-child { flex: 1 1 100%; width: 100%; min-width: 0; flex-wrap: wrap; gap: 8px; }
+  .title-group { gap: 10px; flex: 1 1 190px; }
+  .brand-eyebrow { letter-spacing: 1.6px; font-size: 8px; white-space: normal; }
+  .brand-title { font-size: 19px; }
+  .global-stats { gap: 8px; flex: 1 1 210px; justify-content: flex-end; }
+  .stat-pod-label { font-size: 8px; letter-spacing: 1px; }
+  .stat-pod-val { font-size: 17px; }
+  .controls-group { gap: 5px; flex: 0 1 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .btn-icon { min-height: 44px; height: 44px; padding: 0 9px; font-size: 8px; letter-spacing: 1px; }
+  .nav-tabs { padding: 0 12px; }
+  .nav-tabs-wrapper { margin-left: -12px; margin-right: -12px; }
+  .tab-btn { min-height: 44px; padding: 12px 13px; }
+  .deck-care-strip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; margin-bottom: 8px; padding: 8px 10px; }
+  .deck-care-controls { grid-column: 2; align-self: center; font-size: 11px; }
+  .deck-care-keys { grid-column: 1 / -1; justify-content: flex-start; gap: 5px; }
+  .deck-care-key { flex: 0 0 auto; }
+  .game-layout { min-width: 0; }
+  .btn-action { min-height: 44px; }
+}
+
+@media (max-width: 430px) {
+  .controls-group { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; }
+  .controls-group .btn-icon { width: 100%; }
+  .global-stats { flex-basis: 100%; }
+}
+
+@media (min-width: 641px) and (max-width: 980px) {
+  .deck-care-strip { grid-template-columns: 1fr 1fr; }
+  .deck-care-keys { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-care-key { transition: none; }
+}

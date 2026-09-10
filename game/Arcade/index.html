@@ -477,9 +477,10 @@
     .overlay h3 { font-size: 32px; }
   }
 </style>
+<link rel="stylesheet" href="deck-care.css">
+<link rel="stylesheet" href="mind-machine.css">
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+<script src="../vendor/three/three.min-0.160.0.js"></script>
 </head>
 <body>
 <a href="/" data-clove-home style="position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:max(16px,env(safe-area-inset-left));z-index:2147483000;font:600 11px/1 system-ui,sans-serif;letter-spacing:.08em;color:rgba(230,237,255,.85);background:rgba(6,13,26,.72);border:1px solid rgba(120,160,255,.25);border-radius:999px;padding:7px 12px;text-decoration:none;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">← CLOVE</a>
@@ -512,6 +513,8 @@
         </div>
         <div class="controls-group">
           <button class="btn-icon" id="btn-theme" title="Toggle theme" aria-label="Toggle theme">THEME</button>
+          <button class="btn-icon" id="btn-sound" aria-pressed="false">SOUND ON</button>
+          <button class="btn-icon" id="btn-fx" aria-pressed="false">FULL FX</button>
           <button class="btn-icon" id="btn-sync" title="Export / Import state" aria-label="Export or import account state">SYNC</button>
         </div>
       </div>
@@ -519,7 +522,7 @@
     <div class="nav-tabs-wrapper">
       <button class="tab-scroll-btn" id="tab-prev" aria-label="Scroll tabs left" style="display:none">&#8249;</button>
       <nav class="nav-tabs" role="tablist" id="arcade-tabs" aria-label="Arcade missions">
-        <button class="tab-btn active" role="tab" aria-selected="true"  data-target="imm"><span class="tab-idx">01</span>Mind Machine</button>
+        <button id="tab-imm" class="tab-btn active" role="tab" aria-selected="true"  data-target="imm"><span class="tab-idx">01</span>Mind Machine</button>
         <button class="tab-btn"        role="tab" aria-selected="false" data-target="unblock"><span class="tab-idx">02</span>Unblock</button>
         <button class="tab-btn"        role="tab" aria-selected="false" data-target="mario"><span class="tab-idx">03</span>Pathogen Cure</button>
         <button class="tab-btn"        role="tab" aria-selected="false" data-target="c2048"><span class="tab-idx">04</span>Clarity 2048</button>
@@ -546,34 +549,39 @@
   <div id="panel-imm" class="game-panel active" role="tabpanel" aria-labelledby="tab-imm">
     <div class="game-layout">
       <div class="canvas-container" id="imm-container">
-        <span class="canvas-frame-tag live">CH.01 / MIND MACHINE / DAY 3 LEGACY</span>
+        <span class="canvas-frame-tag">CH.01 / MIND MACHINE / ROUTE THE PULSE</span>
+        <p id="imm-help" role="status" aria-live="polite">Turn the first arrow so the pulse can leave its source.</p>
         <div id="imm-canvas"></div>
+        <div id="imm-nodes" aria-label="Routing nodes"></div>
         <div class="overlay" id="imm-overlay">
           <span class="overlay-tag">Cognitive pathway clear</span>
           <h3 id="imm-status-title">CIRCUIT HELD</h3>
-          <p id="imm-status-desc"><em>Your mental infrastructure is processing beautifully. The current found its way through.</em></p>
-          <div class="multiplier-badge">+1 STREAK · LEGACY DAY 3</div>
+          <p id="imm-status-desc">Your arrows carried the pulse all the way to the goal.</p>
+          <div class="multiplier-badge">+1 STREAK · ROUTE VERIFIED</div>
           <button class="btn-action inline" id="imm-next-btn">Next Level</button>
         </div>
+      </div>
+      <div class="imm-actions">
+        <button class="btn-action" id="imm-action-btn">TEST ROUTE</button>
+        <button class="btn-action secondary" id="imm-reset-btn">RESET ARROWS</button>
       </div>
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-eyebrow">DRILL · COGNITIVE FLOW</div>
           <h2>INCREDIBLE MIND MACHINE</h2>
         </div>
-        <p class="meta-description">Overcoming systemic blocks. Route cognitive energy through complex networks past deep mental gravity wells.</p>
+        <p class="meta-description">Turn the arrows into a route from the amber source to the green goal. Watch your pulse travel through the circuit you made.</p>
         <div class="game-stats-box">
-          <div class="stat-row"><span class="lbl">Daily Puzzle</span><span class="val" id="imm-level-num">1 / 20</span></div>
-          <div class="stat-row"><span class="lbl">Energy Output</span><span class="val accent" id="imm-energy">0%</span></div>
-          <div class="stat-row"><span class="lbl">Time Expended</span><span class="val" id="imm-timer">00:00</span></div>
+          <div class="stat-row"><span class="lbl">Circuit</span><span class="val" id="imm-level-num">1 / 20</span></div>
+          <div class="stat-row"><span class="lbl">Nodes reached</span><span class="val accent" id="imm-energy">0</span></div>
+          <div class="stat-row"><span class="lbl">Turns made</span><span class="val" id="imm-timer">0</span></div>
         </div>
-        <button class="btn-action" id="imm-action-btn">Initialize Sequence</button>
         <div class="directives">
           <div class="directives-label">DIRECTIVES</div>
           <ul>
-            <li>Click or tap nodes to change directional bias.</li>
-            <li>Deflect current around structural logic blocks.</li>
-            <li>Safely discharge pulse into the core node container.</li>
+            <li>Click or tap an arrow to turn it clockwise. Keyboard: Tab, then Enter.</li>
+            <li>Connect the amber source to the green goal. Dark blocks stop the pulse.</li>
+            <li>Test your route. A wrong turn shows where it stopped; adjust and try again.</li>
           </ul>
         </div>
       </aside>
@@ -1148,6 +1156,29 @@ function randomSeed(s) {
   };
 }
 let rng = randomSeed(currentSeed);
+let deckCalm=matchMedia('(prefers-reduced-motion: reduce)').matches, deckMuted=false;
+try {
+  if(localStorage.getItem('deck_effects'))deckCalm=localStorage.getItem('deck_effects')==='calm';
+  deckMuted=localStorage.getItem('deck_muted')==='true';
+} catch (_) {}
+function updateDeckPreferences() {
+  document.documentElement.dataset.effects=deckCalm?'calm':'full';
+  const fx=document.getElementById('btn-fx'),sound=document.getElementById('btn-sound');
+  fx.textContent=deckCalm?'CALM FX':'FULL FX';fx.setAttribute('aria-pressed',String(deckCalm));
+  fx.setAttribute('aria-label','Reduce visual effects');
+  sound.textContent=deckMuted?'SOUND OFF':'SOUND ON';sound.setAttribute('aria-pressed',String(deckMuted));
+  sound.setAttribute('aria-label','Mute game sounds');
+}
+document.getElementById('btn-fx').addEventListener('click',()=>{
+  deckCalm=!deckCalm;updateDeckPreferences();
+  if(deckCalm)document.querySelectorAll('.celebration-particle').forEach(p=>p.remove());
+  try{localStorage.setItem('deck_effects',deckCalm?'calm':'full');}catch(_){}
+});
+document.getElementById('btn-sound').addEventListener('click',()=>{
+  deckMuted=!deckMuted;updateDeckPreferences();
+  try{localStorage.setItem('deck_muted',String(deckMuted));}catch(_){}
+});
+updateDeckPreferences();
 
 /* ===========================================================
    THEME
@@ -1189,7 +1220,7 @@ function ensureAudio() {
 document.addEventListener('pointerdown', ensureAudio, { once: false });
 
 function playTone(freq, type, duration, vol = 0.1) {
-  if (!audioCtx) return;
+  if (!audioCtx || deckMuted) return;
   try {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -1295,25 +1326,21 @@ document.getElementById('btn-sync').addEventListener('click', () => {
 function triggerWinCelebration(container) {
   soundWin();
   incrementStreak();
-  const palette = ['#c0392b', '#e03030', '#d4a843', '#27ae60', '#5a84be', '#ffffff'];
-  for (let i = 0; i < 50; i++) {
-    const p = document.createElement('div');
-    p.className = 'celebration-particle';
-    p.style.background = palette[i % palette.length];
-    p.style.left = '50%'; p.style.top = '50%';
-    if (i % 3 === 0) p.style.borderRadius = '50%';
+  if (deckCalm) return;
+  // Local, bounded, presentation-only reward; no gameplay RNG consumed.
+  container.querySelectorAll('.celebration-particle').forEach(p=>p.remove());
+  const colours=['var(--red2)','var(--gld)','var(--txt)'];
+  for(let i=0;i<24;i++) {
+    const p=document.createElement('div');
+    p.className='celebration-particle';p.style.background=colours[i%3];
+    p.style.left='50%';p.style.top='50%';p.style.borderRadius=i%3?'2px':'50%';
     container.appendChild(p);
-    const angle = Math.random() * Math.PI * 2;
-    const speed = 3 + Math.random() * 9;
-    let lx = 0, ly = 0, t = 0;
-    const anim = setInterval(() => {
-      t++;
-      lx += Math.cos(angle) * speed;
-      ly += Math.sin(angle) * speed + (t * 0.18);
-      p.style.transform = `translate(${lx}px, ${ly}px) rotate(${t * 12}deg)`;
-      p.style.opacity = String(1 - t / 70);
-      if (t > 70) { p.remove(); clearInterval(anim); }
-    }, 16);
+    const angle=i*Math.PI*2/24, distance=80+(i%5)*22;
+    const animation=p.animate([
+      {transform:'translate(0,0) scale(1.5)',opacity:1},
+      {transform:`translate(${Math.cos(angle)*distance}px,${Math.sin(angle)*distance+45}px) rotate(${i*35}deg) scale(.3)`,opacity:0}
+    ],{duration:900+(i%4)*70,easing:'cubic-bezier(.2,.7,.3,1)'});
+    animation.onfinish=()=>p.remove();
   }
 }
 
@@ -1330,7 +1357,7 @@ function stopActiveGameLoops() {
   clearInterval(breakInterval);
   clearInterval(astInterval);
   clearInterval(invInterval);
-  clearInterval(immTimerInterval);
+  if (typeof suspendIMM === 'function') suspendIMM();
   if (scorchAnimReq) { cancelAnimationFrame(scorchAnimReq); scorchAnimReq = null; }
 }
 // ── Lifecycle: safely resume whichever panel is active (full re-init = no stale delta).
@@ -1372,9 +1399,7 @@ tabs.forEach(tab => {
     if (target === 'invaders')  initInvaders();
     if (target === 'imm' && immRenderer) {
       const c = document.getElementById('imm-canvas');
-      immCamera.aspect = c.clientWidth / c.clientHeight;
-      immCamera.updateProjectionMatrix();
-      immRenderer.setSize(c.clientWidth, c.clientHeight);
+      resizeIMM();
     }
   });
 });
@@ -1412,134 +1437,7 @@ function cssVar(name) { return getComputedStyle(document.documentElement).getPro
 /* ===========================================================
    1. INCREDIBLE MIND MACHINE (Day 3 legacy core, restyled)
    =========================================================== */
-let immScene, immCamera, immRenderer, immWorld;
-let immLevel = 1, immIsRunning = false, immStartTime, immTimerInterval;
-let immNodes = [];
-
-function initIMM() {
-  const container = document.getElementById('imm-canvas');
-  if (!container || immScene) return;
-  immScene = new THREE.Scene();
-  immScene.background = new THREE.Color(currentTheme === 'dark' ? 0x0a0a12 : 0xecebe5);
-  immCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-  immCamera.position.set(0, 18, 18); immCamera.lookAt(0, 0, 0);
-  immRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  immRenderer.setSize(container.clientWidth, container.clientHeight);
-  immRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  container.appendChild(immRenderer.domElement);
-  immWorld = new CANNON.World();
-  immWorld.gravity.set(0, -9.82, 0);
-
-  immScene.add(new THREE.AmbientLight(0xffffff, 0.55));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-  dirLight.position.set(10, 20, 10);
-  immScene.add(dirLight);
-  const redLight = new THREE.PointLight(0xe03030, 1.2, 30);
-  redLight.position.set(-6, 8, 6);
-  immScene.add(redLight);
-
-  buildIMMLevel();
-  animateIMM();
-}
-function buildIMMLevel() {
-  // wipe prior nodes
-  immNodes.forEach(n => immScene.remove(n));
-  immNodes = [];
-  document.getElementById('imm-level-num').textContent = `${immLevel} / 20`;
-  document.getElementById('imm-energy').textContent = '0%';
-  // seed
-  const lrng = randomSeed(currentSeed + immLevel * 17);
-
-  // Floor pad
-  const padGeo = new THREE.BoxGeometry(14, 0.4, 14);
-  const padMat = new THREE.MeshStandardMaterial({ color: 0x111120, metalness: 0.2, roughness: 0.7 });
-  const pad = new THREE.Mesh(padGeo, padMat);
-  pad.position.y = -1;
-  immScene.add(pad); immNodes.push(pad);
-
-  // Goal core
-  const coreGeo = new THREE.IcosahedronGeometry(1.1, 0);
-  const coreMat = new THREE.MeshStandardMaterial({ color: 0xc0392b, emissive: 0x6b1515, emissiveIntensity: 0.6, metalness: 0.3, roughness: 0.4 });
-  const core = new THREE.Mesh(coreGeo, coreMat);
-  core.position.set(5, 0.3, 0);
-  immScene.add(core); immNodes.push(core);
-
-  // Obstacle towers
-  const towers = 2 + (immLevel % 5);
-  for (let i = 0; i < towers; i++) {
-    const h = 1.2 + lrng() * 2.5;
-    const geo = new THREE.BoxGeometry(0.8, h, 0.8);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x16162a, metalness: 0.1, roughness: 0.8 });
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(-5 + lrng() * 9, h / 2 - 0.7, -5 + lrng() * 9);
-    immScene.add(m); immNodes.push(m);
-  }
-  // Pulse node
-  const pulseGeo = new THREE.SphereGeometry(0.5, 16, 16);
-  const pulseMat = new THREE.MeshStandardMaterial({ color: 0xd4a843, emissive: 0xd4a843, emissiveIntensity: 0.7 });
-  const pulse = new THREE.Mesh(pulseGeo, pulseMat);
-  pulse.position.set(-5, 0, 0);
-  pulse.userData.isPulse = true;
-  immScene.add(pulse); immNodes.push(pulse);
-}
-function animateIMM() {
-  requestAnimationFrame(animateIMM);
-  const immPanel = document.getElementById('panel-imm');
-  if (document.hidden || !(immPanel && immPanel.classList.contains('active'))) return;
-  if (immIsRunning) {
-    immWorld.step(1/60);
-    immNodes.forEach(n => {
-      if (n.userData.isPulse) {
-        n.position.x += 0.06;
-        n.rotation.y += 0.05;
-        if (n.position.x > 5) n.position.x = 5;
-      }
-    });
-    // rotate core
-    immNodes.forEach(n => { if (n.geometry && n.geometry.type === 'IcosahedronGeometry') n.rotation.y += 0.01; });
-  }
-  if (immRenderer) immRenderer.render(immScene, immCamera);
-}
-document.getElementById('imm-action-btn').addEventListener('click', () => {
-  soundClick();
-  if (immIsRunning) return;
-  immIsRunning = true;
-  immStartTime = Date.now();
-  clearInterval(immTimerInterval);
-  immTimerInterval = setInterval(() => {
-    const diff = Date.now() - immStartTime;
-    const m = String(Math.floor(diff / 60000)).padStart(2, '0');
-    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-    document.getElementById('imm-timer').textContent = `${m}:${s}`;
-    const pct = Math.min(100, Math.floor(diff / 30));
-    document.getElementById('imm-energy').textContent = `${pct}%`;
-  }, 100);
-  setTimeout(() => {
-    clearInterval(immTimerInterval);
-    immIsRunning = false;
-    document.getElementById('imm-energy').textContent = '100%';
-    document.getElementById('imm-overlay').classList.add('active');
-    triggerWinCelebration(document.getElementById('imm-container'));
-  }, 3000);
-});
-document.getElementById('imm-next-btn').addEventListener('click', () => {
-  document.getElementById('imm-overlay').classList.remove('active');
-  immLevel = (immLevel % 20) + 1;
-  buildIMMLevel();
-});
-window.addEventListener('resize', () => {
-  if (!immRenderer) return;
-  const c = document.getElementById('imm-canvas');
-  if (!c.clientWidth) return;
-  immCamera.aspect = c.clientWidth / c.clientHeight;
-  immCamera.updateProjectionMatrix();
-  immRenderer.setSize(c.clientWidth, c.clientHeight);
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) stopActiveGameLoops();
-  else resumeActiveGame();
-});
-setTimeout(initIMM, 400);
+// The routing puzzle is owned by mind-route.js + mind-machine.js below.
 
 /* ===========================================================
    2. UNBLOCK PROCRASTINATION
@@ -3476,6 +3374,9 @@ canvasInv.addEventListener('touchmove', e => {
    =========================================================== */
 updateGlobalUI();
 </script>
+<script src="mind-route.js"></script>
+<script src="mind-machine.js"></script>
+<script src="deck-care.js"></script>
 
   <script src="/clove-signals.js" defer></script>
 </body>

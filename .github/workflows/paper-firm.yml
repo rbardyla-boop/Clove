@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - "arcade/paper-firm/**"
+      - "game/Arcade/**"
+      - "game/theincrediblemindmachine/**"
+      - "workers/arcade-care/**"
+      - "scripts/build-arcade-care-release.mjs"
       - "arcade-studio/**"
       - "workers/arcade/**"
       - "tests/arcade/**"
@@ -27,6 +31,9 @@ jobs:
       - run: npm ci
       - run: npm ci --prefix arcade-studio
       - run: npm ci --prefix workers/arcade
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:unit
       - run: node --test tests/static/ds-i1-release-boundary.test.mjs
       - run: npm --prefix workers/arcade run check
+      - run: node scripts/build-arcade-care-release.mjs
+      - run: workers/arcade/node_modules/.bin/wrangler deploy --dry-run --config workers/arcade-care/wrangler.jsonc
