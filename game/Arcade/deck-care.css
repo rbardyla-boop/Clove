@@ -10,6 +10,7 @@
   border: 1px solid var(--hair2);
   border-left: 3px solid var(--red);
   border-radius: var(--r-md);
+  contain: layout paint;
 }
 .deck-care-copy { min-width: 0; }
 .deck-care-label {
@@ -33,6 +34,15 @@
   justify-content: flex-end;
   gap: 6px;
   min-width: 0;
+  align-items: center;
+}
+.deck-care-touch-label {
+  flex: 0 0 100%;
+  color: var(--txt4);
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 1.5px;
+  text-align: right;
+  white-space: nowrap;
 }
 .deck-care-key {
   min-width: 44px;
@@ -51,6 +61,7 @@
 }
 .deck-care-key:hover,
 .deck-care-key.is-held { background: var(--red); border-color: var(--red2); color: #fff; }
+.deck-care-key.is-held { box-shadow: 0 0 0 2px var(--hair-red); }
 .deck-care-key:active { transform: scale(.97); }
 .deck-care-key[data-key=" "] { min-width: 72px; }
 
@@ -74,9 +85,11 @@
   .nav-tabs { padding: 0 12px; }
   .nav-tabs-wrapper { margin-left: -12px; margin-right: -12px; }
   .tab-btn { min-height: 44px; padding: 12px 13px; }
-  .deck-care-strip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; margin-bottom: 8px; padding: 8px 10px; }
-  .deck-care-controls { grid-column: 2; align-self: center; font-size: 11px; }
-  .deck-care-keys { grid-column: 1 / -1; justify-content: flex-start; gap: 5px; }
+  .deck-care-strip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 10px; margin-bottom: 8px; padding: 10px; }
+  .deck-care-goal { font-size: 12px; line-height: 1.4; }
+  .deck-care-controls { grid-column: 2; align-self: center; font-size: 11px; line-height: 1.45; }
+  .deck-care-keys { grid-column: 1 / -1; justify-content: flex-start; gap: 5px; padding-top: 2px; }
+  .deck-care-touch-label { order: -1; flex-basis: auto; margin-right: auto; text-align: left; }
   .deck-care-key { flex: 0 0 auto; }
   .game-layout { min-width: 0; }
   .btn-action { min-height: 44px; }
@@ -86,6 +99,9 @@
   .controls-group { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; }
   .controls-group .btn-icon { width: 100%; }
   .global-stats { flex-basis: 100%; }
+  .deck-care-strip { grid-template-columns: 1fr; }
+  .deck-care-controls { grid-column: 1; }
+  .deck-care-keys { grid-column: 1; }
 }
 
 @media (min-width: 641px) and (max-width: 980px) {
@@ -95,4 +111,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .deck-care-key { transition: none; }
+  .deck-care-key.is-held { box-shadow: none; }
 }

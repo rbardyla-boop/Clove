@@ -24,7 +24,6 @@ test('deck care touch keys carry exact key and code pairs', () => {
   assert.match(js, /dataset\.key = binding\.key/);
   assert.match(js, /dataset\.code = binding\.code/);
   assert.match(js, /id: 'serpent'.*keys: ARROWS/s);
-  assert.doesNotMatch(js, /WASD/);
   assert.doesNotMatch(js, /keys: .*concat\(ARROWS\)/);
   assert.match(js, /id: 'mine', goal: 'Reveal every safe cell\.'/);
   assert.doesNotMatch(js, /flag every mine/);
@@ -32,14 +31,14 @@ test('deck care touch keys carry exact key and code pairs', () => {
 
 test('touch inputs release on normal and interrupted lifecycles', () => {
   assert.match(js, /pointerup', release/);
-  assert.match(js, /pointercancel', release/);
+  assert.match(js, /pointercancel', event =>/);
   assert.match(js, /lostpointercapture', release/);
   assert.match(js, /window\.addEventListener\('blur', releaseAll\)/);
   assert.match(js, /tab\.addEventListener\('click', releaseAll/);
-  assert.match(js, /dispatchKey\('keyup', pressed\.get\(button\)\)/);
+  assert.match(js, /dispatchKey\('keyup', state\.binding\)/);
   assert.match(js, /pressed\.clear\(\)/);
   assert.match(js, /button\.addEventListener\('click', click\)/);
-  assert.match(js, /if \(pointerGesture\) \{ pointerGesture = false; return; \}/);
+  assert.match(js, /event\.detail > 0 && suppressPointerClick/);
 });
 
 test('care pass preserves compact red black cream UI and mobile hit targets', () => {

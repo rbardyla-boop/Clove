@@ -50,7 +50,7 @@ test('portrait camera fit preserves foreground visibility instead of increasing 
   for(const viewport of viewports) {
     const camera={position:{set(x,y,z){this.x=x;this.y=y;this.z=z;}},lookAt(){},updateProjectionMatrix(){}};
     const fog={density:.025};
-    const context={camera,fog,renderer:{domElement:{clientWidth:viewport.width,clientHeight:viewport.height}},LEVELS:[{}],STATE:{levelIndex:0},Math,CAMERA_FOV:45,cameraSafeMargins:()=>viewport,levelCameraBounds:()=>world,cameraFitDistance:fitDistance};
+    const context={camera,fog,renderer:{domElement:{clientWidth:viewport.width,clientHeight:viewport.height}},LEVELS:[{}],STATE:{levelIndex:0},Math,CAMERA_FOV:45,layoutHud(){},cameraSafeMargins:()=>viewport,levelCameraBounds:()=>world,cameraFitDistance:fitDistance};
     vm.runInNewContext(`${fit}; fitCameraToLevel();`,context);
     const transmission=Math.exp(-Math.pow(camera.position.z*fog.density,2));
     assert.ok(transmission>.8,`${viewport.name}: foreground is not fogged out`);

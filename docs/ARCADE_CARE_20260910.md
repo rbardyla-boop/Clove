@@ -34,6 +34,8 @@ Browser checks can target the actual staged bundle or production without alterin
 
 ```sh
 ARCADE_CARE_ORIGIN=https://clovelearn.io node --test tests/arcade/arcade-care-browser.test.mjs
+ARCADE_MIND_ORIGIN=https://clovelearn.io node --test tests/arcade/standalone-mind-polish.test.mjs
+node scripts/verify-arcade-care-campaign.cjs https://clovelearn.io
 ```
 
 The browser solver reads the current board and operates its actual buttons. It
@@ -58,8 +60,9 @@ Local focused checks and an independent Luna review passed:
 
 - Verified: Chrome desktop and emulated phone rendering, actual input, source rules,
   current same-origin runtime assets and narrow release boundaries.
-- Checkable but unchecked: physical Pixel/iOS ergonomics, every campaign's final
-  level in a browser, cross-browser audio behavior.
+- Checkable but unchecked: physical Pixel/iOS ergonomics, the standalone physics
+  campaign's full 20-level completion, cross-browser audio behavior and actual
+  device GPU frame times. The deck's entire 20-circuit campaign was browser-tested.
 - Not established: that every arcade title is now equally fun. This is the first
   bounded care pass, not a blanket quality claim.
 
@@ -69,6 +72,28 @@ The baseline first tab awarded a win after a timer without routing input. The
 replacement rejects that same input and succeeds only after arrow changes. Camera
 framing uses the actual viewport aspect; fog normalization removes a separate
 portrait-only visibility regression. Other game logic is unchanged.
+
+## Deep polish — 13 September 2026
+
+- The circuit board now has a layered 3D tray, raised rotors, direction-matched
+  conductors, contact rings and a bounded pulse-trail pool. Calm effects retain
+  the same routing speed and outcomes; `?immFx=0` isolates the base rendering.
+- Touch keys repeat while held and release on cancellation, blur, hidden page
+  or tab change. Goals and control briefs cover all 15 existing deck tabs.
+- Standalone objectives follow the current level. A fallen or genuinely stalled
+  ball gives a deliberate edit/retry choice without destroying construction.
+  Retry runs the preserved layout. Moving constructions have no time deadline.
+- Phone overlays use measured layout; instructions and inventory clear each
+  other and the real Feedback launcher. Level 20 has an explicit campaign end.
+- Local full suite: 1,345 passing tests. Release-boundary tests: 3 passing.
+  Worker dry-run passes. These are automated evidence, not a physical-phone claim.
+- Full browser campaign at seed 20260913: circuits 1–20 earned through real
+  buttons, streak 1–20, `ALL 20 CIRCUITS CONNECTED`, then a new set at circuit 1;
+  no uncaught errors. Observed 129–178 draws and 2,568–3,432 triangles across
+  those boards; these counts are not a measured FPS claim.
+
+This pass does not redesign the other 14 deck mechanics or establish that all
+arcade games are equally polished. It improves this bounded pair of surfaces.
 
 ## Release boundary
 

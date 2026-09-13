@@ -89,6 +89,26 @@ test('3D circuit: no-input failure, input-earned win, next circuit and cancelled
   await page.locator('#imm-action-btn').click();await state(page,'failed');
 });
 
+test('phone circuit fits the complete tray and full touch targets',async t=>{
+  for(const viewport of [{width:360,height:800},{width:390,height:844}]) {
+    const page=await open(t,viewport);await state(page,'ready');
+    const fit=await page.evaluate(()=>{
+      const frame=document.querySelector('#imm-container').getBoundingClientRect();
+      const points=[];
+      for(const x of [-6.25,6.25])for(const z of [-6.25,6.25]) {
+        const p=new THREE.Vector3(x,-.75,z).project(immCamera);
+        points.push({x:(p.x+1)*immContainer.clientWidth/2,y:(1-p.y)*immContainer.clientHeight/2});
+      }
+      return {width:immContainer.clientWidth,height:immContainer.clientHeight,points,
+        buttons:[...document.querySelectorAll('.imm-node')].map(el=>{
+          const b=el.getBoundingClientRect();return {left:b.left-frame.left,right:b.right-frame.left,top:b.top-frame.top,bottom:b.bottom-frame.top,width:b.width,height:b.height};
+        })};
+    });
+    for(const p of fit.points)assert.ok(p.x>=11&&p.x<=fit.width-11&&p.y>=0&&p.y<=fit.height,`${viewport.width}: tray corner fits`);
+    for(const b of fit.buttons)assert.ok(b.width>=44&&b.height>=44&&b.left>=0&&b.right<=fit.width+1&&b.top>=0&&b.bottom<=fit.height+1,`${viewport.width}: full hitbox is usable`);
+  }
+});
+
 test('phone: readable header, usable 3D nodes, touch direction and released controls, all 15 briefs',async t=>{
   const page=await open(t,{width:390,height:844});await state(page,'ready');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
