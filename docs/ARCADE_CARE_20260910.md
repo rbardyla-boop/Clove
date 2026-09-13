@@ -85,7 +85,7 @@ portrait-only visibility regression. Other game logic is unchanged.
   Retry runs the preserved layout. Moving constructions have no time deadline.
 - Phone overlays use measured layout; instructions and inventory clear each
   other and the real Feedback launcher. Level 20 has an explicit campaign end.
-- Local full suite: 1,345 passing tests. Release-boundary tests: 3 passing.
+- Local full suite: 1,346 passing tests. Release-boundary tests: 3 passing.
   Worker dry-run passes. These are automated evidence, not a physical-phone claim.
 - Full browser campaign at seed 20260913: circuits 1–20 earned through real
   buttons, streak 1–20, `ALL 20 CIRCUITS CONNECTED`, then a new set at circuit 1;

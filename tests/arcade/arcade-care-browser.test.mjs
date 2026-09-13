@@ -106,6 +106,10 @@ test('phone circuit fits the complete tray and full touch targets',async t=>{
     });
     for(const p of fit.points)assert.ok(p.x>=11&&p.x<=fit.width-11&&p.y>=0&&p.y<=fit.height,`${viewport.width}: tray corner fits`);
     for(const b of fit.buttons)assert.ok(b.width>=44&&b.height>=44&&b.left>=0&&b.right<=fit.width+1&&b.top>=0&&b.bottom<=fit.height+1,`${viewport.width}: full hitbox is usable`);
+    for(let i=0;i<fit.buttons.length;i++)for(let j=i+1;j<fit.buttons.length;j++) {
+      const a=fit.buttons[i],b=fit.buttons[j];
+      assert.equal(a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top,false,`${viewport.width}: adjacent touch targets do not overlap`);
+    }
   }
 });
 

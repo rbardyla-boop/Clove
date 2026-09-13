@@ -400,17 +400,22 @@ function resizeIMM() {
   if (!immRenderer || !immContainer.clientWidth) return;
   const w = immContainer.clientWidth,
     h = immContainer.clientHeight;
+  // A tighter, more overhead phone lens keeps the far-row touch targets apart
+  // while retaining perspective and the same raised 3D board.
+  const tilt = w < 500 ? 0.2 : 0.65;
+  immCamera.fov = w < 500 ? 22 : 40;
   immCamera.aspect = w / h;
   immCamera.updateProjectionMatrix();
   // Fit the physical tray, including its closest perspective corners, inside
   // the visible canvas. An aspect-only estimate clipped the front phone tiles.
   const top = Math.max(92, immHelp.getBoundingClientRect().bottom - immContainer.getBoundingClientRect().top + 12);
+  immCamera.setViewOffset(w, Math.max(1, h - top - 12), 0, -top, w, h);
   const corners = [];
   for (const x of [-6.25, 6.25]) for (const y of [-0.75, 2]) for (const z of [-6.25, 6.25])
     corners.push(new THREE.Vector3(x, y, z));
   let distance = 17;
   for (;;) {
-    immCamera.position.set(0, distance, distance * 0.65);
+    immCamera.position.set(0, distance, distance * tilt);
     immCamera.lookAt(0, 0, 0);
     immCamera.updateMatrixWorld();
     const fits = corners.every(corner => {
