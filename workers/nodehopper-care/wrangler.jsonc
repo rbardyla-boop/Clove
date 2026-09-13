@@ -1,0 +1,16 @@
+{
+  "name": "clove-nodehopper-care",
+  "account_id": "bea9dc96b5924f5224d79146429b3795",
+  "compatibility_date": "2026-09-13",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "clovelearn.io/game/nodehopper", "zone_id": "2f2c0de230cc554de68abaa928145207" },
+    { "pattern": "clovelearn.io/game/nodehopper/*", "zone_id": "2f2c0de230cc554de68abaa928145207" }
+  ],
+  "assets": {
+    "directory": "../../dist/nodehopper-care",
+    "not_found_handling": "none",
+    "html_handling": "none"
+  }
+}

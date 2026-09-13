@@ -1,0 +1,30 @@
+name: Node Hopper care
+on:
+  pull_request:
+    paths: ['game/nodehopper/**', 'tests/arcade/nodehopper*', 'scripts/build-nodehopper-release.mjs', 'workers/nodehopper-care/**', '.github/workflows/nodehopper-care.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: node --test tests/arcade/nodehopper.test.mjs
+      - run: node scripts/build-nodehopper-release.mjs
+      - name: Test the staged game, not the checkout
+        run: |
+          python3 -m http.server 8766 --bind 127.0.0.1 --directory dist/nodehopper-care > /tmp/nodehopper-server.log 2>&1 &
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:8766/game/nodehopper/game.js > /dev/null && break; sleep 1; done
+          node --test tests/arcade/nodehopper.browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nodehopper-browser-evidence
+          path: /tmp/nodehopper-evidence
