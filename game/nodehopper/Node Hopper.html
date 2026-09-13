@@ -272,6 +272,44 @@
     #touch-ui { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
     .brand-corner { display: none; }
   }
+  /* The room stays visible; instructions and controls live outside its field. */
+  #room-brief { position:fixed;top:112px;left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 32px));display:flex;gap:12px;align-items:center;background:rgba(6,9,16,.94);border:1px solid #294553;padding:10px 14px;z-index:6;font:12px/1.5 'Space Grotesk',sans-serif;pointer-events:none; }
+  #room-brief strong { white-space:nowrap;color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px; }
+  #room-brief span { color:var(--ink); }
+  #chamber-hint,#go-message { max-width:440px;margin:12px auto 0;color:var(--ink);font:15px/1.5 'Space Grotesk',sans-serif; }
+  #touch-util { display:flex;top:62px;gap:6px;padding-top:0; }
+  #touch-util .util-btn { min-height:44px; }
+  #touch-ui { bottom:48px; }
+  .dpad { display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,48px);gap:6px; }
+  .dpad .touch-btn { width:54px;height:48px; }
+  #btn-up { grid-column:2;grid-row:1; }
+  #btn-left { grid-column:1;grid-row:2; }
+  #btn-down { grid-column:2;grid-row:2; }
+  #btn-right { grid-column:3;grid-row:2; }
+  #btn-jump { width:76px;height:76px;font-size:13px; }
+  .touch-btn.is-held { background:#1b414a;border-color:var(--cyan); }
+  button:focus-visible,[role=button]:focus-visible { outline:2px solid var(--cyan);outline-offset:3px; }
+  .card-help { line-height:2;letter-spacing:.06em; }
+  .card-sub { max-width:460px;line-height:1.6;letter-spacing:.12em; }
+  .card-cta { min-height:44px;transition:background .15s ease,transform .15s ease; }
+  [data-clove-home] { top:auto!important;bottom:12px;left:auto!important;right:14px; }
+  @media(max-width:520px) {
+    #room-brief { top:114px;flex-direction:column;align-items:flex-start;gap:3px;padding:8px 12px;font-size:12px; }
+    .card-sub { font-size:11px; }
+    .card-help { display:block;letter-spacing:0;font-size:9px; }
+    .card-help kbd { padding:2px 4px;margin:0; }
+    #touch-ui { display:flex!important; }
+    .meta-row { letter-spacing:.06em;gap:6px; }
+  }
+  @media(max-height:500px) and (min-width:521px) {
+    .hud { padding-top:4px; }
+    #touch-util { top:auto;bottom:10px; }
+    #room-brief { top:60px;max-width:500px;padding:4px 10px; }
+    #touch-ui { bottom:36px;padding:8px; }
+    .dpad { grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px);gap:3px; }
+    .dpad .touch-btn { width:44px;height:44px; }
+    #btn-jump { width:64px;height:64px; }
+  }
 </style>
 </head>
 <body>
@@ -317,16 +355,16 @@
     </div>
     <div class="card-eyebrow">CLOVELEARN · ARCADE</div>
     <h1 class="card-title">NODE&nbsp;HOPPER</h1>
-    <div class="card-sub">SURVIVE THE GAUNTLET · COLLECT THE NODES</div>
+    <div class="card-sub">READ THE ROOM. PLAN YOUR CLIMB. RECOVER EVERY NODE.</div>
     <button class="card-cta" id="title-start">▶  INITIATE</button>
     <div class="card-help">
-      <kbd>←</kbd><kbd>→</kbd> MOVE &nbsp;·&nbsp; <kbd>SPACE</kbd> JUMP &nbsp;·&nbsp; <kbd>R</kbd> RESPAWN &nbsp;·&nbsp; <kbd>M</kbd> MUTE
+      <kbd>←</kbd><kbd>→</kbd> MOVE · <kbd>↑</kbd><kbd>↓</kbd> CLIMB · <kbd>SPACE</kbd> JUMP<br><kbd>P</kbd> PAUSE · <kbd>R</kbd> RESPAWN · <kbd>M</kbd> MUTE
     </div>
     <div class="meta-row">
-      <span>3 LIVES</span>
+      <span>7 LIVES</span>
       <span>12 CHAMBERS</span>
-      <span>RANDOM ORDER</span>
-      <span>NO SAVE</span>
+      <span>ONE-SCREEN ROOMS</span>
+      <span>A REAL FINISH</span>
     </div>
   </div>
 </div>
@@ -336,6 +374,7 @@
   <div class="card-inner">
     <div class="card-eyebrow" id="chamber-card-num">CHAMBER 01</div>
     <h2 class="card-title" id="chamber-card-name">BOOT SEQUENCE</h2>
+    <p id="chamber-hint"></p>
   </div>
 </div>
 
@@ -351,8 +390,9 @@
 <!-- Game over card -->
 <div class="card" id="gameover-card">
   <div class="card-inner">
-    <div class="card-eyebrow" style="color: var(--red);">▼  KERNEL TERMINATED</div>
-    <h2 class="card-title">GAME OVER</h2>
+    <div class="card-eyebrow" id="go-kicker" style="color: var(--red);">▼  KERNEL TERMINATED</div>
+    <h2 class="card-title" id="go-title">KERNEL TERMINATED</h2>
+    <p id="go-message">Your route is learned. Take another run.</p>
     <div class="stats-row">
       <div class="stat"><div class="label">SCORE</div><div class="value" id="go-score">0</div></div>
       <div class="stat best"><div class="label">BEST</div><div class="value" id="go-best">0</div></div>
@@ -365,28 +405,33 @@
 
 <!-- Touch controls -->
 <div id="touch-ui">
-  <div class="touch-grp">
-    <div class="touch-btn" id="btn-left" role="button" aria-label="Move left">◀</div>
-    <div class="touch-btn" id="btn-right" role="button" aria-label="Move right">▶</div>
+  <div class="touch-grp dpad">
+    <button class="touch-btn" id="btn-up" aria-label="Climb up">↑</button>
+    <button class="touch-btn" id="btn-left" aria-label="Move left">←</button>
+    <button class="touch-btn" id="btn-down" aria-label="Climb down">↓</button>
+    <button class="touch-btn" id="btn-right" aria-label="Move right">→</button>
   </div>
   <div class="touch-grp">
-    <div class="touch-btn" id="btn-jump" role="button" aria-label="Jump">▲</div>
+    <button class="touch-btn" id="btn-jump" aria-label="Jump">JUMP</button>
   </div>
 </div>
 
 <!-- Touch utility bar: respawn + mute, top-center, away from the movement/jump thumb zones -->
 <div id="touch-util">
+  <button class="util-btn" id="btn-pause" aria-label="Pause or resume game">PAUSE</button>
   <div class="util-btn" id="btn-respawn" role="button" tabindex="0" aria-label="Respawn at start of chamber">↻ RESPAWN</div>
   <div class="util-btn" id="btn-mute" role="button" tabindex="0" aria-label="Toggle sound">♪ SOUND</div>
 </div>
 
-<div class="brand-corner"><b>NODE HOPPER</b> · v1.0 · clovelearn.io</div>
+<div id="room-brief"><strong id="node-count">0 / 0 NODES</strong><span id="room-objective">Collect every gold node. Plan your climb.</span></div>
+<div class="brand-corner"><b>NODE HOPPER</b> · CLIMB / COLLECT / ESCAPE</div>
 
 <!-- three.js r160 vendored in-repo (game/vendor/three/) for offline play — see docs/ARCADE_VENDOR_MANIFEST.md -->
 <script src="../vendor/three/three.min-0.160.0.js"></script>
 <script src="audio.js"></script>
 <script src="chambers.js"></script>
 <script src="render-helpers.js"></script>
+<script src="traversal.js"></script>
 <script src="game.js"></script>
   <script src="/clove-signals.js" defer></script>
 </body>

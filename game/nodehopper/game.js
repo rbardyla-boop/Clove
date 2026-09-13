@@ -23,12 +23,13 @@
   const PHYS = {
     PLAYER_W: 0.62,
     PLAYER_H: 0.86,
-    MOVE_SPEED: 9.2,
+    MOVE_SPEED: 6.4,
     AIR_ACCEL: 28,
     GROUND_ACCEL: 60,
-    FRICTION: 14,
-    GRAVITY: 48,
-    JUMP_VEL: 20,
+    FRICTION: 22,
+    GRAVITY: 40,
+    JUMP_VEL: 15.8,
+    CLIMB_SPEED: 5,
     JUMP_CUT: 0.5,        // multiplier when releasing jump early
     MAX_FALL: 30,
     COYOTE: 0.09,
@@ -105,20 +106,13 @@
   function resize() {
     const wW = window.innerWidth, wH = window.innerHeight;
     renderer.setSize(wW, wH, false);
-    const target = W / H;       // 1.778
-    const actual = wW / wH;
-    let cw, ch;
-    if (actual > target) {
-      ch = H;
-      cw = H * actual;
-    } else {
-      cw = W;
-      ch = W / actual;
-    }
-    // Some breathing room
-    const pad = 1.4;
-    cw += pad; ch += pad;
-    const cx = W / 2, cy = H / 2;
+    // Reserve actual HUD / touch space: no node may hide behind a button.
+    const short=wH<=500&&wW>520;
+    const top=short?110:(wW<520?200:150);
+    const bottom=short?62:(wW<520?175:65);
+    const scale=Math.min(wW/(W+1.4),Math.max(160,wH-top-bottom)/(H+1.4));
+    const cw=wW/scale,ch=wH/scale;
+    const cx=W/2,cy=H/2+(top-bottom)/2/scale;
     camera.left = cx - cw / 2;
     camera.right = cx + cw / 2;
     camera.top = cy + ch / 2;
@@ -181,14 +175,14 @@
     const [x, y] = tileCenter(col, row);
     const grp = new THREE.Group();
     const outline = glowMesh(rectOutline(0.94, 0.4, 0.06), COL.disappear, { haloOpacity: 0.35, haloScale: 1.8 });
-    outline.position.y = 0.25;
+    outline.position.y = 0.21;
     const fill = glowMesh(rectGeom(0.82, 0.28), COL.disappear, { coreOpacity: 0.35, haloOpacity: 0.18, haloScale: 1.4 });
-    fill.position.y = 0.25;
+    fill.position.y = 0.21;
     grp.add(fill); grp.add(outline);
     grp.position.set(x, y, 0);
     world.add(grp);
     return {
-      x, y: y + 0.25, w: 0.94, h: 0.4,
+      x, y: y + 0.21, w: 0.94, h: 0.4,
       type: 'dissolve',
       mesh: grp,
       state: 'solid',       // 'solid' | 'fading' | 'gone'
@@ -227,7 +221,31 @@
     grp.add(halo); grp.add(core);
     grp.position.set(x, y, 0);
     world.add(grp);
-    return { x, y, w: 0.5, h: 0.6, type: 'node', mesh: grp, halo, core, collected: false, t: Math.random() * Math.PI * 2 };
+    return { col,row,x, y, w: 0.5, h: 0.6, type: 'node', mesh: grp, halo, core, collected: false, t: (col*7+row)%6 };
+  }
+
+  function makeClimb(col,row,type) {
+    const [x,y]=tileCenter(col,row),group=new THREE.Group();
+    const color=type==='L'?COL.player:COL.thin;
+    for(const dx of type==='L'?[-.28,.28]:[0]) {
+      const rail=glowMesh(rectGeom(.065,1.05),color,{haloOpacity:.13,haloScale:1.8});
+      rail.position.x=dx;group.add(rail);
+    }
+    for(const dy of [-.32,0,.32]) {
+      const rung=glowMesh(type==='L'?rectGeom(.6,.055):triGeom(.28,.17),color,{haloOpacity:.1});
+      rung.position.y=dy;if(type==='V')rung.rotation.z=Math.PI;group.add(rung);
+    }
+    group.position.set(x,y,.12);world.add(group);
+    return{x,y,type,mesh:group};
+  }
+
+  function disposeMesh(mesh) {
+    if(!mesh)return;
+    world.remove(mesh);
+    const geometries=new Set(),materials=new Set();
+    mesh.traverse(object=>{if(object.geometry)geometries.add(object.geometry);for(const m of [].concat(object.material||[]))materials.add(m);});
+    for(const geometry of geometries)geometry.dispose();
+    for(const material of materials)material.dispose();
   }
 
   // Moving hazard: a glowing diamond sweeping horizontally
@@ -274,6 +292,8 @@
     flips: [],
     nodes: [],
     hazards: [],
+    climbs: [],
+    bridges: [],
     bounds: { left: 0, right: W, top: H, bottom: 0 },
     spawn: { x: 2.5, y: 1.5 },
     name: '',
@@ -282,11 +302,11 @@
   function clearChamber() {
     // Flush in-flight particles so the previous chamber's sparks don't bleed
     // into the next one's first frame.
-    for (const p of particles) world.remove(p.mesh);
+    for (const p of particles) disposeMesh(p.mesh);
     particles.length = 0;
     [...chamberState.solids, ...chamberState.thins, ...chamberState.spikes,
      ...chamberState.dissolves, ...chamberState.flips, ...chamberState.nodes,
-     ...chamberState.hazards].forEach(e => world.remove(e.mesh));
+     ...chamberState.hazards,...chamberState.climbs].forEach(e => disposeMesh(e.mesh));
     chamberState.solids = [];
     chamberState.thins = [];
     chamberState.spikes = [];
@@ -294,12 +314,18 @@
     chamberState.flips = [];
     chamberState.nodes = [];
     chamberState.hazards = [];
+    chamberState.climbs = [];
+    chamberState.bridges = [];
   }
 
   function loadChamber(idx) {
     clearChamber();
     const c = CHAMBERS[idx];
     chamberState.name = c.name;
+    chamberState.hint = c.hint || 'Collect every gold node. Plan your climb.';
+    chamberState.bridges = (c.bridges||[]).map(bridge=>({...bridge,active:false}));
+    // Ladders cross girders without turning the walkable deck into a hole.
+    for(const [col,row] of c.underlays||[])chamberState.thins.push(makeThin(col,row));
     const grid = c.grid;
     for (let r = 0; r < grid.length; r++) {
       const row = grid[r];
@@ -313,6 +339,11 @@
           case 'G': chamberState.flips.push(makeFlipPad(col, r)); break;
           case 'N': chamberState.nodes.push(makeNode(col, r)); break;
           case 'M': chamberState.hazards.push(makeHazard(col, r)); break;
+          case 'T': {
+            const dart=makeHazard(col,r);dart.type='dart';dart.phase='patrol';dart.timer=0;
+            chamberState.hazards.push(dart);break;
+          }
+          case 'L': case 'U': case 'V': chamberState.climbs.push(makeClimb(col,r,ch));break;
           case 'P': {
             const [x, y] = tileCenter(col, r);
             chamberState.spawn = { x, y };
@@ -335,6 +366,8 @@
     player.jumpBuffer = 0;
     player.squash = 1; player.stretch = 1;
     player.jumpHeld = false;
+    player.climbing = null;
+    player.climbCooldown = 0;
     player.mesh.visible = true;
     player.mesh.scale.set(1, 1, 1);
     resetTouch();
@@ -410,6 +443,7 @@
   // ─── Particles ─────────────────────────────────────────
   const particles = [];
   function spawnParticle({ x, y, vx, vy, color, life = 0.6, size = 0.18, geom = 'tri', spin = 0 }) {
+    if(particles.length>=96)return;
     let g;
     if (geom === 'tri') g = triGeom(size, size);
     else if (geom === 'dia') g = diamondGeom(size, size);
@@ -440,7 +474,7 @@
       const p = particles[i];
       p.life -= dt;
       if (p.life <= 0) {
-        world.remove(p.mesh);
+        disposeMesh(p.mesh);
         particles.splice(i, 1);
         continue;
       }
@@ -477,17 +511,18 @@
   }
 
   // ─── Input ─────────────────────────────────────────────
-  const input = { left: false, right: false, jump: false, jumpPressed: false };
+  const input = { left: false, right: false, up:false,down:false,jump: false, jumpPressed: false };
   const keys = {};
   window.addEventListener('keydown', e => {
-    if (['ArrowLeft','ArrowRight','ArrowUp','Space','KeyA','KeyD','KeyW'].includes(e.code)) e.preventDefault();
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','KeyA','KeyD','KeyW','KeyS'].includes(e.code)) e.preventDefault();
     if (e.repeat) return;
     keys[e.code] = true;
-    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') input.jumpPressed = true;
+    if (e.code === 'Space') input.jumpPressed = true;
+    if (e.code === 'KeyP' || e.code==='Escape') togglePause();
     if (e.code === 'KeyR') { if (game.state === 'playing') killPlayer('reset'); }
     if (e.code === 'KeyM') { toggleMute(); }
     if (e.code === 'Enter' || e.code === 'Space') {
-      if (game.state === 'title' || game.state === 'gameover') { startRun(); }
+      if (game.state === 'title' || game.state === 'gameover'||game.state==='complete') { startRun(); }
     }
     SFX.resume();
   });
@@ -496,7 +531,9 @@
   function pollInput() {
     input.left = !!(keys.ArrowLeft || keys.KeyA);
     input.right = !!(keys.ArrowRight || keys.KeyD);
-    input.jump = !!(keys.Space || keys.ArrowUp || keys.KeyW);
+    input.up = !!(keys.ArrowUp || keys.KeyW || touch.up);
+    input.down = !!(keys.ArrowDown || keys.KeyS || touch.down);
+    input.jump = !!keys.Space;
     // Touch buttons override
     if (touch.left) input.left = true;
     if (touch.right) input.right = true;
@@ -505,9 +542,12 @@
   }
 
   // ─── Touch controls ────────────────────────────────────
-  const touch = { left: false, right: false, jump: false, jumpPressed: false };
+  const touch = { left: false, right: false, up:false,down:false,jump: false, jumpPressed: false };
   function resetTouch() {
-    touch.left = false; touch.right = false; touch.jump = false; touch.jumpPressed = false;
+    for(const key of Object.keys(touch))touch[key]=false;
+    for(const key of Object.keys(keys))keys[key]=false;
+    input.jumpPressed=false;
+    document.querySelectorAll('.touch-btn.is-held').forEach(el=>el.classList.remove('is-held'));
   }
   function bindButton(id, key) {
     const el = document.getElementById(id);
@@ -518,22 +558,26 @@
         try { el.setPointerCapture(e.pointerId); } catch (_) {}
       }
       touch[key] = true;
+      el.classList.add('is-held');
       if (key === 'jump') touch.jumpPressed = true;
       SFX.resume();
       if (game.state === 'title' || game.state === 'gameover') startRun();
     };
-    const release = (e) => { e.preventDefault(); touch[key] = false; };
+    const release = (e) => { e.preventDefault(); touch[key] = false;el.classList.remove('is-held'); };
     // Pointer events subsume mouse + touch + pen, so separate touch/mouse
     // handlers are not needed. setPointerCapture keeps the release bound to
     // this button even if the finger slides off before lifting.
     el.addEventListener('pointerdown', press);
     el.addEventListener('pointerup', release);
     el.addEventListener('pointercancel', release);
+    el.addEventListener('lostpointercapture', release);
     el.addEventListener('pointerleave', release);
     el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
   bindButton('btn-left', 'left');
   bindButton('btn-right', 'right');
+  bindButton('btn-up', 'up');
+  bindButton('btn-down', 'down');
   bindButton('btn-jump', 'jump');
 
   // Tap-style buttons (respawn, mute) — single action, not a held control.
@@ -547,6 +591,7 @@
   }
   bindTap('btn-respawn', requestRespawn);
   bindTap('btn-mute', toggleMute);
+  bindTap('btn-pause', togglePause);
   bindTap('hud-mute', toggleMute); // desktop AUDIO indicator is clickable too
 
   // Show touch UI on touch / coarse-pointer devices
@@ -569,37 +614,31 @@
   // Touch-reachable respawn: same path as the keyboard 'R', so a player who
   // soft-locks in a sealed chamber can always recover without a keyboard.
   function requestRespawn() {
-    if (game.state === 'playing') killPlayer('reset');
+    if (game.state === 'playing'&&!game.paused) killPlayer('reset');
+  }
+  function togglePause() {
+    if(game.state!=='playing')return;
+    game.paused=!game.paused;resetTouch();
+    document.getElementById('btn-pause').textContent=game.paused?'RESUME':'PAUSE';
+    updateHud();
   }
   const game = {
-    state: 'title',     // 'title' | 'intro' | 'playing' | 'dying' | 'clear' | 'gameover'
+    state: 'title',     // title | intro | playing | dying | clear | gameover | complete
     stateTime: 0,
     score: 0,
     best: parseInt(localStorage.getItem('nodehopper-best') || '0', 10),
-    lives: 3,
+    lives: 7,
+    paused:false,
     chambersCleared: 0,
     chamberOrder: [],
     chamberIdx: 0,
     chamberTimer: 0,
     nodesInChamber: 0,
-    loopCount: 0,           // increments each time order is reshuffled
     deathReason: '',
   };
 
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
   function makeOrder() {
-    // First chamber always Boot Sequence (index 0). After that shuffled.
-    const rest = [];
-    for (let i = 1; i < CHAMBERS.length; i++) rest.push(i);
-    return [0, ...shuffle(rest)];
+    return CHAMBERS.map((_,index)=>index);
   }
 
   function startRun() {
@@ -608,9 +647,10 @@
     document.getElementById('gameover-card').classList.remove('show');
     document.getElementById('clear-card').classList.remove('show');
     game.score = 0;
-    game.lives = 3;
+    game.lives = 7;
+    game.paused=false;
+    document.getElementById('btn-pause').textContent='PAUSE';
     game.chambersCleared = 0;
-    game.loopCount = 0;
     game.chamberOrder = makeOrder();
     game.chamberIdx = 0;
     enterChamber();
@@ -627,6 +667,7 @@
     game.stateTime = 0;
     document.getElementById('chamber-card').classList.add('show');
     document.getElementById('chamber-card-name').textContent = chamberState.name;
+    document.getElementById('chamber-hint').textContent=chamberState.hint;
     document.getElementById('chamber-card-num').textContent =
       `CHAMBER ${String(game.chambersCleared + 1).padStart(2, '0')}`;
     updateHud();
@@ -647,6 +688,7 @@
   }
 
   function clearChamberWin() {
+    if(game.state!=='playing'||!chamberState.nodes.length||chamberState.nodes.some(n=>!n.collected))return;
     SFX.clear();
     burst(player.x, player.y, COL.player, 16);
     game.state = 'clear';
@@ -665,14 +707,25 @@
     document.getElementById('clear-bonus').textContent = `+${base + timeBonus}`;
   }
 
-  function gameOver() {
-    SFX.gameOver();
+  function gameOver(won=false) {
+    if(won)SFX.clear();else SFX.gameOver();
+    const kicker=document.getElementById('go-kicker');
+    kicker.textContent=won?'✓  ALL ROUTES RECOVERED':'▼  KERNEL TERMINATED';
+    kicker.style.color=won?'var(--cyan)':'var(--red)';
     game.state = 'gameover';
     game.stateTime = 0;
     document.getElementById('gameover-card').classList.add('show');
     document.getElementById('go-score').textContent = String(game.score);
     document.getElementById('go-best').textContent = String(game.best);
     document.getElementById('go-cleared').textContent = String(game.chambersCleared);
+    document.getElementById('go-title').textContent='KERNEL TERMINATED';
+    document.getElementById('go-message').textContent='Your route is learned. Take another run.';
+  }
+
+  function completeRun() {
+    gameOver(true);game.state='complete';
+    document.getElementById('go-title').textContent='NETWORK RESTORED';
+    document.getElementById('go-message').textContent=`All ${CHAMBERS.length} rooms cleared. Every node recovered. You made the route.`;
   }
 
   // ─── HUD ──────────────────────────────────────────────
@@ -681,27 +734,24 @@
     document.getElementById('hud-best').textContent = String(game.best).padStart(6, '0');
     document.getElementById('hud-lives').innerHTML = '<span class="life-pip"></span>'.repeat(Math.max(0, game.lives));
     document.getElementById('hud-chamber').textContent =
-      String(game.chambersCleared + 1).padStart(2, '0');
+      String(Math.min(CHAMBERS.length,game.chambersCleared + 1)).padStart(2, '0');
     document.getElementById('hud-total').textContent =
-      `×${game.loopCount > 0 ? (game.loopCount + 1) : 1}`;
+      `/ ${CHAMBERS.length}`;
     document.getElementById('hud-mute').textContent = audioMuted ? 'MUTED' : 'AUDIO';
+    document.getElementById('room-objective').textContent=game.paused?'PAUSED — press P or Resume':chamberState.hint;
+    document.getElementById('node-count').textContent=`${chamberState.nodes.filter(n=>n.collected).length} / ${chamberState.nodes.length} NODES`;
   }
 
   // ─── Update loop ──────────────────────────────────────
   let last = performance.now() / 1000;
-  // dt is clamped to 0.033 below (the real tunneling safeguard). This also
-  // resets the clock on tab re-focus so resume produces no catch-up step,
-  // and clears any held movement while the tab is hidden.
+  let accumulator=0;
+  // Fixed 1/60 physics; hidden tabs discard accumulated time and held inputs.
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) resetTouch();
-    else last = performance.now() / 1000;
+    if (document.hidden) {resetTouch();if(game.state==='playing'&&!game.paused)togglePause();}
+    last = performance.now() / 1000;accumulator=0;
   });
-  function frame() {
-    const now = performance.now() / 1000;
-    let dt = now - last;
-    last = now;
-    dt = Math.min(dt, 0.033); // clamp to 30fps minimum step
-
+  function simulate(dt) {
+    if(game.paused)return;
     pollInput();
     game.stateTime += dt;
 
@@ -712,7 +762,7 @@
       checkCollisions();
     } else if (game.state === 'intro') {
       stepEntities(dt);
-      if (game.stateTime > 0.85) {
+      if (game.stateTime > 1.8) {
         document.getElementById('chamber-card').classList.remove('show');
         game.state = 'playing';
         game.stateTime = 0;
@@ -727,7 +777,7 @@
           // Reset dissolves & hazards to initial state so a retry is deterministic
           // (matters more now that respawn is reachable from the touch UI).
           chamberState.dissolves.forEach(d => { d.state = 'solid'; d.timer = 0; d.fade = 1; d.mesh.visible = true; });
-          chamberState.hazards.forEach(h => { h.x = h.spawnX; h.dir = h.spawnDir; });
+          chamberState.hazards.forEach(h => { h.x = h.spawnX; h.dir = h.spawnDir;h.phase='patrol';h.timer=0; });
           game.state = 'playing';
           game.stateTime = 0;
         }
@@ -738,11 +788,10 @@
         document.getElementById('clear-card').classList.remove('show');
         game.chamberIdx++;
         if (game.chamberIdx >= game.chamberOrder.length) {
-          game.loopCount++;
-          game.chamberOrder = shuffle(makeOrder()); // reshuffle
-          game.chamberIdx = 0;
+          completeRun();
+        } else {
+          enterChamber();
         }
-        enterChamber();
       }
     } else if (game.state === 'title' || game.state === 'gameover') {
       stepEntities(dt);
@@ -750,16 +799,35 @@
 
     updateParticles(dt);
     updateShake(dt);
-    renderer.render(scene, camera);
-
     // consume one-shot inputs
     input.jumpPressed = false;
-
+  }
+  function frame() {
+    const now=performance.now()/1000;
+    accumulator+=Math.min(now-last,.1);last=now;
+    while(accumulator>=1/60){simulate(1/60);accumulator-=1/60;}
+    renderer.render(scene,camera);
     requestAnimationFrame(frame);
   }
 
   // ─── Player step (input + physics) ────────────────────
   function stepPlayer(dt) {
+    player.climbCooldown=Math.max(0,(player.climbCooldown||0)-dt);
+    const near=chamberState.climbs.find(c=>Math.abs(player.x-c.x)<.48&&Math.abs(player.y-c.y)<.95);
+    if(player.climbing&&(!near||input.left||input.right))player.climbing=null;
+    if(!player.climbing&&!player.climbCooldown&&!input.left&&!input.right&&near&&(input.up||input.down)&&NHTraversal.climbDirection(near.type,input.up,input.down))player.climbing=near;
+    if(player.climbing&&input.jumpPressed) {
+      player.climbing=null;player.climbCooldown=.25;player.coyote=PHYS.COYOTE;player.onGround=true;
+    }
+    if(player.climbing) {
+      const c=near||player.climbing;
+      const column=chamberState.climbs.filter(r=>r.x===c.x);
+      const low=Math.min(...column.map(r=>r.y))-.45,high=Math.max(...column.map(r=>r.y))+.45;
+      player.x=c.x;player.vx=0;player.vy=0;player.onGround=false;
+      player.y=Math.max(low,Math.min(high,player.y+NHTraversal.climbDirection(c.type,input.up,input.down)*PHYS.CLIMB_SPEED*dt));
+      player.mesh.position.set(player.x,player.y,1);player.mesh.scale.set(.86,1.1,1);
+      return;
+    }
     // Horizontal acceleration
     const target = (input.right ? 1 : 0) - (input.left ? 1 : 0);
     const desired = target * PHYS.MOVE_SPEED;
@@ -828,8 +896,15 @@
   function stepEntities(dt) {
     // Moving hazards
     chamberState.hazards.forEach(h => {
-      const speedMul = 1 + 0.15 * game.loopCount;
-      h.x += h.dir * PHYS.HAZARD_SPEED * speedMul * dt;
+      if(game.state!=='playing')return;
+      if(h.type==='dart') {
+        NHTraversal.advanceDart(h,player,dt);
+        h.mesh.position.set(h.x,h.y,0);
+        h.mesh.scale.set(h.phase==='charge'?1.8:1,h.phase==='charge'?.45:1,1);
+        h.core.userData.coreMat.color.setHex(h.phase==='warning'?COL.node:COL.hazard);
+        return;
+      }
+      h.x += h.dir * PHYS.HAZARD_SPEED * dt;
       // Bounce off solid blocks or chamber walls
       const probe = 0.36;
       const willHit = chamberState.solids.some(b =>
@@ -900,6 +975,7 @@
 
   // ─── Trigger / hazard checks ──────────────────────────
   function checkCollisions() {
+    if(game.state!=='playing')return;
     const pw = PHYS.PLAYER_W, ph = PHYS.PLAYER_H;
     const px = player.x, py = player.y;
 
@@ -921,6 +997,13 @@
         burst(n.x, n.y, COL.node, 10);
         shake(0.06, 0.08); // tiny tactile pop on pickup (no-op under reduced-motion)
         game.score += 50;
+        for(const bridge of chamberState.bridges) {
+          if(!bridge.active&&bridge.trigger[0]===n.col&&bridge.trigger[1]===n.row) {
+            bridge.active=true;
+            for(const [col,row] of bridge.cells)chamberState.thins.push(makeThin(col,row));
+            chamberState.hint='ROUTE OPENED — the new bridge is yours. Recover the remaining nodes.';
+          }
+        }
         updateHud();
       }
     }
@@ -950,7 +1033,7 @@
     }
 
     // All nodes collected?
-    if (chamberState.nodes.every(n => n.collected)) {
+    if (chamberState.nodes.length && chamberState.nodes.every(n => n.collected)) {
       clearChamberWin();
     }
   }
@@ -968,7 +1051,9 @@
   document.getElementById('title-start').addEventListener('click', () => { SFX.resume(); startRun(); });
   document.getElementById('go-restart').addEventListener('click', () => { SFX.resume(); document.getElementById('gameover-card').classList.remove('show'); startRun(); });
 
-  requestAnimationFrame(frame);
+  const qaMode=new URLSearchParams(location.search).get('qa')==='1';
+  const manual=qaMode&&new URLSearchParams(location.search).get('manual')==='1';
+  if(!manual)requestAnimationFrame(frame);
 
   // Expose for debugging / headless verification
   window.__nh = {
@@ -977,5 +1062,21 @@
     get reduceMotion() { return reduceMotion; },
     get muted() { return audioMuted; },
     get particleCount() { return particles.length; },
+    get renderInfo(){return{draws:renderer.info.render.calls,geometries:renderer.info.memory.geometries};},
+  };
+  if(qaMode)window.__nh.qa={
+    tick(frames=1) {
+      for(let i=0;i<Math.min(600,frames);i++)simulate(1/60);
+      renderer.render(scene,camera);
+    },
+    step(actions={},frames=1,render=true) {
+      const wasJump=Boolean(keys.Space);resetTouch();
+      keys.ArrowLeft=!!actions.left;keys.ArrowRight=!!actions.right;
+      keys.ArrowUp=!!actions.up;keys.ArrowDown=!!actions.down;keys.Space=!!actions.jump;
+      input.jumpPressed=!!actions.jump&&!wasJump;
+      for(let i=0;i<Math.min(600,frames);i++)simulate(1/60);
+      if(render)renderer.render(scene,camera);
+      return{state:game.state,x:player.x,y:player.y,nodes:chamberState.nodes.filter(n=>n.collected).length,lives:game.lives};
+    },
   };
 })();
