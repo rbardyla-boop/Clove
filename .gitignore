@@ -54,3 +54,7 @@ webbroswer assest creator/
 
 # Local foundry coordination state (tailnet addresses, agent message logs) — never commit.
 .foundry/
+
+# Narrow arcade-care static release; rebuilt from committed allowlist.
+dist/arcade-care/
+workers/arcade-care/.wrangler/
