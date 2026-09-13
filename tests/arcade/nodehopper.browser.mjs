@@ -55,6 +55,7 @@ try {
     assert.equal(results.rooms.reduce((n,r)=>n+r.nodes,0),48);
     assert.equal(results.rooms.reduce((n,r)=>n+r.bridges,0),4);
     assert.match(await page.locator('#go-title').innerText(),/NETWORK RESTORED/);
+    assert.match(await page.locator('#go-kicker').innerText(),/ALL ROUTES RECOVERED/);
     await page.screenshot({path:`${evidence}/finish-desktop.png`});
     assert.deepEqual(errors,[]);await page.close();
   });

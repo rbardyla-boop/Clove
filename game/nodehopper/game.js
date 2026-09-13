@@ -709,6 +709,9 @@
 
   function gameOver(won=false) {
     if(won)SFX.clear();else SFX.gameOver();
+    const kicker=document.getElementById('go-kicker');
+    kicker.textContent=won?'✓  ALL ROUTES RECOVERED':'▼  KERNEL TERMINATED';
+    kicker.style.color=won?'var(--cyan)':'var(--red)';
     game.state = 'gameover';
     game.stateTime = 0;
     document.getElementById('gameover-card').classList.add('show');
